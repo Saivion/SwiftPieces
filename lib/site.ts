@@ -1,7 +1,7 @@
 // Centralized origins. Never hardcode the Pro URL anywhere else (Rev 3 §3.4).
 export const site = {
   name: "Swift Pieces",
-  tagline: "Animated SwiftUI pieces you own. Liquid Glass first.",
+  tagline: "Own your interface. Next-level SwiftUI effects and open-source components.",
   description:
     "Open-source SwiftUI components, Liquid Glass effects, and Metal shaders for iOS 17+ and iOS 26. Copy a file or run npx swiftpieces add.",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://swiftpieces.com",
