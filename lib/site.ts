@@ -7,7 +7,7 @@ export const site = {
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://swiftpieces.com",
   proUrl: process.env.NEXT_PUBLIC_PRO_URL ?? "https://pro.swiftpieces.com",
   mediaUrl: process.env.NEXT_PUBLIC_MEDIA_URL ?? "https://media.swiftpieces.com",
-  github: "https://github.com/saivion/swiftpieces",
+  github: "https://github.com/Saivion/SwiftPieces",
   twitter: "https://x.com/saivion",
 } as const;
 
