@@ -6,7 +6,8 @@
  *                              [--skip-build] [--local] [--upload]
  *
  *   --local   copy outputs into public/previews/ and write a site-relative manifest
- *   --upload  push outputs to the MEDIA R2 bucket with `wrangler r2 object put`
+ *   --upload  push outputs to the swiftpieces-media R2 bucket with `wrangler r2 object put`
+ *             (optional: the bucket is not bound to the Worker; create it before the first upload)
  *
  * Without ffmpeg on PATH only H.264 MP4 + PNG poster are produced; with ffmpeg
  * a VP9 WebM and a downscaled MP4 are written as well.

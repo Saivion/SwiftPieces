@@ -9,7 +9,6 @@
   "services": [{ "binding": "WORKER_SELF_REFERENCE", "service": "swiftpieces" }],
   // Free has no database and no private bucket (Rev 3 §2). Only public media + the ISR cache.
   "r2_buckets": [
-    { "binding": "MEDIA", "bucket_name": "swiftpieces-media" },
     { "binding": "NEXT_INC_CACHE_R2_BUCKET", "bucket_name": "swiftpieces-cache" }
   ]
 }

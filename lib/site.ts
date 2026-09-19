@@ -3,7 +3,7 @@ export const site = {
   name: "Swift Pieces",
   tagline: "Build beautiful native apps with open-source SwiftUI components.",
   description:
-    "Open-source SwiftUI components, Liquid Glass effects, and Metal shaders for iOS 17+ and iOS 26. Copy a file or run npx swiftpieces add.",
+    "Designed SwiftUI components with motion, haptics and states built in. Add them with a single Swift file, the CLI, or your AI coding agent.",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://swiftpieces.com",
   proUrl: process.env.NEXT_PUBLIC_PRO_URL ?? "https://pro.swiftpieces.com",
   mediaUrl: process.env.NEXT_PUBLIC_MEDIA_URL ?? "https://media.swiftpieces.com",
