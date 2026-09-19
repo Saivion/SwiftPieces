@@ -69,7 +69,7 @@ export function Navbar({ stars = null }: { stars?: number | null }) {
               <kbd className="rounded-[4px] bg-surface-3 px-1.5 py-0.5 font-sans text-[10px] font-semibold text-muted">⌘K</kbd>
             </button>
             <GitHubStar stars={stars} className="hidden sm:inline-flex" />
-            <Button href={pro.pricing} size="sm" className="hidden sm:inline-flex">Get Pro</Button>
+            <Button href={pro.buy} size="sm" className="hidden sm:inline-flex">Get Pro</Button>
             <button type="button" onClick={() => setOpen((v) => !v)} className="flex size-9 items-center justify-center rounded-[var(--radius-sm)] bg-surface-2 lg:hidden" aria-expanded={open} aria-label="Menu">
               {/* Crisp SVG glyphs: three bars closed, an X open. Both are 16px and drawn from the button's centre. */}
               <svg aria-hidden viewBox="0 0 16 16" className="size-4" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
@@ -96,7 +96,7 @@ export function Navbar({ stars = null }: { stars?: number | null }) {
           </ul>
           <div className="flex flex-col gap-3">
             <GitHubStar stars={stars} className="h-12 justify-center text-[15px]" />
-            <Button href={pro.pricing} size="lg">Get Pro</Button>
+            <Button href={pro.buy} size="lg">Get Pro</Button>
             <Button href="/components" variant="ghost" size="lg">Browse free pieces</Button>
           </div>
         </Container>

@@ -199,8 +199,8 @@ export function Compare() {
 
 export function TryFirst() {
   const cards = [
-    { eyebrow: "Pro screen", title: "Wallet", body: "Stacked cards and passes you tap forward, fan out and reorder, with springs and haptics already tuned.", kind: "screen" as Kind, more: "More screens" },
-    { eyebrow: "Pro template", title: "AI Assistant", body: "Nimbus, a complete Xcode project with streaming chat, a conversation library, voice mode and widgets. Download it and it runs.", kind: "template" as Kind, more: "More templates" },
+    { eyebrow: "Pro screen", title: "Wallet", body: "Stacked cards and passes you tap forward, fan out and reorder, with springs and haptics already tuned.", kind: "screen" as Kind, more: "More screens", href: pro.screens },
+    { eyebrow: "Pro template", title: "AI Assistant", body: "Nimbus, a complete Xcode project with streaming chat, a conversation library, voice mode and widgets. Download it and it runs.", kind: "template" as Kind, more: "More templates", href: pro.templates },
   ];
   return (
     <section className="relative py-20 md:py-28">
@@ -216,8 +216,8 @@ export function TryFirst() {
                   <h3 className="p-item mt-4">{c.title}</h3>
                   <p className="p-body mt-2 max-w-md">{c.body}</p>
                   <div className="mt-6 flex flex-wrap gap-3">
-                    <Button href={buy} size="sm">View in Pro <Arrow /></Button>
-                    <Button href={buy} size="sm" variant="ghost">{c.more}</Button>
+                    <Button href={c.href} size="sm">View in Pro <Arrow /></Button>
+                    <Button href={c.href} size="sm" variant="ghost">{c.more}</Button>
                   </div>
                 </div>
               </div>
