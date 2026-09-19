@@ -1,0 +1,9 @@
+## Notes
+
+- The readout is display type: an uppercase meta line (range, point time, or held span), a light 44 pt figure with its decimals dimmed, and a solid delta block beside it: sage for up, tangerine for down, ink text.
+- One finger drags to scrub: a rule and a butter dot ride the line, a flag at the top of the rule shows the point's time, and `.selection` ticks at each data point. Holding still for 300 ms before moving pins that point as an anchor and the drag becomes a range: a solid band fills the span and the figure shows the signed change with its percent.
+- Every series is normalized to 0...1 for drawing, so the y-scale never jumps between ranges. In `.line` mode datasets are resampled to 64 positions and switching ranges morphs the line; in `.bars` mode bars animate to their new heights and the active bar takes the accent block. Under Reduce Motion the switch is a short crossfade.
+- At rest: no y-axis, one dashed baseline at the first value, monospaced min and max markers, the latest point as a butter dot, and three uppercase date labels whose format follows the span of the range. The picker is a butter block on a solid track, 44 pt tall.
+- `tint` sets the line (the house text color by default). `Style` sets `accent`, `up`, `down`, `ink`, `muted`, `band`, `ground` (the card the chart sits on), and `numeralSize`. `format` takes any `FormatStyle` from `Double` to `String`; deltas reuse it with a sign. `range` lets you own the picker index. An empty series shows "No data yet".
+- VoiceOver gets one element with the latest value and change; swipe up or down steps the scrub point.
+- A full dashboard screen ships in Swift Pieces Pro (`dashboard-screen`).

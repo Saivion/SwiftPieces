@@ -1,0 +1,10 @@
+## Notes
+
+- The slab stays dark in both appearances (ink `#141414` on paper, charcoal on the dark ground) so block-colored syntax always reads. The header carries a butter language label, an optional `title` filename, a wrap toggle and a Copy pill.
+- Highlighting is a small hand-written scanner for Swift only: keywords, `@attributes` and `#directives` are bold tangerine, capitalized types are sky, string literals (including `"""` blocks) are sage, numbers are lilac, and comments and punctuation recede. Other languages render plain.
+- Blocks longer than `collapseAfter` + 2 lines show the first `collapseAfter` lines under a fade and a "Show N more lines" pill; expanding is a spring. Collapse is skipped while `isStreaming`.
+- The wrap toggle switches the scroll axes between `.horizontal` and none, so the same `Text` views wrap or scroll without re-creating the view. It fills in when on.
+- With `isStreaming`, appended lines fade in over 0.25s and a tangerine cap-height capsule trails the last line. Copy writes to `UIPasteboard`, turns the pill into a sage Copied block for 1.6s, and fires a success haptic.
+- `Style` (`CodeBlock.Style`): `slab`, `raised`, `text`, `muted`, `gutter`, `ink`, `label`, `keyword`, `string`, `type`, `number`, `copied`, `cornerRadius`. `accent:` still overrides the string and copied colors.
+- Text selection is enabled on the code column; `.footnote` monospaced scales with Dynamic Type.
+- Need code inside fully rendered streaming markdown? That is the Streaming Markdown screen in Swift Pieces Pro.

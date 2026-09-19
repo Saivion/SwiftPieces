@@ -1,0 +1,10 @@
+## Notes
+
+- Everything is drawn in one `Canvas` inside a `TimelineView` that pauses when nothing is pressed, springing or rippling, so an idle grid costs nothing. A short task clears expired springs and ripples so the timeline can pause again.
+- Release is a damped spring computed per frame (`e^-7t · cos 10t`), so the dots overshoot slightly below their resting size before settling. While dragging the field follows the finger directly.
+- A tap (moved under 8 pt, held under 0.3 s) emits one ripple ring that eases outward and widens as it fades; ripples are capped at three. Reduce Motion disables only the ripple; the highlight and spring remain.
+- The highlight is a tonal ramp on `.primary` (`baseOpacity` up to 0.92) with a 3.2x swell, so it matches any tint and both color schemes.
+- The `.selection` haptic fires at most every 60 ms and only when the finger crosses into a new grid cell.
+- `probe` drives the grid without a finger, for previews, hints, or onboarding.
+- `style:` sets the resting dot color (`.primary` by default) and the block the dots take on as they lift. `.standard` warms into tangerine; `.sky`, `.lilac`, `.sage` and `.butter` use the other blocks, and `.mono` keeps the single-tone ramp.
+- The `#Preview` is the grid alone on the house ground, full bleed; touch it to swell, release to spring back, tap for a ripple.

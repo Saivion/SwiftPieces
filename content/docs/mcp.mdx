@@ -1,0 +1,62 @@
+---
+title: MCP and agents
+description: Connect Claude Code, Cursor or any MCP client to the free library, so your agent installs the real piece instead of inventing a lookalike.
+---
+
+The Swift Pieces MCP server is public and needs no account. Your agent can search the free library, read a piece's source and install it into your project.
+
+**URL:** `https://swiftpieces.com/api/mcp`
+
+## Claude Code
+
+Run this in your project folder:
+
+```bash
+claude mcp add --transport http swiftpieces https://swiftpieces.com/api/mcp
+```
+
+This registers the server in your Claude Code settings for this folder, not as a file in the project, so nothing new appears next to your code. Check it with `claude mcp list`. To share it with everyone who works on the project, add `--scope project` instead: that writes a `.mcp.json` you can commit.
+
+## Cursor and other clients
+
+Add this to `.cursor/mcp.json` in your project, or your client's MCP settings:
+
+```json
+{
+  "mcpServers": {
+    "swiftpieces": { "url": "https://swiftpieces.com/api/mcp" }
+  }
+}
+```
+
+## Try it
+
+Start a new agent session in your project and ask:
+
+```text
+Add the Swift Pieces "Assistant Orb" piece to my app
+```
+
+Every piece page has this prompt ready to copy under **Install**.
+
+## Tools
+
+| Tool | What it does |
+| --- | --- |
+| `search_pieces` | Search the free library by keyword, category or minimum iOS version. |
+| `get_piece` | A piece's full source, shaders and docs link. |
+| `install_piece` | The files to write into your project, plus the matching CLI command. |
+| `list_categories` | Free categories with counts. |
+| `get_liquid_glass_guide` | The rules for correct Liquid Glass code, with verified iOS 26 API names. |
+
+## Rules every agent should follow with Liquid Glass
+
+- Gate every glass call with `#available(iOS 26, *)` and provide a `Material` fallback.
+- Wrap multiple glass views in one `GlassEffectContainer`.
+- Apply `.glassEffect` after layout and appearance modifiers.
+- Respect `accessibilityReduceTransparency`.
+- Never use invented modifiers such as `.liquidGlassUltra`. They do not exist.
+
+`llms.txt` at the site root lists every free piece for agents that read it.
+
+Have Swift Pieces Pro? Its screens, templates and Build Kit use a separate server with your license key. [Set up the Pro server →](https://pro.swiftpieces.com/docs/mcp)

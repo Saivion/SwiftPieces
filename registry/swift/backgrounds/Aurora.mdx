@@ -1,0 +1,10 @@
+## Notes
+
+- Requires `Aurora.metal` in the same target; the `[[ stitchable ]] aurora` function is looked up through `ShaderLibrary` at runtime.
+- Ribbons are composited as coverage-weighted colour rather than added, so overlaps blend instead of blowing out to white, which is what lets the quiet palettes stay quiet. `intensity` scales coverage; below about 0.6 the aurora reads as a tint behind content.
+- A one-bit ordered dither is mixed into the output to hide banding in the long gradients.
+- Reduce Motion pauses the timeline, leaving a static frame. The view is `accessibilityHidden`.
+- Pass your own `Aurora.Palette(base:ribbons:)` for brand colours; keep ribbon colours desaturated for the same restraint as the built-ins.
+- House palettes: `.standard` (default: tangerine, lilac and sky), `.ember`, `.lagoon` and `.orchard`. Their ground is `#F3F2EE` in light and `#121212` in dark, and the curtain colors are the solid house blocks, so the same backdrop is designed for both appearances. The earlier `.dusk`, `.ink`, `.graphite`, `.paper` and `.vivid` palettes still work.
+- Curtains have a crisp lower edge and a long rising tail with slow vertical rays, and sit in the upper half so a card or headline below stays on calm ground.
+- The `#Preview` is the curtains alone, full bleed, with nothing on top of them.

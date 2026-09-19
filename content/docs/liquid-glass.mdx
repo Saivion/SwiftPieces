@@ -1,0 +1,36 @@
+---
+title: Liquid Glass guide
+description: How Swift Pieces uses glassEffect, GlassEffectContainer and glassEffectID, and how every piece falls back below iOS 26.
+---
+
+Liquid Glass shipped with iOS 26. The APIs are small, but the failure modes are not: glass sampling glass, missing fallbacks, invented modifiers from tutorials. Every glass piece here follows the same rules.
+
+## The rules
+
+1. **Gate it.** `if #available(iOS 26, *)` around every glass call, with a `Material` fallback in the `else` branch.
+2. **Respect Reduce Transparency.** Read `@Environment(\.accessibilityReduceTransparency)` and fall back to an opaque surface when it is on.
+3. **One container per group.** Wrap sibling glass views in a single `GlassEffectContainer(spacing:)` so they render as one layer and can morph.
+4. **Glass goes last.** Apply `.glassEffect` after layout and appearance modifiers.
+5. **Morph with IDs.** Pair `.glassEffectID(_:in:)` with a `@Namespace` to animate between shapes on state change.
+6. **Only real APIs.** `.liquidGlassUltra`, `.fill(.liquidGlass)` and friends do not exist. The pieces here are type-checked against the SDK in CI.
+
+## The verified surface
+
+| API | Notes |
+| --- | --- |
+| `glassEffect(_:in:)` | Defaults to `.regular` and a capsule. |
+| `Glass.regular`, `.clear`, `.identity` | `.identity` disables glass. |
+| `Glass.tint(_:)`, `Glass.interactive(_:)` | Chainable. |
+| `GlassEffectContainer(spacing:content:)` | Required for multiple glass views. |
+| `glassEffectID(_:in:)`, `glassEffectUnion(id:namespace:)` | Morphing and manual merging. |
+| `.buttonStyle(.glass)`, `.glassProminent` | System glass buttons. |
+
+## The fallback pattern
+
+```swift
+if #available(iOS 26, *), !reduceTransparency {
+    content.glassEffect(.regular.interactive(), in: shape)
+} else {
+    content.background(.ultraThinMaterial, in: shape)
+}
+```

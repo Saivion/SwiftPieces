@@ -1,0 +1,8 @@
+## Notes
+
+- Present it in a `.sheet` with `.presentationBackground(PermissionSheet.Style.standard.surface)`; it also works inline in any container. The tile symbol bounces on each presentation and benefit rows stagger in once, each on its own color tile.
+- `request` is your real permission call (for example `UNUserNotificationCenter.requestAuthorization`). The signal-colored button spins until it returns; `true` turns the tile and button sage with a check and a `.success` haptic, then calls `onGranted` about a second later so you can dismiss.
+- A denial crossfades the title and message through a blur, hides the benefit rows, turns the tile sand with a gear, plays `.warning`, and turns the button into a solid "Open Settings" via `UIApplication.openSettingsURLString`.
+- `Style` sets the surface, labels, tiles, benefit tile colors, action color and tile radius.
+- Under Reduce Motion rows appear immediately, the copy swap skips the blur and the bounce is skipped.
+- For a full multi-step onboarding flow, see the Onboarding screen in Swift Pieces Pro.

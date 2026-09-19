@@ -1,0 +1,8 @@
+## Notes
+
+- Requires `ThoughtOrb.metal` in the same target. The `[[ stitchable ]] thoughtOrbSiriWave` function is looked up through `ShaderLibrary` at runtime. Its helpers live in the `thoughtOrbSiri` namespace, so it can share a target with other orb kernels.
+- The mark has one look: thinking. Four thin sine membranes travel left to right through the equator of a dark glass ball. There are no motion states and no drag; the sphere never scales or pulses, only the wave inside it moves.
+- Colour says what kind of work is happening. Presets: `.siri` for thinking (blue, pink, orange, red over violet), `.searching` (cyan into teal), `.reading` (lavender into indigo) and `.writing` (amber into coral). Build your own with `ThoughtOrb.Palette(bands:ground:crest:rimCool:rimWarm:)`. A change crossfades over 0.8s, instantly under Reduce Motion.
+- Drive it from the current step: `ThoughtOrb.Pill(step.title, palette: step.palette)` changes the label with a numeric text transition and crossfades the mark to the step's colour, while the motion keeps thinking. `ThoughtOrb(size: 64)` works at avatar size.
+- `Pill` derives type, padding and dots from `markSize` (0.47x label, 0.2x padding) and scales the whole thing with Dynamic Type through `@ScaledMetric`. The dots run on the clock rather than a repeating animation so they stay in phase however long the pill is up; VoiceOver hears the label with "Thinking" as its value and skips the dots. Reduce Transparency swaps the material for an opaque secondary background.
+- Reduce Motion pauses the wave on a still frame and holds the dots.

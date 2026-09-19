@@ -1,0 +1,10 @@
+## Notes
+
+- Rows are soft cards (`style.surface`, 22pt radius). Priority shows as a small HIGH, MED or LOW label block (tangerine, butter, sky) with dark ink; due dates carry a clock glyph; a snoozed task gets a lilac Snoozed label and a lilac check.
+- Completion is a sequence, not a toggle: the card flashes into the solid `tint` block (sage by default) while the check draws in with a trimmed path and a `.success` haptic, the strike-through grows across the title, then the row settles back and compacts (smaller padding and type, due label and priority fold away). Setting `status` to `.completed` from outside runs the same sequence; rows that load already completed start settled. `.open` reverses it. Reduce Motion crossfades every step at once.
+- Swipe right to the 104pt detent to complete (or reopen a completed row). The complete block's glyph grows with the reveal, the drag rubber-bands past the detent, and a rigid impact marks the moment it arms. Swipe left reveals Snooze (lilac) and Delete (signal) blocks, only for the callbacks you pass. Blocks and the check dip when pressed.
+- Long-press (0.35s) lifts the row with a soft impact, scale 1.03 and a shadow; drag it vertically and `onMove` receives the number of row slots moved on release (negative is up). The gesture is only installed when `onMove` is set.
+- `.disabled(true)` dims the row to 50% and turns off the swipe and lift.
+- `Style` (`TaskRow.Style`): `surface`, `text`, `muted`, `ink`, `complete`, `snooze`, `delete`, `high`, `medium`, `low`, `cornerRadius`. `tint:` still overrides the complete color.
+- Stack rows with 8pt spacing on the ground. VoiceOver reads the row as one button with status, due date and priority, and exposes Complete/Reopen, Snooze, Delete and Move up/down as custom actions.
+- Need grouped-by-day activity with split and expanding detail? That is the Transaction Row screen in Swift Pieces Pro.

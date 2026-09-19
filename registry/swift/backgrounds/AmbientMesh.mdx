@@ -1,0 +1,9 @@
+## Notes
+
+- iOS 18 only (`MeshGradient` and `Color.mix`). The 16 mesh colors are sampled from the palette along the diagonal with small fixed nudges per point, so a two- or three-color palette fills a 4x4 mesh without reading as a straight linear gradient.
+- Interior points move on the sum of three sines at incommensurate rates, seeded per point and axis, so the drift never visibly loops. Corners are pinned and edge midpoints only slide along their edge, which keeps the mesh filling the view.
+- Grain is a 96x96 grey noise tile generated once, tiled at a third of a point per noise pixel and soft-light blended at `grain` opacity. It is private to this file; no shader or other piece is required.
+- `parallax` uses a private Core Motion source at 30 Hz relative to the attitude at start. It stops on disappear and when `scenePhase` leaves `.active`, and is a no-op in the simulator.
+- Reduce Motion freezes the drift; with `parallax` on, tilt still moves the points because it is user-driven.
+- House palettes: `.standard` (default: ground into lilac into tangerine), `.lagoon` and `.sunrise`. They are the solid blocks on paper in light and deepened blocks rising out of `#121212` in dark. The earlier palettes still work.
+- The `#Preview` is the mesh alone, full bleed, with nothing on top of it.

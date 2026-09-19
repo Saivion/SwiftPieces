@@ -1,0 +1,11 @@
+## Notes
+
+- One `DragGesture(minimumDistance: 0)` handles everything: touch-down tilts the card toward the finger and scales it to 0.98, an 8pt sideways move turns into a scrub where the full card width equals 180°, and a lift without movement is a tap.
+- Release commits when `predictedEndTranslation` projects past 90° in either direction, so a flick finishes the flip and a slow drag that stops short snaps back. Dragging past a full turn rubber-bands at 200°.
+- Each face darkens with `brightness` as it turns edge-on and hides past 90°; the back is pre-rotated by -180° so it lands unmirrored. The shadow slides opposite the lifted edge and widens mid-flip.
+- The angle accumulates (0, 180, 360...) so repeated flips keep rotating the same way; `isFlipped:` stays in sync in both directions.
+- A soft impact fires as the visible face changes. Reduce Motion replaces the rotation with a crossfade that the drag still scrubs.
+- **v2:** the card lifts 6% toward you at the edge-on point, sits on a layered shadow (a tight contact shadow plus a soft key shadow that slides off the raised edge), a soft-light band crosses each face as it turns, and the scrub rubber-bands past a half turn. Touch-down gives a light impact.
+- `style:` (`FlipCard.Style`) tunes `cornerRadius`, `shadow`/`shadowOpacity` (tripled in dark mode), `lift`, `pressScale`, `pressTilt`, and `shading`. `onFlip:` reports each committed flip. A disabled card dims and ignores touches.
+- The example is a vocabulary flashcard: a butter front with a heavy word and a sky back with the meaning. The preview shows the card alone, with no surrounding UI.
+- For a full card screen with number masking and controls, see the Pro Card Details screen (`payment-card`).

@@ -1,0 +1,328 @@
+// swiftpieces:
+// title: Status Morph
+// description: One continuous stroke that spins as a loading arc, closes into a ring, floods into a solid block and draws a check in dark ink on success, or a cross with a nudge on failure, with an optional morphing caption.
+// category: feedback
+// minIOSVersion: "17.0"
+// version: "2.0.0"
+// pro: tool-execution-card
+// tags: [status, loading, success, failure, trim, haptic, upload]
+
+import SwiftUI
+
+/// Idle, loading, success, and failure in one ring that lands as a solid block.
+///
+/// - Parameters:
+///   - state: `.idle`, `.loading`, `.success`, or `.failure`.
+///   - captions: Optional caption per state shown under the ring, morphed with `.blurReplace`. Use `.saving` for "Saving / Saved / Failed".
+///   - size: Ring diameter in points; scales with Dynamic Type.
+///   - lineWidth: Stroke width for the ring, check, and cross.
+///   - tint: Overrides the success block color. Defaults to `style.success`.
+///   - pops: Soft scale pop when success lands.
+///   - style: Block, stroke and caption colors. `.standard` lands sage for success and tangerine for failure, with dark ink marks.
+public struct StatusMorph: View {
+    public enum State: Hashable, Sendable { case idle, loading, success, failure }
+
+    /// Colors for each state. Defaults follow the Swift Pieces house palette and adapt to light and dark.
+    public struct Style: Sendable {
+        /// Block the ring floods into on success.
+        public var success: Color
+        /// Block the ring floods into on failure.
+        public var failure: Color
+        /// Check and cross color on the blocks.
+        public var ink: Color
+        /// The spinning arc and idle stroke.
+        public var stroke: Color
+        /// The quiet track behind the arc.
+        public var track: Color
+        /// Caption color while idle or loading.
+        public var muted: Color
+        /// Caption color once settled.
+        public var text: Color
+
+        public init(
+            success: Color = Style.sage,
+            failure: Color = Style.tangerine,
+            ink: Color = Style.blockInk,
+            stroke: Color = Style.adaptive(0x141414, 0xF4F3EF),
+            track: Color = Style.adaptive(0xE7E5DF, 0x2E2E2E),
+            muted: Color = Style.adaptive(0x5C5A56, 0xA6A49F),
+            text: Color = Style.adaptive(0x141414, 0xF4F3EF)
+        ) {
+            self.success = success
+            self.failure = failure
+            self.ink = ink
+            self.stroke = stroke
+            self.track = track
+            self.muted = muted
+            self.text = text
+        }
+
+        public static let standard = Style()
+
+        public static let sage = Color(red: 0xA9 / 255, green: 0xDC / 255, blue: 0xB7 / 255)
+        public static let tangerine = Color(red: 1, green: 0x5B / 255, blue: 0x3A / 255)
+        public static let sky = Color(red: 0x9C / 255, green: 0xC2 / 255, blue: 1)
+        public static let butter = Color(red: 1, green: 0xD9 / 255, blue: 0x76 / 255)
+        public static let blockInk = Color(red: 0x14 / 255, green: 0x14 / 255, blue: 0x14 / 255)
+
+        /// A color that resolves to `light` or `dark` hex by the current appearance.
+        public static func adaptive(_ light: UInt32, _ dark: UInt32) -> Color {
+            Color(uiColor: UIColor { $0.userInterfaceStyle == .dark ? rgb(dark) : rgb(light) })
+        }
+
+        private static func rgb(_ hex: UInt32) -> UIColor {
+            UIColor(red: CGFloat((hex >> 16) & 0xFF) / 255, green: CGFloat((hex >> 8) & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
+        }
+    }
+
+    /// Captions for each state; `nil` hides the caption in that state.
+    public struct Captions: Sendable {
+        public var idle: String?
+        public var loading: String?
+        public var success: String?
+        public var failure: String?
+
+        public init(idle: String? = nil, loading: String? = nil, success: String? = nil, failure: String? = nil) {
+            self.idle = idle
+            self.loading = loading
+            self.success = success
+            self.failure = failure
+        }
+
+        public static let saving = Captions(loading: "Saving", success: "Saved", failure: "Failed")
+
+        func text(for state: State) -> String? {
+            switch state {
+            case .idle: idle
+            case .loading: loading
+            case .success: success
+            case .failure: failure
+            }
+        }
+    }
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @ScaledMetric(relativeTo: .body) private var size: CGFloat = 32
+    @SwiftUI.State private var loadingStart: Date = .now
+    @SwiftUI.State private var settledRotation: Double = 0
+    @SwiftUI.State private var ringTrim: CGFloat = 0
+    @SwiftUI.State private var flood: CGFloat = 0
+    @SwiftUI.State private var markTrim: CGFloat = 0
+    @SwiftUI.State private var pop: CGFloat = 1
+    @SwiftUI.State private var nudgeToken = 0
+
+    private let state: State
+    private let captions: Captions?
+    private let lineWidth: CGFloat
+    private let tint: Color?
+    private let pops: Bool
+    private let style: Style
+    private let arcLength: CGFloat = 0.72
+    private let turnsPerSecond: Double = 1.1
+
+    public init(state: State, captions: Captions? = nil, size: CGFloat = 32, lineWidth: CGFloat = 3, tint: Color? = nil, pops: Bool = true, style: Style = .standard) {
+        self.state = state
+        self.captions = captions
+        _size = ScaledMetric(wrappedValue: size, relativeTo: .body)
+        self.lineWidth = lineWidth
+        self.tint = tint
+        self.pops = pops
+        self.style = style
+    }
+
+    private var block: Color {
+        state == .failure ? style.failure : (tint ?? style.success)
+    }
+
+    public var body: some View {
+        VStack(spacing: max(6, size * 0.16)) {
+            ring
+                .frame(width: size, height: size)
+                .scaleEffect(pop)
+                .modifier(Nudge(token: nudgeToken, amplitude: reduceMotion ? 0 : max(3, size * 0.06)))
+            if let captions { caption(captions) }
+        }
+        .sensoryFeedback(.success, trigger: state) { (_: State, new: State) in new == .success }
+        .sensoryFeedback(.error, trigger: state) { (_: State, new: State) in new == .failure }
+        .onAppear { apply(from: nil, to: state) }
+        .onChange(of: state) { old, new in apply(from: old, to: new) }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(captions?.text(for: state) ?? label)
+        .accessibilityAddTraits(state == .loading ? .updatesFrequently : [])
+    }
+
+    private func caption(_ captions: Captions) -> some View {
+        let quiet = state == .idle || state == .loading
+        return ZStack {
+            if let text = captions.text(for: state) {
+                Text(text)
+                    .id(text)
+                    .transition(morph)
+            }
+        }
+        .font(.system(size: max(12, size * 0.2), weight: quiet ? .medium : .bold))
+        .foregroundStyle(quiet ? style.muted : style.text)
+        .frame(minHeight: max(16, size * 0.26))
+        .animation(.smooth(duration: 0.3), value: state)
+    }
+
+    /// Short horizontal shake for failure, driven by `keyframeAnimator`.
+    private struct Nudge: ViewModifier {
+        let token: Int
+        let amplitude: CGFloat
+
+        func body(content: Content) -> some View {
+            content.keyframeAnimator(initialValue: CGFloat(0), trigger: token) { view, x in
+                view.offset(x: x)
+            } keyframes: { _ in
+                KeyframeTrack {
+                    CubicKeyframe(-amplitude, duration: 0.05)
+                    CubicKeyframe(amplitude, duration: 0.08)
+                    CubicKeyframe(-amplitude / 2, duration: 0.08)
+                    CubicKeyframe(0, duration: 0.09)
+                }
+            }
+        }
+    }
+
+    private var morph: AnyTransition {
+        reduceMotion ? .opacity : AnyTransition(.blurReplace)
+    }
+
+    private var label: String {
+        switch state {
+        case .idle: "Idle"
+        case .loading: "Loading"
+        case .success: "Success"
+        case .failure: "Failed"
+        }
+    }
+
+    private var ring: some View {
+        let stroke = StrokeStyle(lineWidth: lineWidth, lineCap: .round, lineJoin: .round)
+        return TimelineView(.animation(paused: state != .loading || reduceMotion)) { context in
+            let spinning = state == .loading
+            let clock = context.date.timeIntervalSince(loadingStart) * 360 * turnsPerSecond
+            let rotation = spinning ? (reduceMotion ? 0 : clock) : settledRotation
+            ZStack {
+                Circle()
+                    .stroke(style.track, lineWidth: lineWidth)
+                    .padding(lineWidth / 2)
+                    .opacity(state == .idle || state == .loading ? 1 : 0)
+                // The block grows out of the closed ring toward the center.
+                Circle()
+                    .fill(block)
+                    .scaleEffect(flood)
+                    .opacity(flood > 0 ? 1 : 0)
+                Circle()
+                    .trim(from: 0, to: spinning ? arcLength : ringTrim)
+                    .stroke(state == .idle || spinning ? style.stroke : block, style: stroke)
+                    .rotationEffect(.degrees(rotation - 90))
+                    .padding(lineWidth / 2)
+                Mark(cross: state == .failure)
+                    .trim(from: 0, to: markTrim)
+                    .stroke(style.ink, style: StrokeStyle(lineWidth: max(lineWidth, size * 0.07), lineCap: .round, lineJoin: .round))
+                    .padding(size * (state == .failure ? 0.33 : 0.29))
+            }
+        }
+        .animation(.smooth(duration: 0.3), value: state)
+    }
+
+    /// Continues the stroke from wherever the arc is: the arc keeps its angle, closes, floods, then the mark draws.
+    private func apply(from old: State?, to new: State) {
+        let quick: Animation = .easeInOut(duration: reduceMotion ? 0.15 : 0.25)
+        switch new {
+        case .idle:
+            withAnimation(quick) { ringTrim = 0; markTrim = 0; flood = 0 }
+            settledRotation = 0
+        case .loading:
+            loadingStart = .now
+            markTrim = 0
+            flood = 0
+            ringTrim = arcLength
+            settledRotation = 0
+        case .success, .failure:
+            if old == .loading {
+                let angle = (Date.now.timeIntervalSince(loadingStart) * 360 * turnsPerSecond).truncatingRemainder(dividingBy: 360)
+                settledRotation = reduceMotion ? 0 : angle
+                ringTrim = arcLength
+            }
+            if old == nil || reduceMotion {
+                withAnimation(old == nil ? nil : quick) { ringTrim = 1; flood = 1; markTrim = 1; settledRotation = 0 }
+            } else {
+                markTrim = 0
+                withAnimation(.easeOut(duration: 0.3)) { ringTrim = 1; settledRotation = 360 }
+                withAnimation(.spring(duration: 0.4, bounce: 0.2).delay(0.18)) { flood = 1 }
+                withAnimation(.easeOut(duration: 0.28).delay(0.32)) { markTrim = 1 }
+            }
+            guard old != nil else { return }
+            if new == .failure {
+                Task {
+                    try? await Task.sleep(for: .milliseconds(reduceMotion ? 0 : 520))
+                    nudgeToken += 1
+                }
+            } else if pops, !reduceMotion {
+                Task {
+                    try? await Task.sleep(for: .milliseconds(520))
+                    withAnimation(.spring(duration: 0.2, bounce: 0)) { pop = 1.1 }
+                    try? await Task.sleep(for: .milliseconds(160))
+                    withAnimation(.spring(duration: 0.45, bounce: 0.45)) { pop = 1 }
+                }
+            }
+        }
+    }
+
+    /// Check or cross drawn as one path so `trim` strokes it in order.
+    private struct Mark: Shape {
+        var cross: Bool
+
+        func path(in rect: CGRect) -> Path {
+            var path = Path()
+            if cross {
+                path.move(to: CGPoint(x: rect.minX, y: rect.minY))
+                path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
+                path.move(to: CGPoint(x: rect.maxX, y: rect.minY))
+                path.addLine(to: CGPoint(x: rect.minX, y: rect.maxY))
+            } else {
+                path.move(to: CGPoint(x: rect.minX, y: rect.midY + rect.height * 0.04))
+                path.addLine(to: CGPoint(x: rect.minX + rect.width * 0.36, y: rect.maxY - rect.height * 0.1))
+                path.addLine(to: CGPoint(x: rect.maxX, y: rect.minY + rect.height * 0.12))
+            }
+            return path
+        }
+    }
+}
+
+// MARK: - Example
+
+/// The ring itself, with its caption, cycling idle, loading, success and failure.
+private struct StatusMorphExample: View {
+    @State private var state: StatusMorph.State = .idle
+
+    var body: some View {
+        StatusMorph(state: state, captions: .saving, size: 196, lineWidth: 10)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(StatusMorph.Style.adaptive(0xF3F2EE, 0x121212))
+            .onTapGesture {
+                state = switch state { case .idle: .loading; case .loading: .success; case .success: .failure; case .failure: .idle }
+            }
+    }
+}
+
+#Preview("Light") {
+    StatusMorphExample()
+}
+
+#Preview("Dark") {
+    StatusMorphExample().preferredColorScheme(.dark)
+}
+
+#Preview("States") {
+    HStack(spacing: 28) {
+        StatusMorph(state: .idle, size: 56, lineWidth: 4)
+        StatusMorph(state: .loading, size: 56, lineWidth: 4)
+        StatusMorph(state: .success, size: 56, lineWidth: 4)
+        StatusMorph(state: .failure, size: 56, lineWidth: 4)
+    }
+    .padding()
+}

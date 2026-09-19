@@ -1,0 +1,11 @@
+## Notes
+
+- The deck is the source of truth for nothing: it removes the top item from the bound `items` array after each throw and reports the direction through `onSwipe`. Append items to keep the stack going, or watch the array run empty.
+- Directions use SwiftUI's `Edge` so the file stays self-contained: `.trailing` (swiped right), `.leading` (left), `.top` (up). Down is never committed; a downward drag springs back.
+- Commit is decided from `predictedEndTranslation`, so a flick throws even from a short drag. The horizontal threshold is 40% of the width, the upward one 30% of the height. A `.selection` tick fires the moment the drag crosses either, and a solid impact fires on the throw.
+- The card flies along its actual vector (drag plus velocity) for 1.6x the deck's larger dimension, then is removed without a transition while the next card springs up from 0.95 scale and 14pt lower.
+- Rotation is 14° per card width with a bottom anchor, so the card swings like it is pinned at the base. Reduce Motion drops the rotation and fades the card out in place instead of throwing it.
+- `swipe:` is a command binding: set it to a direction to throw programmatically (from buttons, a keyboard shortcut, or a preview loop); the deck resets it to nil. VoiceOver gets "Swipe right", "Swipe left", and "Swipe up" actions on the top card.
+- Give the deck an explicit frame; cards are sized to fill it.
+- **v2:** outcome badges. While the top card heads left, right, or up, a solid badge (Skip, Keep, Save by default) fades and scales in for that direction and locks with a pop at the threshold. Cards further down sit in shade and brighten as they rise, and the top card's shadow deepens with the drag.
+- `style:` (`SwipeDeck.Style`) sets the three `SwipeDeck.Badge` values (title, symbol, fill, ink; nil hides one), `cornerRadius`, `shadowOpacity`, and `emptyMessage`, a dashed slot drawn when the deck runs out. `.plain` turns badges and the slot off. VoiceOver actions use the badge titles.

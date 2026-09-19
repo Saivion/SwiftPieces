@@ -1,0 +1,11 @@
+{
+  "title": "Swift Pieces",
+  "pages": [
+    "introduction",
+    "installation",
+    "cli",
+    "mcp",
+    "liquid-glass",
+    "components"
+  ]
+}

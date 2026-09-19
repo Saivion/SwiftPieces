@@ -1,0 +1,461 @@
+---
+title: "Outcome Screen"
+description: "A success, failure or empty outcome view sharing one choreography, where a ring draws, floods into a solid color block, the mark strokes in dark ink, one pulse lands with a haptic, and a heavy headline and a single signal action rise, with async retry and a details block for failures."
+piece: "OutcomeScreen"
+category: "feedback"
+minIOSVersion: "17.0"
+version: "2.0.0"
+tags: ["success","error","empty","retry","completion","haptic"]
+registryDependencies: []
+---
+
+{/* GENERATED FILE. Edit registry/swift/feedback/OutcomeScreen.swift or OutcomeScreen.mdx instead. */}
+
+Success, failure or empty outcome view with one shared choreography: a ring, a solid block, an ink mark and one signal action.
+
+## Notes
+
+- Three outcomes share one choreography, run once per appearance: a ring draws in ink, a solid block floods out of it (sage for `.success`, butter for `.failure`, sky for `.empty`), the mark strokes in dark ink via `trim`, one pulse and the haptic land together, then the copy and actions rise. Change the view's `.id` to replay it.
+- `.empty` draws an open tray and plays a light impact, for first-run and no-results states.
+- The headline is set heavy and tight at `.largeTitle`; `eyebrow` adds a small uppercase line above it. The primary action is the one `signal` capsule; `secondary` is a quiet text button.
+- `Style` holds the three blocks, the ink, the signal colors, text colors and the details surface, with house palette defaults that adapt to light and dark. `accent` still overrides the block.
+- On failure, `retry` turns the primary button into "Try again" with a spinner while the async work runs; `details` adds a rounded block that expands to selectable monospaced text.
+- Under Reduce Motion everything appears at once and the pulse is skipped; haptics still fire.
+- For a complete purchase screen, see the Pro Purchase screen.
+
+## Usage
+
+```swift
+OutcomeScreenExample()
+```
+
+## Parameters
+
+| Parameter | Description |
+| --- | --- |
+| `outcome` | `.success`, `.failure` or `.empty`. Sets the block, mark, and haptic. |
+| `title` | Headline, set heavy and tight. |
+| `message` | Supporting copy. |
+| `primaryTitle` | Primary button title when `retry` is not used. |
+| `primaryAction` | Primary button handler when `retry` is not used. |
+| `retry` | Optional async handler for failures; the primary button becomes "Try again" and shows a spinner until it returns. |
+| `secondary` | Optional quiet second action. |
+| `details` | Optional technical text behind a "Details" disclosure on failures. |
+| `accent` | Overrides the block color behind the mark. Defaults to the outcome's color in `style`. |
+| `eyebrow` | Optional small uppercase line above the title, such as "Synced 10:42". |
+| `style` | Block, signal and text colors. `.standard` is sage for success, butter for failure and sky for empty, with a signal primary button. |
+
+## Source
+
+<Tabs items={["OutcomeScreen.swift"]}>
+<Tab value="OutcomeScreen.swift">
+
+```swift title="OutcomeScreen.swift"
+import SwiftUI
+
+/// Success, failure or empty outcome view with one shared choreography: a ring, a solid block, an ink mark and one signal action.
+///
+/// - Parameters:
+///   - outcome: `.success`, `.failure` or `.empty`. Sets the block, mark, and haptic.
+///   - title: Headline, set heavy and tight.
+///   - message: Supporting copy.
+///   - primaryTitle: Primary button title when `retry` is not used.
+///   - primaryAction: Primary button handler when `retry` is not used.
+///   - retry: Optional async handler for failures; the primary button becomes "Try again" and shows a spinner until it returns.
+///   - secondary: Optional quiet second action.
+///   - details: Optional technical text behind a "Details" disclosure on failures.
+///   - accent: Overrides the block color behind the mark. Defaults to the outcome's color in `style`.
+///   - eyebrow: Optional small uppercase line above the title, such as "Synced 10:42".
+///   - style: Block, signal and text colors. `.standard` is sage for success, butter for failure and sky for empty, with a signal primary button.
+public struct OutcomeScreen: View {
+    public enum Outcome: Sendable { case success, failure, empty }
+
+    /// A secondary button.
+    public struct Action {
+        public let title: String
+        public let handler: () -> Void
+
+        public init(_ title: String, handler: @escaping () -> Void) {
+            self.title = title
+            self.handler = handler
+        }
+    }
+
+    /// Colors for the outcome. Defaults follow the Swift Pieces house palette and adapt to light and dark.
+    public struct Style: Sendable {
+        /// Block behind the check.
+        public var success: Color
+        /// Block behind the cross.
+        public var failure: Color
+        /// Block behind the empty tray.
+        public var empty: Color
+        /// Mark color on the blocks.
+        public var ink: Color
+        /// Primary button fill: the one action color.
+        public var signal: Color
+        /// Primary button text.
+        public var signalInk: Color
+        /// Headline and drawing ring color.
+        public var text: Color
+        /// Message, eyebrow and secondary action color.
+        public var muted: Color
+        /// Details block background.
+        public var raised: Color
+
+        public init(
+            success: Color = Style.sage,
+            failure: Color = Style.butter,
+            empty: Color = Style.sky,
+            ink: Color = Style.blockInk,
+            signal: Color = Style.signalRed,
+            signalInk: Color = Style.blockInk,
+            text: Color = Style.adaptive(0x141414, 0xF4F3EF),
+            muted: Color = Style.adaptive(0x5C5A56, 0xA6A49F),
+            raised: Color = Style.adaptive(0xEFEDE8, 0x262626)
+        ) {
+            self.success = success
+            self.failure = failure
+            self.empty = empty
+            self.ink = ink
+            self.signal = signal
+            self.signalInk = signalInk
+            self.text = text
+            self.muted = muted
+            self.raised = raised
+        }
+
+        public static let standard = Style()
+
+        public static let sage = Color(red: 0xA9 / 255, green: 0xDC / 255, blue: 0xB7 / 255)
+        public static let tangerine = Color(red: 1, green: 0x5B / 255, blue: 0x3A / 255)
+        public static let butter = Color(red: 1, green: 0xD9 / 255, blue: 0x76 / 255)
+        public static let sky = Color(red: 0x9C / 255, green: 0xC2 / 255, blue: 1)
+        public static let signalRed = Color(red: 1, green: 0x5B / 255, blue: 0x3A / 255)
+        public static let blockInk = Color(red: 0x14 / 255, green: 0x14 / 255, blue: 0x14 / 255)
+
+        /// A color that resolves to `light` or `dark` hex by the current appearance.
+        public static func adaptive(_ light: UInt32, _ dark: UInt32) -> Color {
+            Color(uiColor: UIColor { $0.userInterfaceStyle == .dark ? rgb(dark) : rgb(light) })
+        }
+
+        private static func rgb(_ hex: UInt32) -> UIColor {
+            UIColor(red: CGFloat((hex >> 16) & 0xFF) / 255, green: CGFloat((hex >> 8) & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
+        }
+    }
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @ScaledMetric(relativeTo: .largeTitle) private var markSize: CGFloat = 112
+    @State private var ringTrim: CGFloat = 0
+    @State private var flood: CGFloat = 0
+    @State private var markTrim: CGFloat = 0
+    @State private var landed = false
+    @State private var pulse = false
+    @State private var copyVisible = false
+    @State private var actionsVisible = false
+    @State private var isRetrying = false
+    @State private var showsDetails = false
+
+    private let outcome: Outcome
+    private let title: String
+    private let message: String?
+    private let primaryTitle: String
+    private let primaryAction: () -> Void
+    private let retry: (() async -> Void)?
+    private let secondary: Action?
+    private let details: String?
+    private let accentOverride: Color?
+    private let eyebrow: String?
+    private let style: Style
+
+    public init(
+        outcome: Outcome,
+        title: String,
+        message: String? = nil,
+        primaryTitle: String = "Continue",
+        primaryAction: @escaping () -> Void = {},
+        retry: (() async -> Void)? = nil,
+        secondary: Action? = nil,
+        details: String? = nil,
+        accent: Color? = nil,
+        eyebrow: String? = nil,
+        style: Style = .standard
+    ) {
+        self.outcome = outcome
+        self.title = title
+        self.message = message
+        self.primaryTitle = primaryTitle
+        self.primaryAction = primaryAction
+        self.retry = retry
+        self.secondary = secondary
+        self.details = details
+        self.accentOverride = accent
+        self.eyebrow = eyebrow
+        self.style = style
+    }
+
+    private var block: Color {
+        if let accentOverride { return accentOverride }
+        switch outcome {
+        case .success: return style.success
+        case .failure: return style.failure
+        case .empty: return style.empty
+        }
+    }
+
+    private var usesRetry: Bool { outcome == .failure && retry != nil }
+
+    public var body: some View {
+        VStack(spacing: 0) {
+            mark
+                .padding(.bottom, 28)
+                .accessibilityHidden(true)
+
+            VStack(spacing: 10) {
+                if let eyebrow {
+                    Text(eyebrow.uppercased())
+                        .font(.caption.weight(.bold))
+                        .tracking(1)
+                        .foregroundStyle(style.muted)
+                }
+                Text(title)
+                    .font(.system(.largeTitle, weight: .bold))
+                    .tracking(-1.2)
+                    .foregroundStyle(style.text)
+                    .accessibilityAddTraits(.isHeader)
+                if let message {
+                    Text(message)
+                        .font(.body)
+                        .foregroundStyle(style.muted)
+                }
+            }
+            .multilineTextAlignment(.center)
+            .fixedSize(horizontal: false, vertical: true)
+            .opacity(copyVisible ? 1 : 0)
+            .offset(y: copyVisible ? 0 : 14)
+
+            VStack(spacing: 6) {
+                Button {
+                    if usesRetry { Task { await performRetry() } } else { primaryAction() }
+                } label: {
+                    ZStack {
+                        Text(usesRetry ? "Try again" : primaryTitle).opacity(isRetrying ? 0 : 1)
+                        ProgressView().tint(style.signalInk).opacity(isRetrying ? 1 : 0)
+                    }
+                    .font(.headline)
+                    .foregroundStyle(style.signalInk)
+                    .frame(maxWidth: .infinity, minHeight: 56)
+                    .background(style.signal, in: .capsule)
+                    .contentShape(.capsule)
+                }
+                .buttonStyle(Press())
+                .disabled(isRetrying)
+                .animation(.smooth(duration: 0.2), value: isRetrying)
+                .accessibilityLabel(isRetrying ? "Retrying" : (usesRetry ? "Try again" : primaryTitle))
+
+                if let secondary {
+                    Button(secondary.title, action: secondary.handler)
+                        .font(.body.weight(.semibold))
+                        .foregroundStyle(style.muted)
+                        .frame(maxWidth: .infinity, minHeight: 48)
+                        .contentShape(.rect)
+                        .disabled(isRetrying)
+                }
+
+                if outcome == .failure, let details {
+                    detailsBlock(details)
+                        .padding(.top, secondary == nil ? 10 : 2)
+                }
+            }
+            .padding(.top, 32)
+            .opacity(actionsVisible ? 1 : 0)
+            .offset(y: actionsVisible ? 0 : 10)
+        }
+        .padding(28)
+        .frame(maxWidth: .infinity)
+        .sensoryFeedback(.success, trigger: landed) { _, new in new && outcome == .success }
+        .sensoryFeedback(.error, trigger: landed) { _, new in new && outcome == .failure }
+        .sensoryFeedback(.impact(weight: .light), trigger: landed) { _, new in new && outcome == .empty }
+        .task { await play() }
+    }
+
+    /// Drawing ring, the block that floods out of it, the ink mark, and the single pulse behind them.
+    private var mark: some View {
+        let line = max(3, markSize * 0.03)
+        return ZStack {
+            Circle()
+                .stroke(block, lineWidth: 2)
+                .scaleEffect(pulse ? 1.45 : 1)
+                .opacity(pulse ? 0 : 1)
+                .opacity(landed ? 1 : 0)
+            Circle()
+                .trim(from: 0, to: ringTrim)
+                .stroke(style.text, style: StrokeStyle(lineWidth: line, lineCap: .round))
+                .rotationEffect(.degrees(-90))
+                .padding(line / 2)
+                .opacity(flood < 1 ? 1 : 0)
+            Circle()
+                .fill(block)
+                .scaleEffect(flood)
+            Glyph(outcome: outcome)
+                .trim(from: 0, to: markTrim)
+                .stroke(style.ink, style: StrokeStyle(lineWidth: markSize * 0.075, lineCap: .round, lineJoin: .round))
+                .padding(markSize * (outcome == .failure ? 0.34 : 0.3))
+        }
+        .frame(width: markSize, height: markSize)
+    }
+
+    private func detailsBlock(_ details: String) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Button {
+                withAnimation(reduceMotion ? .easeOut(duration: 0.15) : .snappy) { showsDetails.toggle() }
+            } label: {
+                HStack {
+                    Text("Details").font(.subheadline.weight(.semibold))
+                    Spacer()
+                    Image(systemName: "chevron.down")
+                        .font(.caption.weight(.bold))
+                        .rotationEffect(.degrees(showsDetails ? 180 : 0))
+                }
+                .foregroundStyle(style.text)
+                .frame(minHeight: 44)
+                .contentShape(.rect)
+            }
+            .buttonStyle(.plain)
+            .accessibilityValue(showsDetails ? "Expanded" : "Collapsed")
+
+            if showsDetails {
+                Text(details)
+                    .font(.footnote.monospaced())
+                    .foregroundStyle(style.muted)
+                    .textSelection(.enabled)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.bottom, 14)
+                    .transition(.opacity.combined(with: .move(edge: .top)))
+            }
+        }
+        .padding(.horizontal, 16)
+        .background(style.raised, in: .rect(cornerRadius: 18, style: .continuous))
+        .clipShape(.rect(cornerRadius: 18, style: .continuous))
+    }
+
+    private func play() async {
+        guard !reduceMotion else {
+            ringTrim = 1
+            flood = 1
+            markTrim = 1
+            landed = true
+            copyVisible = true
+            actionsVisible = true
+            return
+        }
+        withAnimation(.easeInOut(duration: 0.5)) { ringTrim = 1 }
+        try? await Task.sleep(for: .seconds(0.4))
+        withAnimation(.spring(duration: 0.45, bounce: 0.3)) { flood = 1 }
+        try? await Task.sleep(for: .seconds(0.16))
+        withAnimation(.easeOut(duration: 0.32)) { markTrim = 1 }
+        try? await Task.sleep(for: .seconds(0.26))
+        landed = true
+        withAnimation(.easeOut(duration: 0.75)) { pulse = true }
+        withAnimation(.spring(duration: 0.55, bounce: 0.2)) { copyVisible = true }
+        try? await Task.sleep(for: .seconds(0.12))
+        withAnimation(.spring(duration: 0.55, bounce: 0.2)) { actionsVisible = true }
+    }
+
+    private func performRetry() async {
+        guard let retry, !isRetrying else { return }
+        isRetrying = true
+        await retry()
+        isRetrying = false
+    }
+
+    private struct Press: ButtonStyle {
+        func makeBody(configuration: Configuration) -> some View {
+            configuration.label
+                .scaleEffect(configuration.isPressed ? 0.97 : 1)
+                .opacity(configuration.isPressed ? 0.9 : 1)
+                .animation(configuration.isPressed ? .spring(duration: 0.12, bounce: 0) : .spring(duration: 0.4, bounce: 0.45), value: configuration.isPressed)
+        }
+    }
+
+    /// Check, cross, or an open tray, each drawn as one path so `trim` strokes it in order.
+    private struct Glyph: Shape {
+        var outcome: Outcome
+
+        func path(in rect: CGRect) -> Path {
+            var path = Path()
+            let w = rect.width, h = rect.height, x = rect.minX, y = rect.minY
+            switch outcome {
+            case .failure:
+                path.move(to: CGPoint(x: x, y: y))
+                path.addLine(to: CGPoint(x: x + w, y: y + h))
+                path.move(to: CGPoint(x: x + w, y: y))
+                path.addLine(to: CGPoint(x: x, y: y + h))
+            case .success:
+                path.move(to: CGPoint(x: x, y: y + h * 0.54))
+                path.addLine(to: CGPoint(x: x + w * 0.36, y: y + h * 0.88))
+                path.addLine(to: CGPoint(x: x + w, y: y + h * 0.14))
+            case .empty:
+                path.move(to: CGPoint(x: x, y: y + h * 0.56))
+                path.addLine(to: CGPoint(x: x + w * 0.3, y: y + h * 0.56))
+                path.addLine(to: CGPoint(x: x + w * 0.38, y: y + h * 0.74))
+                path.addLine(to: CGPoint(x: x + w * 0.62, y: y + h * 0.74))
+                path.addLine(to: CGPoint(x: x + w * 0.7, y: y + h * 0.56))
+                path.addLine(to: CGPoint(x: x + w, y: y + h * 0.56))
+                path.addLine(to: CGPoint(x: x + w, y: y + h))
+                path.addLine(to: CGPoint(x: x, y: y + h))
+                path.closeSubpath()
+                path.move(to: CGPoint(x: x + w * 0.18, y: y + h * 0.3))
+                path.addLine(to: CGPoint(x: x + w * 0.82, y: y + h * 0.3))
+                path.move(to: CGPoint(x: x + w * 0.3, y: y + h * 0.06))
+                path.addLine(to: CGPoint(x: x + w * 0.7, y: y + h * 0.06))
+            }
+            return path
+        }
+    }
+}
+
+// MARK: - Example
+
+/// The outcome view fills the screen, cycling its three outcomes so each replays its choreography.
+private struct OutcomeScreenExample: View {
+    @State private var outcome: OutcomeScreen.Outcome = .success
+
+    var body: some View {
+        Group {
+            switch outcome {
+            case .success:
+                OutcomeScreen(outcome: .success, title: "Backup complete", message: "2,418 photos and 36 videos are safe in your library.", primaryTitle: "Done", eyebrow: "Synced 10:42")
+            case .failure:
+                OutcomeScreen(
+                    outcome: .failure,
+                    title: "Couldn't sync",
+                    message: "Check your connection and try again.",
+                    retry: { try? await Task.sleep(for: .seconds(1.5)) },
+                    secondary: .init("Not now") {},
+                    details: "URLSessionTask failed: The Internet connection appears to be offline. (NSURLErrorDomain -1009)"
+                )
+            case .empty:
+                OutcomeScreen(outcome: .empty, title: "No invoices yet", message: "Invoices you send to clients show up here.", primaryTitle: "New invoice", eyebrow: "Invoices")
+            }
+        }
+        .id(outcome)
+        .padding(.horizontal, 12)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(OutcomeScreen.Style.adaptive(0xF3F2EE, 0x121212))
+        .onTapGesture {
+            outcome = switch outcome { case .success: .failure; case .failure: .empty; case .empty: .success }
+        }
+    }
+}
+
+#Preview("Light") {
+    OutcomeScreenExample()
+}
+
+#Preview("Dark") {
+    OutcomeScreenExample().preferredColorScheme(.dark)
+}
+```
+
+</Tab>
+</Tabs>

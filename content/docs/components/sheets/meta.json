@@ -1,0 +1,10 @@
+{
+  "title": "Sheets",
+  "description": "Toasts, confirmations and permission moments.",
+  "defaultOpen": false,
+  "pages": [
+    "confirm-sheet",
+    "permission-sheet",
+    "toast"
+  ]
+}

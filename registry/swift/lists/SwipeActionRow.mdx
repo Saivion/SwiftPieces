@@ -1,0 +1,10 @@
+## Notes
+
+- Rows are soft cards (`style.surface`, 26pt continuous radius) and actions are solid color blocks with dark ink, separated from the card and each other by `style.tileGap`. Pass light block colors as `tint`; the house defaults are sky, butter, sage, tangerine and lilac, with signal (`#FF5B3A`) reserved for the one destructive or primary action.
+- Drags are only claimed when they start horizontally, so the enclosing `ScrollView` keeps vertical scrolling. The card lifts off the tiles with a soft shadow as it opens, and the row clips sideways only so that shadow is never cut.
+- Tiles grow in: the glyph scales from 55% to full size with the reveal and the label fades in over the last half, so a short peek never shows cropped text. Tiles dip to 94% when pressed. A full swipe (past 60% of the row width) lets the edge block take the whole bar, bounces its glyph, fires a rigid impact at the moment it arms, and runs that action on release. The first declared action sits at the screen edge, matching `.swipeActions`.
+- Pass the same `open:` binding to every row in a list (with a unique `id:` per row) and only one row can be open at a time. Set the binding to `nil` to close all rows, or to a row's id to reveal its trailing actions (leading when there are none).
+- Swiping toward an edge with no actions rubber-bands to a 40pt limit and springs back.
+- `Style` (`SwipeActionRow.Style`, also `SwipeActionRowStyle`): `surface`, `tileInk`, `cornerRadius`, `tileWidth`, `tileGap`. `background:` still overrides the card fill; set `cornerRadius` and `tileGap` to 0 for classic full-bleed list rows.
+- Reduce Motion keeps every state change but replaces the springs and the tile grow-in with short fades. All actions are exposed as VoiceOver custom actions on the row.
+- Need grouped activity with categorize, split and expanding detail? That is the Transaction Row screen in Swift Pieces Pro.

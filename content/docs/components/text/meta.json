@@ -1,0 +1,10 @@
+{
+  "title": "Text",
+  "description": "Type that reveals, breathes and renders as glass.",
+  "defaultOpen": false,
+  "pages": [
+    "glass-text",
+    "text-reveal",
+    "weight-wave"
+  ]
+}

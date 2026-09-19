@@ -1,0 +1,11 @@
+## Notes
+
+- Assistant replies sit on the ground under a header: a 24pt ink mark, the name (`style.assistantName`) and a small uppercase phase label (THINKING, WRITING, STOPPED). User prompts are a solid block (`style.userBlock`, sky) with dark ink and a tucked bottom-trailing corner. Set `style.showsHeader = false` for a bare reply.
+- Text is split into word tokens (each word keeps its trailing whitespace). On iOS 18 a private `TextRenderer` draws each token at its own fade-in opacity with a 2pt rise; on iOS 17 the same opacities are written into the `AttributedString` runs. Only words that arrive after the view appears animate, so loaded history renders instantly.
+- Inline markdown renders; inline `code` sits on a butter block with dark ink.
+- The cursor is an inline tangerine capsule sized from the body font's cap height, so it flows with the text and scales with Dynamic Type. On iOS 18 it pulses through the renderer; on iOS 17 it is solid.
+- `phase` is a value, not internal state: drive `.thinking` (block-colored rising dots and a pulsing mark), `.streaming`, `.done`, `.error(message)` from your stream. `.error` turns the mark signal and shows the message with a signal Retry pill that calls `onAction(.regenerate)`.
+- Long press (0.35s) lifts the message onto a card with a rigid impact and shows a solid ink capsule with Copy and Regenerate. Copy writes to `UIPasteboard`, morphs to Copied with a success haptic, then sets the message down. Tap the message to put it down.
+- `Style` (`StreamingReply.Style`): `userBlock`, `cursor`, `code`, `dots`, `signal`, `ink`, `text`, `muted`, `surface`, `mark`, `markInk`, `actionFill`, `actionInk`, `assistantName`, `showsHeader`. `tint:` still overrides the user block and cursor.
+- Under Reduce Motion tokens appear without fading, the cursor and mark hold still, and the lift is a 0.15s ease.
+- Need full incremental markdown with lists, tables, source cards and a follow-up bar? That is the Streaming Markdown screen in Swift Pieces Pro.

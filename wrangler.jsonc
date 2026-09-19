@@ -1,0 +1,15 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "swiftpieces",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-09-13",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": { "directory": ".open-next/assets", "binding": "ASSETS" },
+  "observability": { "enabled": true },
+  "services": [{ "binding": "WORKER_SELF_REFERENCE", "service": "swiftpieces" }],
+  // Free has no database and no private bucket (Rev 3 §2). Only public media + the ISR cache.
+  "r2_buckets": [
+    { "binding": "MEDIA", "bucket_name": "swiftpieces-media" },
+    { "binding": "NEXT_INC_CACHE_R2_BUCKET", "bucket_name": "swiftpieces-cache" }
+  ]
+}

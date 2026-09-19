@@ -1,0 +1,267 @@
+// swiftpieces:
+// title: Motion Card
+// description: A solid color card that tilts with the device's attitude through an exponential filter, with a fixed-light sheen and a layered shadow that slide as it turns. Press settles it flat and scales it down with a light impact, and Core Motion stops whenever the scene is not active.
+// category: cards
+// minIOSVersion: "17.0"
+// version: "2.0.0"
+// pro: payment-card
+// tags: [card, motion, tilt, core-motion, press, ticket]
+
+import SwiftUI
+import CoreMotion
+
+/// Attitude-driven card with a fixed-light sheen, tracking shadow, and press feedback.
+///
+/// - Parameters:
+///   - maxAngle: Maximum tilt in degrees on each axis.
+///   - cornerRadius: Corner radius of the card surface (continuous).
+///   - attitude: Optional fixed tilt, -1...1 on each axis, that replaces device motion. Useful for previews, tests, and the simulator.
+///   - style: The card's fill, ink, sheen, shadow, and press. `.standard` is a tangerine block with dark ink.
+///   - action: Optional tap handler. The card always scales on press; this runs on a clean tap.
+///   - content: Card content, laid over the card's own surface. It inherits `style.foreground`.
+public struct MotionCard<Content: View>: View {
+    /// Surface and depth for the card.
+    public struct Style: Sendable {
+        /// The card's solid fill.
+        public var fill: Color
+        /// Default foreground for the content. Keep 4.5:1 contrast against `fill`.
+        public var foreground: Color
+        /// Strength of the fixed-light sheen, 0...1. 0 turns it off.
+        public var sheen: Double
+        /// Shadow strength in light mode; dark mode uses about three times this.
+        public var shadowOpacity: Double
+        /// Scale while pressed.
+        public var pressScale: CGFloat
+
+        public init(fill: Color = Color(red: 1, green: 0, blue: 0), foreground: Color = Color(red: 0.078, green: 0.078, blue: 0.078), sheen: Double = 0.5, shadowOpacity: Double = 0.16, pressScale: CGFloat = 0.97) {
+            self.fill = fill
+            self.foreground = foreground
+            self.sheen = sheen
+            self.shadowOpacity = shadowOpacity
+            self.pressScale = pressScale
+        }
+
+        /// House default: a tangerine block with dark ink.
+        public static var standard: Style { Style() }
+    }
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.isEnabled) private var isEnabled
+    @Environment(\.scenePhase) private var scenePhase
+    @State private var motion = Motion()
+    @State private var pressed = false
+    @State private var pressTick = 0
+
+    private let maxAngle: Double
+    private let cornerRadius: CGFloat
+    private let attitude: CGSize?
+    private let style: Style
+    private let action: (() -> Void)?
+    private let content: Content
+
+    public init(maxAngle: Double = 10, cornerRadius: CGFloat = 26, attitude: CGSize? = nil, style: Style = .standard, action: (() -> Void)? = nil, @ViewBuilder content: () -> Content) {
+        self.maxAngle = maxAngle
+        self.cornerRadius = cornerRadius
+        self.attitude = attitude
+        self.style = style
+        self.action = action
+        self.content = content()
+    }
+
+    public var body: some View {
+        let raw = reduceMotion ? .zero : (attitude ?? CGSize(width: motion.roll, height: motion.pitch))
+        // Pressing settles the card toward flat, as if pushed into the page.
+        let tilt = pressed ? CGSize(width: raw.width * 0.5, height: raw.height * 0.5) : raw
+        let magnitude = min(hypot(tilt.width, tilt.height), 1)
+        let shape = RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+        let shadow = min(style.shadowOpacity * (colorScheme == .dark ? 3 : 1), 1)
+
+        content
+            .foregroundStyle(style.foreground)
+            .background(style.fill)
+            .overlay {
+                // A fixed light: the sheen moves opposite the tilt, as a reflection would, and a faint shade gathers on the far side.
+                ZStack {
+                    RadialGradient(
+                        colors: [.white.opacity(style.sheen * (0.35 + magnitude * 0.4)), .clear],
+                        center: UnitPoint(x: 0.5 - tilt.width * 0.5, y: 0.3 - tilt.height * 0.5),
+                        startRadius: 0,
+                        endRadius: 260
+                    )
+                    .blendMode(.softLight)
+                    RadialGradient(
+                        colors: [.clear, .black.opacity(style.sheen * magnitude * 0.16)],
+                        center: UnitPoint(x: 0.5 - tilt.width * 0.5, y: 0.3 - tilt.height * 0.5),
+                        startRadius: 120,
+                        endRadius: 420
+                    )
+                }
+                .allowsHitTesting(false)
+                .accessibilityHidden(true)
+            }
+            .clipShape(shape)
+            .shadow(color: .black.opacity(shadow * 0.6), radius: 2, y: 1)
+            .shadow(color: .black.opacity(shadow), radius: (pressed ? 10 : 20) + magnitude * 10, x: -tilt.width * 14, y: (pressed ? 6 : 14) + tilt.height * 8)
+            .scaleEffect(pressed && !reduceMotion ? style.pressScale : 1)
+            .rotation3DEffect(.degrees(-tilt.height * maxAngle), axis: (x: 1, y: 0, z: 0), perspective: 0.6)
+            .rotation3DEffect(.degrees(tilt.width * maxAngle), axis: (x: 0, y: 1, z: 0), perspective: 0.6)
+            .saturation(isEnabled ? 1 : 0)
+            .opacity(isEnabled ? 1 : 0.55)
+            .animation(pressed ? .smooth(duration: 0.12) : .spring(duration: 0.35, bounce: 0.3), value: pressed)
+            .contentShape(shape)
+            .gesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { _ in
+                        if !pressed {
+                            pressed = true
+                            pressTick += 1
+                        }
+                    }
+                    .onEnded { drag in
+                        pressed = false
+                        if let action, hypot(drag.translation.width, drag.translation.height) < 10 { action() }
+                    },
+                isEnabled: isEnabled
+            )
+            .sensoryFeedback(.impact(weight: .light), trigger: pressTick)
+            .onAppear { if attitude == nil && !reduceMotion { motion.start() } }
+            .onDisappear { motion.stop() }
+            .onChange(of: scenePhase) { _, phase in
+                // Core Motion keeps the sensors on; never run it in the background.
+                if phase == .active && attitude == nil && !reduceMotion { motion.start() } else { motion.stop() }
+            }
+            .accessibilityElement(children: .combine)
+            .accessibilityAddTraits(action == nil ? [] : .isButton)
+    }
+
+    /// Publishes filtered roll/pitch (-1...1) relative to the pose at start. No-op in the simulator.
+    @Observable
+    @MainActor
+    fileprivate final class Motion {
+        var roll: Double = 0
+        var pitch: Double = 0
+        private var neutral: (roll: Double, pitch: Double)?
+        private let manager = CMMotionManager()
+
+        func start() {
+            guard manager.isDeviceMotionAvailable, !manager.isDeviceMotionActive else { return }
+            manager.deviceMotionUpdateInterval = 1.0 / 60.0
+            manager.startDeviceMotionUpdates(to: .main) { [weak self] data, _ in
+                guard let data else { return }
+                let roll = data.attitude.roll
+                let pitch = data.attitude.pitch
+                MainActor.assumeIsolated { self?.ingest(roll: roll, pitch: pitch) }
+            }
+        }
+
+        func stop() {
+            manager.stopDeviceMotionUpdates()
+            neutral = nil
+        }
+
+        /// Exponential filter: each sample moves the output 15% of the way to the target, which removes hand jitter without lag you can feel.
+        private func ingest(roll rawRoll: Double, pitch rawPitch: Double) {
+            let neutral = neutral ?? (rawRoll, rawPitch)
+            self.neutral = neutral
+            let targetRoll = min(max((rawRoll - neutral.roll) / (.pi / 5), -1), 1)
+            let targetPitch = min(max((rawPitch - neutral.pitch) / (.pi / 5), -1), 1)
+            roll += (targetRoll - roll) * 0.15
+            pitch += (targetPitch - pitch) * 0.15
+        }
+    }
+}
+
+// MARK: - Example
+
+/// A film ticket: a tangerine block with a heavy title, light seat numerals, and a perforation line.
+private struct MotionCardExample: View {
+    @Environment(\.colorScheme) private var colorScheme
+    @State private var tilt = CGSize(width: 0.4, height: -0.25)
+
+    private var ground: Color {
+        colorScheme == .dark ? Color(red: 0.071, green: 0.071, blue: 0.071) : Color(red: 0.953, green: 0.949, blue: 0.933)
+    }
+
+    var body: some View {
+        MotionCard(attitude: tilt, action: {}) {
+            VStack(alignment: .leading, spacing: 0) {
+                HStack {
+                    Text("ADMIT ONE")
+                        .font(.caption2.weight(.bold))
+                        .tracking(1.2)
+                    Spacer()
+                    Text("No. 0418")
+                        .font(.system(.caption, design: .monospaced).weight(.semibold))
+                }
+                Spacer(minLength: 12)
+                Text("Late Show")
+                    .font(.system(size: 40, weight: .bold))
+                    .tracking(-1.6)
+                Text("Sat 14 Nov  ·  Screen 3")
+                    .font(.subheadline.weight(.medium))
+                    .opacity(0.62)
+                // Perforation: two notches cut from the edges with a dashed tear line between them.
+                HStack(spacing: 8) {
+                    Circle().fill(ground).frame(width: 22, height: 22).offset(x: -11)
+                    Line()
+                        .stroke(style: StrokeStyle(lineWidth: 1.5, dash: [4, 5]))
+                        .frame(height: 1.5)
+                        .opacity(0.3)
+                    Circle().fill(ground).frame(width: 22, height: 22).offset(x: 11)
+                }
+                .padding(.horizontal, -22)
+                .padding(.vertical, 6)
+                .accessibilityHidden(true)
+                HStack(alignment: .firstTextBaseline, spacing: 24) {
+                    seat("ROW", "F")
+                    seat("SEAT", "12")
+                    seat("DOORS", "21:40")
+                }
+            }
+            .padding(22)
+            .frame(width: 330, height: 244)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(ground)
+        .task {
+            // The simulator has no attitude, so the example drifts on its own.
+            let path = [CGSize(width: -0.5, height: 0.3), CGSize(width: 0.45, height: 0.4), CGSize(width: -0.3, height: -0.45), CGSize(width: 0.4, height: -0.25)]
+            while !Task.isCancelled {
+                for target in path {
+                    try? await Task.sleep(for: .seconds(1.6))
+                    withAnimation(.smooth(duration: 1.4)) { tilt = target }
+                }
+            }
+        }
+    }
+
+    private func seat(_ label: String, _ value: String) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(label)
+                .font(.caption2.weight(.bold))
+                .tracking(1)
+                .opacity(0.62)
+            Text(value)
+                .font(.system(size: 30, weight: .light))
+                .monospacedDigit()
+        }
+        .accessibilityElement(children: .combine)
+    }
+
+    private struct Line: Shape {
+        func path(in rect: CGRect) -> Path {
+            Path { $0.move(to: CGPoint(x: 0, y: rect.midY)); $0.addLine(to: CGPoint(x: rect.maxX, y: rect.midY)) }
+        }
+    }
+}
+
+#Preview("Light") {
+    MotionCardExample()
+        .preferredColorScheme(.light)
+}
+
+#Preview("Dark") {
+    MotionCardExample()
+        .preferredColorScheme(.dark)
+}

@@ -1,0 +1,8 @@
+{
+  "title": "Motion",
+  "description": "Gesture modifiers with real physics.",
+  "defaultOpen": false,
+  "pages": [
+    "drag-to-dismiss"
+  ]
+}

@@ -1,0 +1,7 @@
+## Notes
+
+- Stars are soft rounded shapes that fill as solid blocks. The block follows the score through `Style.levels` (tangerine, sand, butter, sage, sky by default), so a low rating reads differently from a high one at a glance. Pass `tint` to use one color for every score.
+- With `labels`, a caption sits under the stars: a light numeral with a dimmed decimal and "/ 5", and a solid chip with the label for the rounded-up rating. It spans the width of the stars and morphs as you scrub. Unrated shows "Tap or slide".
+- One `DragGesture` with zero minimum distance handles tap and scrub. While the finger is down the star under it lifts on an interactive spring; on release the stars settle with a spring delayed by their distance from that star, so the release ripples outward.
+- Haptics: `.selection` on each step, a rigid impact when the value hits 0 or the maximum.
+- `isReadOnly` removes the gesture and the VoiceOver adjustable action but keeps the value readable. `size` scales with Dynamic Type.

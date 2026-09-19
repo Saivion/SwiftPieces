@@ -1,0 +1,298 @@
+---
+title: "Touch Grid"
+description: "A Canvas dot grid that swells and warms into a house block color under the finger, springs back on release, and sends one dissipating ripple out from a tap."
+piece: "TouchGrid"
+category: "backgrounds"
+minIOSVersion: "17.0"
+version: "2.0.0"
+tags: ["background","grid","interactive","canvas","haptics","palette"]
+registryDependencies: []
+---
+
+{/* GENERATED FILE. Edit registry/swift/backgrounds/TouchGrid.swift or TouchGrid.mdx instead. */}
+
+Interactive dot grid. Resting dots are a tonal ramp on `Style.dot` (`.primary` by default, so both color schemes work); under the finger they swell and take on `Style.highlight`, a solid house block.
+
+## Notes
+
+- Everything is drawn in one `Canvas` inside a `TimelineView` that pauses when nothing is pressed, springing or rippling, so an idle grid costs nothing. A short task clears expired springs and ripples so the timeline can pause again.
+- Release is a damped spring computed per frame (`e^-7t · cos 10t`), so the dots overshoot slightly below their resting size before settling. While dragging the field follows the finger directly.
+- A tap (moved under 8 pt, held under 0.3 s) emits one ripple ring that eases outward and widens as it fades; ripples are capped at three. Reduce Motion disables only the ripple; the highlight and spring remain.
+- The highlight is a tonal ramp on `.primary` (`baseOpacity` up to 0.92) with a 3.2x swell, so it matches any tint and both color schemes.
+- The `.selection` haptic fires at most every 60 ms and only when the finger crosses into a new grid cell.
+- `probe` drives the grid without a finger, for previews, hints, or onboarding.
+- `style:` sets the resting dot color (`.primary` by default) and the block the dots take on as they lift. `.standard` warms into tangerine; `.sky`, `.lilac`, `.sage` and `.butter` use the other blocks, and `.mono` keeps the single-tone ramp.
+- The `#Preview` is the grid alone on the house ground, full bleed; touch it to swell, release to spring back, tap for a ripple.
+
+## Usage
+
+```swift
+TouchGridExample().preferredColorScheme(.light)
+```
+
+## Parameters
+
+| Parameter | Description |
+| --- | --- |
+| `spacing` | Distance between dots. |
+| `dotSize` | Resting dot diameter. |
+| `radius` | Influence radius of the touch. |
+| `baseOpacity` | Opacity of resting dots on `.primary`. |
+| `ripples` | Whether a tap emits a ripple ring. Reduce Motion disables ripples regardless. |
+| `probe` | Optional programmatic touch point for previews and onboarding hints. Setting it back to `nil` triggers the release spring; a probe held under 0.3 s emits a ripple like a tap. |
+| `style` | Resting dot color and the block color dots take on under the finger. `.standard` (default) warms into tangerine; `.sky`, `.lilac`, `.sage` and `.butter` use the other blocks; `.mono` keeps the original single-tone ramp. |
+
+## Source
+
+<Tabs items={["TouchGrid.swift"]}>
+<Tab value="TouchGrid.swift">
+
+```swift title="TouchGrid.swift"
+import SwiftUI
+
+/// Interactive dot grid. Resting dots are a tonal ramp on `Style.dot` (`.primary` by default, so both color schemes work);
+/// under the finger they swell and take on `Style.highlight`, a solid house block.
+///
+/// - Parameters:
+///   - spacing: Distance between dots.
+///   - dotSize: Resting dot diameter.
+///   - radius: Influence radius of the touch.
+///   - baseOpacity: Opacity of resting dots on `.primary`.
+///   - ripples: Whether a tap emits a ripple ring. Reduce Motion disables ripples regardless.
+///   - probe: Optional programmatic touch point for previews and onboarding hints. Setting it back to `nil` triggers the release spring; a probe held under 0.3 s emits a ripple like a tap.
+///   - style: Resting dot color and the block color dots take on under the finger. `.standard` (default) warms into tangerine; `.sky`, `.lilac`, `.sage` and `.butter` use the other blocks; `.mono` keeps the original single-tone ramp.
+public struct TouchGrid: View {
+    /// Dot colors.
+    public struct Style: Sendable {
+        /// Resting dot color; `baseOpacity` is applied on top.
+        public var dot: Color
+        /// Color the dots blend into as they lift under the finger and in ripples.
+        public var highlight: Color
+
+        public init(dot: Color = .primary, highlight: Color) {
+            self.dot = dot
+            self.highlight = highlight
+        }
+
+        /// Tangerine under the finger.
+        public static let standard = Style(highlight: touchGridColor(0xFF5B3A))
+        /// Sky under the finger.
+        public static let sky = Style(highlight: touchGridColor(0x9CC2FF))
+        /// Lilac under the finger.
+        public static let lilac = Style(highlight: touchGridColor(0xCDB8FF))
+        /// Sage under the finger.
+        public static let sage = Style(highlight: touchGridColor(0xA9DCB7))
+        /// Butter under the finger.
+        public static let butter = Style(highlight: touchGridColor(0xFFD976))
+        /// The single-tone ramp on `.primary`.
+        public static let mono = Style(highlight: .primary)
+    }
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    @State private var touch: CGPoint? = nil
+    @State private var touchStart: Date? = nil
+    @State private var release: Release? = nil
+    @State private var ripples: [Ripple] = []
+    @State private var cell = -1
+    @State private var lastTick = Date.distantPast
+    @State private var settleToken = 0
+
+    private let spacing: CGFloat
+    private let dotSize: CGFloat
+    private let radius: CGFloat
+    private let baseOpacity: Double
+    private let ripplesEnabled: Bool
+    private let probe: CGPoint?
+    private let style: Style
+
+    private struct Release { let point: CGPoint; let date: Date }
+    private struct Ripple: Identifiable { let id = UUID(); let center: CGPoint; let date: Date }
+
+    private let releaseDuration: TimeInterval = 0.55
+    private let rippleDuration: TimeInterval = 1.1
+
+    public init(
+        spacing: CGFloat = 24,
+        dotSize: CGFloat = 3,
+        radius: CGFloat = 120,
+        baseOpacity: Double = 0.18,
+        ripples: Bool = true,
+        probe: CGPoint? = nil,
+        style: Style = .standard
+    ) {
+        self.style = style
+        self.spacing = spacing
+        self.dotSize = dotSize
+        self.radius = radius
+        self.baseOpacity = baseOpacity
+        self.ripplesEnabled = ripples
+        self.probe = probe
+    }
+
+    private var active: Bool { touch != nil || release != nil || !ripples.isEmpty }
+
+    public var body: some View {
+        TimelineView(.animation(paused: !active)) { context in
+            let now = context.date
+            Canvas(rendersAsynchronously: true) { graphics, size in
+                draw(in: &graphics, size: size, now: now)
+            }
+        }
+        .contentShape(Rectangle())
+        .gesture(drag)
+        .sensoryFeedback(.selection, trigger: cell) { old, new in old >= 0 && new >= 0 }
+        .onChange(of: probe) { _, point in
+            // A probe held under 0.3 s counts as a tap, mirroring the finger rule.
+            if let point { press(at: point) } else if touch != nil { lift(tapped: touchStart.map { Date().timeIntervalSince($0) < 0.3 } ?? false) }
+        }
+        .onAppear { if let probe { press(at: probe) } }
+        // Once the last spring and ripple have played out, clear them so the timeline can pause.
+        .task(id: settleToken) {
+            try? await Task.sleep(for: .seconds(rippleDuration + 0.1))
+            guard !Task.isCancelled else { return }
+            release = nil
+            ripples.removeAll()
+        }
+        .accessibilityHidden(true)
+    }
+
+    // MARK: Input
+
+    private var drag: some Gesture {
+        DragGesture(minimumDistance: 0)
+            .onChanged { value in
+                press(at: value.location)
+                // Low-rate tick when the finger crosses into another grid cell.
+                let index = Int(value.location.x / spacing) + Int(value.location.y / spacing) * 4096
+                if index != cell, Date().timeIntervalSince(lastTick) > 0.06 {
+                    cell = index
+                    lastTick = Date()
+                }
+            }
+            .onEnded { value in
+                let moved = hypot(value.translation.width, value.translation.height)
+                let held = touchStart.map { Date().timeIntervalSince($0) } ?? 0
+                lift(tapped: moved < 8 && held < 0.3)
+            }
+    }
+
+    private func press(at point: CGPoint) {
+        if touch == nil { touchStart = Date() }
+        touch = point
+        release = nil
+    }
+
+    private func lift(tapped: Bool) {
+        guard let point = touch else { return }
+        release = Release(point: point, date: Date())
+        if tapped, ripplesEnabled, !reduceMotion {
+            ripples.append(Ripple(center: point, date: Date()))
+            if ripples.count > 3 { ripples.removeFirst() }
+        }
+        touch = nil
+        touchStart = nil
+        cell = -1
+        settleToken += 1
+    }
+
+    // MARK: Drawing
+
+    /// Strength of the touch field: 1 while pressed, then a damped spring that dips just below zero before settling.
+    private func fieldStrength(now: Date) -> (center: CGPoint, strength: CGFloat)? {
+        if let touch { return (touch, 1) }
+        guard let release else { return nil }
+        let t = now.timeIntervalSince(release.date)
+        guard t < releaseDuration else { return nil }
+        let s = exp(-7 * t) * cos(10 * t)
+        return (release.point, CGFloat(max(s, -0.12)))
+    }
+
+    private func draw(in graphics: inout GraphicsContext, size: CGSize, now: Date) {
+        let field = fieldStrength(now: now)
+        let liveRipples: [(center: CGPoint, progress: CGFloat)] = ripples.compactMap { ripple in
+            let t = now.timeIntervalSince(ripple.date) / rippleDuration
+            return t < 1 ? (ripple.center, CGFloat(t)) : nil
+        }
+        let rippleReach = radius * 2.4
+        let cols = Int(size.width / spacing) + 1
+        let rows = Int(size.height / spacing) + 1
+
+        for row in 0..<rows {
+            for col in 0..<cols {
+                let p = CGPoint(x: CGFloat(col) * spacing + spacing / 2, y: CGFloat(row) * spacing + spacing / 2)
+                var lift: CGFloat = 0
+
+                if let field {
+                    let d = hypot(p.x - field.center.x, p.y - field.center.y)
+                    let falloff = max(0, 1 - d / radius)
+                    lift += falloff * falloff * (3 - 2 * falloff) * field.strength
+                }
+                for ripple in liveRipples {
+                    // Ring front eases outward; the band fades and widens as it travels.
+                    let eased = 1 - pow(1 - ripple.progress, 3)
+                    let front = eased * rippleReach
+                    let d = hypot(p.x - ripple.center.x, p.y - ripple.center.y)
+                    let band = spacing * (1.2 + eased * 2)
+                    let wave = exp(-pow((d - front) / band, 2)) * (1 - ripple.progress)
+                    lift += wave * 0.7
+                }
+
+                lift = min(max(lift, -0.12), 1)
+                let s = dotSize * (1 + lift * 2.2)
+                let rise = max(lift, 0)
+                let rect = CGRect(x: p.x - s / 2, y: p.y - s / 2, width: s, height: s)
+                let dot = Path(ellipseIn: rect)
+                // Resting ink fades out as the block color fades in, so a lifted dot reads as solid highlight.
+                graphics.fill(dot, with: .color(style.dot.opacity(baseOpacity * (1 - rise))))
+                if rise > 0.01 {
+                    graphics.fill(dot, with: .color(style.highlight.opacity(min(1, 0.25 + rise * 0.9))))
+                }
+            }
+        }
+    }
+}
+
+/// A solid sRGB color from a hex value.
+private func touchGridColor(_ hex: UInt32) -> Color {
+    Color(uiColor: touchGridUIColor(hex))
+}
+
+/// A color that resolves to `light` or `dark` with the current appearance.
+private func touchGridColor(light: UInt32, dark: UInt32) -> Color {
+    let l = touchGridUIColor(light), d = touchGridUIColor(dark)
+    return Color(uiColor: UIColor { $0.userInterfaceStyle == .dark ? d : l })
+}
+
+private func touchGridUIColor(_ hex: UInt32) -> UIColor {
+    UIColor(red: CGFloat((hex >> 16) & 0xFF) / 255, green: CGFloat((hex >> 8) & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
+}
+
+// MARK: - Example
+
+/// The grid, full bleed on the house ground, with nothing on top. Touch it: the dots swell and warm under the finger,
+/// spring back on release, and a tap sends one ripple out.
+private struct TouchGridExample: View {
+    /// A programmatic finger for demos; nil leaves the grid to real touches.
+    var probe: CGPoint? = nil
+
+    var body: some View {
+        ZStack {
+            touchGridColor(light: 0xF3F2EE, dark: 0x121212)
+            TouchGrid(spacing: 26, dotSize: 4, radius: 130, probe: probe)
+        }
+        .ignoresSafeArea()
+    }
+}
+
+#Preview("Light") {
+    TouchGridExample().preferredColorScheme(.light)
+}
+
+#Preview("Dark") {
+    TouchGridExample().preferredColorScheme(.dark)
+}
+```
+
+</Tab>
+</Tabs>

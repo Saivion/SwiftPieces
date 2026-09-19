@@ -1,0 +1,12 @@
+## Notes
+
+- Core Motion roll and pitch are measured relative to the pose at the moment updates start, so the card sits flat however the phone is held, then run through an exponential filter (15% per sample at 60Hz) that removes hand jitter without perceptible lag.
+- Motion starts on appear and whenever `scenePhase` becomes `.active`, and stops on disappear and in any other phase, so the sensors never run in the background. In the simulator, and with Reduce Motion, the card is static with a fixed light.
+- Pass `attitude:` (-1...1 per axis) to drive the tilt yourself for previews, tests, or the simulator; it replaces device motion entirely.
+- The specular highlight is an 11% white radial gradient whose center moves opposite the tilt, as a reflection of a fixed light would; the shadow slides the same way and widens with the tilt magnitude.
+- The card draws its own surface (`secondarySystemGroupedBackground`, 0.5pt hairline, continuous corners) under your content. Press scales to 0.98 with a light impact; a lift within 10pt runs `action` if one is set.
+- The motion source is a nested `@Observable` class marked `fileprivate`, because the macro's generated extension cannot see a `private` nested type.
+- **v2:** the card draws a solid block (`style.fill`, tangerine by default) with dark ink, a soft-light sheen plus a faint far-side shade that follow a fixed light, and a two-layer shadow. Pressing settles the tilt halfway to flat, tightens the shadow, and scales to `pressScale`. Disabled cards desaturate.
+- `style:` (`MotionCard.Style`) sets `fill`, `foreground`, `sheen`, `shadowOpacity`, and `pressScale`; `cornerRadius` now defaults to 26.
+- The example is a film ticket with light seat numerals and perforation notches.
+- For a full card screen, see the Pro Card Details screen (`payment-card`).

@@ -1,0 +1,11 @@
+## Notes
+
+- The stagger is computed from the unit count: each unit animates for about half a second and the rest of `duration` is spread across the gaps, so long sentences do not crawl. Pass a larger `duration` for a slower reveal.
+- Words and characters are laid out by a private wrapping `Layout`, so the text breaks across rows like normal text and characters never split a word. `.lines` renders each `\n`-separated line as one wrapping `Text`.
+- Splitting text into `Text` views loses kerning and ligatures between units; `.words` keeps them inside each word and is the best default for body-sized type.
+- `revealOnScroll` uses `onScrollVisibilityChange` on iOS 18; on iOS 17 it reveals on appear. Change `trigger` to replay.
+- Reduce Motion drops the lift, blur and scale and crossfades all units together.
+- `.rise` now slides each unit up from behind its own baseline (a mask at the unit's bottom edge). Set `Style.masksRise = false` for the old 10pt float.
+- `highlights` takes whole-word phrases. A matched phrase is kept on one row; after its last unit lands, a `Style.highlight` block (butter by default) wipes in from the leading edge and an ink copy of the phrase is uncovered by the same wipe, so the color flips exactly under the block edge. Under Reduce Motion the block fades in instead.
+- `Style` (`.standard` uses the house palette): `highlight`, `highlightInk`, `masksRise`, `blurRadius`, `highlightDuration`.
+- For a complete first-run flow with revealed headlines, see the Pro Onboarding screen.

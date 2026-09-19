@@ -1,0 +1,11 @@
+{
+  "title": "Inputs",
+  "description": "Tracks, steppers, rails and fields built for the thumb.",
+  "defaultOpen": false,
+  "pages": [
+    "expanding-track",
+    "filter-rail",
+    "scrub-stepper",
+    "secure-entry"
+  ]
+}

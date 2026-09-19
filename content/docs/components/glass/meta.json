@@ -1,0 +1,10 @@
+{
+  "title": "Glass",
+  "description": "Correct iOS 26 Liquid Glass with Material fallbacks.",
+  "defaultOpen": false,
+  "pages": [
+    "glass-action-menu",
+    "glass-segments",
+    "glass-surface"
+  ]
+}

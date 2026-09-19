@@ -1,0 +1,10 @@
+## Notes
+
+- Single instance by design. Presenting again while visible does nothing.
+- The toast is a solid card: ink in light mode, raised grey in dark mode. A color tile marks its kind (`.info` sky, `.success` sage, `.warning` butter, `.error` tangerine) and bounces on arrival with a matching haptic.
+- `detail` adds a quieter second line. The action is a signal-colored capsule that flashes a check, runs the handler, then dismisses.
+- The countdown is a `.task` on the toast and is cancelled the moment the toast leaves; touching the toast pauses it (the thin bar freezes and the card presses in) and releasing resumes from where it stopped. Swipe toward the edge to dismiss.
+- Placement reads the safe area of the view it is applied to: at the top it clears the Dynamic Island, at the bottom it rises with the keyboard. Apply the modifier to a view that does not ignore safe areas.
+- Colors live in `Toast.Appearance` (passed as `appearance:`), because `Toast.Style` already names the kind. The card is opaque, so it reads the same with Reduce Transparency.
+- The message and detail are posted as a VoiceOver announcement on appear; the action button is a real button with its own label.
+- For stacked, queued alerts with a notifications feed, see the Notifications screen (toast stack) in Swift Pieces Pro.

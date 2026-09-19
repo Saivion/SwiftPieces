@@ -1,0 +1,7 @@
+## Notes
+
+- Requires `AssistantOrb.metal` in the same target. The `[[ stitchable ]] assistantOrbSiriWave` function is looked up through `ShaderLibrary` at runtime. Its helpers live in the `assistantOrbSiri` namespace, so it can share a target with other orb kernels.
+- The orb has one look: thinking. Four thin sine membranes in blue, pink, orange and red travel left to right through the equator over a violet ground, seen through a refracting glass shell with a cool and warm rim. There is no idle or speaking phase, no audio level and no touch interaction. Colour is the only input: `palette` defaults to `.siri`, and `AssistantOrb.Palette(bands:ground:crest:rimCool:rimWarm:)` takes hex values or `Color`s for your brand. A palette change crossfades all eight colours over 0.8s (instantly under Reduce Motion); the motion never changes.
+- The sphere never scales, floats or pulses; only the wave inside it moves. Put the orb on a dark surface and pair it with your own status copy if the step changes.
+- `size` sets a square frame. The ball fills 90% of it, so leave the frame square.
+- The clock is relative to first appearance so `Float` precision holds over long sessions. Reduce Motion pauses the timeline on a still frame. VoiceOver reads "Assistant" with "Thinking" as its value.

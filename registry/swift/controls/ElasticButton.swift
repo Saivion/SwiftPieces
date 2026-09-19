@@ -1,0 +1,269 @@
+// swiftpieces:
+// title: Elastic Button
+// description: A ButtonStyle that squashes toward the touch point, stretches with rubber-band resistance when dragged, deepens after a hold and snaps back with a spring. Optional solid surfaces (signal, block, raised) press into their own soft shadow and darken under the finger.
+// category: controls
+// minIOSVersion: "17.0"
+// version: "2.0.0"
+// tags: [button, style, spring, drag, haptics, depth]
+
+import SwiftUI
+
+/// Squash-and-stretch press for any `Button`. Apply with `.buttonStyle(.elastic)`, or `.buttonStyle(.elastic(.signal))` to also draw the surface.
+///
+/// - Parameters:
+///   - squash: Scale while pressed, anchored toward the touch point. Holding 350ms eases 0.03 deeper.
+///   - bounce: Extra bounce added to the `.snappy` release spring.
+///   - haptics: Plays a solid impact on press, a soft one when the hold deepens, and a soft one when a drag cancels.
+///   - style: The surface drawn behind the label. `.standard` draws nothing and only adds the motion; `.signal`, `.raised` and `.block(_:)` draw a solid capsule with ink, layered depth that compresses on press, and a darken under the finger.
+public struct ElasticButton: ButtonStyle {
+    /// Surface, ink and depth for the button. Colors adapt to light and dark.
+    public struct Style: Sendable {
+        /// Solid fill behind the label. `nil` leaves the label as you drew it and only applies the motion.
+        public var fill: Color?
+        /// Label color on the fill.
+        public var ink: Color
+        /// Corner radius. `nil` draws a capsule.
+        public var radius: CGFloat?
+        /// Minimum height of the surface. 56 by default, never below the 44pt target.
+        public var height: CGFloat
+        /// Horizontal padding inside the surface.
+        public var padding: CGFloat
+        /// Draws a soft two-layer shadow that flattens while pressed.
+        public var depth: Bool
+
+        public init(fill: Color? = nil, ink: Color = HouseColor.text, radius: CGFloat? = nil, height: CGFloat = 56, padding: CGFloat = 24, depth: Bool = true) {
+            self.fill = fill
+            self.ink = ink
+            self.radius = radius
+            self.height = Swift.max(height, 44)
+            self.padding = padding
+            self.depth = depth
+        }
+
+        /// Motion only: no surface, the label keeps its own look.
+        public static let standard = Style(depth: false)
+        /// The one primary action: signal fill with dark ink.
+        public static let signal = Style(fill: HouseColor.signal, ink: HouseColor.ink)
+        /// A quiet secondary action on the raised ground color.
+        public static let raised = Style(fill: HouseColor.raised, ink: HouseColor.text, depth: false)
+        /// A solid house block with dark ink, for categories and highlights.
+        public static func block(_ block: Block) -> Style { Style(fill: block.color, ink: HouseColor.ink) }
+
+        /// The house blocks. Each carries dark ink at 4.5:1 or better.
+        public enum Block: Sendable, CaseIterable {
+            case tangerine, sky, butter, sage, lilac, sand
+
+            public var color: Color {
+                switch self {
+                case .tangerine: HouseColor.hex(0xFF5B3A)
+                case .sky: HouseColor.hex(0x9CC2FF)
+                case .butter: HouseColor.hex(0xFFD976)
+                case .sage: HouseColor.hex(0xA9DCB7)
+                case .lilac: HouseColor.hex(0xCDB8FF)
+                case .sand: HouseColor.hex(0xE9D5B3)
+                }
+            }
+        }
+
+        /// The Free house palette, adapting to light and dark.
+        public enum HouseColor {
+            public static let ink = hex(0x141414)
+            public static let signal = hex(0xFF5B3A)
+            public static let text = adaptive(light: 0x141414, dark: 0xF4F3EF)
+            public static let muted = adaptive(light: 0x5C5A56, dark: 0xA6A49F)
+            public static let ground = adaptive(light: 0xF3F2EE, dark: 0x121212)
+            public static let surface = adaptive(light: 0xFFFFFF, dark: 0x1C1C1C)
+            public static let raised = adaptive(light: 0xEAE8E2, dark: 0x262626)
+
+            static func hex(_ value: UInt32) -> Color {
+                Color(red: Double((value >> 16) & 0xFF) / 255, green: Double((value >> 8) & 0xFF) / 255, blue: Double(value & 0xFF) / 255)
+            }
+
+            static func adaptive(light: UInt32, dark: UInt32) -> Color {
+                Color(uiColor: UIColor { traits in
+                    let v = traits.userInterfaceStyle == .dark ? dark : light
+                    return UIColor(red: CGFloat((v >> 16) & 0xFF) / 255, green: CGFloat((v >> 8) & 0xFF) / 255, blue: CGFloat(v & 0xFF) / 255, alpha: 1)
+                })
+            }
+        }
+    }
+
+    @Environment(\.isEnabled) private var isEnabled
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.colorScheme) private var colorScheme
+    @State private var size: CGSize = .zero
+    @State private var touch: CGPoint?
+    @State private var translation: CGSize = .zero
+    @State private var down = false
+    @State private var deep = false
+    @State private var cancelled = false
+    @State private var pressTicks = 0
+    @State private var deepTicks = 0
+    @State private var cancelTicks = 0
+    @State private var holdTask: Task<Void, Never>?
+
+    private let squash: CGFloat
+    private let bounce: Double
+    private let haptics: Bool
+    private let style: Style
+
+    public init(squash: CGFloat = 0.96, bounce: Double = 0.2, haptics: Bool = true, style: Style = .standard) {
+        self.squash = squash
+        self.bounce = bounce
+        self.haptics = haptics
+        self.style = style
+    }
+
+    public func makeBody(configuration: Configuration) -> some View {
+        let pressed = configuration.isPressed && !cancelled
+        let base: CGFloat = pressed ? (deep ? squash - 0.03 : squash) : 1
+        let pull = reduceMotion || !pressed ? .zero : banded(translation)
+        surface(configuration.label, pressed: pressed)
+            .contentShape(.rect)
+            .onGeometryChange(for: CGSize.self) { $0.size } action: { size = $0 }
+            // Stretch along the drag axis and thin across it, so the shape reads as pulled rather than moved.
+            .scaleEffect(
+                x: base + abs(pull.width) / 220 - abs(pull.height) / 660,
+                y: base + abs(pull.height) / 220 - abs(pull.width) / 660,
+                anchor: anchor
+            )
+            .offset(x: pull.width * 0.35, y: pull.height * 0.35)
+            .opacity(isEnabled ? 1 : (style.fill == nil ? 0.45 : 1))
+            .animation(pressed ? .spring(duration: deep ? 0.35 : 0.16, bounce: 0) : .snappy(duration: 0.36, extraBounce: bounce), value: pressed)
+            .animation(.spring(duration: 0.35, bounce: 0), value: deep)
+            .animation(.interactiveSpring(duration: 0.15), value: translation)
+            .simultaneousGesture(tracker)
+            .onChange(of: configuration.isPressed) { _, isPressed in
+                down = isPressed
+                holdTask?.cancel()
+                if isPressed {
+                    pressTicks += 1
+                    holdTask = Task {
+                        try? await Task.sleep(for: .milliseconds(350))
+                        guard !Task.isCancelled, down, !cancelled else { return }
+                        deep = true
+                        deepTicks += 1
+                    }
+                } else {
+                    deep = false
+                }
+            }
+            .sensoryFeedback(.impact(flexibility: .solid, intensity: 0.7), trigger: pressTicks) { _, _ in haptics && isEnabled }
+            .sensoryFeedback(.impact(flexibility: .soft), trigger: deepTicks) { _, _ in haptics && isEnabled }
+            .sensoryFeedback(.impact(flexibility: .soft, intensity: 0.5), trigger: cancelTicks) { _, _ in haptics && isEnabled }
+    }
+
+    /// Draws the optional solid surface: fill, ink, a darken that deepens with the hold, and a shadow that flattens under the finger.
+    @ViewBuilder
+    private func surface(_ label: Configuration.Label, pressed: Bool) -> some View {
+        if let fill = style.fill {
+            let shape = style.radius.map { AnyShape(RoundedRectangle(cornerRadius: $0, style: .continuous)) } ?? AnyShape(Capsule())
+            let lift = style.depth && isEnabled
+            let shadowStrength = colorScheme == .dark ? 0.5 : 0.16
+            label
+                .font(.body.weight(.semibold))
+                .lineLimit(1)
+                .foregroundStyle(isEnabled ? style.ink : Style.HouseColor.muted)
+                .padding(.horizontal, style.padding)
+                .frame(minHeight: style.height)
+                .background {
+                    ZStack {
+                        shape.fill(isEnabled ? fill : Style.HouseColor.raised)
+                        // Press darkens the surface; the hold deepens it.
+                        shape.fill(Style.HouseColor.ink.opacity(pressed ? (deep ? 0.16 : 0.09) : 0))
+                    }
+                    .shadow(color: .black.opacity(lift ? shadowStrength * (pressed ? 0.35 : 1) : 0), radius: pressed ? 3 : 14, y: pressed ? 1 : 8)
+                    .shadow(color: .black.opacity(lift ? shadowStrength * 0.5 : 0), radius: 1, y: pressed ? 0 : 1)
+                }
+                .contentShape(shape)
+        } else {
+            label
+        }
+    }
+
+    /// Runs alongside the button's own press so we know where the finger is and how far it has moved.
+    private var tracker: some Gesture {
+        DragGesture(minimumDistance: 0)
+            .onChanged { value in
+                if touch == nil {
+                    touch = value.startLocation
+                    cancelled = false
+                }
+                translation = value.translation
+                if !cancelled, hypot(value.translation.width, value.translation.height) > 44 {
+                    cancelled = true
+                    cancelTicks += 1
+                    holdTask?.cancel()
+                    deep = false
+                }
+            }
+            .onEnded { _ in
+                touch = nil
+                translation = .zero
+            }
+    }
+
+    /// Partway between center and the touch point, so the squash leans toward the finger without tipping.
+    private var anchor: UnitPoint {
+        guard let touch, size.width > 0, size.height > 0, !reduceMotion else { return .center }
+        let x = min(max(touch.x / size.width, 0), 1)
+        let y = min(max(touch.y / size.height, 0), 1)
+        return UnitPoint(x: 0.5 + (x - 0.5) * 0.6, y: 0.5 + (y - 0.5) * 0.6)
+    }
+
+    private func banded(_ t: CGSize) -> CGSize {
+        func band(_ v: CGFloat) -> CGFloat { v / (1 + abs(v) / 40) }
+        return CGSize(width: band(t.width), height: band(t.height))
+    }
+}
+
+public extension ButtonStyle where Self == ElasticButton {
+    /// Default elastic press: 0.96 squash, snappy release with a little extra bounce, haptics on, no surface.
+    static var elastic: ElasticButton { ElasticButton() }
+
+    static func elastic(squash: CGFloat = 0.96, bounce: Double = 0.2, haptics: Bool = true, style: ElasticButton.Style = .standard) -> ElasticButton {
+        ElasticButton(squash: squash, bounce: bounce, haptics: haptics, style: style)
+    }
+
+    /// Elastic press with a drawn surface, for example `.elastic(.signal)` or `.elastic(.block(.sky))`.
+    static func elastic(_ style: ElasticButton.Style) -> ElasticButton {
+        ElasticButton(style: style)
+    }
+}
+
+// MARK: - Example
+
+/// The style itself: a signal button, a block button and a disabled one. Nothing around them.
+private struct ElasticButtonExample: View {
+    private typealias House = ElasticButton.Style.HouseColor
+
+    var body: some View {
+        VStack(spacing: 12) {
+            Button {} label: {
+                Label("Reserve table", systemImage: "arrow.right")
+                    .labelStyle(TrailingIcon())
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.elastic(.signal))
+            HStack(spacing: 12) {
+                Button {} label: { Label("Add guest", systemImage: "plus").frame(maxWidth: .infinity) }
+                    .buttonStyle(.elastic(squash: 0.94, bounce: 0.3, style: .block(.lilac)))
+                Button {} label: { Text("Waitlist").frame(maxWidth: .infinity) }
+                    .buttonStyle(.elastic(.raised))
+                    .disabled(true)
+            }
+        }
+        .frame(maxWidth: 340)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(House.ground)
+    }
+
+    private struct TrailingIcon: LabelStyle {
+        func makeBody(configuration: Configuration) -> some View {
+            HStack(spacing: 8) { configuration.title; configuration.icon }
+        }
+    }
+}
+
+#Preview("Light") { ElasticButtonExample().preferredColorScheme(.light) }
+#Preview("Dark") { ElasticButtonExample().preferredColorScheme(.dark) }

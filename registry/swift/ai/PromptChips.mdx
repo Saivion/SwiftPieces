@@ -1,0 +1,9 @@
+## Notes
+
+- Each chip is a soft card with a 32pt solid color glyph block on its leading edge; `style.blocks` cycle across chips (tangerine, sky, butter, sage, lilac) and `symbols:` gives each chip its own glyph. Pass `tint` for a single color.
+- The row is a horizontal `ScrollView` with `viewAligned` snapping and 16pt content margins; shadows are not clipped (`scrollClipDisabled`). Chips reveal with a staggered spring. Place the row directly above the composer.
+- Selection is a two-step `matchedGeometryEffect`: a composer-width block in the chip's color is inserted at the chip's frame, then one frame later released to its own frame with a spring while the other chips slide 32pt outward and fade. `onSelect` fires when it lands (about 0.45s) and the row collapses to zero height, so put the text in your composer and remove or `.id()` the row.
+- Press feel is 0.96 with a fast ease in, a bouncy spring out, and one soft impact per press; choosing adds a selection haptic.
+- `Style` (`PromptChips.Style`): `blocks`, `surface`, `text`, `ink`, `cornerRadius`.
+- Under Reduce Motion there is no morph: the row crossfades and collapses in 0.2s.
+- Need a full composer with attachments, recording and model picker? That is the Prompt Composer screen in Swift Pieces Pro.

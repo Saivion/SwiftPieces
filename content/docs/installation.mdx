@@ -1,0 +1,42 @@
+---
+title: Installation
+description: Copy-paste, the swiftpieces CLI, or Swift Package Manager for shared shader libraries.
+---
+
+## Copy and paste
+
+1. Open the piece you want.
+2. Copy the Swift source (and the `.metal` file if the piece lists one).
+3. Add a new file to your app target and paste.
+
+Shaders work because a `.metal` file inside an app target is compiled into the app's `default.metallib`, which is exactly where `ShaderLibrary` looks by default.
+
+Building a tool or script? Every piece is also plain JSON at `https://swiftpieces.com/r/<Name>.json`, for example [`/r/AssistantOrb.json`](/r/AssistantOrb.json).
+
+## CLI
+
+Run this from the folder that contains your `.xcodeproj`:
+
+```bash
+npx swiftpieces add GlassSurface Aurora
+```
+
+That's it. On first run the CLI creates `swiftpieces.json` and a `SwiftPieces/` folder inside your app's source folder (for example `MyApp/SwiftPieces/`). New Xcode 16 projects sync that folder automatically, so the files are already in your target: build and use them.
+
+Dependencies between pieces resolve on their own. Info.plist keys and capabilities a piece needs are printed for you to add; the CLI never edits your project file.
+
+### If the CLI says "No .xcodeproj found"
+
+You ran it outside your project, so the files went into `./SwiftPieces/` where you ran it. Either run it again from your project folder, or drag that `SwiftPieces` folder into your app in Xcode's navigator once. Everything the CLI adds to it afterwards shows up automatically.
+
+### Older projects
+
+If your project predates Xcode 16's synchronized folders, the CLI tells you so. Add the `SwiftPieces` folder to your target once (**File → Add Files…**), or convert your app's group with **File → Convert to Folder** so new files sync on their own.
+
+## Requirements
+
+| Piece type | Minimum |
+| --- | --- |
+| Standard pieces | iOS 17, Xcode 16 |
+| Metal shader pieces | iOS 17, run on device for accurate performance |
+| Liquid Glass pieces | iOS 26 SDK to compile; older devices get the Material fallback |

@@ -1,0 +1,455 @@
+---
+title: "Expanding Track"
+description: "A thumbless slider drawn as a solid color bar that swells from 8pt to a 32pt block under the finger, shows detent dots and an inverting readout while dragging, squishes past either end, and can carry an uppercase label with a big light numeral; a second init selects a range with two sinking handles."
+piece: "ExpandingTrack"
+category: "inputs"
+minIOSVersion: "17.0"
+version: "2.0.0"
+tags: ["slider","range","drag","haptic","numeral"]
+registryDependencies: []
+---
+
+{/* GENERATED FILE. Edit registry/swift/inputs/ExpandingTrack.swift or ExpandingTrack.mdx instead. */}
+
+Thumbless slider that swells into a solid block on touch. Bind a `Double` for a single value or a `ClosedRange<Double>` for a range.
+
+## Notes
+
+- There is no thumb: the whole 44pt row is the hit area and the value follows the finger's x position directly, so the bar can rest at 8pt and still be easy to grab. While dragging it swells to a 32pt block (`Style.activeHeight`) with detent dots at each `step` and a soft shadow.
+- Pass `title` for the labeled layout: an uppercase caption with the value as a big light numeral above the track, decimals dimmed at the locale's separator. Without a title the value prints inside the block while dragging, drawn twice so it switches to `ink` where the fill passes under it.
+- Dragging past either end squishes the track toward the far edge with a rubber-band curve (asymptote 22pt) and fires a rigid impact once when the value hits the bound; release springs it back.
+- Selection ticks fire per `step` crossing, or every tenth of the span when there is no step; the optional symbol plays `.variableColor` only when the value rises past a tick.
+- The range init keeps the handles apart by `minimumDistance` and lets the active ink handle sink into the block; VoiceOver gets separate "Minimum" and "Maximum" adjustable elements, prefixed with the title when there is one.
+- `Style` carries the trough, the fill block, ink, labels and track metrics. `.standard` is the house palette (tangerine on a quiet trough); pass `.init(fill:)` to use another block. `.disabled(true)` greys the fill.
+- Reduce Motion: the track does not swell and the readout appears above its trailing end instead of inside it.
+
+## Usage
+
+```swift
+ExpandingTrackExample()
+```
+
+## Parameters
+
+| Parameter | Description |
+| --- | --- |
+| `value` | Bound single value (single-value init). |
+| `range` | Bound selected range (range init). The two handles never cross. |
+| `bounds` | Minimum and maximum selectable values. |
+| `step` | Optional snapping increment. Also sets the spacing of the selection ticks and detent dots; without it, ticks fire every tenth of the span. |
+| `minimumDistance` | Smallest gap the range handles keep between them (range init only). |
+| `symbol` | Optional leading SF Symbol that plays a variable-color pulse each time the value rises past a tick. |
+| `title` | Optional label. Shows an uppercase caption with the value as a big light numeral above the track (decimals dimmed), and becomes the VoiceOver label. |
+| `style` | Colors and track metrics. Defaults to the Swift Pieces house palette, adapting to light and dark. |
+| `format` | Formats the readout and the VoiceOver value. Defaults to up to two decimals. |
+
+## Source
+
+<Tabs items={["ExpandingTrack.swift"]}>
+<Tab value="ExpandingTrack.swift">
+
+```swift title="ExpandingTrack.swift"
+import SwiftUI
+
+/// Thumbless slider that swells into a solid block on touch. Bind a `Double` for a single value or a `ClosedRange<Double>` for a range.
+///
+/// - Parameters:
+///   - value: Bound single value (single-value init).
+///   - range: Bound selected range (range init). The two handles never cross.
+///   - bounds: Minimum and maximum selectable values.
+///   - step: Optional snapping increment. Also sets the spacing of the selection ticks and detent dots; without it, ticks fire every tenth of the span.
+///   - minimumDistance: Smallest gap the range handles keep between them (range init only).
+///   - symbol: Optional leading SF Symbol that plays a variable-color pulse each time the value rises past a tick.
+///   - title: Optional label. Shows an uppercase caption with the value as a big light numeral above the track (decimals dimmed), and becomes the VoiceOver label.
+///   - style: Colors and track metrics. Defaults to the Swift Pieces house palette, adapting to light and dark.
+///   - format: Formats the readout and the VoiceOver value. Defaults to up to two decimals.
+public struct ExpandingTrack: View {
+    /// Colors and metrics for the track. `.standard` is the house palette: a tangerine bar with dark ink on a quiet trough.
+    public struct Style: Sendable {
+        /// The empty part of the track.
+        public var trough: Color
+        /// The filled part of the track, a solid block.
+        public var fill: Color
+        /// Readout, detent dots and handles drawn on top of `fill`.
+        public var ink: Color
+        /// Primary text: the numeral and the readout over the trough.
+        public var label: Color
+        /// Caption, symbol and disabled fill.
+        public var secondaryLabel: Color
+        /// Track thickness at rest.
+        public var restHeight: CGFloat
+        /// Track thickness while dragging.
+        public var activeHeight: CGFloat
+        /// Largest corner radius; thinner states round fully.
+        public var cornerRadius: CGFloat
+
+        /// Pass only what you want to change; `nil` keeps the house palette value.
+        public init(
+            trough: Color? = nil,
+            fill: Color? = nil,
+            ink: Color? = nil,
+            label: Color? = nil,
+            secondaryLabel: Color? = nil,
+            restHeight: CGFloat = 8,
+            activeHeight: CGFloat = 32,
+            cornerRadius: CGFloat = 12
+        ) {
+            self.trough = trough ?? adaptive(light: 0xE6E4DE, dark: 0x2A2A2A)
+            self.fill = fill ?? adaptive(light: 0xFF5B3A, dark: 0xFF5B3A)
+            self.ink = ink ?? adaptive(light: 0x141414, dark: 0x141414)
+            self.label = label ?? adaptive(light: 0x141414, dark: 0xF4F3EF)
+            self.secondaryLabel = secondaryLabel ?? adaptive(light: 0x5C5A56, dark: 0xA6A49F)
+            self.restHeight = restHeight
+            self.activeHeight = activeHeight
+            self.cornerRadius = cornerRadius
+        }
+
+        public static let standard = Style()
+    }
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.isEnabled) private var isEnabled
+    @ScaledMetric(relativeTo: .largeTitle) private var numeralSize: CGFloat = 40
+    @ScaledMetric(relativeTo: .caption2) private var captionSize: CGFloat = 11
+    @State private var isDragging = false
+    @State private var activeHandle: Handle = .upper
+    @State private var overshoot: CGFloat = 0
+    @State private var edgeTick = 0
+    @State private var stepTick = 0
+    @State private var riseTick = 0
+
+    private let single: Binding<Double>?
+    private let range: Binding<ClosedRange<Double>>?
+    private let bounds: ClosedRange<Double>
+    private let step: Double?
+    private let minimumDistance: Double
+    private let symbol: String?
+    private let title: String?
+    private let style: Style
+    private let format: (Double) -> String
+
+    private let squishLimit: CGFloat = 22
+
+    private enum Handle { case lower, upper }
+
+    public init(value: Binding<Double>, in bounds: ClosedRange<Double> = 0...1, step: Double? = nil, symbol: String? = nil, title: String? = nil, style: Style = .standard, format: ((Double) -> String)? = nil) {
+        self.single = value
+        self.range = nil
+        self.bounds = bounds
+        self.step = step
+        self.minimumDistance = 0
+        self.symbol = symbol
+        self.title = title
+        self.style = style
+        self.format = format ?? { $0.formatted(.number.precision(.fractionLength(0...2))) }
+    }
+
+    public init(range: Binding<ClosedRange<Double>>, in bounds: ClosedRange<Double>, step: Double? = nil, minimumDistance: Double = 0, symbol: String? = nil, title: String? = nil, style: Style = .standard, format: ((Double) -> String)? = nil) {
+        self.single = nil
+        self.range = range
+        self.bounds = bounds
+        self.step = step
+        self.minimumDistance = minimumDistance
+        self.symbol = symbol
+        self.title = title
+        self.style = style
+        self.format = format ?? { $0.formatted(.number.precision(.fractionLength(0...2))) }
+    }
+
+    private var span: Double { max(bounds.upperBound - bounds.lowerBound, .ulpOfOne) }
+    private var detent: Double { step.map { $0 > 0 ? $0 : span / 10 } ?? span / 10 }
+    private var lowerValue: Double { range?.wrappedValue.lowerBound ?? bounds.lowerBound }
+    private var upperValue: Double { single?.wrappedValue ?? range?.wrappedValue.upperBound ?? bounds.lowerBound }
+    private var activeValue: Double { activeHandle == .lower ? lowerValue : upperValue }
+    private func fraction(_ value: Double) -> CGFloat { CGFloat(min(max((value - bounds.lowerBound) / span, 0), 1)) }
+
+    public var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            if let title { header(title) }
+            HStack(spacing: 12) {
+                if let symbol {
+                    Image(systemName: symbol)
+                        .font(.body.weight(.semibold))
+                        .foregroundStyle(isDragging ? style.label : style.secondaryLabel)
+                        .symbolEffect(.variableColor, value: riseTick)
+                        .frame(width: 24)
+                        .accessibilityHidden(true)
+                }
+                track
+            }
+            .frame(height: 44)
+        }
+        .sensoryFeedback(.impact(flexibility: .rigid), trigger: edgeTick)
+        .sensoryFeedback(.selection, trigger: stepTick)
+        .onChange(of: upperValue) { old, new in
+            // The symbol pulses on any rise past a tick, including programmatic changes; haptics stay gesture-only.
+            if ((new - bounds.lowerBound) / detent).rounded(.down) > ((old - bounds.lowerBound) / detent).rounded(.down) { riseTick += 1 }
+        }
+        .modifier(Accessibility(label: title, lower: range == nil ? nil : lowerValue, upper: upperValue, format: format, increment: detent) { handle, delta in
+            set(handle == 0 ? .lower : .upper, to: (handle == 0 ? lowerValue : upperValue) + delta)
+        })
+    }
+
+    // MARK: Header
+
+    /// Uppercase caption and the value as a big light numeral with dimmed decimals.
+    private func header(_ title: String) -> some View {
+        HStack(alignment: .lastTextBaseline, spacing: 12) {
+            Text(title.uppercased())
+                .font(.system(size: captionSize, weight: .semibold))
+                .tracking(1)
+                .foregroundStyle(style.secondaryLabel)
+                .lineLimit(1)
+            Spacer(minLength: 8)
+            Text(range != nil ? numeral(format(lowerValue)) + dimmed("  –  ") + numeral(format(upperValue)) : numeral(format(upperValue)))
+            .font(.system(size: numeralSize, weight: .light))
+            .tracking(-0.5)
+            .monospacedDigit()
+            .lineLimit(1)
+            .minimumScaleFactor(0.6)
+            .contentTransition(.numericText(value: upperValue))
+            .animation(reduceMotion ? nil : .snappy(duration: 0.2), value: upperValue)
+            .animation(reduceMotion ? nil : .snappy(duration: 0.2), value: lowerValue)
+        }
+        .accessibilityHidden(true)
+    }
+
+    /// Splits the formatted value at the locale's decimal separator so the fraction reads quieter.
+    private func numeral(_ string: String) -> AttributedString {
+        let separator = Locale.current.decimalSeparator ?? "."
+        guard let cut = string.range(of: separator, options: .backwards),
+              string[cut.upperBound...].first?.isNumber == true else {
+            var whole = AttributedString(string)
+            whole.foregroundColor = style.label
+            return whole
+        }
+        var whole = AttributedString(string[..<cut.lowerBound])
+        whole.foregroundColor = style.label
+        return whole + dimmed(String(string[cut.lowerBound...]))
+    }
+
+    private func dimmed(_ string: String) -> AttributedString {
+        var part = AttributedString(string)
+        part.foregroundColor = style.secondaryLabel
+        return part
+    }
+
+    // MARK: Track
+
+    private var track: some View {
+        GeometryReader { proxy in
+            let width = max(proxy.size.width, 1)
+            let thick = isDragging && !reduceMotion
+            let height = thick ? style.activeHeight : style.restHeight
+            let lowerX = range == nil ? 0 : fraction(lowerValue) * width
+            let upperX = fraction(upperValue) * width
+            let shape = RoundedRectangle(cornerRadius: min(height / 2, style.cornerRadius), style: .continuous)
+            let fillColor = isEnabled ? style.fill : style.secondaryLabel.opacity(0.45)
+            let fill = Rectangle().fill(fillColor).frame(width: max(upperX - lowerX, 0)).offset(x: lowerX)
+            let mask = Rectangle().frame(width: max(upperX - lowerX, 0)).offset(x: lowerX)
+            let showsReadout = thick && title == nil
+            let readout = Text(format(activeValue))
+                .font(.system(size: 13, weight: .semibold, design: .rounded).monospacedDigit())
+                .padding(.horizontal, 12)
+                .frame(maxWidth: .infinity, alignment: .trailing)
+                .opacity(showsReadout ? 1 : 0)
+
+            ZStack(alignment: .leading) {
+                shape.fill(style.trough)
+                dots(width: width, color: style.label.opacity(0.22)).opacity(thick ? 1 : 0)
+                readout.foregroundStyle(style.label)
+                fill
+                // Dots and readout switch to ink where the fill passes under them, so both stay legible at 100%.
+                ZStack(alignment: .leading) {
+                    dots(width: width, color: style.ink.opacity(0.35)).opacity(thick ? 1 : 0)
+                    readout.foregroundStyle(style.ink)
+                }
+                .mask(alignment: .leading) { mask }
+                if range != nil {
+                    handle(.lower, at: lowerX + 7, height: height)
+                    handle(.upper, at: upperX - 7, height: height)
+                }
+            }
+            .accessibilityHidden(true)
+            .clipShape(shape)
+            .frame(height: height)
+            .shadow(color: .black.opacity(thick ? 0.12 : 0), radius: 10, y: 4)
+            .scaleEffect(x: 1 - min(abs(overshoot), squishLimit) / width, anchor: overshoot > 0 ? .leading : .trailing)
+            .frame(width: width, height: proxy.size.height)
+            .overlay(alignment: .topTrailing) {
+                if reduceMotion && isDragging && title == nil {
+                    Text(format(activeValue))
+                        .font(.caption2.weight(.semibold).monospacedDigit())
+                        .foregroundStyle(style.secondaryLabel)
+                        .transition(.opacity)
+                }
+            }
+            .contentShape(.rect)
+            .gesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { drag in
+                        let x = drag.location.x
+                        if !isDragging {
+                            isDragging = true
+                            if range != nil {
+                                activeHandle = abs(x - lowerX) < abs(x - upperX) || (lowerX == upperX && x < lowerX) ? .lower : .upper
+                            }
+                        }
+                        set(activeHandle, to: bounds.lowerBound + Double(min(max(x / width, 0), 1)) * span)
+                        // Rubber-band past either end, anchored at the far edge so the track reads as pushed.
+                        let past = x > width ? x - width : (x < 0 ? x : 0)
+                        overshoot = squishLimit * past / (abs(past) + squishLimit)
+                    }
+                    .onEnded { _ in
+                        isDragging = false
+                        withAnimation(reduceMotion ? nil : .spring(duration: 0.45, bounce: 0.4)) { overshoot = 0 }
+                    }
+            )
+        }
+        .animation(reduceMotion ? .smooth(duration: 0.15) : .spring(duration: 0.35, bounce: 0.25), value: isDragging)
+    }
+
+    /// Detent dots across the swollen track, skipped when they would crowd closer than 8pt.
+    private func dots(width: CGFloat, color: Color) -> some View {
+        let count = Int((span / detent).rounded())
+        return Canvas { context, size in
+            guard count > 1, width / CGFloat(count) >= 8 else { return }
+            for i in 1..<count {
+                let x = size.width * CGFloat(i) / CGFloat(count)
+                context.fill(Path(ellipseIn: CGRect(x: x - 1.5, y: size.height / 2 - 1.5, width: 3, height: 3)), with: .color(color))
+            }
+        }
+    }
+
+    /// Range handle: an ink notch that sinks into the track while it is the one being dragged.
+    private func handle(_ which: Handle, at x: CGFloat, height: CGFloat) -> some View {
+        let sunk = isDragging && activeHandle == which
+        return Capsule()
+            .fill(style.ink)
+            .frame(width: 3, height: max(height * 0.5, 4))
+            .scaleEffect(sunk ? 0.5 : 1)
+            .opacity(sunk ? 0.4 : 0.85)
+            .offset(x: x - 1.5)
+            .animation(.smooth(duration: 0.2), value: sunk)
+    }
+
+    private func set(_ handle: Handle, to raw: Double) {
+        var next = raw
+        if let step, step > 0 {
+            next = bounds.lowerBound + ((raw - bounds.lowerBound) / step).rounded() * step
+        }
+        let previous: Double
+        if let single {
+            next = min(max(next, bounds.lowerBound), bounds.upperBound)
+            previous = single.wrappedValue
+            guard next != previous else { return }
+            single.wrappedValue = next
+        } else if let range {
+            let current = range.wrappedValue
+            switch handle {
+            case .lower:
+                let ceiling = max(bounds.lowerBound, current.upperBound - minimumDistance)
+                next = min(max(next, bounds.lowerBound), ceiling)
+                previous = current.lowerBound
+                guard next != previous else { return }
+                range.wrappedValue = next...current.upperBound
+            case .upper:
+                let floor = min(bounds.upperBound, current.lowerBound + minimumDistance)
+                next = max(min(next, bounds.upperBound), floor)
+                previous = current.upperBound
+                guard next != previous else { return }
+                range.wrappedValue = current.lowerBound...next
+            }
+        } else {
+            return
+        }
+        if next == bounds.lowerBound || next == bounds.upperBound { edgeTick += 1 }
+        let before = ((previous - bounds.lowerBound) / detent).rounded(.down)
+        let after = ((next - bounds.lowerBound) / detent).rounded(.down)
+        if before != after { stepTick += 1 }
+    }
+
+    /// Single value: one adjustable element. Range: a "Minimum" and a "Maximum" element, each adjustable.
+    private struct Accessibility: ViewModifier {
+        let label: String?
+        let lower: Double?
+        let upper: Double
+        let format: (Double) -> String
+        let increment: Double
+        let adjust: (Int, Double) -> Void
+
+        func body(content: Content) -> some View {
+            if let lower {
+                content
+                    .accessibilityElement(children: .contain)
+                    .overlay {
+                        HStack(spacing: 0) {
+                            Color.clear
+                                .accessibilityElement(children: .ignore)
+                                .accessibilityLabel(label.map { "\($0), minimum" } ?? "Minimum")
+                                .accessibilityValue(format(lower))
+                                .accessibilityAdjustableAction { adjust(0, $0 == .increment ? increment : -increment) }
+                            Color.clear
+                                .accessibilityElement(children: .ignore)
+                                .accessibilityLabel(label.map { "\($0), maximum" } ?? "Maximum")
+                                .accessibilityValue(format(upper))
+                                .accessibilityAdjustableAction { adjust(1, $0 == .increment ? increment : -increment) }
+                        }
+                        .allowsHitTesting(false)
+                    }
+            } else if let label {
+                content
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(label)
+                    .accessibilityValue(format(upper))
+                    .accessibilityAdjustableAction { adjust(1, $0 == .increment ? increment : -increment) }
+            } else {
+                content
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityValue(format(upper))
+                    .accessibilityAdjustableAction { adjust(1, $0 == .increment ? increment : -increment) }
+            }
+        }
+    }
+}
+
+/// A house-palette color that follows the interface style.
+private func adaptive(light: UInt32, dark: UInt32) -> Color {
+    Color(uiColor: UIColor { traits in
+        let hex = traits.userInterfaceStyle == .dark ? dark : light
+        return UIColor(red: CGFloat((hex >> 16) & 0xFF) / 255, green: CGFloat((hex >> 8) & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
+    })
+}
+
+// MARK: - Example
+
+/// The track in its three shapes: a value with a leading symbol, a stepped value, and a range.
+private struct ExpandingTrackExample: View {
+    @State private var volume = 0.62
+    @State private var warmth = 3400.0
+    @State private var price = 40.0...160.0
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 30) {
+            ExpandingTrack(value: $volume, symbol: "speaker.wave.3.fill", title: "Volume") { ($0 * 100).formatted(.number.precision(.fractionLength(0))) }
+            ExpandingTrack(value: $warmth, in: 2700...6500, step: 100, symbol: "sun.max.fill", title: "Warmth", style: .init(fill: adaptive(light: 0xFFD976, dark: 0xFFD976))) { "\(Int($0))K" }
+            ExpandingTrack(range: $price, in: 0...200, step: 5, minimumDistance: 10, title: "Price per night", style: .init(fill: adaptive(light: 0x9CC2FF, dark: 0x9CC2FF))) { "$\(Int($0))" }
+        }
+        .padding(.horizontal, 34)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(adaptive(light: 0xF3F2EE, dark: 0x121212))
+    }
+}
+
+#Preview("Light") {
+    ExpandingTrackExample()
+}
+
+#Preview("Dark") {
+    ExpandingTrackExample()
+        .preferredColorScheme(.dark)
+}
+```
+
+</Tab>
+</Tabs>

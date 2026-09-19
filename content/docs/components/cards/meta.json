@@ -1,0 +1,11 @@
+{
+  "title": "Cards",
+  "description": "Cards with depth, motion, parallax and gesture-driven stacks.",
+  "defaultOpen": false,
+  "pages": [
+    "flip-card",
+    "motion-card",
+    "parallax-card",
+    "swipe-deck"
+  ]
+}

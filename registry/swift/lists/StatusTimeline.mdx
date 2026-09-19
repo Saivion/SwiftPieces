@@ -1,0 +1,8 @@
+## Notes
+
+- The live step is the graphic idea: its content becomes a solid block (`style.current`, tangerine) with dark ink, and its node matches with a breathing ring. Completed nodes are sage blocks with a drawn check, pending nodes are quiet numbered rings, and a failed step turns into a signal block with an x.
+- Layout is nodes leading, content trailing: a 44pt column holds the 30pt node and the connector below it, which stretches to the row's own height, so long titles and expanded detail never break the line. Rows hug their content, so the timeline never stretches to fill a tall container.
+- Connectors are trimmed paths: when a step becomes `.complete`, its connector draws downward in the text color over 0.45s and the node morphs from number to check with a `.success` haptic. After a `.failed` step the connector turns dashed with an `.error` haptic, so the trail visibly stops.
+- Tap any step with `detail` to expand it; one step is expanded at a time. `expandsCurrent` opens the current step on appearance and follows it as the live step moves on. Detail on a block reads in ink; detail on other steps sits on a small `style.surface` card.
+- `Style` (`StatusTimeline.Style`): `current`, `complete`, `failed`, `ink`, `text`, `muted`, `surface`. `tint:` still overrides both the current and complete colors.
+- Reduce Motion replaces the breathing ring with a static halo and swaps the springs for short fades. Each step is a single VoiceOver element that reads its title, timestamp and status, and is a button only when it has detail.

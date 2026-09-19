@@ -1,0 +1,9 @@
+## Notes
+
+- There is no thumb: the whole 44pt row is the hit area and the value follows the finger's x position directly, so the bar can rest at 8pt and still be easy to grab. While dragging it swells to a 32pt block (`Style.activeHeight`) with detent dots at each `step` and a soft shadow.
+- Pass `title` for the labeled layout: an uppercase caption with the value as a big light numeral above the track, decimals dimmed at the locale's separator. Without a title the value prints inside the block while dragging, drawn twice so it switches to `ink` where the fill passes under it.
+- Dragging past either end squishes the track toward the far edge with a rubber-band curve (asymptote 22pt) and fires a rigid impact once when the value hits the bound; release springs it back.
+- Selection ticks fire per `step` crossing, or every tenth of the span when there is no step; the optional symbol plays `.variableColor` only when the value rises past a tick.
+- The range init keeps the handles apart by `minimumDistance` and lets the active ink handle sink into the block; VoiceOver gets separate "Minimum" and "Maximum" adjustable elements, prefixed with the title when there is one.
+- `Style` carries the trough, the fill block, ink, labels and track metrics. `.standard` is the house palette (tangerine on a quiet trough); pass `.init(fill:)` to use another block. `.disabled(true)` greys the fill.
+- Reduce Motion: the track does not swell and the readout appears above its trailing end instead of inside it.

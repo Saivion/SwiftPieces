@@ -1,0 +1,12 @@
+{
+  "title": "Controls",
+  "description": "Buttons and dials with press depth, hold, drag and outcome states.",
+  "defaultOpen": false,
+  "pages": [
+    "commit-button",
+    "elastic-button",
+    "fan-stack",
+    "hold-to-confirm",
+    "timer-dial"
+  ]
+}

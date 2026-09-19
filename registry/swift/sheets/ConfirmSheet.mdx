@@ -1,0 +1,9 @@
+## Notes
+
+- Sheet mode measures the card and uses `.presentationDetents([.height(...)])`, so the sheet is exactly as tall as the content at the current Dynamic Type size, with `Style.surface` as its background.
+- Inline mode floats the card at the bottom of the view it is applied to, with a dimmed backdrop, drag-to-dismiss (down is free, up rubber-bands), and a rigid impact tick the moment a flick would commit. Apply it near the root so the backdrop covers the screen.
+- `confirm` is async: the primary button swaps to a spinner and both buttons disable until it returns, then the tile turns into a sage check with a `.success` haptic and the card dismisses about half a second later.
+- Destructive cards use a tangerine tile and the signal-colored primary button, and play `.warning` when they appear. Other cards use a sky tile and a solid label-colored button. The tile symbol bounces on every presentation.
+- `Style` sets every color and the card radius (34pt by default).
+- Under Reduce Motion the card crossfades instead of sliding, the bounce is skipped and the success beat is shorter.
+- For a floating booking card with detents, see the Stay screen (glass sheet) in Swift Pieces Pro.

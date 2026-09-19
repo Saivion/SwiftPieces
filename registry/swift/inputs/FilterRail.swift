@@ -1,0 +1,276 @@
+// swiftpieces:
+// title: Filter Rail
+// description: A scrolling rail of filter chips with optional counts where one solid indicator glides between single-select picks, multi-select picks light up as color blocks with dark ink and gather at the leading edge behind a counting Clear chip, the chosen chip scrolls into view, and edges fade only when content overflows.
+// category: inputs
+// pro: command-palette
+// minIOSVersion: "17.0"
+// version: "2.0.0"
+// tags: [chips, filter, scroll, selection, matched-geometry]
+
+import SwiftUI
+
+/// Horizontal chip rail bound to a `Set` of selected titles.
+///
+/// - Parameters:
+///   - options: Chip titles, in order.
+///   - selection: Selected titles. Single-select keeps exactly one once anything is chosen.
+///   - allowsMultiple: Allow several chips at once. Selected chips move to the leading edge and a Clear chip appears.
+///   - counts: Optional result count per title, shown after the chip title and read by VoiceOver.
+///   - style: Colors and chip height. Defaults to the Swift Pieces house palette, adapting to light and dark.
+public struct FilterRail: View {
+    /// Colors and metrics. `.standard` is the house palette.
+    public struct Style: Sendable {
+        /// Unselected chip fill.
+        public var chip: Color
+        /// Unselected chip text.
+        public var label: Color
+        /// Counts on unselected chips.
+        public var secondaryLabel: Color
+        /// The single-select indicator that glides between chips.
+        public var indicator: Color
+        /// Text on the single-select indicator.
+        public var onIndicator: Color
+        /// Multi-select blocks, assigned by option position so a chip keeps its color.
+        public var blocks: [Color]
+        /// Text on multi-select blocks.
+        public var ink: Color
+        /// Visible chip height. The tap target stays at least 44pt.
+        public var chipHeight: CGFloat
+
+        /// Pass only what you want to change; `nil` keeps the house palette value.
+        public init(chip: Color? = nil, label: Color? = nil, secondaryLabel: Color? = nil, indicator: Color? = nil, onIndicator: Color? = nil, blocks: [Color]? = nil, ink: Color? = nil, chipHeight: CGFloat = 40) {
+            self.chip = chip ?? adaptive(light: 0xE9E7E1, dark: 0x262626)
+            self.label = label ?? adaptive(light: 0x141414, dark: 0xF4F3EF)
+            self.secondaryLabel = secondaryLabel ?? adaptive(light: 0x5C5A56, dark: 0xA6A49F)
+            self.indicator = indicator ?? adaptive(light: 0x141414, dark: 0xF4F3EF)
+            self.onIndicator = onIndicator ?? adaptive(light: 0xF4F3EF, dark: 0x141414)
+            self.blocks = (blocks?.isEmpty == false ? blocks : nil) ?? [0xFF5B3A, 0x9CC2FF, 0xFFD976, 0xA9DCB7, 0xCDB8FF, 0xE9D5B3].map { adaptive(light: $0, dark: $0) }
+            self.ink = ink ?? adaptive(light: 0x141414, dark: 0x141414)
+            self.chipHeight = chipHeight
+        }
+
+        public static let standard = Style()
+    }
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.isEnabled) private var isEnabled
+    @Namespace private var rail
+    @Binding private var selection: Set<String>
+    @State private var scrolled: RailID?
+    @State private var contentFrame: CGRect = .zero
+    @State private var containerWidth: CGFloat = 0
+
+    private let options: [String]
+    private let allowsMultiple: Bool
+    private let counts: [String: Int]
+    private let style: Style
+    private let inset: CGFloat = 16
+
+    private enum RailID: Hashable { case clear, option(String) }
+
+    public init(options: [String], selection: Binding<Set<String>>, allowsMultiple: Bool = false, counts: [String: Int] = [:], style: Style = .standard) {
+        self.options = options
+        self._selection = selection
+        self.allowsMultiple = allowsMultiple
+        self.counts = counts
+        self.style = style
+    }
+
+    /// Multi-select keeps chosen chips first, in their original order.
+    private var ordered: [String] {
+        guard allowsMultiple else { return options }
+        return options.filter(selection.contains) + options.filter { !selection.contains($0) }
+    }
+
+    private var motion: Animation { reduceMotion ? .smooth(duration: 0.15) : .snappy }
+    private var hidesLeading: Bool { contentFrame.minX < inset - 1 }
+    private var hidesTrailing: Bool { contentFrame.maxX > containerWidth - inset + 1 }
+
+    public var body: some View {
+        ScrollView(.horizontal) {
+            HStack(spacing: 6) {
+                if allowsMultiple && !selection.isEmpty {
+                    clearChip
+                        .id(RailID.clear)
+                        .transition(.scale(scale: 0.6).combined(with: .opacity))
+                }
+                ForEach(ordered, id: \.self) { option in
+                    Chip(title: option, count: counts[option], isSelected: selection.contains(option), showsCheck: allowsMultiple, glides: !allowsMultiple, fill: blockColor(for: option), style: style, namespace: rail) {
+                        toggle(option)
+                    }
+                    .id(RailID.option(option))
+                }
+            }
+            .scrollTargetLayout()
+            .onGeometryChange(for: CGRect.self) { $0.frame(in: .named("rail")) } action: { contentFrame = $0 }
+        }
+        .coordinateSpace(.named("rail"))
+        .scrollIndicators(.hidden)
+        .contentMargins(.horizontal, inset, for: .scrollContent)
+        .scrollPosition(id: $scrolled, anchor: allowsMultiple ? .leading : .center)
+        .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { containerWidth = $0 }
+        .mask {
+            // Fades appear only on the side that actually has hidden chips.
+            HStack(spacing: 0) {
+                LinearGradient(colors: [.clear, .black], startPoint: .leading, endPoint: .trailing)
+                    .frame(width: hidesLeading ? 28 : 0)
+                Color.black
+                LinearGradient(colors: [.black, .clear], startPoint: .leading, endPoint: .trailing)
+                    .frame(width: hidesTrailing ? 28 : 0)
+            }
+            .animation(.smooth(duration: 0.2), value: hidesLeading)
+            .animation(.smooth(duration: 0.2), value: hidesTrailing)
+        }
+        .opacity(isEnabled ? 1 : 0.4)
+        .sensoryFeedback(.selection, trigger: selection)
+        .onChange(of: selection) { _, new in
+            withAnimation(motion) {
+                scrolled = allowsMultiple ? (new.isEmpty ? nil : .clear) : new.first.map(RailID.option)
+            }
+        }
+    }
+
+    /// Shows how many filters are on; tapping clears them all.
+    private var clearChip: some View {
+        Button {
+            withAnimation(motion) { selection.removeAll() }
+        } label: {
+            HStack(spacing: 6) {
+                Image(systemName: "xmark")
+                    .font(.caption.weight(.bold))
+                Text("\(selection.count)")
+                    .font(.subheadline.weight(.semibold).monospacedDigit())
+                    .contentTransition(.numericText(value: Double(selection.count)))
+            }
+            .foregroundStyle(style.onIndicator)
+            .padding(.horizontal, 14)
+            .frame(height: style.chipHeight)
+            .background(style.indicator, in: Capsule())
+            .frame(minHeight: 44)
+            .contentShape(.rect)
+        }
+        .buttonStyle(Press())
+        .accessibilityLabel("Clear \(selection.count) filters")
+    }
+
+    private func blockColor(for option: String) -> Color {
+        let index = options.firstIndex(of: option) ?? 0
+        return style.blocks[index % style.blocks.count]
+    }
+
+    private func toggle(_ option: String) {
+        withAnimation(motion) {
+            if !allowsMultiple {
+                selection = [option]
+            } else if selection.contains(option) {
+                selection.remove(option)
+            } else {
+                selection.insert(option)
+            }
+        }
+    }
+
+    private struct Chip: View {
+        @Environment(\.accessibilityReduceMotion) private var reduceMotion
+        let title: String
+        let count: Int?
+        let isSelected: Bool
+        let showsCheck: Bool
+        let glides: Bool
+        let fill: Color
+        let style: Style
+        let namespace: Namespace.ID
+        let action: () -> Void
+
+        private var foreground: Color {
+            guard isSelected else { return style.label }
+            return glides ? style.onIndicator : style.ink
+        }
+
+        var body: some View {
+            Button(action: action) {
+                HStack(spacing: 6) {
+                    if showsCheck && isSelected {
+                        Image(systemName: "checkmark")
+                            .font(.caption.weight(.heavy))
+                            .transition(.scale.combined(with: .opacity))
+                    }
+                    Text(title)
+                        .font(.subheadline.weight(.semibold))
+                        .lineLimit(1)
+                    if let count {
+                        Text(count.formatted())
+                            .font(.footnote.weight(.medium).monospacedDigit())
+                            .foregroundStyle(isSelected ? foreground.opacity(0.62) : style.secondaryLabel)
+                    }
+                }
+                .foregroundStyle(foreground)
+                .padding(.horizontal, 16)
+                .frame(height: style.chipHeight)
+                .background {
+                    Capsule().fill(style.chip)
+                    if isSelected {
+                        if glides {
+                            // Single-select: one shared capsule slides from the old chip to the new one.
+                            Capsule().fill(style.indicator).matchedGeometryEffect(id: "indicator", in: namespace)
+                        } else {
+                            Capsule().fill(fill).transition(.scale(scale: 0.85).combined(with: .opacity))
+                        }
+                    }
+                }
+                .frame(minHeight: 44)
+                .contentShape(.rect)
+                .animation(reduceMotion ? .smooth(duration: 0.15) : .snappy, value: isSelected)
+            }
+            .buttonStyle(Press())
+            .accessibilityLabel(title)
+            .accessibilityValue(count.map { "\($0) results" } ?? "")
+            .accessibilityAddTraits(isSelected ? .isSelected : [])
+        }
+    }
+
+    private struct Press: ButtonStyle {
+        @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+        func makeBody(configuration: Configuration) -> some View {
+            configuration.label
+                .scaleEffect(configuration.isPressed && !reduceMotion ? 0.96 : 1)
+                .animation(configuration.isPressed ? .smooth(duration: 0.1) : .spring(duration: 0.35, bounce: 0.3), value: configuration.isPressed)
+        }
+    }
+}
+
+/// A house-palette color that follows the interface style.
+private func adaptive(light: UInt32, dark: UInt32) -> Color {
+    Color(uiColor: UIColor { traits in
+        let hex = traits.userInterfaceStyle == .dark ? dark : light
+        return UIColor(red: CGFloat((hex >> 16) & 0xFF) / 255, green: CGFloat((hex >> 8) & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
+    })
+}
+
+// MARK: - Example
+
+/// Two rails: single-select with the gliding indicator, and multi-select with counts and color blocks.
+private struct FilterRailExample: View {
+    @State private var sort: Set<String> = ["Recent"]
+    @State private var genres: Set<String> = ["Jazz", "Ambient"]
+    private let counts = ["All": 412, "Jazz": 38, "Hip-Hop": 52, "Classical": 21, "Electronic": 64, "Folk": 17, "Ambient": 29]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            FilterRail(options: ["Recent", "Popular", "A to Z", "Longest", "Shortest"], selection: $sort)
+            FilterRail(options: ["All", "Jazz", "Hip-Hop", "Classical", "Electronic", "Folk", "Ambient"], selection: $genres, allowsMultiple: true, counts: counts)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(adaptive(light: 0xF3F2EE, dark: 0x121212))
+    }
+}
+
+#Preview("Light") {
+    FilterRailExample()
+}
+
+#Preview("Dark") {
+    FilterRailExample()
+        .preferredColorScheme(.dark)
+}

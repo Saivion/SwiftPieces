@@ -1,0 +1,12 @@
+## Notes
+
+- The drift is computed with `visualEffect` from `proxy.frame(in: .scrollView)`, so the card works inside any `ScrollView` or `List` without a named coordinate space. Outside a scroll view it renders static.
+- Three layers move at different rates: the image at `parallax`, the caption at a third of that, and the scrim scales from 1.3x tall at the viewport center to 0.9x at the edges, so the bottom reads tighter as the card leaves.
+- The image is oversized by `height * parallax` on each side and clipped, so no background shows at the extremes.
+- Pass `action:` to make the card a `Button`; the press style scales it to 1.02 and deepens the shadow with a fast press-in and a springy release. Without an action it keeps a resting shadow.
+- The caption is slots: `eyebrow` (uppercased, tracked), `title`, `metadata` (dot-separated row), and `trailingSymbol` (in a translucent circle). All text is white over the scrim, which is fine on light photos in both color schemes.
+- Reduce Motion disables the drift and the scrim scaling; the composition is unchanged.
+- **v2:** the caption defaults to a solid inset block (`.block`) that drifts at a third of the picture's rate, with a heavy title, a dimmed metadata row, and the trailing glyph in an ink circle that nudges toward its arrow on press. `ParallaxCard.Style.scrim` restores white text over the tightening scrim.
+- `style:` (`ParallaxCard.Style`) sets `caption`, `captionFill`, `captionInk`, and `shadowOpacity`; `cornerRadius` now defaults to 26. The press state reaches the caption through the environment, so VoiceOver still reads the button label.
+- The example renders each picture as a flat composition (a color ground, a disc, a cropped giant word) with `ImageRenderer`; no photos ship with the piece.
+- For an expanding card on a full discover screen, see the Pro Discover screen (`hero-expand`).

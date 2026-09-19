@@ -1,0 +1,8 @@
+## Notes
+
+- Tap toggles the fan; a 300ms hold fans it and keeps the touch live so you can scrub. While fanned, the avatar under the finger lifts (scale 1.18, a 4pt rise, soft shadow), shows its full name in an inverted tag above, bolds its first name below, and ticks `.selection` per crossing. Releasing on it calls `onSelect` and collapses; releasing a hold on empty space leaves the fan open; a tap on empty space closes it.
+- Initials sit on solid house blocks with dark ink, picked by a stable FNV-1a hash of the name. `Style` sets the block list, ink, the cut-out `ring` (match it to the surface behind the stack), the "+N" pill and the name tag.
+- Every name is in the hierarchy at all times. Collapsed, avatars past `max` sit hidden at the "+N" pill's position, so on expand they emerge from where the pill dissolves. Springs stagger 35ms per avatar, reversed on collapse.
+- The tag draws 34pt above the avatars and first names 24pt below while fanned (the frame grows for the names only), so leave room above the stack.
+- `images` is a parallel array; it may be shorter than `names`, and `nil` entries fall back to initials.
+- Reduce Motion removes the stagger and the lift; the hovered avatar shows a ring instead. VoiceOver reads the collapsed stack as one element ("Priya Raman, Jonas Weber, and 3 more", double tap to expand) and each avatar as its own button once fanned.

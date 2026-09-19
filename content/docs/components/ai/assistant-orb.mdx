@@ -1,0 +1,340 @@
+---
+title: "Assistant Orb"
+description: "A dark glass ball with a Siri-style voice wave inside, locked to the thinking state; four thin sine membranes travel through the equator of a refracting shell, drawn by a Metal color shader. The sphere never moves, only the wave, and a palette change crossfades its colours."
+piece: "AssistantOrb"
+category: "ai"
+minIOSVersion: "17.0"
+version: "1.0.0"
+tags: ["ai","orb","shader","metal","thinking"]
+registryDependencies: []
+---
+
+{/* GENERATED FILE. Edit registry/swift/ai/AssistantOrb.swift or AssistantOrb.mdx instead. */}
+
+The assistant's mark while it thinks. Copy `AssistantOrb.metal` alongside this file; its `assistantOrbSiriWave` kernel compiles into your app's default Metal library.
+
+## Notes
+
+- Requires `AssistantOrb.metal` in the same target. The `[[ stitchable ]] assistantOrbSiriWave` function is looked up through `ShaderLibrary` at runtime. Its helpers live in the `assistantOrbSiri` namespace, so it can share a target with other orb kernels.
+- The orb has one look: thinking. Four thin sine membranes in blue, pink, orange and red travel left to right through the equator over a violet ground, seen through a refracting glass shell with a cool and warm rim. There is no idle or speaking phase, no audio level and no touch interaction. Colour is the only input: `palette` defaults to `.siri`, and `AssistantOrb.Palette(bands:ground:crest:rimCool:rimWarm:)` takes hex values or `Color`s for your brand. A palette change crossfades all eight colours over 0.8s (instantly under Reduce Motion); the motion never changes.
+- The sphere never scales, floats or pulses; only the wave inside it moves. Put the orb on a dark surface and pair it with your own status copy if the step changes.
+- `size` sets a square frame. The ball fills 90% of it, so leave the frame square.
+- The clock is relative to first appearance so `Float` precision holds over long sessions. Reduce Motion pauses the timeline on a still frame. VoiceOver reads "Assistant" with "Thinking" as its value.
+
+## Usage
+
+```swift
+VStack(spacing: 20) {
+    AssistantOrb(size: 180, palette: .siri)
+    Text("Thinking")
+        .font(.subheadline.weight(.medium))
+        .foregroundStyle(.secondary)
+}
+.padding(32)
+.frame(maxWidth: .infinity, maxHeight: .infinity)
+.background(.black)
+```
+
+## Parameters
+
+| Parameter | Description |
+| --- | --- |
+| `size` | Diameter of the ball in points. 160 by default; the view is always a square of this side. |
+| `palette` | The eight colours of the wave, ground, crest and rim. `.siri` by default; build your own with `Palette(bands:ground:crest:rimCool:rimWarm:)` from hex or `Color`. A change crossfades over 0.8s. |
+
+## Source
+
+<Tabs items={["AssistantOrb.swift", "AssistantOrb.metal"]}>
+<Tab value="AssistantOrb.swift">
+
+```swift title="AssistantOrb.swift"
+import SwiftUI
+
+/// The assistant's mark while it thinks. Copy `AssistantOrb.metal` alongside this file; its `assistantOrbSiriWave` kernel compiles into your app's default Metal library.
+///
+/// - Parameters:
+///   - size: Diameter of the ball in points. 160 by default; the view is always a square of this side.
+///   - palette: The eight colours of the wave, ground, crest and rim. `.siri` by default; build your own with `Palette(bands:ground:crest:rimCool:rimWarm:)` from hex or `Color`. A change crossfades over 0.8s.
+public struct AssistantOrb: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    private let size: CGFloat
+    private let palette: Palette
+
+    public init(size: CGFloat = 160, palette: Palette = .siri) {
+        self.size = size
+        self.palette = palette
+    }
+
+    public var body: some View {
+        WaveSurface(palette: palette)
+            .frame(width: size, height: size)
+            .animation(reduceMotion ? nil : .easeInOut(duration: 0.8), value: palette)
+            .allowsHitTesting(false)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("Assistant")
+            .accessibilityValue("Thinking")
+            .accessibilityAddTraits(.updatesFrequently)
+    }
+
+    /// The orb's eight colours: four bands left to right in the stack, the ground wash inside the
+    /// glass, the crest and specular, and the cool and warm halves of the rim.
+    public struct Palette: Hashable, Sendable {
+        /// sRGB components 0…1, in kernel order: band0…3, ground, crest, rimCool, rimWarm.
+        public var rgb: [SIMD3<Float>]
+
+        public init(bands: [Color], ground: Color, crest: Color = .white, rimCool: Color, rimWarm: Color) {
+            let four = (0..<4).map { bands.isEmpty ? crest : bands[min($0, bands.count - 1)] }
+            rgb = (four + [ground, crest, rimCool, rimWarm]).map(Self.components)
+        }
+
+        /// Hex form, `0x2b5cff`.
+        public init(bands: [UInt32], ground: UInt32, crest: UInt32 = 0xffffff, rimCool: UInt32, rimWarm: UInt32) {
+            let four = (0..<4).map { bands.isEmpty ? crest : bands[min($0, bands.count - 1)] }
+            rgb = (four + [ground, crest, rimCool, rimWarm]).map(Self.components)
+        }
+
+        /// The Siri Wave colours: electric blue, hot pink, orange and red over deep violet.
+        public static let siri = Palette(bands: [0x2b5cff, 0xff4fa3, 0xff6a2b, 0xe3170a], ground: 0x12082e, rimCool: 0x4d8aff, rimWarm: 0xff4a1a)
+
+        private static func components(_ hex: UInt32) -> SIMD3<Float> {
+            SIMD3(Float((hex >> 16) & 0xff), Float((hex >> 8) & 0xff), Float(hex & 0xff)) / 255
+        }
+
+        private static func components(_ color: Color) -> SIMD3<Float> {
+            let r = color.resolve(in: EnvironmentValues())
+            return SIMD3(r.red, r.green, r.blue)
+        }
+    }
+
+    /// The 24 colour components as one animatable vector, so a palette change crossfades.
+    private struct WaveColors: VectorArithmetic {
+        var v: [Double]
+
+        static var zero: Self { Self(v: Array(repeating: 0, count: 24)) }
+        init(v: [Double]) { self.v = v }
+        init(_ palette: Palette) { v = palette.rgb.flatMap { [Double($0.x), Double($0.y), Double($0.z)] } }
+
+        static func + (a: Self, b: Self) -> Self { Self(v: zip(a.v, b.v).map(+)) }
+        static func - (a: Self, b: Self) -> Self { Self(v: zip(a.v, b.v).map(-)) }
+        mutating func scale(by rhs: Double) { v = v.map { $0 * rhs } }
+        var magnitudeSquared: Double { v.reduce(0) { $0 + $1 * $1 } }
+
+        func argument(_ i: Int) -> Shader.Argument {
+            .float3(Float(v[i * 3]), Float(v[i * 3 + 1]), Float(v[i * 3 + 2]))
+        }
+    }
+
+    /// The shader surface. The clock is relative to first appearance because
+    /// `timeIntervalSinceReferenceDate` overflows `Float` precision and freezes the kernel.
+    /// Only the wave moves: no scale, offset or pulse is ever applied to the sphere.
+    private struct WaveSurface: View, Animatable {
+        var colors: WaveColors
+
+        @Environment(\.accessibilityReduceMotion) private var reduceMotion
+        @State private var start = Date()
+
+        init(palette: Palette) { colors = WaveColors(palette) }
+
+        nonisolated var animatableData: WaveColors {
+            get { colors }
+            set { colors = newValue }
+        }
+
+        var body: some View {
+            let c = colors
+            TimelineView(.animation(paused: reduceMotion)) { context in
+                let t = Float(context.date.timeIntervalSince(start))
+                Circle()
+                    .fill(.black)
+                    .colorEffect(ShaderLibrary.assistantOrbSiriWave(
+                        .boundingRect, .float(t),
+                        c.argument(0), c.argument(1), c.argument(2), c.argument(3),
+                        c.argument(4), c.argument(5), c.argument(6), c.argument(7)
+                    ))
+            }
+            .aspectRatio(1, contentMode: .fit)
+        }
+    }
+}
+
+#Preview {
+    VStack(spacing: 20) {
+        AssistantOrb(size: 180, palette: .siri)
+        Text("Thinking")
+            .font(.subheadline.weight(.medium))
+            .foregroundStyle(.secondary)
+    }
+    .padding(32)
+    .frame(maxWidth: .infinity, maxHeight: .infinity)
+    .background(.black)
+}
+```
+
+</Tab>
+<Tab value="AssistantOrb.metal">
+
+```cpp title="AssistantOrb.metal"
+#include <metal_stdlib>
+using namespace metal;
+
+// Siri Wave orb, thinking phase. Four thin sine membranes travel left to right through the
+// equator of a dark glass ball, seen through a refracting shell. The values are the Siri Wave
+// rest look with the thinking remap applied (speed x 1.38, amplitude x 0.95) and are fixed:
+// the sphere never moves, only the wave inside it. Colours are uniforms so a screen can tint
+// the orb for what it portrays (a mood, a breath); motion never changes.
+// Helpers are file-local (static) so several orb kernels can share one Xcode target.
+
+namespace assistantOrbSiri {
+
+constant int   kBands      = 4;
+constant float kSpeed      = 1.311;
+constant float kSeparation = 2.05;
+constant float kSpread     = 0.0;
+constant float kDetune     = 0.05;
+constant float kAmplitude  = 0.266;
+constant float kFrequency  = 1.45;
+constant float kWidth      = 0.115;
+constant float kTaper      = 1.75;
+constant float kGround     = 0.08;
+constant float kModelling  = 0.1;
+constant float kRefraction = 0.5;
+constant float kDispersion = 0.72;
+constant float kSheen      = 0.36;
+constant float kExposure   = 2.15;
+constant float kRadius     = 0.45;
+
+// The eight colours: four bands left to right in the stack, the ground wash, the crest and
+// specular, and the cool and warm halves of the rim dispersion.
+struct OrbColors { float3 band0, band1, band2, band3, ground, crest, rimCool, rimWarm; };
+
+static float sat(float x) { return clamp(x, 0.0, 1.0); }
+static float3 sat3(float3 c) { return clamp(c, float3(0.0), float3(1.0)); }
+
+// Push a colour away from its luma; 0 is identity.
+static float3 saturateColor(float3 c, float amount) {
+  float l = dot(c, float3(0.2126, 0.7152, 0.0722));
+  return sat3(mix(float3(l), c, 1.0 + amount));
+}
+
+// How far the shell pulls a sample inward, given its depth below the rim.
+static float glassProfile(float depth, float rimWidth) {
+  float d = sat(depth / max(rimWidth, 0.001));
+  return pow(1.0 - sqrt(max(1.0 - (1.0 - d) * (1.0 - d), 0.0)), 0.68);
+}
+
+// One specular lobe on the glass.
+static float lobe(float2 n, float2 dir, float cut, float power) {
+  return pow(sat((dot(n, dir) - cut) / max(1.0 - cut, 0.001)), power);
+}
+
+// Directional light and shadow across the body.
+static float3 modelBody(float3 c, float2 p, float3 crest) {
+  c = mix(c, crest, kModelling * 0.22 * smoothstep(0.15, 1.15, dot(p, float2(-0.32, 0.78))));
+  c *= 1.0 - kModelling * 0.34 * smoothstep(-0.1, 1.2, dot(p, float2(0.45, -0.62)));
+  c *= 1.0 - kModelling * 0.22 * smoothstep(0.72, 1.08, length(p));
+  return sat3(c);
+}
+
+// The interior, in ball space.
+static float3 interior(float2 p, float t, OrbColors k) {
+  // One envelope for every band: exactly zero at the rim.
+  float env = pow(sat(1.0 - p.x * p.x), kTaper);
+  float drift = t * 2.4;
+  float mid = (float(kBands) - 1.0) * 0.5;
+
+  float total = 0.0;
+  float dominant = 0.0;
+  float3 spectral = float3(0.0);
+  for (int i = 0; i < kBands; i++) {
+    float centred = float(i) - mid;
+    float amp = kAmplitude * (1.0 - abs(centred) * kDetune * 1.1)
+                * (0.82 + 0.18 * sin(t * 0.48 + centred * 1.1));
+    float wave = sin(p.x * kFrequency * (1.0 + centred * kDetune) + drift + centred * kSeparation);
+    float bw = kWidth * (1.0 + abs(centred) * 0.55);
+    float d = p.y - (env * amp * wave + centred * kSpread);
+    float w = exp(-d * d / max(bw * bw, 0.0001)) * env;
+
+    float3 tint = k.band0;
+    if (i == 1) tint = k.band1;
+    else if (i == 2) tint = k.band2;
+    else if (i == 3) tint = k.band3;
+    // Squared weights: an overlap keeps the nearer band's colour instead of averaging to grey.
+    spectral += tint * w * w;
+    dominant += w * w;
+    total += w;
+  }
+  spectral /= max(dominant, 0.0001);
+
+  // Thin white crest on the main sine.
+  float dMain = p.y - env * kAmplitude * sin(p.x * kFrequency + drift);
+  float crest = exp(-dMain * dMain / 0.0028) * env;
+
+  float3 col = mix(float3(0.0), k.ground, smoothstep(-0.82, 0.82, p.y)) * kGround;
+  col += spectral * (1.0 - exp(-total * 0.7)) * env * 1.14;
+  col += k.crest * crest * 0.18;
+  col /= 1.0 + col * 0.19;
+  return modelBody(col, p, k.crest);
+}
+
+} // namespace assistantOrbSiri
+
+// position: SwiftUI passes this; y grows downward and is flipped below.
+// bounds:   pass `.boundingRect`.
+// time:     seconds since the view appeared. Keep it small; Float loses precision past ~1e5.
+// colours:  linear-ish sRGB 0..1 via .float3. The Siri defaults are #2b5cff #ff4fa3 #ff6a2b
+//           #e3170a, ground #12082e, crest #ffffff, rim #4d8aff / #ff4a1a.
+[[ stitchable ]]
+half4 assistantOrbSiriWave(float2 position, half4 currentColor, float4 bounds, float time,
+                float3 band0, float3 band1, float3 band2, float3 band3,
+                float3 ground, float3 crest, float3 rimCool, float3 rimWarm) {
+  using namespace assistantOrbSiri;
+  OrbColors k = { band0, band1, band2, band3, ground, crest, rimCool, rimWarm };
+  float2 res = bounds.zw;
+  float2 fc = position - bounds.xy;
+  fc.y = res.y - fc.y;
+
+  float m = min(res.x, res.y);
+  float2 uv = (fc - 0.5 * res) / m;
+  float px = 1.0 / m;
+  float t = time * kSpeed;
+
+  float2 p = uv / kRadius;
+  float pd = length(p);
+  float2 nrm = pd > 0.0001 ? p / pd : float2(0.0, 1.0);
+  float ball = 1.0 - smoothstep(1.0 - px / kRadius, 1.0 + px / kRadius, pd);
+
+  float edgeDepth = max(1.0 - pd, 0.0);
+  float profile = glassProfile(edgeDepth, 0.05 + 0.42 * kDispersion);
+  float2 rp = p - nrm * (1.15 * kRefraction * profile);
+
+  float3 col = interior(rp, t, k);
+
+  // Chromatic split at the rim: red from inside, green centred, blue from outside.
+  float split = 0.14 * kDispersion * kRefraction * profile;
+  if (split > 0.0008) {
+    float3 lo = interior(rp - nrm * split, t, k);
+    float3 up = interior(rp + nrm * split, t, k);
+    col = float3(lo.r, col.g, up.b);
+  }
+
+  float rim = pow(1.0 - smoothstep(0.0, 0.026 + 0.075 * kDispersion, edgeDepth), 1.8) * ball;
+  col = mix(col, k.crest, rim * kRefraction * 0.28);
+
+  float disp = rim * kDispersion * 1.12;
+  col = mix(col, k.rimCool, disp * lobe(nrm, normalize(float2(0.84, 0.54)), -0.32, 1.8));
+  col = mix(col, k.rimWarm, disp * lobe(nrm, normalize(float2(-0.62, -0.78)), -0.28, 2.0));
+  col *= 1.0 - rim * 0.12 * max(dot(nrm, float2(0.45, -0.89)), 0.0);
+
+  col = mix(col, k.crest, sat(rim * lobe(nrm, normalize(float2(-0.68, 0.73)), 0.2, 2.8) * kSheen * 1.4));
+  col = mix(col, k.rimCool, sat(rim * lobe(nrm, normalize(float2(0.74, -0.67)), 0.4, 3.6) * kSheen));
+
+  // Circle mask with a 1px soft edge.
+  float mask = 1.0 - smoothstep(kRadius - px, kRadius + px, length(uv));
+  col = saturateColor(sat3(col * kExposure), 0.32);
+  return half4(half3(col * mask), half(mask));
+}
+```
+
+</Tab>
+</Tabs>

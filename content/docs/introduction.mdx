@@ -1,0 +1,30 @@
+---
+title: Introduction
+description: Swift Pieces is the central place for animated SwiftUI pieces. Copy one file, run one command, or let your agent install it.
+---
+
+Swift Pieces is a free library (MIT + Commons Clause) of animated SwiftUI components built around iOS 26 Liquid Glass and Metal shaders, and a curated taste of what Swift Pieces Pro offers in full: production-ready SwiftUI screens and complete app templates.
+
+## What earns a place
+
+A piece is here because it saves an afternoon: the design, the motion, the gesture physics, the haptics and the states are already done. If a coding agent could produce it from a one-sentence prompt, it is not in the library. Every piece passes four tests: it is hard to recreate, it looks designed before it moves, a good developer would ship it, and its interaction is iPhone-first.
+
+## What a piece is
+
+- **One self-contained `.swift` file** named after its primary type, with a `#Preview`.
+- **Apple frameworks only.** No third-party dependencies in the free library.
+- **iOS 17 baseline.** Liquid Glass pieces target iOS 26 and gate every glass call with `#available(iOS 26, *)` plus a Material fallback.
+- **Parameters, not forks.** Every piece is customized through init parameters with sensible defaults.
+- **Accessible by default.** Dynamic Type, semantic colors, and respect for Reduce Motion and Reduce Transparency.
+
+## Three ways to install
+
+<Tabs items={["Copy", "CLI", "Agent"]}>
+  <Tab value="Copy">Open any piece, copy the source, paste it into a file in your app target. Metal shaders copied alongside compile into your app's default library automatically.</Tab>
+  <Tab value="CLI">`npx swiftpieces init` once, then `npx swiftpieces add SwipeDeck`. Files land in a `SwiftPieces/` synchronized folder, so Xcode 16+ picks them up with no project-file edits.</Tab>
+  <Tab value="Agent">Point Claude Code, Cursor, or Xcode at the Swift Pieces MCP server and ask for a piece in plain English. The agent resolves it against the registry and installs it.</Tab>
+</Tabs>
+
+## Verified APIs only
+
+Every Apple API in this library is checked against developer.apple.com and type-checked against the iOS 26 SDK in CI. Tutorials on the web invent modifiers like `.liquidGlassUltra`. Those do not exist, and you will never find them here.

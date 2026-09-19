@@ -1,0 +1,9 @@
+## Notes
+
+- One `Animatable` number drives every slot. Each digit's roll is derived from that number and carries upward only while the digit below passes 9, so higher digits stay perfectly still until a carry reaches them. While a digit is between faces its slot edges soften, like a drum turning behind a window. The roll runs on `.smooth` with a duration that grows gently with the size of the change; there is no per-frame loop.
+- The layout (grouping separators, decimal separator, currency symbol) is read from the formatted target once per change. Use plain decimal or currency styles; compact notation such as `1.2K` will not match the rolled digits. Leading symbols always show, and the number never gives up width to the delta pill.
+- Decimals and their separator are dimmed by default. The sign is its own glyph and slides in or out at the zero crossing. After each change a solid delta block shows the signed amount for 1.6 s: sage for up, tangerine for down, ink text.
+- `Style` sets `up`, `down`, `ink`, `muted`, `dimsFraction`, and `tintsWhileRolling` (tints the digits until the roll settles; best on dark grounds).
+- `isLoading` swaps every digit for a dash; the first real value rolls up from zero. Reduce Motion replaces the roll with a short ease.
+- VoiceOver reads the final formatted value only, never the intermediate frames. Apply `.font` to the `Odometer` (light weights suit it); slot sizes are measured from that font.
+- A full dashboard screen ships in Swift Pieces Pro (`dashboard-screen`).

@@ -1,0 +1,9 @@
+## Notes
+
+- Three outcomes share one choreography, run once per appearance: a ring draws in ink, a solid block floods out of it (sage for `.success`, butter for `.failure`, sky for `.empty`), the mark strokes in dark ink via `trim`, one pulse and the haptic land together, then the copy and actions rise. Change the view's `.id` to replay it.
+- `.empty` draws an open tray and plays a light impact, for first-run and no-results states.
+- The headline is set heavy and tight at `.largeTitle`; `eyebrow` adds a small uppercase line above it. The primary action is the one `signal` capsule; `secondary` is a quiet text button.
+- `Style` holds the three blocks, the ink, the signal colors, text colors and the details surface, with house palette defaults that adapt to light and dark. `accent` still overrides the block.
+- On failure, `retry` turns the primary button into "Try again" with a spinner while the async work runs; `details` adds a rounded block that expands to selectable monospaced text.
+- Under Reduce Motion everything appears at once and the pulse is skipped; haptics still fire.
+- For a complete purchase screen, see the Pro Purchase screen.

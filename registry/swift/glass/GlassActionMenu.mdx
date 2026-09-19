@@ -1,0 +1,11 @@
+## Notes
+
+- Two ways in: a tap toggles the menu, a 350ms hold expands it and keeps the same touch live, so you can slide across items (each crossing lifts the item and ticks `.selection`) and release to fire. Releasing a hold on empty space leaves the menu open.
+- Items emerge one at a time (45ms stagger, reversed on collapse) and labels fade in only after the last item has landed. On iOS 26 each item carries a `glassEffectID` inside a `GlassEffectContainer`, so the glass blends with the trigger as it travels; earlier the same choreography runs on `.regularMaterial`.
+- The scrim is an oversized background behind the trigger; it dims everything beneath the menu in its parent and dismisses on tap. Place the menu last in a `ZStack` so nothing sits above it.
+- Phases: `collapsed`, `expanding`, `open`, `hovering`, `firing`, `collapsing`. Reduce Motion drops the stagger and the lift and crossfades instead; Reduce Transparency swaps glass and Material for opaque fills.
+- VoiceOver sees the trigger as a button (double tap toggles) and each item as its own button while the menu is open.
+- Items take an optional `tint` (`Item(symbol:label:tint:action:)`) and render as solid color blocks with dark ink; on iOS 26 clear glass sits on top for the edge and the morph. Untinted items stay glass.
+- The trigger defaults to the house signal color with dark ink (`tint` is now optional; `nil` uses `Style.trigger`). After an action fires it shows a checkmark for 0.9s (`Style.confirmsAction`).
+- `Style`: `trigger`, `ink`, `labelFill`, `labelInk` (solid label capsules), `triggerSize`, `itemSize`, `scrimOpacity`, `confirmsAction`. In an arc of three or more, the top item's label sits above it.
+- For a floating pill that morphs into a full toolbar and panel, see the Pro Reader screen (`morph-nav`).

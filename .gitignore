@@ -1,0 +1,86 @@
+# ─── Dependencies ────────────────────────────────────────────
+node_modules
+.pnpm-store
+*.tgz
+
+# ─── Build output (Next.js, OpenNext, Wrangler, packages) ───
+.next
+.open-next
+.source
+.wrangler
+out
+dist
+packages/*/dist
+cloudflare-env.d.ts
+next-env.d.ts
+*.tsbuildinfo
+coverage
+
+# Generated but COMMITTED on purpose (CI diffs them):
+#   registry/__registry__/  content/docs/  public/llms.txt  public/schema/
+
+# ─── Environment and secrets ─────────────────────────────────
+# scripts/audit-public.sh requires `.env`, `.env.local`, `.env.production` and `.dev.vars` as exact lines.
+.env
+.env.local
+.env*.local
+.env.production
+.env.development
+.dev.vars
+.dev.vars.*
+!.dev.vars.example
+*.pem
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# ─── Xcode / Swift (previews harness) ────────────────────────
+previews/build
+previews/out
+DerivedData
+xcuserdata
+*.xcuserstate
+*.xcscmblueprint
+*.xccheckout
+.build
+.swiftpm
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# ─── AI agent and editor config (local only) ─────────────────
+.claude
+CLAUDE.md
+CLAUDE.local.md
+AGENTS.md
+GEMINI.md
+.cursor
+.cursorrules
+.windsurf
+.windsurfrules
+.aider*
+.codex
+.github/copilot-instructions.md
+.vscode
+.idea
+*.swp
+*~
+
+# ─── Internal notes, briefs and scratch (not public docs) ────
+# Public docs live in content/docs/, README.md and CONTRIBUTING.md.
+.redesign
+.notes
+notes
+scratch
+tmp
+*.local.md
+*.private.md
+
+# ─── Logs and OS files ───────────────────────────────────────
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.DS_Store
+Thumbs.db

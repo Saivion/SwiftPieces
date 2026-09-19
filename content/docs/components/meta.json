@@ -1,0 +1,22 @@
+{
+  "title": "Components",
+  "root": true,
+  "pages": [
+    "index",
+    "---Categories · 14---",
+    "text",
+    "backgrounds",
+    "glass",
+    "controls",
+    "inputs",
+    "cards",
+    "lists",
+    "navigation",
+    "sheets",
+    "feedback",
+    "motion",
+    "data",
+    "ai",
+    "media"
+  ]
+}

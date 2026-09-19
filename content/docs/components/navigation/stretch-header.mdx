@@ -1,0 +1,329 @@
+---
+title: "Stretch Header"
+description: "A hero header for your own ScrollView and NavigationStack: a heavy display title and uppercase eyebrow over a solid block hero that stretches on overscroll, a title that shrinks toward the real navigation bar, a stat row that pins under the bar, and a solid bar that fades in."
+piece: "StretchHeader"
+category: "navigation"
+minIOSVersion: "17.0"
+version: "2.0.0"
+tags: ["header","scroll","navigation","stretchy","parallax","hero"]
+registryDependencies: []
+---
+
+{/* GENERATED FILE. Edit registry/swift/navigation/StretchHeader.swift or StretchHeader.mdx instead. */}
+
+Hero header placed at the top of scroll content, paired with `.stretchHeaderBar(title:progress:style:)` on the scroll view.
+
+## Notes
+
+- Two parts: `StretchHeader` goes first inside your `ScrollView` content, and `.stretchHeaderBar(title:progress:style:)` goes on the `ScrollView` inside a `NavigationStack`. Share one `@State` progress between them. The modifier hides the system bar background, extends the scroll view under the bar, and draws its own solid bar in the style's `surface`, fading in with progress and gaining a soft shadow instead of a hairline.
+- The title is display type: heavy, tight, 40 pt and scaled with Dynamic Type, with an optional uppercase `eyebrow` above it. Overscroll stretches the hero upward and grows the title a touch; scrolling moves the hero at 70% speed and the title at 55%, shrinking it toward the bar, and the inline title fades in over the last 20% of the collapse. States: expanded, stretching, collapsing, collapsed.
+- `Style`: `.standard` puts ink on a solid block hero with no scrim; `.overImage` uses a white title over a soft scrim for photos. Both set `surface`, the house ground behind the pinned row and the bar. Copy a style and change one property to customize.
+- The `subtitle` row (stats, avatar, tabs) pins under the bar once the hero has scrolled past it and draws above the content that follows. Give it its own padding.
+- Progress comes from `onScrollGeometryChange` on iOS 18 (fed through the modifier) and from the header's own position in the `.scrollView` coordinate space on iOS 17. A soft haptic marks a deep pull.
+- Reduce Motion drops the title parallax and the hero lag but keeps the stretch and the collapse. The hero reads as one header element and is hidden from VoiceOver once collapsed, when the inline title takes over.
+- A full settings screen built around a header like this ships in Swift Pieces Pro (`settings-screen`).
+
+## Usage
+
+```swift
+StretchHeaderExample().preferredColorScheme(.light)
+```
+
+## Parameters
+
+| Parameter | Description |
+| --- | --- |
+| `title` | Large display title over the hero; the same string fades into the navigation bar as it collapses. |
+| `height` | Resting hero height in points. |
+| `progress` | Written by the header: 0 while expanded, 1 once collapsed behind the bar. Pass the same state to `.stretchHeaderBar`. |
+| `eyebrow` | Optional small uppercase label above the title, such as a place or a category. Defaults to none. |
+| `style` | Title ink, scrim, and surface colors. `.standard` suits solid block heroes; use `.overImage` for photos. Defaults to `.standard`. |
+| `hero` | Hero content, typically a solid color block or a resizable image. It is sized to fill the header. |
+| `subtitle` | Optional row under the hero (stats, avatar, tabs) that pins beneath the bar once the hero has scrolled away. |
+
+## Source
+
+<Tabs items={["StretchHeader.swift"]}>
+<Tab value="StretchHeader.swift">
+
+```swift title="StretchHeader.swift"
+import SwiftUI
+
+/// Hero header placed at the top of scroll content, paired with `.stretchHeaderBar(title:progress:style:)` on the scroll view.
+///
+/// - Parameters:
+///   - title: Large display title over the hero; the same string fades into the navigation bar as it collapses.
+///   - height: Resting hero height in points.
+///   - progress: Written by the header: 0 while expanded, 1 once collapsed behind the bar. Pass the same state to `.stretchHeaderBar`.
+///   - eyebrow: Optional small uppercase label above the title, such as a place or a category. Defaults to none.
+///   - style: Title ink, scrim, and surface colors. `.standard` suits solid block heroes; use `.overImage` for photos. Defaults to `.standard`.
+///   - hero: Hero content, typically a solid color block or a resizable image. It is sized to fill the header.
+///   - subtitle: Optional row under the hero (stats, avatar, tabs) that pins beneath the bar once the hero has scrolled away.
+public struct StretchHeader<Hero: View, Subtitle: View>: View {
+    /// Colors and type for the header and its bar. See `StretchHeaderStyle`.
+    public typealias Style = StretchHeaderStyle
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.stretchHeaderBarBottom) private var barBottom
+    @Environment(\.stretchHeaderScrollY) private var scrollY
+    @ScaledMetric(relativeTo: .largeTitle) private var titleScale: CGFloat = 1
+    @Binding private var progress: CGFloat
+    @State private var measuredMinY: CGFloat = 0
+
+    private let title: String
+    private let eyebrow: String?
+    private let height: CGFloat
+    private let style: Style
+    private let hero: Hero
+    private let subtitle: Subtitle
+
+    public init(title: String, height: CGFloat = 280, progress: Binding<CGFloat>, eyebrow: String? = nil, style: Style = .standard, @ViewBuilder hero: () -> Hero, @ViewBuilder subtitle: () -> Subtitle = { EmptyView() }) {
+        self.title = title
+        self.eyebrow = eyebrow
+        self.height = height
+        self.style = style
+        self._progress = progress
+        self.hero = hero()
+        self.subtitle = subtitle()
+    }
+
+    /// Header top relative to the scroll view's top: positive while stretching, negative once scrolled.
+    private var minY: CGFloat { scrollY.map { -$0 } ?? measuredMinY }
+    private var stretch: CGFloat { max(0, minY) }
+    private var scrolled: CGFloat { max(0, -minY) }
+    private var collapse: CGFloat { min(1, scrolled / max(1, height - barBottom)) }
+
+    public var body: some View {
+        VStack(spacing: 0) {
+            heroLayer
+                .frame(height: height)
+            subtitle
+                .frame(maxWidth: .infinity)
+                .background { style.surface }
+                // Pins under the bar once the hero has scrolled behind it.
+                .offset(y: max(0, barBottom - height - minY))
+                .zIndex(1)
+        }
+        // iOS 17 path: measure the header inside the scroll view. On iOS 18 the bar modifier supplies scrollY instead.
+        .onGeometryChange(for: CGFloat.self) { $0.frame(in: .scrollView).minY } action: { measuredMinY = $0 }
+        .onChange(of: collapse, initial: true) { _, value in progress = value }
+        .sensoryFeedback(.impact(flexibility: .soft, intensity: 0.6), trigger: stretch > 72) { _, new in new }
+        // Last, so the pinned row draws above the content that follows the header.
+        .zIndex(1)
+    }
+
+    private var heroLayer: some View {
+        hero
+            .frame(maxWidth: .infinity)
+            .frame(height: height + stretch)
+            .overlay(alignment: .bottomLeading) { heroTitle }
+            .clipped()
+            // Grows upward on overscroll and lags the scroll slightly on the way out.
+            .offset(y: -stretch + (reduceMotion ? 0 : scrolled * 0.3))
+            .accessibilityElement(children: .combine)
+            .accessibilityAddTraits(.isHeader)
+            .accessibilityHidden(collapse > 0.9)
+    }
+
+    private var heroTitle: some View {
+        ZStack(alignment: .bottomLeading) {
+            if style.scrim > 0 {
+                LinearGradient(colors: [.clear, .black.opacity(style.scrim)], startPoint: .center, endPoint: .bottom)
+                    .accessibilityHidden(true)
+            }
+            VStack(alignment: .leading, spacing: 6) {
+                if let eyebrow {
+                    Text(eyebrow.uppercased())
+                        .font(.system(size: 12, weight: .semibold))
+                        .tracking(1.4)
+                        .opacity(0.72)
+                }
+                Text(title)
+                    .font(.system(size: style.titleSize * titleScale, weight: .bold))
+                    .tracking(-style.titleSize * 0.03)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.7)
+                    // A pull reads as tension: the title grows a touch with the stretch.
+                    .scaleEffect(reduceMotion ? 1 : 1 + min(stretch, 120) / 1200, anchor: .bottomLeading)
+            }
+            .foregroundStyle(style.titleColor)
+            .padding(.horizontal, 24)
+            .padding(.bottom, 22)
+            .scaleEffect(1 - 0.3 * collapse, anchor: .bottomLeading)
+            // Moves up slower than the hero, so it appears to travel toward the bar.
+            .offset(y: reduceMotion ? 0 : scrolled * 0.45)
+            .opacity(Double(1 - max(0, (collapse - 0.5) / 0.35)))
+        }
+    }
+}
+
+/// Colors and type for the header and its bar.
+public struct StretchHeaderStyle: Sendable {
+    /// Title and eyebrow color over the hero.
+    public var titleColor: Color
+    /// Strength of the dark scrim under the title, 0 for none.
+    public var scrim: Double
+    /// Ground behind the pinned subtitle row and the collapsed bar.
+    public var surface: Color
+    /// Resting title size in points; it scales with Dynamic Type.
+    public var titleSize: CGFloat
+
+    public init(titleColor: Color, scrim: Double = 0, surface: Color = StretchHeaderStyle.ground, titleSize: CGFloat = 40) {
+        self.titleColor = titleColor
+        self.scrim = scrim
+        self.surface = surface
+        self.titleSize = titleSize
+    }
+
+    /// House default: ink title with no scrim, for solid block heroes.
+    public static let standard = StretchHeaderStyle(titleColor: StretchHeaderStyle.adaptive(0x141414, 0x141414))
+    /// White title over a soft scrim, for photos and busy heroes.
+    public static let overImage = StretchHeaderStyle(titleColor: .white, scrim: 0.5)
+
+    /// House ground: paper in light, charcoal in dark.
+    public static let ground = StretchHeaderStyle.adaptive(0xF3F2EE, 0x121212)
+
+    fileprivate static func adaptive(_ light: UInt32, _ dark: UInt32) -> Color {
+        Color(uiColor: UIColor { traits in
+            let hex = traits.userInterfaceStyle == .dark ? dark : light
+            return UIColor(red: CGFloat((hex >> 16) & 0xFF) / 255, green: CGFloat((hex >> 8) & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
+        })
+    }
+}
+
+/// Bar-side companion: hides the system bar background, fades in a solid one from `progress`, and shows the inline title.
+///
+/// - Parameters:
+///   - title: Navigation title; shown inline with an opacity driven by `progress`.
+///   - progress: The value written by `StretchHeader`.
+///   - style: The same style passed to the header, so the bar matches the pinned row. Defaults to `.standard`.
+public extension View {
+    func stretchHeaderBar(title: String, progress: CGFloat, style: StretchHeaderStyle = .standard) -> some View {
+        modifier(StretchHeaderBar(title: title, progress: progress, surface: style.surface))
+    }
+}
+
+private struct StretchHeaderBar: ViewModifier {
+    @State private var scrollY: CGFloat? = nil
+    let title: String
+    let progress: CGFloat
+    let surface: Color
+
+    private var inline: Double { Double(max(0, (progress - 0.8) / 0.2)) }
+
+    func body(content: Content) -> some View {
+        GeometryReader { proxy in
+            let barBottom = proxy.safeAreaInsets.top
+            scrollSource(content)
+                .environment(\.stretchHeaderBarBottom, barBottom)
+                .environment(\.stretchHeaderScrollY, scrollY)
+                .ignoresSafeArea(edges: .top)
+                .overlay(alignment: .top) {
+                    // Our own solid bar, so it can fade instead of flipping on. A soft shadow replaces the hairline.
+                    Rectangle()
+                        .fill(surface)
+                        .frame(height: barBottom)
+                        .shadow(color: .black.opacity(0.12 * Double(inline)), radius: 12, y: 4)
+                        .opacity(Double(progress))
+                        .ignoresSafeArea(edges: .top)
+                        .allowsHitTesting(false)
+                }
+        }
+        .toolbarBackground(.hidden, for: .navigationBar)
+        .navigationTitle(title)
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .principal) {
+                Text(title)
+                    .font(.headline.weight(.bold))
+                    .opacity(inline)
+                    .offset(y: (1 - inline) * 6)
+                    .accessibilityHidden(inline < 0.5)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func scrollSource(_ content: Content) -> some View {
+        if #available(iOS 18, *) {
+            content.onScrollGeometryChange(for: CGFloat.self) { $0.contentOffset.y + $0.contentInsets.top } action: { _, y in scrollY = y }
+        } else {
+            content
+        }
+    }
+}
+
+private struct StretchHeaderBarBottomKey: EnvironmentKey {
+    static let defaultValue: CGFloat = 0
+}
+
+private struct StretchHeaderScrollYKey: EnvironmentKey {
+    static let defaultValue: CGFloat? = nil
+}
+
+private extension EnvironmentValues {
+    var stretchHeaderBarBottom: CGFloat {
+        get { self[StretchHeaderBarBottomKey.self] }
+        set { self[StretchHeaderBarBottomKey.self] = newValue }
+    }
+    var stretchHeaderScrollY: CGFloat? {
+        get { self[StretchHeaderScrollYKey.self] }
+        set { self[StretchHeaderScrollYKey.self] = newValue }
+    }
+}
+
+// MARK: - Example
+
+private struct StretchHeaderExample: View {
+    @State private var progress: CGFloat = 0
+    private let sage = StretchHeaderStyle.adaptive(0xA9DCB7, 0xA9DCB7)
+    private let butter = StretchHeaderStyle.adaptive(0xFFD976, 0xFFD976)
+    private let placeholder = StretchHeaderStyle.adaptive(0xFFFFFF, 0x1C1C1C)
+    private let muted = StretchHeaderStyle.adaptive(0x5C5A56, 0xA6A49F)
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                StretchHeader(title: "Mist Trail", height: 300, progress: $progress, eyebrow: "Yosemite · Hike 04") {
+                    ZStack(alignment: .topTrailing) {
+                        sage
+                        Circle().fill(butter).frame(width: 190).offset(x: 50, y: -40)
+                    }
+                } subtitle: {
+                    // The pinning row, at its plainest: one line of meta that stays under the bar.
+                    Text("5.4 MI · 1,000 FT UP · 3.5 HOURS")
+                        .font(.system(size: 12, weight: .semibold))
+                        .tracking(1.2)
+                        .foregroundStyle(muted)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, 24)
+                        .padding(.vertical, 14)
+                }
+                // Plain placeholder content, only so there is something to scroll.
+                VStack(spacing: 12) {
+                    ForEach(0..<8, id: \.self) { _ in
+                        RoundedRectangle(cornerRadius: 18, style: .continuous)
+                            .fill(placeholder)
+                            .frame(height: 64)
+                    }
+                }
+                .padding(20)
+                .accessibilityHidden(true)
+            }
+            .background(StretchHeaderStyle.ground)
+            .stretchHeaderBar(title: "Mist Trail", progress: progress)
+        }
+    }
+}
+
+#Preview("Light") {
+    StretchHeaderExample().preferredColorScheme(.light)
+}
+
+#Preview("Dark") {
+    StretchHeaderExample().preferredColorScheme(.dark)
+}
+```
+
+</Tab>
+</Tabs>

@@ -1,0 +1,9 @@
+## Notes
+
+- Loading is a 72% arc in ink rotated by a `TimelineView` clock, so nothing runs while idle. On success or failure the arc's current angle is captured and the ring closes from there, then a solid block floods out of it (sage for success, tangerine for failure) and the check or cross draws in dark ink.
+- `Style` holds the two blocks, the ink, the arc and track colors and the caption colors, with house palette defaults that adapt to light and dark. `tint` still works and overrides the success block.
+- The check and cross are one `Shape` with `trim`, so the cross draws its two lines in order. Failure adds a `.error` haptic and a short horizontal nudge via `keyframeAnimator`; success plays `.success` and an optional soft scale pop.
+- A view that appears already settled shows its final block without replaying the morph.
+- `size` is a `@ScaledMetric`, so the ring grows with Dynamic Type alongside its caption.
+- Under Reduce Motion the arc does not spin, states crossfade, and the nudge and pop are skipped.
+- For a full agent task screen with a live tool timeline, see the Pro Agent Task screen.

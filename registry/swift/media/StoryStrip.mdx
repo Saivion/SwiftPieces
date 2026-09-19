@@ -1,0 +1,10 @@
+## Notes
+
+- With `duration` set the strip runs itself: a `TimelineView(.animation)` draws the fill and a task sleeps for the rest of the segment, then advances `current`. Pausing (a hold, or `isPaused`) records the pause time and shifts the segment start on resume, so the fill continues exactly where it stopped.
+- Without `duration` the strip is stateless like before: you own `current` and `progress`, and steps animate with a short linear curve so 30 Hz updates read as continuous.
+- Holding anywhere on the surface for 200 ms freezes and dims the strip with a soft tick; releasing resumes. A shorter touch is a tap: the left 30% goes back (restarting the first segment) and the rest advances. Segment changes snap with `.snappy` and a `.selection` tick.
+- `fillsContainer` stretches the invisible surface over the whole story with the bars pinned to the top; set it to false to use only the bar row.
+- `onFinish` fires once when the last segment completes. VoiceOver reads "3 of 5", swipes up or down move between segments, and a custom action pauses or resumes.
+- **v2:** holding shows a "Paused" badge under the trailing end of the bars, and a tap that moves back or forward flashes a chevron in that zone. Bars are 4 pt by default.
+- `style:` (`StoryStrip.Style`) sets `barHeight`, `spacing`, `trackOpacity`, `inset`, `showsPausedBadge`, `showsTapHints`, and `ink` (the glyph color on `tint`). `.minimal` restores the version 1 look.
+- The example runs the strip in dark ink over solid color slides with one big idea each.

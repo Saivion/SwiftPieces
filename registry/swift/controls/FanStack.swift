@@ -1,0 +1,332 @@
+// swiftpieces:
+// title: Fan Stack
+// description: "Overlapping block-color avatars that fan apart on tap or hold with staggered springs, dissolve the +N pill into the hidden faces, and let a drag scrub across them: the avatar under the finger lifts, shows a name tag and ticks a haptic, and releasing selects it."
+// category: controls
+// minIOSVersion: "17.0"
+// version: "2.0.0"
+// tags: [avatar, group, fan, drag, haptics]
+
+import SwiftUI
+
+/// Avatar group that expands into a selectable fan.
+///
+/// - Parameters:
+///   - names: Full names, in display order. First name is drawn on top while collapsed.
+///   - images: Optional parallel array of images; `nil` entries fall back to initials on a block color.
+///   - size: Diameter of each avatar in points.
+///   - max: Avatars shown while collapsed before the rest fold into "+N". All fan open.
+///   - overlap: Fraction of `size` each avatar overlaps the previous one while collapsed, 0–1.
+///   - onSelect: Called with the name released on while fanned. Also used by VoiceOver's per-avatar action.
+///   - isFanned: Optional binding to fan or collapse programmatically; written back when the user toggles it.
+///   - style: Block colors, ink, the cut-out ring and the name tag. `.standard` is the house palette; set `ring` to the color behind the stack.
+public struct FanStack: View {
+    /// Colors for avatars, the overflow pill and labels. Colors adapt to light and dark.
+    public struct Style: Sendable {
+        /// Avatar fills for initials, picked by a stable hash of the name.
+        public var colors: [Color]
+        /// Initials color on the fills.
+        public var ink: Color
+        /// The cut-out ring between overlapping avatars. Match the surface behind the stack.
+        public var ring: Color
+        /// "+N" pill fill and text.
+        public var overflowFill: Color
+        public var overflowInk: Color
+        /// First names under the fanned avatars.
+        public var caption: Color
+        /// Name tag above the lifted avatar: fill and text.
+        public var tagFill: Color
+        public var tagInk: Color
+
+        public init(colors: [Color] = [0xFF5B3A, 0x9CC2FF, 0xFFD976, 0xA9DCB7, 0xCDB8FF, 0xE9D5B3].map(House.hex), ink: Color = House.hex(0x141414), ring: Color = House.adaptive(light: 0xFFFFFF, dark: 0x1C1C1C), overflowFill: Color = House.adaptive(light: 0xEAE8E2, dark: 0x262626), overflowInk: Color = House.adaptive(light: 0x141414, dark: 0xF4F3EF), caption: Color = House.adaptive(light: 0x5C5A56, dark: 0xA6A49F), tagFill: Color = House.adaptive(light: 0x141414, dark: 0xF4F3EF), tagInk: Color = House.adaptive(light: 0xF4F3EF, dark: 0x141414)) {
+            self.colors = colors.isEmpty ? [House.hex(0x9CC2FF)] : colors
+            self.ink = ink
+            self.ring = ring
+            self.overflowFill = overflowFill
+            self.overflowInk = overflowInk
+            self.caption = caption
+            self.tagFill = tagFill
+            self.tagInk = tagInk
+        }
+
+        /// The Free house palette, sitting on a surface card.
+        public static let standard = Style()
+
+        /// Builds house colors. Public so `Style` defaults can use it.
+        public enum House {
+            public static func hex(_ value: UInt32) -> Color {
+                Color(red: Double((value >> 16) & 0xFF) / 255, green: Double((value >> 8) & 0xFF) / 255, blue: Double(value & 0xFF) / 255)
+            }
+
+            public static func adaptive(light: UInt32, dark: UInt32) -> Color {
+                Color(uiColor: UIColor { traits in
+                    let v = traits.userInterfaceStyle == .dark ? dark : light
+                    return UIColor(red: CGFloat((v >> 16) & 0xFF) / 255, green: CGFloat((v >> 8) & 0xFF) / 255, blue: CGFloat(v & 0xFF) / 255, alpha: 1)
+                })
+            }
+        }
+    }
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var fanned = false
+    @State private var hovered: Int?
+    @State private var touching = false
+    @State private var longPressed = false
+    @State private var pressTask: Task<Void, Never>?
+    @State private var crossings = 0
+    @State private var selects = 0
+
+    private let names: [String]
+    private let images: [Image?]?
+    private let size: CGFloat
+    private let maxVisible: Int
+    private let overlap: CGFloat
+    private let onSelect: ((String) -> Void)?
+    private let isFanned: Binding<Bool>?
+    private let style: Style
+    private let gap: CGFloat = 12
+    private let tagRoom: CGFloat = 34
+    private let captionRoom: CGFloat = 24
+
+    public init(names: [String], images: [Image?]? = nil, size: CGFloat = 44, max: Int = 4, overlap: CGFloat = 0.25, onSelect: ((String) -> Void)? = nil, isFanned: Binding<Bool>? = nil, style: Style = .standard) {
+        self.names = names
+        self.images = images
+        self.size = size
+        self.maxVisible = Swift.max(max, 1)
+        self.overlap = min(Swift.max(overlap, 0), 1)
+        self.onSelect = onSelect
+        self.isFanned = isFanned
+        self.style = style
+    }
+
+    private var visibleCount: Int { min(names.count, maxVisible) }
+    private var overflow: Int { names.count - visibleCount }
+    private var collapsedStep: CGFloat { size * (1 - overlap) }
+    private var fannedStep: CGFloat { size + gap }
+
+    private var width: CGFloat {
+        fanned
+            ? CGFloat(names.count - 1) * fannedStep + size
+            : CGFloat(visibleCount - (overflow > 0 ? 0 : 1)) * collapsedStep + size
+    }
+
+    public var body: some View {
+        ZStack(alignment: .topLeading) {
+            ForEach(Array(names.enumerated()), id: \.offset) { index, name in
+                let hidden = !fanned && index >= visibleCount
+                let lifted = fanned && hovered == index
+                InitialsCircle(name: name, image: images?[safe: index] ?? nil, size: size, style: style)
+                    .overlay {
+                        if reduceMotion, lifted {
+                            Circle().strokeBorder(style.tagFill, lineWidth: 3)
+                        }
+                    }
+                    .scaleEffect(hidden ? 0.6 : lifted && !reduceMotion ? 1.18 : 1)
+                    .offset(y: lifted && !reduceMotion ? -4 : 0)
+                    .shadow(color: .black.opacity(lifted ? 0.22 : 0), radius: lifted ? 10 : 0, y: lifted ? 6 : 0)
+                    .opacity(hidden ? 0 : 1)
+                    .overlay(alignment: .top) {
+                        Text(name.split(separator: " ").first.map(String.init) ?? name)
+                            .font(.caption.weight(lifted ? .bold : .medium))
+                            .foregroundStyle(lifted ? style.overflowInk : style.caption)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.7)
+                            .frame(width: fannedStep)
+                            .offset(y: size + 8)
+                            .opacity(fanned ? 1 : 0)
+                    }
+                    .overlay(alignment: .top) {
+                        // Name tag: the full name in an inverted capsule above the lifted avatar.
+                        Text(name)
+                            .font(.footnote.weight(.semibold))
+                            .foregroundStyle(style.tagInk)
+                            .lineLimit(1)
+                            .fixedSize()
+                            .padding(.horizontal, 10)
+                            .frame(height: 26)
+                            .background(style.tagFill, in: Capsule())
+                            .offset(y: -tagRoom)
+                            .scaleEffect(lifted ? 1 : 0.6, anchor: .bottom)
+                            .opacity(lifted ? 1 : 0)
+                            .accessibilityHidden(true)
+                    }
+                    .offset(x: xPosition(index))
+                    .zIndex(lifted ? Double(names.count + 1) : Double(names.count - index))
+                    .animation(.spring(duration: 0.28, bounce: 0.35), value: hovered)
+                    .animation(fanAnimation(index), value: fanned)
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(name)
+                    .accessibilityAddTraits(.isButton)
+                    .accessibilityHidden(!fanned)
+                    .accessibilityAction { select(index) }
+            }
+            if overflow > 0 {
+                Text("+\(overflow)")
+                    .font(.system(size: size * 0.36, weight: .bold, design: .rounded))
+                    .monospacedDigit()
+                    .foregroundStyle(style.overflowInk)
+                    .frame(width: size, height: size)
+                    .background(style.overflowFill, in: Circle())
+                    .overlay(Circle().strokeBorder(style.ring, lineWidth: 3))
+                    .scaleEffect(fanned ? 0.6 : 1)
+                    .opacity(fanned ? 0 : 1)
+                    .offset(x: fanned ? xPosition(visibleCount) : CGFloat(visibleCount) * collapsedStep)
+                    .zIndex(0)
+                    .animation(fanAnimation(visibleCount), value: fanned)
+                    .accessibilityHidden(true)
+            }
+        }
+        .frame(width: width, height: size + (fanned ? captionRoom : 0), alignment: .topLeading)
+        .animation(.spring(duration: 0.45, bounce: 0.2), value: fanned)
+        .contentShape(.rect.inset(by: -8))
+        .gesture(fanGesture)
+        .sensoryFeedback(.selection, trigger: crossings)
+        .sensoryFeedback(.impact(flexibility: .soft), trigger: fanned)
+        .sensoryFeedback(.impact(flexibility: .solid), trigger: selects)
+        .accessibilityElement(children: fanned ? .contain : .ignore)
+        .accessibilityLabel(fanned ? "People" : collapsedLabel)
+        .accessibilityHint(fanned ? "" : "Double tap to expand")
+        .accessibilityAction { setFanned(true) }
+        .onChange(of: isFanned?.wrappedValue) { _, new in
+            if let new, new != fanned { setFanned(new) }
+        }
+    }
+
+    // MARK: Layout
+
+    private func xPosition(_ index: Int) -> CGFloat {
+        if fanned { return CGFloat(index) * fannedStep }
+        return CGFloat(min(index, visibleCount)) * collapsedStep
+    }
+
+    /// Opening staggers from the first avatar; closing reverses so the last one folds in first.
+    private func fanAnimation(_ index: Int) -> Animation {
+        let order = fanned ? index : names.count - 1 - index
+        let delay = reduceMotion ? 0 : Double(order) * 0.035
+        return reduceMotion ? .smooth(duration: 0.25) : .spring(duration: 0.45, bounce: 0.3).delay(delay)
+    }
+
+    private var collapsedLabel: String {
+        let listed = names.prefix(visibleCount).joined(separator: ", ")
+        return overflow > 0 ? "\(listed), and \(overflow) more" : listed
+    }
+
+    // MARK: Interaction
+
+    /// Tap toggles the fan. Holding 300ms fans and keeps the touch live to scrub; releasing over an avatar selects it.
+    private var fanGesture: some Gesture {
+        DragGesture(minimumDistance: 0)
+            .onChanged { value in
+                if !touching {
+                    touching = true
+                    longPressed = false
+                    if !fanned {
+                        pressTask = Task {
+                            try? await Task.sleep(for: .milliseconds(300))
+                            guard !Task.isCancelled, touching else { return }
+                            longPressed = true
+                            setFanned(true)
+                        }
+                    }
+                }
+                guard fanned else { return }
+                let hit = index(at: value.location)
+                if hit != hovered {
+                    hovered = hit
+                    if hit != nil { crossings += 1 }
+                }
+            }
+            .onEnded { _ in
+                pressTask?.cancel()
+                touching = false
+                defer { hovered = nil }
+                if fanned {
+                    if let hovered { select(hovered) } else if !longPressed { setFanned(false) }
+                } else if !longPressed {
+                    setFanned(true)
+                }
+            }
+    }
+
+    private func index(at point: CGPoint) -> Int? {
+        guard point.y > -tagRoom, point.y < size + captionRoom + 12 else { return nil }
+        let index = Int((point.x / fannedStep).rounded(.down))
+        guard names.indices.contains(index) else { return nil }
+        return point.x - CGFloat(index) * fannedStep <= size + gap / 2 ? index : nil
+    }
+
+    private func setFanned(_ value: Bool) {
+        fanned = value
+        isFanned?.wrappedValue = value
+        if !value { hovered = nil }
+    }
+
+    private func select(_ index: Int) {
+        selects += 1
+        onSelect?(names[index])
+        setFanned(false)
+    }
+
+    /// Initials avatar on a block color, kept private so this file stands alone.
+    private struct InitialsCircle: View {
+        let name: String
+        let image: Image?
+        let size: CGFloat
+        let style: Style
+
+        var body: some View {
+            SwiftUI.Group {
+                if let image {
+                    image.resizable().scaledToFill()
+                } else {
+                    Text(initials)
+                        .font(.system(size: size * 0.38, weight: .bold, design: .rounded))
+                        .foregroundStyle(style.ink)
+                        .frame(width: size, height: size)
+                        .background(color)
+                }
+            }
+            .frame(width: size, height: size)
+            .clipShape(Circle())
+            .overlay(Circle().strokeBorder(style.ring, lineWidth: 3))
+        }
+
+        private var initials: String {
+            name.split(separator: " ").prefix(2).compactMap { $0.first }.map { String($0).uppercased() }.joined()
+        }
+
+        // FNV-1a so the color is stable across launches.
+        private var color: Color {
+            var hash: UInt32 = 2_166_136_261
+            for byte in name.utf8 { hash = (hash ^ UInt32(byte)) &* 16_777_619 }
+            return style.colors[Int(hash % UInt32(style.colors.count))]
+        }
+    }
+}
+
+private extension Array {
+    subscript(safe index: Int) -> Element? {
+        indices.contains(index) ? self[index] : nil
+    }
+}
+
+// MARK: - Example
+
+/// Just the stack, on the ground the cut-out ring is matched to.
+private struct FanStackExample: View {
+    private typealias House = FanStack.Style.House
+    private static let ground = House.adaptive(light: 0xF3F2EE, dark: 0x121212)
+
+    var body: some View {
+        FanStack(
+            names: ["Priya Raman", "Jonas Weber", "Amara Diallo", "Leo Brandt", "Sofia Marin", "Kenji Sato"],
+            size: 52,
+            max: 3,
+            style: .init(ring: Self.ground)
+        )
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Self.ground)
+    }
+}
+
+#Preview("Light") { FanStackExample().preferredColorScheme(.light) }
+#Preview("Dark") { FanStackExample().preferredColorScheme(.dark) }

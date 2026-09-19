@@ -1,0 +1,12 @@
+{
+  "title": "Lists",
+  "description": "Rows and carousels with swipe, depth and completion physics.",
+  "defaultOpen": false,
+  "pages": [
+    "depth-carousel",
+    "pull-to-refresh",
+    "status-timeline",
+    "swipe-action-row",
+    "task-row"
+  ]
+}

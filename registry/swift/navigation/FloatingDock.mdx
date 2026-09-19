@@ -1,0 +1,9 @@
+## Notes
+
+- The dock is a solid surface capsule with two soft shadows. The selected item becomes a color block (butter by default, or `tint`) with an ink icon and label; the others compact to icon-only 48 pt targets. The block moves between items with `matchedGeometryEffect` and the selected symbol bounces once.
+- Touch and drag across the dock to pick: the item under the finger lifts 5 pt, scales to 114%, and shows its name in a bubble above the dock, with a `.selection` tick per item. Release commits with a soft impact. A touch that doesn't travel presses the item (92%) and selects it on release. The block itself never stretches toward the finger.
+- Badges are signal pills with ink numbers and a ring cut out of the icon, rolling with `.numericText`; on the selected item the count moves inline after the label as an ink pill. Counts over 99 show "99+".
+- `Style` sets `surface`, `indicator`, `selectedInk`, `inactive`, `badge`, and `usesGlass` (Liquid Glass on iOS 26, a material before it). Reduce Transparency always uses the solid surface.
+- `scrollProgress` slides the dock 120 pt down and fades it; drive it from your scroll direction (0 while scrolling up, 1 while scrolling down) and it springs either way. Above 0.5 it is also hidden from VoiceOver.
+- VoiceOver sees a tab bar container whose items are buttons with selected state and badge value; double-tap selects. Reduce Motion removes the lift and scale.
+- A floating tab bar with a lens that tracks and stretches toward the finger ships in Swift Pieces Pro (`lens-tab-bar`).

@@ -1,0 +1,275 @@
+---
+title: "Glass Text"
+description: "Liquid Glass rendered on the actual glyph outlines of a string, one or several lines, with a specular Material fallback below iOS 26, a solid fill under Reduce Transparency and Dynamic Type scaling."
+piece: "GlassText"
+category: "text"
+minIOSVersion: "17.0"
+version: "2.0.0"
+tags: ["text","glass","coretext","display","numerals"]
+registryDependencies: []
+---
+
+{/* GENERATED FILE. Edit registry/swift/text/GlassText.swift or GlassText.mdx instead. */}
+
+Liquid Glass applied to text outlines via Core Text glyph paths. The glyph path is built once per string and font, then handed to `glassEffect(_:in:)` as a shape. Split the string with `\n` for a stacked display title; lines use tight display leading.
+
+## Notes
+
+- Glyph outlines come from Core Text (`CTFontCreatePathForGlyph`), so any `UIFont` works, including custom families. The path is built once per string and font, not on every layout pass.
+- On iOS 26 the outline is passed to `glassEffect(_:in:)` as a shape. Below iOS 26 it is filled with `.ultraThinMaterial` and a hairline highlight; Reduce Transparency fills it with `.primary` instead.
+- The point size follows Dynamic Type via `@ScaledMetric(relativeTo: .largeTitle)`, capped at 1.6x so a display word never leaves the screen. Pass `scalesWithDynamicType: false` to pin it.
+- Glass reads best over a backdrop with soft tonal variation; a flat color gives it nothing to refract.
+- Split the string with `\n` for a stacked display title. `Style.alignment` and `Style.leading` (0.86 of the font's line height by default) lay out the lines.
+- States: Liquid Glass on iOS 26 with a soft lift shadow; below iOS 26 a layered fallback (Material, optional tint at `fallbackTintAmount`, a top light and a 1pt specular rim); under Reduce Transparency a solid `Style.solidFill` (`.primary` by default).
+- VoiceOver reads the lines as one static text.
+- For a full purchase screen built around glass display type, see the Pro Purchase screen.
+
+## Usage
+
+```swift
+GlassTextExample()
+    .preferredColorScheme(.light)
+```
+
+## Parameters
+
+| Parameter | Description |
+| --- | --- |
+| `text` | The string to render. `\n` starts a new line. |
+| `font` | The `UIFont` used to build glyph paths. Its point size is scaled with Dynamic Type, relative to `.largeTitle`. |
+| `tint` | Optional glass tint. The Material fallback blends it in at `style.fallbackTintAmount`. |
+| `scalesWithDynamicType` | Set false to pin the point size. |
+| `style` | Line alignment and leading, fallback specular strength, depth shadow and the Reduce Transparency fill. |
+
+## Source
+
+<Tabs items={["GlassText.swift"]}>
+<Tab value="GlassText.swift">
+
+```swift title="GlassText.swift"
+import SwiftUI
+import CoreText
+
+/// Liquid Glass applied to text outlines via Core Text glyph paths.
+/// The glyph path is built once per string and font, then handed to `glassEffect(_:in:)` as a shape.
+/// Split the string with `\n` for a stacked display title; lines use tight display leading.
+///
+/// - Parameters:
+///   - text: The string to render. `\n` starts a new line.
+///   - font: The `UIFont` used to build glyph paths. Its point size is scaled with Dynamic Type, relative to `.largeTitle`.
+///   - tint: Optional glass tint. The Material fallback blends it in at `style.fallbackTintAmount`.
+///   - scalesWithDynamicType: Set false to pin the point size.
+///   - style: Line alignment and leading, fallback specular strength, depth shadow and the Reduce Transparency fill.
+public struct GlassText: View {
+    /// Visual tuning. `standard` is tuned for display sizes over color.
+    public struct Style: Sendable {
+        /// Horizontal alignment of lines when the text has more than one.
+        public var alignment: TextAlignment
+        /// Line height as a multiple of the font's line height. Display type reads best tight.
+        public var leading: CGFloat
+        /// Strength (0...1) of the fallback's top light and specular rim.
+        public var specular: Double
+        /// Opacity of the soft shadow that lifts the letters off the backdrop.
+        public var shadow: Double
+        /// How much of `tint` the Material fallback takes on, 0...1.
+        public var fallbackTintAmount: Double
+        /// Fill used under Reduce Transparency. `nil` uses `.primary`.
+        public var solidFill: Color?
+
+        public init(
+            alignment: TextAlignment = .center,
+            leading: CGFloat = 0.86,
+            specular: Double = 0.7,
+            shadow: Double = 0.16,
+            fallbackTintAmount: Double = 0.35,
+            solidFill: Color? = nil
+        ) {
+            self.alignment = alignment
+            self.leading = leading
+            self.specular = specular
+            self.shadow = shadow
+            self.fallbackTintAmount = fallbackTintAmount
+            self.solidFill = solidFill
+        }
+
+        public static let standard = Style()
+    }
+
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @ScaledMetric(relativeTo: .largeTitle) private var typeScale: CGFloat = 1
+
+    private let text: String
+    private let font: UIFont
+    private let tint: Color?
+    private let scalesWithDynamicType: Bool
+    private let style: Style
+
+    public init(
+        _ text: String,
+        font: UIFont = .systemFont(ofSize: 64, weight: .black),
+        tint: Color? = nil,
+        scalesWithDynamicType: Bool = true,
+        style: Style = .standard
+    ) {
+        self.text = text
+        self.font = font
+        self.tint = tint
+        self.scalesWithDynamicType = scalesWithDynamicType
+        self.style = style
+    }
+
+    public var body: some View {
+        // Cap the scale so accessibility sizes do not push a display word off screen.
+        let scale = scalesWithDynamicType ? min(typeScale, 1.6) : 1
+        let shape = GlyphShape(text: text, font: font.withSize(font.pointSize * scale), alignment: style.alignment, leading: style.leading)
+
+        Group {
+            if reduceTransparency {
+                shape.fill(style.solidFill.map(AnyShapeStyle.init) ?? AnyShapeStyle(.primary))
+            } else if #available(iOS 26, *) {
+                Color.clear
+                    .glassEffect(tint.map { Glass.regular.tint($0) } ?? .regular, in: shape)
+                    .shadow(color: .black.opacity(style.shadow), radius: 18, y: 10)
+            } else {
+                fallback(shape)
+            }
+        }
+        .frame(width: shape.size.width, height: shape.size.height)
+        .accessibilityElement()
+        .accessibilityLabel(text.replacingOccurrences(of: "\n", with: " "))
+        .accessibilityAddTraits(.isStaticText)
+    }
+
+    /// Material glyphs with a light falling from the top, a specular rim and a soft lift.
+    private func fallback(_ shape: GlyphShape) -> some View {
+        ZStack {
+            shape.fill(.ultraThinMaterial)
+            if let tint { shape.fill(tint.opacity(style.fallbackTintAmount)) }
+            shape.fill(
+                LinearGradient(
+                    colors: [.white.opacity(0.45 * style.specular), .white.opacity(0.04), .white.opacity(0.16 * style.specular)],
+                    startPoint: .top, endPoint: .bottom
+                )
+            )
+            // Stroked at 2pt and clipped, so exactly 1pt of rim sits inside each outline.
+            shape
+                .stroke(LinearGradient(colors: [.white.opacity(0.9 * style.specular), .white.opacity(0.15 * style.specular)], startPoint: .top, endPoint: .bottom), lineWidth: 2)
+                .clipShape(shape)
+        }
+        .compositingGroup()
+        .shadow(color: .black.opacity(style.shadow), radius: 18, y: 10)
+    }
+}
+
+/// A `Shape` built from the glyph outlines of one or more lines. The path is resolved once in `init`.
+private struct GlyphShape: Shape {
+    let size: CGSize
+    private let path: Path
+
+    init(text: String, font: UIFont, alignment: TextAlignment, leading: CGFloat) {
+        let lines = text.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
+        let lineHeight = font.lineHeight * leading
+        var outlines: [(path: CGPath, width: CGFloat)] = []
+        for line in lines {
+            let glyphs = CGMutablePath()
+            let ctLine = CTLineCreateWithAttributedString(NSAttributedString(string: line, attributes: [.font: font]))
+            for run in CTLineGetGlyphRuns(ctLine) as! [CTRun] {
+                let count = CTRunGetGlyphCount(run)
+                let attributes = CTRunGetAttributes(run) as NSDictionary
+                let runFont = attributes[kCTFontAttributeName as String] as! CTFont
+                var ids = [CGGlyph](repeating: 0, count: count)
+                var positions = [CGPoint](repeating: .zero, count: count)
+                CTRunGetGlyphs(run, CFRange(location: 0, length: count), &ids)
+                CTRunGetPositions(run, CFRange(location: 0, length: count), &positions)
+                for i in 0..<count {
+                    guard let glyph = CTFontCreatePathForGlyph(runFont, ids[i], nil) else { continue }
+                    glyphs.addPath(glyph, transform: CGAffineTransform(translationX: positions[i].x, y: positions[i].y))
+                }
+            }
+            outlines.append((glyphs, CGFloat(CTLineGetTypographicBounds(ctLine, nil, nil, nil))))
+        }
+        let width = ceil(outlines.map(\.width).max() ?? 0)
+        let combined = CGMutablePath()
+        for (index, outline) in outlines.enumerated() {
+            let x: CGFloat
+            switch alignment {
+            case .leading: x = 0
+            case .center: x = ((width - outline.width) / 2).rounded()
+            case .trailing: x = width - outline.width
+            }
+            // Core Text is y-up; flip into SwiftUI's y-down space with each baseline at its line's ascender.
+            let baseline = font.ascender + CGFloat(index) * lineHeight
+            combined.addPath(outline.path, transform: CGAffineTransform(a: 1, b: 0, c: 0, d: -1, tx: x, ty: baseline))
+        }
+        path = Path(combined)
+        let height = font.lineHeight + CGFloat(max(lines.count - 1, 0)) * lineHeight
+        size = CGSize(width: width, height: ceil(height))
+    }
+
+    func path(in rect: CGRect) -> Path {
+        path.applying(CGAffineTransform(translationX: rect.minX, y: rect.minY))
+    }
+}
+
+// MARK: - Example
+
+/// The component alone: glass numerals over plain color blocks that drift underneath, so the glass
+/// has something to bend. The blocks fill the stage; nothing else sits on them.
+private struct GlassTextExample: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        TimelineView(.animation(paused: reduceMotion)) { context in
+            let t = context.date.timeIntervalSinceReferenceDate
+            GlassText("07:30", font: .systemFont(ofSize: 112, weight: .heavy), scalesWithDynamicType: false)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background { GlassTextBlocks(t: t).clipped() }
+        }
+    }
+}
+
+/// Plain shapes in the house blocks: a sky field, a tangerine sun, a butter bar and a lilac slab.
+private struct GlassTextBlocks: View {
+    let t: TimeInterval
+
+    var body: some View {
+        let drift = CGFloat(sin(t * 0.5))
+        ZStack {
+            GlassTextPalette.sky.ignoresSafeArea()
+            Circle()
+                .fill(GlassTextPalette.tangerine)
+                .frame(width: 190)
+                .offset(x: -70 + drift * 46, y: 8 + CGFloat(cos(t * 0.35)) * 14)
+            Capsule()
+                .fill(GlassTextPalette.butter)
+                .frame(width: 240, height: 64)
+                .rotationEffect(.degrees(-12))
+                .offset(x: 110 - drift * 60, y: -30)
+            RoundedRectangle(cornerRadius: 26, style: .continuous)
+                .fill(GlassTextPalette.lilac)
+                .frame(width: 200, height: 110)
+                .offset(x: 90 + drift * 30, y: 130)
+        }
+    }
+}
+
+private enum GlassTextPalette {
+    static let sky = Color(red: 0.612, green: 0.761, blue: 1)
+    static let tangerine = Color(red: 1, green: 0, blue: 0)
+    static let butter = Color(red: 1, green: 0.851, blue: 0.463)
+    static let lilac = Color(red: 0.804, green: 0.722, blue: 1)
+}
+
+#Preview("Light") {
+    GlassTextExample()
+        .preferredColorScheme(.light)
+}
+
+#Preview("Dark") {
+    GlassTextExample()
+        .preferredColorScheme(.dark)
+}
+```
+
+</Tab>
+</Tabs>

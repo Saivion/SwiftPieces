@@ -1,0 +1,10 @@
+## Notes
+
+- Snapping uses `.scrollTargetBehavior(.viewAligned)` with content margins sized so the aligned page is centered; the first and last pages center too. Fractional progress is read from the page row's position in the `.scrollView` coordinate space, so it works on iOS 17 without `onScrollGeometryChange`.
+- Depth is driven by the same progress: pages shrink by `style.recede`, fade by `style.dim`, and their shadow gets lighter and leans back toward the centered page as they leave center. The `phase` handed to your content is -1...1, for inner parallax; the example drifts a cropped ink disc by `phase * 40` inside a solid color card. Under Reduce Motion the phase is 0 and only the dim remains.
+- Tap a neighbor page to bring it to center; the centered page keeps its own gestures.
+- Under the pages, a "01 / 04" counter (current page in rounded semibold, total dimmed, rolling as it changes) sits at the page's leading edge, and the pill track sits at its trailing edge. The pill is positioned in absolute page coordinates, so it tracks the finger and never jumps when a page settles; it widens while dragging. The whole 44pt-tall track is scrubbable, with a selection haptic per page.
+- `Style` (`DepthCarousel.Style`, also `DepthCarouselStyle`): `recede`, `dim`, `shadowOpacity`, `indicatorActive`, `indicatorInactive`, `showsCounter`.
+- VoiceOver treats the carousel as one container that reads "Page x of y" and supports swipe up/down to change pages; the indicator is hidden from it.
+- `scrollClipDisabled()` lets neighbor pages peek past the carousel's own bounds, so give it full width.
+- Want blur-and-tone depth, pinch peek-zoom and a full album screen? That is the Depth Gallery screen in Swift Pieces Pro.

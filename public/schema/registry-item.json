@@ -1,0 +1,284 @@
+{
+  "$id": "https://swiftpieces.com/schema/registry-item.json",
+  "title": "Swift Pieces registry item",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "default": "https://swiftpieces.com/schema/registry-item.json",
+      "type": "string"
+    },
+    "name": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Za-z0-9]+$"
+    },
+    "slug": {
+      "type": "string",
+      "pattern": "^[a-z0-9-]+$"
+    },
+    "type": {
+      "type": "string",
+      "const": "registry:component"
+    },
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "text",
+        "backgrounds",
+        "glass",
+        "controls",
+        "inputs",
+        "cards",
+        "lists",
+        "navigation",
+        "sheets",
+        "feedback",
+        "motion",
+        "data",
+        "ai",
+        "media"
+      ]
+    },
+    "license": {
+      "default": "MIT+Commons-Clause",
+      "type": "string",
+      "const": "MIT+Commons-Clause"
+    },
+    "version": {
+      "default": "1.0.0",
+      "type": "string"
+    },
+    "minIOSVersion": {
+      "type": "string",
+      "pattern": "^\\d+(\\.\\d+)?$"
+    },
+    "swiftToolsVersion": {
+      "default": "6.1",
+      "type": "string"
+    },
+    "tags": {
+      "default": [],
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "dependencies": {
+      "default": [],
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "registryDependencies": {
+      "default": [],
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "spmDependencies": {
+      "default": [],
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "from": {
+            "type": "string"
+          },
+          "product": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "url",
+          "from"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "requiredCapabilities": {
+      "default": [],
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "infoPlist": {
+      "default": {},
+      "type": "object",
+      "propertyNames": {
+        "type": "string"
+      },
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "assets": {
+      "default": [],
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "registry:component",
+              "registry:shader",
+              "registry:asset"
+            ]
+          },
+          "target": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "path",
+          "type",
+          "target"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "shaders": {
+      "default": [],
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "registry:component",
+              "registry:shader",
+              "registry:asset"
+            ]
+          },
+          "target": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "path",
+          "type",
+          "target"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "files": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "registry:component",
+              "registry:shader",
+              "registry:asset"
+            ]
+          },
+          "target": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "path",
+          "type",
+          "target"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "preview": {
+      "default": {},
+      "type": "object",
+      "properties": {
+        "video": {
+          "type": "string",
+          "format": "uri"
+        },
+        "videoMp4": {
+          "type": "string",
+          "format": "uri"
+        },
+        "poster": {
+          "type": "string",
+          "format": "uri"
+        }
+      },
+      "additionalProperties": false
+    },
+    "docs": {
+      "type": "string",
+      "format": "uri"
+    },
+    "pro": {
+      "type": "string"
+    },
+    "liquidGlass": {
+      "default": false,
+      "type": "boolean"
+    },
+    "metal": {
+      "default": false,
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "$schema",
+    "name",
+    "slug",
+    "type",
+    "title",
+    "description",
+    "category",
+    "license",
+    "version",
+    "minIOSVersion",
+    "swiftToolsVersion",
+    "tags",
+    "dependencies",
+    "registryDependencies",
+    "spmDependencies",
+    "requiredCapabilities",
+    "infoPlist",
+    "assets",
+    "shaders",
+    "files",
+    "preview",
+    "docs",
+    "liquidGlass",
+    "metal"
+  ],
+  "additionalProperties": false
+}

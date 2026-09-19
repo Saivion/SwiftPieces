@@ -1,0 +1,12 @@
+{
+  "title": "Feedback",
+  "description": "Reactions, ratings, status morphs, skeletons and outcomes.",
+  "defaultOpen": false,
+  "pages": [
+    "outcome-screen",
+    "rating-scrub",
+    "reaction-toggle",
+    "skeleton-loader",
+    "status-morph"
+  ]
+}

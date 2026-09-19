@@ -1,0 +1,11 @@
+## Notes
+
+- Zoom is anchored to the pinch start and to a double tap, so the content under the fingers stays put. Past `maxScale` the pinch rubber-bands with a rigid tick; releasing springs back. Returning to `minScale` plays a soft tick.
+- A released pan coasts to `predictedEndTranslation`, clamped to the scaled bounds, with a duration that scales with the distance, so a flick decelerates into the edge instead of stopping dead.
+- At rest a page ignores horizontal drags so the paging `ScrollView` handles them; vertical drags and any drag during a pinch belong to the dismiss. Paging is disabled while zoomed or dismissing.
+- Two dismiss paths: drag vertically past 140 pt (or flick past a projected 280 pt) and the page flies off along the release direction; pinch below 80% of `minScale` and release. Both fade the scrim with progress and call `onDismiss` when the animation is logically complete.
+- Reduce Motion shortens every settle to 0.2 s. VoiceOver gets Zoom in, Reset zoom, and the escape gesture dismisses.
+- **v2:** floating chrome. A 44 pt close button (shown when `onDismiss` is set) fades the viewer out and calls `onDismiss`; a counter reads "2 / 3" at rest and turns into a light zoom readout ("2.5×") while zoomed. A single tap hides or shows the chrome, and the chrome fades as a dismiss drag progresses.
+- `style:` (`PhotoViewer.Style`) sets `scrim` (near-black #121212), `chromeFill`, `chromeInk`, `zoomFill`, `zoomInk`, `showsCloseButton`, and `showsCounter`. `.bare` draws photos only.
+- The example pages through flat color prints; a dismiss collapses the viewer and the example presents it again, so the preview only ever shows the viewer.
+- For a full gallery screen, see the Pro Gallery screen (`depth-gallery`).

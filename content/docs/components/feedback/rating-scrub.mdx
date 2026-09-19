@@ -1,0 +1,344 @@
+---
+title: "Rating Scrub"
+description: "A star rating you tap or scrub, with soft rounded stars that fill as solid blocks colored by the score, the star under your finger lifting, a staggered spring settle, and a light numeral with a label chip that morph as you go."
+piece: "RatingScrub"
+category: "feedback"
+minIOSVersion: "17.0"
+version: "2.0.0"
+tags: ["rating","stars","scrub","gesture","haptic","review"]
+registryDependencies: []
+---
+
+{/* GENERATED FILE. Edit registry/swift/feedback/RatingScrub.swift or RatingScrub.mdx instead. */}
+
+Tap-or-scrub star rating with lift, staggered settle, a score-colored fill, and an adjustable accessibility element.
+
+## Notes
+
+- Stars are soft rounded shapes that fill as solid blocks. The block follows the score through `Style.levels` (tangerine, sand, butter, sage, sky by default), so a low rating reads differently from a high one at a glance. Pass `tint` to use one color for every score.
+- With `labels`, a caption sits under the stars: a light numeral with a dimmed decimal and "/ 5", and a solid chip with the label for the rounded-up rating. It spans the width of the stars and morphs as you scrub. Unrated shows "Tap or slide".
+- One `DragGesture` with zero minimum distance handles tap and scrub. While the finger is down the star under it lifts on an interactive spring; on release the stars settle with a spring delayed by their distance from that star, so the release ripples outward.
+- Haptics: `.selection` on each step, a rigid impact when the value hits 0 or the maximum.
+- `isReadOnly` removes the gesture and the VoiceOver adjustable action but keeps the value readable. `size` scales with Dynamic Type.
+
+## Usage
+
+```swift
+RatingScrubExample()
+```
+
+## Parameters
+
+| Parameter | Description |
+| --- | --- |
+| `rating` | Bound value from 0 to `count`, in whole or half steps. |
+| `count` | Number of stars. |
+| `allowsHalf` | Snap to half stars. |
+| `labels` | Optional one label per star ("Poor" ... "Great"). Adds a caption under the stars: a light numeral and a label chip for the rounded-up rating. |
+| `isReadOnly` | Shows the value without a gesture or adjustable action. |
+| `size` | Star point size; scales with Dynamic Type. |
+| `tint` | Overrides the fill color for every score. Defaults to `style.levels`, one block per score. |
+| `style` | Fill colors per score, the empty star color and text colors. `.standard` runs tangerine, sand, butter, sage, sky. |
+
+## Source
+
+<Tabs items={["RatingScrub.swift"]}>
+<Tab value="RatingScrub.swift">
+
+```swift title="RatingScrub.swift"
+import SwiftUI
+
+/// Tap-or-scrub star rating with lift, staggered settle, a score-colored fill, and an adjustable accessibility element.
+///
+/// - Parameters:
+///   - rating: Bound value from 0 to `count`, in whole or half steps.
+///   - count: Number of stars.
+///   - allowsHalf: Snap to half stars.
+///   - labels: Optional one label per star ("Poor" ... "Great"). Adds a caption under the stars: a light numeral and a label chip for the rounded-up rating.
+///   - isReadOnly: Shows the value without a gesture or adjustable action.
+///   - size: Star point size; scales with Dynamic Type.
+///   - tint: Overrides the fill color for every score. Defaults to `style.levels`, one block per score.
+///   - style: Fill colors per score, the empty star color and text colors. `.standard` runs tangerine, sand, butter, sage, sky.
+public struct RatingScrub: View {
+    /// Colors for the rating. Defaults follow the Swift Pieces house palette and adapt to light and dark.
+    public struct Style: Sendable {
+        /// Block colors from the lowest to the highest score. The filled stars and label chip use the one for the rounded-up rating.
+        public var levels: [Color]
+        /// Empty star color.
+        public var empty: Color
+        /// Text and symbol color on a block.
+        public var ink: Color
+        /// Numeral color.
+        public var text: Color
+        /// Dimmed decimal and "/ 5" color.
+        public var muted: Color
+
+        public init(
+            levels: [Color] = [Style.tangerine, Style.sand, Style.butter, Style.sage, Style.sky],
+            empty: Color = Style.adaptive(0xE7E5DF, 0x2E2E2E),
+            ink: Color = Style.blockInk,
+            text: Color = Style.adaptive(0x141414, 0xF4F3EF),
+            muted: Color = Style.adaptive(0x8B8984, 0x6F6D69)
+        ) {
+            self.levels = levels
+            self.empty = empty
+            self.ink = ink
+            self.text = text
+            self.muted = muted
+        }
+
+        public static let standard = Style()
+
+        public static let tangerine = Color(red: 1, green: 0x5B / 255, blue: 0x3A / 255)
+        public static let sand = Color(red: 0xE9 / 255, green: 0xD5 / 255, blue: 0xB3 / 255)
+        public static let butter = Color(red: 1, green: 0xD9 / 255, blue: 0x76 / 255)
+        public static let sage = Color(red: 0xA9 / 255, green: 0xDC / 255, blue: 0xB7 / 255)
+        public static let sky = Color(red: 0x9C / 255, green: 0xC2 / 255, blue: 1)
+        public static let blockInk = Color(red: 0x14 / 255, green: 0x14 / 255, blue: 0x14 / 255)
+
+        /// A color that resolves to `light` or `dark` hex by the current appearance.
+        public static func adaptive(_ light: UInt32, _ dark: UInt32) -> Color {
+            Color(uiColor: UIColor { $0.userInterfaceStyle == .dark ? rgb(dark) : rgb(light) })
+        }
+
+        private static func rgb(_ hex: UInt32) -> UIColor {
+            UIColor(red: CGFloat((hex >> 16) & 0xFF) / 255, green: CGFloat((hex >> 8) & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
+        }
+    }
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Binding private var rating: Double
+    @State private var scrubbing = false
+    @State private var active: Int? = nil
+    @ScaledMetric(relativeTo: .title) private var size: CGFloat = 30
+
+    private let count: Int
+    private let allowsHalf: Bool
+    private let labels: [String]?
+    private let isReadOnly: Bool
+    private let tint: Color?
+    private let style: Style
+
+    public init(rating: Binding<Double>, count: Int = 5, allowsHalf: Bool = false, labels: [String]? = nil, isReadOnly: Bool = false, size: CGFloat = 30, tint: Color? = nil, style: Style = .standard) {
+        _rating = rating
+        _size = ScaledMetric(wrappedValue: size, relativeTo: .title)
+        self.count = count
+        self.allowsHalf = allowsHalf
+        self.labels = labels
+        self.isReadOnly = isReadOnly
+        self.tint = tint
+        self.style = style
+    }
+
+    private var cell: CGFloat { size * 1.2 }
+    private var spacing: CGFloat { size * 0.16 }
+
+    private var label: String? {
+        guard let labels, rating > 0 else { return nil }
+        let index = min(labels.count, Int(ceil(rating))) - 1
+        return index >= 0 ? labels[index] : nil
+    }
+
+    /// The block for the current score, spread across `levels` when `count` differs from their number.
+    private var levelColor: Color {
+        if let tint { return tint }
+        let levels = style.levels
+        guard !levels.isEmpty else { return style.text }
+        guard rating > 0 else { return levels[levels.count - 1] }
+        let position = (ceil(rating) - 1) / Double(max(count - 1, 1))
+        return levels[min(levels.count - 1, Int((position * Double(levels.count - 1)).rounded()))]
+    }
+
+    public var body: some View {
+        VStack(spacing: size * 0.5) {
+            stars
+            if labels != nil { caption }
+        }
+        .sensoryFeedback(.selection, trigger: rating) { (_: Double, new: Double) in new > 0 && new < Double(count) }
+        .sensoryFeedback(.impact(flexibility: .rigid), trigger: rating) { (_: Double, new: Double) in new == 0 || new == Double(count) }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Rating")
+        .accessibilityValue(accessibilityValue)
+        .accessibilityAdjustableAction(adjust)
+    }
+
+    private var stars: some View {
+        HStack(spacing: spacing) {
+            ForEach(0..<count, id: \.self) { index in
+                star(index)
+            }
+        }
+        .frame(minHeight: 44)
+        .contentShape(Rectangle())
+        .gesture(scrub, including: isReadOnly ? .none : .all)
+    }
+
+    /// Light numeral with a dimmed decimal and "/ 5", then a solid chip with the label.
+    private var caption: some View {
+        let whole = Int(rating.rounded(.down))
+        let half = rating - Double(whole) >= 0.5
+        return HStack(alignment: .center, spacing: 12) {
+            HStack(alignment: .firstTextBaseline, spacing: 0) {
+                Text("\(whole)")
+                    .foregroundStyle(rating > 0 ? style.text : style.muted)
+                    .contentTransition(.numericText(value: Double(whole)))
+                Text(half ? ".5" : ".0")
+                    .foregroundStyle(style.muted)
+                Text(" / \(count)")
+                    .font(.system(size: size * 0.5, weight: .medium))
+                    .foregroundStyle(style.muted)
+            }
+            .font(.system(size: size * 1.2, weight: .light))
+            .monospacedDigit()
+            .tracking(-0.5)
+            .fixedSize()
+
+            Spacer(minLength: 0)
+
+            ZStack(alignment: .trailing) {
+                if let label {
+                    Text(label.uppercased())
+                        .font(.system(size: max(12, size * 0.4), weight: .bold))
+                        .tracking(0.6)
+                        .foregroundStyle(style.ink)
+                        .padding(.horizontal, 12)
+                        .frame(height: max(26, size * 0.9))
+                        .background(levelColor, in: .capsule)
+                        .fixedSize()
+                        .id(label)
+                        .transition(morph)
+                } else {
+                    Text(isReadOnly ? "NO RATING" : "TAP OR SLIDE")
+                        .font(.system(size: max(12, size * 0.4), weight: .bold))
+                        .tracking(0.6)
+                        .foregroundStyle(style.muted)
+                        .frame(height: max(26, size * 0.9))
+                        .fixedSize()
+                        .transition(.opacity)
+                }
+            }
+        }
+        .padding(.horizontal, size * 0.1)
+        .frame(width: CGFloat(count) * cell + CGFloat(count - 1) * spacing)
+        .animation(reduceMotion ? .easeOut(duration: 0.15) : .spring(duration: 0.35, bounce: 0.25), value: label)
+        .animation(.smooth(duration: 0.25), value: rating)
+    }
+
+    private var morph: AnyTransition {
+        reduceMotion ? .opacity : .scale(scale: 0.8).combined(with: .opacity)
+    }
+
+    private var accessibilityValue: String {
+        let base = "\(rating.formatted()) of \(count)"
+        return label.map { "\(base), \($0)" } ?? base
+    }
+
+    private func star(_ index: Int) -> some View {
+        let fill = min(max(rating - Double(index), 0), 1)
+        let lifted = scrubbing && active == index
+        // Neighbors settle slightly after the lifted star so the release ripples outward.
+        let distance = Double(abs(index - (active ?? index)))
+        let settle: Animation = reduceMotion ? .easeOut(duration: 0.15) : .spring(duration: 0.42, bounce: 0.38).delay(0.03 * distance)
+        return ZStack {
+            SoftStar().fill(style.empty)
+            SoftStar()
+                .fill(levelColor)
+                .mask(alignment: .leading) { Rectangle().frame(width: size * fill) }
+        }
+        .frame(width: size, height: size)
+        .frame(width: cell, height: cell)
+        .scaleEffect(lifted ? 1.3 : 1)
+        .offset(y: lifted ? -size * 0.28 : 0)
+        .animation(scrubbing ? .interactiveSpring(duration: 0.18) : settle, value: lifted)
+        .animation(.smooth(duration: 0.18), value: fill)
+        .animation(.smooth(duration: 0.25), value: rating)
+    }
+
+    private var scrub: some Gesture {
+        DragGesture(minimumDistance: 0, coordinateSpace: .local)
+            .onChanged { value in
+                scrubbing = true
+                set(x: value.location.x)
+            }
+            .onEnded { _ in
+                scrubbing = false
+                active = nil
+            }
+    }
+
+    private func adjust(_ direction: AccessibilityAdjustmentDirection) {
+        guard !isReadOnly else { return }
+        let step = allowsHalf ? 0.5 : 1
+        switch direction {
+        case .increment: rating = min(Double(count), rating + step)
+        case .decrement: rating = max(0, rating - step)
+        @unknown default: break
+        }
+    }
+
+    /// Maps a horizontal position to a rating, snapping to whole or half stars.
+    private func set(x: CGFloat) {
+        let raw = x / (cell + spacing)
+        let index = Int(floor(raw))
+        let within = raw - CGFloat(index)
+        var value = Double(index) + (allowsHalf && within < 0.5 ? 0.5 : 1)
+        if x < 0 { value = 0 }
+        value = min(max(value, 0), Double(count))
+        active = value > 0 ? Int(ceil(value)) - 1 : nil
+        guard value != rating else { return }
+        rating = value
+    }
+
+    /// A five-point star with rounded tips and valleys, so it reads as a soft solid block.
+    private struct SoftStar: Shape {
+        func path(in rect: CGRect) -> Path {
+            let center = CGPoint(x: rect.midX, y: rect.midY + rect.height * 0.04)
+            let outer = min(rect.width, rect.height) * 0.52
+            let inner = outer * 0.5
+            let points: [CGPoint] = (0..<10).map { i in
+                let angle = -Double.pi / 2 + Double(i) * .pi / 5
+                let radius = i.isMultiple(of: 2) ? outer : inner
+                return CGPoint(x: center.x + CGFloat(cos(angle)) * radius, y: center.y + CGFloat(sin(angle)) * radius)
+            }
+            var path = Path()
+            let start = CGPoint(x: (points[9].x + points[0].x) / 2, y: (points[9].y + points[0].y) / 2)
+            path.move(to: start)
+            for i in 0..<10 {
+                let corner = points[i]
+                let next = points[(i + 1) % 10]
+                path.addArc(tangent1End: corner, tangent2End: next, radius: i.isMultiple(of: 2) ? outer * 0.16 : outer * 0.07)
+            }
+            path.closeSubpath()
+            return path
+        }
+    }
+}
+
+// MARK: - Example
+
+/// The rating itself: five stars with the numeral and label chip it renders under them.
+private struct RatingScrubExample: View {
+    @State private var rating = 4.0
+
+    var body: some View {
+        RatingScrub(rating: $rating, labels: ["Poor", "Fair", "Good", "Very good", "Great"], size: 46)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(RatingScrub.Style.adaptive(0xF3F2EE, 0x121212))
+    }
+}
+
+#Preview("Light") {
+    RatingScrubExample()
+}
+
+#Preview("Dark") {
+    RatingScrubExample().preferredColorScheme(.dark)
+}
+
+#Preview("Half stars, read only") {
+    RatingScrub(rating: .constant(3.5), allowsHalf: true, isReadOnly: true, size: 44)
+}
+```
+
+</Tab>
+</Tabs>

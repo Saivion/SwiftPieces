@@ -1,0 +1,418 @@
+// swiftpieces:
+// title: Text Reveal
+// description: Reveals a headline by characters, words or lines, rising from a baseline mask with a stagger sized to land in under a second, then wipes solid highlight blocks behind the phrases that matter.
+// category: text
+// minIOSVersion: "17.0"
+// version: "2.0.0"
+// pro: onboarding-flow
+// tags: [text, reveal, stagger, entrance, highlight, scroll]
+
+import SwiftUI
+
+/// Staggered text reveal that wraps correctly at any width and Dynamic Type size.
+/// The stagger is derived from the unit count, so a 3-word title and a 60-character sentence both finish in about `duration`.
+/// Phrases listed in `highlights` get a solid block that wipes in behind them once they land, with the text flipping to dark ink under the block.
+///
+/// - Parameters:
+///   - text: The string to display. With `.lines`, split lines with `\n`.
+///   - unit: `.characters`, `.words` or `.lines`. Characters never break mid-word.
+///   - preset: `.rise` (lift from a baseline mask), `.blur` (resolve from a soft blur) or `.soften` (scale and fade).
+///   - alignment: Row alignment, like `multilineTextAlignment`.
+///   - duration: Target time for the whole reveal, in seconds.
+///   - delay: Delay before the first unit starts, useful for sequencing a subhead after a headline.
+///   - revealOnScroll: When true, the reveal waits until the view scrolls into view (iOS 18). Below iOS 18 it reveals on appear.
+///   - trigger: Change this value to replay the reveal.
+///   - highlights: Phrases (one or more whole words, matched case-insensitively, ignoring punctuation) that get a highlight block after they land. A highlighted phrase never breaks across rows. Ignored with `.lines`.
+///   - style: Highlight colors, rise mask and blur radius. Defaults to the house palette.
+public struct TextReveal: View {
+    public enum Unit { case characters, words, lines }
+    public enum Preset { case rise, blur, soften }
+
+    /// Visual tuning. `standard` uses the Swift Pieces house palette.
+    public struct Style: Sendable {
+        /// Fill of the highlight block.
+        public var highlight: Color
+        /// Text color on top of the highlight block.
+        public var highlightInk: Color
+        /// When true, `.rise` units slide up from behind their own baseline instead of floating up 10pt.
+        public var masksRise: Bool
+        /// Starting blur radius for `.blur`.
+        public var blurRadius: CGFloat
+        /// Duration of the highlight wipe, in seconds.
+        public var highlightDuration: Double
+
+        public init(
+            highlight: Color = Color(red: 1, green: 0.851, blue: 0.463),
+            highlightInk: Color = Color(red: 0.078, green: 0.078, blue: 0.078),
+            masksRise: Bool = true,
+            blurRadius: CGFloat = 8,
+            highlightDuration: Double = 0.5
+        ) {
+            self.highlight = highlight
+            self.highlightInk = highlightInk
+            self.masksRise = masksRise
+            self.blurRadius = blurRadius
+            self.highlightDuration = highlightDuration
+        }
+
+        public static let standard = Style()
+    }
+
+    @State private var epoch = 0
+
+    private let text: String
+    private let unit: Unit
+    private let preset: Preset
+    private let alignment: TextAlignment
+    private let duration: Double
+    private let delay: Double
+    private let revealOnScroll: Bool
+    private let trigger: AnyHashable
+    private let highlights: [String]
+    private let style: Style
+
+    public init(
+        _ text: String,
+        unit: Unit = .words,
+        preset: Preset = .rise,
+        alignment: TextAlignment = .leading,
+        duration: Double = 0.8,
+        delay: Double = 0,
+        revealOnScroll: Bool = false,
+        trigger: AnyHashable = 0,
+        highlights: [String] = [],
+        style: Style = .standard
+    ) {
+        self.text = text
+        self.unit = unit
+        self.preset = preset
+        self.alignment = alignment
+        self.duration = duration
+        self.delay = delay
+        self.revealOnScroll = revealOnScroll
+        self.trigger = trigger
+        self.highlights = highlights
+        self.style = style
+    }
+
+    public var body: some View {
+        Reveal(chunks: chunks, unit: unit, preset: preset, alignment: alignment, duration: duration, delay: delay, revealOnScroll: revealOnScroll, style: style)
+            .id(epoch)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(text)
+            .onChange(of: trigger) { _, _ in epoch += 1 }
+    }
+
+    /// A chunk is a word, a highlighted phrase or a line that must never break across rows; its units animate individually.
+    private var chunks: [Chunk] {
+        var chunks: [Chunk] = []
+        var index = 0
+        func pieces(for word: Substring) -> [Piece] {
+            switch unit {
+            case .characters:
+                return word.map { character in
+                    defer { index += 1 }
+                    return Piece(id: index, text: String(character))
+                }
+            default:
+                defer { index += 1 }
+                return [Piece(id: index, text: String(word))]
+            }
+        }
+        switch unit {
+        case .lines:
+            for line in text.split(separator: "\n", omittingEmptySubsequences: false) {
+                chunks.append(Chunk(id: chunks.count, words: [[Piece(id: index, text: String(line))]], highlighted: false))
+                index += 1
+            }
+        case .words, .characters:
+            let words = text.split(whereSeparator: \.isWhitespace)
+            let phrases = highlights.map { $0.split(whereSeparator: \.isWhitespace).map(Self.normalized) }.filter { !$0.isEmpty }
+            var i = 0
+            while i < words.count {
+                // Longest highlight phrase starting at this word wins.
+                let match = phrases
+                    .filter { phrase in
+                        i + phrase.count <= words.count && zip(phrase, words[i..<(i + phrase.count)]).allSatisfy { $0 == Self.normalized($1) }
+                    }
+                    .map(\.count)
+                    .max()
+                if let length = match {
+                    let group = words[i..<(i + length)].map { pieces(for: $0) }
+                    chunks.append(Chunk(id: chunks.count, words: group, highlighted: true))
+                    i += length
+                } else {
+                    chunks.append(Chunk(id: chunks.count, words: [pieces(for: words[i])], highlighted: false))
+                    i += 1
+                }
+            }
+        }
+        return chunks
+    }
+
+    private static func normalized(_ word: Substring) -> String {
+        word.lowercased().filter { $0.isLetter || $0.isNumber }
+    }
+
+    private struct Piece: Identifiable { let id: Int; let text: String }
+    private struct Chunk: Identifiable {
+        let id: Int
+        let words: [[Piece]]
+        let highlighted: Bool
+        var units: [Piece] { words.flatMap { $0 } }
+    }
+
+    /// Recreated (via `.id`) on every replay so its `revealed` state starts fresh.
+    private struct Reveal: View {
+        @Environment(\.accessibilityReduceMotion) private var reduceMotion
+        @State private var revealed = false
+
+        let chunks: [Chunk]
+        let unit: Unit
+        let preset: Preset
+        let alignment: TextAlignment
+        let duration: Double
+        let delay: Double
+        let revealOnScroll: Bool
+        let style: Style
+
+        private var unitCount: Int { chunks.reduce(0) { $0 + $1.units.count } }
+
+        /// Each unit animates for ~0.5 s; the remaining budget is spread across the stagger.
+        private var stagger: Double {
+            guard unitCount > 1, !reduceMotion else { return 0 }
+            return max(0, duration - 0.5) / Double(unitCount - 1)
+        }
+
+        private var masked: Bool { preset == .rise && style.masksRise && !reduceMotion }
+
+        var body: some View {
+            Group {
+                if #available(iOS 18, *), revealOnScroll {
+                    content.onScrollVisibilityChange(threshold: 0.35) { visible in
+                        if visible { revealed = true }
+                    }
+                } else {
+                    content.onAppear { revealed = true }
+                }
+            }
+        }
+
+        @ViewBuilder private var content: some View {
+            switch unit {
+            case .lines:
+                VStack(alignment: horizontal, spacing: 0) {
+                    ForEach(chunks) { chunk in
+                        ForEach(chunk.units) { piece in
+                            styled(Text(piece.text), index: piece.id)
+                                .mask(riseMask)
+                        }
+                    }
+                }
+                .multilineTextAlignment(alignment)
+            case .words, .characters:
+                WordFlow(alignment: alignment) {
+                    ForEach(chunks) { chunk in
+                        chunkView(chunk)
+                    }
+                }
+            }
+        }
+
+        @ViewBuilder private func chunkView(_ chunk: Chunk) -> some View {
+            let row = units(chunk, animated: true).mask(riseMask)
+            if chunk.highlighted {
+                let lands = delay + Double(chunk.units.last?.id ?? 0) * stagger + (reduceMotion ? 0.2 : 0.42)
+                let wipe = reduceMotion ? Animation.easeOut(duration: 0.3).delay(lands) : .smooth(duration: style.highlightDuration).delay(lands)
+                row
+                    .background {
+                        GeometryReader { proxy in
+                            let pad = (proxy.size.height * 0.16).rounded()
+                            RoundedRectangle(cornerRadius: proxy.size.height * 0.24, style: .continuous)
+                                .fill(style.highlight)
+                                .frame(width: proxy.size.width + pad * 2, height: proxy.size.height * 1.04)
+                                .offset(x: -pad, y: -proxy.size.height * 0.01)
+                                .scaleEffect(x: revealed || reduceMotion ? 1 : 0, anchor: .leading)
+                                .opacity(reduceMotion && !revealed ? 0 : 1)
+                                .animation(wipe, value: revealed)
+                        }
+                    }
+                    .overlay {
+                        // An ink copy of the phrase, uncovered by the same wipe, so the color flips exactly under the block edge.
+                        units(chunk, animated: false)
+                            .foregroundStyle(style.highlightInk)
+                            .mask {
+                                Rectangle()
+                                    .scaleEffect(x: revealed || reduceMotion ? 1 : 0, anchor: .leading)
+                                    .opacity(reduceMotion && !revealed ? 0 : 1)
+                                    .animation(wipe, value: revealed)
+                            }
+                    }
+                    .padding(.horizontal, 2)
+            } else {
+                row
+            }
+        }
+
+        private func units(_ chunk: Chunk, animated: Bool) -> some View {
+            HStack(spacing: 0) {
+                ForEach(Array(chunk.words.enumerated()), id: \.offset) { offset, word in
+                    if offset > 0 { Text(verbatim: " ") }
+                    ForEach(word) { piece in
+                        if animated {
+                            styled(Text(piece.text), index: piece.id)
+                        } else {
+                            Text(piece.text)
+                        }
+                    }
+                }
+            }
+        }
+
+        /// Clips a rising unit at its own bottom edge (descenders included) and leaves the top open for overshoot.
+        private var riseMask: some View {
+            Rectangle()
+                .padding(.horizontal, masked ? -40 : -4000)
+                .padding(.top, -400)
+                .padding(.bottom, masked ? 0 : -4000)
+        }
+
+        private var horizontal: HorizontalAlignment {
+            switch alignment {
+            case .leading: .leading
+            case .center: .center
+            case .trailing: .trailing
+            }
+        }
+
+        private func styled(_ text: Text, index: Int) -> some View {
+            let hidden = !revealed
+            let motion = !reduceMotion
+            let masked = self.masked
+            let rises = preset == .rise
+            return text
+                .opacity(hidden && !masked ? 0 : 1)
+                .visualEffect { content, proxy in
+                    content.offset(y: hidden && motion && rises ? (masked ? proxy.size.height * 1.05 : 10) : 0)
+                }
+                .blur(radius: hidden && motion && preset == .blur ? style.blurRadius : 0)
+                .scaleEffect(hidden && motion && preset == .soften ? 0.96 : 1, anchor: .bottom)
+                .animation(animation.delay(delay + Double(index) * stagger), value: revealed)
+        }
+
+        private var animation: Animation {
+            if reduceMotion { return .easeOut(duration: 0.35) }
+            switch preset {
+            case .rise: return style.masksRise ? .spring(duration: 0.62, bounce: 0) : .spring(duration: 0.5, bounce: 0.12)
+            case .blur: return .easeOut(duration: 0.55)
+            case .soften: return .spring(duration: 0.5, bounce: 0)
+            }
+        }
+    }
+}
+
+/// Wraps chunks into rows the way text wraps words. Gap between chunks scales with the row height, so it follows the font.
+private struct WordFlow: Layout {
+    var alignment: TextAlignment
+
+    private struct Row { var indices: [Int] = []; var width: CGFloat = 0; var height: CGFloat = 0 }
+
+    private func rows(for sizes: [CGSize], width: CGFloat) -> [Row] {
+        let gap = ((sizes.map(\.height).max() ?? 0) * 0.24).rounded()
+        var rows: [Row] = []
+        var row = Row()
+        for (i, size) in sizes.enumerated() {
+            let extended = row.indices.isEmpty ? size.width : row.width + gap + size.width
+            if extended > width, !row.indices.isEmpty {
+                rows.append(row)
+                row = Row()
+            }
+            row.width = row.indices.isEmpty ? size.width : row.width + gap + size.width
+            row.height = max(row.height, size.height)
+            row.indices.append(i)
+        }
+        if !row.indices.isEmpty { rows.append(row) }
+        return rows
+    }
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let sizes = subviews.map { $0.sizeThatFits(.unspecified) }
+        let rows = rows(for: sizes, width: proposal.width ?? .infinity)
+        return CGSize(width: rows.map(\.width).max() ?? 0, height: rows.reduce(0) { $0 + $1.height })
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        let sizes = subviews.map { $0.sizeThatFits(.unspecified) }
+        let rows = rows(for: sizes, width: bounds.width)
+        let gap = ((sizes.map(\.height).max() ?? 0) * 0.24).rounded()
+        var y = bounds.minY
+        for row in rows {
+            var x: CGFloat
+            switch alignment {
+            case .leading: x = bounds.minX
+            case .center: x = bounds.minX + (bounds.width - row.width) / 2
+            case .trailing: x = bounds.maxX - row.width
+            }
+            for i in row.indices {
+                // Bottom-align within the row so baselines line up when a chunk is shorter.
+                subviews[i].place(at: CGPoint(x: x, y: y + row.height - sizes[i].height), proposal: .unspecified)
+                x += sizes[i].width + gap
+            }
+            y += row.height
+        }
+    }
+}
+
+// MARK: - Example
+
+/// The component alone: one headline rising word by word with its key phrase landing on a butter
+/// block, and the same reveal as `.blur` underneath. Nothing around it.
+private struct TextRevealExample: View {
+    @State private var replay = 0
+
+    var body: some View {
+        let palette = TextRevealPalette.self
+        VStack(alignment: .leading, spacing: 16) {
+            TextReveal("Plan the week in one calm glance.", trigger: replay, highlights: ["one calm glance"])
+                .font(.system(size: 40, weight: .bold))
+                .tracking(-1.3)
+                .foregroundStyle(palette.text)
+            TextReveal("Three priorities, two open loops and a clear Monday.", preset: .blur, delay: 0.45, trigger: replay)
+                .font(.system(size: 19))
+                .foregroundStyle(palette.muted)
+        }
+        .frame(maxWidth: 360, alignment: .leading)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(palette.ground)
+        .task {
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(4.5))
+                replay += 1
+            }
+        }
+    }
+}
+
+/// House palette values for the example, adapting to light and dark.
+private enum TextRevealPalette {
+    static let ground = adaptive(light: 0xF3F2EE, dark: 0x121212)
+    static let text = adaptive(light: 0x141414, dark: 0xF4F3EF)
+    static let muted = adaptive(light: 0x5C5A56, dark: 0xA6A49F)
+
+    private static func adaptive(light: UInt32, dark: UInt32) -> Color {
+        Color(UIColor { traits in
+            let hex = traits.userInterfaceStyle == .dark ? dark : light
+            return UIColor(red: CGFloat(hex >> 16 & 0xFF) / 255, green: CGFloat(hex >> 8 & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
+        })
+    }
+}
+
+#Preview("Light") {
+    TextRevealExample()
+        .preferredColorScheme(.light)
+}
+
+#Preview("Dark") {
+    TextRevealExample()
+        .preferredColorScheme(.dark)
+}

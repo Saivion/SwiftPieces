@@ -1,0 +1,9 @@
+## Notes
+
+- On iOS 26 this is real `.glassEffect(_:in:)`; earlier, or under Reduce Transparency, it is `.regularMaterial` (opaque `secondarySystemBackground` under Reduce Transparency) with a top light, a two-layer soft shadow and a specular edge: a bright top highlight plus a faint `.primary` edge.
+- `interactive: true` keeps the press feel on the fallback: scale `Style.pressedScale` (0.96), a brighten pass and a light impact. The press is tracked with a simultaneous gesture, so a `Button` inside still owns the tap. Reduce Motion drops the scale but keeps the brighten and haptic.
+- `.concentric(minimum:)` resolves to `ConcentricRectangle` on iOS 26 (set `.containerShape` on the parent) and to a continuous rounded rect with `minimum` as the radius earlier.
+- `GlassSurface.Group(spacing:)` is `GlassEffectContainer` on iOS 26 so neighbouring surfaces blend where they meet; earlier it is a transparent wrapper.
+- `Style` (`.standard`): `tintAmount` (0.72, so a tinted fallback reads as a color block), `specular`, `shadow`, `pressedScale` (0.96), `disabledOpacity` and `solidFill` for Reduce Transparency.
+- Disabled: `.disabled(true)` fades and desaturates the surface and silences the press response on both paths.
+- For a floating glass card over full-bleed art with detents, see the Pro Stay screen (`glass-sheet`).

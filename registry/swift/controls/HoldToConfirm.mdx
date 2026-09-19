@@ -1,0 +1,9 @@
+## Notes
+
+- The track is a raised capsule with an ink puck holding the symbol. While held, a solid fill sweeps from under the puck across the track, driven by a `TimelineView`; an ink copy of the label and puck is masked to the fill, so both invert as it passes.
+- Three milestone dots sit at 25, 50 and 75%. Each pops as the fill passes it, in step with a soft impact of rising intensity; `.success` and the action fire at 100%. Releasing early or dragging more than 16pt off the capsule cancels and the fill rewinds with a spring.
+- On commit the fill turns `committedFill` (sage), the puck symbol replaces itself with a check, and the label rolls to `committedTitle` if you pass one ("Deleted"). It returns to idle after 1.4s.
+- `Style.standard` sweeps signal for destructive actions; `Style.butter` is a calmer confirm. `tint` still works and overrides the fill with white ink. Disabled (`.disabled(true)`) desaturates the control and blocks the gesture.
+- Phases: `idle`, `holding`, `committed`, `cancelled`, `disabled`. VoiceOver reads a button with the hint "Touch and hold to confirm"; its activate action performs the action directly.
+- Reduce Motion halves `duration`, drops the press scale and the dot pop, and crossfades the label; the fill still sweeps.
+- Want slide to act instead of hold? Swift Pieces Pro has the Send Money screen (`swipe-to-confirm`).

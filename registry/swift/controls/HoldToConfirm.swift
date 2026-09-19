@@ -1,0 +1,325 @@
+// swiftpieces:
+// title: Hold To Confirm
+// description: "A press-and-hold capsule for destructive or important actions: a solid fill sweeps from the leading puck while held, passes three milestone dots with rising haptics, inverts the label under it, rewinds with a spring on early release and settles into a sage confirmed block."
+// category: controls
+// minIOSVersion: "17.0"
+// version: "2.0.0"
+// pro: swipe-to-confirm
+// tags: [button, hold, confirm, destructive, haptics]
+
+import SwiftUI
+
+/// Hold to confirm. The label inverts as the fill passes under it; letting go or dragging off rewinds.
+///
+/// - Parameters:
+///   - title: Label while idle and holding.
+///   - systemImage: Optional SF Symbol drawn in the leading puck.
+///   - duration: Seconds the hold must last. Halved under Reduce Motion.
+///   - tint: Overrides the style's fill (and tints the track) with white ink on the fill. `nil` uses `style`.
+///   - phase: Optional binding that mirrors `idle`, `holding`, `committed` and `cancelled`; set it to `.holding` to start a sweep programmatically, `.idle` to cancel one.
+///   - committedTitle: Text beside the check once the hold completes, such as "Deleted". `nil` shows the check alone.
+///   - style: Track, fill, ink and committed colors plus height. `.standard` is the house palette with a signal fill.
+///   - action: Called once when the hold completes. VoiceOver's activate action calls it directly.
+public struct HoldToConfirm: View {
+    public enum Phase { case idle, holding, committed, cancelled, disabled }
+
+    /// Colors and metrics. Colors adapt to light and dark.
+    public struct Style: Sendable {
+        /// The capsule behind the label at rest.
+        public var track: Color
+        /// Label and puck color on the track.
+        public var label: Color
+        /// The sweeping fill.
+        public var fill: Color
+        /// Label and puck color on the fill and on `committedFill`.
+        public var ink: Color
+        /// Fill once the hold completes.
+        public var committedFill: Color
+        /// Capsule height. Never below 44.
+        public var height: CGFloat
+        /// Shows three dots at 25, 50 and 75% that pop as the fill passes them.
+        public var milestones: Bool
+
+        public init(track: Color = House.adaptive(light: 0xEAE8E2, dark: 0x262626), label: Color = House.adaptive(light: 0x141414, dark: 0xF4F3EF), fill: Color = House.hex(0xFF5B3A), ink: Color = House.hex(0x141414), committedFill: Color = House.hex(0xA9DCB7), height: CGFloat = 60, milestones: Bool = true) {
+            self.track = track
+            self.label = label
+            self.fill = fill
+            self.ink = ink
+            self.committedFill = committedFill
+            self.height = Swift.max(height, 44)
+            self.milestones = milestones
+        }
+
+        /// The Free house palette: raised track, signal fill, sage when confirmed.
+        public static let standard = Style()
+        /// A calmer confirm for non-destructive actions: the butter block sweeps instead of signal.
+        public static let butter = Style(fill: House.hex(0xFFD976))
+
+        /// Builds house colors. Public so `Style` defaults can use it.
+        public enum House {
+            public static func hex(_ value: UInt32) -> Color {
+                Color(red: Double((value >> 16) & 0xFF) / 255, green: Double((value >> 8) & 0xFF) / 255, blue: Double(value & 0xFF) / 255)
+            }
+
+            public static func adaptive(light: UInt32, dark: UInt32) -> Color {
+                Color(uiColor: UIColor { traits in
+                    let v = traits.userInterfaceStyle == .dark ? dark : light
+                    return UIColor(red: CGFloat((v >> 16) & 0xFF) / 255, green: CGFloat((v >> 8) & 0xFF) / 255, blue: CGFloat(v & 0xFF) / 255, alpha: 1)
+                })
+            }
+        }
+    }
+
+    @Environment(\.isEnabled) private var isEnabled
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var current: Phase = .idle
+    @State private var holdStart: Date?
+    @State private var settledProgress: Double = 0
+    @State private var size: CGSize = .zero
+    @State private var ticks = 0
+    @State private var passed = 0
+    @State private var tickIntensity: Double = 0.35
+    @State private var commits = 0
+    @State private var driver: Task<Void, Never>?
+
+    private let title: String
+    private let systemImage: String?
+    private let duration: Double
+    private let tint: Color?
+    private let committedTitle: String?
+    private let style: Style
+    private let action: () -> Void
+    private let phase: Binding<Phase>?
+
+    public init(_ title: String, systemImage: String? = nil, duration: Double = 1.2, tint: Color? = nil, phase: Binding<Phase>? = nil, committedTitle: String? = nil, style: Style = .standard, action: @escaping () -> Void) {
+        self.title = title
+        self.systemImage = systemImage
+        self.duration = max(duration, 0.3)
+        self.tint = tint
+        self.phase = phase
+        self.committedTitle = committedTitle
+        self.style = style
+        self.action = action
+    }
+
+    private func transition(to next: Phase) {
+        current = next
+        phase?.wrappedValue = next
+    }
+
+    private var holdDuration: Double { reduceMotion ? duration * 0.5 : duration }
+    private var shownPhase: Phase { isEnabled ? current : .disabled }
+    private var committed: Bool { current == .committed }
+
+    private var fillColor: Color { committed ? style.committedFill : (tint ?? style.fill) }
+    private var trackColor: Color { tint.map { $0.opacity(0.14) } ?? style.track }
+    private var restInk: Color { tint ?? style.label }
+    private var fillInk: Color { tint != nil && !committed ? .white : style.ink }
+
+    public var body: some View {
+        TimelineView(.animation(paused: current != .holding)) { context in
+            let progress = current == .holding ? liveProgress(at: context.date) : settledProgress
+            let inset = (style.height - puck) / 2
+            // The fill starts under the puck, so a hold visibly begins at the first touch.
+            let fillWidth = size.width <= 0 ? 0 : (style.height + (size.width - style.height) * progress)
+            let shownWidth = progress > 0 || committed ? fillWidth : 0
+            ZStack(alignment: .leading) {
+                Capsule().fill(trackColor)
+                Capsule()
+                    .fill(fillColor)
+                    .frame(width: shownWidth)
+                if style.milestones {
+                    milestones(progress: progress, inset: inset)
+                }
+                label(ink: restInk, puckFill: restInk, puckInk: trackColor, inset: inset)
+                label(ink: fillInk, puckFill: fillInk, puckInk: fillColor, inset: inset)
+                    .mask(alignment: .leading) {
+                        Capsule().frame(width: shownWidth)
+                    }
+            }
+            .frame(height: style.height)
+            .clipShape(Capsule())
+        }
+        .onGeometryChange(for: CGSize.self) { $0.size } action: { size = $0 }
+        .contentShape(Capsule())
+        .scaleEffect(current == .holding && !reduceMotion ? 0.98 : 1)
+        .saturation(isEnabled ? 1 : 0)
+        .opacity(isEnabled ? 1 : 0.5)
+        .animation(.spring(duration: 0.3, bounce: 0.2), value: current == .holding)
+        .animation(.smooth(duration: 0.35), value: committed)
+        .gesture(hold)
+        .sensoryFeedback(.impact(flexibility: .soft, intensity: tickIntensity), trigger: ticks)
+        .sensoryFeedback(.success, trigger: commits)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(title)
+        .accessibilityValue(accessibilityValue)
+        .accessibilityHint("Touch and hold to confirm")
+        .accessibilityAddTraits(.isButton)
+        .accessibilityAction { if isEnabled { commit() } }
+        .onChange(of: phase?.wrappedValue) { _, new in
+            guard let new, new != current else { return }
+            if new == .holding, current == .idle || current == .cancelled { begin() }
+            else if new == .idle, current == .holding { cancel() }
+        }
+    }
+
+    private var puck: CGFloat { style.height - 12 }
+
+    /// Leading puck with the symbol (or a hand) plus the title, or a check and the committed title.
+    private func label(ink: Color, puckFill: Color, puckInk: Color, inset: CGFloat) -> some View {
+        HStack(spacing: 0) {
+            ZStack {
+                Circle().fill(puckFill)
+                Image(systemName: committed ? "checkmark" : (systemImage ?? "hand.tap"))
+                    .font(.system(size: puck * 0.36, weight: .bold))
+                    .foregroundStyle(puckInk)
+                    .contentTransition(.symbolEffect(.replace))
+            }
+            .frame(width: puck, height: puck)
+            .padding(.leading, inset)
+            ZStack {
+                if committed {
+                    Text(committedTitle ?? "")
+                        .transition(reduceMotion ? .opacity : .push(from: .bottom))
+                } else {
+                    Text(title)
+                        .transition(reduceMotion ? .opacity : .push(from: .top))
+                }
+            }
+            .font(.body.weight(.semibold))
+            .lineLimit(1)
+            .minimumScaleFactor(0.8)
+            .foregroundStyle(ink)
+            .frame(maxWidth: .infinity)
+            // Balance the puck so the title stays optically centered.
+            .padding(.trailing, puck + inset)
+        }
+        .animation(.spring(duration: 0.35, bounce: 0.25), value: committed)
+    }
+
+    /// Three dots along the track; each pops when the fill passes it, in step with the haptic tick.
+    private func milestones(progress: Double, inset: CGFloat) -> some View {
+        ZStack(alignment: .topLeading) {
+            ForEach(1..<4) { i in
+                let on = passed >= i && current == .holding
+                Circle()
+                    .fill(on ? fillInk.opacity(0.6) : restInk.opacity(0.28))
+                    .frame(width: 5, height: 5)
+                    .scaleEffect(on && !reduceMotion ? 1.6 : 1)
+                    .animation(.spring(duration: 0.3, bounce: 0.5), value: on)
+                    .position(x: style.height + (size.width - style.height) * Double(i) / 4, y: style.height - 9)
+            }
+        }
+        .frame(width: size.width, height: style.height)
+        .opacity(committed ? 0 : 1)
+    }
+
+    private func liveProgress(at date: Date) -> Double {
+        guard let holdStart else { return 0 }
+        return min(1, date.timeIntervalSince(holdStart) / holdDuration)
+    }
+
+    // MARK: Interaction
+
+    private var hold: some Gesture {
+        DragGesture(minimumDistance: 0)
+            .onChanged { value in
+                guard isEnabled else { return }
+                switch current {
+                case .idle, .cancelled:
+                    begin()
+                case .holding:
+                    // Dragging off the capsule cancels, with a little forgiveness.
+                    let bounds = CGRect(origin: .zero, size: size).insetBy(dx: -16, dy: -16)
+                    if !bounds.contains(value.location) { cancel() }
+                case .committed, .disabled:
+                    break
+                }
+            }
+            .onEnded { _ in
+                if current == .holding { cancel() }
+            }
+    }
+
+    private func begin() {
+        driver?.cancel()
+        holdStart = Date()
+        settledProgress = 0
+        passed = 0
+        transition(to: .holding)
+        let quarter = holdDuration / 4
+        driver = Task {
+            for (index, intensity) in [0.35, 0.55, 0.75].enumerated() {
+                try? await Task.sleep(for: .seconds(quarter))
+                guard !Task.isCancelled, current == .holding else { return }
+                tickIntensity = intensity
+                passed = index + 1
+                ticks += 1
+            }
+            try? await Task.sleep(for: .seconds(quarter))
+            guard !Task.isCancelled, current == .holding else { return }
+            commit()
+        }
+    }
+
+    private func cancel() {
+        driver?.cancel()
+        settledProgress = liveProgress(at: Date())
+        transition(to: .cancelled)
+        holdStart = nil
+        passed = 0
+        withAnimation(.spring(duration: 0.5, bounce: 0.2)) { settledProgress = 0 }
+        Task {
+            try? await Task.sleep(for: .milliseconds(500))
+            if current == .cancelled { transition(to: .idle) }
+        }
+    }
+
+    private func commit() {
+        driver?.cancel()
+        holdStart = nil
+        settledProgress = 1
+        passed = 0
+        transition(to: .committed)
+        commits += 1
+        action()
+        Task {
+            try? await Task.sleep(for: .milliseconds(1400))
+            guard current == .committed else { return }
+            withAnimation(.smooth(duration: 0.35)) {
+                transition(to: .idle)
+                settledProgress = 0
+            }
+        }
+    }
+
+    private var accessibilityValue: String {
+        switch shownPhase {
+        case .idle, .cancelled: ""
+        case .holding: "Holding"
+        case .committed: committedTitle ?? "Confirmed"
+        case .disabled: "Disabled"
+        }
+    }
+}
+
+// MARK: - Example
+
+/// Just the capsule: the signal hold and a disabled second one.
+private struct HoldToConfirmExample: View {
+    private typealias House = HoldToConfirm.Style.House
+
+    var body: some View {
+        VStack(spacing: 12) {
+            HoldToConfirm("Hold to delete", systemImage: "trash", committedTitle: "Deleted") {}
+            HoldToConfirm("Hold to transfer", systemImage: "arrow.right", style: .butter) {}
+                .disabled(true)
+        }
+        .frame(maxWidth: 340)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(House.adaptive(light: 0xF3F2EE, dark: 0x121212))
+    }
+}
+
+#Preview("Light") { HoldToConfirmExample().preferredColorScheme(.light) }
+#Preview("Dark") { HoldToConfirmExample().preferredColorScheme(.dark) }

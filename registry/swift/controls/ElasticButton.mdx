@@ -1,0 +1,7 @@
+## Notes
+
+- It is a `ButtonStyle`, so it works on any `Button`: `.buttonStyle(.elastic)` adds only the motion, `.buttonStyle(.elastic(.signal))` also draws the surface, and `.elastic(squash:bounce:haptics:style:)` tunes both.
+- `Style` presets come from the house palette: `.standard` (motion only, your label keeps its look), `.signal` for the one primary action, `.block(.lilac)` and the other blocks for secondary actions with dark ink, `.raised` for quiet ones. `radius`, `height` (never below 44) and `padding` are adjustable.
+- States: at rest a drawn surface sits on a soft two-layer shadow; pressed it squashes toward the finger, darkens and the shadow flattens; after a 350ms hold it presses 0.03 deeper and darkens further with a soft impact; a drag past 44pt cancels the press with a soft impact; disabled surfaces switch to the raised color with muted ink instead of fading.
+- The touch point comes from a simultaneous zero-distance drag, so the squash leans 60% of the way toward the finger, the shape stretches along the drag axis with rubber-band resistance, and the offset follows at 35%. Release uses `.snappy` plus `bounce` as extra bounce.
+- Reduce Motion keeps the scale and darken but removes the lean, stretch and offset. Disabled buttons play no haptics.

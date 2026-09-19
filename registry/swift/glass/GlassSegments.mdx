@@ -1,0 +1,11 @@
+## Notes
+
+- A touch that lands on the indicator grabs it: it lifts (scale 1.04, deeper shadow), follows the finger, rubber-bands up to one segment past either end and stretches along the drag with velocity. Release commits to the segment the flick would land on (`predictedEndLocation`) with a `.spring(duration: 0.45, bounce: 0.3)`. A touch anywhere else is a plain tap on that segment.
+- One `.selection` haptic fires each time the indicator's center crosses into a new segment, and once on tap; there is no second tick on release.
+- Label emphasis is continuous: each label's opacity tracks how much of the indicator overlaps it, so the emphasis hands over during the drag instead of swapping at the end.
+- Reduce Transparency swaps the track for an opaque system fill. Reduce Motion removes the stretch and the lift scale and shortens the settle.
+- Segments share the width equally; the control fills its container, so constrain it with `.frame(width:)` when you want it compact.
+- Labels are drawn twice: once in `Style.ink`, and once in `Style.selectedInk` masked to the indicator's live shape, so the color hands over exactly under the indicator edge while dragging or stretching.
+- The indicator is a solid fill (`indicatorSurface`, or `indicatorTint` for a color block) under clear Liquid Glass on iOS 26, so it reads on the track in light and dark. `GlassSegmentsStyle.block(_:)` makes a block indicator with dark ink.
+- `Style` (`GlassSegments.Style`, alias of `GlassSegmentsStyle`): `track`, `ink`, `selectedInk`, `indicatorTint`, `indicatorSurface`, `font`, `disabledOpacity`. `.disabled(true)` fades the control and ignores touches. The row height scales with Dynamic Type (capped at 1.5x).
+- For a floating tab bar whose lens follows the finger, see the Pro Lessons screen (`lens-tab-bar`).

@@ -1,0 +1,9 @@
+## Notes
+
+- While idle or paused, dragging around the ring sets `seconds` like the Timer dial: the angle maps to `0...maxSeconds` in `step` increments, with `.selection` per step and a rigid impact on every multiple of 5. The value clamps at both ends instead of wrapping. The knob grows while the dial can be set. VoiceOver adjusts it with swipe up/down.
+- The look comes from `Style.standard`: a solid tangerine ring over a raised track, an ink knob with a soft shadow, a 60-tick scale inside that brightens under the value, and light display numerals reading `m:ss` with the leading `0:` dimmed. `Style.sky` swaps the ring; `colors` still overrides it (several colors draw an angular gradient).
+- Timing is anchored to a start date and rendered by `TimelineView`, so the ring never drifts; a single `.task` sleeps until the finish. Toggling `isRunning` off banks the elapsed time; on resumes. After finishing, `true` restarts from `seconds`. Changing `seconds` resets.
+- At or below `warningAt` the signal ring fades in over the base ring, the digits turn signal, the dial breathes ±1.2% once per second with a soft impact per second. Finishing springs a full sage ring in, hides the knob and plays `.success`.
+- `TimerDial(progress:)` is the determinate mode: the same ring and knob with a percent readout (dimmed %) and no clock or dial. Turn `showsTicks` off and lower `digitSize` for small rings.
+- Digits scale with Dynamic Type relative to `.largeTitle` and never outgrow the ring. Reduce Motion drops the breathing, the per-second haptic, the numeric roll and the finish spring, and ticks the ring once per second.
+- Need a whole focus session with task binding and breaks? Swift Pieces Pro has the Focus screen (`focus-timer`).

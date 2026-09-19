@@ -1,0 +1,44 @@
+---
+title: CLI
+description: npx swiftpieces init, add, list, login and whoami. One CLI, two registries.
+---
+
+The CLI is distributed through npm so no extra toolchain is required. It contains no premium source; it is a fetcher that talks to the free registry on swiftpieces.com and, with a license key, the Pro registry on pro.swiftpieces.com.
+
+## Commands
+
+```bash
+npx swiftpieces init                 # optional: add does this on first run
+npx swiftpieces add GlassSurface     # free piece
+npx swiftpieces add subscription-app # Pro template, needs a license
+npx swiftpieces add Silk --overwrite
+npx swiftpieces list                 # free registry
+npx swiftpieces list --pro           # Pro registry (metadata is public)
+npx swiftpieces login sp_live_...    # store your key in ~/.swiftpieces/auth.json
+npx swiftpieces whoami               # check whether your key has Pro access
+```
+
+## Resolution order
+
+`add` tries the free registry first. On a 404 it tries the Pro registry with your license key from `SWIFTPIECES_LICENSE_KEY` or `~/.swiftpieces/auth.json`. A Pro piece without a valid key produces a short message pointing at pro.swiftpieces.com, never a stack trace.
+
+## `swiftpieces.json`
+
+```json
+{
+  "$schema": "https://swiftpieces.com/schema/config.json",
+  "directory": "MyApp/SwiftPieces",
+  "minIOSVersion": "17.0",
+  "registries": {
+    "free": "https://swiftpieces.com/r",
+    "pro": "https://pro.swiftpieces.com/r"
+  }
+}
+```
+
+## Behavior
+
+- **Warn, don't overwrite.** Existing files are skipped unless you pass `--overwrite`.
+- **Dependencies resolve recursively** through `registryDependencies`, across both registries.
+- **Shaders and assets** listed by a piece are written alongside it.
+- **Project requirements** (Info.plist keys, capabilities, SPM packages) are printed after install for you to apply.

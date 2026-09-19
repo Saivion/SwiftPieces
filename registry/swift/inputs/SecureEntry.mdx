@@ -1,0 +1,10 @@
+## Notes
+
+- Revealing swaps `SecureField` for `TextField`; the toggle re-targets `@FocusState` to the new field so the keyboard stays up.
+- The field is a soft 56pt block with no border at rest. Focus draws a 2pt ring in the label color; an `error` turns it to `Style.error`.
+- Setting `error` triggers a damped four-cycle shake, an `.error` haptic, and slides an error chip in below. Clearing it slides the chip out.
+- The strength bar grows through four blocks (tangerine, butter, sky, sage by default) with a matching WEAK / FAIR / GOOD / STRONG chip.
+- Requirement chips appear while focused or filled. A met requirement becomes a sage block whose check draws in after the fill lands, with a `.selection` haptic. When all four pass, the chips collapse, a check appears in the field and a `.success` haptic plays.
+- `Style` sets every color plus field height and radius. `.disabled(true)` dims the field.
+- Reduce Motion: no shake, and every transition becomes an opacity fade.
+- For one-time codes after sign-in, see the Verify screen (code entry) in Swift Pieces Pro.

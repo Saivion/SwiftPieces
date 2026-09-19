@@ -1,0 +1,9 @@
+## Notes
+
+- Pages live in a horizontal `ScrollView` with `.scrollTargetBehavior(.paging)` and `containerRelativeFrame`, so each page is exactly one container wide. `selection` is synced with `scrollPosition(id:)` in both directions: taps animate the scroll with the same spring the indicator uses.
+- The indicator is a solid butter block positioned from fractional page progress (`contentOffset.x / containerSize.width` via `onScrollGeometryChange` on iOS 18, the page row's position in the `.scrollView` space on iOS 17), interpolated between measured title frames. It follows the pages mid-swipe instead of jumping on settle; it does not stretch.
+- Each title is drawn twice, muted and ink, and crossfaded by how much of the block sits over it, so the text on the block always has ink contrast. Optional `counts` show a monospaced count after each title and roll with `.numericText`.
+- States: resting, swiping (block between titles), pressed (the tapped title scales to 94%), settled with a `.selection` haptic.
+- `Style` sets `track`, `indicator`, `title`, and `selectedTitle`; `.standard` is the house surface track with a butter block and ink.
+- Titles are buttons with selected traits and their count as the value; 44 pt tall. Reduce Motion shortens the tap animation and removes the press scale.
+- A floating tab bar with a lens that stretches toward the finger ships in Swift Pieces Pro (`lens-tab-bar`).

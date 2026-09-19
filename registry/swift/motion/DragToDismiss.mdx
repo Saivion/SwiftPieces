@@ -1,0 +1,10 @@
+## Notes
+
+- Apply it to the full-size root of a sheet or full-screen cover, or to a card wrapped in `.frame(maxWidth: .infinity, maxHeight: .infinity)`, so the scrim covers the screen while only the content moves.
+- Commit happens past `threshold` points of travel or when `predictedEndTranslation` projects past twice that. The fly-off follows the release direction, travels far enough to clear the container, and runs faster for faster flicks. `onDismiss` fires when the fly-off is logically complete.
+- Scroll cooperation: a scroll view inside the content keeps priority until it is at its top. On iOS 18 the modifier watches the scroll view with `onScrollGeometryChange`; on iOS 17 feed it `scrollOffset` yourself. Upward drags at the top go to the scroll view, and the scroll view is disabled for the duration of a captured drag so it cannot bounce underneath.
+- Bind `progress` and scale your presenter from 0.94 toward 1 with it for sheet-like depth.
+- Phases run idle, dragging, armed (a rigid tick at the threshold), returning, committing. VoiceOver's escape gesture commits a downward dismiss. Reduce Motion keeps the scale at 1 and shortens the springs.
+- `style:` sets the scrim (`#141414` at 0.5 by default, `.clear` for none) and the shrink at full progress. `phase:` binds the current phase so the UI can switch a "Drag to close" hint to "Release to close" when armed.
+- The `#Preview` is the single card the modifier moves: a butter boarding pass, with the modifier's own scrim behind it.
+- For a full gallery built around this gesture, see the Pro Gallery screen.

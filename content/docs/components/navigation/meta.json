@@ -1,0 +1,10 @@
+{
+  "title": "Navigation",
+  "description": "Docks, tracking tabs, stretch headers and receding drawers.",
+  "defaultOpen": false,
+  "pages": [
+    "floating-dock",
+    "stretch-header",
+    "tracking-tabs"
+  ]
+}

@@ -1,0 +1,9 @@
+## Notes
+
+- Slices are solid color blocks from the house palette (tangerine, sky, butter, sage, lilac, sand), separated by a 4 pt gap with rounded ends. Each slice is filled and stroked with a round join, so the corners stay soft at any size.
+- Drag anywhere on the ring and the selection follows your finger around it, with a `.selection` tick at every slice boundary. Release keeps the selection; tap the hole or the selected legend row to clear it.
+- The selected slice lifts 6 pt outward along its mid-angle with a soft shadow while the others step back to a solid resting color, never a faded wash. The center shows an uppercase label, a light figure with dimmed decimals, and the share as a pill in the slice's color. The legend row turns into the slice's block with ink text.
+- `tint` overrides the first slice; `color` on a slice overrides any slice. `Style` sets `blocks`, `rest`, `ink`, `text`, `muted`, `gap`, and `cornerRadius`. The default thickness is 34 pt.
+- The ring is one VoiceOver element: it reads the selected slice or the total, and swiping up or down moves the selection. Legend rows are 48 pt buttons with their value. Reduce Motion drops the lift and the sweep-in but keeps the state change.
+- Labels are the identity, so keep them unique. `selection` lets a parent drive or observe the selected slice.
+- A full budget screen built on a spending ring ships in Swift Pieces Pro (`spending-ring`).

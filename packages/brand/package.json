@@ -1,0 +1,31 @@
+{
+  "name": "@swiftpieces/brand",
+  "version": "0.2.9",
+  "description": "Swift Pieces brand layer: design tokens, Tailwind v4 theme, and a few shared presentational primitives. No business logic.",
+  "license": "SEE LICENSE IN LICENSE",
+  "type": "module",
+  "sideEffects": ["*.css"],
+  "exports": {
+    ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" },
+    "./tokens.css": "./tokens.css",
+    "./theme.css": "./theme.css"
+  },
+  "files": ["dist", "tokens.css", "theme.css", "README.md", "LICENSE"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "prepack": "npm run build"
+  },
+  "peerDependencies": {
+    "next": ">=15",
+    "react": ">=19",
+    "react-dom": ">=19"
+  },
+  "devDependencies": {
+    "@types/react": "^19.3.0",
+    "typescript": "^5.9.3"
+  },
+  "publishConfig": { "access": "public" },
+  "homepage": "https://github.com/saivion/swiftpieces/tree/main/packages/brand#readme",
+  "bugs": { "url": "https://github.com/saivion/swiftpieces/issues" },
+  "repository": { "type": "git", "url": "git+https://github.com/saivion/swiftpieces.git", "directory": "packages/brand" }
+}

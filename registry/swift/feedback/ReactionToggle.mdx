@@ -1,0 +1,8 @@
+## Notes
+
+- At rest the toggle is a quiet capsule. Turning it on floods the capsule with a solid block that grows out of the symbol, swaps to the filled symbol in dark ink, bounces it with a small tilt, and sends one halo outward. Turning it off drains the block.
+- `Style` holds the block (`fill`), its `ink`, the rest capsule colors and the pill colors, with house palette defaults that adapt to light and dark. `tint` still works and overrides `fill`. Set `isContained: false` for a bare symbol that fills like a sticker under an ink outline.
+- The press state comes from a `ButtonStyle`, so it tracks the real touch: scale in stiffly, spring out on release.
+- `count` is the base value from your model; the view adds one while `isOn` so the number rolls immediately without a round trip. `size` scales with Dynamic Type and the hit area never drops below 44 pt.
+- `confirmation` floats a dark pill with a check above the toggle for 1.3 s.
+- Under Reduce Motion the flood crossfades, and there is no bounce or halo; the haptic still fires on the off-to-on edge only.

@@ -1,0 +1,9 @@
+## Notes
+
+- Requires `Silk.metal` in the same target. The shader samples the fold height field three times per pixel (centre, +x, +y) to build a real gradient normal, then shades it with Blinn-Phong, so the sheen lands on the folds facing `light` instead of being painted by height.
+- `light` is a `UnitPoint` in the view's coordinates; move it to change where the highlight sits. `Style.depth` is the fold contrast and `Style.shine` the highlight tightness.
+- `tiltLight` starts a private `CMMotionManager` source at 30 Hz, relative to the attitude at start, low-passed. It stops on disappear and whenever `scenePhase` leaves `.active`, and is a no-op in the simulator.
+- Reduce Motion freezes the fold animation; with `tiltLight` the light still follows the device, which is user-driven, not decorative.
+- `Style.standard` (default) is stone with a white sheen in light and charcoal with a sand sheen in dark. `.tangerine`, `.sky`, `.butter`, `.sage`, `.lilac` and `.sand` are solid house-block fabrics for panels and cards; put `#141414` ink on them. `.ink`, `.graphite`, `.paper` and `.indigo` still work.
+- The radial fold term is centred off-screen, so no pinch point appears in the middle of the view.
+- The `#Preview` is the standard fabric alone, full bleed, with nothing on top of it.

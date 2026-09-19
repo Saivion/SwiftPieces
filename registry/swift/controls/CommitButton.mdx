@@ -1,0 +1,8 @@
+## Notes
+
+- `phase` is a `Binding` so the button can return itself to `.idle` after the success hold (`successHold`, default 900ms); everything else is set by you: `.loading` in the action, `.success` or `.error("message")` when the work finishes.
+- States, all from `Style.standard`: idle is a signal capsule with dark ink; pressed squashes and darkens; loading collapses to a circle with an ink arc; success closes the arc, turns sage and draws the check, then, if you pass `successTitle` ("Saved"), blooms back into a sage capsule with an ink check disc; error re-expands as a butter block with an ink "!" disc, rolls the label to the message and shakes; disabled uses the raised color with muted ink.
+- Tapping in the error state fires the action again, so the message doubles as a retry (VoiceOver hears "Double tap to try again"). The button ignores taps while loading or succeeding without dimming.
+- `tint` and `errorTint` still work: they override the style fills and switch that state's ink to white. For full control pass a `Style` with your own fills, ink, height and font.
+- Reduce Motion crossfades the label, shortens the collapse and skips the shake offset; the haptics stay.
+- Need a slide-to-act confirmation with an amount and recipient? Swift Pieces Pro has the Send Money screen (`swipe-to-confirm`).

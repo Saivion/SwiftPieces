@@ -1,0 +1,10 @@
+## Notes
+
+- Glyph outlines come from Core Text (`CTFontCreatePathForGlyph`), so any `UIFont` works, including custom families. The path is built once per string and font, not on every layout pass.
+- On iOS 26 the outline is passed to `glassEffect(_:in:)` as a shape. Below iOS 26 it is filled with `.ultraThinMaterial` and a hairline highlight; Reduce Transparency fills it with `.primary` instead.
+- The point size follows Dynamic Type via `@ScaledMetric(relativeTo: .largeTitle)`, capped at 1.6x so a display word never leaves the screen. Pass `scalesWithDynamicType: false` to pin it.
+- Glass reads best over a backdrop with soft tonal variation; a flat color gives it nothing to refract.
+- Split the string with `\n` for a stacked display title. `Style.alignment` and `Style.leading` (0.86 of the font's line height by default) lay out the lines.
+- States: Liquid Glass on iOS 26 with a soft lift shadow; below iOS 26 a layered fallback (Material, optional tint at `fallbackTintAmount`, a top light and a 1pt specular rim); under Reduce Transparency a solid `Style.solidFill` (`.primary` by default).
+- VoiceOver reads the lines as one static text.
+- For a full purchase screen built around glass display type, see the Pro Purchase screen.

@@ -1,0 +1,9 @@
+## Notes
+
+- Single-select uses one `matchedGeometryEffect` capsule in `Style.indicator` that glides from the previous chip to the new one; tapping the selected chip again keeps it selected, so include an "All" option if you need a neutral state.
+- Multi-select turns each picked chip into a solid block with a check. Colors come from `Style.blocks` by option position, so a chip keeps its color wherever it moves. Picks gather at the leading edge behind a Clear chip that counts them.
+- `counts` adds a result count after each title; VoiceOver reads it as the chip's value.
+- Selection changes set `scrollPosition(id:)`, so the chosen chip centers itself (single) or the rail returns to its leading edge (multi).
+- Edge fades are computed from the content frame in a named coordinate space, so they show only on the side that actually has chips hidden.
+- Chips press to 0.96 with a fast press-in and springy release; `.disabled(true)` dims the whole rail. A selection haptic fires on every change to the bound set.
+- For a searchable list of commands instead of a rail, see the Command Palette screen in Swift Pieces Pro.

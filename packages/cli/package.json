@@ -1,0 +1,27 @@
+{
+  "name": "swiftpieces",
+  "version": "0.3.3",
+  "description": "Add Swift Pieces (SwiftUI components, Liquid Glass effects, Metal shaders) to your Xcode project.",
+  "license": "SEE LICENSE IN LICENSE",
+  "type": "module",
+  "bin": { "swiftpieces": "./dist/index.js" },
+  "files": ["dist", "LICENSE", "README.md"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "prepack": "npm run build",
+    "dev": "tsx src/index.ts"
+  },
+  "engines": { "node": ">=18.17" },
+  "dependencies": {
+    "commander": "^15.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.5.1",
+    "tsx": "^4.23.13",
+    "typescript": "^5.9.3"
+  },
+  "homepage": "https://github.com/saivion/swiftpieces/tree/main/packages/cli#readme",
+  "bugs": { "url": "https://github.com/saivion/swiftpieces/issues" },
+  "repository": { "type": "git", "url": "git+https://github.com/saivion/swiftpieces.git", "directory": "packages/cli" },
+  "keywords": ["swiftui", "ios", "liquid-glass", "metal", "components", "xcode"]
+}

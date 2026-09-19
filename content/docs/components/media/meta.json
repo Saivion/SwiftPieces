@@ -1,0 +1,9 @@
+{
+  "title": "Media",
+  "description": "Photo viewing and story playback.",
+  "defaultOpen": false,
+  "pages": [
+    "photo-viewer",
+    "story-strip"
+  ]
+}

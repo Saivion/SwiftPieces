@@ -1,0 +1,11 @@
+{
+  "title": "Data",
+  "description": "Scrubbable charts, rings, live stats and odometers.",
+  "defaultOpen": false,
+  "pages": [
+    "live-stat",
+    "odometer",
+    "ring-breakdown",
+    "scrub-chart"
+  ]
+}

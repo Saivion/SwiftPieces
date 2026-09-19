@@ -1,0 +1,2129 @@
+[
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "AssistantOrb",
+    "slug": "assistant-orb",
+    "type": "registry:component",
+    "title": "Assistant Orb",
+    "description": "A dark glass ball with a Siri-style voice wave inside, locked to the thinking state; four thin sine membranes travel through the equator of a refracting shell, drawn by a Metal color shader. The sphere never moves, only the wave, and a palette change crossfades its colours.",
+    "category": "ai",
+    "license": "MIT+Commons-Clause",
+    "version": "1.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "ai",
+      "orb",
+      "shader",
+      "metal",
+      "thinking"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [
+      {
+        "path": "registry/swift/ai/AssistantOrb.metal",
+        "type": "registry:shader",
+        "target": "SwiftPieces/AI/AssistantOrb.metal"
+      }
+    ],
+    "files": [
+      {
+        "path": "registry/swift/ai/AssistantOrb.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/AI/AssistantOrb.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/ai/assistant-orb",
+    "liquidGlass": false,
+    "metal": true
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "CodeBlock",
+    "slug": "code-block",
+    "type": "registry:component",
+    "title": "Code Block",
+    "description": "A code slab for chat replies and docs that stays dark in both appearances: a butter language label and optional filename, block-colored Swift syntax, collapse past N lines with a fade and a spring expand, wrap toggle, text selection, a streaming mode that fades lines in behind a cursor, and a copy pill that turns into a sage Copied block.",
+    "category": "ai",
+    "license": "MIT+Commons-Clause",
+    "version": "2.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "code",
+      "monospace",
+      "syntax",
+      "copy",
+      "streaming",
+      "ai"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/ai/CodeBlock.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/AI/CodeBlock.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/ai/code-block",
+    "pro": "streaming-markdown",
+    "liquidGlass": false,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "PromptChips",
+    "slug": "prompt-chips",
+    "type": "registry:component",
+    "title": "Prompt Chips",
+    "description": "A snapping horizontal row of prompt suggestions above a composer, each chip keyed by a solid color block glyph. The chosen chip morphs into a composer-width block with matchedGeometryEffect while the rest slide out, then the row hands the text back and collapses.",
+    "category": "ai",
+    "license": "MIT+Commons-Clause",
+    "version": "2.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "chips",
+      "suggestions",
+      "prompt",
+      "scroll",
+      "morph",
+      "ai",
+      "blocks"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/ai/PromptChips.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/AI/PromptChips.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/ai/prompt-chips",
+    "pro": "prompt-composer",
+    "liquidGlass": false,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "StreamingReply",
+    "slug": "streaming-reply",
+    "type": "registry:component",
+    "title": "Streaming Reply",
+    "description": "The AI reply surface. A small header carries the assistant mark and a live phase label, text arrives token by token with a per-word fade and a color block cursor, inline code sits on butter blocks, user prompts are solid color blocks, and a long press lifts the message to reveal copy and regenerate.",
+    "category": "ai",
+    "license": "MIT+Commons-Clause",
+    "version": "2.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "chat",
+      "streaming",
+      "markdown",
+      "ai",
+      "text-renderer",
+      "blocks"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/ai/StreamingReply.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/AI/StreamingReply.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/ai/streaming-reply",
+    "pro": "streaming-markdown",
+    "liquidGlass": false,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "ThinkingState",
+    "slug": "thinking-state",
+    "type": "registry:component",
+    "title": "Thinking State",
+    "description": "The \"assistant is working\" placeholder, laid out like the reply it becomes: a breathing mark with an elapsed-seconds label over three presentations on one clock: block-colored rising dots, a sheen over reply-shaped bars, or a label whose glyphs carry the sheen. Plus a modifier that sweeps any view.",
+    "category": "ai",
+    "license": "MIT+Commons-Clause",
+    "version": "2.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "loading",
+      "thinking",
+      "sheen",
+      "placeholder",
+      "ai",
+      "elapsed"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/ai/ThinkingState.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/AI/ThinkingState.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/ai/thinking-state",
+    "pro": "tool-execution-card",
+    "liquidGlass": false,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "ThoughtOrb",
+    "slug": "thought-orb",
+    "type": "registry:component",
+    "title": "Thought Orb",
+    "description": "A small dark glass ball with a Siri-style voice wave inside, locked to the thinking state and drawn by a Metal color shader; palettes for searching, reading and writing crossfade the colour with the kind of work, and a Pill wraps it with a label and indeterminate dots into the status control.",
+    "category": "ai",
+    "license": "MIT+Commons-Clause",
+    "version": "1.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "ai",
+      "orb",
+      "shader",
+      "metal",
+      "thinking",
+      "status"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [
+      {
+        "path": "registry/swift/ai/ThoughtOrb.metal",
+        "type": "registry:shader",
+        "target": "SwiftPieces/AI/ThoughtOrb.metal"
+      }
+    ],
+    "files": [
+      {
+        "path": "registry/swift/ai/ThoughtOrb.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/AI/ThoughtOrb.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/ai/thought-orb",
+    "liquidGlass": false,
+    "metal": true
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "AmbientMesh",
+    "slug": "ambient-mesh",
+    "type": "registry:component",
+    "title": "Ambient Mesh",
+    "description": "A 4x4 MeshGradient whose interior points wander on layered low-frequency noise, in house block palettes that adapt to light and dark, with built-in grain and optional tilt parallax.",
+    "category": "backgrounds",
+    "license": "MIT+Commons-Clause",
+    "version": "2.0.0",
+    "minIOSVersion": "18.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "background",
+      "gradient",
+      "mesh",
+      "motion",
+      "loop",
+      "palette"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/backgrounds/AmbientMesh.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Backgrounds/AmbientMesh.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/backgrounds/ambient-mesh",
+    "pro": "mini-player",
+    "liquidGlass": false,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "Aurora",
+    "slug": "aurora",
+    "type": "registry:component",
+    "title": "Aurora",
+    "description": "Slow aurora curtains with crisp lower edges and soft rising tails, rendered by a Metal color shader over a ground that adapts to light and dark, in house block palettes with an intensity dial.",
+    "category": "backgrounds",
+    "license": "MIT+Commons-Clause",
+    "version": "2.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "background",
+      "shader",
+      "aurora",
+      "loop",
+      "palette"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [
+      {
+        "path": "registry/swift/backgrounds/Aurora.metal",
+        "type": "registry:shader",
+        "target": "SwiftPieces/Backgrounds/Aurora.metal"
+      }
+    ],
+    "files": [
+      {
+        "path": "registry/swift/backgrounds/Aurora.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Backgrounds/Aurora.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/backgrounds/aurora",
+    "liquidGlass": false,
+    "metal": true
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "Grain",
+    "slug": "grain",
+    "type": "registry:component",
+    "title": "Grain",
+    "description": "Film grain as a view modifier and a ready-made backdrop: luminance-weighted so it peaks in midtones, soft-light blended, dithered so it never aliases at 3x, with an adaptive standard ground and house block gradients.",
+    "category": "backgrounds",
+    "license": "MIT+Commons-Clause",
+    "version": "2.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "background",
+      "shader",
+      "grain",
+      "modifier",
+      "texture",
+      "palette"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [
+      {
+        "path": "registry/swift/backgrounds/Grain.metal",
+        "type": "registry:shader",
+        "target": "SwiftPieces/Backgrounds/Grain.metal"
+      }
+    ],
+    "files": [
+      {
+        "path": "registry/swift/backgrounds/Grain.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Backgrounds/Grain.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/backgrounds/grain",
+    "liquidGlass": false,
+    "metal": true
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "Silk",
+    "slug": "silk",
+    "type": "registry:component",
+    "title": "Silk",
+    "description": "A slowly folding silk surface lit by a movable light and shaded from a real gradient normal in a Metal shader, in house block fabrics and an adaptive standard style, with optional device-tilt lighting.",
+    "category": "backgrounds",
+    "license": "MIT+Commons-Clause",
+    "version": "2.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "background",
+      "shader",
+      "silk",
+      "motion",
+      "loop",
+      "palette"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [
+      {
+        "path": "registry/swift/backgrounds/Silk.metal",
+        "type": "registry:shader",
+        "target": "SwiftPieces/Backgrounds/Silk.metal"
+      }
+    ],
+    "files": [
+      {
+        "path": "registry/swift/backgrounds/Silk.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Backgrounds/Silk.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/backgrounds/silk",
+    "pro": "onboarding-stack",
+    "liquidGlass": false,
+    "metal": true
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "TouchGrid",
+    "slug": "touch-grid",
+    "type": "registry:component",
+    "title": "Touch Grid",
+    "description": "A Canvas dot grid that swells and warms into a house block color under the finger, springs back on release, and sends one dissipating ripple out from a tap.",
+    "category": "backgrounds",
+    "license": "MIT+Commons-Clause",
+    "version": "2.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "background",
+      "grid",
+      "interactive",
+      "canvas",
+      "haptics",
+      "palette"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/backgrounds/TouchGrid.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Backgrounds/TouchGrid.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/backgrounds/touch-grid",
+    "liquidGlass": false,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "FlipCard",
+    "slug": "flip-card",
+    "type": "registry:component",
+    "title": "Flip Card",
+    "description": "A two-sided card you flip by tap or by dragging sideways. The drag scrubs the rotation, release commits or snaps back by velocity, the card lifts toward you mid-turn with a layered shadow that slides off the raised edge, and each face shades as it turns edge-on.",
+    "category": "cards",
+    "license": "MIT+Commons-Clause",
+    "version": "2.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "card",
+      "flip",
+      "drag",
+      "3d",
+      "spring",
+      "flashcard"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/cards/FlipCard.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Cards/FlipCard.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/cards/flip-card",
+    "pro": "payment-card",
+    "liquidGlass": false,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "MotionCard",
+    "slug": "motion-card",
+    "type": "registry:component",
+    "title": "Motion Card",
+    "description": "A solid color card that tilts with the device's attitude through an exponential filter, with a fixed-light sheen and a layered shadow that slide as it turns. Press settles it flat and scales it down with a light impact, and Core Motion stops whenever the scene is not active.",
+    "category": "cards",
+    "license": "MIT+Commons-Clause",
+    "version": "2.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "card",
+      "motion",
+      "tilt",
+      "core-motion",
+      "press",
+      "ticket"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/cards/MotionCard.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Cards/MotionCard.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/cards/motion-card",
+    "pro": "payment-card",
+    "liquidGlass": false,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "ParallaxCard",
+    "slug": "parallax-card",
+    "type": "registry:component",
+    "title": "Parallax Card",
+    "description": "An image card whose picture drifts slower than the scroll while a solid caption block drifts slower still, so the card reads in layers. Press lifts it with a deeper shadow and nudges the trailing glyph, and the caption is composed from eyebrow, title, metadata, and trailing glyph slots.",
+    "category": "cards",
+    "license": "MIT+Commons-Clause",
+    "version": "2.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "card",
+      "parallax",
+      "image",
+      "scroll",
+      "press",
+      "caption"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/cards/ParallaxCard.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Cards/ParallaxCard.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/cards/parallax-card",
+    "pro": "hero-expand",
+    "liquidGlass": false,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "SwipeDeck",
+    "slug": "swipe-deck",
+    "type": "registry:component",
+    "title": "Swipe Deck",
+    "description": "A gesture-driven card stack: the top card follows the finger and swings from its base, a solid outcome badge fades in for the direction you are heading and locks at the threshold, the cards beneath rise as it leaves, and release past the threshold or a flick throws it left, right, or up.",
+    "category": "cards",
+    "license": "MIT+Commons-Clause",
+    "version": "2.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "cards",
+      "swipe",
+      "stack",
+      "drag",
+      "gesture",
+      "spring",
+      "decide"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/cards/SwipeDeck.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Cards/SwipeDeck.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/cards/swipe-deck",
+    "liquidGlass": false,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "CommitButton",
+    "slug": "commit-button",
+    "type": "registry:component",
+    "title": "Commit Button",
+    "description": "An async action button driven by one idle/loading/success/error/disabled phase: a signal capsule collapses to a spinning ring, closes it and blooms into a sage success block with a drawn check, or re-expands as a butter error block that shakes and doubles as retry.",
+    "category": "controls",
+    "license": "MIT+Commons-Clause",
+    "version": "2.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "button",
+      "loading",
+      "success",
+      "error",
+      "async",
+      "haptics"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/controls/CommitButton.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Controls/CommitButton.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/controls/commit-button",
+    "pro": "swipe-to-confirm",
+    "liquidGlass": false,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "ElasticButton",
+    "slug": "elastic-button",
+    "type": "registry:component",
+    "title": "Elastic Button",
+    "description": "A ButtonStyle that squashes toward the touch point, stretches with rubber-band resistance when dragged, deepens after a hold and snaps back with a spring. Optional solid surfaces (signal, block, raised) press into their own soft shadow and darken under the finger.",
+    "category": "controls",
+    "license": "MIT+Commons-Clause",
+    "version": "2.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "button",
+      "style",
+      "spring",
+      "drag",
+      "haptics",
+      "depth"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/controls/ElasticButton.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Controls/ElasticButton.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/controls/elastic-button",
+    "liquidGlass": false,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "FanStack",
+    "slug": "fan-stack",
+    "type": "registry:component",
+    "title": "Fan Stack",
+    "description": "Overlapping block-color avatars that fan apart on tap or hold with staggered springs, dissolve the +N pill into the hidden faces, and let a drag scrub across them: the avatar under the finger lifts, shows a name tag and ticks a haptic, and releasing selects it.",
+    "category": "controls",
+    "license": "MIT+Commons-Clause",
+    "version": "2.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "avatar",
+      "group",
+      "fan",
+      "drag",
+      "haptics"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/controls/FanStack.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Controls/FanStack.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/controls/fan-stack",
+    "liquidGlass": false,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "HoldToConfirm",
+    "slug": "hold-to-confirm",
+    "type": "registry:component",
+    "title": "Hold To Confirm",
+    "description": "A press-and-hold capsule for destructive or important actions: a solid fill sweeps from the leading puck while held, passes three milestone dots with rising haptics, inverts the label under it, rewinds with a spring on early release and settles into a sage confirmed block.",
+    "category": "controls",
+    "license": "MIT+Commons-Clause",
+    "version": "2.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "button",
+      "hold",
+      "confirm",
+      "destructive",
+      "haptics"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/controls/HoldToConfirm.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Controls/HoldToConfirm.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/controls/hold-to-confirm",
+    "pro": "swipe-to-confirm",
+    "liquidGlass": false,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "TimerDial",
+    "slug": "timer-dial",
+    "type": "registry:component",
+    "title": "Timer Dial",
+    "description": "A countdown ring you set by dragging its knob around like the Timer dial, with a tick per step and a heavier detent every 5s. A solid block ring over a minute-tick scale, light display numerals, a breathing signal warning zone, a sage finish, and a determinate progress mode.",
+    "category": "controls",
+    "license": "MIT+Commons-Clause",
+    "version": "2.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "timer",
+      "countdown",
+      "dial",
+      "ring",
+      "progress",
+      "haptics"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/controls/TimerDial.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Controls/TimerDial.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/controls/timer-dial",
+    "pro": "focus-timer",
+    "liquidGlass": false,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "LiveStat",
+    "slug": "live-stat",
+    "type": "registry:component",
+    "title": "Live Stat",
+    "description": "A metric tile with a light display-scale value that rolls with a spring and dims its decimals, a solid delta block, a sparkline you hold and scrub to retarget the value live, a press that expands the line into a taller chart with low and high, and a solid color block variant.",
+    "category": "data",
+    "license": "MIT+Commons-Clause",
+    "version": "2.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "stat",
+      "kpi",
+      "sparkline",
+      "scrub",
+      "tile",
+      "numbers"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/data/LiveStat.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Data/LiveStat.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/data/live-stat",
+    "pro": "dashboard-screen",
+    "liquidGlass": false,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "Odometer",
+    "slug": "odometer",
+    "type": "registry:component",
+    "title": "Odometer",
+    "description": "A number whose digits roll on individual slots like a mechanical counter, carrying from the low digits up so unchanged digits never move, with softened slot edges while rolling, dimmed decimals, a separate sign, a solid delta block, and a dashed loading state.",
+    "category": "data",
+    "license": "MIT+Commons-Clause",
+    "version": "2.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "number",
+      "counter",
+      "digits",
+      "roll",
+      "currency",
+      "balance"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/data/Odometer.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Data/Odometer.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/data/odometer",
+    "pro": "dashboard-screen",
+    "liquidGlass": false,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "RingBreakdown",
+    "slug": "ring-breakdown",
+    "type": "registry:component",
+    "title": "Ring Breakdown",
+    "description": "A composition ring of solid color blocks with rounded seams that you scrub by dragging around it, with a haptic at each slice boundary, a radial lift for the selected slice while the rest step back to the surface, a light display-scale center figure, and legend rows that turn into the slice's block.",
+    "category": "data",
+    "license": "MIT+Commons-Clause",
+    "version": "2.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "chart",
+      "ring",
+      "donut",
+      "breakdown",
+      "scrub",
+      "legend",
+      "budget"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/data/RingBreakdown.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Data/RingBreakdown.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/data/ring-breakdown",
+    "pro": "spending-ring",
+    "liquidGlass": false,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "ScrubChart",
+    "slug": "scrub-chart",
+    "type": "registry:component",
+    "title": "Scrub Chart",
+    "description": "A line or bar chart component with a light display-scale readout and dimmed decimals, a solid delta block, a flag that rides the scrub rule, hold-and-drag range selection with delta and percent, and a block range picker that morphs the line between datasets.",
+    "category": "data",
+    "license": "MIT+Commons-Clause",
+    "version": "2.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "chart",
+      "line",
+      "bars",
+      "scrub",
+      "range",
+      "morph",
+      "numbers"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/data/ScrubChart.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Data/ScrubChart.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/data/scrub-chart",
+    "pro": "dashboard-screen",
+    "liquidGlass": false,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "OutcomeScreen",
+    "slug": "outcome-screen",
+    "type": "registry:component",
+    "title": "Outcome Screen",
+    "description": "A success, failure or empty outcome view sharing one choreography, where a ring draws, floods into a solid color block, the mark strokes in dark ink, one pulse lands with a haptic, and a heavy headline and a single signal action rise, with async retry and a details block for failures.",
+    "category": "feedback",
+    "license": "MIT+Commons-Clause",
+    "version": "2.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "success",
+      "error",
+      "empty",
+      "retry",
+      "completion",
+      "haptic"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/feedback/OutcomeScreen.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Feedback/OutcomeScreen.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/feedback/outcome-screen",
+    "pro": "glass-paywall-screen",
+    "liquidGlass": false,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "RatingScrub",
+    "slug": "rating-scrub",
+    "type": "registry:component",
+    "title": "Rating Scrub",
+    "description": "A star rating you tap or scrub, with soft rounded stars that fill as solid blocks colored by the score, the star under your finger lifting, a staggered spring settle, and a light numeral with a label chip that morph as you go.",
+    "category": "feedback",
+    "license": "MIT+Commons-Clause",
+    "version": "2.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "rating",
+      "stars",
+      "scrub",
+      "gesture",
+      "haptic",
+      "review"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/feedback/RatingScrub.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Feedback/RatingScrub.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/feedback/rating-scrub",
+    "liquidGlass": false,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "ReactionToggle",
+    "slug": "reaction-toggle",
+    "type": "registry:component",
+    "title": "Reaction Toggle",
+    "description": "A like or save toggle that presses in, floods its capsule with a solid color block from the symbol outward, bounces the symbol, sends out one fading halo, and can roll a count or float a confirmation pill.",
+    "category": "feedback",
+    "license": "MIT+Commons-Clause",
+    "version": "2.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "like",
+      "bookmark",
+      "toggle",
+      "reaction",
+      "haptic",
+      "capsule"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/feedback/ReactionToggle.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Feedback/ReactionToggle.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/feedback/reaction-toggle",
+    "liquidGlass": false,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "SkeletonLoader",
+    "slug": "skeleton-loader",
+    "type": "registry:component",
+    "title": "Skeleton Loader",
+    "description": "Solid placeholder bones and a self-masking modifier that turns any layout, color blocks included, into one quiet shape sweeping a soft diagonal highlight on a shared clock, then hands off as content unblurs and rises row by row.",
+    "category": "feedback",
+    "license": "MIT+Commons-Clause",
+    "version": "2.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "loading",
+      "skeleton",
+      "shimmer",
+      "placeholder",
+      "error",
+      "redacted"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/feedback/SkeletonLoader.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Feedback/SkeletonLoader.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/feedback/skeleton-loader",
+    "pro": "ghost-state",
+    "liquidGlass": false,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "StatusMorph",
+    "slug": "status-morph",
+    "type": "registry:component",
+    "title": "Status Morph",
+    "description": "One continuous stroke that spins as a loading arc, closes into a ring, floods into a solid block and draws a check in dark ink on success, or a cross with a nudge on failure, with an optional morphing caption.",
+    "category": "feedback",
+    "license": "MIT+Commons-Clause",
+    "version": "2.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "status",
+      "loading",
+      "success",
+      "failure",
+      "trim",
+      "haptic",
+      "upload"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/feedback/StatusMorph.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Feedback/StatusMorph.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/feedback/status-morph",
+    "pro": "tool-execution-card",
+    "liquidGlass": false,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "GlassActionMenu",
+    "slug": "glass-action-menu",
+    "type": "registry:component",
+    "title": "Glass Action Menu",
+    "description": "A floating signal trigger that long-presses open into a staggered line or arc of color-block actions you can slide across and release to fire; the trigger confirms with a check, tap toggles, a scrim dismisses, and the glass morphs on iOS 26.",
+    "category": "glass",
+    "license": "MIT+Commons-Clause",
+    "version": "2.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "menu",
+      "glass",
+      "morph",
+      "fab",
+      "long-press",
+      "haptics"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/glass/GlassActionMenu.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Glass/GlassActionMenu.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/glass/glass-action-menu",
+    "pro": "morph-nav",
+    "liquidGlass": true,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "GlassSegments",
+    "slug": "glass-segments",
+    "type": "registry:component",
+    "title": "Glass Segments",
+    "description": "A segmented control whose glass indicator you can grab and drag: it lifts under the finger, rubber-bands past the ends, stretches with velocity and settles with a spring, while the label ink flips exactly under its edge; tap still works.",
+    "category": "glass",
+    "license": "MIT+Commons-Clause",
+    "version": "2.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "segmented",
+      "picker",
+      "glass",
+      "drag",
+      "haptics"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/glass/GlassSegments.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Glass/GlassSegments.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/glass/glass-segments",
+    "pro": "lens-tab-bar",
+    "liquidGlass": true,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "GlassSurface",
+    "slug": "glass-surface",
+    "type": "registry:component",
+    "title": "Glass Surface",
+    "description": "The Glass family foundation: Liquid Glass in a capsule, rect, circle or concentric shape on iOS 26, with a layered Material fallback that keeps the press response, solid tint, specular edge and a designed disabled state everywhere else.",
+    "category": "glass",
+    "license": "MIT+Commons-Clause",
+    "version": "2.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "glass",
+      "surface",
+      "fallback",
+      "foundation",
+      "toolbar"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/glass/GlassSurface.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Glass/GlassSurface.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/glass/glass-surface",
+    "pro": "glass-sheet",
+    "liquidGlass": true,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "ExpandingTrack",
+    "slug": "expanding-track",
+    "type": "registry:component",
+    "title": "Expanding Track",
+    "description": "A thumbless slider drawn as a solid color bar that swells from 8pt to a 32pt block under the finger, shows detent dots and an inverting readout while dragging, squishes past either end, and can carry an uppercase label with a big light numeral; a second init selects a range with two sinking handles.",
+    "category": "inputs",
+    "license": "MIT+Commons-Clause",
+    "version": "2.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "slider",
+      "range",
+      "drag",
+      "haptic",
+      "numeral"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/inputs/ExpandingTrack.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Inputs/ExpandingTrack.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/inputs/expanding-track",
+    "liquidGlass": false,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "FilterRail",
+    "slug": "filter-rail",
+    "type": "registry:component",
+    "title": "Filter Rail",
+    "description": "A scrolling rail of filter chips with optional counts where one solid indicator glides between single-select picks, multi-select picks light up as color blocks with dark ink and gather at the leading edge behind a counting Clear chip, the chosen chip scrolls into view, and edges fade only when content overflows.",
+    "category": "inputs",
+    "license": "MIT+Commons-Clause",
+    "version": "2.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "chips",
+      "filter",
+      "scroll",
+      "selection",
+      "matched-geometry"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/inputs/FilterRail.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Inputs/FilterRail.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/inputs/filter-rail",
+    "pro": "command-palette",
+    "liquidGlass": false,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "ScrubStepper",
+    "slug": "scrub-stepper",
+    "type": "registry:component",
+    "title": "Scrub Stepper",
+    "description": "A capsule stepper with round minus and plus buttons around a solid numeral block; tap, hold to repeat with acceleration, or scrub sideways across the block for velocity-scaled steps while a ruler slides under the finger, and the capsule rubber-bands at the bounds.",
+    "category": "inputs",
+    "license": "MIT+Commons-Clause",
+    "version": "2.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "stepper",
+      "scrub",
+      "drag",
+      "haptic",
+      "numeric"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/inputs/ScrubStepper.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Inputs/ScrubStepper.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/inputs/scrub-stepper",
+    "pro": "glass-sheet",
+    "liquidGlass": false,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "SecureEntry",
+    "slug": "secure-entry",
+    "type": "registry:component",
+    "title": "Secure Entry",
+    "description": "A password field on a soft 56pt block with a focus ring and a round reveal toggle that keeps focus, a strength bar that grows through four color blocks with a matching label chip, requirement chips that turn into solid blocks with drawn checks and collapse when complete, a success check, and a damped shake with an error chip.",
+    "category": "inputs",
+    "license": "MIT+Commons-Clause",
+    "version": "2.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "password",
+      "secure",
+      "strength",
+      "validation",
+      "form"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/inputs/SecureEntry.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Inputs/SecureEntry.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/inputs/secure-entry",
+    "pro": "code-entry",
+    "liquidGlass": false,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "DepthCarousel",
+    "slug": "depth-carousel",
+    "type": "registry:component",
+    "title": "Depth Carousel",
+    "description": "Paged cards that recede in depth as they leave center and hand each page a phase value for inner parallax. Neighbors come forward on tap, and a page counter sits beside a scrubbable pill indicator computed in absolute page coordinates so it never jumps.",
+    "category": "lists",
+    "license": "MIT+Commons-Clause",
+    "version": "2.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "carousel",
+      "scroll",
+      "paging",
+      "depth",
+      "parallax",
+      "counter"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/lists/DepthCarousel.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Lists/DepthCarousel.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/lists/depth-carousel",
+    "pro": "depth-gallery",
+    "liquidGlass": false,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "PullToRefresh",
+    "slug": "pull-to-refresh",
+    "type": "registry:component",
+    "title": "Pull to Refresh",
+    "description": "Wraps any scrolling content in a refresh gesture: the overscroll rubber-bands, a drawn ring winds up with the pull, crossing the threshold arms it with a rigid impact, and releasing snaps to a held spinner that runs the caller's async work for a minimum visible beat before the content settles back.",
+    "category": "lists",
+    "license": "MIT+Commons-Clause",
+    "version": "2.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "list",
+      "scroll",
+      "refresh",
+      "gesture",
+      "loading",
+      "async"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/lists/PullToRefresh.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Lists/PullToRefresh.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/lists/pull-to-refresh",
+    "liquidGlass": false,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "StatusTimeline",
+    "slug": "status-timeline",
+    "type": "registry:component",
+    "title": "Status Timeline",
+    "description": "A vertical status timeline where the live step becomes a solid color block, connectors draw in as steps complete, nodes morph from number to check, the current node breathes, and any step expands to show its detail.",
+    "category": "lists",
+    "license": "MIT+Commons-Clause",
+    "version": "2.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "timeline",
+      "status",
+      "tracking",
+      "progress",
+      "steps",
+      "blocks"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/lists/StatusTimeline.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Lists/StatusTimeline.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/lists/status-timeline",
+    "liquidGlass": false,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "SwipeActionRow",
+    "slug": "swipe-action-row",
+    "type": "registry:component",
+    "title": "Swipe Action Row",
+    "description": "Wraps any row in a soft card with swipe actions drawn as solid color blocks. Tiles grow in as the row opens, the drag rubber-bands, a full swipe arms with a haptic and lets the edge block take the whole bar, and a shared binding keeps one row open at a time.",
+    "category": "lists",
+    "license": "MIT+Commons-Clause",
+    "version": "2.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "list",
+      "swipe",
+      "gesture",
+      "actions",
+      "blocks"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/lists/SwipeActionRow.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Lists/SwipeActionRow.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/lists/swipe-action-row",
+    "pro": "transaction-row",
+    "liquidGlass": false,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "TaskRow",
+    "slug": "task-row",
+    "type": "registry:component",
+    "title": "Task Row",
+    "description": "A task card whose check draws itself while the card flashes into a solid color block, a priority label block, a swipe-right that completes with a strike-through then compacts the row, swipe-left snooze and delete blocks, and a long-press lift that reports reorder moves.",
+    "category": "lists",
+    "license": "MIT+Commons-Clause",
+    "version": "2.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "task",
+      "todo",
+      "swipe",
+      "reorder",
+      "productivity",
+      "blocks"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/lists/TaskRow.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Lists/TaskRow.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/lists/task-row",
+    "pro": "transaction-row",
+    "liquidGlass": false,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "PhotoViewer",
+    "slug": "photo-viewer",
+    "type": "registry:component",
+    "title": "Photo Viewer",
+    "description": "A full-screen photo surface with anchor-correct pinch zoom, momentum panning that decelerates into the bounds, double-tap zoom about the tap, paging between images, and pinch-out or drag-down to dismiss with a fading scrim. A close button and a page counter that turns into a live zoom readout float above, and a single tap hides them.",
+    "category": "media",
+    "license": "MIT+Commons-Clause",
+    "version": "2.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "photo",
+      "zoom",
+      "pinch",
+      "pan",
+      "pager",
+      "dismiss",
+      "gesture",
+      "viewer"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/media/PhotoViewer.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Media/PhotoViewer.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/media/photo-viewer",
+    "pro": "depth-gallery",
+    "liquidGlass": false,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "StoryStrip",
+    "slug": "story-strip",
+    "type": "registry:component",
+    "title": "Story Strip",
+    "description": "A Stories-style segment strip with a built-in clock that advances segments on a duration, a long-press hold that freezes the strip and shows a paused badge, tap zones for back and forward that answer with a chevron, and a manual progress mode when you own the timing.",
+    "category": "media",
+    "license": "MIT+Commons-Clause",
+    "version": "2.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "stories",
+      "progress",
+      "segments",
+      "timer",
+      "hold",
+      "media"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/media/StoryStrip.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Media/StoryStrip.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/media/story-strip",
+    "liquidGlass": false,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "DragToDismiss",
+    "slug": "drag-to-dismiss",
+    "type": "registry:component",
+    "title": "Drag to Dismiss",
+    "description": "A modifier that lets a photo, card, or sheet follow a two-axis drag, rounds and shrinks it with progress over a styled scrim, reports its phase so the UI can say \"release to close\", then springs back or flies off along the drag vector past a distance or velocity threshold.",
+    "category": "motion",
+    "license": "MIT+Commons-Clause",
+    "version": "2.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "dismiss",
+      "drag",
+      "gesture",
+      "sheet",
+      "photos",
+      "modifier",
+      "haptics"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/motion/DragToDismiss.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Motion/DragToDismiss.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/motion/drag-to-dismiss",
+    "pro": "depth-gallery",
+    "liquidGlass": false,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "FloatingDock",
+    "slug": "floating-dock",
+    "type": "registry:component",
+    "title": "Floating Dock",
+    "description": "A floating dock on a solid surface where the selected item becomes a color block with its label, a drag across the dock lifts each item under the finger with a name bubble and commits on release, badges count in a signal pill, and the whole dock tucks away on scroll.",
+    "category": "navigation",
+    "license": "MIT+Commons-Clause",
+    "version": "2.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "tab bar",
+      "dock",
+      "navigation",
+      "gesture",
+      "badge"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/navigation/FloatingDock.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Navigation/FloatingDock.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/navigation/floating-dock",
+    "pro": "lens-tab-bar",
+    "liquidGlass": true,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "StretchHeader",
+    "slug": "stretch-header",
+    "type": "registry:component",
+    "title": "Stretch Header",
+    "description": "A hero header for your own ScrollView and NavigationStack: a heavy display title and uppercase eyebrow over a solid block hero that stretches on overscroll, a title that shrinks toward the real navigation bar, a stat row that pins under the bar, and a solid bar that fades in.",
+    "category": "navigation",
+    "license": "MIT+Commons-Clause",
+    "version": "2.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "header",
+      "scroll",
+      "navigation",
+      "stretchy",
+      "parallax",
+      "hero"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/navigation/StretchHeader.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Navigation/StretchHeader.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/navigation/stretch-header",
+    "pro": "settings-screen",
+    "liquidGlass": false,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "TrackingTabs",
+    "slug": "tracking-tabs",
+    "type": "registry:component",
+    "title": "Tracking Tabs",
+    "description": "Tabs over a paging ScrollView whose solid block indicator follows the pages through fractional scroll progress, with ink titles that fade in as the block passes, optional counts, a pressed state, and a selection tick on settle.",
+    "category": "navigation",
+    "license": "MIT+Commons-Clause",
+    "version": "2.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "tabs",
+      "pager",
+      "segmented",
+      "scroll",
+      "navigation",
+      "counts"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/navigation/TrackingTabs.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Navigation/TrackingTabs.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/navigation/tracking-tabs",
+    "pro": "lens-tab-bar",
+    "liquidGlass": false,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "ConfirmSheet",
+    "slug": "confirm-sheet",
+    "type": "registry:component",
+    "title": "Confirm Sheet",
+    "description": "A confirmation card that presents as a height-fitted bottom sheet or, inline, as a floating card you can drag away, with a solid icon tile that bounces on present, a heavy headline, a loading primary action that lands on a success check before dismissing, and a warning haptic for destructive choices.",
+    "category": "sheets",
+    "license": "MIT+Commons-Clause",
+    "version": "2.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "confirm",
+      "sheet",
+      "destructive",
+      "dialog",
+      "haptic"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/sheets/ConfirmSheet.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Sheets/ConfirmSheet.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/sheets/confirm-sheet",
+    "pro": "glass-sheet",
+    "liquidGlass": false,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "PermissionSheet",
+    "slug": "permission-sheet",
+    "type": "registry:component",
+    "title": "Permission Sheet",
+    "description": "A pre-permission sheet with a solid icon tile that bounces on present and turns into a check when granted, a heavy left-aligned headline, benefit rows on their own color tiles that stagger in, a signal-colored request button that spins while the system asks, and a denied result that swaps the copy and routes the button to Settings.",
+    "category": "sheets",
+    "license": "MIT+Commons-Clause",
+    "version": "2.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "permission",
+      "onboarding",
+      "sheet",
+      "async",
+      "haptic"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/sheets/PermissionSheet.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Sheets/PermissionSheet.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/sheets/permission-sheet",
+    "pro": "onboarding-flow",
+    "liquidGlass": false,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "Toast",
+    "slug": "toast",
+    "type": "registry:component",
+    "title": "Toast",
+    "description": "A single toast card with a solid color tile for its kind, a bold message with an optional detail line, a signal-colored action such as Undo, and a thin timer that pauses while touched; placed inside the safe area so it clears the Dynamic Island and rides above the keyboard.",
+    "category": "sheets",
+    "license": "MIT+Commons-Clause",
+    "version": "2.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "toast",
+      "notification",
+      "undo",
+      "feedback",
+      "haptic"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/sheets/Toast.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Sheets/Toast.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/sheets/toast",
+    "pro": "toast-stack",
+    "liquidGlass": false,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "GlassText",
+    "slug": "glass-text",
+    "type": "registry:component",
+    "title": "Glass Text",
+    "description": "Liquid Glass rendered on the actual glyph outlines of a string, one or several lines, with a specular Material fallback below iOS 26, a solid fill under Reduce Transparency and Dynamic Type scaling.",
+    "category": "text",
+    "license": "MIT+Commons-Clause",
+    "version": "2.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "text",
+      "glass",
+      "coretext",
+      "display",
+      "numerals"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/text/GlassText.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Text/GlassText.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/text/glass-text",
+    "pro": "glass-paywall-screen",
+    "liquidGlass": true,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "TextReveal",
+    "slug": "text-reveal",
+    "type": "registry:component",
+    "title": "Text Reveal",
+    "description": "Reveals a headline by characters, words or lines, rising from a baseline mask with a stagger sized to land in under a second, then wipes solid highlight blocks behind the phrases that matter.",
+    "category": "text",
+    "license": "MIT+Commons-Clause",
+    "version": "2.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "text",
+      "reveal",
+      "stagger",
+      "entrance",
+      "highlight",
+      "scroll"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/text/TextReveal.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Text/TextReveal.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/text/text-reveal",
+    "pro": "onboarding-flow",
+    "liquidGlass": false,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "WeightWave",
+    "slug": "weight-wave",
+    "type": "registry:component",
+    "title": "Weight Wave",
+    "description": "A wave of variable font weight and ink travels through a headline, peaking under the finger while dragging and sweeping slowly on its own when idle.",
+    "category": "text",
+    "license": "MIT+Commons-Clause",
+    "version": "2.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "text",
+      "variable-font",
+      "weight",
+      "drag",
+      "interactive",
+      "display"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/text/WeightWave.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Text/WeightWave.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/text/weight-wave",
+    "liquidGlass": false,
+    "metal": false
+  }
+]

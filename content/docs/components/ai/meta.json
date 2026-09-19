@@ -1,0 +1,13 @@
+{
+  "title": "AI",
+  "description": "Streaming replies, thinking states, prompt chips and code.",
+  "defaultOpen": false,
+  "pages": [
+    "assistant-orb",
+    "code-block",
+    "prompt-chips",
+    "streaming-reply",
+    "thinking-state",
+    "thought-orb"
+  ]
+}

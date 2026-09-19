@@ -1,0 +1,224 @@
+// swiftpieces:
+// title: Ambient Mesh
+// description: A 4x4 MeshGradient whose interior points wander on layered low-frequency noise, in house block palettes that adapt to light and dark, with built-in grain and optional tilt parallax.
+// category: backgrounds
+// pro: mini-player
+// minIOSVersion: "18.0"
+// version: "2.0.0"
+// tags: [background, gradient, mesh, motion, loop, palette]
+
+import SwiftUI
+import CoreMotion
+
+/// Living `MeshGradient` backdrop (iOS 18+). Each of the four interior points and the edge midpoints follows its own sum of three
+/// incommensurate sines, so the surface drifts without ever visibly repeating.
+///
+/// - Parameters:
+///   - palette: Two or three colors spread across the mesh diagonal. `.standard` (default) runs from the ground into lilac and tangerine; `.lagoon` (sky and sage) and `.sunrise` (tangerine and butter) are the other house palettes. All three are bright blocks on paper in light and deepened blocks rising out of near-black in dark. `.dusk`, `.ink`, `.paper`, `.mono` and `.vivid` remain available.
+///   - drift: How far points wander, in unit coordinates. 0.06–0.16 is sensible.
+///   - speed: Time multiplier.
+///   - grain: Opacity of the built-in soft-light grain, 0–1. 0 removes it.
+///   - parallax: When true, device tilt shifts the interior points. Uses Core Motion and stops whenever the scene is not active.
+@available(iOS 18, *)
+public struct AmbientMesh: View {
+    /// Two or three colors, read from the top-leading corner to the bottom-trailing corner. Colors may be dynamic.
+    public struct Palette: Sendable {
+        public var colors: [Color]
+
+        public init(colors: [Color]) {
+            precondition((2...3).contains(colors.count), "AmbientMesh.Palette takes two or three colors")
+            self.colors = colors
+        }
+
+        // MARK: House palettes
+
+        /// Ground into lilac into tangerine.
+        public static let standard = Palette(colors: [meshColor(light: 0xF3F2EE, dark: 0x121212), meshColor(light: 0xCDB8FF, dark: 0x534C65), meshColor(light: 0xFF5B3A, dark: 0x945D42)])
+        /// Ground into sky into sage.
+        public static let lagoon = Palette(colors: [meshColor(light: 0xF3F2EE, dark: 0x121212), meshColor(light: 0x9CC2FF, dark: 0x425065), meshColor(light: 0xA9DCB7, dark: 0x5E7764)])
+        /// Ground into tangerine into butter.
+        public static let sunrise = Palette(colors: [meshColor(light: 0xF3F2EE, dark: 0x121212), meshColor(light: 0xFF5B3A, dark: 0x714935), meshColor(light: 0xFFD976, dark: 0x947F49)])
+
+        // MARK: Earlier palettes
+
+        public static let dusk = Palette(colors: [Color(red: 0.15, green: 0.14, blue: 0.24), Color(red: 0.36, green: 0.28, blue: 0.42), Color(red: 0.64, green: 0.46, blue: 0.48)])
+        public static let ink = Palette(colors: [Color(red: 0.04, green: 0.04, blue: 0.06), Color(red: 0.12, green: 0.14, blue: 0.20), Color(red: 0.22, green: 0.26, blue: 0.34)])
+        public static let paper = Palette(colors: [Color(red: 0.97, green: 0.96, blue: 0.94), Color(red: 0.92, green: 0.90, blue: 0.86), Color(red: 0.85, green: 0.87, blue: 0.90)])
+        public static let mono = Palette(colors: [Color(red: 0.09, green: 0.09, blue: 0.10), Color(red: 0.24, green: 0.24, blue: 0.25), Color(red: 0.40, green: 0.40, blue: 0.41)])
+        public static let vivid = Palette(colors: [Color(red: 0.25, green: 0.20, blue: 0.85), Color(red: 0.85, green: 0.30, blue: 0.55), Color(red: 0.98, green: 0.62, blue: 0.25)])
+    }
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.scenePhase) private var scenePhase
+    @State private var tilt = TiltSource()
+
+    private let colors: [Color]
+    private let drift: Float
+    private let speed: Double
+    private let grain: Double
+    private let parallax: Bool
+
+    public init(palette: Palette = .standard, drift: Float = 0.1, speed: Double = 1, grain: Double = 0.18, parallax: Bool = false) {
+        self.drift = drift
+        self.speed = speed
+        self.grain = grain
+        self.parallax = parallax
+
+        // Spread the palette along the diagonal, nudging each point off the line so the mesh does not read as a plain linear gradient.
+        let nudges: [Double] = [0, 0.06, -0.04, 0, -0.07, 0.05, -0.03, 0.08, 0.04, -0.06, 0.07, -0.05, 0, 0.03, -0.08, 0]
+        colors = (0..<16).map { index in
+            let row = index / 4, col = index % 4
+            let t = min(max(Double(row + col) / 6 + nudges[index], 0), 1)
+            return Self.sample(palette.colors, at: t)
+        }
+    }
+
+    private static func sample(_ colors: [Color], at t: Double) -> Color {
+        let segments = Double(colors.count - 1)
+        let scaled = t * segments
+        let i = min(Int(scaled), colors.count - 2)
+        return colors[i].mix(with: colors[i + 1], by: scaled - Double(i))
+    }
+
+    public var body: some View {
+        TimelineView(.animation(paused: reduceMotion && !parallax)) { context in
+            let t = Float(context.date.timeIntervalSinceReferenceDate.truncatingRemainder(dividingBy: 10_000)) * Float(reduceMotion ? 0 : speed)
+            MeshGradient(width: 4, height: 4, points: points(at: t), colors: colors)
+        }
+        .overlay {
+            if grain > 0, let noise = Self.noise {
+                Image(decorative: noise, scale: 3)
+                    .resizable(resizingMode: .tile)
+                    .opacity(grain)
+                    .blendMode(.softLight)
+                    .allowsHitTesting(false)
+            }
+        }
+        .ignoresSafeArea()
+        .accessibilityHidden(true)
+        .onAppear { if parallax, scenePhase == .active { tilt.start() } }
+        .onDisappear { tilt.stop() }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active, parallax { tilt.start() } else { tilt.stop() }
+        }
+    }
+
+    // MARK: Geometry
+
+    /// Layered low-frequency noise: three sines at incommensurate rates, seeded per point and axis.
+    private func noise(_ t: Float, seed: Float) -> Float {
+        0.55 * sin(t * 0.23 + seed) + 0.30 * sin(t * 0.41 + seed * 2.1) + 0.15 * sin(t * 0.83 + seed * 3.7)
+    }
+
+    private func points(at t: Float) -> [SIMD2<Float>] {
+        let tiltX = parallax ? Float(tilt.offset.x) : 0
+        let tiltY = parallax ? Float(tilt.offset.y) : 0
+        var points: [SIMD2<Float>] = []
+        points.reserveCapacity(16)
+        for row in 0..<4 {
+            for col in 0..<4 {
+                let seed = Float(row * 4 + col) * 1.7
+                var x = Float(col) / 3
+                var y = Float(row) / 3
+                let onLeftRight = col == 0 || col == 3
+                let onTopBottom = row == 0 || row == 3
+                // Edge midpoints slide along their edge; corners stay put; interior points roam in both axes plus tilt.
+                if !onLeftRight { x += noise(t, seed: seed) * drift * (onTopBottom ? 0.5 : 1) }
+                if !onTopBottom { y += noise(t, seed: seed + 0.9) * drift * (onLeftRight ? 0.5 : 1) }
+                if !onLeftRight, !onTopBottom {
+                    x += tiltX * 0.08
+                    y += tiltY * 0.08
+                }
+                points.append(SIMD2(min(max(x, 0), 1), min(max(y, 0), 1)))
+            }
+        }
+        return points
+    }
+
+    // MARK: Grain
+
+    /// A 96x96 grey noise tile generated once. Drawn at scale 3 so each noise pixel is a third of a point.
+    @MainActor private static let noise: CGImage? = {
+        let side = 96
+        var bytes = [UInt8](repeating: 0, count: side * side)
+        for i in bytes.indices { bytes[i] = UInt8.random(in: 0...255) }
+        guard let provider = CGDataProvider(data: Data(bytes) as CFData) else { return nil }
+        return CGImage(
+            width: side, height: side, bitsPerComponent: 8, bitsPerPixel: 8, bytesPerRow: side,
+            space: CGColorSpaceCreateDeviceGray(), bitmapInfo: CGBitmapInfo(rawValue: CGImageAlphaInfo.none.rawValue),
+            provider: provider, decode: nil, shouldInterpolate: false, intent: .defaultIntent
+        )
+    }()
+}
+
+/// Low-passed device attitude relative to the attitude at start, as a unit offset. Runs only while started.
+@MainActor @Observable private final class TiltSource {
+    private(set) var offset = CGPoint.zero
+    @ObservationIgnored private let manager = CMMotionManager()
+    @ObservationIgnored private var reference: (roll: Double, pitch: Double)?
+
+    nonisolated init() {}
+
+    func start() {
+        guard !manager.isDeviceMotionActive, manager.isDeviceMotionAvailable else { return }
+        manager.deviceMotionUpdateInterval = 1 / 30
+        manager.startDeviceMotionUpdates(to: .main) { [weak self] motion, _ in
+            guard let motion else { return }
+            let roll = motion.attitude.roll
+            let pitch = motion.attitude.pitch
+            Task { @MainActor in self?.push(roll: roll, pitch: pitch) }
+        }
+    }
+
+    func stop() {
+        manager.stopDeviceMotionUpdates()
+        reference = nil
+        offset = .zero
+    }
+
+    private func push(roll: Double, pitch: Double) {
+        let reference = reference ?? (roll, pitch)
+        self.reference = reference
+        let target = CGPoint(
+            x: min(max((roll - reference.roll) * 0.8, -1), 1),
+            y: min(max((pitch - reference.pitch) * 0.8, -1), 1)
+        )
+        offset = CGPoint(x: offset.x + (target.x - offset.x) * 0.12, y: offset.y + (target.y - offset.y) * 0.12)
+    }
+}
+
+/// A color that resolves to `light` or `dark` with the current appearance.
+private func meshColor(light: UInt32, dark: UInt32) -> Color {
+    let l = meshUIColor(light), d = meshUIColor(dark)
+    return Color(uiColor: UIColor { $0.userInterfaceStyle == .dark ? d : l })
+}
+
+/// A solid sRGB color from a hex value.
+private func meshColor(_ hex: UInt32) -> Color {
+    Color(uiColor: meshUIColor(hex))
+}
+
+private func meshUIColor(_ hex: UInt32) -> UIColor {
+    UIColor(red: CGFloat((hex >> 16) & 0xFF) / 255, green: CGFloat((hex >> 8) & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
+}
+
+// MARK: - Example
+
+/// The mesh, full bleed. The piece is the field, so nothing sits on top of it.
+@available(iOS 18, *)
+private struct AmbientMeshExample: View {
+    var body: some View {
+        AmbientMesh()
+            .ignoresSafeArea()
+    }
+}
+
+@available(iOS 18, *)
+#Preview("Light") {
+    AmbientMeshExample().preferredColorScheme(.light)
+}
+
+@available(iOS 18, *)
+#Preview("Dark") {
+    AmbientMeshExample().preferredColorScheme(.dark)
+}

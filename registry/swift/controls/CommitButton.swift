@@ -1,0 +1,333 @@
+// swiftpieces:
+// title: Commit Button
+// description: "An async action button driven by one idle/loading/success/error/disabled phase: a signal capsule collapses to a spinning ring, closes it and blooms into a sage success block with a drawn check, or re-expands as a butter error block that shakes and doubles as retry."
+// category: controls
+// minIOSVersion: "17.0"
+// version: "2.0.0"
+// pro: swipe-to-confirm
+// tags: [button, loading, success, error, async, haptics]
+
+import SwiftUI
+
+/// Async action button whose whole lifecycle is one bound `phase`.
+///
+/// - Parameters:
+///   - title: Idle label.
+///   - phase: Bound `.idle`, `.loading`, `.success`, `.error(message)` or `.disabled`. The button returns itself to `.idle` after a success hold.
+///   - tint: Overrides the style's fill while idle and loading, with white ink. `nil` uses `style.fill`.
+///   - errorTint: Overrides the style's error fill, with white ink. `nil` uses `style.errorFill`.
+///   - successHold: How long the success state stays before the label expands back.
+///   - successTitle: Text shown beside the check on success, such as "Saved". `nil` keeps the success state a closed circle.
+///   - style: Fills, ink, height and type. `.standard` is the house palette: signal, sage for success, butter for errors.
+///   - action: Tap handler. Set `phase` to `.loading` inside it and to `.success` or `.error` when the work finishes.
+public struct CommitButton: View {
+    public enum Phase: Equatable {
+        case idle, loading, success, error(String), disabled
+
+        var isError: Bool { if case .error = self { return true } else { return false } }
+    }
+
+    /// Colors and metrics for every phase. Colors adapt to light and dark.
+    public struct Style: Sendable {
+        /// Idle and loading fill: the primary action color.
+        public var fill: Color
+        /// Ink on `fill`, `successFill` and `errorFill`.
+        public var ink: Color
+        /// Fill once the work succeeds.
+        public var successFill: Color
+        /// Fill while showing an error.
+        public var errorFill: Color
+        /// Fill and label color while `.disabled`.
+        public var disabledFill: Color
+        public var disabledInk: Color
+        /// Height of the capsule; the loading circle uses the same diameter. Never below 44.
+        public var height: CGFloat
+        /// Label font.
+        public var font: Font
+
+        public init(fill: Color = House.hex(0xFF5B3A), ink: Color = House.hex(0x141414), successFill: Color = House.hex(0xA9DCB7), errorFill: Color = House.hex(0xFFD976), disabledFill: Color = House.adaptive(light: 0xEAE8E2, dark: 0x262626), disabledInk: Color = House.adaptive(light: 0x8B8984, dark: 0x6F6D69), height: CGFloat = 56, font: Font = .body.weight(.semibold)) {
+            self.fill = fill
+            self.ink = ink
+            self.successFill = successFill
+            self.errorFill = errorFill
+            self.disabledFill = disabledFill
+            self.disabledInk = disabledInk
+            self.height = Swift.max(height, 44)
+            self.font = font
+        }
+
+        /// The Free house palette: signal, sage success, butter error, dark ink.
+        public static let standard = Style()
+
+        /// Builds house colors. Public so `Style` defaults can use it.
+        public enum House {
+            public static func hex(_ value: UInt32) -> Color {
+                Color(red: Double((value >> 16) & 0xFF) / 255, green: Double((value >> 8) & 0xFF) / 255, blue: Double(value & 0xFF) / 255)
+            }
+
+            public static func adaptive(light: UInt32, dark: UInt32) -> Color {
+                Color(uiColor: UIColor { traits in
+                    let v = traits.userInterfaceStyle == .dark ? dark : light
+                    return UIColor(red: CGFloat((v >> 16) & 0xFF) / 255, green: CGFloat((v >> 8) & 0xFF) / 255, blue: CGFloat(v & 0xFF) / 255, alpha: 1)
+                })
+            }
+        }
+    }
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Binding private var phase: Phase
+    @State private var shownTitle: String
+    @State private var ringClosed = false
+    @State private var checkDrawn = false
+    @State private var bloomed = false
+    @State private var shakes = 0
+    @State private var pressTicks = 0
+    @State private var successTicks = 0
+    @State private var errorTicks = 0
+    @State private var flow: Task<Void, Never>?
+
+    private let title: String
+    private let tint: Color?
+    private let errorTint: Color?
+    private let successHold: Duration
+    private let successTitle: String?
+    private let style: Style
+    private let action: () -> Void
+
+    public init(_ title: String, phase: Binding<Phase>, tint: Color? = nil, errorTint: Color? = nil, successHold: Duration = .milliseconds(900), successTitle: String? = nil, style: Style = .standard, action: @escaping () -> Void) {
+        self.title = title
+        self._phase = phase
+        self.tint = tint
+        self.errorTint = errorTint
+        self.successHold = successHold
+        self.successTitle = successTitle
+        self.style = style
+        self.action = action
+        self._shownTitle = State(initialValue: title)
+    }
+
+    /// Loading, and success until the check has drawn (or for good when there is no success title).
+    private var collapsed: Bool {
+        phase == .loading || (phase == .success && !(bloomed && successTitle != nil))
+    }
+
+    private var fill: Color {
+        switch phase {
+        case .error: errorTint ?? style.errorFill
+        case .success where ringClosed: style.successFill
+        case .disabled: style.disabledFill
+        default: tint ?? style.fill
+        }
+    }
+
+    private var ink: Color {
+        switch phase {
+        case .disabled: style.disabledInk
+        case .error: errorTint == nil ? style.ink : .white
+        case .success where ringClosed: style.ink
+        default: tint == nil ? style.ink : .white
+        }
+    }
+
+    public var body: some View {
+        let shakeAllowed = !reduceMotion
+        Button {
+            pressTicks += 1
+            action()
+        } label: {
+            ZStack {
+                if collapsed {
+                    ring.transition(.scale(scale: 0.6).combined(with: .opacity))
+                } else if phase == .success, let successTitle {
+                    HStack(spacing: 10) {
+                        checkDisc
+                        Text(successTitle).font(style.font).lineLimit(1)
+                    }
+                    .transition(.scale(scale: 0.8).combined(with: .opacity))
+                } else {
+                    HStack(spacing: 10) {
+                        if phase.isError {
+                            Image(systemName: "exclamationmark")
+                                .font(.caption.weight(.black))
+                                .foregroundStyle(errorTint ?? style.errorFill)
+                                .frame(width: 22, height: 22)
+                                .background(ink, in: Circle())
+                                .transition(.scale.combined(with: .opacity))
+                        }
+                        Text(shownTitle)
+                            .font(style.font)
+                            .lineLimit(1)
+                            .fixedSize()
+                            .id(shownTitle)
+                            .transition(reduceMotion ? .opacity : .push(from: .bottom).combined(with: .opacity))
+                    }
+                }
+            }
+            .foregroundStyle(ink)
+            .frame(height: style.height)
+            .frame(width: collapsed ? style.height : nil)
+            .padding(.horizontal, collapsed ? 0 : 28)
+            .background(fill, in: Capsule())
+            .clipShape(Capsule())
+            .contentShape(Capsule())
+            .animation(reduceMotion ? .smooth(duration: 0.2) : .snappy(duration: 0.38, extraBounce: 0.08), value: collapsed)
+            .animation(.snappy(duration: 0.3), value: shownTitle)
+            .animation(.smooth(duration: 0.3), value: phase)
+            .animation(.smooth(duration: 0.3), value: ringClosed)
+        }
+        .buttonStyle(Squash())
+        .disabled(collapsed || phase == .success || phase == .disabled)
+        .keyframeAnimator(initialValue: 0.0, trigger: shakes) { content, x in
+            content.offset(x: shakeAllowed ? x : 0)
+        } keyframes: { _ in
+            // Three cycles, each smaller than the last.
+            CubicKeyframe(-10, duration: 0.06)
+            CubicKeyframe(9, duration: 0.06)
+            CubicKeyframe(-6, duration: 0.06)
+            CubicKeyframe(5, duration: 0.06)
+            CubicKeyframe(-2, duration: 0.06)
+            CubicKeyframe(0, duration: 0.06)
+        }
+        .sensoryFeedback(.impact(flexibility: .soft), trigger: pressTicks)
+        .sensoryFeedback(.success, trigger: successTicks)
+        .sensoryFeedback(.error, trigger: errorTicks)
+        .onChange(of: phase) { _, new in respond(to: new) }
+        .accessibilityLabel(title)
+        .accessibilityValue(accessibilityValue)
+        .accessibilityHint(phase.isError ? "Double tap to try again" : "")
+    }
+
+    /// Spinning arc while loading; on success the arc closes into a full ring, then the check draws.
+    private var ring: some View {
+        TimelineView(.animation(paused: phase != .loading)) { context in
+            let angle = context.date.timeIntervalSinceReferenceDate.truncatingRemainder(dividingBy: 1.0) * 360
+            let side = style.height * 0.46
+            ZStack {
+                Circle().stroke(ink.opacity(0.22), lineWidth: 3)
+                Circle()
+                    .trim(from: 0, to: ringClosed ? 1 : 0.28)
+                    .stroke(ink, style: StrokeStyle(lineWidth: 3, lineCap: .round))
+                    .rotationEffect(.degrees(angle))
+                    .animation(.spring(duration: 0.4, bounce: 0), value: ringClosed)
+                Checkmark()
+                    .trim(from: 0, to: checkDrawn ? 1 : 0)
+                    .stroke(ink, style: StrokeStyle(lineWidth: 3, lineCap: .round, lineJoin: .round))
+                    .padding(side * 0.26)
+                    .animation(.spring(duration: 0.35, bounce: 0.1), value: checkDrawn)
+            }
+            .frame(width: side, height: side)
+        }
+    }
+
+    /// The bloomed success mark: an ink disc with the check drawn in the success fill.
+    private var checkDisc: some View {
+        Checkmark()
+            .trim(from: 0, to: checkDrawn ? 1 : 0)
+            .stroke(style.successFill, style: StrokeStyle(lineWidth: 2.6, lineCap: .round, lineJoin: .round))
+            .padding(7)
+            .frame(width: 26, height: 26)
+            .background(style.ink, in: Circle())
+    }
+
+    private func respond(to phase: Phase) {
+        flow?.cancel()
+        switch phase {
+        case .idle, .loading:
+            ringClosed = false
+            checkDrawn = false
+            bloomed = false
+            shownTitle = title
+        case .success:
+            flow = Task {
+                ringClosed = true
+                try? await Task.sleep(for: .milliseconds(reduceMotion ? 80 : 260))
+                guard !Task.isCancelled else { return }
+                checkDrawn = true
+                successTicks += 1
+                if successTitle != nil {
+                    try? await Task.sleep(for: .milliseconds(reduceMotion ? 60 : 320))
+                    guard !Task.isCancelled else { return }
+                    bloomed = true
+                }
+                try? await Task.sleep(for: successHold)
+                guard !Task.isCancelled, self.phase == .success else { return }
+                self.phase = .idle
+            }
+        case .error(let message):
+            ringClosed = false
+            checkDrawn = false
+            bloomed = false
+            errorTicks += 1
+            shownTitle = message
+            flow = Task {
+                // Let the capsule re-expand before it shakes.
+                try? await Task.sleep(for: .milliseconds(140))
+                guard !Task.isCancelled else { return }
+                shakes += 1
+            }
+        case .disabled:
+            break
+        }
+    }
+
+    private var accessibilityValue: String {
+        switch phase {
+        case .idle: ""
+        case .loading: "Loading"
+        case .success: successTitle ?? "Done"
+        case .error(let message): message
+        case .disabled: "Disabled"
+        }
+    }
+
+    /// Checkmark in unit space so it scales with the ring.
+    private struct Checkmark: Shape {
+        func path(in rect: CGRect) -> Path {
+            var path = Path()
+            path.move(to: CGPoint(x: rect.minX + rect.width * 0.08, y: rect.minY + rect.height * 0.55))
+            path.addLine(to: CGPoint(x: rect.minX + rect.width * 0.38, y: rect.minY + rect.height * 0.85))
+            path.addLine(to: CGPoint(x: rect.minX + rect.width * 0.92, y: rect.minY + rect.height * 0.2))
+            return path
+        }
+    }
+
+    /// Elastic press with a darken, kept private so the file stands alone. Loading and success are not dimmed like a normal disabled button.
+    private struct Squash: ButtonStyle {
+        @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+        func makeBody(configuration: Configuration) -> some View {
+            let pressed = configuration.isPressed
+            configuration.label
+                .overlay(Capsule().fill(.black.opacity(pressed ? 0.1 : 0)))
+                .scaleEffect(pressed && !reduceMotion ? 0.96 : 1)
+                .animation(pressed ? .spring(duration: 0.16, bounce: 0) : .snappy(duration: 0.36, extraBounce: 0.2), value: pressed)
+        }
+    }
+}
+
+// MARK: - Example
+
+/// Just the button, cycling success and a failed attempt.
+private struct CommitButtonExample: View {
+    private typealias House = CommitButton.Style.House
+    @State private var phase: CommitButton.Phase = .idle
+    @State private var attempts = 0
+
+    var body: some View {
+        CommitButton("Save changes", phase: $phase, successTitle: "Saved") {
+            attempts += 1
+            phase = .loading
+            Task {
+                try? await Task.sleep(for: .seconds(1.4))
+                phase = attempts.isMultiple(of: 2) ? .error("Couldn't save") : .success
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .frame(maxWidth: 340)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(House.adaptive(light: 0xF3F2EE, dark: 0x121212))
+    }
+}
+
+#Preview("Light") { CommitButtonExample().preferredColorScheme(.light) }
+#Preview("Dark") { CommitButtonExample().preferredColorScheme(.dark) }

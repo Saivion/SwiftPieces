@@ -1,0 +1,9 @@
+## Notes
+
+- The value is an `Animatable` text in light 40 pt display type with dimmed decimals. A spring interpolates real numbers through your `format`, and in-flight frames round to the target's own decimal places, so whole-number formats never flash a long fraction mid-roll.
+- Touch and hold the tile for 280 ms to scrub: a rule and a dot ride the sparkline, the value retargets to each point with a short spring, and `.selection` ticks per point. Release rolls back to the live value. At rest the dot marks the latest value.
+- A plain tap expands the tile into a 120 pt chart drawn by the same `Shape`, adding a dashed baseline at the first value and a low and high row. Moving more than 10 pt before the hold completes cancels both, so the tile can live in a scrolling grid. States: resting, pressed (97% with a flatter shadow), scrubbing, expanded.
+- The delta is a solid block with ink: sage for up, tangerine for down. Under Increase Contrast it gains a 1 pt outline.
+- `Style`: `.standard` is a white or charcoal tile; `.block(_:)` fills the tile with a color block and turns the value, line, and dot to ink, with the delta as an ink pill. `tint` overrides the sparkline color.
+- Reduce Motion skips the press scale, the count-up, and the draw-on. VoiceOver reads label and value, double-tap expands, and swipe up or down scrubs history.
+- A full dashboard screen ships in Swift Pieces Pro (`dashboard-screen`).

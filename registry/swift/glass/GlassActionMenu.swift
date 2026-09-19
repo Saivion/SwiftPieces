@@ -1,0 +1,435 @@
+// swiftpieces:
+// title: Glass Action Menu
+// description: A floating signal trigger that long-presses open into a staggered line or arc of color-block actions you can slide across and release to fire; the trigger confirms with a check, tap toggles, a scrim dismisses, and the glass morphs on iOS 26.
+// category: glass
+// minIOSVersion: "17.0"
+// version: "2.0.0"
+// pro: morph-nav
+// tags: [menu, glass, morph, fab, long-press, haptics]
+
+import SwiftUI
+
+/// Floating action menu with a hold-slide-release gesture, staggered emergence, a dimming scrim and a confirming trigger.
+///
+/// - Parameters:
+///   - items: Actions in emergence order (nearest to the trigger first). Give an item a `tint` to draw it as a color block.
+///   - triggerSymbol: SF Symbol on the collapsed trigger. Rotates 45° while open.
+///   - arrangement: `.linear` stacks items upward; `.arc` fans them from up to leading, for a bottom-trailing placement.
+///   - tint: Trigger fill. `nil` uses `style.trigger`, the house signal color. Items keep their own tints so the trigger reads as the anchor.
+///   - isExpanded: Optional binding to open or close the menu programmatically; it is written back when the user toggles it.
+///   - style: Trigger and label colors, sizes, scrim strength and the confirmation check.
+public struct GlassActionMenu: View {
+    public struct Item: Identifiable {
+        public let id = UUID()
+        public let symbol: String
+        public let label: String
+        /// Solid fill for this action. `nil` keeps it glass.
+        public let tint: Color?
+        public let action: () -> Void
+
+        public init(symbol: String, label: String, action: @escaping () -> Void) {
+            self.init(symbol: symbol, label: label, tint: nil, action: action)
+        }
+
+        public init(symbol: String, label: String, tint: Color?, action: @escaping () -> Void) {
+            self.symbol = symbol
+            self.label = label
+            self.tint = tint
+            self.action = action
+        }
+    }
+
+    public enum Arrangement { case linear, arc }
+    public enum Phase { case collapsed, expanding, open, hovering, firing, collapsing }
+
+    /// Visual tuning. `standard` uses the house palette: a signal trigger with dark ink and solid label capsules.
+    public struct Style: Sendable {
+        /// Trigger fill when `tint` is `nil`.
+        public var trigger: Color
+        /// Symbol color on the trigger and on tinted items.
+        public var ink: Color
+        /// Label capsule fill.
+        public var labelFill: Color
+        /// Label text color.
+        public var labelInk: Color
+        /// Diameter of the trigger.
+        public var triggerSize: CGFloat
+        /// Diameter of each item.
+        public var itemSize: CGFloat
+        /// Opacity of the black scrim while open.
+        public var scrimOpacity: Double
+        /// When true, the trigger shows a checkmark for a moment after an action fires.
+        public var confirmsAction: Bool
+
+        public init(
+            trigger: Color = Color(red: 1, green: 0, blue: 0),
+            ink: Color = Color(red: 0.078, green: 0.078, blue: 0.078),
+            labelFill: Color = Color(UIColor { $0.userInterfaceStyle == .dark
+                ? UIColor(red: 0.149, green: 0.149, blue: 0.149, alpha: 1)
+                : .white }),
+            labelInk: Color = Color(UIColor { $0.userInterfaceStyle == .dark
+                ? UIColor(red: 0.957, green: 0.953, blue: 0.937, alpha: 1)
+                : UIColor(red: 0.078, green: 0.078, blue: 0.078, alpha: 1) }),
+            triggerSize: CGFloat = 60,
+            itemSize: CGFloat = 52,
+            scrimOpacity: Double = 0.28,
+            confirmsAction: Bool = true
+        ) {
+            self.trigger = trigger
+            self.ink = ink
+            self.labelFill = labelFill
+            self.labelInk = labelInk
+            self.triggerSize = triggerSize
+            self.itemSize = itemSize
+            self.scrimOpacity = scrimOpacity
+            self.confirmsAction = confirmsAction
+        }
+
+        public static let standard = Style()
+    }
+
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Namespace private var namespace
+    @State private var phase: Phase = .collapsed
+    @State private var shown: Set<Int> = []
+    @State private var labelsVisible = false
+    @State private var hovered: Int?
+    @State private var triggerPressed = false
+    @State private var longPressed = false
+    @State private var hoverTicks = 0
+    @State private var fireTicks = 0
+    @State private var confirming = false
+    @State private var pressTask: Task<Void, Never>?
+    @State private var choreography: Task<Void, Never>?
+
+    private let items: [Item]
+    private let triggerSymbol: String
+    private let arrangement: Arrangement
+    private let tint: Color?
+    private let isExpanded: Binding<Bool>?
+    private let style: Style
+    private var triggerSize: CGFloat { style.triggerSize }
+    private var itemSize: CGFloat { style.itemSize }
+    private let spacing: CGFloat = 12
+    private static let space = "GlassActionMenu"
+
+    public init(items: [Item], triggerSymbol: String = "plus", arrangement: Arrangement = .linear, tint: Color? = nil, isExpanded: Binding<Bool>? = nil, style: Style = .standard) {
+        self.items = items
+        self.triggerSymbol = triggerSymbol
+        self.arrangement = arrangement
+        self.tint = tint
+        self.isExpanded = isExpanded
+        self.style = style
+    }
+
+    private var isOpen: Bool { phase != .collapsed && phase != .collapsing }
+
+    public var body: some View {
+        SwiftUI.Group {
+            if #available(iOS 26, *), !reduceTransparency {
+                GlassEffectContainer(spacing: 24) { stack }
+            } else {
+                stack
+            }
+        }
+        .frame(width: triggerSize, height: triggerSize)
+        .coordinateSpace(.named(Self.space))
+        .background { scrim }
+        .sensoryFeedback(.selection, trigger: hoverTicks)
+        .sensoryFeedback(.impact(flexibility: .rigid), trigger: fireTicks)
+        .sensoryFeedback(.impact(flexibility: .soft), trigger: longPressed) { _, new in new }
+        .onChange(of: isExpanded?.wrappedValue) { _, new in
+            guard let new, new != isOpen else { return }
+            new ? expand() : collapse()
+        }
+        .accessibilityElement(children: .contain)
+    }
+
+    private var stack: some View {
+        ZStack {
+            ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
+                if shown.contains(index) {
+                    itemView(index, item)
+                        .transition(reduceMotion ? .opacity : .offset(negated(target(index))).combined(with: .scale(scale: 0.5)).combined(with: .opacity))
+                }
+            }
+            trigger
+        }
+    }
+
+    // MARK: Items
+
+    @ViewBuilder private func itemView(_ index: Int, _ item: Item) -> some View {
+        let lifted = hovered == index
+        let scale: CGFloat = phase == .firing && lifted ? 1.2 : lifted ? 1.12 : 1
+        SwiftUI.Group {
+            if #available(iOS 26, *), !reduceTransparency {
+                // A tinted item stays a solid block; clear glass on top keeps the lensing edge and the morph.
+                itemButton(index, item)
+                    .background(item.tint ?? .clear, in: Circle())
+                    .glassEffect(item.tint == nil ? .regular.interactive() : .clear.interactive(), in: .circle)
+                    .glassEffectID(item.id, in: namespace)
+            } else if let tint = item.tint {
+                itemButton(index, item)
+                    .background(tint, in: Circle())
+            } else {
+                itemButton(index, item)
+                    .background(fallbackFill, in: Circle())
+                    .overlay(Circle().strokeBorder(.primary.opacity(0.10), lineWidth: 1))
+            }
+        }
+        .shadow(color: .black.opacity(lifted ? 0.22 : 0.10), radius: lifted ? 12 : 6, y: lifted ? 8 : 3)
+        .scaleEffect(reduceMotion ? 1 : scale)
+        .animation(.spring(duration: 0.28, bounce: 0.35), value: scale)
+        .overlay(alignment: labelAlignment(index)) {
+            Text(item.label)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(style.labelInk)
+                .lineLimit(1)
+                .fixedSize()
+                .padding(.horizontal, 12)
+                .padding(.vertical, 7)
+                .background(style.labelFill, in: Capsule())
+                .shadow(color: .black.opacity(0.12), radius: 8, y: 3)
+                .opacity(labelsVisible ? 1 : 0)
+                .offset(x: labelsVisible || reduceMotion ? 0 : 6)
+                .alignmentGuide(.leading) { $0[.trailing] + 10 }
+                .alignmentGuide(.top) { $0[.bottom] + 8 }
+                .accessibilityHidden(true)
+        }
+        .offset(target(index))
+        .zIndex(lifted ? 2 : 1)
+    }
+
+    /// Labels sit leading of their item, except the item straight above the trigger in an arc, whose label sits above it so it never crosses its neighbour.
+    private func labelAlignment(_ index: Int) -> Alignment {
+        arrangement == .arc && index == 0 && items.count > 2 ? .top : .leading
+    }
+
+    private func itemButton(_ index: Int, _ item: Item) -> some View {
+        Button { fire(index) } label: {
+            Image(systemName: item.symbol)
+                .font(.title3.weight(.semibold))
+                .foregroundStyle(item.tint == nil ? AnyShapeStyle(.primary) : AnyShapeStyle(style.ink))
+                .frame(width: itemSize, height: itemSize)
+                .contentShape(Circle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(item.label)
+    }
+
+    private var fallbackFill: AnyShapeStyle {
+        reduceTransparency ? AnyShapeStyle(Color(.secondarySystemBackground)) : AnyShapeStyle(.regularMaterial)
+    }
+
+    // MARK: Trigger
+
+    @ViewBuilder private var trigger: some View {
+        let fill = tint ?? style.trigger
+        let symbol = Image(systemName: confirming ? "checkmark" : triggerSymbol)
+            .font(.title2.weight(.bold))
+            .foregroundStyle(style.ink)
+            .contentTransition(.symbolEffect(.replace))
+            .rotationEffect(.degrees(isOpen && !confirming ? 45 : 0))
+            .frame(width: triggerSize, height: triggerSize)
+            .contentShape(Circle())
+        SwiftUI.Group {
+            if #available(iOS 26, *), !reduceTransparency {
+                symbol
+                    .background(fill, in: Circle())
+                    .glassEffect(.clear.interactive(), in: .circle)
+                    .glassEffectID("trigger", in: namespace)
+            } else {
+                symbol
+                    .background(fill, in: Circle())
+            }
+        }
+        .shadow(color: .black.opacity(0.18), radius: 14, y: 8)
+        .scaleEffect(triggerPressed && !reduceMotion ? 0.92 : 1)
+        .animation(.spring(duration: 0.3, bounce: 0.3), value: triggerPressed)
+        .animation(.spring(duration: 0.4, bounce: 0.25), value: isOpen)
+        .animation(.spring(duration: 0.35, bounce: 0.3), value: confirming)
+        .gesture(triggerGesture)
+        .zIndex(3)
+        .accessibilityAddTraits(.isButton)
+        .accessibilityLabel(isOpen ? "Close menu" : "Open menu")
+        .accessibilityHint("Double tap to toggle. Touch and hold, then slide to an action.")
+        .accessibilityAction { toggle() }
+    }
+
+    /// Tap toggles. Holding 350ms expands and the same touch can slide across items; releasing on one fires it.
+    private var triggerGesture: some Gesture {
+        DragGesture(minimumDistance: 0, coordinateSpace: .named(Self.space))
+            .onChanged { value in
+                if !triggerPressed {
+                    triggerPressed = true
+                    longPressed = false
+                    if phase == .collapsed {
+                        pressTask = Task {
+                            try? await Task.sleep(for: .milliseconds(350))
+                            guard !Task.isCancelled, triggerPressed else { return }
+                            longPressed = true
+                            expand()
+                        }
+                    }
+                }
+                guard isOpen else { return }
+                let hit = itemIndex(at: value.location)
+                if hit != hovered {
+                    hovered = hit
+                    if hit != nil { hoverTicks += 1; phase = .hovering } else if phase == .hovering { phase = .open }
+                }
+            }
+            .onEnded { _ in
+                pressTask?.cancel()
+                pressTask = nil
+                triggerPressed = false
+                if let hovered, isOpen {
+                    fire(hovered)
+                } else if !longPressed {
+                    toggle()
+                } else if phase == .hovering {
+                    phase = .open
+                }
+            }
+    }
+
+    @ViewBuilder private var scrim: some View {
+        if phase != .collapsed {
+            Color.black.opacity(phase == .collapsing ? 0 : style.scrimOpacity)
+                .frame(width: 4000, height: 4000)
+                .ignoresSafeArea()
+                .contentShape(.rect)
+                .onTapGesture { collapse() }
+                .animation(.smooth(duration: 0.3), value: phase == .collapsing)
+                .transition(.opacity)
+        }
+    }
+
+    // MARK: Geometry
+
+    private func target(_ index: Int) -> CGSize {
+        let reach = triggerSize / 2 + spacing + itemSize / 2
+        switch arrangement {
+        case .linear:
+            return CGSize(width: 0, height: -(reach + CGFloat(index) * (itemSize + spacing)))
+        case .arc:
+            let steps = max(items.count - 1, 1)
+            let halfStep = (Double.pi / 2) / Double(steps) / 2
+            // Grow the radius until neighbouring circles keep a 12pt gap.
+            let radius = max(reach + 28, (itemSize + spacing) / 2 / sin(halfStep))
+            let angle = Double.pi / 2 + (Double.pi / 2) * Double(index) / Double(steps)
+            return CGSize(width: cos(angle) * radius, height: -sin(angle) * radius)
+        }
+    }
+
+    private func negated(_ size: CGSize) -> CGSize { CGSize(width: -size.width, height: -size.height) }
+
+    private func itemIndex(at location: CGPoint) -> Int? {
+        let origin = CGPoint(x: triggerSize / 2, y: triggerSize / 2)
+        let reach = itemSize / 2 + 8
+        return items.indices.first { index in
+            let t = target(index)
+            return hypot(location.x - origin.x - t.width, location.y - origin.y - t.height) <= reach
+        }
+    }
+
+    // MARK: Choreography
+
+    private func toggle() { isOpen ? collapse() : expand() }
+
+    private func expand() {
+        choreography?.cancel()
+        withAnimation(.smooth(duration: 0.25)) { phase = .expanding }
+        isExpanded?.wrappedValue = true
+        choreography = Task {
+            for index in items.indices {
+                withAnimation(reduceMotion ? .smooth(duration: 0.2) : .spring(duration: 0.5, bounce: 0.3)) { _ = shown.insert(index) }
+                if !reduceMotion { try? await Task.sleep(for: .milliseconds(45)) }
+                if Task.isCancelled { return }
+            }
+            try? await Task.sleep(for: .milliseconds(reduceMotion ? 40 : 200))
+            guard !Task.isCancelled else { return }
+            withAnimation(.smooth(duration: 0.25)) { labelsVisible = true }
+            if phase == .expanding { phase = .open }
+        }
+    }
+
+    private func collapse() {
+        choreography?.cancel()
+        phase = .collapsing
+        hovered = nil
+        isExpanded?.wrappedValue = false
+        choreography = Task {
+            withAnimation(.smooth(duration: 0.15)) { labelsVisible = false }
+            for index in items.indices.reversed() {
+                withAnimation(reduceMotion ? .smooth(duration: 0.2) : .spring(duration: 0.4, bounce: 0.15)) { _ = shown.remove(index) }
+                if !reduceMotion { try? await Task.sleep(for: .milliseconds(35)) }
+                if Task.isCancelled { return }
+            }
+            withAnimation(.smooth(duration: 0.2)) { phase = .collapsed }
+        }
+    }
+
+    private func fire(_ index: Int) {
+        guard phase != .firing else { return }
+        hovered = index
+        phase = .firing
+        fireTicks += 1
+        Task {
+            try? await Task.sleep(for: .milliseconds(140))
+            items[index].action()
+            if style.confirmsAction { confirming = true }
+            collapse()
+            guard style.confirmsAction else { return }
+            try? await Task.sleep(for: .milliseconds(900))
+            confirming = false
+        }
+    }
+}
+
+// MARK: - Example
+
+/// The component alone: the trigger in the corner of the stage, the arc expanding into empty ground.
+private struct GlassActionMenuExample: View {
+    @State private var expanded = false
+
+    var body: some View {
+        GlassActionMenu(items: [
+            .init(symbol: "square.and.pencil", label: "Note", tint: GlassActionMenuPalette.butter) {},
+            .init(symbol: "mic.fill", label: "Voice memo", tint: GlassActionMenuPalette.lilac) {},
+            .init(symbol: "camera.fill", label: "Photo", tint: GlassActionMenuPalette.sky) {},
+        ], arrangement: .arc, isExpanded: $expanded)
+        .padding(28)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+        .background(GlassActionMenuPalette.ground)
+        .task {
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(1.2))
+                expanded = true
+                try? await Task.sleep(for: .seconds(2.8))
+                expanded = false
+            }
+        }
+    }
+}
+
+private enum GlassActionMenuPalette {
+    static let butter = Color(red: 1, green: 0.851, blue: 0.463)
+    static let lilac = Color(red: 0.804, green: 0.722, blue: 1)
+    static let sky = Color(red: 0.612, green: 0.761, blue: 1)
+    static let ground = Color(UIColor { $0.userInterfaceStyle == .dark
+        ? UIColor(red: 0.071, green: 0.071, blue: 0.071, alpha: 1)
+        : UIColor(red: 0.953, green: 0.949, blue: 0.933, alpha: 1) })
+}
+
+#Preview("Light") {
+    GlassActionMenuExample()
+        .preferredColorScheme(.light)
+}
+
+#Preview("Dark") {
+    GlassActionMenuExample()
+        .preferredColorScheme(.dark)
+}

@@ -1,0 +1,9 @@
+## Notes
+
+- `.skeleton(isLoading:)` keeps the real view in the tree, hidden, so layout never jumps. The placeholder is a silhouette of the redacted view drawn through an alpha threshold, so text bars, color blocks and symbols all become one solid bone color, whatever colors the content uses.
+- A soft diagonal highlight sweeps across the bones. Every instance reads the same reference clock, which keeps every skeleton on screen in phase.
+- On handoff the placeholder fades while the content unblurs and rises 6 pt; `staggerIndex` delays that by 60 ms per row so lists reveal top to bottom.
+- `isFailed` stops the sweep and dims the bones so the slot reads as empty; flip `isLoading` back on to retry.
+- `Style` sets the bone `fill`, the sweep `highlight`, the `period` and the failed opacity, with house palette defaults that adapt to light and dark. Pass the same style to `SkeletonLoader` bones and `.skeleton` so they match.
+- Reduce Transparency switches to an opaque fill without the sweep. Under Reduce Motion there is no sweep and the handoff is an instant swap.
+- For a whole projects screen that starts as ghost rows and hands off to real content, see the Pro Projects screen.

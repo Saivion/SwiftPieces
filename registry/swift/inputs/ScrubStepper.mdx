@@ -1,0 +1,9 @@
+## Notes
+
+- One `DragGesture(minimumDistance: 0)` covers the whole capsule and decides by start location: the round buttons at each end press, the numeral block in the middle starts a scrub. A press that moves more than 14pt sideways becomes a scrub; one that leaves the capsule by more than 20pt cancels without stepping.
+- Pressed buttons invert (glyph color fills the circle) and shrink to 0.86; a button at its bound dims.
+- Hold-to-repeat starts after 400ms and accelerates from 100ms to 60ms after 1.5s and 30ms after 3s. It runs in a `Task` that is cancelled on release, on cancel, on disappear, and when a bound is hit.
+- Scrubbing consumes one step per 14pt of travel, multiplied by a velocity gain of up to 4x. While scrubbing the block widens and a ruler slides along its bottom edge with the finger. Scrub steps fire `.selection`; taps and repeats fire `.increase`/`.decrease`.
+- At a bound the capsule nudges 6pt in the attempted direction with a rigid impact and springs back on release.
+- `Style` sets the trough, buttons, glyph, the numeral block and its ink, and the height (44pt minimum, 52pt by default). `.standard` uses the butter block; pass `.init(block:)` for another.
+- Supply an `.accessibilityLabel`; the value and adjustable action are provided. Reduce Motion drops the press scale, the widening and the nudge but keeps the rolling digits.

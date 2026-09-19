@@ -1,0 +1,442 @@
+---
+title: "Code Block"
+description: "A code slab for chat replies and docs that stays dark in both appearances: a butter language label and optional filename, block-colored Swift syntax, collapse past N lines with a fade and a spring expand, wrap toggle, text selection, a streaming mode that fades lines in behind a cursor, and a copy pill that turns into a sage Copied block."
+piece: "CodeBlock"
+category: "ai"
+minIOSVersion: "17.0"
+version: "2.0.0"
+tags: ["code","monospace","syntax","copy","streaming","ai"]
+registryDependencies: []
+---
+
+{/* GENERATED FILE. Edit registry/swift/ai/CodeBlock.swift or CodeBlock.mdx instead. */}
+
+Code block with a tiny Swift scanner. Keywords, types, strings and numbers take block colors on a dark slab; comments and punctuation recede.
+
+## Notes
+
+- The slab stays dark in both appearances (ink `#141414` on paper, charcoal on the dark ground) so block-colored syntax always reads. The header carries a butter language label, an optional `title` filename, a wrap toggle and a Copy pill.
+- Highlighting is a small hand-written scanner for Swift only: keywords, `@attributes` and `#directives` are bold tangerine, capitalized types are sky, string literals (including `"""` blocks) are sage, numbers are lilac, and comments and punctuation recede. Other languages render plain.
+- Blocks longer than `collapseAfter` + 2 lines show the first `collapseAfter` lines under a fade and a "Show N more lines" pill; expanding is a spring. Collapse is skipped while `isStreaming`.
+- The wrap toggle switches the scroll axes between `.horizontal` and none, so the same `Text` views wrap or scroll without re-creating the view. It fills in when on.
+- With `isStreaming`, appended lines fade in over 0.25s and a tangerine cap-height capsule trails the last line. Copy writes to `UIPasteboard`, turns the pill into a sage Copied block for 1.6s, and fires a success haptic.
+- `Style` (`CodeBlock.Style`): `slab`, `raised`, `text`, `muted`, `gutter`, `ink`, `label`, `keyword`, `string`, `type`, `number`, `copied`, `cornerRadius`. `accent:` still overrides the string and copied colors.
+- Text selection is enabled on the code column; `.footnote` monospaced scales with Dynamic Type.
+- Need code inside fully rendered streaming markdown? That is the Streaming Markdown screen in Swift Pieces Pro.
+
+## Usage
+
+```swift
+CodeBlockExample().preferredColorScheme(.light)
+```
+
+## Parameters
+
+| Parameter | Description |
+| --- | --- |
+| `code` | Source text. Newlines split it into lines. Append while `isStreaming` to fade new lines in. |
+| `language` | Label in the header; highlighting applies only when it is "swift". |
+| `showsLineNumbers` | Show a right-aligned gutter. |
+| `collapseAfter` | Collapse blocks longer than this many lines behind a fade and a "Show more" control. `nil` never collapses. |
+| `wrapsLines` | Initial wrap state. The header toggle flips it at runtime. |
+| `isStreaming` | Appended lines fade in and a cursor sits after the last line. |
+| `accent` | Color for string literals and the copied state. `nil` uses `style.string` and `style.copied`. |
+| `title` | Optional filename shown beside the language label, such as "Greeter.swift". |
+| `style` | Slab, text and syntax colors and corner radius. Defaults to the house palette. |
+
+## Source
+
+<Tabs items={["CodeBlock.swift"]}>
+<Tab value="CodeBlock.swift">
+
+```swift title="CodeBlock.swift"
+import SwiftUI
+import UIKit
+
+/// Code block with a tiny Swift scanner. Keywords, types, strings and numbers take block colors on a dark slab; comments and punctuation recede.
+///
+/// - Parameters:
+///   - code: Source text. Newlines split it into lines. Append while `isStreaming` to fade new lines in.
+///   - language: Label in the header; highlighting applies only when it is "swift".
+///   - showsLineNumbers: Show a right-aligned gutter.
+///   - collapseAfter: Collapse blocks longer than this many lines behind a fade and a "Show more" control. `nil` never collapses.
+///   - wrapsLines: Initial wrap state. The header toggle flips it at runtime.
+///   - isStreaming: Appended lines fade in and a cursor sits after the last line.
+///   - accent: Color for string literals and the copied state. `nil` uses `style.string` and `style.copied`.
+///   - title: Optional filename shown beside the language label, such as "Greeter.swift".
+///   - style: Slab, text and syntax colors and corner radius. Defaults to the house palette.
+public struct CodeBlock: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var copied = false
+    @State private var copyCount = 0
+    @State private var expanded = false
+    @State private var wraps: Bool
+
+    private let code: String
+    private let language: String
+    private let title: String?
+    private let showsLineNumbers: Bool
+    private let collapseAfter: Int?
+    private let isStreaming: Bool
+    private let style: Style
+    private let copiedColor: Color
+    private let lines: [AttributedString]
+
+    public init(_ code: String, language: String = "swift", showsLineNumbers: Bool = false, collapseAfter: Int? = 12, wrapsLines: Bool = false, isStreaming: Bool = false, accent: Color? = nil, title: String? = nil, style: Style = .standard) {
+        self.code = code
+        self.language = language
+        self.title = title
+        self.showsLineNumbers = showsLineNumbers
+        self.collapseAfter = collapseAfter
+        self.isStreaming = isStreaming
+        var palette = style
+        if let accent { palette.string = accent }
+        self.style = palette
+        self.copiedColor = accent ?? style.copied
+        self.lines = Highlighter.lines(of: code, highlight: language.lowercased() == "swift", style: palette)
+        _wraps = State(initialValue: wrapsLines)
+    }
+
+    private var collapsible: Bool { collapseAfter.map { lines.count > $0 + 2 } ?? false }
+    private var collapsed: Bool { collapsible && !expanded && !isStreaming }
+    private var visibleCount: Int { collapsed ? (collapseAfter ?? lines.count) : lines.count }
+    private var spring: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(duration: 0.45, bounce: 0.15) }
+
+    public var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            header
+            ScrollView(wraps ? [] : .horizontal, showsIndicators: false) {
+                HStack(alignment: .top, spacing: 14) {
+                    if showsLineNumbers {
+                        VStack(alignment: .trailing, spacing: 0) {
+                            ForEach(0..<visibleCount, id: \.self) { index in
+                                Text("\(index + 1)").foregroundStyle(style.gutter).transition(.opacity)
+                            }
+                        }
+                        .accessibilityHidden(true)
+                    }
+                    VStack(alignment: .leading, spacing: 0) {
+                        ForEach(0..<visibleCount, id: \.self) { index in
+                            HStack(alignment: .firstTextBaseline, spacing: 4) {
+                                Text(lines[index])
+                                if isStreaming, index == lines.count - 1 { cursor }
+                            }
+                            .transition(.opacity.combined(with: .offset(y: 3)))
+                        }
+                    }
+                    .foregroundStyle(style.text)
+                    .textSelection(.enabled)
+                }
+                .font(.system(.footnote, design: .monospaced))
+                .lineSpacing(3)
+                .lineLimit(wraps ? nil : 1)
+                .padding(.horizontal, 18)
+                .padding(.bottom, collapsed ? 4 : 18)
+                .animation(isStreaming && !reduceMotion ? .easeOut(duration: 0.25) : nil, value: lines.count)
+            }
+            .mask {
+                LinearGradient(stops: [.init(color: .black, location: 0), .init(color: .black, location: collapsed ? 0.5 : 1), .init(color: collapsed ? .clear : .black, location: 1)], startPoint: .top, endPoint: .bottom)
+            }
+            if collapsed {
+                Button {
+                    withAnimation(spring) { expanded = true }
+                } label: {
+                    Label("Show \(lines.count - visibleCount) more lines", systemImage: "chevron.down")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(style.text)
+                        .padding(.horizontal, 14)
+                        .frame(minHeight: 34)
+                        .background(style.raised, in: Capsule())
+                        .frame(maxWidth: .infinity, minHeight: 44)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .padding(.bottom, 10)
+                .transition(.opacity)
+            }
+        }
+        // Content renders as dark; the slab itself still resolves against the real appearance.
+        .environment(\.colorScheme, .dark)
+        .background(style.slab, in: RoundedRectangle(cornerRadius: style.cornerRadius, style: .continuous))
+        .animation(spring, value: expanded)
+        .animation(spring, value: wraps)
+        .sensoryFeedback(.success, trigger: copyCount)
+        .task(id: copyCount) {
+            guard copyCount > 0 else { return }
+            try? await Task.sleep(for: .seconds(1.6))
+            copied = false
+        }
+    }
+
+    private var header: some View {
+        HStack(spacing: 8) {
+            Text(language.uppercased())
+                .font(.caption2.weight(.heavy))
+                .tracking(0.8)
+                .foregroundStyle(style.ink)
+                .padding(.horizontal, 8)
+                .frame(minHeight: 22)
+                .background(style.label, in: Capsule())
+            if let title {
+                Text(title)
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(style.text)
+                    .lineLimit(1)
+            }
+            Spacer(minLength: 4)
+            Button { wraps.toggle() } label: {
+                Image(systemName: "return")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(wraps ? style.ink : style.muted)
+                    .frame(width: 34, height: 34)
+                    .background(wraps ? style.text : style.raised, in: Circle())
+                    .frame(width: 44, height: 44)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Wrap lines")
+            .accessibilityValue(wraps ? "On" : "Off")
+            .accessibilityAddTraits(wraps ? .isSelected : [])
+            Button(action: copy) {
+                Label(copied ? "Copied" : "Copy", systemImage: copied ? "checkmark" : "doc.on.doc")
+                    .font(.footnote.weight(.semibold))
+                    .contentTransition(.symbolEffect(.replace))
+                    .foregroundStyle(copied ? style.ink : style.text)
+                    .padding(.horizontal, 12)
+                    .frame(height: 34)
+                    .background(copied ? copiedColor : style.raised, in: Capsule())
+                    .scaleEffect(copied && !reduceMotion ? 1.04 : 1)
+                    .frame(minHeight: 44)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .animation(reduceMotion ? .easeOut(duration: 0.15) : .spring(duration: 0.35, bounce: 0.35), value: copied)
+            .accessibilityLabel(copied ? "Copied" : "Copy code")
+        }
+        .padding(.leading, 18)
+        .padding(.trailing, 8)
+        .padding(.vertical, 4)
+    }
+
+    /// Cap-height capsule that trails the last streamed line.
+    private var cursor: some View {
+        let font = UIFont.monospacedSystemFont(ofSize: UIFont.preferredFont(forTextStyle: .footnote).pointSize, weight: .regular)
+        return Capsule()
+            .fill(style.keyword)
+            .frame(width: font.capHeight * 0.6, height: font.capHeight * 1.1)
+            .accessibilityHidden(true)
+    }
+
+    private func copy() {
+        UIPasteboard.general.string = code
+        copied = true
+        copyCount += 1
+    }
+}
+
+public extension CodeBlock {
+    /// Look of a `CodeBlock`. The slab stays dark in both appearances so block-colored syntax always reads. Start from `.standard` and change what you need.
+    struct Style: Sendable {
+        /// Slab fill: ink on paper, charcoal on the dark ground.
+        public var slab: Color = Style.adaptive(0x141414, 0x1C1C1C)
+        /// Buttons and pills on the slab.
+        public var raised: Color = Style.adaptive(0x2A2A2A, 0x2C2C2C)
+        /// Identifiers and button labels.
+        public var text: Color = Color(red: 0.957, green: 0.953, blue: 0.937)
+        /// Comments, punctuation and idle glyphs.
+        public var muted: Color = Color(red: 0.651, green: 0.643, blue: 0.624)
+        /// Line numbers.
+        public var gutter: Color = Color(red: 0.43, green: 0.42, blue: 0.4)
+        /// Dark ink on blocks.
+        public var ink: Color = Color(red: 0.078, green: 0.078, blue: 0.078)
+        /// Language label block.
+        public var label: Color = Color(red: 1, green: 0.851, blue: 0.463)
+        /// Syntax colors.
+        public var keyword: Color = Color(red: 1, green: 0, blue: 0)
+        public var string: Color = Color(red: 0.663, green: 0.863, blue: 0.718)
+        public var type: Color = Color(red: 0.612, green: 0.761, blue: 1)
+        public var number: Color = Color(red: 0.804, green: 0.722, blue: 1)
+        /// Copy pill after copying, unless `accent` is passed.
+        public var copied: Color = Color(red: 0.663, green: 0.863, blue: 0.718)
+        /// Slab corner radius.
+        public var cornerRadius: CGFloat = 26
+
+        public init() {}
+
+        /// The house palette: a dark slab with tangerine keywords, sage strings, sky types and lilac numbers.
+        public static let standard = Style()
+
+        private static func adaptive(_ light: UInt32, _ dark: UInt32) -> Color {
+            Color(UIColor { traits in
+                let hex = traits.userInterfaceStyle == .dark ? dark : light
+                return UIColor(red: CGFloat((hex >> 16) & 0xFF) / 255, green: CGFloat((hex >> 8) & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
+            })
+        }
+    }
+}
+
+/// Single-pass scanner: keywords, types, strings and numbers take block colors; comments and punctuation recede.
+private enum Highlighter {
+    static let keywords: Set<String> = [
+        "let", "var", "func", "struct", "class", "enum", "protocol", "extension", "import", "if", "else", "guard", "return",
+        "for", "in", "while", "repeat", "switch", "case", "default", "break", "continue", "fallthrough", "where", "self", "Self",
+        "true", "false", "nil", "init", "deinit", "static", "private", "fileprivate", "internal", "public", "open", "some", "any",
+        "async", "await", "throws", "throw", "try", "do", "catch", "defer", "mutating", "override", "final", "lazy", "weak",
+        "unowned", "is", "as", "inout", "typealias", "associatedtype", "subscript", "operator", "actor", "nonisolated", "super"
+    ]
+    static let punctuation: Set<Character> = ["{", "}", "(", ")", "[", "]", "<", ">", ".", ",", ":", ";", "=", "+", "-", "*", "/", "%", "!", "&", "|", "?", "^", "~", "\\"]
+
+    enum Tone { case keyword, type, number, string, comment, punctuation }
+
+    struct State {
+        var inBlockComment = false
+        var inMultilineString = false
+    }
+
+    static func lines(of code: String, highlight: Bool, style: CodeBlock.Style) -> [AttributedString] {
+        var state = State()
+        return code.split(separator: "\n", omittingEmptySubsequences: false).map { line in
+            if line.isEmpty { return AttributedString(" ") }
+            return highlight ? highlightLine(line, state: &state, style: style) : AttributedString(line)
+        }
+    }
+
+    private static func highlightLine(_ line: Substring, state: inout State, style: CodeBlock.Style) -> AttributedString {
+        let chars = Array(line)
+        var result = AttributedString()
+        var plainStart = 0
+        var i = 0
+
+        func flushPlain(to end: Int) {
+            if end > plainStart { result.append(AttributedString(String(chars[plainStart..<end]))) }
+            plainStart = end
+        }
+        func emit(_ range: Range<Int>, _ tone: Tone) {
+            flushPlain(to: range.lowerBound)
+            var run = AttributedString(String(chars[range]))
+            switch tone {
+            case .keyword:
+                run.foregroundColor = style.keyword
+                run.inlinePresentationIntent = .stronglyEmphasized
+            case .type: run.foregroundColor = style.type
+            case .number: run.foregroundColor = style.number
+            case .string: run.foregroundColor = style.string
+            case .comment: run.foregroundColor = style.muted
+            case .punctuation: run.foregroundColor = style.muted
+            }
+            result.append(run)
+            plainStart = range.upperBound
+        }
+        func scan(until close: [Character], from start: Int) -> (end: Int, closed: Bool) {
+            var j = start
+            while j + close.count <= chars.count {
+                if Array(chars[j..<(j + close.count)]) == close { return (j + close.count, true) }
+                j += 1
+            }
+            return (chars.count, false)
+        }
+
+        while i < chars.count {
+            if state.inBlockComment {
+                let (end, closed) = scan(until: ["*", "/"], from: i)
+                emit(i..<end, .comment)
+                if closed { state.inBlockComment = false }
+                i = end
+                continue
+            }
+            if state.inMultilineString {
+                let (end, closed) = scan(until: ["\"", "\"", "\""], from: i)
+                emit(i..<end, .string)
+                if closed { state.inMultilineString = false }
+                i = end
+                continue
+            }
+            let c = chars[i]
+            let next: Character? = i + 1 < chars.count ? chars[i + 1] : nil
+            if c == "/", next == "/" {
+                emit(i..<chars.count, .comment)
+                i = chars.count
+            } else if c == "/", next == "*" {
+                emit(i..<(i + 2), .comment)
+                state.inBlockComment = true
+                i += 2
+            } else if c == "\"" {
+                if i + 2 < chars.count, chars[i + 1] == "\"", chars[i + 2] == "\"" {
+                    emit(i..<(i + 3), .string)
+                    state.inMultilineString = true
+                    i += 3
+                } else {
+                    var j = i + 1
+                    while j < chars.count, chars[j] != "\"" { j += chars[j] == "\\" ? 2 : 1 }
+                    let end = min(j + 1, chars.count)
+                    emit(i..<end, .string)
+                    i = end
+                }
+            } else if c.isLetter || c == "_" || c == "@" || c == "#" {
+                var j = i + 1
+                while j < chars.count, chars[j].isLetter || chars[j].isNumber || chars[j] == "_" { j += 1 }
+                let word = String(chars[i..<j])
+                if c == "@" || c == "#" || keywords.contains(word) { emit(i..<j, .keyword) }
+                else if c.isUppercase { emit(i..<j, .type) }
+                i = j
+            } else if c.isNumber {
+                var j = i + 1
+                while j < chars.count, chars[j].isNumber || chars[j] == "." || chars[j] == "_" { j += 1 }
+                emit(i..<j, .number)
+                i = j
+            } else if punctuation.contains(c) {
+                emit(i..<(i + 1), .punctuation)
+                i += 1
+            } else {
+                i += 1
+            }
+        }
+        flushPlain(to: chars.count)
+        return result
+    }
+}
+
+// MARK: - Example
+
+/// A named Swift file in a reply, collapsed past eight lines.
+private struct CodeBlockExample: View {
+    var body: some View {
+        ScrollView {
+            CodeBlock(
+                """
+                /// Greets someone by name.
+                func greet(_ name: String) -> String {
+                    // Interpolation keeps it simple.
+                    return "Hello, \\(name)!"
+                }
+
+                struct Greeter {
+                    let names: [String]
+                    var count: Int { names.count }
+
+                    func all(limit: Int = 12) -> [String] {
+                        names.prefix(limit).map { greet($0) }
+                    }
+                }
+                """,
+                showsLineNumbers: true,
+                collapseAfter: 8,
+                title: "Greeter.swift"
+            )
+            .padding(20)
+        }
+        .background(Color(UIColor { $0.userInterfaceStyle == .dark ? UIColor(red: 0.071, green: 0.071, blue: 0.071, alpha: 1) : UIColor(red: 0.953, green: 0.949, blue: 0.933, alpha: 1) }))
+    }
+}
+
+#Preview("Light") {
+    CodeBlockExample().preferredColorScheme(.light)
+}
+
+#Preview("Dark") {
+    CodeBlockExample().preferredColorScheme(.dark)
+}
+```
+
+</Tab>
+</Tabs>

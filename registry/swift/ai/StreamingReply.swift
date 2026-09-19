@@ -1,0 +1,461 @@
+// swiftpieces:
+// title: Streaming Reply
+// description: The AI reply surface. A small header carries the assistant mark and a live phase label, text arrives token by token with a per-word fade and a color block cursor, inline code sits on butter blocks, user prompts are solid color blocks, and a long press lifts the message to reveal copy and regenerate.
+// category: ai
+// minIOSVersion: "17.0"
+// version: "2.0.0"
+// pro: streaming-markdown
+// tags: [chat, streaming, markdown, ai, text-renderer, blocks]
+
+import SwiftUI
+import UIKit
+
+/// A chat message that streams. Assistant replies sit on the ground under a mark and phase label; user messages are a solid color block.
+///
+/// - Parameters:
+///   - text: The message body. Append to it as tokens arrive; each new word fades in. Inline markdown is rendered.
+///   - role: `.assistant` (leading, header and open text) or `.user` (trailing, solid block).
+///   - phase: `.thinking` shows dots, `.streaming` shows the cursor, `.done` settles, `.error` shows the message and a retry.
+///   - tint: Block color for user messages and the streaming cursor. `nil` uses `style.userBlock` and `style.cursor`.
+///   - fadeDuration: Seconds each new word takes to fade in.
+///   - style: Colors, the assistant name and whether the header shows. Defaults to the house palette.
+///   - onAction: Called with `.copy` or `.regenerate` from the long-press actions or the error retry.
+public struct StreamingReply: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Binding private var text: String
+    @State private var births: [Double] = []
+    @State private var start = Date()
+    @State private var fadeGeneration = 0
+    @State private var fading = false
+    @State private var lifted = false
+    @State private var liftCount = 0
+    @State private var actionCount = 0
+    @State private var copied = false
+
+    private let role: Role
+    private let phase: Phase
+    private let tint: Color?
+    private let fadeDuration: Double
+    private let style: Style
+    private let onAction: (Action) -> Void
+
+    public enum Role: Sendable { case user, assistant }
+    public enum Phase: Equatable, Sendable { case thinking, streaming, done, error(String) }
+    public enum Action: Sendable { case copy, regenerate }
+
+    public init(text: Binding<String>, role: Role = .assistant, phase: Phase = .done, tint: Color? = nil, fadeDuration: Double = 0.35, style: Style = .standard, onAction: @escaping (Action) -> Void = { _ in }) {
+        _text = text
+        self.role = role
+        self.phase = phase
+        self.tint = tint
+        self.fadeDuration = fadeDuration
+        self.style = style
+        self.onAction = onAction
+    }
+
+    private var isUser: Bool { role == .user }
+    private var errorMessage: String? { if case .error(let m) = phase { m } else { nil } }
+    private var liftSpring: Animation { reduceMotion ? .easeOut(duration: 0.15) : .spring(duration: 0.4, bounce: 0.25) }
+    private var userBlock: Color { tint ?? style.userBlock }
+    private var cursorColor: Color { tint ?? style.cursor }
+    private var textColor: Color { isUser ? style.ink : style.text }
+
+    public var body: some View {
+        VStack(alignment: isUser ? .trailing : .leading, spacing: 10) {
+            surface
+                .scaleEffect(lifted ? 1.02 : 1, anchor: isUser ? .bottomTrailing : .bottomLeading)
+                .shadow(color: .black.opacity(lifted ? 0.18 : 0), radius: lifted ? 22 : 0, y: lifted ? 10 : 0)
+                .onLongPressGesture(minimumDuration: 0.35) { lifted = true; liftCount += 1 }
+                .onTapGesture { if lifted { lifted = false } }
+            if lifted { actions.transition(.scale(scale: 0.9, anchor: isUser ? .topTrailing : .topLeading).combined(with: .opacity)) }
+        }
+        .frame(maxWidth: .infinity, alignment: isUser ? .trailing : .leading)
+        .animation(liftSpring, value: lifted)
+        .sensoryFeedback(.impact(flexibility: .rigid), trigger: liftCount)
+        .sensoryFeedback(.success, trigger: actionCount)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("\(isUser ? "You" : style.assistantName): \(text)")
+        .accessibilityValue(phaseLabel)
+        .accessibilityAction(named: "Copy") { perform(.copy) }
+        .accessibilityAction(named: "Regenerate") { perform(.regenerate) }
+        .onAppear { births = Array(repeating: -1_000, count: Self.tokenRanges(in: attributed).count) }
+        .onChange(of: text) { _, new in
+            // Only words that arrive after appear animate. Regenerated (shorter) text resets the tail.
+            let count = Self.tokenRanges(in: Self.parse(new, style: style)).count
+            let now = Date().timeIntervalSince(start)
+            if count < births.count { births.removeLast(births.count - count) }
+            while births.count < count { births.append(reduceMotion ? -1_000 : now) }
+            fading = !reduceMotion
+            fadeGeneration += 1
+        }
+        .task(id: fadeGeneration) {
+            try? await Task.sleep(for: .seconds(fadeDuration + 0.1))
+            fading = false
+        }
+        .task(id: actionCount) {
+            guard copied else { return }
+            try? await Task.sleep(for: .seconds(1.4))
+            copied = false
+        }
+    }
+
+    // MARK: Surface
+
+    @ViewBuilder
+    private var surface: some View {
+        if isUser {
+            streamedText
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
+                .background(userBlock, in: UnevenRoundedRectangle(topLeadingRadius: 22, bottomLeadingRadius: 22, bottomTrailingRadius: 6, topTrailingRadius: 22, style: .continuous))
+                .padding(.leading, 48)
+        } else {
+            VStack(alignment: .leading, spacing: 10) {
+                if style.showsHeader { header }
+                if phase == .thinking { ThinkingDots(reduceMotion: reduceMotion, colors: style.dots) }
+                if !text.isEmpty { streamedText }
+                if let errorMessage { errorRow(errorMessage) }
+            }
+            .animation(.easeOut(duration: 0.25), value: phase)
+            .padding(.vertical, 4)
+            .padding(.trailing, 24)
+            .background {
+                // Lifted replies gain a card so the actions have something to hang from.
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .fill(style.surface)
+                    .padding(-12)
+                    .opacity(lifted ? 1 : 0)
+            }
+        }
+    }
+
+    /// Mark, name and a live phase label.
+    private var header: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "sparkle")
+                .font(.system(size: 11, weight: .bold))
+                .foregroundStyle(style.markInk)
+                .frame(width: 24, height: 24)
+                .background(errorMessage == nil ? style.mark : style.signal, in: Circle())
+                .symbolEffect(.pulse, options: .repeating, isActive: phase == .thinking && !reduceMotion)
+            Text(style.assistantName)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(style.text)
+            if !phaseLabel.isEmpty {
+                Text(phaseLabel.uppercased())
+                    .font(.caption2.weight(.bold))
+                    .tracking(0.8)
+                    .foregroundStyle(style.muted)
+                    .contentTransition(.opacity)
+                    .lineLimit(1)
+            }
+        }
+        .accessibilityHidden(true)
+    }
+
+    private var phaseLabel: String {
+        switch phase {
+        case .thinking: "Thinking"
+        case .streaming: "Writing"
+        case .done: ""
+        case .error: "Stopped"
+        }
+    }
+
+    @ViewBuilder
+    private var streamedText: some View {
+        let showsCursor = phase == .streaming && !isUser
+        TimelineView(.animation(paused: !(fading || showsCursor) || reduceMotion)) { context in
+            let now = context.date.timeIntervalSince(start)
+            if #available(iOS 18, *) {
+                rendererText(showsCursor: showsCursor)
+                    .textRenderer(TokenFade(now: now, births: births, fade: fadeDuration, cursorOpacity: 0.55 + 0.45 * abs(sin(now * 3))))
+            } else {
+                fallbackText(now: now, showsCursor: showsCursor)
+            }
+        }
+        .font(isUser ? .body.weight(.medium) : .body)
+        .lineSpacing(3)
+        .foregroundStyle(textColor)
+        .tint(textColor)
+        .textSelection(.enabled)
+        .fixedSize(horizontal: false, vertical: true)
+    }
+
+    @available(iOS 18, *)
+    private func rendererText(showsCursor: Bool) -> Text {
+        let source = attributed
+        var result = Self.tokenRanges(in: source).enumerated().reduce(Text(verbatim: "")) { acc, item in
+            Text("\(acc)\(Text(AttributedString(source[item.element])).customAttribute(TokenIndex(index: item.offset)))")
+        }
+        if showsCursor { result = Text("\(result)\(cursor.customAttribute(CursorMark()))") }
+        return result
+    }
+
+    private func fallbackText(now: Double, showsCursor: Bool) -> Text {
+        var source = attributed
+        for (index, range) in Self.tokenRanges(in: source).enumerated() {
+            let opacity = Self.opacity(now: now, birth: births.indices.contains(index) ? births[index] : -1_000, fade: fadeDuration)
+            source[range].foregroundColor = (source[range].backgroundColor == nil ? textColor : style.ink).opacity(opacity)
+        }
+        return showsCursor ? Text("\(Text(source))\(cursor)") : Text(source)
+    }
+
+    /// A capsule the height of the body font's cap height, drawn inline so it flows with the text.
+    private var cursor: Text {
+        let font = UIFont.preferredFont(forTextStyle: .body)
+        let size = CGSize(width: font.capHeight * 0.6, height: font.capHeight * 1.1)
+        let image = UIGraphicsImageRenderer(size: CGSize(width: size.width + 4, height: size.height)).image { _ in
+            UIBezierPath(roundedRect: CGRect(x: 4, y: 0, width: size.width, height: size.height), cornerRadius: size.width / 2).fill()
+        }
+        return Text(Image(uiImage: image.withRenderingMode(.alwaysTemplate))).foregroundStyle(cursorColor)
+    }
+
+    private var actions: some View {
+        HStack(spacing: 2) {
+            actionButton(copied ? "Copied" : "Copy", systemImage: copied ? "checkmark" : "doc.on.doc", action: .copy)
+            if !isUser { actionButton("Regenerate", systemImage: "arrow.clockwise", action: .regenerate) }
+        }
+        .padding(4)
+        .background(style.actionFill, in: Capsule())
+        .shadow(color: .black.opacity(0.18), radius: 14, y: 6)
+        .padding(.top, 4)
+    }
+
+    private func actionButton(_ title: String, systemImage: String, action: Action) -> some View {
+        Button { perform(action) } label: {
+            Label(title, systemImage: systemImage)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(style.actionInk)
+                .contentTransition(.symbolEffect(.replace))
+                .padding(.horizontal, 14)
+                .frame(minHeight: 44)
+                .contentShape(Capsule())
+        }
+        .buttonStyle(ActionPress(reduceMotion: reduceMotion))
+    }
+
+    private func errorRow(_ message: String) -> some View {
+        HStack(spacing: 10) {
+            Text(message)
+                .font(.subheadline)
+                .foregroundStyle(style.muted)
+                .fixedSize(horizontal: false, vertical: true)
+            Spacer(minLength: 8)
+            Button { perform(.regenerate) } label: {
+                Label("Retry", systemImage: "arrow.clockwise")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(style.ink)
+                    .padding(.horizontal, 14)
+                    .frame(minHeight: 44)
+                    .background(style.signal, in: Capsule())
+            }
+            .buttonStyle(ActionPress(reduceMotion: reduceMotion))
+        }
+        .transition(.opacity)
+    }
+
+    private func perform(_ action: Action) {
+        if action == .copy {
+            UIPasteboard.general.string = text
+            copied = true
+        } else {
+            lifted = false
+        }
+        actionCount += 1
+        onAction(action)
+        if action == .copy {
+            Task {
+                try? await Task.sleep(for: .seconds(0.9))
+                lifted = false
+            }
+        }
+    }
+
+    // MARK: Tokens
+
+    private var attributed: AttributedString { Self.parse(text, style: style) }
+
+    private static func parse(_ text: String, style: Style) -> AttributedString {
+        var result = (try? AttributedString(markdown: text, options: .init(interpretedSyntax: .inlineOnlyPreservingWhitespace))) ?? AttributedString(text)
+        // Inline code sits on a small butter block with dark ink.
+        for run in result.runs where run.inlinePresentationIntent?.contains(.code) == true {
+            result[run.range].backgroundColor = style.code
+            result[run.range].foregroundColor = style.ink
+        }
+        return result
+    }
+
+    /// Splits into word tokens; each token carries its trailing whitespace so runs stay contiguous.
+    private static func tokenRanges(in source: AttributedString) -> [Range<AttributedString.Index>] {
+        let chars = source.characters
+        var ranges: [Range<AttributedString.Index>] = []
+        var start = chars.startIndex
+        var previousWasSpace = false
+        var index = chars.startIndex
+        while index < chars.endIndex {
+            let isSpace = chars[index].isWhitespace
+            if !isSpace, previousWasSpace, index > start { ranges.append(start..<index); start = index }
+            previousWasSpace = isSpace
+            index = chars.index(after: index)
+        }
+        if start < chars.endIndex { ranges.append(start..<chars.endIndex) }
+        return ranges
+    }
+
+    private static func opacity(now: Double, birth: Double, fade: Double) -> Double {
+        min(max((now - birth) / fade, 0), 1)
+    }
+}
+
+public extension StreamingReply {
+    /// Look of a `StreamingReply`. Start from `.standard` and change what you need.
+    struct Style: Sendable {
+        /// Block behind user messages, unless `tint` is passed.
+        public var userBlock: Color = Color(red: 0.612, green: 0.761, blue: 1)
+        /// The streaming cursor, unless `tint` is passed.
+        public var cursor: Color = Color(red: 1, green: 0, blue: 0)
+        /// Block behind inline `code`.
+        public var code: Color = Color(red: 1, green: 0.851, blue: 0.463)
+        /// The three thinking dots, in order.
+        public var dots: [Color] = [Color(red: 1, green: 0, blue: 0), Color(red: 0.612, green: 0.761, blue: 1), Color(red: 0.804, green: 0.722, blue: 1)]
+        /// Retry button and the mark in the error phase.
+        public var signal: Color = Color(red: 1, green: 0, blue: 0)
+        /// Dark ink used on every block.
+        public var ink: Color = Color(red: 0.078, green: 0.078, blue: 0.078)
+        /// Assistant text and name.
+        public var text: Color = Style.adaptive(0x141414, 0xF4F3EF)
+        /// Phase label and error message.
+        public var muted: Color = Style.adaptive(0x5C5A56, 0xA6A49F)
+        /// Card behind a lifted assistant reply.
+        public var surface: Color = Style.adaptive(0xFFFFFF, 0x1C1C1C)
+        /// The assistant mark's disc and its glyph.
+        public var mark: Color = Style.adaptive(0x141414, 0xF4F3EF)
+        public var markInk: Color = Style.adaptive(0xF3F2EE, 0x121212)
+        /// The floating Copy and Regenerate capsule.
+        public var actionFill: Color = Style.adaptive(0x141414, 0xF4F3EF)
+        public var actionInk: Color = Style.adaptive(0xF4F3EF, 0x141414)
+        /// Name shown in the header and read by VoiceOver.
+        public var assistantName: String = "Assistant"
+        /// Show the mark, name and phase label above assistant replies.
+        public var showsHeader: Bool = true
+
+        public init() {}
+
+        /// The house palette: sky prompts, tangerine cursor, butter code, ink actions.
+        public static let standard = Style()
+
+        private static func adaptive(_ light: UInt32, _ dark: UInt32) -> Color {
+            Color(UIColor { traits in
+                let hex = traits.userInterfaceStyle == .dark ? dark : light
+                return UIColor(red: CGFloat((hex >> 16) & 0xFF) / 255, green: CGFloat((hex >> 8) & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
+            })
+        }
+    }
+}
+
+@available(iOS 18, *)
+private struct TokenIndex: TextAttribute { let index: Int }
+
+@available(iOS 18, *)
+private struct CursorMark: TextAttribute {}
+
+/// Draws each word run at its fade-in opacity with a 2pt rise, and pulses the cursor run.
+@available(iOS 18, *)
+private struct TokenFade: TextRenderer {
+    var now: Double
+    var births: [Double]
+    var fade: Double
+    var cursorOpacity: Double
+
+    func draw(layout: Text.Layout, in context: inout GraphicsContext) {
+        for line in layout {
+            for run in line {
+                var opacity = 1.0
+                if let token = run[TokenIndex.self], births.indices.contains(token.index) {
+                    opacity = min(max((now - births[token.index]) / fade, 0), 1)
+                }
+                if run[CursorMark.self] != nil { opacity = cursorOpacity }
+                var local = context
+                local.opacity = opacity
+                local.translateBy(x: 0, y: (1 - opacity) * 2)
+                local.draw(run)
+            }
+        }
+    }
+}
+
+/// Three block-colored dots rising in sequence, sized to sit where the first line of text will be.
+private struct ThinkingDots: View {
+    let reduceMotion: Bool
+    let colors: [Color]
+
+    var body: some View {
+        TimelineView(.animation(paused: reduceMotion)) { context in
+            let t = context.date.timeIntervalSinceReferenceDate
+            HStack(spacing: 6) {
+                ForEach(0..<3, id: \.self) { index in
+                    let phase = reduceMotion ? 0.5 : ((t * 0.9 - Double(index) * 0.16).truncatingRemainder(dividingBy: 1) + 1).truncatingRemainder(dividingBy: 1)
+                    let lift = phase < 0.45 ? sin(phase / 0.45 * .pi) : 0
+                    Circle()
+                        .fill(colors.isEmpty ? Color.secondary : colors[index % colors.count])
+                        .frame(width: 9, height: 9)
+                        .scaleEffect(0.8 + 0.2 * lift)
+                        .offset(y: -5 * lift)
+                }
+            }
+        }
+        .frame(height: UIFont.preferredFont(forTextStyle: .body).lineHeight)
+        .transition(.opacity)
+        .accessibilityHidden(true)
+    }
+}
+
+private struct ActionPress: ButtonStyle {
+    let reduceMotion: Bool
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed && !reduceMotion ? 0.94 : 1)
+            .animation(.spring(duration: 0.25, bounce: 0.3), value: configuration.isPressed)
+    }
+}
+
+// MARK: - Example
+
+/// A prompt block, then a reply that thinks, streams and settles.
+private struct StreamingReplyExample: View {
+    @State private var reply = ""
+    @State private var prompt = "Summarize the **Q3 report** in two lines."
+    @State private var phase: StreamingReply.Phase = .thinking
+    private let full = "Revenue grew **12%** quarter over quarter and churn fell to 1.8%. The new `Insights` tab drove most of the engagement lift."
+
+    var body: some View {
+        VStack(spacing: 24) {
+            StreamingReply(text: $prompt, role: .user)
+            StreamingReply(text: $reply, phase: phase) { action in
+                if action == .regenerate { reply = ""; phase = .thinking }
+            }
+        }
+        .padding(20)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color(UIColor { $0.userInterfaceStyle == .dark ? UIColor(red: 0.071, green: 0.071, blue: 0.071, alpha: 1) : UIColor(red: 0.953, green: 0.949, blue: 0.933, alpha: 1) }))
+        .task(id: phase == .thinking) {
+            guard phase == .thinking else { return }
+            try? await Task.sleep(for: .seconds(1.2))
+            phase = .streaming
+            for word in full.split(separator: " ") {
+                reply += (reply.isEmpty ? "" : " ") + word
+                try? await Task.sleep(for: .milliseconds(90))
+            }
+            phase = .done
+        }
+    }
+}
+
+#Preview("Light") {
+    StreamingReplyExample().preferredColorScheme(.light)
+}
+
+#Preview("Dark") {
+    StreamingReplyExample().preferredColorScheme(.dark)
+}

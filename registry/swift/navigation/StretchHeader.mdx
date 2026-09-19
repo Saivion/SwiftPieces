@@ -1,0 +1,9 @@
+## Notes
+
+- Two parts: `StretchHeader` goes first inside your `ScrollView` content, and `.stretchHeaderBar(title:progress:style:)` goes on the `ScrollView` inside a `NavigationStack`. Share one `@State` progress between them. The modifier hides the system bar background, extends the scroll view under the bar, and draws its own solid bar in the style's `surface`, fading in with progress and gaining a soft shadow instead of a hairline.
+- The title is display type: heavy, tight, 40 pt and scaled with Dynamic Type, with an optional uppercase `eyebrow` above it. Overscroll stretches the hero upward and grows the title a touch; scrolling moves the hero at 70% speed and the title at 55%, shrinking it toward the bar, and the inline title fades in over the last 20% of the collapse. States: expanded, stretching, collapsing, collapsed.
+- `Style`: `.standard` puts ink on a solid block hero with no scrim; `.overImage` uses a white title over a soft scrim for photos. Both set `surface`, the house ground behind the pinned row and the bar. Copy a style and change one property to customize.
+- The `subtitle` row (stats, avatar, tabs) pins under the bar once the hero has scrolled past it and draws above the content that follows. Give it its own padding.
+- Progress comes from `onScrollGeometryChange` on iOS 18 (fed through the modifier) and from the header's own position in the `.scrollView` coordinate space on iOS 17. A soft haptic marks a deep pull.
+- Reduce Motion drops the title parallax and the hero lag but keeps the stretch and the collapse. The hero reads as one header element and is hidden from VoiceOver once collapsed, when the inline title takes over.
+- A full settings screen built around a header like this ships in Swift Pieces Pro (`settings-screen`).
