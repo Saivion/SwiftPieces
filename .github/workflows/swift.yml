@@ -25,7 +25,7 @@ jobs:
     name: Swift (type-check every piece against the iOS 26 SDK)
     runs-on: macos-26
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       # Runner images name Xcode with its full version (Xcode_26.0.app, Xcode_26.1.app, ...), so pick
       # the newest Xcode 26 that is installed instead of hard-coding a path.
       - name: Select Xcode 26
