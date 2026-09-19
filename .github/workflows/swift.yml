@@ -1,0 +1,44 @@
+name: Swift
+
+# Type-checks the library itself. Runs only when Swift, Metal or the preview app changes: the
+# website checks live in ci.yml and run on every push. macOS runners are the slow part of CI.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "registry/swift/**"
+      - "previews/**"
+      - "scripts/typecheck-swift.sh"
+      - ".github/workflows/swift.yml"
+  pull_request:
+    paths:
+      - "registry/swift/**"
+      - "previews/**"
+      - "scripts/typecheck-swift.sh"
+      - ".github/workflows/swift.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  swift:
+    name: Swift (type-check every piece against the iOS 26 SDK)
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+      # Runner images name Xcode with its full version (Xcode_26.0.app, Xcode_26.1.app, ...), so pick
+      # the newest Xcode 26 that is installed instead of hard-coding a path.
+      - name: Select Xcode 26
+        run: |
+          XCODE=$(ls -d /Applications/Xcode_26*.app 2>/dev/null | sort -V | tail -1)
+          if [ -z "$XCODE" ]; then echo "No Xcode 26 on this runner:"; ls -d /Applications/Xcode*.app; exit 1; fi
+          sudo xcode-select -s "$XCODE"
+          xcodebuild -version
+      # Xcode 26 ships the Metal compiler as a separate component; the type-check compiles .metal files.
+      - name: Metal toolchain
+        run: xcrun -sdk iphonesimulator metal --version || xcodebuild -downloadComponent MetalToolchain
+      - run: bash scripts/typecheck-swift.sh
+      - name: Build preview app (all pieces in one target)
+        run: |
+          xcodebuild -project previews/SwiftPiecesPreviews.xcodeproj -scheme SwiftPiecesPreviews \
+            -destination 'generic/platform=iOS Simulator' -derivedDataPath previews/build -quiet build

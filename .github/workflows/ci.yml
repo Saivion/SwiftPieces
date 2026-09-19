@@ -46,16 +46,3 @@ jobs:
         run: npm run bundle:check
       - name: Public-safety audit
         run: npm run audit:public
-
-  swift:
-    name: Swift (type-check every piece against the iOS 26 SDK)
-    runs-on: macos-26
-    steps:
-      - uses: actions/checkout@v4
-      - name: Select Xcode
-        run: sudo xcode-select -s /Applications/Xcode_26.app
-      - run: bash scripts/typecheck-swift.sh
-      - name: Build preview app (all pieces in one target)
-        run: |
-          xcodebuild -project previews/SwiftPiecesPreviews.xcodeproj -scheme SwiftPiecesPreviews \
-            -destination 'generic/platform=iOS Simulator' -derivedDataPath previews/build -quiet build

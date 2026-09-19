@@ -60,7 +60,7 @@ swiftpieces.com deploys from GitHub with **Cloudflare Workers Builds**. Nothing 
 | `main` | Builds and deploys to production (swiftpieces.com). |
 | any other branch / PR | Builds a preview version with its own URL. Production is untouched. |
 
-GitHub Actions (`.github/workflows/ci.yml`) is here for **safety only**: because this repo is public and takes contributions, every push and PR is checked for leaked secrets, Pro-only code, a stale registry, type errors, bundle size and Swift that doesn't compile. Actions never deploys and holds no Cloudflare credentials; Cloudflare does the deploying.
+GitHub Actions is here for **safety only**, because this repo is public and takes contributions. `ci.yml` checks every push and PR for leaked secrets, Pro-only code, a stale registry, type errors and bundle size. `swift.yml` type-checks every piece against the iOS SDK, and runs only when Swift, Metal or the preview app changes. Actions never deploys and holds no Cloudflare credentials; Cloudflare does the deploying.
 
 **Workers Builds settings** (Cloudflare dashboard → Workers → `swiftpieces` → Settings → Build):
 
