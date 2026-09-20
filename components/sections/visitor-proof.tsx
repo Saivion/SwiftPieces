@@ -1,4 +1,3 @@
-import { blocks, ink } from "@/components/previews/palette";
 import { getRecentVisits, VISIT_WINDOW_DAYS } from "@/lib/visits";
 
 /**
@@ -19,10 +18,23 @@ function minToShow(): number {
 
 /**
  * The avatars are drawn, not photographed, and carry no faces or names. The visits are anonymous,
- * so the stack reads as "people have been here" without pretending to be particular people. The
- * accent red is left out on purpose; it belongs to the one action above.
+ * so the stack reads as "people have been here" without pretending to be particular people.
+ *
+ * Site chrome, not component palette: `blocks` is the preview palette the pieces paint themselves
+ * in, and five pastels read as a sixth component sitting under the hero rather than part of the
+ * page. This is the page's own surface ramp instead, lifted in even steps so the overlap stays
+ * legible. The accent red is left out on purpose: it belongs to the one action directly above.
  */
-const AVATARS = [blocks.sand, blocks.sky, blocks.butter, blocks.sage, blocks.lilac];
+const AVATARS = [
+  "rgb(255 255 255 / 0.07)",
+  "rgb(255 255 255 / 0.10)",
+  "rgb(255 255 255 / 0.13)",
+  "rgb(255 255 255 / 0.16)",
+  "rgb(255 255 255 / 0.19)",
+];
+
+/** The glyph, one step brighter than the disc it sits on so it reads at 28px without hard contrast. */
+const GLYPH = "rgb(255 255 255 / 0.38)";
 
 const compact = new Intl.NumberFormat("en", { notation: "compact", maximumFractionDigits: 1 });
 
@@ -47,8 +59,8 @@ export async function VisitorProof() {
         {AVATARS.map((fill, i) => (
           <span key={i} className="grid size-7 place-items-center overflow-hidden rounded-full ring-2 ring-[var(--background)]" style={{ background: fill }}>
             <svg viewBox="0 0 28 28" className="size-full">
-              <circle cx="14" cy="11.5" r="4.6" fill={ink} fillOpacity={0.55} />
-              <path d="M5.5 28c0-5.2 3.8-8.8 8.5-8.8s8.5 3.6 8.5 8.8z" fill={ink} fillOpacity={0.55} />
+              <circle cx="14" cy="11.5" r="4.6" fill={GLYPH} />
+              <path d="M5.5 28c0-5.2 3.8-8.8 8.5-8.8s8.5 3.6 8.5 8.8z" fill={GLYPH} />
             </svg>
           </span>
         ))}
