@@ -6,6 +6,9 @@
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
   "assets": { "directory": ".open-next/assets", "binding": "ASSETS" },
   "observability": { "enabled": true },
+  // Hero visit line: show the real number from day one instead of waiting for the 100 floor in
+  // components/sections/visitor-proof.tsx. Not a secret, so it lives here and not in `secret put`.
+  "vars": { "SP_VISITS_MIN": "0" },
   "services": [{ "binding": "WORKER_SELF_REFERENCE", "service": "swiftpieces" }],
   // Free has no database and no private bucket (Rev 3 §2). Only public media + the ISR cache.
   "r2_buckets": [

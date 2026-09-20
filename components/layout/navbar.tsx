@@ -41,7 +41,10 @@ export function Navbar({ stars = null }: { stars?: number | null }) {
 
   return (
     <>
-    <header className={cn("sticky top-0 z-50 transition-all duration-500 ease-[var(--ease-out)]", scrolled || open ? "bg-background/85 backdrop-blur-xl" : "bg-transparent")}>
+    {/* Fixed, with a constant-height spacer below. When the header was sticky its shrink on
+        scroll changed the page layout; scroll anchoring then moved the page back under the
+        threshold and the bar grew again, so it oscillated on its own near the top. */}
+    <header className={cn("fixed inset-x-0 top-0 z-50 transition-all duration-500 ease-[var(--ease-out)]", scrolled || open ? "bg-background/85 backdrop-blur-xl" : "bg-transparent")}>
       <Container>
         <nav className={cn("relative flex items-center justify-between transition-[height] duration-500 ease-[var(--ease-out)]", scrolled ? "h-14" : "h-[var(--nav-h)]")} aria-label="Primary">
           <Logo />
@@ -80,6 +83,7 @@ export function Navbar({ stars = null }: { stars?: number | null }) {
         </nav>
       </Container>
     </header>
+    <div aria-hidden className="h-[var(--nav-h)] shrink-0" />
 
       {/* Mobile sheet: sibling of the header, never a descendant of a backdrop-filter element. */}
       <div className={cn("fixed inset-x-0 top-14 bottom-0 z-40 bg-background transition-opacity duration-300 lg:hidden", open ? "opacity-100" : "pointer-events-none opacity-0")} aria-hidden={!open}>

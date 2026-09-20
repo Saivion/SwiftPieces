@@ -1,8 +1,21 @@
 import { blocks, ink } from "@/components/previews/palette";
 import { getRecentVisits, VISIT_WINDOW_DAYS } from "@/lib/visits";
 
-/** Below this the line hides: "7 visits" undersells more than showing nothing at all. */
-const MIN_TO_SHOW = 100;
+/**
+ * Below this the line hides: "7 visits" undersells more than showing nothing at all. A new site
+ * sits under the floor for a while, and that looks exactly like a broken integration, so the floor
+ * is a Worker var rather than a constant: set `SP_VISITS_MIN` to `0` to show the real number from
+ * day one, or raise it before a launch. Anything unparseable falls back to the default.
+ */
+const DEFAULT_MIN_TO_SHOW = 100;
+
+function minToShow(): number {
+  // An empty var means "unset", not zero: Number("") is 0, which would quietly drop the floor.
+  const raw = process.env.SP_VISITS_MIN?.trim();
+  if (!raw) return DEFAULT_MIN_TO_SHOW;
+  const configured = Number(raw);
+  return Number.isFinite(configured) && configured >= 0 ? configured : DEFAULT_MIN_TO_SHOW;
+}
 
 /**
  * The avatars are drawn, not photographed, and carry no faces or names. The visits are anonymous,
@@ -16,11 +29,18 @@ const compact = new Intl.NumberFormat("en", { notation: "compact", maximumFracti
 /**
  * Social proof under the hero action: a stack of drawn avatars and the site's real visit count from
  * Cloudflare Web Analytics. Renders nothing until the analytics secrets are set, or while the count
- * is still small, so forks and fresh deploys never show an awkward number.
+ * is still under `SP_VISITS_MIN`, so forks and fresh deploys never show an awkward number. Both
+ * silences say so in `wrangler tail`, so a hidden line is never mistaken for a broken one.
  */
 export async function VisitorProof() {
   const visits = await getRecentVisits();
-  if (visits === null || visits < MIN_TO_SHOW) return null;
+  if (visits === null) return null;
+  const floor = minToShow();
+  if (visits < floor) {
+    // lib/visits.ts logs why a null happened; this logs the one case where the number was fine.
+    console.warn(`[visits] hidden: ${visits} is under the SP_VISITS_MIN floor of ${floor}`);
+    return null;
+  }
   return (
     <div className="flex items-center gap-3">
       <div aria-hidden className="flex -space-x-2">
