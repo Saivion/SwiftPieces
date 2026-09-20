@@ -30,15 +30,15 @@ function report(message: string) {
 export const VISIT_WINDOW_DAYS = 30;
 
 /**
- * Two shapes of the same question. Scoped to one site when `CF_WEB_ANALYTICS_SITE_TAG` is set,
- * otherwise every site on the account. The account holds one site, so the unscoped total is this
- * site's total, and leaving the tag unset removes the one value that is easy to get wrong: the
- * dashboard shows several 32-hex ids per site and only one of them is the tag this dataset keys on.
+ * Every site on the account, not one site. There is one site, so this is that site's total, and it
+ * drops the single value that was easiest to get wrong: Cloudflare shows several 32-hex ids per
+ * site and only one of them is the tag this dataset keys on, so a plausible-looking wrong id
+ * silently filtered the real traffic down to nothing.
  */
-const query = (scoped: boolean) => `query Visits($account: String!, ${scoped ? "$site: String!, " : ""}$since: Time!, $until: Time!) {
+const QUERY = `query Visits($account: String!, $since: Time!, $until: Time!) {
   viewer {
     accounts(filter: { accountTag: $account }) {
-      rumPageloadEventsAdaptiveGroups(limit: 1, filter: { ${scoped ? "siteTag: $site, " : ""}datetime_geq: $since, datetime_leq: $until }) {
+      rumPageloadEventsAdaptiveGroups(limit: 1, filter: { datetime_geq: $since, datetime_leq: $until }) {
         sum { visits }
       }
     }
@@ -50,19 +50,19 @@ type Response = {
   errors?: { message?: string }[];
 };
 
+/** The names of any required values that are not present. Empty means the call can go ahead. */
+function missingEnv(): string[] {
+  return Object.entries({
+    CF_ANALYTICS_API_TOKEN: process.env.CF_ANALYTICS_API_TOKEN,
+    CF_ACCOUNT_ID: process.env.CF_ACCOUNT_ID,
+  })
+    .filter(([, value]) => !value)
+    .map(([name]) => name);
+}
+
 async function fetchVisits(): Promise<number | null> {
   const token = process.env.CF_ANALYTICS_API_TOKEN;
   const account = process.env.CF_ACCOUNT_ID;
-  const site = process.env.CF_WEB_ANALYTICS_SITE_TAG;
-  const missing = Object.entries({ CF_ANALYTICS_API_TOKEN: token, CF_ACCOUNT_ID: account })
-    .filter(([, value]) => !value)
-    .map(([name]) => name);
-  if (missing.length) {
-    // Names only. Expected on forks and local builds, which is why this is the quietest line here.
-    report(`not configured, missing ${missing.join(", ")}`);
-    return null;
-  }
-  const scoped = Boolean(site);
 
   const until = new Date();
   const since = new Date(until.getTime() - VISIT_WINDOW_DAYS * 24 * 60 * 60 * 1000);
@@ -70,10 +70,7 @@ async function fetchVisits(): Promise<number | null> {
     const res = await fetch("https://api.cloudflare.com/client/v4/graphql", {
       method: "POST",
       headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        query: query(scoped),
-        variables: { account, ...(scoped ? { site } : {}), since: since.toISOString(), until: until.toISOString() },
-      }),
+      body: JSON.stringify({ query: QUERY, variables: { account, since: since.toISOString(), until: until.toISOString() } }),
     });
     if (!res.ok) {
       // 403 here almost always means the token is missing Account Analytics: Read.
@@ -88,13 +85,11 @@ async function fetchVisits(): Promise<number | null> {
     }
     const visits = json.data?.viewer?.accounts?.[0]?.rumPageloadEventsAdaptiveGroups?.[0]?.sum?.visits;
     if (typeof visits !== "number") {
-      // The query succeeded and matched nothing. Scoped, that is almost always the wrong tag.
-      report(scoped
-        ? "no rows: CF_WEB_ANALYTICS_SITE_TAG matches no data. Unset it to count the whole account"
-        : "no rows: the account has no Web Analytics data in this window");
+      // The query succeeded and matched nothing: no beacon data on the account in this window.
+      report("no rows: the account has no Web Analytics data in this window");
       return null;
     }
-    report(`${visits} visits in the last ${VISIT_WINDOW_DAYS} days (${scoped ? "site" : "account-wide"})`);
+    report(`${visits} visits in the last ${VISIT_WINDOW_DAYS} days`);
     return visits;
   } catch (error) {
     // Analytics is decoration: a failed call hides the line, it never breaks the page.
@@ -103,5 +98,23 @@ async function fetchVisits(): Promise<number | null> {
   }
 }
 
-/** Visits in the last `VISIT_WINDOW_DAYS` days, or null when unconfigured or unavailable. Cached for an hour. */
-export const getRecentVisits = unstable_cache(fetchVisits, ["cf-web-analytics-visits"], { revalidate: 3600 });
+const cachedVisits = unstable_cache(fetchVisits, ["cf-web-analytics-visits"], { revalidate: 3600 });
+
+/**
+ * Visits in the last `VISIT_WINDOW_DAYS` days, or null when unconfigured or unavailable.
+ *
+ * The "is it configured" check sits OUTSIDE the cache deliberately. Pages are prerendered during
+ * the Cloudflare build, where Worker secrets do not exist, so this returns null there. Caching that
+ * null would write it into the incremental cache and serve it for an hour at runtime, long after
+ * the secrets are available: the count would be missing on every fresh deploy for no visible reason.
+ * Unconfigured is cheap to re-answer, so it is never cached; only the real API call is.
+ */
+export async function getRecentVisits(): Promise<number | null> {
+  const missing = missingEnv();
+  if (missing.length) {
+    // Expected on forks, on local builds, and during the Cloudflare build itself.
+    report(`not configured, missing ${missing.join(", ")}`);
+    return null;
+  }
+  return cachedVisits();
+}
