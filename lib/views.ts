@@ -50,24 +50,13 @@ export type View = {
 };
 
 /**
- * What a caller is allowed to say about a view.
- *
- * The endpoint that feeds this is public and unauthenticated, so everything below is treated as
- * hostile. Three things are being protected:
- *
- *   Cost         every accepted data point is billable past the plan's allowance.
- *   Accuracy     Analytics Engine samples per index, so an attacker inventing unlimited index
- *                values degrades the sampling for the real ones.
- *   Reporting    an unknown id in `getTopPieces` is a fabricated row in our own numbers.
- *
- * `id` is therefore not merely sanitised, it is checked against the registry: anything that is not
- * a real piece is dropped rather than recorded. `path` is bounded and character-restricted, and
- * `type` is a closed set. None of it ever reaches SQL — it is written as Analytics Engine blobs
- * through a structured API — but it does decide index cardinality, which is worth the same care.
+ * What a view may record. `type` is a closed set, `path` is length- and character-bounded, and `id`
+ * must be a real registry piece, so per-piece reporting only ever contains real pieces and index
+ * cardinality stays bounded. None of it reaches SQL: views are written as Analytics Engine blobs.
  */
 const TYPES = new Set(["screen", "template", "component", "block", "docs", "page"]);
 const PATH_OK = /^\/[A-Za-z0-9\-._~/]{0,120}$/;
-/** `.` is legitimate in a slug; `..` is never a real page and only ever pollutes reporting. */
+/** `.` is legitimate in a slug; `..` never is. */
 const TRAVERSAL = /\.\./;
 
 let knownIds: Set<string> | null = null;
@@ -130,9 +119,7 @@ type SqlRow = Record<string, string | number | null>;
 /**
  * An integer in [min, max]. Never NaN, never Infinity, never a string.
  *
- * This is the only thing allowed into a query. Because it cannot return anything but a bounded
- * integer, no caller can produce a quote, a comment marker or a statement separator, which is what
- * makes the queries below injection-proof by construction rather than by careful escaping.
+ * The only kind of value interpolated into the queries below.
  */
 function clampInt(value: unknown, min: number, max: number, fallback: number): number {
   const n = Math.floor(Number(value));
@@ -140,16 +127,9 @@ function clampInt(value: unknown, min: number, max: number, fallback: number): n
   return Math.min(max, Math.max(min, n));
 }
 
-/**
- * Every character our queries can legitimately contain. A semicolon, a backslash, a comment marker
- * or a double quote is not in here.
- *
- * Nothing user-supplied is interpolated into a query today, so this can only fire if a future edit
- * introduces one. That is exactly when a guard is worth having: it turns a silent injection into a
- * refused query and a log line.
- */
+/** The characters the queries below contain. Anything else is refused before it is sent. */
 const SAFE_QUERY = /^[A-Za-z0-9_ '(),*>=!.\n-]+$/;
-/** A hyphen is legitimate (`NOW() - INTERVAL`), two in a row is a comment. Likewise block comments. */
+/** A single hyphen is used (`NOW() - INTERVAL`); comment markers are not. */
 const COMMENT = /--|\/\*/;
 
 /** Runs one query against the Analytics Engine SQL API. Null on any failure; never throws. */
@@ -225,9 +205,8 @@ async function refreshTotal(kv: KVNamespace): Promise<number> {
 /**
  * The all-time total, recomputed at most every `REFRESH_SECONDS`. Null when unconfigured.
  *
- * The refresh is claimed before it runs. Without that, every request arriving in the instant the
- * window expires would start its own SQL query and its own read-add-write, which is both a bill and
- * a double count. The claim is a KV write, so it is not a real lock: two isolates can still race
+ * The refresh is claimed before it runs, so requests arriving together when the window expires run
+ * one query and one read-add-write between them rather than one each. The claim is a KV write, so it is not a real lock: two isolates can still race
  * inside the same moment. It narrows the window from "every concurrent request" to "the rare
  * simultaneous pair", which for a decorative counter is the right amount of engineering.
  */

@@ -11,6 +11,32 @@ export type ToolDef = {
 
 const MAX_BATCH = 20;
 
+/** The largest JSON-RPC body this server reads, counted while streaming so it holds without a Content-Length. */
+const MAX_BODY_BYTES = 64 * 1024;
+
+class BodyTooLarge extends Error {}
+
+async function readJsonCapped(req: Request): Promise<unknown> {
+  const reader = req.body?.getReader();
+  if (!reader) return JSON.parse("");
+  const chunks: Uint8Array[] = [];
+  let size = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    size += value.byteLength;
+    if (size > MAX_BODY_BYTES) {
+      await reader.cancel();
+      throw new BodyTooLarge();
+    }
+    chunks.push(value);
+  }
+  const bytes = new Uint8Array(size);
+  let offset = 0;
+  for (const c of chunks) { bytes.set(c, offset); offset += c.byteLength; }
+  return JSON.parse(new TextDecoder().decode(bytes));
+}
+
 type Rpc = { jsonrpc: "2.0"; id?: string | number | null; method: string; params?: Record<string, unknown> };
 
 export function createMcpHandler(opts: { name: string; version: string; tools: ToolDef[]; instructions?: string }) {
@@ -48,8 +74,11 @@ export function createMcpHandler(opts: { name: string; version: string; tools: T
   return async function POST(req: Request) {
     let body: Rpc | Rpc[];
     try {
-      body = (await req.json()) as Rpc | Rpc[];
-    } catch {
+      body = (await readJsonCapped(req)) as Rpc | Rpc[];
+    } catch (error) {
+      if (error instanceof BodyTooLarge) {
+        return Response.json({ jsonrpc: "2.0", id: null, error: { code: -32600, message: `Request body over ${MAX_BODY_BYTES / 1024}KB.` } }, { status: 413 });
+      }
       return Response.json({ jsonrpc: "2.0", id: null, error: { code: -32700, message: "Parse error" } }, { status: 400 });
     }
     const msgs = Array.isArray(body) ? body : [body];

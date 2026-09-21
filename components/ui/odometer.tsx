@@ -6,9 +6,9 @@ import { cn } from "@/lib/cn";
  * A number whose digits roll when it changes.
  *
  * The hero's view count is live: it is re-read every fifteen seconds and does move. Nothing about
- * a static figure says so, and the two obvious ways of saying it are both taken — the eyebrow
- * directly above already carries the pulsing dot, and the accent red belongs to the one action
- * between them. So the number itself is the signal: when it ticks, you see it tick.
+ * a static figure says so, and the two obvious ways of saying it are both taken — the eyebrow it
+ * sits in already carries the pulsing dot, and the accent red belongs to the hero's one action.
+ * So the number itself is the signal: when it ticks, you see it tick.
  *
  * It is also the Odometer piece from the library, which is the right thing for this site to be
  * using on its own front page.
@@ -43,12 +43,12 @@ export function Odometer({ value, className }: { value: number; className?: stri
 
   const text = new Intl.NumberFormat("en").format(value);
   return (
-    <span className={cn("inline-flex tabular-nums", className)} aria-label={text}>
+    <span className={cn("inline-flex h-[1em] leading-none tabular-nums", className)} aria-label={text}>
       {text.split("").map((char, i) =>
         char >= "0" && char <= "9" ? (
           <Digit key={i} value={Number(char)} motion={motion} />
         ) : (
-          <span key={i} aria-hidden className="inline-block">{char}</span>
+          <span key={i} aria-hidden className="inline-block h-[1em] leading-[1em]">{char}</span>
         ),
       )}
     </span>

@@ -16,6 +16,8 @@ let counted = false;
 /**
  * The all-time view count, counted and read from our own Cloudflare KV counter (lib/views.ts).
  *
+ * It rides inside the hero's eyebrow pill, after the tagline, as an eye and a number.
+ *
  * The count is not rendered into the page: the homepage is static and cached at the edge, so a
  * number baked into it would be frozen at whatever the last build saw. It arrives just after first
  * paint instead, and keeps up on its own.
@@ -24,10 +26,6 @@ let counted = false;
  */
 export function LiveViews({ className }: { className?: string }) {
   const [views, setViews] = useState<number | null>(null);
-  // Until the first answer lands the row keeps its height, so the number arriving never shifts the
-  // hero. Once we know there is nothing to show, it collapses.
-  const [answered, setAnswered] = useState(false);
-
   useEffect(() => {
     let live = true;
     let timer: ReturnType<typeof setTimeout> | undefined;
@@ -41,12 +39,13 @@ export function LiveViews({ className }: { className?: string }) {
         // The path rides along on the count so reporting can group views by page and by piece.
         const url = method === "POST" ? `/api/views?path=${encodeURIComponent(location.pathname)}` : "/api/views";
         const res = await fetch(url, { method, cache: "no-store" });
+        // A 429 or 5xx carries no count. Treat it like a dropped poll and keep the last number,
+        // rather than reading `views` off an error body and hiding the line.
+        if (!res.ok) return;
         const data = (await res.json()) as { views: number | null };
         apply(data.views);
       } catch {
         // Leave the last good number on screen; a dropped poll is not worth a visible change.
-      } finally {
-        if (live) setAnswered(true);
       }
     };
 
@@ -81,16 +80,18 @@ export function LiveViews({ className }: { className?: string }) {
     };
   }, []);
 
-  if (answered && views === null) return null;
+  // Nothing shows until there is a number, so a missing count never leaves an empty slot in the pill.
+  if (views === null) return null;
 
   return (
-    <p className={`flex min-h-6 items-baseline gap-2 text-[13px] text-muted ${className ?? ""}`}>
-      {views === null ? null : (
-        <>
-          <Odometer value={views} className="text-[15px] font-semibold text-foreground" />
-          <span>views</span>
-        </>
-      )}
-    </p>
+    <span className={`inline-flex items-center gap-1.5 ${className ?? ""}`}>
+      <span aria-hidden className="mx-1 h-3.5 w-px bg-white/15" />
+      <svg aria-hidden width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-foreground">
+        <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z" />
+        <circle cx="12" cy="12" r="3" />
+      </svg>
+      <Odometer value={views} className="text-foreground" />
+      <span className="sr-only">views</span>
+    </span>
   );
 }

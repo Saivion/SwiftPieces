@@ -7,11 +7,13 @@
   "assets": { "directory": ".open-next/assets", "binding": "ASSETS" },
   "observability": { "enabled": true },
   "services": [{ "binding": "WORKER_SELF_REFERENCE", "service": "swiftpieces" }],
-  // /api/views is public and unauthenticated, and every accepted view is a billable data point.
-  // 20 a minute per IP is far above a person reading the site and far below a script worth paying
-  // for. It fails open: a missing binding never takes the endpoint down.
+  // Per-IP budgets per minute. The view counter's write path, then the rest of the API.
   "ratelimits": [
-    { "name": "VIEWS_LIMITER", "namespace_id": "4301", "simple": { "limit": 20, "period": 60 } }
+    { "name": "VIEWS_LIMITER", "namespace_id": "4301", "simple": { "limit": 20, "period": 60 } },
+    // Every other public endpoint: MCP, the registry and the CLI's /r paths (middleware.ts).
+    { "name": "API_LIMITER", "namespace_id": "4302", "simple": { "limit": 60, "period": 60 } },
+    // Docs search queries as you type, so it gets a larger budget than the rest of the API.
+    { "name": "SEARCH_LIMITER", "namespace_id": "4303", "simple": { "limit": 120, "period": 60 } }
   ],
   // Free has no database and no private bucket (Rev 3 §2). Only public media + the ISR cache.
   "r2_buckets": [

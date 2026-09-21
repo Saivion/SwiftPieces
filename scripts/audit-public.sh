@@ -54,4 +54,12 @@ if [ -d .open-next/assets ]; then
   fi
 fi
 
+# Cache interception answers segment prefetches with the whole page, so the client re-prefetches
+# in a loop. Keep it off.
+if grep -qE "enableCacheInterception:\s*true" open-next.config.ts; then
+  note FAIL "enableCacheInterception is true in open-next.config.ts (breaks segment prefetching)"; fail=1
+else
+  note ok "cache interception is off"
+fi
+
 [ $fail -eq 0 ] && echo "Audit passed." || { echo "Audit failed."; exit 1; }
