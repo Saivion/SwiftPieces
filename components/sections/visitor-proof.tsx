@@ -1,4 +1,5 @@
 import { getRecentVisits } from "@/lib/visits";
+import { LiveVisits } from "@/components/sections/live-visits";
 
 /**
  * Below this the line hides: "7 visits" undersells more than showing nothing at all. A new site
@@ -38,29 +39,28 @@ const AVATARS = [7, 10, 13, 16, 19].map((pct) => `color-mix(in srgb, #fff ${pct}
  */
 const GLYPH = "rgb(255 255 255 / 0.38)";
 
-/**
- * The exact figure, grouped: 1,234 rather than the 1.2K compact notation gives. The real number is
- * the proof; rounding it to something tidier reads as an estimate, and an estimate proves nothing.
- */
-const exact = new Intl.NumberFormat("en");
 
 /**
  * Social proof under the hero action: a stack of drawn avatars and the site's real all-time visit
- * count from Cloudflare Web Analytics. Renders nothing until the analytics secrets are set, or while the count
- * is still under `SP_VISITS_MIN`, so forks and fresh deploys never show an awkward number. Both
- * silences say so in `wrangler tail`, so a hidden line is never mistaken for a broken one.
+ * count from Cloudflare Web Analytics.
+ *
+ * The count is kept current by `LiveVisits`, which polls /api/visits. This component only supplies
+ * the starting value and the avatars. That split is what fixed the count disappearing: the value
+ * rendered here comes from the Cloudflare build, which has no Worker secrets and so has no count,
+ * and nothing used to correct it until the page revalidated.
+ *
+ * The floor still applies to the build-time value. A number under it is treated as "no starting
+ * value" rather than as a reason to hide the line, because the live poll may well return one.
  */
 export async function VisitorProof() {
   const visits = await getRecentVisits();
-  if (visits === null) return null;
   const floor = minToShow();
-  if (visits < floor) {
-    // lib/visits.ts logs why a null happened; this logs the one case where the number was fine.
-    console.warn(`[visits] hidden: ${visits} is under the SP_VISITS_MIN floor of ${floor}`);
-    return null;
+  const initial = visits !== null && visits >= floor ? visits : null;
+  if (visits !== null && visits < floor) {
+    console.warn(`[visits] initial hidden: ${visits} is under the SP_VISITS_MIN floor of ${floor}`);
   }
   return (
-    <div className="flex items-center gap-3">
+    <LiveVisits initial={initial}>
       <div aria-hidden className="flex -space-x-2">
         {AVATARS.map((fill, i) => (
           <span key={i} className="grid size-7 place-items-center overflow-hidden rounded-full ring-2 ring-[var(--background)]" style={{ background: fill }}>
@@ -71,9 +71,6 @@ export async function VisitorProof() {
           </span>
         ))}
       </div>
-      <p className="text-[13px] text-muted">
-        <span className="font-semibold text-foreground tabular-nums">{exact.format(visits)}</span> total visits
-      </p>
-    </div>
+    </LiveVisits>
   );
 }

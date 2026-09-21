@@ -37,6 +37,9 @@ function report(message: string) {
  */
 const LOOKBACK_DAYS = 180;
 
+/** Every plan serves 30 days, so this is what an over-long window falls back to. */
+const FALLBACK_DAYS = 30;
+
 /**
  * Every site on the account, not one site. There is one site, so this is that site's total, and it
  * drops the single value that was easiest to get wrong: Cloudflare shows several 32-hex ids per
@@ -68,48 +71,85 @@ function missingEnv(): string[] {
     .map(([name]) => name);
 }
 
-async function fetchVisits(): Promise<number | null> {
+/**
+ * One query, for one window. Returns the count, or a reason it could not produce one.
+ *
+ * The reason matters because the two failures need different handling: a window the account cannot
+ * serve should be retried shorter, while a bad token should not be retried at all.
+ */
+type VisitsResult = { ok: true; visits: number } | { ok: false; retryShorter: boolean };
+
+async function queryVisits(days: number): Promise<VisitsResult> {
   const token = process.env.CF_ANALYTICS_API_TOKEN;
   const account = process.env.CF_ACCOUNT_ID;
 
   const until = new Date();
-  const since = new Date(until.getTime() - LOOKBACK_DAYS * 24 * 60 * 60 * 1000);
+  const since = new Date(until.getTime() - days * 24 * 60 * 60 * 1000);
   try {
     const res = await fetch("https://api.cloudflare.com/client/v4/graphql", {
       method: "POST",
       headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
       body: JSON.stringify({ query: QUERY, variables: { account, since: since.toISOString(), until: until.toISOString() } }),
-      // This call had no upper bound, and it sat in the hero's render path: a slow response held
-      // the whole document. It is decoration, so it gets a short leash and fails to nothing.
-      signal: AbortSignal.timeout(1500),
+      // The count is fetched by /api/visits now, not while rendering the document, so a slow
+      // response delays nothing on the page. 1.5s was tight enough to drop calls that would have
+      // succeeded; this is a real ceiling rather than a race.
+      signal: AbortSignal.timeout(5000),
     });
     if (!res.ok) {
       // 403 here almost always means the token is missing Account Analytics: Read.
-      report(`API returned ${res.status} ${res.statusText}`);
-      return null;
+      report(`${days}d: API returned ${res.status} ${res.statusText}`);
+      return { ok: false, retryShorter: false };
     }
     const json = (await res.json()) as Response;
     if (json.errors?.length) {
       const messages = json.errors.map((e) => e.message ?? JSON.stringify(e)).join("; ");
-      report(`GraphQL errors: ${messages}`);
-      return null;
+      report(`${days}d: GraphQL errors: ${messages}`);
+      // How far back a dataset can be queried is set per account and per plan, so a window this
+      // account cannot serve comes back as an error rather than as an empty result.
+      return { ok: false, retryShorter: true };
     }
     const visits = json.data?.viewer?.accounts?.[0]?.rumPageloadEventsAdaptiveGroups?.[0]?.sum?.visits;
     if (typeof visits !== "number") {
-      // The query succeeded and matched nothing: no beacon data on the account at all.
-      report("no rows: the account has no Web Analytics data in the retained history");
-      return null;
+      report(`${days}d: no rows`);
+      return { ok: false, retryShorter: true };
     }
-    report(`${visits} visits all time`);
-    return visits;
+    report(`${visits} visits over ${days}d`);
+    return { ok: true, visits };
   } catch (error) {
     // Analytics is decoration: a failed call hides the line, it never breaks the page.
-    report(`request failed: ${error instanceof Error ? error.message : String(error)}`);
-    return null;
+    report(`${days}d: request failed: ${error instanceof Error ? error.message : String(error)}`);
+    return { ok: false, retryShorter: false };
   }
 }
 
-const cachedVisits = unstable_cache(fetchVisits, ["cf-web-analytics-visits"], { revalidate: 3600 });
+/**
+ * The count, preferring the longest window this account will serve.
+ *
+ * `LOOKBACK_DAYS` is a wish, not a guarantee: Cloudflare sets how far back each dataset can be
+ * queried per account and per plan, and asking for more than the account allows returns an error or
+ * nothing at all. That failure was silent, and a silent failure here means the line simply
+ * disappears from the hero. So an over-long window falls back to 30 days, which every plan serves,
+ * and says so in the log rather than rendering nothing.
+ */
+async function fetchVisits(): Promise<number | null> {
+  const first = await queryVisits(LOOKBACK_DAYS);
+  if (first.ok) return first.visits;
+  if (!first.retryShorter) return null;
+
+  const fallback = await queryVisits(FALLBACK_DAYS);
+  if (!fallback.ok) return null;
+  report(`fell back to ${FALLBACK_DAYS}d: this account will not serve ${LOOKBACK_DAYS}d`);
+  return fallback.visits;
+}
+
+/**
+ * How long a fetched count is reused. The hero polls /api/visits every 15s, so this is what stops
+ * that traffic reaching Cloudflare: the API is called about three times a minute no matter how many
+ * people are on the site. It was an hour, which is why the number never moved.
+ */
+const CACHE_SECONDS = 20;
+
+const cachedVisits = unstable_cache(fetchVisits, ["cf-web-analytics-visits"], { revalidate: CACHE_SECONDS });
 
 /**
  * Visits over the whole retained history, or null when unconfigured or unavailable.
