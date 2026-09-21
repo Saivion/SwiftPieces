@@ -1,0 +1,62 @@
+name: New piece proposal
+description: Propose a component for the free library.
+labels: ["new piece"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The bar is a **designed interaction** you would otherwise spend a day building, not a wrapper around a system control. Proposing before building saves you the work if it does not fit.
+  - type: input
+    id: name
+    attributes:
+      label: Proposed name
+      placeholder: ScrubbableChart
+    validations:
+      required: true
+  - type: dropdown
+    id: category
+    attributes:
+      label: Category
+      options: [text, backgrounds, glass, controls, inputs, cards, lists, navigation, sheets, feedback, motion, data, ai, media]
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What it does
+      description: The interaction, in a sentence or two. What does it feel like to use?
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why it belongs here
+      description: What makes this worth a file of its own rather than a few lines at a call site? How is it different from the pieces already in the library?
+    validations:
+      required: true
+  - type: input
+    id: min-ios
+    attributes:
+      label: Minimum iOS version
+      description: 17 unless it genuinely cannot be built there. Anything newer needs an availability gate and a fallback.
+      value: "17"
+    validations:
+      required: true
+  - type: checkboxes
+    id: constraints
+    attributes:
+      label: Constraints
+      description: A piece that cannot meet these will not be merged.
+      options:
+        - label: Apple frameworks only, no third-party dependencies.
+          required: true
+        - label: Respects Reduce Motion and Reduce Transparency.
+          required: true
+        - label: Self-contained in one file, aside from declared registryDependencies.
+          required: true
+  - type: checkboxes
+    id: offer
+    attributes:
+      label: Are you building it?
+      options:
+        - label: I intend to open the PR myself.

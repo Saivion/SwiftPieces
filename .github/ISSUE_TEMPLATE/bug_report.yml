@@ -1,0 +1,69 @@
+name: Bug report
+description: A piece, the CLI or the site does not behave as documented.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Most reports about a piece turn out to be version-gated behavior rather than a bug, so the iOS version below matters more than anything else here.
+  - type: input
+    id: piece
+    attributes:
+      label: Piece, or area
+      description: The piece name, or "CLI" / "site" / "docs".
+      placeholder: SwipeDeck
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you saw, and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: How to reproduce
+      description: Smallest steps that show it. A snippet of the call site is usually enough.
+      placeholder: |
+        1. Add the piece with `npx swiftpieces add SwipeDeck`
+        2. Render it with …
+        3. Swipe left
+    validations:
+      required: true
+  - type: input
+    id: ios
+    attributes:
+      label: iOS version
+      description: The OS on the device or simulator where it happened.
+      placeholder: "iOS 18.2 simulator"
+    validations:
+      required: true
+  - type: input
+    id: xcode
+    attributes:
+      label: Xcode version
+      placeholder: "16.2"
+    validations:
+      required: true
+  - type: dropdown
+    id: harness
+    attributes:
+      label: Does it reproduce in the previews/ harness?
+      description: This separates a bug in the piece from something in your project.
+      options:
+        - "Yes, it reproduces there too"
+        - "No, only in my project"
+        - "I have not tried"
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I searched existing issues for this.
+          required: true
+        - label: I am using the current version of the piece from the registry.
+          required: true

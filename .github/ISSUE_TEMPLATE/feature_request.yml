@@ -1,0 +1,29 @@
+name: Feature request
+description: A change to the CLI, the site, the docs or the build. For a new component, use the piece proposal instead.
+labels: ["enhancement"]
+body:
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options: [CLI, site, docs, registry build, MCP server, other]
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What is awkward today? Describe the situation, not the solution.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What you would like instead
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: What you tried or considered
+      description: Including whether there is already a way to do this.
