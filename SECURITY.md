@@ -4,7 +4,7 @@
 
 **Do not open a public issue.**
 
-Report privately through [GitHub's private vulnerability reporting](https://github.com/Saivion/SwiftPieces/security/advisories/new), or email **security@swiftpieces.com**.
+Report privately through [GitHub's private vulnerability reporting](https://github.com/Saivion/SwiftPieces/security/advisories/new), or email **saivion@swiftpieces.com**.
 
 Please include:
 
