@@ -1,7 +1,7 @@
 import { unstable_cache } from "next/cache";
 
 /**
- * Recent visits to the site, read from Cloudflare Web Analytics.
+ * All-time visits to the site, read from Cloudflare Web Analytics.
  *
  * Why "visits" and not "unique visitors": Web Analytics deliberately never identifies anyone, which
  * is why it needs no cookie or consent banner. It counts a visit when someone arrives from another
@@ -26,8 +26,16 @@ function report(message: string) {
   console.warn(`[visits] ${message}`);
 }
 
-/** The rolling window the count covers. Rolling, so it is labelled "last 30 days", never "this month". */
-export const VISIT_WINDOW_DAYS = 30;
+/**
+ * How far back the count reaches. Cloudflare keeps six months of Web Analytics history (unsampled
+ * for the first seven days, aggregated after that), so 180 days is everything it still holds and
+ * the count is a true all-time total for a site younger than that.
+ *
+ * It stops being literally all-time once the site passes six months, around March 2027, at which
+ * point it quietly becomes a rolling six months. The number would dip rather than climb, which is
+ * the signal to either say "last 6 months" in the copy or start persisting a running total.
+ */
+const LOOKBACK_DAYS = 180;
 
 /**
  * Every site on the account, not one site. There is one site, so this is that site's total, and it
@@ -65,12 +73,15 @@ async function fetchVisits(): Promise<number | null> {
   const account = process.env.CF_ACCOUNT_ID;
 
   const until = new Date();
-  const since = new Date(until.getTime() - VISIT_WINDOW_DAYS * 24 * 60 * 60 * 1000);
+  const since = new Date(until.getTime() - LOOKBACK_DAYS * 24 * 60 * 60 * 1000);
   try {
     const res = await fetch("https://api.cloudflare.com/client/v4/graphql", {
       method: "POST",
       headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
       body: JSON.stringify({ query: QUERY, variables: { account, since: since.toISOString(), until: until.toISOString() } }),
+      // This call had no upper bound, and it sat in the hero's render path: a slow response held
+      // the whole document. It is decoration, so it gets a short leash and fails to nothing.
+      signal: AbortSignal.timeout(1500),
     });
     if (!res.ok) {
       // 403 here almost always means the token is missing Account Analytics: Read.
@@ -85,11 +96,11 @@ async function fetchVisits(): Promise<number | null> {
     }
     const visits = json.data?.viewer?.accounts?.[0]?.rumPageloadEventsAdaptiveGroups?.[0]?.sum?.visits;
     if (typeof visits !== "number") {
-      // The query succeeded and matched nothing: no beacon data on the account in this window.
-      report("no rows: the account has no Web Analytics data in this window");
+      // The query succeeded and matched nothing: no beacon data on the account at all.
+      report("no rows: the account has no Web Analytics data in the retained history");
       return null;
     }
-    report(`${visits} visits in the last ${VISIT_WINDOW_DAYS} days`);
+    report(`${visits} visits all time`);
     return visits;
   } catch (error) {
     // Analytics is decoration: a failed call hides the line, it never breaks the page.
@@ -101,7 +112,7 @@ async function fetchVisits(): Promise<number | null> {
 const cachedVisits = unstable_cache(fetchVisits, ["cf-web-analytics-visits"], { revalidate: 3600 });
 
 /**
- * Visits in the last `VISIT_WINDOW_DAYS` days, or null when unconfigured or unavailable.
+ * Visits over the whole retained history, or null when unconfigured or unavailable.
  *
  * The "is it configured" check sits OUTSIDE the cache deliberately. Pages are prerendered during
  * the Cloudflare build, where Worker secrets do not exist, so this returns null there. Caching that

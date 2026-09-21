@@ -1,11 +1,12 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { useInView, useReducedMotion } from "motion/react";
+import { useInView } from "@/lib/use-in-view";
+import { usePrefersReducedMotion } from "@/lib/use-reduced-motion";
 
 export function Stat({ value, suffix = "", label, detail }: { value: number; suffix?: string; label: string; detail?: string }) {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, margin: "-10% 0px" });
-  const reduced = useReducedMotion();
+  const reduced = usePrefersReducedMotion();
   const [n, setN] = useState(reduced ? value : 0);
 
   useEffect(() => {

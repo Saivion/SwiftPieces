@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useSearchContext } from "fumadocs-ui/contexts/search";
 import { NavGlyph } from "@swiftpieces/brand";
 import { Logo } from "@/components/ui/logo";
@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { cn } from "@/lib/cn";
 import { pro } from "@/lib/site";
-import { GitHubStar } from "@/components/layout/github-star";
 
 const links = [
   { label: "Components", href: "/components" },
@@ -18,7 +17,12 @@ const links = [
 ];
 
 
-export function Navbar({ stars = null }: { stars?: number | null }) {
+/**
+ * `star` and `starMobile` arrive already rendered from the server layout, inside their own
+ * Suspense boundaries. The bar used to take a `stars: number`, which meant the layout had to
+ * await a GitHub API call before it could render any navigation at all.
+ */
+export function Navbar({ star, starMobile }: { star?: ReactNode; starMobile?: ReactNode }) {
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
@@ -71,7 +75,7 @@ export function Navbar({ stars = null }: { stars?: number | null }) {
               <span className="hidden w-28 text-left xl:inline">Search</span>
               <kbd className="rounded-[4px] bg-surface-3 px-1.5 py-0.5 font-sans text-[10px] font-semibold text-muted">⌘K</kbd>
             </button>
-            <GitHubStar stars={stars} className="hidden sm:inline-flex" />
+            {star}
             <Button href={pro.buy} size="sm" className="hidden sm:inline-flex">Get Pro</Button>
             <button type="button" onClick={() => setOpen((v) => !v)} className="flex size-9 items-center justify-center rounded-[var(--radius-sm)] bg-surface-2 lg:hidden" aria-expanded={open} aria-label="Menu">
               {/* Crisp SVG glyphs: three bars closed, an X open. Both are 16px and drawn from the button's centre. */}
@@ -99,7 +103,7 @@ export function Navbar({ stars = null }: { stars?: number | null }) {
             ))}
           </ul>
           <div className="flex flex-col gap-3">
-            <GitHubStar stars={stars} className="h-12 justify-center text-[15px]" />
+            {starMobile}
             <Button href={pro.buy} size="lg">Get Pro</Button>
             <Button href="/components" variant="ghost" size="lg">Browse free pieces</Button>
           </div>

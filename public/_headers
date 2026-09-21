@@ -1,0 +1,15 @@
+# Cloudflare Workers Static Assets reads this file and applies it to asset responses.
+#
+# Without it every /_next/static/* chunk was served `public, max-age=0, must-revalidate`, so the
+# browser revalidated all 15 of them on every navigation even though the filenames are content
+# hashed and can never change. That was the Lighthouse "efficient cache policy" failure and the
+# reason repeat views were no faster than first views.
+#
+# Only content-hashed paths get the immutable policy. HTML is deliberately absent: its freshness
+# is owned by the Worker's own Cache-Control and by the ISR revalidate window.
+
+/_next/static/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/_next/image/*
+  Cache-Control: public, max-age=31536000, immutable

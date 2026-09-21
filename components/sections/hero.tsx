@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { Container } from "@/components/ui/container";
 import { Eyebrow } from "@/components/ui/badge";
 import { Button, Arrow } from "@/components/ui/button";
@@ -15,14 +16,18 @@ export function Hero() {
         <div className="relative z-10">
           {/* The copy column stops short of the mark, so the headline never runs under it. */}
           <div className="max-w-[46rem]">
-            <Reveal><Eyebrow>New components every week</Eyebrow></Reveal>
+            <Reveal priority><Eyebrow>New components every week</Eyebrow></Reveal>
             <AnimatedText as="h1" text="Native SwiftUI that feels alive." accent="alive" className="p-hero mt-8" />
-            <Reveal delay={0.35}><p className="p-body mt-7 max-w-xl text-[15px]">Designed SwiftUI interactions: swipe decks, glass menus, floating docks, scrubbable charts. One file each, iOS 17 and up, with the motion, haptics and states already done.</p></Reveal>       
-            <Reveal delay={0.45} className="mt-9">
+            <Reveal priority delay={0.35}><p className="p-body mt-7 max-w-xl text-[15px]">Designed SwiftUI interactions: swipe decks, glass menus, floating docks, scrubbable charts. One file each, iOS 17 and up, with the motion, haptics and states already done.</p></Reveal>       
+            <Reveal priority delay={0.45} className="mt-9">
               <Button href="/components">Browse the library <Arrow /></Button>
             </Reveal>
-            <Reveal delay={0.55} className="mt-6">
-              <VisitorProof />
+            <Reveal priority delay={0.55} className="mt-6">
+              {/* Streamed: the visit count is a Cloudflare Analytics call, and decoration. The
+                  fallback is the same height as the avatar stack, so nothing moves when it lands. */}
+              <Suspense fallback={<div className="h-7" />}>
+                <VisitorProof />
+              </Suspense>
             </Reveal>
           </div>
         </div>

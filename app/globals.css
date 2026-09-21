@@ -107,3 +107,61 @@
 .pro-page a.card:hover {
   background-color: rgb(0 0 0 / 0.58);
 }
+
+/* ── Entrance animations ──────────────────────────────────────────────────────
+   These run entirely in CSS. Nothing here waits for React, so the hero is
+   painted and legible in the server HTML and the Largest Contentful Paint
+   element never sits behind a JavaScript bundle. Motion used to drive these,
+   which meant the server sent `style="opacity:0"` on 21 elements and LCP could
+   not happen until the bundle had downloaded, parsed and hydrated.
+
+   Two modes, both free of JavaScript:
+
+   .sp-enter   Time-based, plays once at first paint. For above-the-fold
+               content. Transform only, never opacity: an element at opacity 0
+               is not an LCP candidate, so fading the hero in would put the
+               animation back in the LCP path. An 18px rise reads the same.
+
+   .sp-reveal  Scroll-driven, for content below the fold. `animation-timeline:
+               view()` needs no observer and no main-thread work. Anything
+               already on screen at load is past its range and therefore
+               painted immediately. Browsers without scroll-driven timelines
+               skip the block and show the content at rest, which is the
+               correct state either way. */
+
+@keyframes sp-enter { from { transform: translateY(var(--sp-y, 18px)); } to { transform: none; } }
+@keyframes sp-reveal { from { opacity: 0; transform: translateY(var(--sp-y, 18px)); } to { opacity: 1; transform: none; } }
+@keyframes sp-word { from { transform: translateY(110%); } to { transform: none; } }
+
+.sp-enter {
+  animation: sp-enter var(--sp-dur, 0.65s) cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: var(--sp-delay, 0s);
+}
+
+.sp-word {
+  display: inline-block;
+  animation: sp-word var(--sp-dur, 0.55s) cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: var(--sp-delay, 0s);
+}
+
+/* The clipping box each word rises out of. Vertical padding is cancelled by an equal negative
+   margin so descenders are not cropped and the line box keeps its original height. */
+.sp-word-mask { display: inline-block; overflow: hidden; padding-block: 0.12em; margin-block: -0.12em; vertical-align: bottom; }
+
+@supports (animation-timeline: view()) {
+  .sp-reveal {
+    animation: sp-reveal 1s linear both;
+    animation-timeline: view();
+    animation-range: entry 0% cover var(--sp-range, 18%);
+  }
+  /* Staggered groups: each child trails the one before it by shifting its range later. */
+  .sp-reveal-group > * {
+    animation: sp-reveal 1s linear both;
+    animation-timeline: view();
+    animation-range: entry 0% cover var(--sp-range, 20%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sp-enter, .sp-word, .sp-reveal, .sp-reveal-group > * { animation: none !important; }
+}

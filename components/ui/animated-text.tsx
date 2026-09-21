@@ -1,31 +1,56 @@
-"use client";
-import { motion, useReducedMotion } from "motion/react";
-import type { ReactNode } from "react";
+import { Fragment, type CSSProperties } from "react";
 import { cn } from "@/lib/cn";
 
-/** Word-by-word masked reveal for display headings. Accent-wrapped words keep their styling. */
-export function AnimatedText({ text, accent, className, as: Tag = "h1", delay = 0 }: { text: string; accent?: string; className?: string; as?: "h1" | "h2" | "p"; delay?: number }) {
-  const reduced = useReducedMotion();
+/**
+ * Word-by-word masked reveal for display headings, in CSS and on the server.
+ *
+ * This was a Motion client component, which meant every word of the h1 shipped as
+ * `style="opacity:0;transform:translateY(110%)"` and the headline could not paint until the
+ * bundle had hydrated. It now renders as plain server markup with a CSS animation, so the
+ * heading is in the document at full opacity and the rise plays from first paint.
+ *
+ * The animation is transform only. Each word rises out of its own clipping box, exactly as
+ * before; the opacity fade is gone because it was invisible underneath the mask and an element
+ * at opacity 0 cannot be a Largest Contentful Paint candidate.
+ */
+export function AnimatedText({
+  text,
+  accent,
+  className,
+  as: Tag = "h1",
+  delay = 0,
+  stagger = 0.04,
+  duration = 0.55,
+}: {
+  text: string;
+  accent?: string;
+  className?: string;
+  as?: "h1" | "h2" | "p";
+  delay?: number;
+  stagger?: number;
+  duration?: number;
+}) {
   const words = text.split(" ");
-  const M = motion.create(Tag);
   return (
-    <M className={cn("text-balance", className)} aria-label={text}>
+    <Tag className={cn("text-balance", className)} aria-label={text}>
       {words.map((w, i) => {
         const isAccent = accent && w.replace(/[.,!?]/g, "") === accent;
         return (
-          <span key={i} className="inline-block overflow-hidden py-[0.12em] -my-[0.12em] align-bottom">
-            <motion.span
-              className={cn("inline-block", isAccent && "text-accent")}
-              initial={reduced ? false : { y: "110%", opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: delay + i * 0.06 }}
-            >
-              {w}
-              {i < words.length - 1 ? " " : ""}
-            </motion.span>
-          </span>
+          // The separating space is a sibling of the mask, not content inside it. A trailing space
+          // inside an inline-block is trimmed, which ran every word of the headline together.
+          <Fragment key={i}>
+            <span className="sp-word-mask">
+              <span
+                className={cn("sp-word", isAccent && "text-accent")}
+                style={{ "--sp-delay": `${delay + i * stagger}s`, "--sp-dur": `${duration}s` } as CSSProperties}
+              >
+                {w}
+              </span>
+            </span>
+            {i < words.length - 1 ? " " : null}
+          </Fragment>
         );
       })}
-    </M>
+    </Tag>
   );
 }

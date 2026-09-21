@@ -10,4 +10,9 @@ export default defineCloudflareConfig({
   // Without a queue OpenNext uses a no-op, so ISR pages never refresh after the build: the visit
   // count and GitHub star count would stay at their build-time values until the next deploy.
   queue: memoryQueue,
+  // Serve a cached page straight from the incremental cache, before Next's server is invoked.
+  // Without this every HTML request ran a full Worker render: production measured no
+  // `cf-cache-status` header on any HTML response and a TTFB swinging between 0.26s and 3.68s.
+  // Must stay false if PPR is ever enabled; this app does not use it.
+  enableCacheInterception: true,
 });

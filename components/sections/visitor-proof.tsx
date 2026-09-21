@@ -1,4 +1,4 @@
-import { getRecentVisits, VISIT_WINDOW_DAYS } from "@/lib/visits";
+import { getRecentVisits } from "@/lib/visits";
 
 /**
  * Below this the line hides: "7 visits" undersells more than showing nothing at all. A new site
@@ -24,23 +24,29 @@ function minToShow(): number {
  * in, and five pastels read as a sixth component sitting under the hero rather than part of the
  * page. This is the page's own surface ramp instead, lifted in even steps so the overlap stays
  * legible. The accent red is left out on purpose: it belongs to the one action directly above.
+ *
+ * Opaque, via color-mix rather than a white at low alpha. The discs overlap, and a translucent one
+ * shows the disc beneath it through the overlap, which reads as a rendering fault rather than a
+ * stack. color-mix resolves to a solid color while still deriving from the background token, so the
+ * ramp stays one edit away from the theme instead of five hardcoded composites.
  */
-const AVATARS = [
-  "rgb(255 255 255 / 0.07)",
-  "rgb(255 255 255 / 0.10)",
-  "rgb(255 255 255 / 0.13)",
-  "rgb(255 255 255 / 0.16)",
-  "rgb(255 255 255 / 0.19)",
-];
-
-/** The glyph, one step brighter than the disc it sits on so it reads at 28px without hard contrast. */
-const GLYPH = "rgb(255 255 255 / 0.38)";
-
-const compact = new Intl.NumberFormat("en", { notation: "compact", maximumFractionDigits: 1 });
+const AVATARS = [7, 10, 13, 16, 19].map((pct) => `color-mix(in srgb, #fff ${pct}%, var(--background))`);
 
 /**
- * Social proof under the hero action: a stack of drawn avatars and the site's real visit count from
- * Cloudflare Web Analytics. Renders nothing until the analytics secrets are set, or while the count
+ * The glyph, one step brighter than the disc it sits on so it reads at 28px without hard contrast.
+ * Translucency is safe here: it composites against its own opaque disc, never the one behind it.
+ */
+const GLYPH = "rgb(255 255 255 / 0.38)";
+
+/**
+ * The exact figure, grouped: 1,234 rather than the 1.2K compact notation gives. The real number is
+ * the proof; rounding it to something tidier reads as an estimate, and an estimate proves nothing.
+ */
+const exact = new Intl.NumberFormat("en");
+
+/**
+ * Social proof under the hero action: a stack of drawn avatars and the site's real all-time visit
+ * count from Cloudflare Web Analytics. Renders nothing until the analytics secrets are set, or while the count
  * is still under `SP_VISITS_MIN`, so forks and fresh deploys never show an awkward number. Both
  * silences say so in `wrangler tail`, so a hidden line is never mistaken for a broken one.
  */
@@ -66,7 +72,7 @@ export async function VisitorProof() {
         ))}
       </div>
       <p className="text-[13px] text-muted">
-        <span className="font-semibold text-foreground tabular-nums">{compact.format(visits)}</span> visits in the last {VISIT_WINDOW_DAYS} days
+        <span className="font-semibold text-foreground tabular-nums">{exact.format(visits)}</span> total visits
       </p>
     </div>
   );

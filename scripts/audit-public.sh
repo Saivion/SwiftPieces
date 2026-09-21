@@ -39,4 +39,15 @@ for dir in .next/static .open-next/assets; do
   if [ -n "$maps$refs" ]; then note FAIL "source maps under $dir:"; printf '%s\n' $maps $refs | sed 's/^/           /'; fail=1; else note ok "no source maps under $dir"; fi
 done
 
+# Asset cache policy: public/_headers must reach the Workers assets directory, or every
+# content-hashed /_next/static chunk goes back to `max-age=0, must-revalidate` and the browser
+# revalidates the whole bundle on every navigation. Silent when it regresses, so it is checked.
+if [ -d .open-next/assets ]; then
+  if grep -q "max-age=31536000, immutable" .open-next/assets/_headers 2>/dev/null; then
+    note ok "immutable cache policy present in built assets"
+  else
+    note FAIL "_headers missing or without an immutable policy in .open-next/assets"; fail=1
+  fi
+fi
+
 [ $fail -eq 0 ] && echo "Audit passed." || { echo "Audit failed."; exit 1; }

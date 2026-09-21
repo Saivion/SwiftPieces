@@ -45,16 +45,16 @@ export function ProHero() {
     <section className="relative overflow-hidden pt-20 pb-10 md:pt-28">
       {/* Full-height dot field with a long, soft fade so the dots dissolve well before the gallery instead of stopping on a line. */}
       <Container className="flex flex-col items-center text-center">
-        <Reveal><Eyebrow>Swift Pieces Pro · Production-ready SwiftUI</Eyebrow></Reveal>
+        <Reveal priority><Eyebrow>Swift Pieces Pro · Production-ready SwiftUI</Eyebrow></Reveal>
         <AnimatedText as="h1" text="The pieces to build the whole app." accent="whole" className="p-hero mt-8 max-w-4xl" />
-        <Reveal delay={0.35}>
+        <Reveal priority delay={0.35}>
           <p className="p-body mx-auto mt-7 max-w-xl text-[15px]">Free is a curated taste of Swift Pieces. Pro is the complete library: production-ready SwiftUI screens, complete app templates and the Build Kit for your coding agent. Start from a finished screen or a whole Xcode project. Copy the source. Make it yours.</p>
         </Reveal>
-        <Reveal delay={0.45} className="mt-9 flex flex-col items-center gap-4 sm:flex-row">
+        <Reveal priority delay={0.45} className="mt-9 flex flex-col items-center gap-4 sm:flex-row">
           <Button href={buy}>Get Swift Pieces Pro <Arrow /></Button>
           <TextLink href={pricing}>View pricing</TextLink>
         </Reveal>
-        <Reveal delay={0.55}>
+        <Reveal priority delay={0.55}>
           <p className="t-meta mt-10 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-subtle">
             <span>{screens} screens</span><span aria-hidden>·</span><span>{templates} app templates</span><span aria-hidden>·</span><span>{buildKit.total}-item Build Kit</span><span aria-hidden>·</span><span>Swift source, no runtime</span>
           </p>
