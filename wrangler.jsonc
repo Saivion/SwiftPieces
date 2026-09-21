@@ -6,12 +6,23 @@
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
   "assets": { "directory": ".open-next/assets", "binding": "ASSETS" },
   "observability": { "enabled": true },
-  // Hero visit line: show the real number from day one instead of waiting for the 100 floor in
-  // components/sections/visitor-proof.tsx. Not a secret, so it lives here and not in `secret put`.
-  "vars": { "SP_VISITS_MIN": "0" },
   "services": [{ "binding": "WORKER_SELF_REFERENCE", "service": "swiftpieces" }],
+  // /api/views is public and unauthenticated, and every accepted view is a billable data point.
+  // 20 a minute per IP is far above a person reading the site and far below a script worth paying
+  // for. It fails open: a missing binding never takes the endpoint down.
+  "ratelimits": [
+    { "name": "VIEWS_LIMITER", "namespace_id": "4301", "simple": { "limit": 20, "period": 60 } }
+  ],
   // Free has no database and no private bucket (Rev 3 §2). Only public media + the ISR cache.
   "r2_buckets": [
     { "binding": "NEXT_INC_CACHE_R2_BUCKET", "bucket_name": "swiftpieces-cache" }
+  ],
+  // Page views. Analytics Engine takes every view (non-blocking, no per-key write ceiling); KV
+  // holds the running total, because Analytics Engine only keeps three months (lib/views.ts).
+  "analytics_engine_datasets": [
+    { "binding": "VIEWS_AE", "dataset": "swiftpieces_views" }
+  ],
+  "kv_namespaces": [
+    { "binding": "VIEWS", "id": "582df8ae584143c8bf2d899eeac92fda" }
   ]
 }

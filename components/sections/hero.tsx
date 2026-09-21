@@ -1,11 +1,10 @@
-import { Suspense } from "react";
 import { Container } from "@/components/ui/container";
 import { Eyebrow } from "@/components/ui/badge";
 import { Button, Arrow } from "@/components/ui/button";
 import { AnimatedText } from "@/components/ui/animated-text";
 import { Reveal } from "@/components/effects/reveal";
 import { HeroDither } from "@/components/visual/hero-dither";
-import { VisitorProof } from "@/components/sections/visitor-proof";
+import { LiveViews } from "@/components/sections/live-views";
 
 /** The top of the page: the mark, the claim, and a way into the library. Shared shape with Pro's hero. */
 export function Hero() {
@@ -23,11 +22,7 @@ export function Hero() {
               <Button href="/components">Browse the library <Arrow /></Button>
             </Reveal>
             <Reveal priority delay={0.55} className="mt-6">
-              {/* Streamed: the visit count is a Cloudflare Analytics call, and decoration. The
-                  fallback is the same height as the avatar stack, so nothing moves when it lands. */}
-              <Suspense fallback={<div className="h-7" />}>
-                <VisitorProof />
-              </Suspense>
+              <LiveViews />
             </Reveal>
           </div>
         </div>
