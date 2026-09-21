@@ -24,7 +24,7 @@ This applies in every project space, including issues, pull requests, commit mes
 
 ## Enforcement
 
-Report anything that breaks the above to **conduct@swiftpieces.com**. Reports are read by the maintainer and stay private. Include links and enough context to understand what happened.
+Report anything that breaks the above to **saivion@swiftpieces.com**. Reports are read by the maintainer and stay private. Include links and enough context to understand what happened.
 
 Expect a response within a few days. Depending on severity, the outcome is a private warning, a temporary block from interaction, or a permanent ban from the repository. Maintainers who do not follow this document face the same consequences as anyone else.
 
