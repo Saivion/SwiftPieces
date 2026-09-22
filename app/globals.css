@@ -83,6 +83,21 @@
 }
 @media (prefers-reduced-motion: reduce) { .auth-wash { animation: none; } }
 
+/* GitHub pill: hovering swaps the mark for a gold star that pops in, with two sparkles twinkling around it. */
+.gh-star-mark, .gh-star-fill, .gh-star-spark { transition: opacity .18s ease, transform .45s cubic-bezier(.34, 1.56, .64, 1); }
+.gh-star-fill { color: #ffc93c; opacity: 0; transform: scale(.3) rotate(-72deg); }
+.gh-star-spark { color: #ffe08a; opacity: 0; transform: scale(0); }
+.gh-star-spark-a { top: -5px; right: -6px; }
+.gh-star-spark-b { bottom: -3px; left: -5px; }
+.group:is(:hover, :focus-visible) .gh-star-mark { opacity: 0; transform: scale(.4) rotate(40deg); }
+.group:is(:hover, :focus-visible) .gh-star-fill { opacity: 1; transform: none; }
+.group:is(:hover, :focus-visible) .gh-star-spark { opacity: 1; transform: scale(1); animation: gh-twinkle 1.4s ease-in-out .35s infinite; }
+.group:is(:hover, :focus-visible) .gh-star-spark-b { animation-delay: .7s; }
+@keyframes gh-twinkle { 0%, 100% { opacity: 1; transform: scale(1) rotate(0); } 50% { opacity: .35; transform: scale(.55) rotate(45deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .gh-star-mark, .gh-star-fill, .gh-star-spark { transition: opacity .15s ease; transform: none !important; animation: none !important; }
+}
+
 /* Second gallery row drifts the other way. */
 .marquee-reverse { animation-direction: reverse; }
 

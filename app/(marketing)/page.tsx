@@ -10,11 +10,11 @@ import { GetStarted } from "@/components/sections/get-started";
  *
  * This was 60 seconds so that count appeared quickly. The cost was hidden and large: Next emits
  * the remaining window as `s-maxage`, so the homepage was advertising a cache lifetime counting
- * down from 60 and production was measured serving `s-maxage=2`. Nothing could hold it. Fifteen
+ * down from 60 and production was measured serving `s-maxage=2`. Nothing could hold it. Five
  * minutes gives the edge something worth caching while still picking the count up promptly, and
  * the count itself is streamed in a Suspense boundary so a slow call never holds the document.
  */
-export const revalidate = 900;
+export const revalidate = 300;
 
 /**
  * The landing page does two things: show the free pieces, then hand people to Pro. The hero and
