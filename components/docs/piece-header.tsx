@@ -1,7 +1,6 @@
 import type { RegistryIndexEntry } from "@/lib/registry-schema";
 import { PreviewFrame } from "@/components/previews/frame";
 import { PiecePreview } from "@/components/previews";
-import { hasPreview } from "@/components/previews/registry";
 import { Badge } from "@/components/ui/badge";
 import { proScreens, proScreenUrl } from "@/lib/pro-screens";
 
@@ -16,7 +15,6 @@ export function PieceHeader({ item }: { item: RegistryIndexEntry }) {
       ) : (
         <PreviewFrame tone={item.category === "backgrounds" ? "black" : "dark"} className="w-full">
           <PiecePreview name={item.name} />
-          {hasPreview(item.name) ? <span className="t-meta absolute right-3 bottom-3 rounded-[4px] bg-black/60 px-2 py-1 text-[10px] text-white/70 backdrop-blur">Web recreation</span> : null}
         </PreviewFrame>
       )}
       <div className="flex flex-col justify-between rounded-[var(--radius)] bg-surface p-5">
