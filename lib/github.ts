@@ -1,12 +1,12 @@
 import { site } from "@/lib/site";
 
-/** Star count for the public repo, cached for an hour. Returns null when GitHub is unreachable or the repo is not public yet. */
+/** Star count for the public repo, cached for 5 minutes to match the homepage revalidate. Returns null when GitHub is unreachable or the repo is not public yet. */
 export async function getStarCount(): Promise<number | null> {
   const repo = site.github.replace("https://github.com/", "");
   try {
     const res = await fetch(`https://api.github.com/repos/${repo}`, {
       headers: { Accept: "application/vnd.github+json", "User-Agent": "swiftpieces.com" },
-      next: { revalidate: 3600 },
+      next: { revalidate: 300 },
       signal: AbortSignal.timeout(2500),
     });
     if (!res.ok) return null;

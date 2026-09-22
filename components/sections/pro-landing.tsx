@@ -16,6 +16,7 @@ import { buildKitLine, namesWithMore, proCatalog, proCountsLabel } from "@/lib/p
 const buy = pro.buy;
 const { screens, templates, buildKit } = proCatalog;
 // No prices on Free: pricing lives on Pro, so the secondary CTAs say "View pricing" and go there.
+// The hero is the exception: its secondary CTA sends people into the Pro library instead.
 const pricing = pro.pricing;
 
 type Kind = "screen" | "template";
@@ -51,8 +52,8 @@ export function ProHero() {
           <p className="p-body mx-auto mt-7 max-w-xl text-[15px]">Free is a curated taste of Swift Pieces. Pro is the complete library: production-ready SwiftUI screens, complete app templates and the Build Kit for your coding agent. Start from a finished screen or a whole Xcode project. Copy the source. Make it yours.</p>
         </Reveal>
         <Reveal priority delay={0.45} className="mt-9 flex flex-col items-center gap-4 sm:flex-row">
-          <Button href={buy}>Get Swift Pieces Pro <Arrow /></Button>
-          <TextLink href={pricing}>View pricing</TextLink>
+          <Button href={buy}>Start building <Arrow /></Button>     
+          <TextLink href={pro.library}>Browse the library</TextLink>
         </Reveal>
         <Reveal priority delay={0.55}>
           <p className="t-meta mt-10 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-subtle">
