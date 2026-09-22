@@ -21,7 +21,12 @@ export function Ticker() {
           {[...row, ...row].map((r, i) => (
             <span key={i} className="t-meta inline-flex items-center gap-3 text-muted">
               <span className="text-foreground">{r.v}</span>
-              <span className={r.pro ? "text-subtle" : "text-accent"}>{r.n}</span>
+              {r.pro ? (
+                // Pro counts shimmer through the Pro palette, each offset so they never move in step.
+                <span className="pro-shimmer" style={{ animationDelay: `${-(i % 3) * 2.5}s` }}>{r.n}</span>
+              ) : (
+                <span className="text-accent">{r.n}</span>
+              )}
             </span>
           ))}
         </div>
