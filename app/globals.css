@@ -98,6 +98,16 @@
   .gh-star-mark, .gh-star-fill, .gh-star-spark { transition: opacity .15s ease; transform: none !important; animation: none !important; }
 }
 
+/* Ticker: Pro counts drift slowly through red, orange, purple and blue. */
+.pro-shimmer {
+  background: linear-gradient(90deg, #ff0000, #ff7a3c, #a855f7, #4d8dff) 0 0 / 400% 100%;
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  /* Alternates rather than loops, so it eases back from blue to red instead of jumping. */
+  animation: pro-shimmer 6s ease-in-out infinite alternate;
+}
+@keyframes pro-shimmer { to { background-position: 100% 0; } }
+@media (prefers-reduced-motion: reduce) { .pro-shimmer { animation: none; } }
+
 /* Second gallery row drifts the other way. */
 .marquee-reverse { animation-direction: reverse; }
 
