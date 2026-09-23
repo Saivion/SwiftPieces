@@ -279,7 +279,7 @@ export function HeroDither() {
         }
       }
 
-      if (!reduced) raf = requestAnimationFrame(paint);
+      if (!reduced && raf) raf = requestAnimationFrame(paint);
     };
 
     const onMove = (e: PointerEvent) => {
@@ -290,7 +290,14 @@ export function HeroDither() {
 
     rebuild();
     paint(0);
-    if (!reduced) raf = requestAnimationFrame(paint);
+    // The loop waits for the motion gate (app/layout.tsx): until the visitor first interacts, the
+    // mark is one still, fully lit frame, so the first screen settles on paint and no per-frame
+    // repaint competes with loading.
+    const start = () => {
+      if (!reduced && running && !raf) raf = requestAnimationFrame(paint);
+    };
+    if (document.documentElement.dataset.motion) start();
+    else window.addEventListener("sp:motion", start, { once: true });
 
     const ro = new ResizeObserver(rebuild);
     ro.observe(canvas);
@@ -301,6 +308,7 @@ export function HeroDither() {
       cancelAnimationFrame(raf);
       ro.disconnect();
       window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("sp:motion", start);
     };
   }, []);
 

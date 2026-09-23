@@ -119,7 +119,7 @@ export function AgentDemo() {
           {TURNS.slice(0, sent).map((turn, i) => (
             <div key={turn.ask} className="chat-in flex flex-col items-end gap-1">
               <p className="max-w-[92%] rounded-[12px] rounded-br-[4px] bg-white/[0.08] px-3 py-2 text-[13px] leading-[18px] text-foreground">{turn.ask}</p>
-              <p className="flex items-center gap-1.5 pr-1 text-[12px] text-subtle transition-opacity duration-300" style={{ opacity: applied > i ? 1 : 0 }}>
+              <p className="flex items-center gap-1.5 pr-1 text-[12px] text-muted transition-opacity duration-300" style={{ opacity: applied > i ? 1 : 0 }}>
                 <svg aria-hidden viewBox="0 0 16 16" className="size-3 text-accent" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3.5 8.5l3 3 6-7" strokeLinecap="round" strokeLinejoin="round" /></svg>
                 {turn.reply}
               </p>
@@ -128,7 +128,7 @@ export function AgentDemo() {
         </div>
         <div className="mt-3 flex h-11 shrink-0 items-center justify-between gap-3 rounded-[12px] border border-white/[0.08] bg-[#1b1b1c] pr-1.5 pl-3.5 text-[13px]">
           <span className="truncate text-foreground">
-            {draft || <span className="text-subtle">Ask your agent</span>}
+            {draft || <span className="text-muted">Ask your agent</span>}
             {draft ? <span aria-hidden className="ml-px inline-block h-[1.1em] w-px translate-y-[0.2em] bg-foreground" /> : null}
           </span>
           <span ref={send} className="grid size-8 shrink-0 place-items-center rounded-full bg-foreground text-black transition-transform duration-150" style={{ transform: cursor === "press" ? "scale(0.84)" : "none" }}>

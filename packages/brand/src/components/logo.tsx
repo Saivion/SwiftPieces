@@ -1,10 +1,13 @@
 import { cn } from "../cn.js";
 
-/** Brand mark from `/logo.png` (hosts must serve the file from their public root). */
+/**
+ * Brand mark from `/logo-mark.png`, a 96px copy of `/logo.png` (hosts must serve it from their
+ * public root). The mark shows at 24px, so the 1024px original cost ~19 KB for nothing.
+ */
 export function LogoMark({ className }: { className?: string }) {
   return (
     <img
-      src="/logo.png"
+      src="/logo-mark.png"
       alt=""
       aria-hidden
       width={24}

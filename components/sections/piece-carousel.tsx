@@ -91,7 +91,7 @@ export function PieceCarousel() {
                 onClick={() => show(k)}
                 className={cn(
                   "relative isolate flex h-9 flex-1 items-center justify-center overflow-hidden rounded-full px-3.5 text-[12.5px] font-medium whitespace-nowrap transition-colors duration-300",
-                  active ? "bg-white/[0.06] text-foreground" : "text-subtle hover:bg-white/[0.03] hover:text-muted",
+                  active ? "bg-white/[0.06] text-foreground" : "text-muted hover:bg-white/[0.03] hover:text-foreground",
                 )}
               >
                 {active ? (
@@ -110,7 +110,7 @@ export function PieceCarousel() {
       </div>
 
       <p className="mt-5 truncate font-mono text-[13px] text-muted">
-        <span className="text-subtle">$</span> npx swiftpieces add <span className="text-foreground">{SLIDES[i].name}</span>
+        <span className="text-muted">$</span> npx swiftpieces add <span className="text-foreground">{SLIDES[i].name}</span>
       </p>
     </div>
   );

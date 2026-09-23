@@ -104,7 +104,7 @@ export function Navbar({ star, starMobile }: { star?: ReactNode; starMobile?: Re
     <div aria-hidden className="h-[var(--nav-h)] shrink-0" />
 
       {/* Mobile sheet: sibling of the header, never a descendant of a backdrop-filter element. */}
-      <div className={cn("fixed inset-x-0 top-14 bottom-0 z-40 bg-background transition-opacity duration-300 lg:hidden", open ? "opacity-100" : "pointer-events-none opacity-0")} aria-hidden={!open}>
+      <div className={cn("fixed inset-x-0 top-14 bottom-0 z-40 bg-background transition-opacity duration-300 lg:hidden", open ? "opacity-100" : "pointer-events-none opacity-0")} aria-hidden={!open} inert={!open}>
         <Container className="flex h-full flex-col justify-between py-6">
           <ul className="flex flex-col">
             {[{ label: "Home", href: "/" } as (typeof links)[number], ...links].map((l, i) => (
