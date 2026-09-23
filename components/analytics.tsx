@@ -1,3 +1,5 @@
+import { BeaconLoader } from "@/components/beacon-loader";
+
 /**
  * Cloudflare Web Analytics: page views and visits, counted by Cloudflare's own beacon.
  *
@@ -13,6 +15,5 @@ export function Analytics() {
   // Set in next.config.ts from NEXT_PUBLIC_CF_BEACON_TOKEN, and blank on preview-branch builds.
   const token = process.env.SP_BEACON_TOKEN;
   if (!token) return null;
-  // Matches the snippet Cloudflare hands out, so there is nothing to reconcile if theirs changes.
-  return <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon={JSON.stringify({ token })} />;
+  return <BeaconLoader token={token} />;
 }

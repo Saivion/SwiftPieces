@@ -1,4 +1,5 @@
 import "./globals.css";
+import { MotionGate } from "@/components/motion-gate";
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { Figtree } from "next/font/google";
@@ -35,6 +36,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={`dark ${figtree.variable}`} suppressHydrationWarning>
       <body className="flex min-h-screen flex-col antialiased">
+        {/* The first screen's endless loops hold still until the visitor first interacts (components/motion-gate.tsx). */}
+        <MotionGate />
         <RootProvider
           theme={{ defaultTheme: "dark", forcedTheme: "dark", enabled: false }}
           // Shown before anyone types: the places people search for most.

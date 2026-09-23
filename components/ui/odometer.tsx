@@ -43,7 +43,11 @@ export function Odometer({ value, className }: { value: number; className?: stri
 
   const text = new Intl.NumberFormat("en").format(value);
   return (
-    <span className={cn("inline-flex h-[1em] leading-none tabular-nums", className)} aria-label={text}>
+    // The digits are drawn as rolling columns and hidden from assistive tech; the value itself is a
+    // real text node, visually hidden, so screen readers and agents read "1,059" (aria-label is not
+    // permitted on a plain span).
+    <span className={cn("inline-flex h-[1em] leading-none tabular-nums", className)}>
+      <span className="sr-only">{text}</span>
       {text.split("").map((char, i) =>
         char >= "0" && char <= "9" ? (
           <Digit key={i} value={Number(char)} motion={motion} />

@@ -164,7 +164,9 @@
                correct state either way. */
 
 @keyframes sp-enter { from { transform: translateY(var(--sp-y, 18px)); } to { transform: none; } }
-@keyframes sp-reveal { from { opacity: 0; transform: translateY(var(--sp-y, 18px)); } to { opacity: 1; transform: none; } }
+/* Rise only, never a fade: text caught mid-reveal stays fully opaque, so it always meets contrast
+   (a fading reveal failed Lighthouse's contrast audit for content at the bottom of the first screen). */
+@keyframes sp-reveal { from { transform: translateY(var(--sp-y, 18px)); } to { transform: none; } }
 @keyframes sp-word { from { transform: translateY(110%); } to { transform: none; } }
 
 .sp-enter {
@@ -249,3 +251,8 @@
 @keyframes piece-in { from { opacity: 0; transform: translateY(10px) scale(0.98); filter: blur(4px); } }
 @keyframes piece-out { to { opacity: 0; transform: scale(0.985); filter: blur(4px); } }
 @media (prefers-reduced-motion: reduce) { .piece-in, .piece-out { animation: none; } .piece-out { opacity: 0; } }
+
+/* Motion gate (app/layout.tsx): endless loops hold still until the visitor first interacts, so the
+   first screen settles on paint. Finite entrances are unaffected. */
+html:not([data-motion]) .marquee,
+html:not([data-motion]) .pro-shimmer { animation-play-state: paused; }
