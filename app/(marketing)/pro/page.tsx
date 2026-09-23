@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { ProHero, ProGallery, WhatYouGet, Compare, TryFirst, ProCTA, proFaqs } from "@/components/sections/pro-landing";
-import { FAQ } from "@/components/sections/faq";
+import { Questions } from "@/components/sections/questions";
 import { pro } from "@/lib/site";
 import { proCountsLabel } from "@/lib/pro-catalog";
 
@@ -20,7 +20,7 @@ export default function ProPage() {
       <WhatYouGet />
       <Compare />
       <TryFirst />
-      <FAQ items={proFaqs} label="Before you ask" title="Straight answers on licensing, updates and how Pro fits with the free library." />
+      <Questions items={proFaqs} body="Straight answers on licensing, updates and how Pro fits with the free library." />
       <ProCTA />
     </div>
   );
