@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { Container } from "@/components/ui/container";
 import { Reveal } from "@/components/effects/reveal";
 import { faqs } from "@/lib/faqs";
@@ -10,18 +11,18 @@ import { cn } from "@/lib/cn";
  * page's 1:2 grid. Native <details>, so it is server-rendered, works without JavaScript and is
  * searchable with find-in-page; the open animation is CSS (see `.qa` in globals.css).
  */
-export function Questions() {
+export function Questions({ items = faqs, title = "Questions", body }: { items?: readonly { q: string; a: string }[]; title?: string; body?: ReactNode } = {}) {
   return (
     <Container className="mt-24 sm:mt-32">
       <section className="grid gap-10 lg:grid-cols-[1fr_2fr] lg:gap-20">
         <Reveal as="div">
-          <h2 className={sectionTitle}>Questions</h2>
+          <h2 className={sectionTitle}>{title}</h2>
           <p className={cn("mt-4 max-w-xs", sectionBody)}>
-            The short ones are here. The rest are in the <Link href="/docs" className="text-foreground underline decoration-white/25 underline-offset-4 transition-colors hover:decoration-white">docs</Link>.
+            {body ?? <>The short ones are here. The rest are in the <Link href="/docs" className="text-foreground underline decoration-white/25 underline-offset-4 transition-colors hover:decoration-white">docs</Link>.</>}
           </p>
         </Reveal>
         <Reveal as="div" className="-mt-5">
-          {faqs.map((f) => (
+          {items.map((f) => (
             <details key={f.q} className="qa group border-b border-[var(--line)]">
               <summary className="flex cursor-pointer list-none items-center justify-between gap-6 py-5 pr-2 text-[16px] leading-6 text-foreground [&::-webkit-details-marker]:hidden">
                 {f.q}
