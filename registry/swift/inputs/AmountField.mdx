@@ -1,0 +1,12 @@
+## Notes
+
+- The field keeps its own buffer of typed digits and renders the formatted string itself. A hidden `TextField` with `.decimalPad` captures keys, so the caret never jumps and grouping separators never reach a parser. The caret is drawn right after the digits, before a trailing symbol ("1.234,56| €").
+- The value is a `Decimal`. Fraction digits come from the currency through `Decimal.FormatStyle.Currency`: JPY takes none, USD two, KWD three. Formatting follows `\.locale`, so `.environment(\.locale, Locale(identifier: "de_DE"))` gives "1.234,56 €", en_IN groups in lakhs ("₹1,23,456") and ar_SA shows Arabic-Indic digits.
+- While typing, what you typed is what you see: "12." keeps its separator and "12.50" keeps its zero. Leading zeros are stripped, "." on an empty field starts "0.", a second separator is ignored and digits past the currency's precision are dropped. Leaving the field settles "12.5" to "12.50" and "12." to "12".
+- Both "." and "," (and the Arabic decimal separator) work as the decimal key, whatever the device region. Digits in any script are accepted and stored as ASCII.
+- Paste (long-press, or Command-V) parses "1,234.56", "$99", "1 234,56 €", "US$ 12" and Arabic-Indic text. A lone separator followed by exactly three digits reads as thousands unless the currency has three decimals. Words, two numbers or a minus sign are rejected with an error haptic.
+- `limit` refuses the keystroke or paste that would pass it: a damped shake, an `.error` haptic, a VoiceOver announcement and the `limitMessage` line, which fades after a moment. An external value over the limit is shown in `Style.error` with the message, not clamped.
+- External writes to the binding (a quick-amount chip, a reset) redraw the display at the currency's precision. Negative or over-precise values are normalized and written back.
+- `.hero` is a large light figure that scales down to fit its width, with digits rolling in through `.numericText()`. `.compact` is a 56pt block with a focus ring. Both follow Dynamic Type.
+- VoiceOver reads the label and the full formatted amount as the value ("$1,234.56"), and the limit as a hint. `.disabled(true)` dims the field and blocks focus. `isFocused` lets you raise or dismiss the keyboard.
+- Reduce Motion: no shake (the digits flash `Style.error` instead), and digit changes crossfade.

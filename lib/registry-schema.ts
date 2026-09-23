@@ -53,6 +53,10 @@ export const registryItemSchema = z.object({
   docs: z.string().url(),
   /** Pro screen id this piece grows into, e.g. "toast-stack". */
   pro: z.string().optional(),
+  /** Day the piece shipped ("YYYY-MM-DD"). */
+  added: z.string().optional(),
+  /** Shipped within the last 30 days, as of the last registry build. Computed once, so server and client agree. */
+  isNew: z.boolean().default(false),
   liquidGlass: z.boolean().default(false),
   metal: z.boolean().default(false),
 });

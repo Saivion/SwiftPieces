@@ -4,7 +4,7 @@ import SwiftUI
 /// every piece has an entry here so previews never silently go missing.
 enum PreviewCatalog {
     static let names: [String] = [
-        "TextReveal", "GlassText", "Silk", 
+        "TextReveal", "GlassText", "Silk",
         "TouchGrid", "GlassSurface", "GlassActionMenu", "GlassSegments", "ElasticButton",
         "CommitButton", "HoldToConfirm", "FanStack", "TimerDial", "ExpandingTrack", "ScrubStepper",
         "FilterRail", "SecureEntry", "FlipCard", "ParallaxCard", "MotionCard", "SwipeDeck",
@@ -14,6 +14,8 @@ enum PreviewCatalog {
         "RingBreakdown", "LiveStat", "Odometer", "PhotoViewer", "StoryStrip", "StreamingReply",
         "ThinkingState", "PromptChips", "CodeBlock",
         "AssistantOrb", "ThoughtOrb",
+        // everyday inputs, text and lists
+        "RangeSlider", "DateRangePicker", "TokenField", "AmountField", "FormField", "ExpandableText", "PagedList",
     ]
 
     @ViewBuilder
@@ -123,6 +125,21 @@ enum PreviewCatalog {
             Stage(dark: true) { AssistantOrbLoop() }
         case "ThoughtOrb":
             Stage(dark: true) { ThoughtOrbLoop() }
+        // everyday inputs, text and lists
+        case "RangeSlider":
+            Stage { RangeSliderScene() }
+        case "DateRangePicker":
+            Stage { DateRangePickerScene() }
+        case "TokenField":
+            Stage { TokenFieldScene() }
+        case "AmountField":
+            Stage { AmountFieldScene() }
+        case "FormField":
+            Stage { FormFieldScene() }
+        case "ExpandableText":
+            Stage { ExpandableTextScene() }
+        case "PagedList":
+            Stage { PagedListScene() }
         default:
             Text("Unknown piece: \(name)")
         }
@@ -1974,3 +1991,281 @@ private struct TouchGridScene: View {
     }
 }
 
+// MARK: - Everyday inputs, text and lists
+
+/// A price filter with a header readout and an age range with chips, mirroring the web preview:
+/// the price thumbs close in from both ends, then the age thumbs meet at the five-year gap and their chips merge.
+private struct RangeSliderScene: View {
+    @State private var price: ClosedRange<Double> = 120...480
+    @State private var age: ClosedRange<Double> = 24...41
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 40) {
+            RangeSlider(value: $price, in: 0...1000, step: 10, readout: .header, lowerLabel: "Minimum price", upperLabel: "Maximum price", format: .currency(code: "USD").precision(.fractionLength(0)))
+            RangeSlider(value: $age, in: 18...80, step: 1, minimumDistance: 5, lowerLabel: "Youngest age", upperLabel: "Oldest age", style: .init(fill: bmColor(light: 0xA9DCB7, dark: 0xA9DCB7))) { "\(Int($0))" }
+        }
+        .padding(.horizontal, 30)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(bmColor(light: 0xF3F2EE, dark: 0x121212))
+        .task {
+            let glide = Animation.smooth(duration: 0.18)
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(1.5))
+                for lo in [170.0, 220, 260] { try? await Task.sleep(for: .seconds(0.18)); withAnimation(glide) { price = lo...price.upperBound } }
+                try? await Task.sleep(for: .seconds(0.7))
+                for hi in [420.0, 370, 340] { try? await Task.sleep(for: .seconds(0.18)); withAnimation(glide) { price = price.lowerBound...hi } }
+                try? await Task.sleep(for: .seconds(0.8))
+                for lo in [28.0, 32, 36] { try? await Task.sleep(for: .seconds(0.17)); withAnimation(glide) { age = lo...age.upperBound } }
+                try? await Task.sleep(for: .seconds(1.0))
+                for hi in [47.0, 54] { try? await Task.sleep(for: .seconds(0.17)); withAnimation(glide) { age = age.lowerBound...hi } }
+                try? await Task.sleep(for: .seconds(1.2))
+                withAnimation(.smooth(duration: 0.5)) { price = 120...480; age = 24...41 }
+            }
+        }
+    }
+}
+
+// MARK: - DateRangePicker scene
+
+/// Mirrors the web preview: a start, an end with the band sweeping across rows, then a range reset, on a loop.
+/// Paging is driven by the user in the real piece (it owns its page state), so the scene loops the selection only.
+private struct DateRangePickerScene: View {
+    @State private var stay: ClosedRange<Date>?
+    private let calendar = Calendar.current
+
+    private func day(_ offset: Int) -> Date {
+        calendar.startOfDay(for: calendar.date(byAdding: .day, value: offset, to: calendar.startOfDay(for: .now)) ?? .now)
+    }
+
+    var body: some View {
+        let soldOut: Set<Date> = [day(16), day(17)]
+        DateRangePicker(
+            selection: $stay,
+            in: day(0)...(calendar.date(byAdding: .month, value: 11, to: day(0)) ?? day(0)),
+            isDateDisabled: { soldOut.contains(calendar.startOfDay(for: $0)) },
+            maximumLength: 14,
+            counting: .nights
+        )
+        .padding(.horizontal, 20)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(bmColor(light: 0xF3F2EE, dark: 0x121212))
+        .task {
+            // The picker reads outside writes as a fresh selection, which is how the loop replays the start, end and sweep.
+            while !Task.isCancelled {
+                stay = day(1)...day(4)
+                try? await Task.sleep(for: .seconds(1.8))
+                stay = nil
+                try? await Task.sleep(for: .seconds(0.8))
+                stay = day(3)...day(12)
+                try? await Task.sleep(for: .seconds(2.4))
+            }
+        }
+    }
+}
+
+/// The field alone on the house ground: a suggestion is picked, a token is typed and committed, the chips
+/// wrap to a second line, then the last chip is removed. Mirrors the web preview.
+private struct TokenFieldScene: View {
+    private static let base = ["Swift", "SwiftUI", "Figma"]
+    @State private var skills = TokenFieldScene.base
+
+    var body: some View {
+        TokenField(
+            "Add skills",
+            tokens: $skills,
+            suggestions: ["Swift", "SwiftData", "SwiftUI", "Combine", "Core Data", "CloudKit", "Figma", "Framer", "Metal", "Accessibility"]
+        )
+        .padding(.horizontal, 30)
+        .frame(maxWidth: 420)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(bmColor(light: 0xF3F2EE, dark: 0x121212))
+        .task {
+            // The binding is driven from outside, so chips animate in and out exactly as when typed.
+            while !Task.isCancelled {
+                skills = Self.base
+                try? await Task.sleep(for: .seconds(1.4))
+                for token in ["Combine", "Metal", "Accessibility"] {
+                    skills.append(token)
+                    try? await Task.sleep(for: .seconds(1.1))
+                }
+                try? await Task.sleep(for: .seconds(1.2))
+                skills.removeLast()
+                try? await Task.sleep(for: .seconds(1.6))
+            }
+        }
+    }
+}
+
+/// The hero amount alone: it fills digit by digit with grouping appearing, a quick amount lands, then it goes over the limit.
+private struct AmountFieldScene: View {
+    @State private var amount: Decimal = 0
+    var body: some View {
+        AmountField("Send", value: $amount, currencyCode: "USD", limit: 2500)
+            .environment(\.locale, Locale(identifier: "en_US"))
+            .padding(.horizontal, 30)
+            .frame(maxWidth: 420)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(bmColor(light: 0xF3F2EE, dark: 0x121212))
+            .task {
+                // Driven through the binding, which the field renders in its resting form ("$1,250.50").
+                let script: [(Decimal, Int)] = [(0, 900), (1, 330), (12, 330), (125, 330), (1250, 330), (1250.5, 1600), (50, 1100), (5000, 1800)]
+                while !Task.isCancelled {
+                    for (value, ms) in script {
+                        guard !Task.isCancelled else { return }
+                        amount = value
+                        try? await Task.sleep(for: .milliseconds(ms))
+                    }
+                }
+            }
+    }
+}
+
+/// The field alone: Email fills in and turns invalid, the Bio counter ticks, then the email is fixed and lands the check.
+/// Drives the bound text and `formFieldRevealsErrors`, since the catalog cannot move keyboard focus by itself.
+private struct FormFieldScene: View {
+    @State private var email = ""
+    @State private var bio = ""
+    @State private var reveal = false
+
+    var body: some View {
+        VStack(spacing: 16) {
+            FormField("Email", text: $email, prompt: "you@example.com", help: "We send a sign-in link here.", leading: Image(systemName: "envelope"), validate: Self.check, keyboardType: .emailAddress)
+            FormField("Bio", text: $bio, prompt: "A line or two about you", limit: 160, axis: .vertical)
+        }
+        .formFieldRevealsErrors(reveal)
+        .padding(.horizontal, 30)
+        .frame(maxWidth: 420)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(bmColor(light: 0xF3F2EE, dark: 0x121212))
+        .task {
+            let broken = "maya@studio"
+            let fixed = "maya@studio.com"
+            let about = "Type designer in Lisbon. Tea, trains, kerning."
+            while !Task.isCancelled {
+                email = ""; bio = ""; reveal = false
+                try? await Task.sleep(for: .milliseconds(1200))
+                for index in broken.indices {
+                    guard !Task.isCancelled else { return }
+                    email = String(broken[...index])
+                    try? await Task.sleep(for: .milliseconds(120))
+                }
+                try? await Task.sleep(for: .milliseconds(600))
+                reveal = true
+                try? await Task.sleep(for: .milliseconds(900))
+                for index in about.indices where about.distance(from: about.startIndex, to: index) % 3 == 2 || index == about.index(before: about.endIndex) {
+                    guard !Task.isCancelled else { return }
+                    bio = String(about[...index])
+                    try? await Task.sleep(for: .milliseconds(110))
+                }
+                try? await Task.sleep(for: .milliseconds(1000))
+                for index in fixed.indices.dropFirst(broken.count) {
+                    guard !Task.isCancelled else { return }
+                    email = String(fixed[...index])
+                    try? await Task.sleep(for: .milliseconds(150))
+                }
+                try? await Task.sleep(for: .milliseconds(2600))
+            }
+        }
+    }
+
+    private static func check(_ email: String) -> String? {
+        let parts = email.split(separator: "@", omittingEmptySubsequences: false)
+        guard parts.count == 2, !parts[0].isEmpty, parts[1].contains("."), (parts[1].split(separator: ".").last?.count ?? 0) >= 2 else {
+            return "That doesn't look like an email"
+        }
+        return nil
+    }
+}
+
+/// The component alone: a review clamped to three lines with its fade and "more", expanding to full height,
+/// showing "less", then collapsing back. Mirrors components/previews/expandable-text.tsx.
+private struct ExpandableTextScene: View {
+    @State private var expanded = false
+
+    private let review = "I have tried every planning app on the store and this is the first one I have kept past a month. The weekly view fits on one screen, the widgets actually update, and adding a task from the lock screen takes two taps. Sync between my phone and iPad has been instant, even on hotel Wi-Fi. My only wish is a darker theme for the calendar grid, but that is a small thing next to how calm the whole app feels."
+
+    var body: some View {
+        ZStack {
+            bmColor(light: 0xF3F2EE, dark: 0x121212).ignoresSafeArea()
+            ExpandableText(review, isExpanded: $expanded)
+                .font(.body)
+                .foregroundStyle(bmColor(light: 0x141414, dark: 0xF4F3EF))
+                .padding(.horizontal, 30)
+        }
+        .task {
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .milliseconds(2100))
+                expanded = true
+                try? await Task.sleep(for: .milliseconds(3000))
+                expanded = false
+            }
+        }
+    }
+}
+
+// MARK: - Paged List scene
+
+/// The piece alone on the ground: skeleton, pages of two rows loading through the footer spinner, then on alternate
+/// cycles either page 3 failing into the inline "Couldn't load more" chip or the list ending on "You're all caught up".
+/// Pages are small so the footer stays on screen and the list keeps loading by itself.
+private struct PagedListScene: View {
+    @State private var cycle = 0
+
+    var body: some View {
+        PagedList(pageSize: 2) { [cycle] (page: Int) async throws -> [PagedListSceneItem] in
+            try await Task.sleep(for: .milliseconds(page == 1 ? 1100 : 750))
+            if page == 3 && cycle.isMultiple(of: 2) { throw URLError(.networkConnectionLost) }
+            guard page <= 4 else { return [] }
+            return (0..<2).map { PagedListSceneItem(id: (page - 1) * 2 + $0) }
+        } row: { item in
+            PagedListSceneRow(item: item)
+        }
+        .id(cycle)
+        .scrollContentBackground(.hidden)
+        .background(bmColor(light: 0xF3F2EE, dark: 0x121212))
+        .task {
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(cycle.isMultiple(of: 2) ? 6 : 7.5))
+                cycle += 1
+            }
+        }
+    }
+}
+
+private struct PagedListSceneItem: Identifiable, Sendable {
+    let id: Int
+    static let merchants = ["Juniper Coffee", "Riverside Books", "Northline Transit", "Maison Bakery", "Studio Nine", "Fieldhouse Gym", "Almanac Market", "Sprig Florist"]
+    static let tiles: [UInt32] = [0xFFD976, 0x9CC2FF, 0xA9DCB7, 0xCDB8FF, 0xE9D5B3, 0xFF5B3A]
+    var merchant: String { Self.merchants[id % Self.merchants.count] }
+    var amount: Double { Double((id * 37) % 90) + 4.5 }
+}
+
+private struct PagedListSceneRow: View {
+    let item: PagedListSceneItem
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Text(String(item.merchant.prefix(1)))
+                .font(.headline)
+                .foregroundStyle(bmColor(0x141414))
+                .frame(width: 44, height: 44)
+                .background(bmColor(PagedListSceneItem.tiles[item.id % PagedListSceneItem.tiles.count]), in: .rect(cornerRadius: 13, style: .continuous))
+            VStack(alignment: .leading, spacing: 2) {
+                Text(item.merchant)
+                    .font(.body.weight(.semibold))
+                    .foregroundStyle(bmColor(light: 0x141414, dark: 0xF4F3EF))
+                Text("Receipt \(1040 + item.id)")
+                    .font(.subheadline)
+                    .foregroundStyle(bmColor(light: 0x5C5A56, dark: 0xA6A49F))
+            }
+            Spacer(minLength: 8)
+            Text(item.amount, format: .currency(code: "USD"))
+                .font(.body.weight(.medium))
+                .monospacedDigit()
+                .foregroundStyle(bmColor(light: 0x141414, dark: 0xF4F3EF))
+        }
+        .padding(.vertical, 6)
+        .listRowBackground(Color.clear)
+        .listRowSeparator(.hidden)
+    }
+}

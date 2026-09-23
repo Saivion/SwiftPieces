@@ -2,16 +2,74 @@ import type { ReactNode } from "react";
 import { DocsLayout } from "fumadocs-ui/layouts/docs";
 import { source } from "@/lib/source";
 import { baseOptions } from "@/lib/layout.shared";
-import { getRegistryIndex } from "@/lib/registry";
+import { getRegistryIndex, piecePath } from "@/lib/registry";
+import type * as PageTree from "fumadocs-core/page-tree";
+import { NewBadge } from "@/components/ui/new-badge";
 import { SidebarFilter, SidebarFooterLinks, CountedFolder } from "@/components/docs/sidebar";
 import { SectionIcon, TabTitle } from "@/components/docs/section-icons";
 import { pro, site } from "@/lib/site";
+import { DocsSponsors } from "@/components/sections/sponsors";
+import { getSponsorsFrom } from "@/lib/sponsors";
 
-export default function Layout({ children }: { children: ReactNode }) {
+/**
+ * New pieces (registry `isNew`, the last 30 days) get two things in the sidebar: a "Just added" list
+ * right under "All components", so they are visible without opening a category, and the pink pill
+ * on their row inside their own category.
+ */
+function markNew(tree: PageTree.Root): PageTree.Root {
+  const fresh = getRegistryIndex().filter((e) => e.isNew);
+  if (!fresh.length) return tree;
+  const urls = new Set(fresh.map((e) => piecePath(e)));
+  const pages = new Map<string, PageTree.Item>();
+  const badge = (n: PageTree.Item): PageTree.Item => ({
+    ...n,
+    // Keyed: Fumadocs renders the name inside an array of children next to the icon.
+    name: (
+      <span key="new-name" className="flex min-w-0 flex-1 items-center justify-between gap-2">
+        <span className="truncate">{n.name}</span>
+        <NewBadge />
+      </span>
+    ),
+  });
+  const walk = (nodes: PageTree.Node[]): PageTree.Node[] => {
+    const out: PageTree.Node[] = [];
+    for (const n of nodes) {
+      if (n.type === "folder") out.push({ ...n, children: walk(n.children) });
+      else if (n.type === "page" && urls.has(n.url)) {
+        pages.set(n.url, n);
+        out.push(badge(n));
+      } else out.push(n);
+    }
+    return out;
+  };
+  const children = walk(tree.children);
+  // The "New" list goes before the first separator ("Categories · 14") in whichever list holds it.
+  const newest = fresh.map((e) => pages.get(piecePath(e))).filter((n): n is PageTree.Item => Boolean(n));
+  const insert = (nodes: PageTree.Node[]): boolean => {
+    const at = nodes.findIndex((n) => n.type === "separator");
+    if (at >= 0) {
+      const heading = (
+        <span key="just-added" className="flex w-full items-center justify-between gap-2">
+          <span className="flex items-center gap-2">Just added <NewBadge /></span>
+          <span className="text-[11px] tabular-nums text-subtle">{newest.length}</span>
+        </span>
+      );
+      nodes.splice(at, 0, { type: "separator", name: heading }, ...newest);
+      return true;
+    }
+    return nodes.some((n) => n.type === "folder" && insert(n.children));
+  };
+  insert(children);
+  return { ...tree, children };
+}
+
+export default async function Layout({ children }: { children: ReactNode }) {
   const n = getRegistryIndex().length;
+  // Silver and Gold sponsors sit above the footer links on every docs page.
+  const sidebarSponsors = await getSponsorsFrom("silver");
   return (
     <DocsLayout
-      tree={source.getPageTree()}
+      tree={markNew(source.getPageTree())}
       {...baseOptions()}
       // The sidebar body holds only the docs tree; site links live in the footer row, search lives in the filter box.
       links={[]}
@@ -28,15 +86,18 @@ export default function Layout({ children }: { children: ReactNode }) {
       sidebar={{
         banner: <SidebarFilter key="sidebar-filter" />,
         footer: (
+          <div key="sidebar-footer">
+          <DocsSponsors sponsors={sidebarSponsors} />
           <SidebarFooterLinks
-            key="sidebar-footer"
             links={[
               { label: "Components", href: "/components" },
               { label: "Pro", href: "/pro" },
               { label: "Pricing", href: pro.pricing, external: true },
+              { label: "Sponsor", href: "/sponsors" },
               { label: "GitHub", href: site.github, external: true },
             ]}
           />
+          </div>
         ),
         components: { Folder: CountedFolder },
         defaultOpenLevel: 0,

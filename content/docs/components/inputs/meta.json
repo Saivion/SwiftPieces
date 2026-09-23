@@ -3,9 +3,14 @@
   "description": "Tracks, steppers, rails and fields built for the thumb.",
   "defaultOpen": false,
   "pages": [
+    "amount-field",
+    "date-range-picker",
     "expanding-track",
     "filter-rail",
+    "form-field",
+    "range-slider",
     "scrub-stepper",
-    "secure-entry"
+    "secure-entry",
+    "token-field"
   ]
 }

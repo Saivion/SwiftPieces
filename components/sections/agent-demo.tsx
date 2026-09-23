@@ -12,15 +12,25 @@ import { useInView } from "@/lib/use-in-view";
  * the change lands on the chart: its accent, then its corners. After the last change it holds and
  * returns to the opening state.
  *
- * The restyles go through ScrubChartPreview's own variables (`--scrub-accent`, registered in
- * globals.css so it transitions, and `--scrub-radius`). Runs only while on screen; reduced
+ * The restyles go through ScrubChartPreview's own variables: the colour scheme (`--scrub-accent`,
+ * `--scrub-line`, `--scrub-surface`, `--scrub-raised`, `--scrub-chip`, registered in globals.css so
+ * the whole scheme cross-fades) and `--scrub-radius`. Runs only while on screen; reduced
  * motion shows the finished chart and thread.
  */
 const TURNS = [
   { ask: "Add a chart I can scrub with my thumb", reply: "Added Scrub Chart" },
-  { ask: "Make the accent red", reply: "Accent set to red" },
+  { ask: "Update the chart's color scheme to red", reply: "Color scheme updated" },
   { ask: "Square off the corners", reply: "Corner radius 30 → 0" },
 ] as const;
+
+/** The scheme the second turn applies: the brand red on a red-tinted card. */
+const RED_SCHEME = {
+  "--scrub-accent": "#ff0000",
+  "--scrub-line": "#ffd4d4",
+  "--scrub-surface": "#2a1414",
+  "--scrub-raised": "#3d1c1c",
+  "--scrub-chip": "#ff8a80",
+} as const;
 
 type Cursor = "off" | "rest" | "aim" | "press";
 
@@ -85,7 +95,8 @@ export function AgentDemo() {
   const chart: CSSProperties & Record<string, string | number | undefined> = {
     opacity: applied >= 1 ? 1 : 0,
     transform: applied >= 1 ? "none" : "translateY(10px) scale(0.97)",
-    "--scrub-accent": applied >= 2 ? "#ff0000" : undefined,
+    // The red scheme: every colour in the chart moves, not just the accent.
+    ...(applied >= 2 ? RED_SCHEME : {}),
     "--scrub-radius": applied >= 3 ? "0px" : undefined,
   };
 

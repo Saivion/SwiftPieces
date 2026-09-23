@@ -1,15 +1,17 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { PreviewFrame } from "@/components/previews/frame";
 import { PiecePreview } from "@/components/previews";
+import { cn } from "@/lib/cn";
 
 /**
- * The CLI row's visual: pieces side by side on a track. The active piece plays its first complete
- * beat, then the track slides and the next piece starts from its first frame (it is keyed, so it
- * remounts). The next piece always peeks in on the right.
+ * The CLI row's visual: one piece at a time on a showcase stage, and a rail naming every piece.
+ * The active piece plays its first complete beat while its rail tab fills, then the stage crossfades
+ * to the next piece, which starts from its first frame (it is keyed, so it remounts). Any tab can be
+ * picked directly; the install line under the stage follows the piece on show.
  *
  * `ms` is where that beat ends in each preview's script in components/previews/: keep these in
- * step if a preview's timing changes, or the slide lands mid-gesture.
+ * step if a preview's timing changes, or the switch lands mid-gesture.
  */
 const SLIDES = [
   { name: "FloatingDock", title: "Floating Dock", ms: 5600 }, // navigation.tsx: select, hover across, settle on tab 4 (4500)
@@ -20,49 +22,96 @@ const SLIDES = [
   { name: "ElasticButton", title: "Elastic Button", ms: 4000 }, // controls.tsx elasticSteps: one press, deep and back
 ] as const;
 
-const GAP = 16;
+/** How long the outgoing piece stays mounted while it fades. */
+const FADE_MS = 420;
 
 export function PieceCarousel() {
   const [i, setI] = useState(0);
-  const [sliding, setSliding] = useState(false);
+  const [leaving, setLeaving] = useState<number | null>(null);
+  const [reduced, setReduced] = useState(false);
+  const fade = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const n = SLIDES.length;
-  const at = (k: number) => SLIDES[(i + k) % n];
 
-  useEffect(() => {
-    // Reduced motion: hold on the first piece; its preview already honours the setting.
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const t = setTimeout(() => setSliding(true), SLIDES[i].ms);
-    return () => clearTimeout(t);
-  }, [i]);
+  useEffect(() => setReduced(window.matchMedia("(prefers-reduced-motion: reduce)").matches), []);
 
-  const advance = () => {
-    setSliding(false);
-    setI((v) => (v + 1) % n);
+  // The piece on show, readable from timers and handlers without going stale.
+  const current = useRef(0);
+
+  const show = (next: number) => {
+    if (next === current.current) return;
+    setLeaving(current.current);
+    current.current = next;
+    setI(next);
+    clearTimeout(fade.current);
+    fade.current = setTimeout(() => setLeaving(null), FADE_MS);
   };
+
+  // Auto-advance after the active piece's beat. Reduced motion holds on the chosen piece.
+  useEffect(() => {
+    if (reduced) return;
+    const t = setTimeout(() => show((i + 1) % n), SLIDES[i].ms);
+    return () => clearTimeout(t);
+  }, [i, reduced, n]);
+
+  useEffect(() => () => clearTimeout(fade.current), []);
 
   return (
     <div>
-      <div className="overflow-hidden rounded-[16px]">
-        <div
-          className="flex"
-          style={{ gap: GAP, transform: sliding ? `translateX(calc(-72% - ${GAP}px))` : "none", transition: sliding ? "transform 520ms cubic-bezier(0.22, 1, 0.36, 1)" : "none" }}
-          onTransitionEnd={(e) => e.target === e.currentTarget && sliding && advance()}
-        >
-          {[0, 1, 2].map((k) => (
-            <div key={`${(i + k) % n}-${k === 0 ? "active" : "rest"}`} className="frame-dashed relative w-[72%] shrink-0 overflow-hidden rounded-[16px] transition-opacity duration-500" style={{ opacity: k === 0 || (k === 1 && sliding) ? 1 : 0.45 }}>
-              <PreviewFrame tone="clear" aspect="aspect-[4/3]" className="rounded-none!">
-                <PiecePreview name={at(k).name} />
+      {/* The stage: the piece at a fixed, legible size, centred, never cropped by a neighbour. Same height
+          as the first row's visual: 400px, or the column's width when that is narrower. */}
+      <div className="frame-dashed relative overflow-hidden rounded-[16px]">
+        <div className="aspect-square max-h-[400px] w-full" />
+        {[leaving, i].map((k) =>
+          k === null ? null : (
+            <div
+              key={`${k}-${k === i ? "on" : "off"}`}
+              aria-hidden={k !== i}
+              className={cn("absolute inset-0 flex items-center justify-center p-6", k === i ? "piece-in" : "piece-out pointer-events-none")}
+            >
+              <PreviewFrame tone="clear" aspect="aspect-[4/3]" className="w-full max-w-[440px] rounded-none!">
+                <PiecePreview name={SLIDES[k].name} />
               </PreviewFrame>
             </div>
-          ))}
+          ),
+        )}
+      </div>
+
+      {/* The rail: one pill track naming every piece. The active pill fills with light from its leading
+          edge over the piece's beat, so the tab itself is the progress bar. */}
+      <div className="mt-4 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div role="tablist" aria-label="Pieces" className="flex w-max min-w-full gap-1 rounded-full border border-white/[0.08] bg-white/[0.02] p-1">
+          {SLIDES.map((s, k) => {
+            const active = k === i;
+            return (
+              <button
+                key={s.name}
+                type="button"
+                role="tab"
+                aria-selected={active}
+                onClick={() => show(k)}
+                className={cn(
+                  "relative isolate flex h-9 flex-1 items-center justify-center overflow-hidden rounded-full px-3.5 text-[12.5px] font-medium whitespace-nowrap transition-colors duration-300",
+                  active ? "bg-white/[0.06] text-foreground" : "text-subtle hover:bg-white/[0.03] hover:text-muted",
+                )}
+              >
+                {active ? (
+                  <span
+                    key={`${s.name}-${i}`}
+                    aria-hidden
+                    className="absolute inset-0 -z-10 origin-left bg-white/[0.1] rtl:origin-right"
+                    style={reduced ? undefined : { animation: `piece-progress ${s.ms}ms linear both` }}
+                  />
+                ) : null}
+                {s.title}
+              </button>
+            );
+          })}
         </div>
       </div>
-      <div className="mt-4 flex items-center justify-between gap-6">
-        <p className="truncate font-mono text-[13px] text-muted"><span className="text-subtle">$</span> npx swiftpieces add <span className="text-foreground">{at(0).name}</span></p>
-        <div className="flex shrink-0 items-center gap-1.5" aria-label={`${at(0).title}, ${i + 1} of ${n}`}>
-          {SLIDES.map((s, k) => <span key={s.name} className={`h-1.5 rounded-full transition-all duration-500 ${k === i ? "w-5 bg-foreground" : "w-1.5 bg-white/20"}`} />)}
-        </div>
-      </div>
+
+      <p className="mt-5 truncate font-mono text-[13px] text-muted">
+        <span className="text-subtle">$</span> npx swiftpieces add <span className="text-foreground">{SLIDES[i].name}</span>
+      </p>
     </div>
   );
 }

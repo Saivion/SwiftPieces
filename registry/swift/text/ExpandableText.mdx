@@ -1,0 +1,15 @@
+## Notes
+
+- SwiftUI has no API that reports truncation. The piece lays out three hidden copies at the paragraph's real width: the full text, the text at `lineLimit` lines, and the text at one line fewer. "More" appears only when the full height is taller than the clamped height, so a short text never shows it.
+- The copies re-measure whenever the width, Dynamic Type size, font or text changes (`onGeometryChange` on iOS 18, a `GeometryReader` on iOS 17). They never read the expanded state, so there is no layout loop.
+- Until the first measurement lands, a plain `lineLimit` Text shows the same first lines, so first appearance does not jump.
+- Collapsed, the full text is clipped to the clamped height. The end of the last line fades to transparent through a mask and "more" sits in the faded space. The mask needs no background color, so it works over cards, images and materials. Set `Style.fade` to paint a gradient into a solid color instead.
+- Expanding animates the clip height to the full height. Lines are laid out once at full length, so nothing reflows or jumps. "Less" fades in under the text on the trailing edge; `showsLess: false` keeps the paragraph open.
+- Font, color and alignment come from the environment, like `Text`: `.font`, `.foregroundStyle`, `.multilineTextAlignment`.
+- `AttributedString` keeps bold, italics and links. With `togglesOnTap`, tapping the body toggles too; a tap that opens a link does not toggle, and lines hidden below the fold have no hit area. Links open through your `openURL` environment action.
+- `isExpanded` lets you drive or observe the state, for example to keep one review open at a time.
+- RTL: the fade and "more" sit on the trailing side, which is the left in right-to-left languages.
+- `Style` sets the link color, link weight, fade width (scaled with Dynamic Type) and the optional solid fade color. `.disabled(true)` dims the links and stops toggling.
+- Reduce Motion: expanding and collapsing happen without animation.
+- VoiceOver reads the full text in both states, with links in the rotor. "Show more" and "Show less" actions resize the paragraph for sighted VoiceOver users; the visual links are hidden from VoiceOver.
+- The "more" and "less" links draw at one line tall but have a hit area of at least 44 by 44 points.

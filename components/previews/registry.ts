@@ -9,5 +9,6 @@ export const previewNames = new Set([
   "RingBreakdown", "LiveStat", "Odometer", "StreamingReply", "ThinkingState", "PromptChips", "CodeBlock",
   "PhotoViewer", "StoryStrip",
   "AssistantOrb", "ThoughtOrb",
+  "RangeSlider", "DateRangePicker", "TokenField", "AmountField", "FormField", "ExpandableText", "PagedList",
 ]);
 export const hasPreview = (name: string) => previewNames.has(name);

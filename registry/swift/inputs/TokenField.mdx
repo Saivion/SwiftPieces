@@ -1,0 +1,14 @@
+## Notes
+
+- Chips and the input sit in a private wrapping `Layout`: leading-aligned rows, spacing that scales with Dynamic Type, and the input taking the rest of the last line. When that is narrower than the input's minimum (88pt, scaled) or its typed text, the input wraps to a new full-width line. A chip wider than the field truncates in the middle.
+- Return, comma (including the full-width `，` and `、`) and pasted line breaks commit the trimmed text by default. `separators` adds `.semicolon` and `.space` for recipient lists. Pasting `a, b, c` adds three tokens in one animated change.
+- Every entry is checked in order: `maxTokens`, then duplicates (case-insensitive, the first spelling is kept and the existing chip is highlighted), then `validate`. Rejected entries stay in the input so they can be fixed, with a damped shake, an error ring and an `.error` haptic.
+- Backspace on an empty input highlights the last chip with a soft impact; a second backspace removes it with a rigid impact. Tapping a chip highlights it the same way. A zero-width space kept in front of the typed text makes this reliable on the software keyboard, where iOS reports no key event for backspace on an empty field. It is never shown or committed.
+- The input uses a vertical-axis `TextField`, so return inserts a line break the field turns into a commit and the keyboard stays up between tokens. Valid text left in the input is committed quietly when the field loses focus.
+- Suggestions appear under the field while typing, matched case- and diacritic-insensitively, prefix matches first, at most five, with the matched run in bold and a dot in the color the chip will take. Tokens already added are left out.
+- Each token keeps the same chip color wherever it appears, picked from its text, so removing one never recolors the rest. Pass a single color in `Style.chips` for uniform chips.
+- At `maxTokens` the input stops accepting text and shows a quiet count such as `5/5`. Backspace still removes.
+- Tapping anywhere in the field that is not a chip focuses the input. Keyboard type, capitalization and content type pass through: apply `.keyboardType(.emailAddress)` and friends to the `TokenField`.
+- VoiceOver: each chip is one element read as "Swift, token" with a Remove action; the input's label carries the placeholder and the token count; adds, removals and rejections are announced.
+- `Style` sets the field, chip colors, ink, label, placeholder, error, corner radius and minimum height. `.disabled(true)` dims the field and disables removal.
+- Reduce Motion: no shake or scale; chips and the suggestion list fade.

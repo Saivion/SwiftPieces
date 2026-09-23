@@ -1,0 +1,710 @@
+// swiftpieces:
+// title: Paged List
+// description: An async/await infinite-scroll list that prefetches the next page a few rows before the end, never runs two loads at once, drops duplicate ids across pages, ignores stale responses after a refresh or cancel, shows pulsing skeleton rows, a footer spinner, an inline "Couldn't load more" chip with a solid Retry block that keeps loaded rows, a quiet "You're all caught up" footer, and pull to refresh that replaces rows only on success.
+// category: lists
+// minIOSVersion: "17.0"
+// version: "1.0.0"
+// added: "2026-09-23"
+// tags: [pagination, infinite-scroll, list, async, refresh, loading, empty-state]
+
+import SwiftUI
+import UIKit
+
+/// One page from your API: the rows it returned and the cursor for the page after it (`nil` when this was the last page).
+///
+/// `Cursor` can be a page number, an offset, or an opaque token from your backend.
+public struct PagedListPage<Item: Sendable, Cursor: Sendable>: Sendable {
+    public var items: [Item]
+    public var next: Cursor?
+
+    public init(items: [Item], next: Cursor?) {
+        self.items = items
+        self.next = next
+    }
+}
+
+/// An infinitely scrolling list driven by an async page loader, with every pagination state handled.
+///
+/// The simplest call is one line: `PagedList(load: api.page) { item in Row(item) }`, or for page-number APIs
+/// `PagedList(pageSize: 20) { page in try await api.fetch(page: page) } row: { item in Row(item) }`.
+/// To restart with new parameters (a search query, a filter), give the list `.id(query)`.
+///
+/// - Parameters:
+///   - load: Loads one page. Receives `nil` for the first page, then each page's `next` cursor. Throwing shows an error state; cancellation is ignored.
+///   - pageSize: Page-number convenience only. A page with fewer items than this (or none) ends the list.
+///   - firstPage: Page-number convenience only. The number of the first page, usually 1 or 0.
+///   - fetch: Page-number convenience only. Returns the items for a page number.
+///   - layout: `.list` (a plain `List`, the default) or `.plain` (a `LazyVStack` in a `ScrollView` for card layouts).
+///   - prefetchDistance: How many rows before the end the next page starts loading.
+///   - endMessage: Quiet footer shown after the last page. `nil` hides it.
+///   - emptyMessage: Text of the built-in empty state when the first page has no items.
+///   - placeholder: A sample item rendered through your `row` with `.redacted(reason: .placeholder)` as the loading skeleton. `nil` uses generic skeleton rows.
+///   - errorMessage: Turns a thrown error into the text shown in the full error view. Defaults to `localizedDescription`.
+///   - style: Colors and metrics for the built-in skeleton, spinner, chips, empty and error views. Defaults to the house palette.
+///   - row: Builds the row for one item.
+///   - empty: A custom empty state, shown when the first page has no items (for example a `ContentUnavailableView`).
+public struct PagedList<Item: Identifiable & Sendable, Cursor: Sendable, Row: View, Empty: View>: View {
+    /// The loader's signature. Runs off the main actor; must be safe to call from any task.
+    public typealias Load = @Sendable (Cursor?) async throws -> PagedListPage<Item, Cursor>
+
+    /// The scroll container.
+    public enum Layout: Sendable {
+        /// A plain-style `List`, with system cell reuse and swipe actions.
+        case list
+        /// A `LazyVStack` inside a `ScrollView`, for card rows with custom spacing.
+        case plain
+    }
+
+    /// Colors and metrics for the built-in states (`PagedListStyle`). `.standard` is the house palette.
+    public typealias Style = PagedListStyle
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.isEnabled) private var isEnabled
+    @State private var loader = PagedLoader<Item, Cursor>()
+    @State private var retries = 0
+    @ScaledMetric(relativeTo: .body) private var avatar: CGFloat = 44
+    @ScaledMetric(relativeTo: .body) private var badge: CGFloat = 22
+
+    private let load: Load
+    private let layout: Layout
+    private let prefetchDistance: Int
+    private let endMessage: String?
+    private let emptyMessage: String
+    private let placeholder: Item?
+    private let errorMessage: (any Error) -> String
+    private let style: Style
+    private let row: (Item) -> Row
+    private let empty: Empty?
+
+    public init(load: @escaping Load, layout: Layout = .list, prefetchDistance: Int = 5, endMessage: String? = "You're all caught up", emptyMessage: String = "Nothing here yet", placeholder: Item? = nil, errorMessage: @escaping (any Error) -> String = { $0.localizedDescription }, style: Style = .standard, @ViewBuilder row: @escaping (Item) -> Row, @ViewBuilder empty: () -> Empty) {
+        self.init(load, layout, prefetchDistance, endMessage, emptyMessage, placeholder, errorMessage, style, row, empty())
+    }
+
+    fileprivate init(_ load: @escaping Load, _ layout: Layout, _ prefetchDistance: Int, _ endMessage: String?, _ emptyMessage: String, _ placeholder: Item?, _ errorMessage: @escaping (any Error) -> String, _ style: Style, _ row: @escaping (Item) -> Row, _ empty: Empty?) {
+        self.load = load
+        self.layout = layout
+        self.prefetchDistance = max(prefetchDistance, 1)
+        self.endMessage = endMessage
+        self.emptyMessage = emptyMessage
+        self.placeholder = placeholder
+        self.errorMessage = errorMessage
+        self.style = style
+        self.row = row
+        self.empty = empty
+    }
+
+    private var chipMotion: Animation { reduceMotion ? .easeInOut(duration: 0.2) : .spring(duration: 0.35, bounce: 0.12) }
+    private var chipTransition: AnyTransition { reduceMotion ? .opacity : .scale(scale: 0.92).combined(with: .opacity) }
+
+    public var body: some View {
+        container
+            .overlay { overlay }
+            .onAppear { loader.appear(load) }
+            .onDisappear { loader.disappear() }
+            .refreshable { await loader.refresh(load) }
+            .sensoryFeedback(.impact(weight: .light), trigger: retries)
+    }
+
+    // MARK: Containers
+
+    @ViewBuilder private var container: some View {
+        switch layout {
+        case .list:
+            List { rows }
+                .listStyle(.plain)
+        case .plain:
+            ScrollView {
+                LazyVStack(spacing: style.rowSpacing) { rows }
+                    .padding(.horizontal, style.contentPadding)
+            }
+        }
+    }
+
+    @ViewBuilder private var rows: some View {
+        if loader.items.isEmpty {
+            if loader.isAwaitingFirstPage {
+                skeleton
+            }
+        } else {
+            if let error = loader.refreshError {
+                chip("Couldn't refresh", detail: errorMessage(error), hint: "Loads the list again") {
+                    retries += 1
+                    loader.retryRefresh(load)
+                }
+                .transition(chipTransition)
+                .modifier(ChromeRow())
+            }
+            ForEach(loader.items) { item in
+                row(item)
+                    .onAppear { loader.rowAppeared(item.id, distance: prefetchDistance, load) }
+            }
+            footer
+                .modifier(ChromeRow())
+        }
+    }
+
+    /// Full-screen states float over the (empty) scroll view, so pull to refresh still works under them.
+    @ViewBuilder private var overlay: some View {
+        if loader.items.isEmpty && !loader.isAwaitingFirstPage {
+            Group {
+                if let error = loader.initialError {
+                    failure(error)
+                } else if let empty {
+                    empty
+                } else {
+                    emptyState
+                }
+            }
+            .transition(.opacity)
+        }
+    }
+
+    // MARK: Footer
+
+    private var footer: some View {
+        ZStack {
+            if let error = loader.pageError {
+                chip("Couldn't load more", detail: errorMessage(error), hint: "Loads the next page again") {
+                    retries += 1
+                    loader.retryMore(load)
+                }
+                .transition(chipTransition)
+            } else if loader.reachedEnd {
+                if let endMessage {
+                    HStack(spacing: 8) {
+                        Image(systemName: "checkmark")
+                            .font(.caption2.weight(.heavy))
+                            .foregroundStyle(style.ink)
+                            .frame(width: badge, height: badge)
+                            .background(style.end, in: Circle())
+                        Text(endMessage)
+                            .font(.footnote.weight(.medium))
+                            .foregroundStyle(style.secondaryText)
+                    }
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(endMessage)
+                    .transition(.opacity)
+                }
+            } else {
+                Spinner(color: style.secondaryText, reduceMotion: reduceMotion)
+                    .accessibilityElement()
+                    .accessibilityLabel("Loading more")
+                    .transition(.opacity)
+            }
+        }
+        .frame(maxWidth: .infinity, minHeight: 64)
+        .animation(chipMotion, value: loader.footerKey)
+        .onAppear {
+            loader.footerVisible = true
+            loader.loadMore(load)
+        }
+        .onDisappear { loader.footerVisible = false }
+    }
+
+    /// "Couldn't load more · Retry": a soft chip with a signal badge and a solid Retry block. Stacks at large text sizes.
+    private func chip(_ title: String, detail: String, hint: String, retry: @escaping () -> Void) -> some View {
+        let label = HStack(spacing: 8) {
+            Image(systemName: "exclamationmark")
+                .font(.caption2.weight(.heavy))
+                .foregroundStyle(style.ink)
+                .frame(width: badge, height: badge)
+                .background(style.error, in: Circle())
+            Text(title)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(style.text)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("\(title). \(detail)")
+
+        let button = Button("Retry", action: retry)
+            .buttonStyle(BlockButtonStyle(fill: style.retry, ink: style.ink, reduceMotion: reduceMotion))
+            .accessibilityHint(hint)
+
+        return ViewThatFits(in: .horizontal) {
+            HStack(spacing: 12) { label; button }
+            VStack(spacing: 8) { label; button }
+        }
+        .padding(.leading, 14)
+        .padding(.trailing, 4)
+        .padding(.vertical, 4)
+        .background(style.field, in: RoundedRectangle(cornerRadius: 26, style: .continuous))
+        .opacity(isEnabled ? 1 : 0.5)
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 6)
+    }
+
+    // MARK: First page states
+
+    @ViewBuilder private var skeleton: some View {
+        ForEach(0..<style.skeletonRows, id: \.self) { index in
+            Group {
+                if let placeholder {
+                    row(placeholder).redacted(reason: .placeholder)
+                } else {
+                    skeletonRow(index)
+                }
+            }
+            .allowsHitTesting(false)
+            .phaseAnimator(reduceMotion ? [true] : [false, true]) { content, bright in
+                content.opacity(bright ? 1 : 0.5)
+            } animation: { _ in .easeInOut(duration: 0.85) }
+            .accessibilityHidden(index > 0)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("Loading")
+            .modifier(ChromeRow())
+        }
+    }
+
+    private func skeletonRow(_ index: Int) -> some View {
+        let widths: [CGFloat] = [0.62, 0.48, 0.7, 0.55]
+        return HStack(spacing: 12) {
+            RoundedRectangle(cornerRadius: avatar * 0.3, style: .continuous)
+                .fill(style.field)
+                .frame(width: avatar, height: avatar)
+            GeometryReader { proxy in
+                VStack(alignment: .leading, spacing: 8) {
+                    Capsule().fill(style.field).frame(width: proxy.size.width * widths[index % widths.count], height: 12)
+                    Capsule().fill(style.field).frame(width: proxy.size.width * 0.34, height: 10)
+                }
+                .frame(maxHeight: .infinity, alignment: .center)
+            }
+            .frame(height: avatar)
+        }
+        .padding(.vertical, 8)
+    }
+
+    private func failure(_ error: any Error) -> some View {
+        VStack(spacing: 14) {
+            Image(systemName: "exclamationmark")
+                .font(.title3.weight(.heavy))
+                .foregroundStyle(style.ink)
+                .frame(width: avatar * 1.3, height: avatar * 1.3)
+                .background(style.error, in: Circle())
+                .accessibilityHidden(true)
+            VStack(spacing: 6) {
+                Text("Couldn't load")
+                    .font(.headline)
+                    .foregroundStyle(style.text)
+                Text(errorMessage(error))
+                    .font(.subheadline)
+                    .foregroundStyle(style.secondaryText)
+            }
+            .multilineTextAlignment(.center)
+            .fixedSize(horizontal: false, vertical: true)
+            .accessibilityElement(children: .combine)
+            Button("Try again") {
+                retries += 1
+                loader.loadFirst(load)
+            }
+            .buttonStyle(BlockButtonStyle(fill: style.retry, ink: style.ink, reduceMotion: reduceMotion))
+            .opacity(isEnabled ? 1 : 0.5)
+        }
+        .padding(32)
+        .frame(maxWidth: 420)
+    }
+
+    private var emptyState: some View {
+        VStack(spacing: 12) {
+            Image(systemName: "tray")
+                .font(.title3.weight(.semibold))
+                .foregroundStyle(style.secondaryText)
+                .frame(width: avatar * 1.3, height: avatar * 1.3)
+                .background(style.field, in: Circle())
+                .accessibilityHidden(true)
+            Text(emptyMessage)
+                .font(.subheadline.weight(.medium))
+                .foregroundStyle(style.secondaryText)
+                .multilineTextAlignment(.center)
+        }
+        .padding(32)
+    }
+}
+
+/// Colors and metrics for the built-in states. `.standard` is the house palette.
+public struct PagedListStyle: Sendable {
+    /// Titles in the empty and error views.
+    public var text: Color
+    /// Messages, the end footer and the spinner.
+    public var secondaryText: Color
+    /// Skeleton blocks and the chip ground.
+    public var field: Color
+    /// The error badge.
+    public var error: Color
+    /// The solid Retry block.
+    public var retry: Color
+    /// The check on the end footer.
+    public var end: Color
+    /// Text and glyphs on solid blocks.
+    public var ink: Color
+    /// Row spacing in the `.plain` layout.
+    public var rowSpacing: CGFloat
+    /// Horizontal padding in the `.plain` layout.
+    public var contentPadding: CGFloat
+    /// Skeleton rows shown while the first page loads.
+    public var skeletonRows: Int
+
+    /// Pass only what you want to change; `nil` keeps the house palette value.
+    public init(text: Color? = nil, secondaryText: Color? = nil, field: Color? = nil, error: Color? = nil, retry: Color? = nil, end: Color? = nil, ink: Color? = nil, rowSpacing: CGFloat = 8, contentPadding: CGFloat = 16, skeletonRows: Int = 8) {
+        self.text = text ?? adaptive(light: 0x141414, dark: 0xF4F3EF)
+        self.secondaryText = secondaryText ?? adaptive(light: 0x5C5A56, dark: 0xA6A49F)
+        self.field = field ?? adaptive(light: 0xE9E7E1, dark: 0x262626)
+        self.error = error ?? adaptive(light: 0xFF5B3A, dark: 0xFF5B3A)
+        self.retry = retry ?? adaptive(light: 0xFFD976, dark: 0xFFD976)
+        self.end = end ?? adaptive(light: 0xA9DCB7, dark: 0xA9DCB7)
+        self.ink = ink ?? adaptive(light: 0x141414, dark: 0x141414)
+        self.rowSpacing = rowSpacing
+        self.contentPadding = contentPadding
+        self.skeletonRows = max(skeletonRows, 1)
+    }
+
+    public static let standard = PagedListStyle()
+}
+
+// MARK: - Convenience initializers
+
+extension PagedList where Empty == EmptyView {
+    /// Cursor-based list with the built-in empty state.
+    public init(load: @escaping Load, layout: Layout = .list, prefetchDistance: Int = 5, endMessage: String? = "You're all caught up", emptyMessage: String = "Nothing here yet", placeholder: Item? = nil, errorMessage: @escaping (any Error) -> String = { $0.localizedDescription }, style: Style = .standard, @ViewBuilder row: @escaping (Item) -> Row) {
+        self.init(load, layout, prefetchDistance, endMessage, emptyMessage, placeholder, errorMessage, style, row, nil)
+    }
+}
+
+extension PagedList where Cursor == Int, Empty == EmptyView {
+    /// Page-number list: `fetch` gets 1, 2, 3... and the list ends at the first short or empty page.
+    public init(pageSize: Int, firstPage: Int = 1, layout: Layout = .list, prefetchDistance: Int = 5, endMessage: String? = "You're all caught up", emptyMessage: String = "Nothing here yet", placeholder: Item? = nil, errorMessage: @escaping (any Error) -> String = { $0.localizedDescription }, style: Style = .standard, fetch: @escaping @Sendable (Int) async throws -> [Item], @ViewBuilder row: @escaping (Item) -> Row) {
+        let size = max(pageSize, 1)
+        self.init(load: { cursor in
+            let page = cursor ?? firstPage
+            let items = try await fetch(page)
+            return PagedListPage(items: items, next: items.count < size ? nil : page + 1)
+        }, layout: layout, prefetchDistance: prefetchDistance, endMessage: endMessage, emptyMessage: emptyMessage, placeholder: placeholder, errorMessage: errorMessage, style: style, row: row)
+    }
+}
+
+// MARK: - Loader (the pagination state machine)
+
+/// Owns items and load state on the main actor. Every load bumps `generation`; a response whose generation is no
+/// longer current (superseded by a refresh or retry, or cancelled on disappear) is dropped without touching state.
+@MainActor @Observable
+private final class PagedLoader<Item: Identifiable & Sendable, Cursor: Sendable> {
+    typealias Load = @Sendable (Cursor?) async throws -> PagedListPage<Item, Cursor>
+
+    enum Phase: Equatable { case idle, first, more, refresh }
+
+    private(set) var items: [Item] = []
+    private(set) var phase: Phase = .idle
+    private(set) var hasLoaded = false
+    private(set) var reachedEnd = false
+    private(set) var initialError: (any Error)?
+    private(set) var pageError: (any Error)?
+    private(set) var refreshError: (any Error)?
+
+    /// Set by the footer's appear/disappear. When the footer is still on screen after a page lands, keep loading.
+    @ObservationIgnored var footerVisible = false
+    @ObservationIgnored private var index: [Item.ID: Int] = [:]
+    @ObservationIgnored private var next: Cursor?
+    @ObservationIgnored private var generation = 0
+    @ObservationIgnored private var task: Task<Void, Never>?
+    @ObservationIgnored private var interrupted: Phase?
+    @ObservationIgnored private var emptyStreak = 0
+
+    /// Consecutive pages that add nothing new before the list is treated as finished (guards a cursor that never ends).
+    static var emptyPageLimit: Int { 8 }
+
+    /// Skeleton while the very first page is pending (or about to start).
+    var isAwaitingFirstPage: Bool { (!hasLoaded && initialError == nil) || phase == .first }
+
+    /// Drives the footer's crossfade.
+    var footerKey: Int { pageError != nil ? 1 : reachedEnd ? 2 : 0 }
+
+    func appear(_ load: @escaping Load) {
+        if let resume = interrupted {
+            interrupted = nil
+            if resume == .more { loadMore(load) } else { loadFirst(load) }
+        } else if !hasLoaded, phase == .idle, initialError == nil {
+            loadFirst(load)
+        }
+    }
+
+    func disappear() {
+        guard phase != .idle else { return }
+        interrupted = phase == .more ? .more : (hasLoaded ? nil : .first)
+        task?.cancel()
+        task = nil
+        generation &+= 1
+        phase = .idle
+    }
+
+    /// The first page, or a retry of it after a failure.
+    func loadFirst(_ load: @escaping Load) {
+        let gen = begin(.first)
+        initialError = nil
+        task = Task { await self.fetch(nil, gen, .first, load) }
+    }
+
+    /// The next page. No-op while any load runs, at the end, or after a page error (retry is explicit).
+    func loadMore(_ load: @escaping Load) {
+        guard phase == .idle, hasLoaded, !reachedEnd, pageError == nil, let cursor = next else { return }
+        let gen = begin(.more)
+        task = Task { await self.fetch(cursor, gen, .more, load) }
+    }
+
+    func retryMore(_ load: @escaping Load) {
+        pageError = nil
+        loadMore(load)
+    }
+
+    /// Pull to refresh. Awaited by `.refreshable`, so the system spinner stays until the first page lands.
+    func refresh(_ load: @escaping Load) async {
+        let gen = begin(.refresh)
+        await fetch(nil, gen, .refresh, load)
+    }
+
+    func retryRefresh(_ load: @escaping Load) {
+        let gen = begin(.refresh)
+        task = Task { await self.fetch(nil, gen, .refresh, load) }
+    }
+
+    func rowAppeared(_ id: Item.ID, distance: Int, _ load: @escaping Load) {
+        guard let position = index[id], position >= items.count - distance else { return }
+        loadMore(load)
+    }
+
+    /// Cancels whatever is in flight and claims a new generation.
+    private func begin(_ next: Phase) -> Int {
+        task?.cancel()
+        task = nil
+        interrupted = nil
+        generation &+= 1
+        phase = next
+        return generation
+    }
+
+    private func fetch(_ cursor: Cursor?, _ gen: Int, _ kind: Phase, _ load: @escaping Load) async {
+        let result: Result<PagedListPage<Item, Cursor>, any Error>
+        do { result = .success(try await load(cursor)) } catch { result = .failure(error) }
+
+        // Superseded by a newer load: that load owns the state now.
+        guard gen == generation else { return }
+        task = nil
+        phase = .idle
+
+        if Task.isCancelled || result.isCancellation {
+            // Cancelled but not superseded (for example the refresh gesture's task was torn down): resume on next appear.
+            interrupted = kind == .more ? .more : (hasLoaded ? nil : .first)
+            return
+        }
+
+        switch result {
+        case .success(let page):
+            apply(page, replacing: kind != .more)
+            if footerVisible { loadMore(load) }
+        case .failure(let error):
+            if kind == .more {
+                pageError = error
+                announce("Couldn't load more")
+            } else if !hasLoaded {
+                initialError = error
+                announce("Couldn't load")
+            } else {
+                // Refresh failed: keep the rows we have and say so above them.
+                refreshError = error
+                announce("Couldn't refresh")
+            }
+        }
+    }
+
+    private func apply(_ page: PagedListPage<Item, Cursor>, replacing: Bool) {
+        var seen = replacing ? [:] : index
+        var fresh: [Item] = []
+        let base = replacing ? 0 : items.count
+        for item in page.items where seen[item.id] == nil {
+            seen[item.id] = base + fresh.count
+            fresh.append(item)
+        }
+        index = seen
+        if replacing {
+            items = fresh
+            initialError = nil
+            pageError = nil
+            refreshError = nil
+            emptyStreak = 0
+        } else {
+            items.append(contentsOf: fresh)
+            if !fresh.isEmpty { announce("Loaded \(fresh.count) more") }
+        }
+        emptyStreak = fresh.isEmpty ? emptyStreak + 1 : 0
+        next = page.next
+        reachedEnd = page.next == nil || emptyStreak >= Self.emptyPageLimit
+        hasLoaded = true
+    }
+
+    private func announce(_ message: String) {
+        AccessibilityNotification.Announcement(message).post()
+    }
+}
+
+private extension Result where Failure == any Error {
+    var isCancellation: Bool {
+        guard case .failure(let error) = self else { return false }
+        return error is CancellationError || (error as? URLError)?.code == .cancelled
+    }
+}
+
+// MARK: - Built-in pieces
+
+/// Footer and chip rows sit on the list ground with no separator.
+private struct ChromeRow: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .listRowSeparator(.hidden)
+            .listRowBackground(Color.clear)
+    }
+}
+
+/// A solid capsule block with ink text that dips when pressed. 44pt tap target.
+private struct BlockButtonStyle: ButtonStyle {
+    let fill: Color
+    let ink: Color
+    let reduceMotion: Bool
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.subheadline.weight(.bold))
+            .foregroundStyle(ink)
+            .padding(.horizontal, 18)
+            .frame(minHeight: 36)
+            .background(fill, in: Capsule())
+            .scaleEffect(configuration.isPressed && !reduceMotion ? 0.94 : 1)
+            .opacity(configuration.isPressed && reduceMotion ? 0.7 : 1)
+            .animation(.spring(duration: 0.25, bounce: 0.3), value: configuration.isPressed)
+            .frame(minHeight: 44)
+            .contentShape(.rect)
+    }
+}
+
+/// A rotating open arc. With Reduce Motion, three dots fade in turn instead of anything moving.
+private struct Spinner: View {
+    let color: Color
+    let reduceMotion: Bool
+    @ScaledMetric(relativeTo: .body) private var size: CGFloat = 22
+
+    var body: some View {
+        TimelineView(.animation) { context in
+            let t = context.date.timeIntervalSinceReferenceDate
+            if reduceMotion {
+                HStack(spacing: size * 0.22) {
+                    ForEach(0..<3, id: \.self) { dot in
+                        Circle()
+                            .fill(color)
+                            .frame(width: size * 0.26, height: size * 0.26)
+                            .opacity(0.3 + 0.7 * max(0, sin((t * 2.4 - Double(dot) * 0.7).truncatingRemainder(dividingBy: .pi * 2))))
+                    }
+                }
+            } else {
+                Circle()
+                    .trim(from: 0, to: 0.72)
+                    .stroke(color, style: StrokeStyle(lineWidth: size * 0.12, lineCap: .round))
+                    .frame(width: size, height: size)
+                    .rotationEffect(.degrees((t * 400).truncatingRemainder(dividingBy: 360)))
+            }
+        }
+        .frame(height: size)
+    }
+}
+
+/// A house-palette color that follows the interface style.
+private func adaptive(light: UInt32, dark: UInt32) -> Color {
+    Color(uiColor: UIColor { traits in
+        let hex = traits.userInterfaceStyle == .dark ? dark : light
+        return UIColor(red: CGFloat((hex >> 16) & 0xFF) / 255, green: CGFloat((hex >> 8) & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
+    })
+}
+
+// MARK: - Example
+
+private struct Receipt: Identifiable, Sendable {
+    let id: Int
+    let merchant: String
+    let detail: String
+    let amount: Double
+    let block: UInt32
+}
+
+/// A fake paged API: five pages of 20, a short delay per page, and page 3 fails the first time it is asked for.
+private actor ReceiptsAPI {
+    private var failedOnce = false
+    private static let merchants = ["Juniper Coffee", "Riverside Books", "Northline Transit", "Maison Bakery", "Studio Nine", "Fieldhouse Gym", "Almanac Market", "Sprig Florist", "Harbor Hardware", "Drift Records"]
+    private static let blocks: [UInt32] = [0xFFD976, 0x9CC2FF, 0xA9DCB7, 0xCDB8FF, 0xE9D5B3, 0xFF5B3A]
+
+    func fetch(page: Int) async throws -> [Receipt] {
+        try await Task.sleep(for: .milliseconds(page == 1 ? 1200 : 800))
+        if page == 3 && !failedOnce {
+            failedOnce = true
+            throw URLError(.networkConnectionLost)
+        }
+        guard (1...5).contains(page) else { return [] }
+        return (0..<20).map { offset in
+            let n = (page - 1) * 20 + offset
+            return Receipt(id: n, merchant: Self.merchants[n % Self.merchants.count], detail: "Receipt \(1040 + n)", amount: Double((n * 37) % 90) + 4.5, block: Self.blocks[n % Self.blocks.count])
+        }
+    }
+}
+
+private struct ReceiptRow: View {
+    let receipt: Receipt
+    @ScaledMetric(relativeTo: .body) private var tile: CGFloat = 44
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Text(String(receipt.merchant.prefix(1)))
+                .font(.headline)
+                .foregroundStyle(adaptive(light: 0x141414, dark: 0x141414))
+                .frame(width: tile, height: tile)
+                .background(adaptive(light: receipt.block, dark: receipt.block), in: .rect(cornerRadius: tile * 0.3, style: .continuous))
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(receipt.merchant)
+                    .font(.body.weight(.semibold))
+                    .foregroundStyle(adaptive(light: 0x141414, dark: 0xF4F3EF))
+                Text(receipt.detail)
+                    .font(.subheadline)
+                    .foregroundStyle(adaptive(light: 0x5C5A56, dark: 0xA6A49F))
+            }
+            Spacer(minLength: 8)
+            Text(receipt.amount, format: .currency(code: "USD"))
+                .font(.body.weight(.medium))
+                .monospacedDigit()
+                .foregroundStyle(adaptive(light: 0x141414, dark: 0xF4F3EF))
+        }
+        .padding(.vertical, 6)
+        .accessibilityElement(children: .combine)
+        .listRowBackground(Color.clear)
+        .listRowSeparator(.hidden)
+    }
+}
+
+/// Scroll to page 3 to see the inline retry chip; pull down to refresh from page 1.
+private struct PagedListExample: View {
+    private static let api = ReceiptsAPI()
+
+    var body: some View {
+        PagedList(pageSize: 20) { page in
+            try await Self.api.fetch(page: page)
+        } row: { receipt in
+            ReceiptRow(receipt: receipt)
+        }
+        .scrollContentBackground(.hidden)
+        .background(adaptive(light: 0xF3F2EE, dark: 0x121212))
+    }
+}
+
+#Preview("Light") {
+    PagedListExample()
+}
+
+#Preview("Dark") {
+    PagedListExample()
+        .preferredColorScheme(.dark)
+}

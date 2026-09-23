@@ -1,0 +1,15 @@
+## Notes
+
+- `load` receives `nil` for the first page, then each page's `next` cursor, which can be a page number, an offset or an opaque token. Return `PagedListPage(items:next:)` with `next: nil` on the last page. For page-number APIs, `PagedList(pageSize:)` builds the cursor for you and ends the list at the first short or empty page.
+- The next page starts when the row `prefetchDistance` (5) rows from the end appears, or when the footer is on screen, so short pages keep loading until the screen fills. Only one load runs at a time; extra triggers are ignored.
+- Items whose `id` has already been seen are dropped, so an API that shifts under you (new items pushing old ones into the next page) never produces duplicate rows. Eight pages in a row that add nothing new end the list, to guard against a cursor that never ends.
+- Every load takes a generation number. A refresh, a retry or leaving the screen cancels the load in flight and starts a new generation, and any response from an older one is dropped, so a slow page can never overwrite fresher rows. A load cancelled by disappearing resumes when the list appears again. Throwing `CancellationError` or `URLError.cancelled` is never shown as an error.
+- States: pulsing skeleton rows while the first page loads (pass `placeholder:` to render your own row redacted instead), a footer spinner while more loads, a full error view with a Try again block if the first page fails, an inline "Couldn't load more" chip with a solid Retry block that keeps every loaded row, and a quiet "You're all caught up" footer at the end (`endMessage: nil` hides it).
+- Empty: the built-in state is a short message. Pass `empty:` for your own view, for example `ContentUnavailableView("No receipts", systemImage: "doc.text")`.
+- Pull to refresh reloads from the first page and replaces the rows only when it succeeds. If it fails, the old rows stay and a "Couldn't refresh" chip with Retry appears above them.
+- `layout: .list` (default) is a plain `List`, so swipe actions and row modifiers work in your row. `layout: .plain` uses a `LazyVStack` in a `ScrollView` with `Style.rowSpacing` and `Style.contentPadding`. Appending pages never moves the scroll position in either.
+- To restart with new parameters, such as a search query or filter, give the list `.id(query)`.
+- Concurrency: state lives on the main actor; `load` is a `@Sendable` async closure that runs off it. Items must be `Identifiable & Sendable`.
+- `Style` (`PagedListStyle`): `text`, `secondaryText`, `field`, `error`, `retry`, `end`, `ink`, `rowSpacing`, `contentPadding`, `skeletonRows`. Skeleton and badge sizes scale with Dynamic Type, and the error chip stacks its Retry block under the message at large sizes.
+- VoiceOver: "Loaded 20 more" is announced when a page appends, and each error is announced. The skeleton reads as a single "Loading" element, the spinner as "Loading more", and Retry is a button with a hint.
+- Reduce Motion: the skeleton stops pulsing, the spinner becomes three fading dots, and chips crossfade instead of scaling in. A light haptic plays on Retry; routine loads are silent.

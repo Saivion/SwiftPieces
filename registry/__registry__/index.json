@@ -40,6 +40,7 @@
     ],
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/ai/assistant-orb",
+    "isNew": false,
     "liquidGlass": false,
     "metal": true
   },
@@ -80,6 +81,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/ai/code-block",
     "pro": "streaming-markdown",
+    "isNew": false,
     "liquidGlass": false,
     "metal": false
   },
@@ -121,6 +123,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/ai/prompt-chips",
     "pro": "prompt-composer",
+    "isNew": false,
     "liquidGlass": false,
     "metal": false
   },
@@ -161,6 +164,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/ai/streaming-reply",
     "pro": "streaming-markdown",
+    "isNew": false,
     "liquidGlass": false,
     "metal": false
   },
@@ -201,6 +205,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/ai/thinking-state",
     "pro": "tool-execution-card",
+    "isNew": false,
     "liquidGlass": false,
     "metal": false
   },
@@ -246,6 +251,7 @@
     ],
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/ai/thought-orb",
+    "isNew": false,
     "liquidGlass": false,
     "metal": true
   },
@@ -292,6 +298,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/backgrounds/silk",
     "pro": "onboarding-stack",
+    "isNew": false,
     "liquidGlass": false,
     "metal": true
   },
@@ -331,6 +338,7 @@
     ],
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/backgrounds/touch-grid",
+    "isNew": false,
     "liquidGlass": false,
     "metal": false
   },
@@ -371,6 +379,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/cards/flip-card",
     "pro": "payment-card",
+    "isNew": false,
     "liquidGlass": false,
     "metal": false
   },
@@ -411,6 +420,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/cards/motion-card",
     "pro": "payment-card",
+    "isNew": false,
     "liquidGlass": false,
     "metal": false
   },
@@ -451,6 +461,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/cards/parallax-card",
     "pro": "hero-expand",
+    "isNew": false,
     "liquidGlass": false,
     "metal": false
   },
@@ -491,6 +502,7 @@
     ],
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/cards/swipe-deck",
+    "isNew": false,
     "liquidGlass": false,
     "metal": false
   },
@@ -531,6 +543,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/controls/commit-button",
     "pro": "swipe-to-confirm",
+    "isNew": false,
     "liquidGlass": false,
     "metal": false
   },
@@ -570,6 +583,7 @@
     ],
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/controls/elastic-button",
+    "isNew": false,
     "liquidGlass": false,
     "metal": false
   },
@@ -608,6 +622,7 @@
     ],
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/controls/fan-stack",
+    "isNew": false,
     "liquidGlass": false,
     "metal": false
   },
@@ -647,6 +662,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/controls/hold-to-confirm",
     "pro": "swipe-to-confirm",
+    "isNew": false,
     "liquidGlass": false,
     "metal": false
   },
@@ -687,6 +703,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/controls/timer-dial",
     "pro": "focus-timer",
+    "isNew": false,
     "liquidGlass": false,
     "metal": false
   },
@@ -727,6 +744,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/data/live-stat",
     "pro": "dashboard-screen",
+    "isNew": false,
     "liquidGlass": false,
     "metal": false
   },
@@ -767,6 +785,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/data/odometer",
     "pro": "dashboard-screen",
+    "isNew": false,
     "liquidGlass": false,
     "metal": false
   },
@@ -808,6 +827,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/data/ring-breakdown",
     "pro": "spending-ring",
+    "isNew": false,
     "liquidGlass": false,
     "metal": false
   },
@@ -849,6 +869,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/data/scrub-chart",
     "pro": "dashboard-screen",
+    "isNew": false,
     "liquidGlass": false,
     "metal": false
   },
@@ -889,6 +910,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/feedback/outcome-screen",
     "pro": "glass-paywall-screen",
+    "isNew": false,
     "liquidGlass": false,
     "metal": false
   },
@@ -928,6 +950,7 @@
     ],
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/feedback/rating-scrub",
+    "isNew": false,
     "liquidGlass": false,
     "metal": false
   },
@@ -967,6 +990,7 @@
     ],
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/feedback/reaction-toggle",
+    "isNew": false,
     "liquidGlass": false,
     "metal": false
   },
@@ -1007,6 +1031,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/feedback/skeleton-loader",
     "pro": "ghost-state",
+    "isNew": false,
     "liquidGlass": false,
     "metal": false
   },
@@ -1048,6 +1073,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/feedback/status-morph",
     "pro": "tool-execution-card",
+    "isNew": false,
     "liquidGlass": false,
     "metal": false
   },
@@ -1088,6 +1114,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/glass/glass-action-menu",
     "pro": "morph-nav",
+    "isNew": false,
     "liquidGlass": true,
     "metal": false
   },
@@ -1127,6 +1154,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/glass/glass-segments",
     "pro": "lens-tab-bar",
+    "isNew": false,
     "liquidGlass": true,
     "metal": false
   },
@@ -1166,7 +1194,91 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/glass/glass-surface",
     "pro": "glass-sheet",
+    "isNew": false,
     "liquidGlass": true,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "AmountField",
+    "slug": "amount-field",
+    "type": "registry:component",
+    "title": "Amount Field",
+    "description": "A currency amount entry that formats live in the user's locale as each digit lands (grouping, decimal separator, symbol before or after, the currency's own fraction digits), with a large auto-fitting figure whose digits roll in, a blinking caret right after the digits, robust paste of amounts like \"$1,234.56\" or \"1 234,56 €\", and a limit that refuses the keystroke with a damped shake, an error haptic and a message line, all backed by a `Decimal` binding.",
+    "category": "inputs",
+    "license": "MIT+Commons-Clause",
+    "version": "1.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "currency",
+      "money",
+      "amount",
+      "decimal",
+      "locale",
+      "payments",
+      "form"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/inputs/AmountField.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Inputs/AmountField.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/inputs/amount-field",
+    "added": "2026-09-23",
+    "isNew": true,
+    "liquidGlass": false,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "DateRangePicker",
+    "slug": "date-range-picker",
+    "type": "registry:component",
+    "title": "Date Range Picker",
+    "description": "A start-to-end date range picker on a paged month grid built from the environment calendar and locale, where the first tap drops a solid butter start block, the second closes the range and a soft band sweeps day by day between the two blocks, wrapping across week rows with rounded caps, while sold-out days are struck through, a maximum length dims unreachable days, months page by swipe or chevrons with a rolling title, and a summary reads out the dates and nights.",
+    "category": "inputs",
+    "license": "MIT+Commons-Clause",
+    "version": "1.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "date",
+      "calendar",
+      "range",
+      "booking",
+      "picker"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/inputs/DateRangePicker.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Inputs/DateRangePicker.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/inputs/date-range-picker",
+    "pro": "slot-picker",
+    "added": "2026-09-23",
+    "isNew": true,
+    "liquidGlass": false,
     "metal": false
   },
   {
@@ -1204,6 +1316,7 @@
     ],
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/inputs/expanding-track",
+    "isNew": false,
     "liquidGlass": false,
     "metal": false
   },
@@ -1243,6 +1356,90 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/inputs/filter-rail",
     "pro": "command-palette",
+    "isNew": false,
+    "liquidGlass": false,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "FormField",
+    "slug": "form-field",
+    "type": "registry:component",
+    "title": "Form Field",
+    "description": "A text field on a soft 56pt block whose label rests inside as a placeholder and glides up into a caption on focus or once filled, with an optional leading icon, a clear button, help text, a grapheme-accurate character limit with a counter that turns into a tangerine chip and bumps when extra input is refused, and validation that waits until you leave the field before drawing an error ring, sliding in the message with an error haptic and a VoiceOver announcement, then shows a sage check once fixed.",
+    "category": "inputs",
+    "license": "MIT+Commons-Clause",
+    "version": "1.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "textfield",
+      "form",
+      "floating-label",
+      "validation",
+      "character-limit",
+      "counter"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/inputs/FormField.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Inputs/FormField.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/inputs/form-field",
+    "added": "2026-09-23",
+    "isNew": true,
+    "liquidGlass": false,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "RangeSlider",
+    "slug": "range-slider",
+    "type": "registry:component",
+    "title": "Range Slider",
+    "description": "A dual-thumb slider for a range of values, with two round thumbs on a quiet track and the selected span drawn as a solid color block between them; drag either thumb or touch the track to pull the nearest one over, values snap to a step without floating drift, the thumbs never cross and keep a minimum gap, a grabbed thumb grows and its readout chip fills with the block color, the two readouts merge into one chip instead of colliding, and every step ticks a selection haptic with a firmer impact at a bound or the gap.",
+    "category": "inputs",
+    "license": "MIT+Commons-Clause",
+    "version": "1.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "slider",
+      "range",
+      "dual thumb",
+      "filter",
+      "price",
+      "haptic"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/inputs/RangeSlider.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Inputs/RangeSlider.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/inputs/range-slider",
+    "pro": "filter-sheet",
+    "added": "2026-09-23",
+    "isNew": true,
     "liquidGlass": false,
     "metal": false
   },
@@ -1282,6 +1479,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/inputs/scrub-stepper",
     "pro": "glass-sheet",
+    "isNew": false,
     "liquidGlass": false,
     "metal": false
   },
@@ -1321,6 +1519,49 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/inputs/secure-entry",
     "pro": "code-entry",
+    "isNew": false,
+    "liquidGlass": false,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "TokenField",
+    "slug": "token-field",
+    "type": "registry:component",
+    "title": "Token Field",
+    "description": "A tag and recipient field where committed entries become solid color chips with dark ink that wrap across lines while the text field takes the rest of the last line, return, comma or a paste of a whole list commits trimmed tokens with duplicate, limit and validation checks, backspace on an empty field highlights the last chip and a second press removes it, and an inline suggestion list filters as you type.",
+    "category": "inputs",
+    "license": "MIT+Commons-Clause",
+    "version": "1.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "tokens",
+      "tags",
+      "chips",
+      "recipients",
+      "flow-layout",
+      "autocomplete",
+      "form"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/inputs/TokenField.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Inputs/TokenField.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/inputs/token-field",
+    "added": "2026-09-23",
+    "isNew": true,
     "liquidGlass": false,
     "metal": false
   },
@@ -1361,6 +1602,49 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/lists/depth-carousel",
     "pro": "depth-gallery",
+    "isNew": false,
+    "liquidGlass": false,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "PagedList",
+    "slug": "paged-list",
+    "type": "registry:component",
+    "title": "Paged List",
+    "description": "An async/await infinite-scroll list that prefetches the next page a few rows before the end, never runs two loads at once, drops duplicate ids across pages, ignores stale responses after a refresh or cancel, shows pulsing skeleton rows, a footer spinner, an inline \"Couldn't load more\" chip with a solid Retry block that keeps loaded rows, a quiet \"You're all caught up\" footer, and pull to refresh that replaces rows only on success.",
+    "category": "lists",
+    "license": "MIT+Commons-Clause",
+    "version": "1.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "pagination",
+      "infinite-scroll",
+      "list",
+      "async",
+      "refresh",
+      "loading",
+      "empty-state"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/lists/PagedList.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Lists/PagedList.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/lists/paged-list",
+    "added": "2026-09-23",
+    "isNew": true,
     "liquidGlass": false,
     "metal": false
   },
@@ -1400,6 +1684,7 @@
     ],
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/lists/status-timeline",
+    "isNew": false,
     "liquidGlass": false,
     "metal": false
   },
@@ -1439,6 +1724,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/lists/swipe-action-row",
     "pro": "transaction-row",
+    "isNew": false,
     "liquidGlass": false,
     "metal": false
   },
@@ -1479,6 +1765,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/lists/task-row",
     "pro": "transaction-row",
+    "isNew": false,
     "liquidGlass": false,
     "metal": false
   },
@@ -1521,6 +1808,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/media/photo-viewer",
     "pro": "depth-gallery",
+    "isNew": false,
     "liquidGlass": false,
     "metal": false
   },
@@ -1560,6 +1848,7 @@
     ],
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/media/story-strip",
+    "isNew": false,
     "liquidGlass": false,
     "metal": false
   },
@@ -1601,6 +1890,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/motion/drag-to-dismiss",
     "pro": "depth-gallery",
+    "isNew": false,
     "liquidGlass": false,
     "metal": false
   },
@@ -1640,6 +1930,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/navigation/floating-dock",
     "pro": "lens-tab-bar",
+    "isNew": false,
     "liquidGlass": true,
     "metal": false
   },
@@ -1680,6 +1971,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/navigation/stretch-header",
     "pro": "settings-screen",
+    "isNew": false,
     "liquidGlass": false,
     "metal": false
   },
@@ -1720,6 +2012,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/navigation/tracking-tabs",
     "pro": "lens-tab-bar",
+    "isNew": false,
     "liquidGlass": false,
     "metal": false
   },
@@ -1759,6 +2052,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/sheets/confirm-sheet",
     "pro": "glass-sheet",
+    "isNew": false,
     "liquidGlass": false,
     "metal": false
   },
@@ -1798,6 +2092,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/sheets/permission-sheet",
     "pro": "onboarding-flow",
+    "isNew": false,
     "liquidGlass": false,
     "metal": false
   },
@@ -1837,6 +2132,49 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/sheets/toast",
     "pro": "toast-stack",
+    "isNew": false,
+    "liquidGlass": false,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "ExpandableText",
+    "slug": "expandable-text",
+    "type": "registry:component",
+    "title": "Expandable Text",
+    "description": "A paragraph clamped to a line limit that measures whether it is really truncated, and only then fades the end of its last line into a trailing \"more\" link; tapping grows the block smoothly to its full height with no reflow, a \"less\" link collapses it, links stay tappable, and VoiceOver always reads the whole text.",
+    "category": "text",
+    "license": "MIT+Commons-Clause",
+    "version": "1.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "text",
+      "read-more",
+      "truncation",
+      "expand",
+      "collapse",
+      "line-limit",
+      "review"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/text/ExpandableText.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Text/ExpandableText.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/text/expandable-text",
+    "added": "2026-09-23",
+    "isNew": true,
     "liquidGlass": false,
     "metal": false
   },
@@ -1876,6 +2214,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/text/glass-text",
     "pro": "glass-paywall-screen",
+    "isNew": false,
     "liquidGlass": true,
     "metal": false
   },
@@ -1916,6 +2255,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/text/text-reveal",
     "pro": "onboarding-flow",
+    "isNew": false,
     "liquidGlass": false,
     "metal": false
   }

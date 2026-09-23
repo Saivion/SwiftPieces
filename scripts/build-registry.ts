@@ -47,7 +47,13 @@ const headerSchema = z.object({
   assets: z.array(z.string()).default([]),
   /** The Swift Pieces Pro screen this piece grows into (a Pro registry id), shown as the upgrade path on its page. */
   pro: z.string().regex(/^[a-z0-9-]+$/).optional(),
+  /** Day the piece shipped, as "YYYY-MM-DD" (quoted, so YAML keeps it a string). Drives the "New" badge. */
+  added: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
 });
+
+/** How long a piece wears the "New" badge after its `added` date, measured at registry build time. */
+const NEW_FOR_DAYS = 30;
+const isNewPiece = (added?: string) => Boolean(added) && Date.now() - Date.parse(`${added}T00:00:00Z`) < NEW_FOR_DAYS * 86_400_000;
 
 // Docs live under the single "components" root section: /docs/components/<category slug>/<piece slug>.
 export const docsPath = (category: Category, slug: string) => `/docs/components/${categories[category].slug}/${slug}`;
@@ -167,6 +173,8 @@ function build() {
         },
         docs: `${SITE_URL}${docsPath(header.category, slug)}`,
         pro: header.pro,
+        added: header.added,
+        isNew: isNewPiece(header.added),
         liquidGlass: /glassEffect|GlassEffectContainer|buttonStyle\(\.glass/.test(body),
         metal: shaders.length > 0 || /ShaderLibrary/.test(body),
       });

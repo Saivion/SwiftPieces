@@ -38,7 +38,7 @@ npx swiftpieces add AssistantOrb SwipeDeck GlassMenu
 
 Or open the file on [swiftpieces.com/components](https://swiftpieces.com/components) and copy it. There is nothing to install and no package to track.
 
-**48 pieces across 14 categories:** text, backgrounds, glass, controls, inputs, cards, lists, navigation, sheets, feedback, motion, data, AI and media.
+**55 pieces across 14 categories:** text, backgrounds, glass, controls, inputs, cards, lists, navigation, sheets, feedback, motion, data, AI and media.
 
 ## What you get
 
@@ -47,6 +47,14 @@ Or open the file on [swiftpieces.com/components](https://swiftpieces.com/compone
 - **Accessible by default.** Reduce Motion and Reduce Transparency are respected, colors are semantic, and Dynamic Type works.
 - **Documented parameters.** Every init parameter carries a doc comment, which becomes the parameters table on the site.
 - **Type-checked in CI.** Every piece is compiled against the iOS simulator SDK on every change, so an API that does not exist cannot land.
+
+## Sponsors
+
+Swift Pieces is maintained by one developer and funded by its sponsors. Sponsorship pays for new free pieces, fixes for every iOS release, and the docs, CLI and MCP server.
+
+**[Become a sponsor](https://swiftpieces.com/sponsors)** from $5 a month. Company tiers put your logo on swiftpieces.com, the docs and this README.
+
+<!-- sponsors: Gold and Bronze-and-up logos are added here by hand; the live list is on swiftpieces.com/sponsors -->
 
 ## Swift Pieces Pro
 

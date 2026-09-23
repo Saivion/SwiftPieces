@@ -210,10 +210,15 @@
 
 
 
-/* Landing agent demo (components/sections/agent-demo.tsx): ScrubChartPreview reads --scrub-accent;
-   registering it lets the retint to red transition instead of snapping. */
+/* Landing agent demo (components/sections/agent-demo.tsx): ScrubChartPreview reads its colour scheme
+   from these variables. Registering them (initial values = the house palette defaults the preview
+   falls back to) lets a scheme change cross-fade instead of snapping. */
 @property --scrub-accent { syntax: "<color>"; inherits: true; initial-value: #ffd976; }
-.scrub-tint { transition: --scrub-accent 0.7s ease; }
+@property --scrub-line { syntax: "<color>"; inherits: true; initial-value: #f4f3ef; }
+@property --scrub-surface { syntax: "<color>"; inherits: true; initial-value: #1c1c1c; }
+@property --scrub-raised { syntax: "<color>"; inherits: true; initial-value: #262626; }
+@property --scrub-chip { syntax: "<color>"; inherits: true; initial-value: #a9dcb7; }
+.scrub-tint { transition: --scrub-accent 0.7s ease, --scrub-line 0.7s ease, --scrub-surface 0.7s ease, --scrub-raised 0.7s ease, --scrub-chip 0.7s ease; }
 @media (prefers-reduced-motion: reduce) { .scrub-tint { transition: none; } }
 .chat-in { animation: chat-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both; }
 @keyframes chat-in { from { opacity: 0; transform: translateY(8px); } }
@@ -235,3 +240,12 @@
   backdrop-filter: blur(22px) saturate(180%);
 }
 @media (prefers-reduced-motion: reduce) { .nav-glass { transition: none !important; } }
+
+/* Landing CLI carousel (components/sections/piece-carousel.tsx): the rail tab fills over the
+   piece's beat; the stage crossfades, the incoming piece rising and sharpening in. */
+@keyframes piece-progress { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.piece-in { animation: piece-in 0.42s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.piece-out { animation: piece-out 0.42s ease-out both; }
+@keyframes piece-in { from { opacity: 0; transform: translateY(10px) scale(0.98); filter: blur(4px); } }
+@keyframes piece-out { to { opacity: 0; transform: scale(0.985); filter: blur(4px); } }
+@media (prefers-reduced-motion: reduce) { .piece-in, .piece-out { animation: none; } .piece-out { opacity: 0; } }

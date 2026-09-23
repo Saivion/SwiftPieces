@@ -1,0 +1,743 @@
+// swiftpieces:
+// title: Date Range Picker
+// description: A start-to-end date range picker on a paged month grid built from the environment calendar and locale, where the first tap drops a solid butter start block, the second closes the range and a soft band sweeps day by day between the two blocks, wrapping across week rows with rounded caps, while sold-out days are struck through, a maximum length dims unreachable days, months page by swipe or chevrons with a rolling title, and a summary reads out the dates and nights.
+// category: inputs
+// pro: slot-picker
+// minIOSVersion: "17.0"
+// version: "1.0.0"
+// added: "2026-09-23"
+// tags: [date, calendar, range, booking, picker]
+
+import SwiftUI
+
+/// Day-granular start/end range picker with a paged month grid.
+///
+/// The selection is always two start-of-day dates in the environment `Calendar` and `TimeZone`
+/// (`upperBound` is the start of the last day, e.g. the check-out day for a stay). The first tap sets a start,
+/// the second closes the range (a day before the start becomes the new start), and a third tap starts over.
+/// A range can never contain a disabled or out-of-bounds day: an end tap that would span one, or that exceeds
+/// `maximumLength`, is refused with an error haptic and a short notice, and the start stays in place.
+///
+/// - Parameters:
+///   - selection: Bound range, or `nil` while nothing (or only a start) is chosen. In `.nights` mode it stays `nil` until the end is tapped; in `.days` mode a lone start already reads as a one-day range.
+///   - bounds: First and last selectable days. Days outside are muted and inert, and paging stops at their months. `nil` allows any day and pages five years either side of today.
+///   - isDateDisabled: Marks single days unavailable (for example sold-out nights). Called with the start of each day; unavailable days are struck through and can never be inside a range.
+///   - maximumLength: Longest allowed range, counted in `counting` units. While a start is pending, days that cannot close the range are dimmed.
+///   - counting: `.days` counts both ends (Mar 4 to Mar 9 is 6 days, and a single day is allowed). `.nights` counts nights (5 nights, and the end must be after the start).
+///   - showsSummary: Show the header line with the formatted range and its length chip.
+///   - style: Colors and corner radius. Defaults to the Swift Pieces house palette (butter endpoint blocks with dark ink on a soft butter band), adapting to light and dark.
+public struct DateRangePicker: View {
+    /// How range length is counted, for `maximumLength` and the summary chip.
+    public enum Counting: Sendable {
+        /// Inclusive days: the start and end day both count.
+        case days
+        /// Nights between the start and end day.
+        case nights
+    }
+
+    /// Colors and metrics. `.standard` is the house palette.
+    public struct Style: Sendable {
+        /// The rounded ground behind the whole picker.
+        public var ground: Color
+        /// Day numbers, the month title and the summary.
+        public var dayText: Color
+        /// Weekday symbols, hints and days out of reach.
+        public var mutedText: Color
+        /// The band that joins the start and end blocks.
+        public var band: Color
+        /// Solid start and end blocks, and the length chip.
+        public var endpoint: Color
+        /// Text and marks on solid blocks.
+        public var ink: Color
+        /// The dot under today's number.
+        public var today: Color
+        /// Unavailable and out-of-bounds day numbers.
+        public var disabled: Color
+        /// The round previous and next month buttons.
+        public var control: Color
+        /// The refusal notice chip.
+        public var error: Color
+        /// Corner radius of the blocks and band caps.
+        public var cornerRadius: CGFloat
+
+        /// Pass only what you want to change; `nil` keeps the house palette value.
+        public init(ground: Color? = nil, dayText: Color? = nil, mutedText: Color? = nil, band: Color? = nil, endpoint: Color? = nil, ink: Color? = nil, today: Color? = nil, disabled: Color? = nil, control: Color? = nil, error: Color? = nil, cornerRadius: CGFloat = 12) {
+            self.ground = ground ?? adaptive(light: 0xFFFFFF, dark: 0x1C1C1C)
+            self.dayText = dayText ?? adaptive(light: 0x141414, dark: 0xF4F3EF)
+            self.mutedText = mutedText ?? adaptive(light: 0x5C5A56, dark: 0xA6A49F)
+            self.band = band ?? adaptive(light: 0xFFEFC2, dark: 0x4A4029)
+            self.endpoint = endpoint ?? adaptive(light: 0xFFD976, dark: 0xFFD976)
+            self.ink = ink ?? adaptive(light: 0x141414, dark: 0x141414)
+            self.today = today ?? adaptive(light: 0xFF5B3A, dark: 0xFF5B3A)
+            self.disabled = disabled ?? adaptive(light: 0xB3B0AA, dark: 0x5E5C58)
+            self.control = control ?? adaptive(light: 0xE9E7E1, dark: 0x262626)
+            self.error = error ?? adaptive(light: 0xFF5B3A, dark: 0xFF5B3A)
+            self.cornerRadius = max(cornerRadius, 0)
+        }
+
+        public static let standard = Style()
+    }
+
+    @Environment(\.calendar) private var environmentCalendar
+    @Environment(\.locale) private var locale
+    @Environment(\.timeZone) private var timeZone
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.isEnabled) private var isEnabled
+    @Environment(\.layoutDirection) private var layoutDirection
+    @ScaledMetric(relativeTo: .body) private var scaledCell: CGFloat = 44
+
+    @Binding private var selection: ClosedRange<Date>?
+    @State private var pending: Date?
+    @State private var lastWritten: ClosedRange<Date>?
+    @State private var page: Date?
+    @State private var titleMonth: Date?
+    @State private var titleBackwards = false
+    @State private var gridOpacity: Double = 1
+    @State private var notice: Notice?
+    @State private var tapTick = 0
+    @State private var successTick = 0
+    @State private var errorTick = 0
+
+    private let bounds: ClosedRange<Date>?
+    private let isDateDisabled: (Date) -> Bool
+    private let maximumLength: Int?
+    private let counting: Counting
+    private let showsSummary: Bool
+    private let style: Style
+
+    private enum Refusal: Equatable { case tooLong(Int), unavailable }
+    private struct Notice: Equatable { let id: Int; let refusal: Refusal }
+
+    public init(selection: Binding<ClosedRange<Date>?>, in bounds: ClosedRange<Date>? = nil, isDateDisabled: @escaping (Date) -> Bool = { _ in false }, maximumLength: Int? = nil, counting: Counting = .days, showsSummary: Bool = true, style: Style = .standard) {
+        self._selection = selection
+        self.bounds = bounds
+        self.isDateDisabled = isDateDisabled
+        self.maximumLength = maximumLength.map { max($0, 1) }
+        self.counting = counting
+        self.showsSummary = showsSummary
+        self.style = style
+        // Best first guess for the opening page so the pager starts there; corrected on appear if the environment calendar differs.
+        let math = DayMath(calendar: .autoupdatingCurrent, locale: .autoupdatingCurrent, timeZone: .autoupdatingCurrent)
+        let first = math.initialMonth(selection: selection.wrappedValue, bounds: math.normalized(bounds), today: math.day(.now))
+        self._page = State(initialValue: first)
+        self._titleMonth = State(initialValue: first)
+    }
+
+    private var cellHeight: CGFloat { min(max(scaledCell, 44), 76) }
+
+    private var motion: Animation { reduceMotion ? .easeInOut(duration: 0.2) : .smooth(duration: 0.35) }
+
+    public var body: some View {
+        let math = DayMath(calendar: environmentCalendar, locale: locale, timeZone: timeZone)
+        let today = math.day(.now)
+        let limits = math.normalized(bounds)
+        let months = math.months(bounds: limits, today: today, including: selection.map { math.day($0.lowerBound) })
+        let current = math.monthStart(titleMonth ?? math.initialMonth(selection: selection, bounds: limits, today: today))
+        let index = months.firstIndex(of: current)
+        let context = makeContext(math: math, today: today, limits: limits)
+
+        VStack(alignment: .leading, spacing: 14) {
+            if showsSummary {
+                summary(context)
+            }
+            header(title: math.monthTitle(current), canGoBack: (index ?? 0) > 0, canGoForward: index.map { $0 < months.count - 1 } ?? false, months: months, current: current)
+            weekdayRow(math)
+            pager(months: months, current: current, context: context)
+        }
+        .padding(16)
+        .background(style.ground, in: .rect(cornerRadius: 26, style: .continuous))
+        .opacity(isEnabled ? 1 : 0.45)
+        .sensoryFeedback(.selection, trigger: tapTick)
+        .sensoryFeedback(.success, trigger: successTick)
+        .sensoryFeedback(.error, trigger: errorTick)
+        .onAppear {
+            let month = math.monthStart(page ?? math.initialMonth(selection: selection, bounds: limits, today: today))
+            let settled = months.contains(month) ? month : math.initialMonth(selection: selection, bounds: limits, today: today)
+            if page != settled { page = settled }
+            titleMonth = settled
+        }
+        .onChange(of: page) { old, new in
+            guard let new, new != titleMonth else { return }
+            titleBackwards = new < (old ?? new)
+            withAnimation(motion) { titleMonth = new }
+            AccessibilityNotification.Announcement(math.monthTitle(new)).post()
+        }
+        .onChange(of: selection) { _, new in
+            // An outside write (a reset button, a restored draft) drops any half-made range.
+            guard new != lastWritten else { return }
+            lastWritten = new
+            pending = nil
+        }
+        .task(id: notice) {
+            guard notice != nil else { return }
+            try? await Task.sleep(for: .seconds(2.2))
+            guard !Task.isCancelled else { return }
+            withAnimation(motion) { notice = nil }
+        }
+    }
+
+    // MARK: Header
+
+    private func summary(_ context: Context) -> some View {
+        let math = context.math
+        let title: String
+        let hasValue: Bool
+        if let start = pending {
+            title = math.short(start, today: context.today) + " –"
+            hasValue = true
+        } else if let lower = context.lower, let upper = context.upper {
+            title = math.interval(lower...upper, today: context.today)
+            hasValue = true
+        } else {
+            title = String(localized: "Select dates")
+            hasValue = false
+        }
+        let titleText = Text(title)
+            .font(.title3.weight(.semibold))
+            .foregroundStyle(hasValue ? style.dayText : style.mutedText)
+            .contentTransition(.opacity)
+        return ViewThatFits(in: .horizontal) {
+            HStack(spacing: 10) {
+                titleText.lineLimit(1)
+                Spacer(minLength: 8)
+                summaryChip(context)
+            }
+            VStack(alignment: .leading, spacing: 8) {
+                titleText
+                summaryChip(context)
+            }
+        }
+        .animation(motion, value: title)
+        .animation(motion, value: notice)
+        .accessibilityElement(children: .combine)
+    }
+
+    @ViewBuilder
+    private func summaryChip(_ context: Context) -> some View {
+        if let notice {
+            Label(message(for: notice.refusal), systemImage: "exclamationmark")
+                .labelStyle(ChipLabelStyle())
+                .foregroundStyle(style.ink)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(style.error, in: Capsule())
+                .transition(reduceMotion ? .opacity : .scale(scale: 0.85).combined(with: .opacity))
+        } else if pending != nil {
+            Text("Select end date")
+                .font(.subheadline.weight(.medium))
+                .foregroundStyle(style.mutedText)
+                .transition(.opacity)
+        } else if let lower = context.lower, let upper = context.upper {
+            Text(lengthText(length(from: lower, to: upper, context.math)))
+                .font(.subheadline.weight(.bold))
+                .monospacedDigit()
+                .foregroundStyle(style.ink)
+                .contentTransition(.numericText())
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(style.endpoint, in: Capsule())
+                .transition(reduceMotion ? .opacity : .scale(scale: 0.85).combined(with: .opacity))
+        }
+    }
+
+    private func header(title: String, canGoBack: Bool, canGoForward: Bool, months: [Date], current: Date) -> some View {
+        HStack(spacing: 2) {
+            Text(title)
+                .font(.headline)
+                .foregroundStyle(style.dayText)
+                .contentTransition(reduceMotion ? ContentTransition.opacity : .numericText(countsDown: titleBackwards))
+                .accessibilityAddTraits(.isHeader)
+            Spacer(minLength: 8)
+            navButton("chevron.backward", label: "Previous month", enabled: canGoBack) { go(-1, months: months, current: current) }
+            navButton("chevron.forward", label: "Next month", enabled: canGoForward) { go(1, months: months, current: current) }
+        }
+    }
+
+    private func navButton(_ symbol: String, label: LocalizedStringKey, enabled: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: symbol)
+                .font(.subheadline.weight(.bold))
+                .foregroundStyle(style.dayText)
+                .frame(width: 34, height: 34)
+                .background(style.control, in: Circle())
+                .frame(width: 44, height: 44)
+                .contentShape(.rect)
+        }
+        .buttonStyle(.plain)
+        .disabled(!enabled)
+        .opacity(enabled ? 1 : 0.35)
+        .accessibilityLabel(label)
+    }
+
+    private func weekdayRow(_ math: DayMath) -> some View {
+        HStack(spacing: 0) {
+            ForEach(Array(math.weekdaySymbols().enumerated()), id: \.offset) { _, symbol in
+                Text(symbol)
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(style.mutedText)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.6)
+                    .dynamicTypeSize(...DynamicTypeSize.accessibility2)
+                    .frame(maxWidth: .infinity)
+            }
+        }
+        .accessibilityHidden(true)
+    }
+
+    // MARK: Grid
+
+    private func pager(months: [Date], current: Date, context: Context) -> some View {
+        ScrollView(.horizontal) {
+            LazyHStack(spacing: 0) {
+                ForEach(months, id: \.self) { month in
+                    monthGrid(month, context)
+                        .containerRelativeFrame(.horizontal)
+                }
+            }
+            .scrollTargetLayout()
+        }
+        .scrollTargetBehavior(.paging)
+        .scrollIndicators(.hidden)
+        .scrollPosition(id: $page)
+        .scrollDisabled(reduceMotion || !isEnabled)
+        .frame(height: cellHeight * 6)
+        .opacity(gridOpacity)
+        // Reduce Motion: the pager stops sliding; a flick crossfades to the neighbouring month instead.
+        .gesture(
+            DragGesture(minimumDistance: 24, coordinateSpace: .global).onEnded { value in
+                let dx = value.translation.width
+                guard abs(dx) > 50, abs(dx) > abs(value.translation.height) else { return }
+                let forward = (dx < 0) != (layoutDirection == .rightToLeft)
+                go(forward ? 1 : -1, months: months, current: current)
+            },
+            including: reduceMotion && isEnabled ? .all : .subviews
+        )
+    }
+
+    private func monthGrid(_ month: Date, _ context: Context) -> some View {
+        let cells = context.math.cells(for: month)
+        let columns = context.math.columns
+        return VStack(spacing: 0) {
+            ForEach(0..<(cells.count / columns), id: \.self) { row in
+                HStack(spacing: 0) {
+                    ForEach(0..<columns, id: \.self) { column in
+                        let i = row * columns + column
+                        if let day = cells[i] {
+                            dayCell(day, rowStart: column == 0 || cells[i - 1] == nil, rowEnd: column == columns - 1 || cells[i + 1] == nil, context: context)
+                        } else {
+                            Color.clear
+                                .frame(maxWidth: .infinity)
+                                .frame(height: cellHeight)
+                                .accessibilityHidden(true)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private func dayCell(_ day: Date, rowStart: Bool, rowEnd: Bool, context: Context) -> some View {
+        let math = context.math
+        let inBounds = context.limits.map { $0.contains(day) } ?? true
+        let blocked = inBounds && isDateDisabled(day)
+        let available = inBounds && !blocked
+        var inRange = false
+        if let lower = context.lower, let upper = context.upper { inRange = day >= lower && day <= upper }
+        let isStart = inRange && day == context.lower
+        let isEnd = inRange && day == context.upper
+        let isEndpoint = isStart || isEnd
+        let inBand = inRange && context.lower != context.upper
+        let outOfReach = available && context.pending.map { day > $0 } == true && context.reach.map { day > $0 } == true
+        let isToday = day == context.today
+        let sweep = context.lower.map { math.distance($0, day) } ?? 0
+        let lead: CGFloat = rowStart && !isStart ? style.cornerRadius : 0
+        let trail: CGFloat = rowEnd && !isEnd ? style.cornerRadius : 0
+
+        let textColor: Color = isEndpoint ? style.ink : !available ? style.disabled : outOfReach ? style.mutedText.opacity(0.55) : style.dayText
+
+        return Button { tap(day, context) } label: {
+            ZStack {
+                // One piece of the band: half-cells under the endpoint blocks, caps at row edges, so consecutive cells read as a single strip.
+                HStack(spacing: 0) {
+                    Rectangle().fill(isStart ? Color.clear : style.band)
+                    Rectangle().fill(isEnd ? Color.clear : style.band)
+                }
+                .clipShape(UnevenRoundedRectangle(topLeadingRadius: lead, bottomLeadingRadius: lead, bottomTrailingRadius: trail, topTrailingRadius: trail, style: .continuous))
+                // Inner edges reach half a point into the neighbour, so fractional cell widths never antialias into a hairline seam.
+                .padding(.leading, rowStart && !isStart ? 2 : -0.5)
+                .padding(.trailing, rowEnd && !isEnd ? 2 : -0.5)
+                .padding(.vertical, 2)
+                .scaleEffect(x: inBand || reduceMotion ? 1 : 0.001, anchor: .leading)
+                .opacity(inBand ? 1 : 0)
+                .animation(bandAnimation(inBand: inBand, step: sweep), value: inBand)
+
+                RoundedRectangle(cornerRadius: style.cornerRadius, style: .continuous)
+                    .fill(style.endpoint)
+                    .padding(2)
+                    .scaleEffect(isEndpoint || reduceMotion ? 1 : 0.55)
+                    .opacity(isEndpoint ? 1 : 0)
+                    .animation(reduceMotion ? .easeInOut(duration: 0.18) : .spring(duration: 0.32, bounce: 0.25), value: isEndpoint)
+
+                Text(math.dayNumber(day))
+                    .font(.body.weight(isEndpoint ? .bold : .medium))
+                    .monospacedDigit()
+                    .strikethrough(blocked, color: style.disabled)
+                    .foregroundStyle(textColor)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.5)
+                    .dynamicTypeSize(...DynamicTypeSize.accessibility3)
+                    .padding(.horizontal, 4)
+
+                if isToday {
+                    Circle()
+                        .fill(isEndpoint ? style.ink : style.today)
+                        .frame(width: 4, height: 4)
+                        .frame(maxHeight: .infinity, alignment: .bottom)
+                        .padding(.bottom, cellHeight * 0.14)
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: cellHeight)
+            .contentShape(.rect)
+        }
+        .buttonStyle(.plain)
+        .disabled(!available)
+        .accessibilityLabel(isToday ? String(localized: "Today") + ", " + math.fullDate(day, today: context.today) : math.fullDate(day, today: context.today))
+        .accessibilityValue(accessibilityValue(available: available, isStart: isStart, isEnd: isEnd, inRange: inRange, outOfReach: outOfReach))
+        .accessibilityAddTraits(inRange ? .isSelected : [])
+    }
+
+    private func bandAnimation(inBand: Bool, step: Int) -> Animation {
+        if reduceMotion { return .easeInOut(duration: 0.2) }
+        // Appearing pieces are staggered from the start so the band sweeps toward the end; leaving pieces go together.
+        return inBand ? .smooth(duration: 0.24).delay(min(Double(max(step, 0)) * 0.02, 0.4)) : .smooth(duration: 0.18)
+    }
+
+    private func accessibilityValue(available: Bool, isStart: Bool, isEnd: Bool, inRange: Bool, outOfReach: Bool) -> String {
+        if !available { return String(localized: "Unavailable") }
+        if isStart && isEnd { return pending != nil ? String(localized: "Start date") : String(localized: "Start and end date") }
+        if isStart { return String(localized: "Start date") }
+        if isEnd { return String(localized: "End date") }
+        if inRange { return String(localized: "In range") }
+        if outOfReach { return String(localized: "Out of reach for this start date") }
+        return ""
+    }
+
+    // MARK: Selection
+
+    private struct Context {
+        let math: DayMath
+        let today: Date
+        let limits: ClosedRange<Date>?
+        let lower: Date?
+        let upper: Date?
+        let pending: Date?
+        /// Last day that can close the pending range; `nil` when nothing limits it nearby.
+        let reach: Date?
+    }
+
+    private func makeContext(math: DayMath, today: Date, limits: ClosedRange<Date>?) -> Context {
+        var lower: Date?, upper: Date?
+        if let pending {
+            lower = pending
+            upper = pending
+        } else if let selection {
+            let a = math.day(selection.lowerBound), b = math.day(selection.upperBound)
+            lower = min(a, b)
+            upper = max(a, b)
+        }
+        let reach = pending.flatMap { reachLimit(from: $0, math: math, limits: limits) }
+        return Context(math: math, today: today, limits: limits, lower: lower, upper: upper, pending: pending, reach: reach)
+    }
+
+    private func isAvailable(_ day: Date, _ limits: ClosedRange<Date>?) -> Bool {
+        (limits.map { $0.contains(day) } ?? true) && !isDateDisabled(day)
+    }
+
+    private func length(from start: Date, to end: Date, _ math: DayMath) -> Int {
+        let span = math.distance(start, end)
+        return counting == .nights ? span : span + 1
+    }
+
+    /// Walks forward from the start until the maximum length or the first unavailable day stops it.
+    private func reachLimit(from start: Date, math: DayMath, limits: ClosedRange<Date>?) -> Date? {
+        var last = start
+        for step in 0..<400 {
+            let next = math.nextDay(last)
+            let count = counting == .nights ? step + 1 : step + 2
+            if let maximumLength, count > maximumLength { return last }
+            if next <= last || !isAvailable(next, limits) { return last }
+            last = next
+        }
+        return nil
+    }
+
+    private func refusal(from start: Date, to end: Date, _ math: DayMath, _ limits: ClosedRange<Date>?) -> Refusal? {
+        if let maximumLength, length(from: start, to: end, math) > maximumLength { return .tooLong(maximumLength) }
+        var day = start
+        for _ in 0...max(math.distance(start, end), 0) {
+            if !isAvailable(day, limits) { return .unavailable }
+            day = math.nextDay(day)
+        }
+        return nil
+    }
+
+    private func tap(_ day: Date, _ context: Context) {
+        guard isEnabled else { return }
+        let math = context.math
+        guard let start = pending else { return begin(day) }
+        if day < start { return begin(day) }
+        if day == start {
+            pending = nil
+            if counting == .days {
+                successTick += 1
+                announceRange(start...start, math, context.today)
+            } else {
+                tapTick += 1
+            }
+            return
+        }
+        if let refusal = refusal(from: start, to: day, math, context.limits) {
+            errorTick += 1
+            withAnimation(motion) { notice = Notice(id: (notice?.id ?? 0) + 1, refusal: refusal) }
+            AccessibilityNotification.Announcement(message(for: refusal)).post()
+            return
+        }
+        pending = nil
+        write(start...day)
+        successTick += 1
+        announceRange(start...day, math, context.today)
+    }
+
+    private func begin(_ day: Date) {
+        pending = day
+        write(counting == .days ? day...day : nil)
+        if notice != nil { withAnimation(motion) { notice = nil } }
+        tapTick += 1
+    }
+
+    private func write(_ range: ClosedRange<Date>?) {
+        lastWritten = range
+        selection = range
+    }
+
+    private func announceRange(_ range: ClosedRange<Date>, _ math: DayMath, _ today: Date) {
+        let text = math.interval(range, today: today) + ", " + lengthText(length(from: range.lowerBound, to: range.upperBound, math))
+        AccessibilityNotification.Announcement(text).post()
+    }
+
+    private func go(_ delta: Int, months: [Date], current: Date) {
+        guard let i = months.firstIndex(of: current), months.indices.contains(i + delta) else { return }
+        let target = months[i + delta]
+        if reduceMotion {
+            withAnimation(.easeOut(duration: 0.12)) { gridOpacity = 0 } completion: {
+                page = target
+                withAnimation(.easeIn(duration: 0.2)) { gridOpacity = 1 }
+            }
+        } else {
+            withAnimation(.smooth(duration: 0.4)) { page = target }
+        }
+    }
+
+    // MARK: Text
+
+    private func lengthText(_ count: Int) -> String {
+        let text = counting == .nights
+            ? AttributedString(localized: "^[\(count) night](inflect: true)", locale: locale)
+            : AttributedString(localized: "^[\(count) day](inflect: true)", locale: locale)
+        return String(text.characters)
+    }
+
+    private func message(for refusal: Refusal) -> String {
+        switch refusal {
+        case .unavailable:
+            return String(localized: "Includes unavailable dates")
+        case .tooLong(let limit):
+            return String(localized: "Up to") + " " + lengthText(limit)
+        }
+    }
+}
+
+/// Icon and title tight together, sized for a chip.
+private struct ChipLabelStyle: LabelStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        HStack(spacing: 6) {
+            configuration.icon.font(.caption2.weight(.heavy))
+            configuration.title.font(.subheadline.weight(.semibold)).lineLimit(2)
+        }
+    }
+}
+
+/// Calendar arithmetic and formatting, all through `Calendar` so non-Gregorian calendars, custom week starts and DST days stay correct.
+private struct DayMath {
+    let calendar: Calendar
+    let locale: Locale
+
+    init(calendar: Calendar, locale: Locale, timeZone: TimeZone) {
+        var calendar = calendar
+        calendar.locale = locale
+        calendar.timeZone = timeZone
+        self.calendar = calendar
+        self.locale = locale
+    }
+
+    /// Days per week as the calendar defines it.
+    var columns: Int { max(calendar.maximumRange(of: .weekday)?.count ?? 7, 1) }
+
+    func day(_ date: Date) -> Date { calendar.startOfDay(for: date) }
+
+    /// Never adds 86,400 seconds: a DST day is 23 or 25 hours long.
+    func nextDay(_ date: Date) -> Date { day(calendar.date(byAdding: .day, value: 1, to: date) ?? date) }
+
+    func monthStart(_ date: Date) -> Date { calendar.dateInterval(of: .month, for: date)?.start ?? day(date) }
+
+    func addingMonths(_ count: Int, to date: Date) -> Date {
+        monthStart(calendar.date(byAdding: .month, value: count, to: monthStart(date)) ?? date)
+    }
+
+    /// Whole calendar days from `a` to `b`. Counted on civil dates rather than elapsed time, so a day whose start
+    /// is 01:00 (midnight DST jumps) or that lasts 23 or 25 hours still counts as exactly one.
+    func distance(_ a: Date, _ b: Date) -> Int {
+        var local = Calendar(identifier: .gregorian)
+        local.timeZone = calendar.timeZone
+        var utc = Calendar(identifier: .gregorian)
+        utc.timeZone = TimeZone(identifier: "UTC") ?? .gmt
+        let fields: Set<Calendar.Component> = [.era, .year, .month, .day]
+        guard let x = utc.date(from: local.dateComponents(fields, from: a)), let y = utc.date(from: local.dateComponents(fields, from: b)) else { return 0 }
+        return utc.dateComponents([.day], from: x, to: y).day ?? 0
+    }
+
+    func normalized(_ bounds: ClosedRange<Date>?) -> ClosedRange<Date>? {
+        guard let bounds else { return nil }
+        let a = day(bounds.lowerBound), b = day(bounds.upperBound)
+        return min(a, b)...max(a, b)
+    }
+
+    func initialMonth(selection: ClosedRange<Date>?, bounds: ClosedRange<Date>?, today: Date) -> Date {
+        var anchor = selection.map { day($0.lowerBound) } ?? today
+        if let bounds { anchor = min(max(anchor, bounds.lowerBound), bounds.upperBound) }
+        return monthStart(anchor)
+    }
+
+    /// Every pageable month: the bounds' months, or five years either side of today (stretched to reach the selection).
+    func months(bounds: ClosedRange<Date>?, today: Date, including anchor: Date?) -> [Date] {
+        var first: Date, last: Date
+        if let bounds {
+            first = monthStart(bounds.lowerBound)
+            last = monthStart(bounds.upperBound)
+        } else {
+            first = addingMonths(-60, to: today)
+            last = addingMonths(60, to: today)
+            if let anchor {
+                first = min(first, monthStart(anchor))
+                last = max(last, monthStart(anchor))
+            }
+        }
+        var result = [first]
+        var current = first
+        while current < last && result.count < 2400 {
+            let next = addingMonths(1, to: current)
+            guard next > current else { break }
+            result.append(next)
+            current = next
+        }
+        return result
+    }
+
+    /// The month laid out in week rows from `firstWeekday`, padded with `nil` to at least six full rows.
+    func cells(for month: Date) -> [Date?] {
+        let first = monthStart(month)
+        let count = calendar.range(of: .day, in: .month, for: first)?.count ?? 30
+        let columns = columns
+        let lead = ((calendar.component(.weekday, from: first) - calendar.firstWeekday) % columns + columns) % columns
+        var cells: [Date?] = Array(repeating: nil, count: lead)
+        var date = first
+        for _ in 0..<count {
+            cells.append(date)
+            date = nextDay(date)
+        }
+        let rows = max(6, (cells.count + columns - 1) / columns)
+        cells += Array(repeating: nil, count: rows * columns - cells.count)
+        return cells
+    }
+
+    func weekdaySymbols() -> [String] {
+        let symbols = calendar.veryShortStandaloneWeekdaySymbols
+        guard !symbols.isEmpty else { return [] }
+        let offset = calendar.firstWeekday - 1
+        return (0..<symbols.count).map { symbols[(($0 + offset) % symbols.count + symbols.count) % symbols.count] }
+    }
+
+    private var format: Date.FormatStyle {
+        Date.FormatStyle(locale: locale, calendar: calendar, timeZone: calendar.timeZone, capitalizationContext: .standalone)
+    }
+
+    private func sameYear(_ a: Date, _ b: Date) -> Bool {
+        calendar.isDate(a, equalTo: b, toGranularity: .year)
+    }
+
+    func dayNumber(_ date: Date) -> String { date.formatted(format.day()) }
+
+    func monthTitle(_ date: Date) -> String { date.formatted(format.month(.wide).year()) }
+
+    func fullDate(_ date: Date, today: Date) -> String {
+        let style = format.weekday(.wide).month(.wide).day()
+        return date.formatted(sameYear(date, today) ? style : style.year())
+    }
+
+    func short(_ date: Date, today: Date) -> String {
+        let style = format.month(.abbreviated).day()
+        return date.formatted(sameYear(date, today) ? style : style.year())
+    }
+
+    /// "Mar 4 – 9", "Mar 28 – Apr 2", "Dec 30, 2026 – Jan 3, 2027", in the locale's own interval pattern.
+    func interval(_ range: ClosedRange<Date>, today: Date) -> String {
+        guard range.lowerBound < range.upperBound else { return short(range.lowerBound, today: today) }
+        var style = Date.IntervalFormatStyle(locale: locale, calendar: calendar, timeZone: calendar.timeZone).month(.abbreviated).day()
+        if !sameYear(range.lowerBound, today) || !sameYear(range.lowerBound, range.upperBound) { style = style.year() }
+        return style.format(range.lowerBound..<range.upperBound)
+    }
+}
+
+/// A house-palette color that follows the interface style.
+private func adaptive(light: UInt32, dark: UInt32) -> Color {
+    Color(uiColor: UIColor { traits in
+        let hex = traits.userInterfaceStyle == .dark ? dark : light
+        return UIColor(red: CGFloat((hex >> 16) & 0xFF) / 255, green: CGFloat((hex >> 8) & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
+    })
+}
+
+// MARK: - Example
+
+/// A stay picker: bookable for the next eleven months, a few sold-out nights, and at most 14 nights.
+private struct DateRangePickerExample: View {
+    @State private var stay: ClosedRange<Date>?
+    private let calendar = Calendar.current
+    private let soldOut: Set<Date>
+    private let window: ClosedRange<Date>
+
+    init() {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: .now)
+        func day(_ offset: Int) -> Date { calendar.startOfDay(for: calendar.date(byAdding: .day, value: offset, to: today) ?? today) }
+        soldOut = Set([6, 7, 15, 23].map(day))
+        window = today...(calendar.date(byAdding: .month, value: 11, to: today) ?? today)
+        _stay = State(initialValue: day(1)...day(4))
+    }
+
+    var body: some View {
+        DateRangePicker(selection: $stay, in: window, isDateDisabled: { soldOut.contains(calendar.startOfDay(for: $0)) }, maximumLength: 14, counting: .nights)
+            .padding(.horizontal, 16)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(adaptive(light: 0xF3F2EE, dark: 0x121212))
+    }
+}
+
+#Preview("Light") {
+    DateRangePickerExample()
+}
+
+#Preview("Dark") {
+    DateRangePickerExample()
+        .preferredColorScheme(.dark)
+}
