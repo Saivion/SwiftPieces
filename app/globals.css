@@ -103,7 +103,7 @@
   background: linear-gradient(90deg, #ff0000, #ff7a3c, #a855f7, #4d8dff) 0 0 / 400% 100%;
   -webkit-background-clip: text; background-clip: text; color: transparent;
   /* Alternates rather than loops, so it eases back from blue to red instead of jumping. */
-  animation: pro-shimmer 6s ease-in-out infinite alternate;
+  animation: pro-shimmer 2.4s ease-in-out infinite alternate;
 }
 @keyframes pro-shimmer { to { background-position: 100% 0; } }
 @media (prefers-reduced-motion: reduce) { .pro-shimmer { animation: none; } }
@@ -190,3 +190,22 @@
 @media (prefers-reduced-motion: reduce) {
   .sp-enter, .sp-word, .sp-reveal, .sp-reveal-group > * { animation: none !important; }
 }
+
+/* Landing-page questions (components/sections/questions.tsx): native <details> that open with a
+   height transition where the browser can animate to `auto`, and snap open everywhere else. */
+:root { interpolate-size: allow-keywords; }
+.qa::details-content { height: 0; overflow: clip; transition: height 0.35s var(--ease-out), content-visibility 0.35s allow-discrete; }
+.qa[open]::details-content { height: auto; }
+@media (prefers-reduced-motion: reduce) { .qa::details-content { transition: none; } }
+
+
+
+
+/* Landing agent demo (components/sections/agent-demo.tsx): ScrubChartPreview reads --scrub-accent;
+   registering it lets the retint to red transition instead of snapping. */
+@property --scrub-accent { syntax: "<color>"; inherits: true; initial-value: #ffd976; }
+.scrub-tint { transition: --scrub-accent 0.7s ease; }
+@media (prefers-reduced-motion: reduce) { .scrub-tint { transition: none; } }
+.chat-in { animation: chat-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both; }
+@keyframes chat-in { from { opacity: 0; transform: translateY(8px); } }
+@media (prefers-reduced-motion: reduce) { .chat-in { animation: none; } }
