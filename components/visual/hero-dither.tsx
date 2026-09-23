@@ -101,27 +101,53 @@ function rasterizeBird(size: number): { height: Float32Array; w: number; h: numb
 
 type RGB = [number, number, number];
 
-const RED: RGB = [255, 0, 0];
+/**
+ * The homepage dither stages' palette (`ACCENT_DITHER` in get-started.tsx, in paint order):
+ * orange → red wash, a pink ribbon, a blue bloom. Same field recipe as `DitherStage`, but mixed in
+ * sRGB with a saturation lift: the stages mix in linear light, which reads right across a large
+ * panel but goes pastel on small dots against black.
+ */
 const ORANGE: RGB = [255, 122, 60];
+const RED: RGB = [255, 0, 0];
 const PINK: RGB = [255, 143, 184];
 const BLUE: RGB = [77, 141, 255];
-const WHITE: RGB = [255, 255, 255];
+const HONEYDEW: RGB = [255, 228, 239];
 
 function mix(a: RGB, b: RGB, t: number): RGB {
   const u = Math.min(1, Math.max(0, t));
-  return [
-    Math.round(a[0] + (b[0] - a[0]) * u),
-    Math.round(a[1] + (b[1] - a[1]) * u),
-    Math.round(a[2] + (b[2] - a[2]) * u),
-  ];
+  return [a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u, a[2] + (b[2] - a[2]) * u];
 }
 
-/** Same stops as Pro `.text-pop`: red → orange → pink → blue. */
-function palette(u: number): RGB {
-  const t = Math.min(1, Math.max(0, u));
-  if (t < 0.34) return mix(RED, ORANGE, t / 0.34);
-  if (t < 0.68) return mix(ORANGE, PINK, (t - 0.34) / 0.34);
-  return mix(PINK, BLUE, (t - 0.68) / 0.32);
+const smooth = (t: number) => {
+  const x = Math.min(1, Math.max(0, t));
+  return x * x * (3 - 2 * x);
+};
+
+const ANGLE = (-38 * Math.PI) / 180;
+const COS = Math.cos(ANGLE);
+const SIN = Math.sin(ANGLE);
+const TAU = Math.PI * 2;
+
+/**
+ * DitherStage's field over the bird's box (nx, ny in 0..1): a warped two-colour wash and a corner
+ * bloom. `phase` drifts so the colours slide over the mark. No ribbon: a narrow band drifting with
+ * the phase read as a line sweeping across the mark.
+ */
+function fieldColor(nx: number, ny: number, phase: number): RGB {
+  const u = (nx - 0.5) * COS + (ny - 0.5) * SIN;
+  const v = -(nx - 0.5) * SIN + (ny - 0.5) * COS;
+  const wv = v + 0.3 * 0.55 * Math.cos((u + 0.5) * TAU * 0.9 + phase * 0.7);
+  const wash = mix(ORANGE, RED, smooth(wv / 0.7 + 0.5));
+  const dx = nx - (0.5 + 0.36 * COS);
+  const dy = ny - (0.5 + 0.36 * SIN);
+  const bloom = Math.exp(-(dx * dx + dy * dy) / (2 * 0.2 * 0.2));
+  return mix(wash, BLUE, bloom);
+}
+
+/** Pushes a colour away from its own grey, then clamps to a byte. */
+function saturate(c: RGB, k: number): RGB {
+  const y = 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+  return c.map((v) => Math.round(Math.min(255, Math.max(0, y + (v - y) * k)))) as RGB;
 }
 
 /** Halftone 3D Swift bird for the free homepage hero. */
@@ -174,9 +200,12 @@ export function HeroDither() {
       const Lx = lx / llen;
       const Ly = ly / llen;
       const Lz = lz / llen;
-      const Hx = Lx;
-      const Hy = Ly;
-      const Hz = (Lz + 1) / Math.hypot(Lx, Ly, Lz + 1);
+      // Blinn half-vector between the light and the viewer (0, 0, 1), normalised as a whole so
+      // N·H never passes 1 and the high gloss powers stay a small hot spot.
+      const hlen = Math.hypot(Lx, Ly, Lz + 1);
+      const Hx = Lx / hlen;
+      const Hy = Ly / hlen;
+      const Hz = (Lz + 1) / hlen;
 
       ctx.clearRect(0, 0, w, h);
       const gap = w < 420 ? 6.2 : 5.2;
@@ -209,8 +238,14 @@ export function HeroDither() {
           nz /= nn;
 
           const diff = Math.max(0, nx * Lx + ny * Ly + nz * Lz);
-          const spec = Math.pow(Math.max(0, nx * Hx + ny * Hy + nz * Hz), 34);
-          const lum = Math.min(1, 0.05 + diff * 0.9 + spec * 0.85);
+          const nh = Math.max(0, nx * Hx + ny * Hy + nz * Hz);
+          const spec = Math.pow(nh, 34);
+          // Gloss: a tight hot spot on a broad sheen, plus a rim where the surface turns away.
+          // No sweeping glint across the mark.
+          const gloss = Math.pow(nh, 80);
+          const sheen = Math.pow(nh, 14);
+          const rim = Math.min(1, Math.pow(1 - nz, 2.4) * Math.max(0, 0.35 - (nx * Lx + ny * Ly)) * 2);
+          const lum = Math.min(1, 0.1 + diff * 0.95 + spec * 0.7 + gloss * 0.5 + rim * 0.6);
           if (lum < 0.06) continue;
 
           const left = Math.min(1, Math.max(0, (x - w * 0.02) / (w * 0.12)));
@@ -219,13 +254,27 @@ export function HeroDither() {
           const r = Math.pow(lum, 0.82) * maxR * edge;
           if (r < 0.32) continue;
 
-          const u = Math.min(1, Math.max(0, (x - ox) / dim));
-          let color = palette(u);
-          if (diff < 0.42) color = mix(color, BLUE, (0.42 - diff) * 0.7);
-          if (spec > 0.38) color = mix(color, WHITE, Math.min(1, (spec - 0.38) / 0.5));
+          // Colour comes from the dither field; light only sets how bright it burns, so the hue
+          // survives into the shadows instead of washing out to white.
+          let color = fieldColor((x - ox) / dim, (y - oy) / dim, reduced ? 1.2 : 1.2 + t * 2.4);
+          // Deeper shadows than a matte fill, so the highlights read as a lacquered surface.
+          const shade = 0.58 + diff * 0.42;
+          // Screen the sheen over the hue (brightens without greying), then re-saturate so the lift
+          // stays coloured; the hot spot below is the only part that goes to white.
+          const lift = Math.min(0.45, sheen * 0.32 + rim * 0.2);
+          color = saturate(
+            [
+              255 - (255 - color[0] * shade) * (1 - lift),
+              255 - (255 - color[1] * shade) * (1 - lift),
+              255 - (255 - color[2] * shade) * (1 - lift),
+            ],
+            1.45,
+          );
+          const white = Math.min(0.92, gloss * 1.25 + spec * 0.35);
+          if (white > 0) color = mix(color, HONEYDEW, white);
           ctx.beginPath();
           ctx.arc(x, y, r, 0, Math.PI * 2);
-          ctx.fillStyle = `rgb(${color[0]},${color[1]},${color[2]})`;
+          ctx.fillStyle = `rgb(${color[0] | 0},${color[1] | 0},${color[2] | 0})`;
           ctx.fill();
         }
       }

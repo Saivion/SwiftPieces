@@ -1,0 +1,629 @@
+// swiftpieces:
+// title: Amount Field
+// description: A currency amount entry that formats live in the user's locale as each digit lands (grouping, decimal separator, symbol before or after, the currency's own fraction digits), with a large auto-fitting figure whose digits roll in, a blinking caret right after the digits, robust paste of amounts like "$1,234.56" or "1 234,56 €", and a limit that refuses the keystroke with a damped shake, an error haptic and a message line, all backed by a `Decimal` binding.
+// category: inputs
+// minIOSVersion: "17.0"
+// version: "1.0.0"
+// added: "2026-09-23"
+// tags: [currency, money, amount, decimal, locale, payments, form]
+
+import SwiftUI
+
+/// Currency amount entry with live locale formatting, a `Decimal` value and a limit.
+///
+/// The field keeps its own digit buffer and renders the formatted string itself, so the caret never jumps and
+/// locale separators never break parsing. Formatting follows `\.locale`; fraction digits come from the currency.
+///
+/// - Parameters:
+///   - label: Caption above the amount, also the accessibility label. Pass an empty string to hide the caption.
+///   - value: Bound amount. Never negative; external values are shown at the currency's precision (a negative or over-precise value is normalized and written back).
+///   - currencyCode: ISO 4217 code. Sets the symbol and the fraction digits (USD 2, JPY 0, KWD 3). Defaults to the current locale's currency.
+///   - limit: Largest amount that can be typed or pasted. A keystroke past it is refused with a shake (a color flash under Reduce Motion), an error haptic and the limit message. `nil` means no limit.
+///   - limitMessage: Line shown when the limit refuses input or the value is over it. `nil` shows "Up to" plus the formatted limit; an empty string shows no line.
+///   - allowsDecimal: Allow the decimal key. When `false`, amounts are whole units and the number pad has no decimal key.
+///   - size: `.hero` is a large centered figure for a payments screen; `.compact` is a 56pt form-row block.
+///   - isFocused: Optional binding to read or drive keyboard focus, for example to raise the keyboard on appear.
+///   - style: Colors and metrics. Defaults to the Swift Pieces house palette, adapting to light and dark.
+public struct AmountField: View {
+    /// How prominent the field is.
+    public enum Size: Sendable {
+        /// A large centered figure that shrinks to fit its width, for a dedicated amount screen.
+        case hero
+        /// A form-row block with the caption above, like other Swift Pieces inputs.
+        case compact
+    }
+
+    /// Colors and metrics. `.standard` is the house palette.
+    public struct Style: Sendable {
+        /// The compact field block. The hero figure sits directly on your ground.
+        public var field: Color
+        /// Typed digits and the compact focus ring.
+        public var amount: Color
+        /// Currency symbol, caption and the empty "0".
+        public var secondaryLabel: Color
+        /// The blinking caret.
+        public var caret: Color
+        /// Over-limit digits, the error ring and the limit message.
+        public var error: Color
+        /// Compact field minimum height.
+        public var height: CGFloat
+        /// Compact field corner radius.
+        public var cornerRadius: CGFloat
+
+        /// Pass only what you want to change; `nil` keeps the house palette value.
+        public init(field: Color? = nil, amount: Color? = nil, secondaryLabel: Color? = nil, caret: Color? = nil, error: Color? = nil, height: CGFloat = 56, cornerRadius: CGFloat = 18) {
+            self.field = field ?? adaptive(light: 0xE9E7E1, dark: 0x262626)
+            self.amount = amount ?? adaptive(light: 0x141414, dark: 0xF4F3EF)
+            self.secondaryLabel = secondaryLabel ?? adaptive(light: 0x5C5A56, dark: 0xA6A49F)
+            self.caret = caret ?? adaptive(light: 0xFF5B3A, dark: 0xFF5B3A)
+            self.error = error ?? adaptive(light: 0xFF5B3A, dark: 0xFF5B3A)
+            self.height = max(height, 44)
+            self.cornerRadius = cornerRadius
+        }
+
+        public static let standard = Style()
+    }
+
+    @Environment(\.locale) private var locale
+    @Environment(\.layoutDirection) private var layoutDirection
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.isEnabled) private var isEnabled
+    @ScaledMetric(relativeTo: .largeTitle) private var heroSize: CGFloat = 72
+    @FocusState private var focused: Bool
+    @Binding private var value: Decimal
+    @State private var buffer: AmountBuffer
+    @State private var fieldText: String
+    @State private var shakeCount = 0
+    @State private var errorCount = 0
+    @State private var flash = false
+    @State private var noticeShown = false
+    @State private var caretOn = true
+    @State private var natural: CGFloat = 0
+    @State private var available: CGFloat = 0
+
+    private let label: String
+    private let currencyCode: String
+    private let limit: Decimal?
+    private let limitMessage: String?
+    private let allowsDecimal: Bool
+    private let size: Size
+    private let isFocused: Binding<Bool>?
+    private let style: Style
+
+    public init(_ label: String = "Amount", value: Binding<Decimal>, currencyCode: String = Locale.current.currency?.identifier ?? "USD", limit: Decimal? = nil, limitMessage: String? = nil, allowsDecimal: Bool = true, size: Size = .hero, isFocused: Binding<Bool>? = nil, style: Style = .standard) {
+        self.label = label
+        self._value = value
+        self.currencyCode = currencyCode
+        self.limit = limit
+        self.limitMessage = limitMessage
+        self.allowsDecimal = allowsDecimal
+        self.size = size
+        self.isFocused = isFocused
+        self.style = style
+        let digits = allowsDecimal ? AmountEngine.fractionDigits(code: currencyCode, locale: .current) : 0
+        let initial = AmountBuffer(value.wrappedValue, fractionDigits: digits)
+        self._buffer = State(initialValue: initial)
+        self._fieldText = State(initialValue: initial.canonical)
+    }
+
+    private var fractionDigits: Int { allowsDecimal ? AmountEngine.fractionDigits(code: currencyCode, locale: locale) : 0 }
+    private var isOver: Bool { limit.map { buffer.decimal > $0 } ?? false }
+    private var motion: Animation { reduceMotion ? .smooth(duration: 0.2) : .snappy(duration: 0.3) }
+
+    private var limitText: String? {
+        guard let limit else { return nil }
+        if let limitMessage { return limitMessage.isEmpty ? nil : limitMessage }
+        let formatted = AmountEngine.string(AmountBuffer(limit, fractionDigits: fractionDigits), code: currencyCode, locale: locale)
+        return "Up to \(formatted)"
+    }
+
+    public var body: some View {
+        let parts = AmountEngine.parts(buffer, code: currencyCode, locale: locale)
+        let spoken = AmountEngine.string(buffer, code: currencyCode, locale: locale)
+        let message = (noticeShown || isOver) ? limitText : nil
+
+        VStack(alignment: size == .hero ? .center : .leading, spacing: size == .hero ? 8 : 10) {
+            if !label.isEmpty {
+                Text(label.uppercased())
+                    .font(.caption.weight(.semibold))
+                    .tracking(0.8)
+                    .foregroundStyle(focused && size == .hero ? style.amount : style.secondaryLabel)
+                    .accessibilityHidden(true)
+            }
+
+            entry(parts, spoken: spoken)
+
+            if let message {
+                Text(message)
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(style.error)
+                    .multilineTextAlignment(size == .hero ? .center : .leading)
+                    .transition(reduceMotion ? .opacity : .move(edge: .top).combined(with: .opacity))
+                    .accessibilityHidden(true)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: size == .hero ? .center : .leading)
+        .contentShape(.rect)
+        .onTapGesture { if isEnabled { focused = true } }
+        .opacity(isEnabled ? 1 : 0.45)
+        .animation(motion, value: message)
+        .animation(.smooth(duration: 0.2), value: focused)
+        .sensoryFeedback(.error, trigger: errorCount)
+        .onChange(of: fieldText) { _, new in handleInput(new) }
+        .onChange(of: value) { _, new in sync(from: new) }
+        .onChange(of: currencyCode) { sync(from: value, force: true) }
+        .onChange(of: locale) { sync(from: value, force: true) }
+        .onChange(of: allowsDecimal) { sync(from: value, force: true) }
+        .onChange(of: focused) { _, now in
+            isFocused?.wrappedValue = now
+            // Leaving the field settles "12.5" to "12.50" and "12." to "12".
+            if !now { replaceBuffer(AmountBuffer(buffer.decimal, fractionDigits: fractionDigits)) }
+        }
+        .onChange(of: isFocused?.wrappedValue ?? false) { _, wanted in
+            if isFocused != nil, wanted != focused { focused = wanted }
+        }
+        .onAppear {
+            sync(from: value, force: true)
+            if isFocused?.wrappedValue == true { focused = true }
+        }
+        .task(id: shakeCount) {
+            guard shakeCount > 0 else { return }
+            try? await Task.sleep(for: .seconds(2.4))
+            noticeShown = false
+        }
+        .task(id: flash) {
+            guard flash else { return }
+            try? await Task.sleep(for: .milliseconds(320))
+            withAnimation(.smooth(duration: 0.3)) { flash = false }
+        }
+    }
+
+    // MARK: Entry
+
+    private func entry(_ parts: AmountEngine.Parts, spoken: String) -> some View {
+        let shape = RoundedRectangle(cornerRadius: style.cornerRadius, style: .continuous)
+        let fit = natural > 0 && available > 0 ? min(1, available / natural) : 1
+        let hero = size == .hero
+
+        return display(parts)
+            .fixedSize()
+            .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { natural = $0 }
+            .scaleEffect(fit, anchor: hero ? .center : (layoutDirection == .rightToLeft ? .trailing : .leading))
+            .animation(motion, value: fit)
+            .frame(maxWidth: .infinity, alignment: hero ? .center : .leading)
+            .accessibilityHidden(true)
+            .overlay {
+                // The real input: invisible, covering the figure, so a tap focuses it, long-press offers Paste and hardware keys work.
+                TextField(text: $fieldText, prompt: Text(verbatim: "")) { Text(label) }
+                    .focused($focused)
+                    .keyboardType(fractionDigits > 0 ? .decimalPad : .numberPad)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                    .foregroundStyle(.clear)
+                    .tint(.clear)
+                    .accessibilityLabel(label.isEmpty ? "Amount" : label)
+                    .accessibilityValue(spoken)
+                    .accessibilityHint(limitText ?? "")
+            }
+        .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { available = $0 }
+        .padding(.horizontal, hero ? 0 : 18)
+        .padding(.vertical, hero ? 4 : 8)
+        .frame(minHeight: hero ? nil : style.height)
+        .background { if !hero { shape.fill(style.field) } }
+        .overlay {
+            if !hero {
+                shape.strokeBorder(isOver ? style.error : style.amount, lineWidth: 2)
+                    .opacity(focused || isOver ? 1 : 0)
+            }
+        }
+        .modifier(AmountShake(count: reduceMotion ? 0 : CGFloat(shakeCount)))
+        .animation(.linear(duration: 0.45), value: shakeCount)
+    }
+
+    /// Symbol and digits in logical order, with the caret placed right after the digits whatever the layout direction.
+    private func display(_ parts: AmountEngine.Parts) -> some View {
+        let font: Font = size == .hero ? .system(size: min(heroSize, 150), weight: .light) : .title2.weight(.semibold)
+        let digits = buffer.isEmpty ? style.secondaryLabel : (isOver || flash ? style.error : style.amount)
+        let rtl = layoutDirection == .rightToLeft
+        let caretHeight = size == .hero ? min(heroSize, 150) * 0.78 : 26
+
+        return HStack(spacing: 0) {
+            if !parts.leading.isEmpty {
+                Text(parts.leading).foregroundStyle(style.secondaryLabel)
+            }
+            if rtl { caret(height: caretHeight) }
+            Text(parts.number)
+                .foregroundStyle(digits)
+                .contentTransition(reduceMotion ? .opacity : .numericText(value: NSDecimalNumber(decimal: buffer.decimal).doubleValue))
+            if !rtl { caret(height: caretHeight) }
+            if !parts.trailing.isEmpty {
+                Text(parts.trailing).foregroundStyle(style.secondaryLabel)
+            }
+        }
+        .font(font)
+        .monospacedDigit()
+        .lineLimit(1)
+        .tracking(size == .hero ? -1 : 0)
+    }
+
+    private func caret(height: CGFloat) -> some View {
+        Capsule()
+            .fill(style.caret)
+            .frame(width: size == .hero ? 3 : 2, height: height)
+            .padding(.horizontal, size == .hero ? 3 : 2)
+            .opacity(focused && caretOn ? 1 : 0)
+            .frame(width: focused ? nil : 0)
+            .task(id: CaretTick(focused: focused, text: buffer.canonical)) {
+                caretOn = true
+                guard focused else { return }
+                while !Task.isCancelled {
+                    try? await Task.sleep(for: .milliseconds(530))
+                    guard !Task.isCancelled else { return }
+                    caretOn.toggle()
+                }
+            }
+    }
+
+    private struct CaretTick: Equatable {
+        let focused: Bool
+        let text: String
+    }
+
+    // MARK: Input
+
+    /// Diffs the hidden field against the buffer: one character is a key, several are a paste, removals are backspaces.
+    private func handleInput(_ new: String) {
+        let old = buffer.canonical
+        guard new != old else { return }
+        let o = Array(old), n = Array(new)
+        var prefix = 0
+        while prefix < o.count, prefix < n.count, o[prefix] == n[prefix] { prefix += 1 }
+        var suffix = 0
+        while suffix < o.count - prefix, suffix < n.count - prefix, o[o.count - 1 - suffix] == n[n.count - 1 - suffix] { suffix += 1 }
+        let inserted = String(n[prefix..<(n.count - suffix)])
+        let removed = o.count - prefix - suffix
+
+        if inserted.count > 1 {
+            paste(inserted)
+        } else {
+            var next = removed >= o.count ? AmountBuffer() : buffer
+            if removed < o.count {
+                for _ in 0..<removed {
+                    if case .changed(let b) = AmountEngine.apply(.backspace, to: next, fractionDigits: fractionDigits, limit: nil) { next = b }
+                }
+            }
+            if let character = inserted.first {
+                if let key = AmountEngine.key(for: character, locale: locale) {
+                    switch AmountEngine.apply(key, to: next, fractionDigits: fractionDigits, limit: limit) {
+                    case .changed(let b): next = b
+                    case .ignored: break
+                    case .overLimit: refuse(announce: true); next = buffer
+                    case .tooLong: refuse(announce: false); next = buffer
+                    }
+                }
+            }
+            commit(next)
+        }
+        // Put the hidden field back on the canonical text so the next diff starts clean.
+        if fieldText != buffer.canonical { fieldText = buffer.canonical }
+    }
+
+    private func paste(_ text: String) {
+        guard let parsed = AmountEngine.parse(text, locale: locale, fractionDigits: fractionDigits) else {
+            errorCount += 1
+            return
+        }
+        if let limit, parsed > limit { refuse(announce: true); return }
+        commit(AmountBuffer(parsed, fractionDigits: fractionDigits))
+    }
+
+    private func commit(_ next: AmountBuffer) {
+        guard next != buffer else { return }
+        withAnimation(motion) { buffer = next }
+        if noticeShown && !isOver { noticeShown = false }
+        if value != next.decimal { value = next.decimal }
+    }
+
+    private func refuse(announce: Bool) {
+        errorCount += 1
+        withAnimation(motion) { noticeShown = announce }
+        if reduceMotion {
+            withAnimation(.smooth(duration: 0.12)) { flash = true }
+        } else {
+            shakeCount += 1
+        }
+        if announce, let limitText {
+            AccessibilityNotification.Announcement(limitText).post()
+        }
+    }
+
+    /// Rebuilds the display from an external value, e.g. a quick-amount chip. Own writes compare equal and are skipped.
+    private func sync(from new: Decimal, force: Bool = false) {
+        guard force || new != buffer.decimal else { return }
+        let next = AmountBuffer(new, fractionDigits: fractionDigits)
+        if !force || next.canonical != buffer.canonical {
+            withAnimation(motion) { buffer = next }
+        }
+        if fieldText != next.canonical { fieldText = next.canonical }
+        if next.decimal != new { value = next.decimal }
+    }
+
+    private func replaceBuffer(_ next: AmountBuffer) {
+        guard next != buffer else { return }
+        buffer = next
+        fieldText = next.canonical
+    }
+}
+
+// MARK: - Engine
+
+/// The typed amount as ASCII digits, kept apart from formatting so the display can be rebuilt on every keystroke.
+private struct AmountBuffer: Equatable, Sendable {
+    /// Integer digits, "0"..."9" only, no leading zeros except a lone "0". Empty means nothing typed.
+    var integer = ""
+    /// Fraction digits typed after the decimal key; `nil` until the decimal key is pressed.
+    var fraction: String?
+
+    var isEmpty: Bool { integer.isEmpty && fraction == nil }
+
+    /// The locale-free canonical form, e.g. "1234.5"; also what the hidden text field holds.
+    var canonical: String { integer + (fraction.map { "." + $0 } ?? "") }
+
+    var decimal: Decimal {
+        let whole = integer.isEmpty ? "0" : integer
+        let text = fraction.map { $0.isEmpty ? whole : whole + "." + $0 } ?? whole
+        return Decimal(string: text, locale: Locale(identifier: "en_US_POSIX")) ?? 0
+    }
+
+    /// Builds the resting form of a value: integers show no fraction, anything else shows the currency's full precision.
+    init(_ value: Decimal, fractionDigits: Int) {
+        var input = max(value, 0), rounded = Decimal()
+        NSDecimalRound(&rounded, &input, fractionDigits, .plain)
+        let parts = (rounded as NSDecimalNumber).stringValue.split(separator: ".", omittingEmptySubsequences: false)
+        let whole = String(parts.first ?? "0")
+        integer = whole == "0" && rounded == 0 ? "" : whole
+        if parts.count > 1, fractionDigits > 0 {
+            let digits = String(parts[1])
+            fraction = digits + String(repeating: "0", count: max(fractionDigits - digits.count, 0))
+            if integer.isEmpty { integer = "0" }
+        }
+    }
+
+    init() {}
+}
+
+/// Pure formatting and parsing. Everything locale-specific goes through Foundation's currency format style.
+private enum AmountEngine {
+    static let maxIntegerDigits = 12
+    static let posix = Locale(identifier: "en_US_POSIX")
+
+    enum Key: Equatable { case digit(Character), separator, backspace }
+
+    enum Outcome: Equatable {
+        case changed(AmountBuffer)
+        /// The key did nothing (a second separator, a digit past the currency's precision, backspace on empty).
+        case ignored
+        /// Accepting the key would pass the limit.
+        case overLimit
+        /// Accepting the key would pass the digit cap.
+        case tooLong
+    }
+
+    /// The display, split so the caret sits right after the digits and the symbol can be colored apart.
+    struct Parts: Equatable {
+        var leading: String
+        var number: String
+        var trailing: String
+    }
+
+    static func currencyStyle(_ code: String, _ locale: Locale) -> Decimal.FormatStyle.Currency {
+        Decimal.FormatStyle.Currency(code: code, locale: locale)
+    }
+
+    /// The currency's standard fraction digits in this locale (USD 2, JPY 0, KWD 3), read from the formatter itself.
+    static func fractionDigits(code: String, locale: Locale) -> Int {
+        let text = Decimal(0).formatted(currencyStyle(code, locale).attributed)
+        return text.runs.reduce(0) { count, run in
+            run.numberPart == .fraction ? count + text[run.range].characters.count : count
+        }
+    }
+
+    /// Formats exactly what was typed: "12." keeps its separator and "12.50" keeps its zero.
+    static func parts(_ buffer: AmountBuffer, code: String, locale: Locale) -> Parts {
+        let style = currencyStyle(code, locale)
+            .precision(.fractionLength(buffer.fraction?.count ?? 0))
+            .decimalSeparator(strategy: buffer.fraction == nil ? .automatic : .always)
+        let text = buffer.decimal.formatted(style.attributed)
+        var leading = "", number = "", trailing = ""
+        for run in text.runs {
+            let chunk = String(text[run.range].characters)
+            let isNumber = run.numberPart != nil || run.numberSymbol == .decimalSeparator || run.numberSymbol == .groupingSeparator
+            if isNumber { number += trailing; trailing = ""; number += chunk }
+            else if number.isEmpty { leading += chunk }
+            else { trailing += chunk }
+        }
+        if number.isEmpty { return Parts(leading: "", number: String(text.characters), trailing: "") }
+        return Parts(leading: leading, number: number, trailing: trailing)
+    }
+
+    /// The whole formatted string, for VoiceOver and callers.
+    static func string(_ buffer: AmountBuffer, code: String, locale: Locale) -> String {
+        let p = parts(buffer, code: code, locale: locale)
+        return p.leading + p.number + p.trailing
+    }
+
+    /// Maps one typed character to a key. Digits in any script (Arabic-Indic, Devanagari, full-width) become ASCII.
+    static func key(for character: Character, locale: Locale) -> Key? {
+        if let digit = asciiDigit(character) { return .digit(digit) }
+        if character == "." || character == "," || character == "\u{066B}" || String(character) == locale.decimalSeparator { return .separator }
+        return nil
+    }
+
+    static func asciiDigit(_ character: Character) -> Character? {
+        guard character.unicodeScalars.count == 1, let scalar = character.unicodeScalars.first,
+              scalar.properties.numericType == .decimal, let value = character.wholeNumberValue, (0...9).contains(value) else { return nil }
+        return Character(String(value))
+    }
+
+    static func apply(_ key: Key, to buffer: AmountBuffer, fractionDigits: Int, limit: Decimal?) -> Outcome {
+        var next = buffer
+        switch key {
+        case .backspace:
+            if var fraction = next.fraction {
+                if fraction.isEmpty { next.fraction = nil } else { fraction.removeLast(); next.fraction = fraction }
+            } else if !next.integer.isEmpty {
+                next.integer.removeLast()
+            } else {
+                return .ignored
+            }
+            return .changed(next)
+        case .separator:
+            guard fractionDigits > 0, next.fraction == nil else { return .ignored }
+            if next.integer.isEmpty { next.integer = "0" }
+            next.fraction = ""
+            return .changed(next)
+        case .digit(let digit):
+            if let fraction = next.fraction {
+                guard fraction.count < fractionDigits else { return .ignored }
+                next.fraction = fraction + String(digit)
+            } else if next.integer == "0" || next.integer.isEmpty {
+                if digit == "0" && next.integer == "0" { return .ignored }
+                next.integer = String(digit)
+            } else {
+                guard next.integer.count < maxIntegerDigits else { return .tooLong }
+                next.integer.append(digit)
+            }
+            if let limit, next.decimal > limit { return .overLimit }
+            return .changed(next)
+        }
+    }
+
+    /// Parses pasted text such as "1,234.56", "$99", "1 234,56 €", "١٬٢٣٤٫٥٦ ر.س." or "US$ 12". Returns `nil` for anything
+    /// that is not a single non-negative amount (words, two numbers, a minus sign).
+    static func parse(_ raw: String, locale: Locale, fractionDigits: Int) -> Decimal? {
+        let chars: [Character] = raw.trimmingCharacters(in: .whitespacesAndNewlines).map { asciiDigit($0) ?? $0 }
+        guard let first = chars.firstIndex(where: \.isASCIIDigitChar), let last = chars.lastIndex(where: \.isASCIIDigitChar) else { return nil }
+        if chars.contains(where: { "-\u{2212}(".contains($0) }) { return nil }
+        var start = first
+        let decimalMarks: Set<Character> = [".", ",", "\u{066B}"]
+        // ".50" or "$.50": a separator right before the first digit, not after a letter as in "Rs.12".
+        if start > 0, decimalMarks.contains(chars[start - 1]), start == 1 || !chars[start - 2].isLetter { start -= 1 }
+        for affix in [chars[..<start], chars[(last + 1)...]] {
+            guard affix.count <= 10, affix.filter(\.isLetter).count <= 4 else { return nil }
+        }
+        let body = chars[start...last]
+        let grouping: Set<Character> = ["'", "\u{2019}", "\u{066C}"]
+        for c in body where !(c.isASCIIDigitChar || decimalMarks.contains(c) || grouping.contains(c) || c.isWhitespace) { return nil }
+
+        let marks = body.indices.filter { decimalMarks.contains(body[$0]) }
+        var decimalAt: Int?
+        if let arabic = marks.last(where: { body[$0] == "\u{066B}" }) {
+            guard marks.filter({ body[$0] == "\u{066B}" }).count == 1 else { return nil }
+            decimalAt = arabic
+        } else if let lastMark = marks.last {
+            let c = body[lastMark]
+            let sameKind = marks.filter { body[$0] == c }.count
+            let kinds = Set(marks.map { body[$0] })
+            if kinds.count > 1 {
+                guard sameKind == 1 else { return nil }
+                decimalAt = lastMark
+            } else if sameKind == 1 {
+                let after = body[(lastMark + 1)...].filter(\.isASCIIDigitChar).count
+                // Three digits after a lone mark read as thousands ("1,234", "1.234") unless that mark is this
+                // locale's decimal separator and the currency actually carries three decimals (KWD "1.234").
+                let isGrouping = after == 3 && (fractionDigits < 3 || String(c) != locale.decimalSeparator)
+                decimalAt = isGrouping ? nil : lastMark
+            }
+        }
+        let wholeDigits = String((decimalAt.map { body[..<$0] } ?? body[...]).filter(\.isASCIIDigitChar))
+        let fractionDigitsText = decimalAt.map { String(body[($0 + 1)...].filter(\.isASCIIDigitChar)) } ?? ""
+        let trimmedWhole = wholeDigits.drop(while: { $0 == "0" })
+        guard trimmedWhole.count <= maxIntegerDigits else { return nil }
+        let text = (wholeDigits.isEmpty ? "0" : wholeDigits) + (fractionDigitsText.isEmpty ? "" : "." + fractionDigitsText)
+        guard var value = Decimal(string: text, locale: posix) else { return nil }
+        var rounded = Decimal()
+        NSDecimalRound(&rounded, &value, fractionDigits, .plain)
+        return rounded
+    }
+}
+
+private extension Character {
+    var isASCIIDigitChar: Bool { isASCII && isWholeNumber }
+}
+
+/// Damped sideways shake: four cycles that decay to rest over one unit of `count`.
+private struct AmountShake: GeometryEffect {
+    var count: CGFloat
+
+    nonisolated var animatableData: CGFloat {
+        get { count }
+        set { count = newValue }
+    }
+
+    nonisolated func effectValue(size: CGSize) -> ProjectionTransform {
+        let t = count - count.rounded(.down)
+        let x = sin(t * .pi * 4) * 8 * (1 - t)
+        return ProjectionTransform(CGAffineTransform(translationX: x, y: 0))
+    }
+}
+
+/// A house-palette color that follows the interface style.
+private func adaptive(light: UInt32, dark: UInt32) -> Color {
+    Color(uiColor: UIColor { traits in
+        let hex = traits.userInterfaceStyle == .dark ? dark : light
+        return UIColor(red: CGFloat((hex >> 16) & 0xFF) / 255, green: CGFloat((hex >> 8) & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
+    })
+}
+
+// MARK: - Example
+
+/// A "Send money" hero entry in USD with a $2,500 limit and quick-amount chips, and a compact EUR field formatted for de_DE.
+private struct AmountFieldExample: View {
+    @State private var amount: Decimal = 0
+    @State private var rent: Decimal = 1234.5
+    @State private var focused = true
+    @State private var chipTaps = 0
+
+    private let quick: [Decimal] = [20, 50, 100]
+    private let blocks: [UInt32] = [0xFFD976, 0x9CC2FF, 0xA9DCB7]
+
+    var body: some View {
+        VStack(spacing: 28) {
+            AmountField("Send", value: $amount, currencyCode: "USD", limit: 2500, isFocused: $focused)
+                .environment(\.locale, Locale(identifier: "en_US"))
+
+            HStack(spacing: 8) {
+                ForEach(Array(quick.enumerated()), id: \.offset) { index, preset in
+                    Button {
+                        amount = preset
+                        chipTaps += 1
+                    } label: {
+                        Text(preset, format: .currency(code: "USD").precision(.fractionLength(0)).locale(Locale(identifier: "en_US")))
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(adaptive(light: 0x141414, dark: 0x141414))
+                            .padding(.horizontal, 18)
+                            .frame(minHeight: 44)
+                            .background(adaptive(light: blocks[index], dark: blocks[index]), in: .capsule)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .sensoryFeedback(.selection, trigger: chipTaps)
+
+            AmountField("Miete", value: $rent, currencyCode: "EUR", size: .compact)
+                .environment(\.locale, Locale(identifier: "de_DE"))
+        }
+        .padding(.horizontal, 30)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(adaptive(light: 0xF3F2EE, dark: 0x121212))
+    }
+}
+
+#Preview("Light") {
+    AmountFieldExample()
+}
+
+#Preview("Dark") {
+    AmountFieldExample()
+        .preferredColorScheme(.dark)
+}

@@ -245,6 +245,13 @@
     "pro": {
       "type": "string"
     },
+    "added": {
+      "type": "string"
+    },
+    "isNew": {
+      "default": false,
+      "type": "boolean"
+    },
     "liquidGlass": {
       "default": false,
       "type": "boolean"
@@ -277,6 +284,7 @@
     "files",
     "preview",
     "docs",
+    "isNew",
     "liquidGlass",
     "metal"
   ],

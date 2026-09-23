@@ -114,8 +114,17 @@ const resample = (v: readonly number[]) => Array.from({ length: N }, (_, i) => {
 const stamp = (i: number) => { const days = ["WED", "THU", "FRI", "MON", "TUE"], d = days[Math.min(4, Math.floor((i / N) * 5))]; const h = 9 + Math.round((i % 6) * 1.2); return `${d} ${h > 12 ? h - 12 : h} ${h >= 12 ? "PM" : "AM"}`; };
 
 /** Rest, scrub across with the flag riding the rule, hold a range (band and delta), release, then switch ranges so the line morphs. */
-/** The chart's accent (the scrub dot and the range pill) and its card's corner radius (`--scrub-radius`) are variables, so a host can restyle it, as the landing page's agent demo does. */
+/**
+ * The chart's colour scheme and corner radius are CSS variables, so a host can restyle the whole piece
+ * (the landing page's agent demo does). Each falls back to the house palette:
+ * accent (scrub dot, range pill), line (the line, rules, flag), surface (card, dot ring, flag text),
+ * raised (range track, held band), chip (the rising delta chip), and `--scrub-radius` for the card.
+ */
 const SCRUB_ACCENT = `var(--scrub-accent, ${blocks.butter})`;
+const SCRUB_LINE = `var(--scrub-line, ${ground.text})`;
+const SCRUB_SURFACE = `var(--scrub-surface, ${ground.surface})`;
+const SCRUB_RAISED = `var(--scrub-raised, ${ground.raised})`;
+const SCRUB_CHIP = `var(--scrub-chip, ${blocks.sage})`;
 
 export function ScrubChartPreview() {
   const [phase, setPhase] = useState(0);
@@ -135,32 +144,32 @@ export function ScrubChartPreview() {
   const flagX = active !== null ? Math.min(Math.max(p[active][0], 36), W - 36) : 0;
   return (
     <Stage>
-      <div style={card({ width: pt(320), padding: `${pt(14)} ${pt(18)}`, borderRadius: `var(--scrub-radius, ${pt(30)})`, transition: "border-radius .6s ease" })}>
+      <div style={card({ width: pt(320), padding: `${pt(14)} ${pt(18)}`, background: SCRUB_SURFACE, borderRadius: `var(--scrub-radius, ${pt(30)})`, transition: "border-radius .6s ease" })}>
         <p style={meta}>{band ? `${stamp(band[0])} – ${stamp(band[1])}` : active !== null ? stamp(active) : `Latest · ${RANGES[range][0]}`}</p>
         <div className="flex items-center" style={{ gap: pt(8), marginTop: pt(6) }}>
           <Numeral text={(band ? (shown < 0 ? "−" : "+") : "") + usd(Math.abs(shown))} size={32} />
-          <DeltaChip up={up}>{!band && `${up ? "+" : "−"}${usd(Math.abs(chipTo - chipFrom))} `}{(Math.abs((chipTo - chipFrom) / chipFrom) * 100).toFixed(1)}%</DeltaChip>
+          <DeltaChip up={up} fill={up ? SCRUB_CHIP : undefined}>{!band && `${up ? "+" : "−"}${usd(Math.abs(chipTo - chipFrom))} `}{(Math.abs((chipTo - chipFrom) / chipFrom) * 100).toFixed(1)}%</DeltaChip>
         </div>
         <svg viewBox={`0 0 ${W} ${H}`} className="block w-full overflow-visible" style={{ marginTop: pt(10) }} aria-hidden>
-          {band ? <rect data-motion x={p[band[0]][0]} width={p[band[1]][0] - p[band[0]][0]} y={0} height={H} rx={8} fill={ground.raised} style={{ transition: `width .25s ${ease}` }} /> : null}
-          <line x1={0} x2={W} y1={p[0][1]} y2={p[0][1]} stroke={ground.muted} strokeOpacity=".6" strokeDasharray="2 5" />
-          <path d={smooth(p)} fill="none" stroke={ground.text} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
+          {band ? <rect data-motion x={p[band[0]][0]} width={p[band[1]][0] - p[band[0]][0]} y={0} height={H} rx={8} style={{ fill: SCRUB_RAISED, transition: `width .25s ${ease}` }} /> : null}
+          <line x1={0} x2={W} y1={p[0][1]} y2={p[0][1]} strokeOpacity=".45" strokeDasharray="2 5" style={{ stroke: SCRUB_LINE }} />
+          <path d={smooth(p)} fill="none" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" style={{ stroke: SCRUB_LINE }} />
           <g data-motion style={{ opacity: active === null && !band ? 1 : 0, transition: "opacity .2s" }} fill={ground.muted} fontSize={9} fontWeight={600} fontFamily={font.mono}>
             <text x={Math.min(p[hi][0], W - 12)} textAnchor={p[hi][0] > W - 60 ? "end" : "start"} y={Math.max(p[hi][1] - 12, 8)}>{usd(values[hi])}</text>
             <text x={Math.min(Math.max(p[lo][0] - 20, 0), W - 48)} y={Math.min(p[lo][1] + 16, H + 4)}>{usd(values[lo])}</text>
           </g>
-          {band ? <line x1={p[band[0]][0]} x2={p[band[0]][0]} y1={0} y2={H} stroke={ground.text} strokeWidth={1.5} /> : null}
-          {active !== null ? <line data-motion x1={p[active][0]} x2={p[active][0]} y1={0} y2={H} stroke={ground.text} strokeWidth={1.5} style={{ transition: `all .25s ${ease}` }} /> : null}
-          <circle data-motion cx={p[active ?? N - 1][0]} cy={p[active ?? N - 1][1]} r={7} stroke={ground.surface} strokeWidth={3} style={{ fill: SCRUB_ACCENT, transition: `cx .25s ${ease}, cy .25s ${ease}` }} />
+          {band ? <line x1={p[band[0]][0]} x2={p[band[0]][0]} y1={0} y2={H} strokeWidth={1.5} style={{ stroke: SCRUB_LINE }} /> : null}
+          {active !== null ? <line data-motion x1={p[active][0]} x2={p[active][0]} y1={0} y2={H} strokeWidth={1.5} style={{ stroke: SCRUB_LINE, transition: `all .25s ${ease}` }} /> : null}
+          <circle data-motion cx={p[active ?? N - 1][0]} cy={p[active ?? N - 1][1]} r={7} strokeWidth={3} style={{ fill: SCRUB_ACCENT, stroke: SCRUB_SURFACE, transition: `cx .25s ${ease}, cy .25s ${ease}` }} />
           {active !== null ? (
             <g data-motion style={{ transform: `translateX(${flagX}px)`, transition: `transform .25s ${ease}` }}>
-              <rect x={-34} y={-4} width={68} height={17} rx={8.5} fill={ground.text} />
-              <text x={0} y={8} textAnchor="middle" fontSize={9} fontWeight={600} fontFamily={font.mono} fill={ground.surface}>{stamp(active)}</text>
+              <rect x={-34} y={-4} width={68} height={17} rx={8.5} style={{ fill: SCRUB_LINE }} />
+              <text x={0} y={8} textAnchor="middle" fontSize={9} fontWeight={600} fontFamily={font.mono} style={{ fill: SCRUB_SURFACE }}>{stamp(active)}</text>
             </g>
           ) : null}
         </svg>
         <div className="flex justify-between" style={{ ...meta, fontSize: pt(9), marginTop: pt(8) }}>{RANGES[range][2].map((l) => <span key={l}>{l}</span>)}</div>
-        <div className="relative flex" style={{ marginTop: pt(10), padding: pt(3), borderRadius: 999, background: ground.raised }}>
+        <div className="relative flex" style={{ marginTop: pt(10), padding: pt(3), borderRadius: 999, background: SCRUB_RAISED }}>
           <span data-motion className="absolute rounded-full" style={{ top: pt(3), bottom: pt(3), left: `calc(${pt(3)} + ${range} * (100% - ${pt(6)}) / 4)`, width: `calc((100% - ${pt(6)}) / 4)`, background: SCRUB_ACCENT, transition: `left .4s ${spring}` }} />
           {RANGES.map(([l], i) => <span key={l} className="relative flex flex-1 items-center justify-center" style={{ height: pt(28), fontSize: pt(12), fontWeight: 700, color: i === range ? ink : ground.muted, transition: "color .3s" }}>{l}</span>)}
         </div>

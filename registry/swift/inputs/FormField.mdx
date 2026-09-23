@@ -1,0 +1,15 @@
+## Notes
+
+- The label is one `Text` in `.body` that moves between two alignments and scales down into a reserved caption slot. The scale is the caption-to-body line-height ratio at the current Dynamic Type size, so the label lands in the same place at every size, including the accessibility sizes, with no font swap and no jump.
+- `prompt` shows only while the field is focused and empty, under the floated label. The system placeholder is suppressed so the label is never drawn twice.
+- `limit` counts extended grapheme clusters (`String.count`), so a flag, a family emoji or a letter with a combining accent is one character. Typing or pasting past the limit trims with `prefix(limit)`, which never cuts a character in half. A refused keystroke fires a light impact and bumps the counter. At the limit the counter becomes a solid `Style.error` chip with ink text.
+- The counter is `count/limit` with localized digits. With an IME that composes text (Japanese, Chinese), trimming can end a composition early when it runs past the limit.
+- Validation timing: `.onBlur` (default) waits until the field has been edited and left, `.onSubmit` waits for Return, `.live` starts with the first edit. After that the field validates on every keystroke, so the error clears the moment the text is fixed and a sage check appears. An `error` passed from outside shows immediately and takes priority.
+- `formFieldRevealsErrors(true)` on a container arms every field inside, for a Save button that should flag untouched required fields.
+- When an error first appears the ring turns `Style.error`, the message slides in under the field with an exclamation glyph, and an `.error` haptic plays once. Help text returns when the error clears.
+- Focus: apply `.focused($focus, equals: .email)` to the `FormField` itself and move focus in `onSubmit`, with `submitLabel: .next`. Tapping anywhere on the block, including the icon and padding, focuses the field. The clear button appears while focused and non-empty and keeps the keyboard up.
+- `axis: .vertical` grows up to eight lines. Return inserts a newline there, so `onSubmit` does not fire; put a multiline field last in a chain.
+- `.emailAddress` and `.URL` keyboards (and email, URL and username content types) turn off autocapitalization and autocorrection.
+- VoiceOver reads the label, the text with the counter ("12 of 160 characters") as the value, and the error or help as the hint. A new or changed error is announced. The floating label, icon, check and footer are hidden to avoid double reading.
+- `Style` sets the field, label, secondary, focus ring, error, success and ink colors plus minimum height (44pt floor) and corner radius. `.disabled(true)` dims the field and hides the clear button.
+- Reduce Motion: the label still moves (it is the state change) but on a short ease with no bounce, messages crossfade instead of sliding, and the counter changes color without the bump.

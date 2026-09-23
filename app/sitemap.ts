@@ -4,7 +4,7 @@ import { source } from "@/lib/source";
 
 // Every marketing page plus every docs page, including one page per piece, so search engines find
 // all of them without crawling the sidebar.
-const pages = ["", "/components", "/showcase", "/pro", "/blocks", "/about", "/changelog", "/license", "/privacy", "/terms"];
+const pages = ["", "/components", "/showcase", "/pro", "/sponsors", "/blocks", "/about", "/changelog", "/license", "/privacy", "/terms"];
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();

@@ -3,6 +3,7 @@
   "description": "Type that reveals, breathes and renders as glass.",
   "defaultOpen": false,
   "pages": [
+    "expandable-text",
     "glass-text",
     "text-reveal"
   ]

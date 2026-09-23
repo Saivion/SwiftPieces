@@ -52,6 +52,13 @@ const map: Record<string, ComponentType> = {
   StoryStrip: dynamic(() => import("./media").then((m) => m.StoryStripPreview)),
   AssistantOrb: dynamic(() => import("./ai").then((m) => m.AssistantOrbPreview)),
   ThoughtOrb: dynamic(() => import("./ai").then((m) => m.ThoughtOrbPreview)),
+  RangeSlider: dynamic(() => import("./range-slider").then((m) => m.RangeSliderPreview)),
+  DateRangePicker: dynamic(() => import("./date-range-picker").then((m) => m.DateRangePickerPreview)),
+  TokenField: dynamic(() => import("./token-field").then((m) => m.TokenFieldPreview)),
+  AmountField: dynamic(() => import("./amount-field").then((m) => m.AmountFieldPreview)),
+  FormField: dynamic(() => import("./form-field").then((m) => m.FormFieldPreview)),
+  ExpandableText: dynamic(() => import("./expandable-text").then((m) => m.ExpandableTextPreview)),
+  PagedList: dynamic(() => import("./paged-list").then((m) => m.PagedListPreview)),
 };
 
 export function PiecePreview({ name }: { name: string }) {

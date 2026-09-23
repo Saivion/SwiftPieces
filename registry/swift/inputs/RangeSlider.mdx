@@ -1,0 +1,15 @@
+## Notes
+
+- Generic over any `BinaryFloatingPoint` (`Double`, `Float`, `CGFloat`). Bind a `ClosedRange`; pass `format:` as a `FormatStyle` (`.currency(code: "USD").precision(.fractionLength(0))`, `.percent`) or a `(V) -> String` closure. The format drives the readouts and the VoiceOver values.
+- Drag either thumb, or touch the track and the nearest thumb glides to the finger. Grabbing a thumb keeps the finger's offset, so it never jumps under the touch. When both thumbs sit on the same point, the first clear movement decides: right (in left-to-right) takes the upper thumb, left takes the lower.
+- The thumbs never cross. They stop `minimumDistance` apart, kept on the step grid (a 5 gap with step 10 stops at 10).
+- `step` snaps from `bounds.lowerBound`. Both bounds stay reachable when the span is not a multiple of the step (0...1000 by 30 reaches 1000). Values are rounded to the step's decimal places, so `0.1` steps write `0.3`, not `0.30000000000000004`. Out-of-bounds or reversed bindings are shown clamped and written back clean on the first change.
+- Readouts: `.thumbs` (default) floats a chip over each thumb, clamped inside the track; when the two would come within 6pt they crossfade into one "lower – upper" chip. A grabbed thumb grows and its chip fills with the block color. `.header` prints "lower – upper" above the track and stacks the values at large text sizes. `.hidden` shows nothing.
+- Haptics: `.selection` on each value change while dragging (every 5% of the span without a step), throttled to about 30 per second; a rigid `.impact` once when a thumb reaches a bound or the minimum gap.
+- Right-to-left: the track mirrors, so the lower thumb sits on the right, and the merged chip reads in the reader's direction.
+- VoiceOver: two adjustable elements, "Minimum" then "Maximum" (set `lowerLabel` and `upperLabel`, e.g. "Minimum price"). Swipe up or down moves one `step` to the next valid value, or 1% of the span without a step.
+- Thumbs keep a 44pt touch and VoiceOver target even when `Style.thumbSize` draws them smaller. Readouts use text styles and grow with Dynamic Type.
+- `Style` sets the track, the fill block, thumb face and border, ink, labels, chips, track height and thumb size. `.disabled(true)` desaturates, dims and blocks input.
+- Reduce Motion: no spring, no thumb growth (the border still thickens), and the thumbs follow the finger without smoothing.
+- The drag starts on touch-down so the track responds to taps; inside a vertical `ScrollView` or sheet, a drag that begins on the slider moves the slider rather than scrolling.
+- For a full filter sheet built around it, see the filter sheet in Swift Pieces Pro.

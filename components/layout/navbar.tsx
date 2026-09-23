@@ -7,14 +7,17 @@ import { NavGlyph } from "@swiftpieces/brand";
 import { Logo } from "@/components/ui/logo";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
+import { NewBadge } from "@/components/ui/new-badge";
 import { cn } from "@/lib/cn";
 import { pro } from "@/lib/site";
 
-const links = [
+const links: { label: string; href: string; badge?: string }[] = [
   { label: "Components", href: "/components" },
   { label: "Docs", href: "/docs" },
   { label: "Pro", href: "/pro" },
+  { label: "Sponsor", href: "/sponsors", badge: "New" },
 ];
+
 
 
 /**
@@ -68,6 +71,7 @@ export function Navbar({ star, starMobile }: { star?: ReactNode; starMobile?: Re
                   <Link href={l.href} className={cn("group/n relative flex h-9 items-center gap-2 px-3 text-[13.5px] font-medium transition-colors duration-300", isActive(l.href) ? "text-foreground" : "text-muted hover:text-foreground")}>
                     <NavGlyph className={cn("transition-colors", isActive(l.href) ? "text-accent" : "group-hover/n:text-accent")} />
                     {l.label}
+                    {l.badge ? <NewBadge>{l.badge}</NewBadge> : null}
                     {isActive(l.href) ? <span className="absolute inset-x-3 -bottom-px h-px bg-accent" /> : null}
                   </Link>
                 </li>
@@ -103,10 +107,10 @@ export function Navbar({ star, starMobile }: { star?: ReactNode; starMobile?: Re
       <div className={cn("fixed inset-x-0 top-14 bottom-0 z-40 bg-background transition-opacity duration-300 lg:hidden", open ? "opacity-100" : "pointer-events-none opacity-0")} aria-hidden={!open}>
         <Container className="flex h-full flex-col justify-between py-6">
           <ul className="flex flex-col">
-            {[{ label: "Home", href: "/" }, ...links].map((l, i) => (
+            {[{ label: "Home", href: "/" } as (typeof links)[number], ...links].map((l, i) => (
               <li key={l.href} className="hair-b">
                 <Link href={l.href} className={cn("flex items-center justify-between py-3.5 text-[15px] font-medium transition-transform duration-500", open ? "translate-y-0" : "translate-y-3")} style={{ transitionDelay: `${i * 40}ms` }}>
-                  {l.label}
+                  <span className="flex items-center gap-2">{l.label}{l.badge ? <NewBadge>{l.badge}</NewBadge> : null}</span>
                   {isActive(l.href) ? <span className="size-2 rounded-full bg-accent" /> : null}
                 </Link>
               </li>

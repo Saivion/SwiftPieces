@@ -2,6 +2,8 @@ import { Hero } from "@/components/sections/hero";
 import { Ticker } from "@/components/sections/ticker";
 import { Features } from "@/components/sections/features";
 import { GetStarted } from "@/components/sections/get-started";
+import { SponsorStrip } from "@/components/sections/sponsors";
+import { getSponsorsFrom } from "@/lib/sponsors";
 
 /**
  * The hero shows the visit count, which only a render inside the Worker can produce: pages are
@@ -20,11 +22,14 @@ export const revalidate = 300;
  * it is deliberately quiet: four feature rows on a 1:2 grid (pieces, CLI, agents, Pro) and one
  * closing card. Pricing lives only on pro.swiftpieces.com.
  */
-export default function HomePage() {
+export default async function HomePage() {
+  // Gold sponsors only; the strip renders nothing until there is one.
+  const gold = await getSponsorsFrom("gold");
   return (
     <>
       <Hero />
       <Ticker />
+      <SponsorStrip sponsors={gold} />
       <Features />
       <GetStarted />
     </>

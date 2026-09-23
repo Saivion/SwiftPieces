@@ -1,0 +1,690 @@
+---
+title: "Token Field"
+description: "A tag and recipient field where committed entries become solid color chips with dark ink that wrap across lines while the text field takes the rest of the last line, return, comma or a paste of a whole list commits trimmed tokens with duplicate, limit and validation checks, backspace on an empty field highlights the last chip and a second press removes it, and an inline suggestion list filters as you type."
+piece: "TokenField"
+category: "inputs"
+minIOSVersion: "17.0"
+version: "1.0.0"
+tags: ["tokens","tags","chips","recipients","flow-layout","autocomplete","form"]
+registryDependencies: []
+---
+
+{/* GENERATED FILE. Edit registry/swift/inputs/TokenField.swift or TokenField.mdx instead. */}
+
+Wrapping token entry bound to an array of strings: tags, skills, recipients.
+
+## Notes
+
+- Chips and the input sit in a private wrapping `Layout`: leading-aligned rows, spacing that scales with Dynamic Type, and the input taking the rest of the last line. When that is narrower than the input's minimum (88pt, scaled) or its typed text, the input wraps to a new full-width line. A chip wider than the field truncates in the middle.
+- Return, comma (including the full-width `，` and `、`) and pasted line breaks commit the trimmed text by default. `separators` adds `.semicolon` and `.space` for recipient lists. Pasting `a, b, c` adds three tokens in one animated change.
+- Every entry is checked in order: `maxTokens`, then duplicates (case-insensitive, the first spelling is kept and the existing chip is highlighted), then `validate`. Rejected entries stay in the input so they can be fixed, with a damped shake, an error ring and an `.error` haptic.
+- Backspace on an empty input highlights the last chip with a soft impact; a second backspace removes it with a rigid impact. Tapping a chip highlights it the same way. A zero-width space kept in front of the typed text makes this reliable on the software keyboard, where iOS reports no key event for backspace on an empty field. It is never shown or committed.
+- The input uses a vertical-axis `TextField`, so return inserts a line break the field turns into a commit and the keyboard stays up between tokens. Valid text left in the input is committed quietly when the field loses focus.
+- Suggestions appear under the field while typing, matched case- and diacritic-insensitively, prefix matches first, at most five, with the matched run in bold and a dot in the color the chip will take. Tokens already added are left out.
+- Each token keeps the same chip color wherever it appears, picked from its text, so removing one never recolors the rest. Pass a single color in `Style.chips` for uniform chips.
+- At `maxTokens` the input stops accepting text and shows a quiet count such as `5/5`. Backspace still removes.
+- Tapping anywhere in the field that is not a chip focuses the input. Keyboard type, capitalization and content type pass through: apply `.keyboardType(.emailAddress)` and friends to the `TokenField`.
+- VoiceOver: each chip is one element read as "Swift, token" with a Remove action; the input's label carries the placeholder and the token count; adds, removals and rejections are announced.
+- `Style` sets the field, chip colors, ink, label, placeholder, error, corner radius and minimum height. `.disabled(true)` dims the field and disables removal.
+- Reduce Motion: no shake or scale; chips and the suggestion list fade.
+
+## Usage
+
+```swift
+TokenFieldExample()
+```
+
+## Parameters
+
+| Parameter | Description |
+| --- | --- |
+| `placeholder` | Shown in the input while it is empty, and the input's accessibility label. |
+| `tokens` | Bound tokens, in order. Changes from outside animate in and out like typed ones. |
+| `suggestions` | Candidates listed under the field while typing, matched case- and diacritic-insensitively (prefix matches first, then contains), excluding tokens already added. |
+| `maxTokens` | Upper limit. When reached the input stops accepting text and shows a quiet count such as "5/5"; backspace still removes. |
+| `allowsDuplicates` | When `false`, an entry that matches an existing token case-insensitively is not added; the existing chip is highlighted instead and the first spelling is kept. |
+| `separators` | Keys and characters that commit the typed text. `.standard` is return, comma and pasted line breaks. Full-width commas and semicolons count as their ASCII forms. |
+| `style` | Colors and field metrics. Defaults to the Swift Pieces house palette, adapting to light and dark. |
+| `validate` | Accepts or rejects a trimmed entry (for example an email check). A rejected entry stays in the input, the field shakes and an error haptic plays. |
+
+## Source
+
+<Tabs items={["TokenField.swift"]}>
+<Tab value="TokenField.swift">
+
+```swift title="TokenField.swift"
+import SwiftUI
+
+/// Wrapping token entry bound to an array of strings: tags, skills, recipients.
+///
+/// - Parameters:
+///   - placeholder: Shown in the input while it is empty, and the input's accessibility label.
+///   - tokens: Bound tokens, in order. Changes from outside animate in and out like typed ones.
+///   - suggestions: Candidates listed under the field while typing, matched case- and diacritic-insensitively (prefix matches first, then contains), excluding tokens already added.
+///   - maxTokens: Upper limit. When reached the input stops accepting text and shows a quiet count such as "5/5"; backspace still removes.
+///   - allowsDuplicates: When `false`, an entry that matches an existing token case-insensitively is not added; the existing chip is highlighted instead and the first spelling is kept.
+///   - separators: Keys and characters that commit the typed text. `.standard` is return, comma and pasted line breaks. Full-width commas and semicolons count as their ASCII forms.
+///   - style: Colors and field metrics. Defaults to the Swift Pieces house palette, adapting to light and dark.
+///   - validate: Accepts or rejects a trimmed entry (for example an email check). A rejected entry stays in the input, the field shakes and an error haptic plays.
+public struct TokenField: View {
+    /// What commits the typed text into a token.
+    public struct Separators: OptionSet, Sendable {
+        public let rawValue: Int
+        public init(rawValue: Int) { self.rawValue = rawValue }
+
+        /// The return key (and a hardware Return).
+        public static let `return` = Separators(rawValue: 1 << 0)
+        /// `,` and the full-width `，` and `、`.
+        public static let comma = Separators(rawValue: 1 << 1)
+        /// Line breaks inside pasted or dictated text.
+        public static let newline = Separators(rawValue: 1 << 2)
+        /// `;` and the full-width `；`. Common in pasted recipient lists.
+        public static let semicolon = Separators(rawValue: 1 << 3)
+        /// A space. Useful for emails and single-word tags; leave it off for multi-word tags.
+        public static let space = Separators(rawValue: 1 << 4)
+
+        /// Return, comma and pasted line breaks.
+        public static let standard: Separators = [.return, .comma, .newline]
+    }
+
+    /// Colors and metrics. `.standard` is the house palette.
+    public struct Style: Sendable {
+        /// The field block and the suggestion list.
+        public var field: Color
+        /// Chip blocks. A token keeps the same color wherever it appears (picked from its text), so one color gives uniform chips.
+        public var chips: [Color]
+        /// Text and the remove glyph on chips.
+        public var ink: Color
+        /// Typed text, suggestions, the focus ring and the highlighted chip.
+        public var label: Color
+        /// Placeholder and the limit count.
+        public var placeholder: Color
+        /// Ring shown after a rejected entry.
+        public var error: Color
+        /// Field corner radius. Chips use a smaller radius that follows it.
+        public var cornerRadius: CGFloat
+        /// Minimum field height.
+        public var minHeight: CGFloat
+
+        /// Pass only what you want to change; `nil` keeps the house palette value.
+        public init(field: Color? = nil, chips: [Color]? = nil, ink: Color? = nil, label: Color? = nil, placeholder: Color? = nil, error: Color? = nil, cornerRadius: CGFloat = 18, minHeight: CGFloat = 56) {
+            self.field = field ?? adaptive(light: 0xE9E7E1, dark: 0x262626)
+            self.chips = (chips?.isEmpty == false ? chips : nil) ?? [0x9CC2FF, 0xFFD976, 0xA9DCB7, 0xCDB8FF, 0xE9D5B3].map { adaptive(light: $0, dark: $0) }
+            self.ink = ink ?? adaptive(light: 0x141414, dark: 0x141414)
+            self.label = label ?? adaptive(light: 0x141414, dark: 0xF4F3EF)
+            self.placeholder = placeholder ?? adaptive(light: 0x5C5A56, dark: 0xA6A49F)
+            self.error = error ?? adaptive(light: 0xFF5B3A, dark: 0xFF5B3A)
+            self.cornerRadius = cornerRadius
+            self.minHeight = max(minHeight, 44)
+        }
+
+        public static let standard = Style()
+
+        /// A stable color per token text (case-insensitive), so chips never swap colors as others are removed.
+        func chip(for text: String) -> Color {
+            var hash: UInt64 = 5381
+            for scalar in text.lowercased().unicodeScalars { hash = (hash &* 33) &+ UInt64(scalar.value) }
+            return chips[Int(hash % UInt64(chips.count))]
+        }
+    }
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.isEnabled) private var isEnabled
+    @FocusState private var isFocused: Bool
+    @ScaledMetric(relativeTo: .subheadline) private var chipHeight: CGFloat = 34
+    @ScaledMetric(relativeTo: .body) private var minInputWidth: CGFloat = 88
+    @ScaledMetric(relativeTo: .body) private var spacing: CGFloat = 6
+    @Binding private var tokens: [String]
+    /// Raw input text. Always starts with `sentinel`; see `fieldChanged`.
+    @State private var fieldText = TokenField.sentinel
+    /// The last value written to `fieldText` by `setDraft`, so the change it causes is not treated as an edit.
+    @State private var programmatic: String?
+    @State private var selectedID: String?
+    @State private var isInvalid = false
+    @State private var shakeCount = 0
+    @State private var addTick = 0
+    @State private var armTick = 0
+    @State private var removeTick = 0
+    @State private var rejectTick = 0
+
+    private let placeholder: String
+    private let suggestions: [String]
+    private let maxTokens: Int?
+    private let allowsDuplicates: Bool
+    private let separators: Separators
+    private let style: Style
+    private let validate: (String) -> Bool
+
+    /// A zero-width space kept in front of the typed text. iOS gives no callback for backspace on an empty
+    /// software-keyboard field (`onKeyPress(.delete)` only sees hardware keys), but with this character in
+    /// place the "empty" field still has one character to delete, so the text becoming `""` is a reliable
+    /// backspace signal for both keyboards. It is never shown, stored or committed.
+    private static let sentinel = "\u{200B}"
+
+    private struct Item: Identifiable {
+        let id: String
+        let text: String
+    }
+
+    public init(_ placeholder: String, tokens: Binding<[String]>, suggestions: [String] = [], maxTokens: Int? = nil, allowsDuplicates: Bool = false, separators: Separators = .standard, style: Style = .standard, validate: @escaping (String) -> Bool = { _ in true }) {
+        self.placeholder = placeholder
+        self._tokens = tokens
+        self.suggestions = suggestions
+        self.maxTokens = maxTokens.map { max($0, 0) }
+        self.allowsDuplicates = allowsDuplicates
+        self.separators = separators
+        self.style = style
+        self.validate = validate
+    }
+
+    private var motion: Animation { reduceMotion ? .smooth(duration: 0.2) : .spring(duration: 0.4, bounce: 0.2) }
+    private var draft: String { Self.strip(fieldText) }
+    private var isFull: Bool { maxTokens.map { tokens.count >= $0 } ?? false }
+
+    public var body: some View {
+        let matches = self.matches
+        VStack(alignment: .leading, spacing: 8) {
+            field
+            if !matches.isEmpty {
+                suggestionList(matches)
+                    .transition(reduceMotion ? .opacity : .move(edge: .top).combined(with: .opacity))
+            }
+        }
+        .opacity(isEnabled ? 1 : 0.45)
+        .animation(motion, value: matches)
+        .sensoryFeedback(.selection, trigger: addTick)
+        .sensoryFeedback(.impact(flexibility: .soft, intensity: 0.6), trigger: armTick)
+        .sensoryFeedback(.impact(flexibility: .rigid, intensity: 0.8), trigger: removeTick)
+        .sensoryFeedback(.error, trigger: rejectTick)
+        .onChange(of: fieldText) { old, new in fieldChanged(from: old, to: new) }
+        .onChange(of: isFocused) { _, focused in
+            guard !focused else { return }
+            selectedID = nil
+            commitOnBlur()
+        }
+        .onChange(of: tokens) { _, new in
+            if let selectedID, !Self.ids(for: new).contains(selectedID) { self.selectedID = nil }
+        }
+    }
+
+    // MARK: Field
+
+    private var field: some View {
+        let shape = RoundedRectangle(cornerRadius: style.cornerRadius, style: .continuous)
+        return FlowLayout(spacing: spacing, lineSpacing: spacing) {
+            ForEach(items) { item in
+                chip(item)
+                    .transition(reduceMotion ? .opacity : .asymmetric(
+                        insertion: .scale(scale: 0.6, anchor: .trailing).combined(with: .opacity),
+                        removal: .scale(scale: 0.5).combined(with: .opacity)
+                    ))
+            }
+            input
+                .layoutValue(key: FlowFill.self, value: minInputWidth)
+        }
+        .animation(motion, value: tokens)
+        .padding(10)
+        .frame(maxWidth: .infinity, minHeight: style.minHeight, alignment: .leading)
+        .background(style.field, in: shape)
+        .overlay {
+            shape.strokeBorder(isInvalid ? style.error : style.label, lineWidth: 2)
+                .opacity(isFocused || isInvalid ? 1 : 0)
+        }
+        .contentShape(shape)
+        // Tapping anywhere that is not a chip puts the caret in the input.
+        .onTapGesture { if isEnabled { isFocused = true } }
+        .modifier(Shake(count: reduceMotion ? 0 : CGFloat(shakeCount)))
+        .animation(.linear(duration: 0.45), value: shakeCount)
+        .animation(.smooth(duration: 0.2), value: isFocused)
+        .animation(.smooth(duration: 0.2), value: isInvalid)
+        .accessibilityElement(children: .contain)
+    }
+
+    private var items: [Item] {
+        zip(Self.ids(for: tokens), tokens).map { Item(id: $0, text: $1) }
+    }
+
+    /// Identity by text, with an occurrence suffix when duplicates are allowed, so removing one chip
+    /// animates that chip rather than the last one.
+    private static func ids(for tokens: [String]) -> [String] {
+        var seen: [String: Int] = [:]
+        return tokens.map { token in
+            let n = seen[token, default: 0]
+            seen[token] = n + 1
+            return n == 0 ? token : "\(token)\u{0}\(n)"
+        }
+    }
+
+    private func chip(_ item: Item) -> some View {
+        let isSelected = selectedID == item.id
+        return HStack(spacing: 0) {
+            Text(item.text)
+                .font(.subheadline.weight(.semibold))
+                .lineLimit(1)
+                .truncationMode(.middle)
+            Button { remove(id: item.id) } label: {
+                Image(systemName: "xmark")
+                    .font(.caption2.weight(.heavy))
+                    .frame(width: 28, height: chipHeight)
+                    // The glyph is small; the hit area grows to at least 44pt around it.
+                    .contentShape(.rect.inset(by: -8))
+            }
+            .buttonStyle(.plain)
+            .disabled(!isEnabled)
+        }
+        .foregroundStyle(isSelected ? style.field : style.ink)
+        .padding(.leading, 12)
+        .padding(.trailing, 3)
+        .frame(minHeight: chipHeight)
+        .background(isSelected ? style.label : style.chip(for: item.text), in: .rect(cornerRadius: min(style.cornerRadius - 6, chipHeight / 2), style: .continuous))
+        .scaleEffect(isSelected && !reduceMotion ? 1.04 : 1)
+        .animation(.spring(duration: 0.25, bounce: 0.3), value: isSelected)
+        .contentShape(.rect)
+        .onTapGesture {
+            guard isEnabled else { return }
+            selectedID = isSelected ? nil : item.id
+            isFocused = true
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("\(item.text), token")
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
+        .accessibilityAction(named: "Remove") { remove(id: item.id) }
+    }
+
+    /// The input sizes from a hidden copy of its text, so the flow layout can ask for its natural width
+    /// and wrap it to a new line when the rest of the current line is too narrow.
+    private var input: some View {
+        let showsCount = isFull && draft.isEmpty
+        let hint = showsCount ? "\(tokens.count)/\(maxTokens ?? 0)" : placeholder
+        return Text(draft.isEmpty ? hint : draft)
+            .font(.body)
+            .lineLimit(draft.isEmpty ? 1 : 4)
+            .padding(.trailing, 6)
+            .hidden()
+            .frame(maxWidth: .infinity, minHeight: chipHeight, alignment: .leading)
+            .overlay(alignment: .leading) {
+                ZStack(alignment: .leading) {
+                    if draft.isEmpty {
+                        Text(hint)
+                            .font(showsCount ? .body.monospacedDigit() : .body)
+                            .foregroundStyle(style.placeholder)
+                            .lineLimit(1)
+                            .allowsHitTesting(false)
+                            .accessibilityHidden(true)
+                    }
+                    // Vertical axis: return inserts a line break we can see and handle in `fieldChanged`,
+                    // instead of `onSubmit`, which ends editing and drops the keyboard between tokens.
+                    TextField("", text: $fieldText, axis: .vertical)
+                        .font(.body)
+                        .lineLimit(1...4)
+                        .foregroundStyle(style.label)
+                        .tint(style.label)
+                        .focused($isFocused)
+                        .onSubmit(commitTyped)
+                        .accessibilityLabel(inputLabel)
+                }
+            }
+    }
+
+    private var inputLabel: String {
+        let count = tokens.count
+        if let maxTokens { return "\(placeholder), \(count) of \(maxTokens) tokens" }
+        return "\(placeholder), \(count) \(count == 1 ? "token" : "tokens")"
+    }
+
+    // MARK: Suggestions
+
+    private var matches: [String] {
+        let query = draft.trimmingCharacters(in: .whitespaces)
+        guard isFocused, !query.isEmpty, !isFull, !suggestions.isEmpty else { return [] }
+        var seen = Set(tokens.map(Self.fold))
+        var prefix: [String] = [], contains: [String] = []
+        for candidate in suggestions {
+            guard seen.insert(Self.fold(candidate)).inserted,
+                  let range = candidate.range(of: query, options: [.caseInsensitive, .diacriticInsensitive], locale: .current)
+            else { continue }
+            if range.lowerBound == candidate.startIndex { prefix.append(candidate) } else { contains.append(candidate) }
+        }
+        return Array((prefix + contains).prefix(5))
+    }
+
+    private func suggestionList(_ matches: [String]) -> some View {
+        let query = draft.trimmingCharacters(in: .whitespaces)
+        return VStack(alignment: .leading, spacing: 0) {
+            ForEach(matches, id: \.self) { candidate in
+                Button { commitSuggestion(candidate) } label: {
+                    HStack(spacing: 12) {
+                        Circle().fill(style.chip(for: candidate)).frame(width: 10, height: 10)
+                        Text(Self.highlight(query, in: candidate))
+                            .font(.body)
+                            .foregroundStyle(style.label)
+                            .multilineTextAlignment(.leading)
+                    }
+                    .padding(.horizontal, 16)
+                    .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                    .contentShape(.rect)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(candidate)
+                .accessibilityHint("Adds as a token")
+            }
+        }
+        .padding(.vertical, 4)
+        .background(style.field, in: .rect(cornerRadius: style.cornerRadius - 2, style: .continuous))
+    }
+
+    /// The matched run in bold, the rest regular.
+    private static func highlight(_ query: String, in candidate: String) -> AttributedString {
+        guard let range = candidate.range(of: query, options: [.caseInsensitive, .diacriticInsensitive], locale: .current) else {
+            return AttributedString(candidate)
+        }
+        var match = AttributedString(String(candidate[range]))
+        match.font = .body.weight(.bold)
+        return AttributedString(String(candidate[..<range.lowerBound])) + match + AttributedString(String(candidate[range.upperBound...]))
+    }
+
+    // MARK: Editing
+
+    private static func strip(_ text: String) -> String { text.replacingOccurrences(of: sentinel, with: "") }
+    private static func fold(_ text: String) -> String { text.folding(options: [.caseInsensitive, .diacriticInsensitive], locale: .current) }
+
+    private func isSeparator(_ c: Character) -> Bool {
+        if c.isNewline { return true } // Only present here when a newline separator applies; see fieldChanged.
+        if separators.contains(.comma), c == "," || c == "，" || c == "、" { return true }
+        if separators.contains(.semicolon), c == ";" || c == "；" { return true }
+        if separators.contains(.space), c == " " || c == "\u{3000}" { return true }
+        return false
+    }
+
+    private func setDraft(_ text: String) {
+        let value = Self.sentinel + text
+        guard fieldText != value else { return }
+        programmatic = value
+        fieldText = value
+    }
+
+    /// Every edit lands here. Our own writes through `setDraft` re-enter once and are skipped.
+    private func fieldChanged(from old: String, to new: String) {
+        if new == programmatic {
+            programmatic = nil
+            return
+        }
+        // The sentinel itself was deleted: backspace on an empty input.
+        if new.isEmpty {
+            setDraft("")
+            backspaceOnEmpty()
+            return
+        }
+        let oldBody = Self.strip(old)
+        var body = Self.strip(new)
+        guard body != oldBody else {
+            setDraft(body) // Keeps the sentinel in front if the caret was moved before it.
+            return
+        }
+        isInvalid = false
+        selectedID = nil
+        let inserted = body.count - oldBody.count
+
+        if isFull, inserted > 0 {
+            reject()
+            setDraft(oldBody)
+            return
+        }
+
+        // A single inserted line break is the return key; more text arriving at once is a paste or dictation.
+        let isPaste = inserted > 1
+        if body.contains(where: \.isNewline) {
+            let splits = isPaste ? separators.contains(.newline) : separators.contains(.return)
+            if !splits { body = String(body.compactMap { $0.isNewline ? (isPaste ? " " : nil) : $0 }) }
+        }
+
+        // Commit only when a separator was just added, so leftovers kept in the input are not re-checked on every keystroke.
+        let separatorCount = body.filter(isSeparator).count
+        if separatorCount > oldBody.filter(isSeparator).count {
+            var parts = body.split(omittingEmptySubsequences: false, whereSeparator: isSeparator).map(String.init)
+            // Typing a separator commits what precedes it; a paste commits every part.
+            let tail = isPaste ? "" : (parts.popLast() ?? "")
+            let leftovers = commit(parts)
+            let joiner = separators.contains(.comma) ? ", " : separators.contains(.semicolon) ? "; " : " "
+            setDraft((leftovers + [tail]).filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty }.joined(separator: joiner))
+            return
+        }
+
+        // No leading blanks in an otherwise empty input.
+        setDraft(body.allSatisfy(\.isWhitespace) ? "" : body)
+    }
+
+    private func commitTyped() {
+        if separators.contains(.return) { setDraft(commit([draft]).joined(separator: " ")) }
+        isFocused = true
+    }
+
+    private func commitSuggestion(_ candidate: String) {
+        let leftovers = commit([candidate])
+        if leftovers.isEmpty { setDraft("") }
+        isFocused = true
+    }
+
+    /// Leaving the field keeps valid typed text as a token, quietly.
+    private func commitOnBlur() {
+        guard !draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+        setDraft(commit([draft], feedback: false).joined(separator: " "))
+    }
+
+    /// Adds every acceptable part in one animated change. Returns the parts that were rejected (invalid or over the limit).
+    @discardableResult
+    private func commit(_ parts: [String], feedback: Bool = true) -> [String] {
+        var next = tokens
+        var added: [String] = []
+        var leftovers: [String] = []
+        var duplicate: Int?
+        for part in parts {
+            let token = part.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !token.isEmpty else { continue }
+            if let maxTokens, next.count >= maxTokens { leftovers.append(token); continue }
+            if !allowsDuplicates, let index = next.firstIndex(where: { $0.compare(token, options: .caseInsensitive, range: nil, locale: .current) == .orderedSame }) {
+                duplicate = index
+                continue
+            }
+            guard validate(token) else { leftovers.append(token); continue }
+            next.append(token)
+            added.append(token)
+        }
+        if !added.isEmpty {
+            withAnimation(motion) { tokens = next }
+            addTick += 1
+            announce(added.count == 1 ? "Added \(added[0])" : "Added \(added.count) tokens")
+        }
+        guard feedback else { return leftovers }
+        if let duplicate {
+            selectedID = Self.ids(for: next)[duplicate]
+            announce("\(next[duplicate]) is already added")
+        }
+        if !leftovers.isEmpty {
+            isInvalid = true
+            announce(isFull ? "Limit reached" : "Not added: \(leftovers.joined(separator: ", "))")
+        }
+        if duplicate != nil || !leftovers.isEmpty { reject() }
+        return leftovers
+    }
+
+    private func reject() {
+        shakeCount += 1
+        rejectTick += 1
+    }
+
+    /// First press highlights the last chip, second press removes the highlighted one.
+    private func backspaceOnEmpty() {
+        guard isEnabled, !tokens.isEmpty else { return }
+        if let selectedID, Self.ids(for: tokens).contains(selectedID) {
+            remove(id: selectedID)
+        } else {
+            selectedID = Self.ids(for: tokens).last
+            armTick += 1
+            announce("\(tokens[tokens.count - 1]) selected. Delete again to remove.")
+        }
+    }
+
+    private func remove(id: String) {
+        guard let index = Self.ids(for: tokens).firstIndex(of: id) else { return }
+        let text = tokens[index]
+        withAnimation(motion) { _ = tokens.remove(at: index) }
+        selectedID = nil
+        isInvalid = false
+        removeTick += 1
+        announce("Removed \(text)")
+    }
+
+    private func announce(_ message: String) {
+        AccessibilityNotification.Announcement(message).post()
+    }
+}
+
+// MARK: - Flow layout
+
+/// Marks the subview that fills the rest of its line; the value is its minimum width.
+private struct FlowFill: LayoutValueKey {
+    static let defaultValue: CGFloat? = nil
+}
+
+/// Leading-aligned wrapping rows. One pass per call, each subview measured at most twice, so O(n).
+///
+/// Placement is computed in left-to-right coordinates. For right-to-left layout direction SwiftUI mirrors a
+/// custom `Layout`'s placements itself, so this math must not read `layoutDirection` (doing so would flip twice).
+private struct FlowLayout: Layout {
+    var spacing: CGFloat
+    var lineSpacing: CGFloat
+
+    private struct Placement {
+        var index: Int
+        var origin: CGPoint
+        var size: CGSize
+    }
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        arrange(width: proposal.width, subviews: subviews).size
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        for placement in arrange(width: bounds.width, subviews: subviews).placements {
+            subviews[placement.index].place(
+                at: CGPoint(x: bounds.minX + placement.origin.x, y: bounds.minY + placement.origin.y),
+                anchor: .topLeading,
+                proposal: ProposedViewSize(placement.size)
+            )
+        }
+    }
+
+    /// `width` nil or infinite lays everything out on one line.
+    private func arrange(width: CGFloat?, subviews: Subviews) -> (placements: [Placement], size: CGSize) {
+        let maxWidth = width.map { max($0, 0) } ?? .infinity
+        let tolerance: CGFloat = 0.5
+        var placements: [Placement] = []
+        placements.reserveCapacity(subviews.count)
+        var x: CGFloat = 0, y: CGFloat = 0, rowHeight: CGFloat = 0, rowStart = 0, widest: CGFloat = 0
+
+        func finishRow() {
+            guard rowStart < placements.count else { return }
+            for i in rowStart..<placements.count {
+                placements[i].origin.y = y + (rowHeight - placements[i].size.height) / 2
+            }
+            widest = max(widest, x - spacing)
+            y += rowHeight + lineSpacing
+            x = 0
+            rowHeight = 0
+            rowStart = placements.count
+        }
+
+        for (index, subview) in subviews.enumerated() {
+            var size: CGSize
+            if let minimum = subview[FlowFill.self] {
+                let need = min(max(minimum, subview.sizeThatFits(.unspecified).width), maxWidth)
+                if x > 0, x + need > maxWidth + tolerance { finishRow() }
+                let fill = maxWidth.isFinite ? maxWidth - x : need
+                size = CGSize(width: fill, height: subview.sizeThatFits(ProposedViewSize(width: fill, height: nil)).height)
+            } else {
+                size = subview.sizeThatFits(.unspecified)
+                if size.width > maxWidth {
+                    size = subview.sizeThatFits(ProposedViewSize(width: maxWidth, height: nil))
+                    size.width = min(size.width, maxWidth)
+                }
+                if x > 0, x + size.width > maxWidth + tolerance { finishRow() }
+            }
+            placements.append(Placement(index: index, origin: CGPoint(x: x, y: 0), size: size))
+            x += size.width + spacing
+            rowHeight = max(rowHeight, size.height)
+        }
+        finishRow()
+        let height = placements.isEmpty ? 0 : y - lineSpacing
+        return (placements, CGSize(width: widest, height: height))
+    }
+}
+
+/// Damped sideways shake: four cycles that decay to rest over one unit of `count`.
+private struct Shake: GeometryEffect {
+    var count: CGFloat
+
+    nonisolated var animatableData: CGFloat {
+        get { count }
+        set { count = newValue }
+    }
+
+    nonisolated func effectValue(size: CGSize) -> ProjectionTransform {
+        let t = count - count.rounded(.down)
+        let x = sin(t * .pi * 4) * 7 * (1 - t)
+        return ProjectionTransform(CGAffineTransform(translationX: x, y: 0))
+    }
+}
+
+/// A house-palette color that follows the interface style.
+private func adaptive(light: UInt32, dark: UInt32) -> Color {
+    Color(uiColor: UIColor { traits in
+        let hex = traits.userInterfaceStyle == .dark ? dark : light
+        return UIColor(red: CGFloat((hex >> 16) & 0xFF) / 255, green: CGFloat((hex >> 8) & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
+    })
+}
+
+// MARK: - Example
+
+/// A skills field with suggestions and a limit, and a recipients field that only accepts email addresses.
+private struct TokenFieldExample: View {
+    @State private var skills = ["Swift", "SwiftUI", "Figma"]
+    @State private var recipients = ["maya@studio.co"]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 26) {
+            TokenField(
+                "Add skills",
+                tokens: $skills,
+                suggestions: ["Swift", "SwiftData", "SwiftUI", "Combine", "Core Data", "CloudKit", "Figma", "Framer", "Metal", "TypeScript", "Rust", "Accessibility"],
+                maxTokens: 8
+            )
+            .textInputAutocapitalization(.words)
+
+            TokenField("To", tokens: $recipients, separators: [.return, .comma, .semicolon, .space, .newline]) { entry in
+                let parts = entry.split(separator: "@", omittingEmptySubsequences: false)
+                return parts.count == 2 && !parts[0].isEmpty && parts[1].contains(".") && !parts[1].hasPrefix(".") && !parts[1].hasSuffix(".")
+            }
+            .keyboardType(.emailAddress)
+            .textContentType(.emailAddress)
+            .textInputAutocapitalization(.never)
+            .autocorrectionDisabled()
+        }
+        .padding(.horizontal, 24)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(adaptive(light: 0xF3F2EE, dark: 0x121212))
+    }
+}
+
+#Preview("Light") {
+    TokenFieldExample()
+}
+
+#Preview("Dark") {
+    TokenFieldExample()
+        .preferredColorScheme(.dark)
+}
+```
+
+</Tab>
+</Tabs>

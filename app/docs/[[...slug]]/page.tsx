@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { NewBadge } from "@/components/ui/new-badge";
 import { notFound, redirect } from "next/navigation";
 import { DocsBody, DocsDescription, DocsPage, DocsTitle } from "fumadocs-ui/layouts/docs/page";
 import { createRelativeLink } from "fumadocs-ui/mdx";
@@ -26,7 +27,10 @@ export default async function Page(props: Props) {
 
   return (
     <DocsPage toc={item || isIndex ? [] : page.data.toc} full={isIndex}>
-      <DocsTitle>{page.data.title}</DocsTitle>
+      <DocsTitle className={item?.isNew ? "flex items-center gap-3" : undefined}>
+        {page.data.title}
+        {item?.isNew ? <NewBadge className="h-5 rounded-[6px] px-2 text-[11px]" /> : null}
+      </DocsTitle>
       <DocsDescription>{page.data.description}</DocsDescription>
       {item ? <PieceHeader item={item} /> : null}
       {isIndex ? <div className="not-prose mb-10"><ShowcaseGrid items={getRegistryIndex()} /></div> : null}
