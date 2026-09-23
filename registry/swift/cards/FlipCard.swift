@@ -83,8 +83,10 @@ public struct FlipCard<Front: View, Back: View>: View {
 
     public var body: some View {
         // Touch-down tilts the card slightly toward the finger before any drag begins.
-        let tiltX = press.map { -(($0.y / size.height) - 0.5) * style.pressTilt } ?? 0
-        let tiltY = press.map { (($0.x / size.width) - 0.5) * style.pressTilt } ?? 0
+        // Typed and converted explicitly: mixing CGFloat and Double inside `map { } ?? 0` lets some
+        // compilers pick the optional `??` overload and infer `Double?`.
+        let tiltX: Double = press.map { -(Double($0.y / size.height) - 0.5) * style.pressTilt } ?? 0
+        let tiltY: Double = press.map { (Double($0.x / size.width) - 0.5) * style.pressTilt } ?? 0
 
         ZStack {
             front.modifier(Face(angle: angle, isBack: false, crossfade: reduceMotion, shading: style.shading, radius: style.cornerRadius))
