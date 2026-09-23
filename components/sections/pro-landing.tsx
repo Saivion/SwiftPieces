@@ -1,10 +1,9 @@
 import type { ReactNode } from "react";
 import { Container } from "@/components/ui/container";
 import { Eyebrow } from "@/components/ui/badge";
-import { Button, Arrow, TextLink } from "@/components/ui/button";
+import { Button, Arrow } from "@/components/ui/button";
 import { AnimatedText } from "@/components/ui/animated-text";
-import { SectionHeader } from "@/components/ui/section-header";
-import { SectionLabel } from "@/components/ui/section-label";
+import { SectionCopy, Tags, Glyph, heroTitle, sectionTitle, sectionBody } from "@/components/sections/feature-row";
 import { Stat } from "@/components/ui/stat";
 import { Reveal, RevealGroup, RevealItem } from "@/components/effects/reveal";
 import { cn } from "@/lib/cn";
@@ -47,13 +46,13 @@ export function ProHero() {
       {/* Full-height dot field with a long, soft fade so the dots dissolve well before the gallery instead of stopping on a line. */}
       <Container className="flex flex-col items-center text-center">
         <Reveal priority><Eyebrow>Swift Pieces Pro · Production-ready SwiftUI</Eyebrow></Reveal>
-        <AnimatedText as="h1" text="The pieces to build the whole app." accent="whole" className="p-hero mt-8 max-w-4xl" />
+        <AnimatedText as="h1" text="The pieces to build the whole app." accent="whole" className={cn("mt-8 max-w-4xl", heroTitle)} />
         <Reveal priority delay={0.35}>
-          <p className="p-body mx-auto mt-7 max-w-xl text-[15px]">Free is a curated taste of Swift Pieces. Pro is the complete library: production-ready SwiftUI screens, complete app templates and the Build Kit for your coding agent. Start from a finished screen or a whole Xcode project. Copy the source. Make it yours.</p>
+          <p className={cn("mx-auto mt-6 max-w-xl", sectionBody)}>Free is a curated taste of Swift Pieces. Pro is the complete library: production-ready SwiftUI screens, complete app templates and the Build Kit for your coding agent. Start from a finished screen or a whole Xcode project. Copy the source. Make it yours.</p>
         </Reveal>
-        <Reveal priority delay={0.45} className="mt-9 flex flex-col items-center gap-4 sm:flex-row">
-          <Button href={buy}>Start building <Arrow /></Button>     
-          <TextLink href={pro.library}>Browse the library</TextLink>
+        <Reveal priority delay={0.45} className="mt-9 flex flex-wrap items-center justify-center gap-3">
+          <Button href={buy}>Start building <Arrow /></Button>
+          <Button href={pro.library} variant="dark">Browse the library</Button>
         </Reveal>
         <Reveal priority delay={0.55}>
           <p className="t-meta mt-10 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-subtle">
@@ -136,9 +135,12 @@ export function WhatYouGet() {
     { n: "03", value: proCatalog.buildKit.total, label: "Build Kit items", detail: `${buildKitLine}.` },
   ];
   return (
-    <section className="relative py-20 md:py-28">
+    <section className="relative py-16 sm:py-24">
       <Container>
-        <SectionHeader label="Inside Pro" title="Finished screens, whole apps, and an agent that builds the rest to match." />
+        <SectionCopy
+          tags={[{ label: "Screens", icon: <Glyph.phone /> }, { label: "App templates", icon: <Glyph.grid /> }, { label: "Build Kit", icon: <Glyph.wand /> }]}
+          title="Finished screens, whole apps, and an agent that builds the rest to match"
+        />
         <RevealGroup className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3" stagger={0.08}>
           {items.map((s) => (
             <RevealItem key={s.label}>
@@ -160,17 +162,16 @@ function Check({ strong }: { strong?: boolean }) {
   return <svg aria-hidden viewBox="0 0 16 16" className={cn("mt-[3px] size-3.5 shrink-0", strong ? "text-foreground" : "text-subtle")} fill="none" stroke="currentColor" strokeWidth="1.75"><path d="M3.5 8.5l3 3 6-7" strokeLinecap="round" strokeLinejoin="round" /></svg>;
 }
 
-/** Quiet comparison card: eyebrow tag, statement title, short body, three points, one action. The Pro card carries a single accent hairline. */
+/** Quiet comparison card: tag, statement title, short body, three points, one action. The Pro card is set apart by its brighter edge and text. */
 function PlanCard({ tag, title, body, points, cta, pro: isPro }: { tag: string; title: string; body: string; points: string[]; cta: string; pro?: boolean }) {
   return (
     <div className={cn("card relative flex flex-col overflow-hidden p-8 md:p-9", isPro && "border-[var(--card-border-hover)]")}>
-      {isPro ? <span aria-hidden className="absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,var(--accent)_30%,var(--accent)_70%,transparent)]" /> : null}
       <div className="flex items-center justify-between">
         <span className={cn("p-meta", isPro ? "text-accent" : "text-subtle")}>{tag}</span>
         {isPro ? <span className="rounded-[4px] bg-accent px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-accent-foreground">Pro</span> : null}
       </div>
-      <h3 className="mt-6 text-[22px] font-semibold tracking-[-0.02em]">{title}</h3>
-      <p className="p-body mt-2.5 max-w-md">{body}</p>
+      <h3 className="mt-6 text-[20px] leading-[1.2] font-medium tracking-[-0.02em]">{title}</h3>
+      <p className="mt-3 max-w-md text-[15px] leading-[24px] text-pretty text-muted">{body}</p>
       <ul className="mt-7 flex flex-col gap-2.5">
         {points.map((pt) => <li key={pt} className={cn("flex gap-2.5 text-[14px] leading-snug", isPro ? "text-foreground" : "text-muted")}><Check strong={isPro} />{pt}</li>)}
       </ul>
@@ -181,12 +182,13 @@ function PlanCard({ tag, title, body, points, cta, pro: isPro }: { tag: string; 
 
 export function Compare() {
   return (
-    <section className="relative py-20 md:py-28">
+    <section className="relative py-16 sm:py-24">
       <Container>
-        <div className="mx-auto max-w-2xl text-center">
-          <h2 className="p-title text-balance">A curated taste, then the complete library.</h2>
-          <p className="p-body mx-auto mt-5 max-w-lg">Free gives you standout pieces for a single moment. Pro gives you the screens and complete apps around them. Both are plain SwiftUI source in your project, so mixing them is the normal case.</p>
-        </div>
+        <SectionCopy
+          tags={[{ label: "Free", icon: <Glyph.gift /> }, { label: "Pro", icon: <Glyph.split /> }]}
+          title="A curated taste, then the complete library"
+          body="Free gives you standout pieces for a single moment. Pro gives you the screens and complete apps around them. Both are plain SwiftUI source in your project, so mixing them is the normal case."
+        />
         <Reveal className="mt-12 grid gap-3 lg:grid-cols-2">
           <PlanCard tag="Free library" title="A curated taste of Swift Pieces." body="Fifty-three animated pieces, Liquid Glass effects and Metal shaders. Genuinely good, and free to ship wherever a screen feels flat." points={["MIT + Commons Clause, forever", "Single-file pieces", "Install by CLI, MCP or copy-paste"]} cta="See what Pro adds" />
           <PlanCard tag="Swift Pieces Pro" title="The pieces to build the whole app." body="Production-ready SwiftUI screens, complete app templates, and a Build Kit that teaches your coding agent the same design. Install by copy, CLI or MCP." points={[proCountsLabel, "Full SwiftUI source that lives in your project", "Lifetime access, everything added later included"]} cta="Get Swift Pieces Pro" pro />
@@ -204,21 +206,24 @@ export function TryFirst() {
     { eyebrow: "Pro template", title: "AI Assistant", body: "Nimbus, a complete Xcode project with streaming chat, a conversation library, voice mode and widgets. Download it and it runs.", kind: "template" as Kind, more: "More templates", href: pro.templates },
   ];
   return (
-    <section className="relative py-20 md:py-28">
+    <section className="relative py-16 sm:py-24">
       <Container>
-        <SectionHeader label="Look before you buy" title="Every Pro piece has a public page. Look, then decide." />
+        <SectionCopy
+          tags={[{ label: "Look before you buy", icon: <Glyph.eye /> }]}
+          title="Every Pro piece has a public page. Look, then decide"
+        />
         <RevealGroup className="mt-12 grid gap-4 lg:grid-cols-2" stagger={0.1}>
           {cards.map((c, i) => (
             <RevealItem key={c.title}>
               <div className="card flex h-full flex-col overflow-hidden">
                 <div className="stage dots relative h-[240px] rounded-none"><div className="absolute inset-x-0 top-8"><Mock kind={c.kind} i={i + 3} /></div></div>
                 <div className="p-8">
-                  <SectionLabel className="text-accent">{c.eyebrow}</SectionLabel>
-                  <h3 className="p-item mt-4">{c.title}</h3>
-                  <p className="p-body mt-2 max-w-md">{c.body}</p>
-                  <div className="mt-6 flex flex-wrap gap-3">
-                    <Button href={c.href} size="sm">View in Pro <Arrow /></Button>
-                    <Button href={c.href} size="sm" variant="ghost">{c.more}</Button>
+                  <p className="text-[13px] text-muted">{c.eyebrow}</p>
+                  <h3 className="mt-3 text-[20px] leading-[1.2] font-medium tracking-[-0.02em]">{c.title}</h3>
+                  <p className="mt-3 max-w-md text-[15px] leading-[24px] text-pretty text-muted">{c.body}</p>
+                  <div className="mt-7 flex flex-wrap gap-3">
+                    <Button href={c.href} variant="secondary">View in Pro <Arrow /></Button>
+                    <Button href={c.href} variant="dark">{c.more}</Button>
                   </div>
                 </div>
               </div>
@@ -256,21 +261,21 @@ export function ProCTA({ className }: { className?: string }) {
   ];
   const promises = ["Unlimited apps, commercial use included", "Everything added later included", "No subscription, nothing expires"];
   return (
-    <section id="pro" className={cn("relative py-20 md:py-28", className)}>
+    <section id="pro" className={cn("relative py-16 sm:py-24", className)}>
       <Container>
         <Reveal className="cta-wash relative isolate overflow-hidden">
           <CornerDither className="pointer-events-none absolute right-0 bottom-0 -z-10 h-32 w-full md:h-40 [mask-image:radial-gradient(120%_120%_at_100%_100%,black_35%,transparent_78%)] lg:h-[27%] lg:w-[36%]" />
           <div className="grid lg:grid-cols-[1.15fr_1fr]">
             <div className="flex flex-col p-8 md:p-12 lg:p-14">
-              <SectionLabel className="text-accent">One purchase</SectionLabel>
-              <h2 className="p-title mt-6 max-w-md text-balance">One payment. Lifetime access.</h2>
-              <p className="p-body mt-4 max-w-md">The complete library, {proCountsLabel}, delivered as Swift you keep.</p>
+              <Tags tags={[{ label: "One purchase", icon: <Glyph.tag /> }]} className="mb-5" />
+              <h2 className={cn("max-w-md", sectionTitle)}>One payment. Lifetime access.</h2>
+              <p className={cn("mt-4 max-w-md", sectionBody)}>The complete library, {proCountsLabel}, delivered as Swift you keep.</p>
               <ul className="mt-10 flex flex-col gap-2.5">
                 {promises.map((p) => <li key={p} className="flex gap-2.5 text-[14px] leading-snug text-foreground/90"><Check strong />{p}</li>)}
               </ul>
-              <div className="mt-10 flex flex-col items-start gap-3 sm:flex-row sm:items-center">
+              <div className="mt-10 flex flex-wrap items-center gap-3">
                 <Button href={pricing}>View pricing <Arrow /></Button>
-                <TextLink href={pro.library}>Browse the library</TextLink>
+                <Button href={pro.library} variant="dark">Browse the library</Button>
               </div>
             </div>
             <div className="flex flex-col border-t border-[var(--line)] p-8 pb-28 md:p-12 md:pb-32 lg:border-t-0 lg:border-l lg:p-14">
@@ -278,8 +283,8 @@ export function ProCTA({ className }: { className?: string }) {
               <ul className="mt-6 grid gap-px overflow-hidden rounded-[var(--radius)] border border-[var(--line)] bg-[var(--line)] sm:grid-cols-2">
                 {included.map((row) => (
                   <li key={row.label} className="flex flex-col bg-background/80 p-6 sm:last:odd:col-span-2">
-                    <span className="text-[44px] leading-none font-semibold tracking-[-0.04em] tabular-nums">{row.n}</span>
-                    <span className="mt-4 text-[15px] font-semibold">{row.label}</span>
+                    <span className="text-[44px] leading-none font-medium tracking-[-0.04em] tabular-nums">{row.n}</span>
+                    <span className="mt-4 text-[15px] font-medium">{row.label}</span>
                     <span className="mt-1.5 text-[12.5px] leading-snug text-muted">{row.note}</span>
                   </li>
                 ))}
