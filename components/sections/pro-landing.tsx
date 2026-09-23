@@ -4,7 +4,8 @@ import { Eyebrow } from "@/components/ui/badge";
 import { Button, Arrow } from "@/components/ui/button";
 import { AnimatedText } from "@/components/ui/animated-text";
 import { SectionCopy, Tags, Glyph, heroTitle, sectionTitle, sectionBody } from "@/components/sections/feature-row";
-import { Stat } from "@/components/ui/stat";
+import { CountUp } from "@/components/ui/stat";
+import { DitherStage } from "@/components/visual/dither-stage";
 import { Reveal, RevealGroup, RevealItem } from "@/components/effects/reveal";
 import { cn } from "@/lib/cn";
 import { CornerDither } from "@/components/visual/corner-dither";
@@ -130,9 +131,9 @@ export function ProGallery() {
 
 export function WhatYouGet() {
   const items = [
-    { n: "01", value: screens, label: "Screens", detail: `${namesWithMore(proCatalog.screenExamples)}. Production-ready, not mockups.` },
-    { n: "02", value: templates, label: "App templates", detail: `Complete Xcode projects: ${namesWithMore(proCatalog.templateNames, 5)} apps, each a running app you download, rename and ship.` },
-    { n: "03", value: proCatalog.buildKit.total, label: "Build Kit items", detail: `${buildKitLine}.` },
+    { value: screens, label: "Screens", detail: `${namesWithMore(proCatalog.screenExamples)}. Production-ready, not mockups.` },
+    { value: templates, label: "App templates", detail: `Complete Xcode projects: ${namesWithMore(proCatalog.templateNames, 5)} apps, each a running app you download, rename and ship.` },
+    { value: proCatalog.buildKit.total, label: "Build Kit items", detail: `${buildKitLine}.` },
   ];
   return (
     <section className="relative py-16 sm:py-24">
@@ -144,9 +145,16 @@ export function WhatYouGet() {
         <RevealGroup className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3" stagger={0.08}>
           {items.map((s) => (
             <RevealItem key={s.label}>
-              <a href={buy} className="card group block h-full p-6 transition-colors">
-                <p className="p-meta text-accent">{s.n}</p>
-                <Stat value={s.value} label={s.label} detail={s.detail} />
+              <a href={buy} className="card group flex h-full flex-col overflow-hidden transition-colors">
+                {/* The same dithered Pro ground as Pro's library cards, seeded per card; the count sits on it in ink. */}
+                <div className="relative isolate flex h-[180px] flex-col justify-end overflow-hidden p-6 text-[#141414]">
+                  <DitherStage seed={`pro-page-${s.label}`} className="-z-10 transition-transform duration-700 ease-out group-hover:scale-[1.03]" />
+                  <CountUp value={s.value} className="text-[72px] leading-[0.9] font-medium tracking-[-0.04em] tabular-nums" />
+                </div>
+                <div className="p-6">
+                  <p className="text-[17px] font-medium tracking-[-0.01em]">{s.label}</p>
+                  <p className="mt-2 text-[15px] leading-[24px] text-pretty text-muted">{s.detail}</p>
+                </div>
               </a>
             </RevealItem>
           ))}
