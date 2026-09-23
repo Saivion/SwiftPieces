@@ -14,7 +14,7 @@ export function CopyButton({ text, className, label = "Copy" }: { text: string; 
           setTimeout(() => setCopied(false), 1400);
         } catch {}
       }}
-      className={cn("inline-flex h-8 items-center gap-1.5 rounded-[6px] px-2.5 text-xs font-semibold transition-colors", copied ? "bg-accent text-accent-foreground" : "bg-surface-3 text-foreground hover:bg-surface-muted", className)}
+      className={cn("inline-flex h-8 items-center gap-1.5 rounded-[6px] px-2.5 font-sans text-xs font-semibold transition-colors", copied ? "bg-accent text-accent-foreground" : "bg-surface-3 text-foreground hover:bg-surface-muted", className)}
       aria-live="polite"
     >
       <svg aria-hidden viewBox="0 0 16 16" className="size-3.5" fill="none" stroke="currentColor" strokeWidth="1.5">

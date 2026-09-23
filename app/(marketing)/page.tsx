@@ -1,7 +1,7 @@
 import { Hero } from "@/components/sections/hero";
 import { Ticker } from "@/components/sections/ticker";
-import { LibrarySection } from "@/components/sections/library";
-import { How } from "@/components/sections/how";
+import { Features } from "@/components/sections/features";
+import { Questions } from "@/components/sections/questions";
 import { GetStarted } from "@/components/sections/get-started";
 
 /**
@@ -17,18 +17,17 @@ import { GetStarted } from "@/components/sections/get-started";
 export const revalidate = 300;
 
 /**
- * The landing page does two things: show the free pieces, then hand people to Pro. The hero and
- * the footer are shared with pro.swiftpieces.com; the inventory ticker and the three ways in are
- * the only things between them. Pricing lives only on pro.swiftpieces.com; the page closes on the
- * library itself instead of an offer card.
+ * The landing page does two things: show the free pieces, then hand people to Pro. Below the hero
+ * it is deliberately quiet: four feature rows on a 1:2 grid (pieces, CLI, agents, Pro), the
+ * questions, and one closing line. Pricing lives only on pro.swiftpieces.com.
  */
 export default function HomePage() {
   return (
     <>
       <Hero />
       <Ticker />
-      <LibrarySection />
-      <How />
+      <Features />
+      <Questions />
       <GetStarted />
     </>
   );

@@ -114,6 +114,9 @@ const resample = (v: readonly number[]) => Array.from({ length: N }, (_, i) => {
 const stamp = (i: number) => { const days = ["WED", "THU", "FRI", "MON", "TUE"], d = days[Math.min(4, Math.floor((i / N) * 5))]; const h = 9 + Math.round((i % 6) * 1.2); return `${d} ${h > 12 ? h - 12 : h} ${h >= 12 ? "PM" : "AM"}`; };
 
 /** Rest, scrub across with the flag riding the rule, hold a range (band and delta), release, then switch ranges so the line morphs. */
+/** The chart's accent (the scrub dot and the range pill) and its card's corner radius (`--scrub-radius`) are variables, so a host can restyle it, as the landing page's agent demo does. */
+const SCRUB_ACCENT = `var(--scrub-accent, ${blocks.butter})`;
+
 export function ScrubChartPreview() {
   const [phase, setPhase] = useState(0);
   useTimeline(9200, [[0, () => setPhase(0)], [1600, () => setPhase(1)], [2000, () => setPhase(2)], [2400, () => setPhase(3)], [2900, () => setPhase(4)], [3800, () => setPhase(5)], [4600, () => setPhase(6)], [5900, () => setPhase(7)], [7400, () => setPhase(8)]]);
@@ -132,7 +135,7 @@ export function ScrubChartPreview() {
   const flagX = active !== null ? Math.min(Math.max(p[active][0], 36), W - 36) : 0;
   return (
     <Stage>
-      <div style={card({ width: pt(320), padding: `${pt(14)} ${pt(18)}` })}>
+      <div style={card({ width: pt(320), padding: `${pt(14)} ${pt(18)}`, borderRadius: `var(--scrub-radius, ${pt(30)})`, transition: "border-radius .6s ease" })}>
         <p style={meta}>{band ? `${stamp(band[0])} – ${stamp(band[1])}` : active !== null ? stamp(active) : `Latest · ${RANGES[range][0]}`}</p>
         <div className="flex items-center" style={{ gap: pt(8), marginTop: pt(6) }}>
           <Numeral text={(band ? (shown < 0 ? "−" : "+") : "") + usd(Math.abs(shown))} size={32} />
@@ -148,7 +151,7 @@ export function ScrubChartPreview() {
           </g>
           {band ? <line x1={p[band[0]][0]} x2={p[band[0]][0]} y1={0} y2={H} stroke={ground.text} strokeWidth={1.5} /> : null}
           {active !== null ? <line data-motion x1={p[active][0]} x2={p[active][0]} y1={0} y2={H} stroke={ground.text} strokeWidth={1.5} style={{ transition: `all .25s ${ease}` }} /> : null}
-          <circle data-motion cx={p[active ?? N - 1][0]} cy={p[active ?? N - 1][1]} r={7} fill={blocks.butter} stroke={ground.surface} strokeWidth={3} style={{ transition: `cx .25s ${ease}, cy .25s ${ease}` }} />
+          <circle data-motion cx={p[active ?? N - 1][0]} cy={p[active ?? N - 1][1]} r={7} stroke={ground.surface} strokeWidth={3} style={{ fill: SCRUB_ACCENT, transition: `cx .25s ${ease}, cy .25s ${ease}` }} />
           {active !== null ? (
             <g data-motion style={{ transform: `translateX(${flagX}px)`, transition: `transform .25s ${ease}` }}>
               <rect x={-34} y={-4} width={68} height={17} rx={8.5} fill={ground.text} />
@@ -158,7 +161,7 @@ export function ScrubChartPreview() {
         </svg>
         <div className="flex justify-between" style={{ ...meta, fontSize: pt(9), marginTop: pt(8) }}>{RANGES[range][2].map((l) => <span key={l}>{l}</span>)}</div>
         <div className="relative flex" style={{ marginTop: pt(10), padding: pt(3), borderRadius: 999, background: ground.raised }}>
-          <span data-motion className="absolute rounded-full" style={{ top: pt(3), bottom: pt(3), left: `calc(${pt(3)} + ${range} * (100% - ${pt(6)}) / 4)`, width: `calc((100% - ${pt(6)}) / 4)`, background: blocks.butter, transition: `left .4s ${spring}` }} />
+          <span data-motion className="absolute rounded-full" style={{ top: pt(3), bottom: pt(3), left: `calc(${pt(3)} + ${range} * (100% - ${pt(6)}) / 4)`, width: `calc((100% - ${pt(6)}) / 4)`, background: SCRUB_ACCENT, transition: `left .4s ${spring}` }} />
           {RANGES.map(([l], i) => <span key={l} className="relative flex flex-1 items-center justify-center" style={{ height: pt(28), fontSize: pt(12), fontWeight: 700, color: i === range ? ink : ground.muted, transition: "color .3s" }}>{l}</span>)}
         </div>
       </div>
