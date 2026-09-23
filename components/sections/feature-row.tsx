@@ -14,6 +14,32 @@ export type Tag = { label: string; icon: ReactNode };
 /** The section heading and subtitle every block below the hero uses, so they cannot drift apart. */
 export const sectionTitle = "text-[26px] leading-[1.12] font-medium tracking-[-0.025em] text-balance sm:text-[30px]";
 export const sectionBody = "text-[16px] leading-[26px] text-pretty text-muted";
+export const heroTitle = "text-[42px] leading-[1.02] font-medium tracking-[-0.035em] text-balance sm:text-[52px] lg:text-[60px]";
+
+export function Tags({ tags, className }: { tags: Tag[]; className?: string }) {
+  return (
+    <ul className={cn("flex flex-wrap gap-x-4 gap-y-2", className)}>
+      {tags.map((t) => (
+        <li key={t.label} className="flex items-center gap-1.5 text-[13px] text-muted">
+          <TagIcon>{t.icon}</TagIcon>
+          {t.label}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/** Tags, heading, sentence, button: the copy block a section opens with when its visual sits below it. */
+export function SectionCopy({ tags, title, body, action, className, bodyClassName }: { tags: Tag[]; title: ReactNode; body?: ReactNode; action?: { label: string; href: string }; className?: string; bodyClassName?: string }) {
+  return (
+    <Reveal className={className}>
+      <Tags tags={tags} className="mb-5" />
+      <h2 className={sectionTitle}>{title}</h2>
+      {body ? <p className={cn("mt-4", sectionBody, bodyClassName ?? "max-w-xl")}>{body}</p> : null}
+      {action ? <RowLink href={action.href} className="mt-8">{action.label}</RowLink> : null}
+    </Reveal>
+  );
+}
 
 /** `reverse` puts the visual on the left from `lg` up; on small screens the copy always leads. */
 export function FeatureRow({ tags, title, body, cta, reverse, children }: { tags: Tag[]; title: string; body: string; cta: { label: string; href: string }; reverse?: boolean; children: ReactNode }) {
@@ -89,3 +115,21 @@ export function ListRow({ icon, label, value, meter, accent }: { icon?: ReactNod
     </div>
   );
 }
+
+/* ---------- Glyphs for tags: 24px grid, drawn to sit inside a 16px tile ---------- */
+
+function G({ children, fill }: { children: ReactNode; fill?: boolean }) {
+  return <svg viewBox="0 0 24 24" fill={fill ? "currentColor" : "none"} stroke={fill ? "none" : "currentColor"} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">{children}</svg>;
+}
+
+export const Glyph = {
+  phone: () => <G><rect x="6" y="2" width="12" height="20" rx="3" /><path d="M11 18h2" /></G>,
+  grid: () => <G><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /></G>,
+  wand: () => <G><path d="m4 20 11-11" /><path d="m15 4 1.5 1.5M19 8l1.5 1.5M18.5 3.5v2M20.5 5.5h-2" /><path d="m13 7 4 4" /></G>,
+  check: () => <G><path d="m5 12.5 4.5 4.5L19 7.5" /></G>,
+  eye: () => <G><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" /><circle cx="12" cy="12" r="3" /></G>,
+  tag: () => <G><path d="M3 12V4a1 1 0 0 1 1-1h8l9 9-9 9-9-9Z" /><circle cx="7.5" cy="7.5" r="1.5" fill="currentColor" /></G>,
+  bolt: () => <G fill><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z" /></G>,
+  split: () => <G><rect x="3" y="4" width="18" height="16" rx="2.5" /><path d="M12 4v16" /></G>,
+  gift: () => <G><rect x="3" y="8" width="18" height="4" rx="1" /><path d="M5 12v8h14v-8M12 8v12M12 8c-1.5-3-5-3-5-1s3 1 5 1c2 0 5 1 5-1s-3.5-2-5 1Z" /></G>,
+};
