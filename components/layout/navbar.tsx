@@ -42,16 +42,26 @@ export function Navbar({ star, starMobile }: { star?: ReactNode; starMobile?: Re
   }, [open]);
 
   const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
+  // Scrolled, the whole bar condenses into one floating liquid-glass pill. The mobile sheet keeps
+  // the full bar, so it opens flush under it.
+  const condensed = scrolled && !open;
 
   return (
     <>
     {/* Fixed, with a constant-height spacer below. When the header was sticky its shrink on
         scroll changed the page layout; scroll anchoring then moved the page back under the
         threshold and the bar grew again, so it oscillated on its own near the top. */}
-    <header className={cn("fixed inset-x-0 top-0 z-50 transition-all duration-500 ease-[var(--ease-out)]", scrolled || open ? "bg-background/85 backdrop-blur-xl" : "bg-transparent")}>
+    <header className={cn("fixed inset-x-0 top-0 z-50 transition-colors duration-500 ease-[var(--ease-out)]", open ? "bg-background" : "bg-transparent")}>
       <Container>
-        <nav className={cn("relative flex items-center justify-between transition-[height] duration-500 ease-[var(--ease-out)]", scrolled ? "h-14" : "h-[var(--nav-h)]")} aria-label="Primary">
-          <Logo />
+        <nav
+          data-condensed={condensed}
+          className={cn(
+            "nav-glass group/nav relative mx-auto flex items-center justify-between transition-[max-width,height,margin,padding,border-radius,background-color,border-color,box-shadow] duration-500 ease-[var(--ease-out)]",
+            condensed ? "mt-3 h-14 max-w-[880px] rounded-[20px] pr-2.5 pl-5" : "h-[var(--nav-h)] max-w-full rounded-none px-0",
+          )}
+          aria-label="Primary"
+        >
+          <Logo className="flex shrink-0 items-center" />
             <ul className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-0.5 lg:flex">
               {links.map((l) => (
                 <li key={l.href}>
@@ -68,16 +78,16 @@ export function Navbar({ star, starMobile }: { star?: ReactNode; starMobile?: Re
             <button
               type="button"
               onClick={() => setOpenSearch(true)}
-              className="hidden h-9 items-center gap-2 rounded-[var(--radius-sm)] bg-surface-2 pl-3 pr-2 text-sm text-muted transition-colors hover:text-foreground md:flex"
+              className="hidden h-9 items-center gap-2 rounded-[10px] bg-surface-2 pl-3 pr-2 text-sm text-muted transition-colors hover:text-foreground group-data-[condensed=true]/nav:bg-white/[0.07] md:flex"
               aria-label="Search"
             >
               <svg aria-hidden viewBox="0 0 16 16" className="size-4" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="7" cy="7" r="4.5" /><path d="M10.5 10.5L14 14" strokeLinecap="round" /></svg>
-              <span className="hidden w-28 text-left xl:inline">Search</span>
+              <span className="hidden w-28 text-left group-data-[condensed=true]/nav:hidden! xl:inline">Search</span>
               <kbd className="rounded-[4px] bg-surface-3 px-1.5 py-0.5 font-sans text-[10px] font-semibold text-muted">⌘K</kbd>
             </button>
             {star}
             <Button href={pro.buy} size="sm" className="hidden sm:inline-flex">Get Pro</Button>
-            <button type="button" onClick={() => setOpen((v) => !v)} className="flex size-9 items-center justify-center rounded-[var(--radius-sm)] bg-surface-2 lg:hidden" aria-expanded={open} aria-label="Menu">
+            <button type="button" onClick={() => setOpen((v) => !v)} className="flex size-9 items-center justify-center rounded-[10px] bg-surface-2 lg:hidden" aria-expanded={open} aria-label="Menu">
               {/* Crisp SVG glyphs: three bars closed, an X open. Both are 16px and drawn from the button's centre. */}
               <svg aria-hidden viewBox="0 0 16 16" className="size-4" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
                 {open ? <path d="M3.5 3.5l9 9M12.5 3.5l-9 9" /> : <path d="M2 4h12M2 8h12M2 12h12" />}

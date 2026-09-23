@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { Container } from "@/components/ui/container";
 import { Eyebrow } from "@/components/ui/badge";
-import { Button, Arrow } from "@/components/ui/button";
+import { Button, Arrow, TextLink } from "@/components/ui/button";
 import { AnimatedText } from "@/components/ui/animated-text";
 import { SectionCopy, Tags, Glyph, heroTitle, sectionTitle, sectionBody } from "@/components/sections/feature-row";
 import { CountUp } from "@/components/ui/stat";
@@ -51,9 +51,9 @@ export function ProHero() {
         <Reveal priority delay={0.35}>
           <p className={cn("mx-auto mt-6 max-w-xl", sectionBody)}>Free is a curated taste of Swift Pieces. Pro is the complete library: production-ready SwiftUI screens, complete app templates and the Build Kit for your coding agent. Start from a finished screen or a whole Xcode project. Copy the source. Make it yours.</p>
         </Reveal>
-        <Reveal priority delay={0.45} className="mt-9 flex flex-wrap items-center justify-center gap-3">
+        <Reveal priority delay={0.45} className="mt-9 flex flex-wrap items-center justify-center gap-x-7 gap-y-4">
           <Button href={buy}>Start building <Arrow /></Button>
-          <Button href={pro.library} variant="dark">Browse the library</Button>
+          <TextLink href={pro.library}>Browse the library</TextLink>
         </Reveal>
         <Reveal priority delay={0.55}>
           <p className="t-meta mt-10 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-subtle">
@@ -229,9 +229,9 @@ export function TryFirst() {
                   <p className="text-[13px] text-muted">{c.eyebrow}</p>
                   <h3 className="mt-3 text-[20px] leading-[1.2] font-medium tracking-[-0.02em]">{c.title}</h3>
                   <p className="mt-3 max-w-md text-[15px] leading-[24px] text-pretty text-muted">{c.body}</p>
-                  <div className="mt-7 flex flex-wrap gap-3">
+                  <div className="mt-7 flex flex-wrap items-center gap-x-7 gap-y-4">
                     <Button href={c.href} variant="secondary">View in Pro <Arrow /></Button>
-                    <Button href={c.href} variant="dark">{c.more}</Button>
+                    <TextLink href={c.href}>{c.more}</TextLink>
                   </div>
                 </div>
               </div>
@@ -281,9 +281,10 @@ export function ProCTA({ className }: { className?: string }) {
               <ul className="mt-10 flex flex-col gap-2.5">
                 {promises.map((p) => <li key={p} className="flex gap-2.5 text-[14px] leading-snug text-foreground/90"><Check strong />{p}</li>)}
               </ul>
-              <div className="mt-10 flex flex-wrap items-center gap-3">
+              {/* Pinned to the bottom of the card, level with the end of the included list on the right. */}
+              <div className="mt-10 flex flex-wrap items-center gap-x-7 gap-y-4 lg:mt-auto lg:pt-10">
                 <Button href={pricing}>View pricing <Arrow /></Button>
-                <Button href={pro.library} variant="dark">Browse the library</Button>
+                <TextLink href={pro.library}>Browse the library</TextLink>
               </div>
             </div>
             <div className="flex flex-col border-t border-[var(--line)] p-8 pb-28 md:p-12 md:pb-32 lg:border-t-0 lg:border-l lg:p-14">
