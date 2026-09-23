@@ -5,10 +5,11 @@ import { PiecePreview } from "@/components/previews";
 import { useInView } from "@/lib/use-in-view";
 
 /**
- * The agent row's visual: a short conversation that builds a piece. Each ask is typed into the
- * chat, the cursor clicks send, the message joins the thread with the agent's reply, and the
- * change lands on the Scrub Chart beside it: first the chart itself, then its accent, then its
- * corners. After the last change it holds, clears, and starts over.
+ * The agent row's visual: a short conversation that builds a piece. It opens mid-conversation,
+ * with the first ask already sent and the Scrub Chart it added running. Each next ask is typed
+ * into the chat, the cursor clicks send, the message joins the thread with the agent's reply, and
+ * the change lands on the chart: its accent, then its corners. After the last change it holds and
+ * returns to the opening state.
  *
  * The restyles go through ScrubChartPreview's own variables (`--scrub-accent`, registered in
  * globals.css so it transitions, and `--scrub-radius`). Runs only while on screen; reduced
@@ -28,8 +29,9 @@ export function AgentDemo() {
   const inView = useInView(root, { margin: "0px 0px -15% 0px" });
   const [reduced, setReduced] = useState(false);
   const [draft, setDraft] = useState("");
-  const [sent, setSent] = useState(0); // messages in the thread
-  const [applied, setApplied] = useState(0); // changes landed on the chart
+  // The opening state: the first turn is already sent and applied.
+  const [sent, setSent] = useState(1); // messages in the thread
+  const [applied, setApplied] = useState(1); // changes landed on the chart
   const [cursor, setCursor] = useState<Cursor>("off");
   const [aimAt, setAimAt] = useState({ x: 0, y: 0 });
 
@@ -48,17 +50,18 @@ export function AgentDemo() {
     return () => window.removeEventListener("resize", measure);
   }, []);
 
-  // The script. Leaving the viewport stops it and resets to the empty chat.
+  // The script. Leaving the viewport stops it and returns to the opening state.
   useEffect(() => {
-    const clear = () => { setDraft(""); setSent(0); setApplied(0); setCursor("off"); };
+    const clear = () => { setDraft(""); setSent(1); setApplied(1); setCursor("off"); };
     if (reduced) { setSent(TURNS.length); setApplied(TURNS.length); return; }
     if (!inView) { clear(); return; }
     const timers: ReturnType<typeof setTimeout>[] = [];
     const at = (ms: number, fn: () => void) => timers.push(setTimeout(fn, ms));
     const run = () => {
       clear();
-      let t = 700;
+      let t = 1600;
       TURNS.forEach((turn, i) => {
+        if (i === 0) return; // already sent: the conversation opens here
         turn.ask.split("").forEach((_, k) => at(t + k * 38, () => setDraft(turn.ask.slice(0, k + 1))));
         t += turn.ask.length * 38 + 250;
         at(t, () => setCursor("aim"));
