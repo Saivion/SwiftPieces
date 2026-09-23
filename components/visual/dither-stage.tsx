@@ -23,11 +23,11 @@ function lum(hex: number) {
 const hexString = (n: number) => `#${n.toString(16).padStart(6, "0")}`;
 
 /** Stable recipe: same warped-ribbon field, recolored and rotated per seed. */
-function ditherSpec(seed: string) {
+function ditherSpec(seed: string, palette?: readonly string[]) {
   const n = hash(seed);
   const start = n % STOPS.length;
-  const picked = [0, 1, 2, 3].map((i) => STOPS[(start + i) % STOPS.length]);
-  if (n & 8) picked.reverse();
+  const picked = palette?.length === 4 ? palette.map((c) => Number.parseInt(c.slice(1), 16)) : [0, 1, 2, 3].map((i) => STOPS[(start + i) % STOPS.length]);
+  if (!palette && n & 8) picked.reverse();
   return {
     colors: picked.map(hexString),
     fallback: hexString(picked.reduce((a, b) => (lum(a) > lum(b) ? a : b))),
@@ -152,16 +152,21 @@ function paint(
   ctx.putImageData(img, 0, 0);
 }
 
-export function DitherStage({ seed, className }: { seed: string; className?: string }) {
+/**
+ * `palette` overrides the seeded colours with four hex stops, in paint order: wash from, wash to,
+ * ribbon, corner bloom. The seed still sets the angle and warp.
+ */
+export function DitherStage({ seed, palette, className }: { seed: string; palette?: readonly string[]; className?: string }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const spec = ditherSpec(seed);
+  const spec = ditherSpec(seed, palette);
+  const paletteKey = palette?.join(",");
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const parent = canvas.parentElement;
     if (!parent) return;
-    const recipe = ditherSpec(seed);
+    const recipe = ditherSpec(seed, paletteKey?.split(","));
     const colors = recipe.colors.map(parse);
     let frame = 0;
 
@@ -186,7 +191,7 @@ export function DitherStage({ seed, className }: { seed: string; className?: str
       ro.disconnect();
       if (frame) cancelAnimationFrame(frame);
     };
-  }, [seed]);
+  }, [seed, paletteKey]);
 
   return (
     <canvas
