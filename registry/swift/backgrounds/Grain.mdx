@@ -1,9 +1,0 @@
-## Notes
-
-- Requires `Grain.metal` in the same target; the modifier calls the `[[ stitchable ]] grain` function through `ShaderLibrary`.
-- Noise is sampled continuously (smoothed value noise, two octaves) rather than snapped to a cell grid, so it does not alias or moire against the pixel grid at 2x and 3x. `scale` is in points and can be fractional.
-- Grain strength is weighted by luminance, peaking in midtones and fading to a quarter at pure black and white; with `.softLight` those extremes stay clean. `.linear` adds the noise directly for a harsher, scanned look.
-- The timeline runs at 24 fps, not display rate, which is both the film cadence and a quarter of the redraws. `animated: false` or Reduce Motion freezes it.
-- Apply `.grain(...)` after any blur or material so the grain sits on top; applying it before a blur simply blurs it away.
-- `Grain(style:)` picks the backdrop gradient: `.standard` (default) is paper to stone in light and charcoal to near-black in dark; `.tangerine`, `.sky`, `.lilac`, `.sage` and `.sand` are house block gradients. Passing `colors:` still overrides the style.
-- The `#Preview` is the grain over the surface it grains and nothing else: the `.sky` gradient, full bleed.

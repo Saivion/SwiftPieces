@@ -1,9 +1,0 @@
-## Notes
-
-- Weights are interpolated on `UIFont.Weight`'s continuous raw axis, which SF Pro renders as true variable weight. Each glyph becomes a `Text` with its own font and the run is joined by interpolation, so the result wraps and aligns like any `Text`.
-- Glyph positions are estimated from single-line advances at the medium weight; the finger maps to that line. On a two-line headline the wave runs in reading order.
-- Heavier glyphs are wider, so the line breathes slightly as the wave passes. That is inherent to weight animation; a monospaced design hides it.
-- The `.selection` haptic fires only when the peak crosses into a different word during a drag, never per frame. On release the ambient sweep is re-phased to continue from the finger in the drag direction.
-- `.scroll` mode reads the view's position inside the enclosing scroll view with `onGeometryChange` and disables the drag. Reduce Motion freezes the sweep at a fixed weight contrast; drags still move it.
-- Two-tone by default: glyphs away from the peak fall back to `Style.tailOpacity` (0.38) of the inherited foreground style, so a caller's `.foregroundStyle` still applies. Set it to 1 for a single tone.
-- `Style.tracking` tightens display type as a fraction of the point size; `Style.grabDuration` sets how quickly the wave reaches full strength under a finger.

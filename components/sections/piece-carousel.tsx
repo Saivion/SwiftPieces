@@ -49,8 +49,8 @@ export function PieceCarousel() {
           onTransitionEnd={(e) => e.target === e.currentTarget && sliding && advance()}
         >
           {[0, 1, 2].map((k) => (
-            <div key={`${(i + k) % n}-${k === 0 ? "active" : "rest"}`} className="w-[72%] shrink-0 overflow-hidden rounded-[16px] border border-white/[0.08] transition-opacity duration-500" style={{ opacity: k === 0 || (k === 1 && sliding) ? 1 : 0.45 }}>
-              <PreviewFrame aspect="aspect-[4/3]" className="rounded-none!">
+            <div key={`${(i + k) % n}-${k === 0 ? "active" : "rest"}`} className="frame-dashed relative w-[72%] shrink-0 overflow-hidden rounded-[16px] transition-opacity duration-500" style={{ opacity: k === 0 || (k === 1 && sliding) ? 1 : 0.45 }}>
+              <PreviewFrame tone="clear" aspect="aspect-[4/3]" className="rounded-none!">
                 <PiecePreview name={at(k).name} />
               </PreviewFrame>
             </div>

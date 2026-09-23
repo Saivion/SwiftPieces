@@ -1,7 +1,6 @@
 import { Hero } from "@/components/sections/hero";
 import { Ticker } from "@/components/sections/ticker";
 import { Features } from "@/components/sections/features";
-import { Questions } from "@/components/sections/questions";
 import { GetStarted } from "@/components/sections/get-started";
 
 /**
@@ -18,8 +17,8 @@ export const revalidate = 300;
 
 /**
  * The landing page does two things: show the free pieces, then hand people to Pro. Below the hero
- * it is deliberately quiet: four feature rows on a 1:2 grid (pieces, CLI, agents, Pro), the
- * questions, and one closing line. Pricing lives only on pro.swiftpieces.com.
+ * it is deliberately quiet: four feature rows on a 1:2 grid (pieces, CLI, agents, Pro) and one
+ * closing card. Pricing lives only on pro.swiftpieces.com.
  */
 export default function HomePage() {
   return (
@@ -27,7 +26,6 @@ export default function HomePage() {
       <Hero />
       <Ticker />
       <Features />
-      <Questions />
       <GetStarted />
     </>
   );

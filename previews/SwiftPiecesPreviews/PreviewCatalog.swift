@@ -4,11 +4,11 @@ import SwiftUI
 /// every piece has an entry here so previews never silently go missing.
 enum PreviewCatalog {
     static let names: [String] = [
-        "TextReveal", "GlassText", "WeightWave", "Aurora", "Silk", "Grain",
-        "TouchGrid", "AmbientMesh", "GlassSurface", "GlassActionMenu", "GlassSegments", "ElasticButton",
+        "TextReveal", "GlassText", "Silk", 
+        "TouchGrid", "GlassSurface", "GlassActionMenu", "GlassSegments", "ElasticButton",
         "CommitButton", "HoldToConfirm", "FanStack", "TimerDial", "ExpandingTrack", "ScrubStepper",
         "FilterRail", "SecureEntry", "FlipCard", "ParallaxCard", "MotionCard", "SwipeDeck",
-        "SwipeActionRow", "PullToRefresh", "DepthCarousel", "TaskRow", "StatusTimeline", "StretchHeader", "TrackingTabs",
+        "SwipeActionRow", "DepthCarousel", "TaskRow", "StatusTimeline", "StretchHeader", "TrackingTabs",
         "FloatingDock", "Toast", "ConfirmSheet", "PermissionSheet", "ReactionToggle",
         "RatingScrub", "StatusMorph", "SkeletonLoader", "OutcomeScreen", "DragToDismiss", "ScrubChart",
         "RingBreakdown", "LiveStat", "Odometer", "PhotoViewer", "StoryStrip", "StreamingReply",
@@ -24,18 +24,10 @@ enum PreviewCatalog {
             Stage { TextRevealLoop() }
         case "GlassText":
             Stage { GlassTextDemo() }
-        case "WeightWave":
-            Stage { WeightWaveDemo() }
-        case "Aurora":
-            AuroraScene()
         case "Silk":
             SilkScene()
-        case "Grain":
-            GrainScene()
         case "TouchGrid":
             TouchGridLoop()
-        case "AmbientMesh":
-            if #available(iOS 18, *) { AmbientMeshScene() }
         // glass-controls
         case "GlassSurface":
             Stage { GlassSurfaceLoop() }
@@ -73,8 +65,6 @@ enum PreviewCatalog {
         // lists-nav
         case "SwipeActionRow":
             Stage { SwipeActionRowLoop() }
-        case "PullToRefresh":
-            Stage { PullToRefreshLoop() }
         case "DepthCarousel":
             Stage { DepthCarouselLoop() }
         case "TaskRow":
@@ -241,28 +231,6 @@ private enum GlassTextPaletteTG {
     static let tangerine = Color(red: 1, green: 0.357, blue: 0.227)
     static let butter = Color(red: 1, green: 0.851, blue: 0.463)
     static let lilac = Color(red: 0.804, green: 0.722, blue: 1)
-}
-
-/// The component alone: one track title as the wave, centred on the stage.
-private struct WeightWaveDemo: View {
-    var body: some View {
-        WeightWave("Low Tide", size: 92, light: .ultraLight, heavy: .black, spread: 0.3, period: 3.6)
-            .foregroundStyle(WeightWavePaletteTG.text)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(WeightWavePaletteTG.ground)
-    }
-}
-
-private enum WeightWavePaletteTG {
-    static let ground = adaptive(light: 0xF3F2EE, dark: 0x121212)
-    static let text = adaptive(light: 0x141414, dark: 0xF4F3EF)
-
-    private static func adaptive(light: UInt32, dark: UInt32) -> Color {
-        Color(UIColor { traits in
-            let hex = traits.userInterfaceStyle == .dark ? dark : light
-            return UIColor(red: CGFloat(hex >> 16 & 0xFF) / 255, green: CGFloat(hex >> 8 & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
-        })
-    }
 }
 
 // MARK: - glass-controls scenes
@@ -1034,38 +1002,6 @@ private struct LAStage<Content: View>: View {
             .frame(maxWidth: 440)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: alignment)
             .background(LAPalette.ground.ignoresSafeArea())
-    }
-}
-
-/// The refresh itself on plain rows: the ring winds up with the pull, arms at the threshold, holds
-/// while the work runs, and a new name lands at the top before it settles back.
-private struct PullToRefreshLoop: View {
-    @State private var entries = ["Mara Lindqvist", "Jonas Okafor", "Priya Raman", "Tomas Weil", "Ines Marchetti", "Devon Oyelaran"]
-
-    var body: some View {
-        LAStage {
-            PullToRefresh {
-                try? await Task.sleep(for: .seconds(1.2))
-                entries.insert("Aleks Novak", at: 0)
-                if entries.count > 7 { entries.removeLast() }
-            } content: {
-                VStack(spacing: 0) {
-                    ForEach(Array(entries.enumerated()), id: \.element) { index, name in
-                        if index > 0 {
-                            Rectangle()
-                                .fill(LAPalette.muted.opacity(0.2))
-                                .frame(height: 1)
-                        }
-                        Text(name)
-                            .font(.body)
-                            .foregroundStyle(LAPalette.text)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.horizontal, 24)
-                            .padding(.vertical, 15)
-                    }
-                }
-            }
-        }
     }
 }
 
@@ -2016,26 +1952,10 @@ private struct TouchGridLoop: View {
     }
 }
 
-/// The curtains, full bleed, with nothing on top.
-private struct AuroraScene: View {
-    var body: some View {
-        Aurora()
-            .ignoresSafeArea()
-    }
-}
-
 /// The fabric, full bleed, with nothing on top.
 private struct SilkScene: View {
     var body: some View {
         Silk(style: .tangerine, scale: 2.6)
-            .ignoresSafeArea()
-    }
-}
-
-/// The grain over the surface it grains, full bleed, with nothing else on it.
-private struct GrainScene: View {
-    var body: some View {
-        Grain(amount: 0.7, style: .sky)
             .ignoresSafeArea()
     }
 }
@@ -2054,11 +1974,3 @@ private struct TouchGridScene: View {
     }
 }
 
-@available(iOS 18, *)
-/// The mesh, full bleed, with nothing on top.
-private struct AmbientMeshScene: View {
-    var body: some View {
-        AmbientMesh()
-            .ignoresSafeArea()
-    }
-}

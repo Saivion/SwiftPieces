@@ -3,6 +3,7 @@ import { Button, Arrow } from "@/components/ui/button";
 import { Reveal } from "@/components/effects/reveal";
 import { SectionLabel } from "@/components/ui/section-label";
 import { pro } from "@/lib/site";
+import { getRegistryIndex } from "@/lib/registry";
 
 export function CTA() {
   return (
@@ -15,7 +16,7 @@ export function CTA() {
             ?
           </h2>
           <p className="p-body mt-5 max-w-lg">
-            Fifty-three pieces, one file each, yours to keep. Start with the
+            {getRegistryIndex().length} pieces, one file each, yours to keep. Start with the
             library or see what the whole app looks like.
           </p>
           <div className="mt-10 flex flex-col items-start gap-4 sm:flex-row sm:items-center">

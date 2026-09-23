@@ -11,10 +11,13 @@ import { cn } from "@/lib/cn";
 import { CornerDither } from "@/components/visual/corner-dither";
 import { pro } from "@/lib/site";
 import { buildKitLine, namesWithMore, proCatalog, proCountsLabel } from "@/lib/pro-catalog";
+import { getRegistryIndex } from "@/lib/registry";
 
 // Marketing copy only. Counts and names come from lib/pro-catalog.ts, the one hand-maintained copy of Pro's catalog.
 const buy = pro.buy;
 const { screens, templates, buildKit } = proCatalog;
+/** The free count, read from the registry so it never drifts when pieces are added or removed. */
+const freeCount = getRegistryIndex().length;
 // No prices on Free: pricing lives on Pro, so the secondary CTAs say "View pricing" and go there.
 // The hero is the exception: its secondary CTA sends people into the Pro library instead.
 const pricing = pro.pricing;
@@ -198,7 +201,7 @@ export function Compare() {
           body="Free gives you standout pieces for a single moment. Pro gives you the screens and complete apps around them. Both are plain SwiftUI source in your project, so mixing them is the normal case."
         />
         <Reveal className="mt-12 grid gap-3 lg:grid-cols-2">
-          <PlanCard tag="Free library" title="A curated taste of Swift Pieces." body="Fifty-three animated pieces, Liquid Glass effects and Metal shaders. Genuinely good, and free to ship wherever a screen feels flat." points={["MIT + Commons Clause, forever", "Single-file pieces", "Install by CLI, MCP or copy-paste"]} cta="See what Pro adds" />
+          <PlanCard tag="Free library" title="A curated taste of Swift Pieces." body={`${freeCount} animated pieces, Liquid Glass effects and Metal shaders. Genuinely good, and free to ship wherever a screen feels flat.`} points={["MIT + Commons Clause, forever", "Single-file pieces", "Install by CLI, MCP or copy-paste"]} cta="See what Pro adds" />
           <PlanCard tag="Swift Pieces Pro" title="The pieces to build the whole app." body="Production-ready SwiftUI screens, complete app templates, and a Build Kit that teaches your coding agent the same design. Install by copy, CLI or MCP." points={[proCountsLabel, "Full SwiftUI source that lives in your project", "Lifetime access, everything added later included"]} cta="Get Swift Pieces Pro" pro />
         </Reveal>
       </Container>

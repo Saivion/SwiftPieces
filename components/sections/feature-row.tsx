@@ -79,9 +79,31 @@ export function TagIcon({ children, accent }: { children: ReactNode; accent?: bo
 
 /* ---------- Surfaces the visuals are built from ---------- */
 
-/** The base panel a visual sits on: one hairline edge, nothing else. */
+/**
+ * The base a visual sits on: no fill, a dashed hairline and a tick at each corner, like an artboard.
+ * The page's own dot grid shows through, so the only solid surfaces are the pieces and the
+ * floating cards. That keeps the visuals from reading as grey slabs with boxes inside boxes.
+ */
 export function Panel({ children, className }: { children: ReactNode; className?: string }) {
-  return <div className={cn("relative overflow-hidden rounded-[16px] border border-white/[0.08] bg-[#0e0e0f]", className)}>{children}</div>;
+  return (
+    <div className={cn("frame-dashed relative rounded-[16px]", className)}>
+      <CornerTicks />
+      <div className="relative overflow-hidden rounded-[16px]">{children}</div>
+    </div>
+  );
+}
+
+/** Four small crosshairs sitting on a frame's corners. */
+export function CornerTicks() {
+  return (
+    <>
+      {["-top-[5px] -left-[5px]", "-top-[5px] -right-[5px]", "-bottom-[5px] -left-[5px]", "-bottom-[5px] -right-[5px]"].map((pos) => (
+        <svg key={pos} aria-hidden viewBox="0 0 9 9" className={cn("pointer-events-none absolute size-[9px] text-white/35", pos)}>
+          <path d="M4.5 0v9M0 4.5h9" stroke="currentColor" strokeWidth="1" />
+        </svg>
+      ))}
+    </>
+  );
 }
 
 /**

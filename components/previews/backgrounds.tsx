@@ -34,37 +34,6 @@ function useShader(shade: (u: number, v: number, t: number, out: number[]) => vo
   return ref;
 }
 
-// MARK: - Aurora
-
-/** Aurora, `.standard` palette: the Metal curtains ported per pixel. Crisp lower edges, long rising tails with drifting
-    rays, coverage-weighted colour over the #121212 ground. The field is the piece, so it fills the stage alone. */
-export function AuroraPreview() {
-  const base = hexRgb(ground.bg), cols = [blocks.tangerine, blocks.lilac, blocks.sky].map(hexRgb);
-  const ref = useShader((u, v, time, out) => {
-    const t = time * 0.22, y = v - 0.64, x = u;
-    const ribbon = (centre: number, width: number, seed: number) => {
-      const d = y - centre, w = d < 0 ? width * 0.42 : width, core = Math.exp(-(d * w) * (d * w));
-      const curtain = 0.55 + 0.45 * Math.sin(x * 4 + seed + t * 0.8) * Math.sin(x * 1.7 - seed * 0.5 + t * 0.3);
-      const rays = 0.8 + 0.2 * Math.sin(x * 38 + seed * 3 + Math.sin(x * 7 + t * 0.6 + seed) * 2.4);
-      const tail = 1 - Math.min(1, Math.max(0, (d + 0.14) / 0.14));
-      return Math.min(1, core * curtain * (1 + (rays - 1) * tail) * 0.85);
-    };
-    const breath = Math.sin(t * 0.5) * 0.03;
-    const a = [
-      ribbon(0.06 + breath + Math.sin(x * 3 + t * 1.3 + Math.sin(x * 1.5 + t) * 0.8) * 0.09, 8, 0),
-      ribbon(-0.12 - breath + Math.sin(x * 5 - t * 0.9 + Math.cos(x * 2.2 - t * 0.5) * 0.6) * 0.07, 10, 2.1),
-      ribbon(-0.28 + Math.sin(x * 2 + t * 0.6 + Math.sin(x * 0.8 - t * 0.4) * 0.5) * 0.1, 7.5, 4.2),
-    ];
-    const cov = 1 - (1 - a[0]) * (1 - a[1]) * (1 - a[2]), sum = Math.max(a[0] + a[1] + a[2], 1e-4);
-    for (let k = 0; k < 3; k++) out[k] = base[k] * (1 - cov) + ((cols[0][k] * a[0] + cols[1][k] * a[1] + cols[2][k] * a[2]) / sum) * cov;
-  }, 160, 90);
-  return (
-    <div className="absolute inset-0 overflow-hidden" style={{ background: ground.bg }}>
-      <canvas ref={ref} data-motion aria-hidden className="absolute inset-0 h-full w-full" />
-    </div>
-  );
-}
-
 // MARK: - Silk
 
 /** The Silk height field and Blinn-Phong shading, as in Silk.metal (radial term centred off-screen). */
@@ -92,34 +61,6 @@ export function SilkPreview() {
   return (
     <div className="absolute inset-0 overflow-hidden" style={{ background: blocks.tangerine }}>
       <canvas ref={ref} data-motion aria-hidden className="absolute inset-0 h-full w-full" />
-    </div>
-  );
-}
-
-// MARK: - Grain
-
-function GrainLayer({ id, opacity, animated = true }: { id: string; opacity: number; animated?: boolean }) {
-  const turb = useRef<SVGFETurbulenceElement>(null);
-  useEffect(() => {
-    if (!animated || reduced()) return;
-    let frame = 0;
-    const t = setInterval(() => turb.current?.setAttribute("seed", String(++frame % 997)), 1000 / 24);
-    return () => clearInterval(t);
-  }, [animated]);
-  return (
-    <svg aria-hidden data-motion className="pointer-events-none absolute inset-0 h-full w-full mix-blend-soft-light" style={{ opacity }}>
-      <filter id={id}><feTurbulence ref={turb} type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch" seed="0" /><feColorMatrix type="saturate" values="0" /></filter>
-      <rect width="100%" height="100%" filter={`url(#${id})`} />
-    </svg>
-  );
-}
-
-/** Grain is a modifier, so the preview is the grain over the surface it grains and nothing else: the `.sky` house
-    gradient at 24 fps soft-light, full bleed. */
-export function GrainPreview() {
-  return (
-    <div className="absolute inset-0 overflow-hidden" style={{ background: `linear-gradient(135deg, ${blocks.sky}, ${blocks.lilac})` }}>
-      <GrainLayer id="sp-grain-surface" opacity={0.75} />
     </div>
   );
 }
@@ -183,39 +124,6 @@ export function TouchGridPreview() {
   return (
     <div className="absolute inset-0 overflow-hidden" style={{ background: ground.bg }}>
       <canvas ref={ref} data-motion className="absolute inset-0 h-full w-full touch-none" aria-hidden />
-    </div>
-  );
-}
-
-// MARK: - Ambient Mesh
-
-/** Ambient Mesh, `.standard` palette in dark: colour fields stand in for the interior mesh points (ground, deepened
-    lilac, deepened tangerine) and wander on the sum of three incommensurate sines, with soft-light grain at 0.18 on
-    top. The mesh is the piece, so it fills the stage alone. */
-export function AmbientMeshPreview() {
-  const ref = useRef<HTMLDivElement>(null);
-  const palette = [ground.bg, "#534c65", "#945d42"];
-  const fields: [number, number, number, number][] = [[0.28, 0.3, 1, 80], [0.62, 0.5, 1, 62], [0.95, 0.95, 2, 86], [0.82, 0.18, 2, 46], [0.12, 0.85, 0, 60]];
-  useEffect(() => {
-    const blobs = Array.from(ref.current!.children) as HTMLElement[], reduce = reduced();
-    let raf = 0;
-    const draw = (now: number) => {
-      const t = now / 1000;
-      blobs.forEach((b, i) => {
-        const s = i * 1.7, dx = (Math.sin(t * 0.21 + s) + Math.sin(t * 0.13 + s * 2) + Math.sin(t * 0.07 + s * 3)) / 3, dy = (Math.sin(t * 0.17 + s * 1.3) + Math.sin(t * 0.11 + s * 0.7) + Math.sin(t * 0.09 + s * 2.1)) / 3;
-        b.style.transform = `translate(${dx * 16}%, ${dy * 16}%)`;
-      });
-      if (!reduce) raf = requestAnimationFrame(draw);
-    };
-    raf = requestAnimationFrame(draw);
-    return () => cancelAnimationFrame(raf);
-  }, []);
-  return (
-    <div className="absolute inset-0 overflow-hidden" style={{ background: palette[0] }}>
-      <div ref={ref} aria-hidden className="absolute inset-0">
-        {fields.map(([x, y, c, size], i) => <div key={i} data-motion className="absolute rounded-full" style={{ width: `${size}%`, aspectRatio: "1", left: `${x * 100}%`, top: `${y * 100}%`, translate: "-50% -50%", background: palette[c], filter: "blur(9cqw)" }} />)}
-      </div>
-      <GrainLayer id="sp-mesh-grain" opacity={0.18} animated={false} />
     </div>
   );
 }

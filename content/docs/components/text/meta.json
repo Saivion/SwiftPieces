@@ -4,7 +4,6 @@
   "defaultOpen": false,
   "pages": [
     "glass-text",
-    "text-reveal",
-    "weight-wave"
+    "text-reveal"
   ]
 }

@@ -38,7 +38,7 @@ npx swiftpieces add AssistantOrb SwipeDeck GlassMenu
 
 Or open the file on [swiftpieces.com/components](https://swiftpieces.com/components) and copy it. There is nothing to install and no package to track.
 
-**53 pieces across 14 categories:** text, backgrounds, glass, controls, inputs, cards, lists, navigation, sheets, feedback, motion, data, AI and media.
+**48 pieces across 14 categories:** text, backgrounds, glass, controls, inputs, cards, lists, navigation, sheets, feedback, motion, data, AI and media.
 
 ## What you get
 

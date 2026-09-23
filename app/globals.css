@@ -24,6 +24,15 @@
    components/previews/palette.ts `ground.bg`), so a piece that does not fill its tile still
    matches the ones that do. */
 .stage-ground { background-color: #121212; }
+/* A clear stage drops the ground each preview paints for itself (palette.ts `ground.bg`, set inline
+   as #121212 by every preview's Stage wrapper), so the piece sits straight on the dashed frame. */
+.stage-clear [style*="background: rgb(18, 18, 18)"] { background: transparent !important; }
+/* Landing visuals: an unfilled frame with a fine dashed edge (4 on, 6 off), drawn as an SVG so the
+   dashes stay thin and follow the 16px corners, which a CSS dashed border cannot do. */
+.frame-dashed::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: inherit;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100%25' height='100%25'%3E%3Crect x='0.5' y='0.5' width='calc(100%25 - 1px)' height='calc(100%25 - 1px)' rx='15.5' fill='none' stroke='%23ffffff' stroke-opacity='0.16' stroke-dasharray='4 6'/%3E%3C/svg%3E");
+}
 
 /* Black panels need one lit edge or they read as holes: a 1px top highlight, nothing more. */
 .card,

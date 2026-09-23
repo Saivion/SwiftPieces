@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import { PreviewFrame } from "@/components/previews/frame";
+import { CornerTicks } from "@/components/sections/feature-row";
 import { PiecePreview } from "@/components/previews";
 import { useInView } from "@/lib/use-in-view";
 
@@ -89,18 +90,20 @@ export function AgentDemo() {
   };
 
   return (
-    <div ref={root} className="stage-ground relative grid gap-5 overflow-hidden rounded-[16px] border border-white/[0.08] p-4 sm:h-[560px] sm:grid-cols-[1fr_240px] sm:p-5">
+    <div ref={root} className="frame-dashed relative grid gap-5 rounded-[16px] p-4 sm:h-[560px] sm:grid-cols-[1fr_240px] sm:p-5">
+      <CornerTicks />
       {/* The piece: appears with the first message, restyled by the next two. */}
       <div className="flex items-center justify-center">
         <div className="scrub-tint w-full max-w-[560px] transition-[opacity,transform] duration-500 ease-out" style={chart}>
-          <PreviewFrame aspect="aspect-[4/3]" className="rounded-none!">
+          <PreviewFrame tone="clear" aspect="aspect-[4/3]" className="rounded-none!">
             {applied >= 1 ? <PiecePreview name="ScrubChart" /> : null}
           </PreviewFrame>
         </div>
       </div>
 
-      {/* The chat: the thread fills from the bottom, the composer sits under it. */}
-      <div className="flex h-[300px] flex-col rounded-[14px] bg-white/[0.03] p-3 sm:h-auto">
+      {/* The chat: the thread fills from the bottom, the composer sits under it. Split from the piece by
+          a dashed rule rather than boxed, so the frame stays one open canvas. */}
+      <div className="flex h-[300px] flex-col border-t border-dashed border-white/[0.12] pt-4 sm:h-auto sm:border-t-0 sm:border-l sm:pt-0 sm:pl-5">
         <div className="flex flex-1 flex-col justify-end gap-2.5 overflow-hidden">
           {TURNS.slice(0, sent).map((turn, i) => (
             <div key={turn.ask} className="chat-in flex flex-col items-end gap-1">

@@ -4,7 +4,6 @@
   "defaultOpen": false,
   "pages": [
     "depth-carousel",
-    "pull-to-refresh",
     "status-timeline",
     "swipe-action-row",
     "task-row"

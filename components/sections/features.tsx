@@ -58,16 +58,16 @@ function PiecesVisual() {
     <div className="relative md:mr-8 md:mb-14 md:ml-10">
       <Panel>
         {/* Previews scale with the stage's width, so the stage is held narrow and square: the top card
-            has headroom to lift and swing without meeting the edge, and the panel's ground (the same
-            #121212) fills the width around it. */}
-        <div className="stage-ground flex justify-center">
-          <PreviewFrame aspect="aspect-square" className="w-full max-w-[400px] overflow-visible! rounded-none!">
+            has headroom to lift and swing without meeting the edge. No ground: the deck sits straight
+            on the dashed frame. */}
+        <div className="flex justify-center">
+          <PreviewFrame tone="clear" aspect="aspect-square" className="w-full max-w-[400px] overflow-visible! rounded-none!">
             <PiecePreview name="SwipeDeck" />
           </PreviewFrame>
         </div>
       </Panel>
       <Floating className="hidden w-full md:-top-10 md:-right-8 md:block md:w-[220px]">
-        <PreviewFrame aspect="aspect-[4/3]" className="m-2 rounded-[10px]!">
+        <PreviewFrame tone="clear" aspect="aspect-[4/3]" className="m-2 rounded-[10px]!">
           <PiecePreview name="ReactionToggle" />
         </PreviewFrame>
       </Floating>

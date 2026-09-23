@@ -3,9 +3,6 @@
   "description": "Quiet atmospheres: shaders, meshes and touch-reactive fields.",
   "defaultOpen": false,
   "pages": [
-    "ambient-mesh",
-    "aurora",
-    "grain",
     "silk",
     "touch-grid"
   ]
