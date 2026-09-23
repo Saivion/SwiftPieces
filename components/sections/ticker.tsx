@@ -22,8 +22,8 @@ export function Ticker() {
             <span key={i} className="t-meta inline-flex items-center gap-3 text-muted">
               <span className="text-foreground">{r.v}</span>
               {r.pro ? (
-                // Pro counts shimmer through the Pro palette, each offset so they never move in step.
-                <span className="pro-shimmer" style={{ animationDelay: `${-(i % 3) * 2.5}s` }}>{r.n}</span>
+                // Pro counts shimmer through the Pro palette together: one shared phase, so they read as a set.
+                <span className="pro-shimmer">{r.n}</span>
               ) : (
                 <span className="text-accent">{r.n}</span>
               )}
