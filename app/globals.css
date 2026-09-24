@@ -220,7 +220,8 @@
 @property --scrub-surface { syntax: "<color>"; inherits: true; initial-value: #1c1c1c; }
 @property --scrub-raised { syntax: "<color>"; inherits: true; initial-value: #262626; }
 @property --scrub-chip { syntax: "<color>"; inherits: true; initial-value: #a9dcb7; }
-.scrub-tint { transition: --scrub-accent 0.7s ease, --scrub-line 0.7s ease, --scrub-surface 0.7s ease, --scrub-raised 0.7s ease, --scrub-chip 0.7s ease; }
+@property --scrub-down { syntax: "<color>"; inherits: true; initial-value: #ff0000; }
+.scrub-tint { transition: --scrub-accent 0.7s ease, --scrub-line 0.7s ease, --scrub-surface 0.7s ease, --scrub-raised 0.7s ease, --scrub-chip 0.7s ease, --scrub-down 0.7s ease; }
 @media (prefers-reduced-motion: reduce) { .scrub-tint { transition: none; } }
 .chat-in { animation: chat-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both; }
 @keyframes chat-in { from { opacity: 0; transform: translateY(8px); } }

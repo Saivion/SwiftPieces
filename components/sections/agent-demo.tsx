@@ -23,13 +23,17 @@ const TURNS = [
   { ask: "Square off the corners", reply: "Corner radius 30 → 0" },
 ] as const;
 
-/** The scheme the second turn applies: the brand red on a red-tinted card. */
+/**
+ * The scheme the second turn applies. Crimson, not brick: a cool wine-black card, a vivid
+ * rose-red accent and a blush line, so the red reads rich rather than brown.
+ */
 const RED_SCHEME = {
-  "--scrub-accent": "#ff0000",
-  "--scrub-line": "#ffd4d4",
-  "--scrub-surface": "#2a1414",
-  "--scrub-raised": "#3d1c1c",
-  "--scrub-chip": "#ff8a80",
+  "--scrub-accent": "#ff2d55",
+  "--scrub-line": "#ffc2cf",
+  "--scrub-surface": "#1f0a11",
+  "--scrub-raised": "#3a1120",
+  "--scrub-chip": "#ff8fa6",
+  "--scrub-down": "#ff5c7a",
 } as const;
 
 type Cursor = "off" | "rest" | "aim" | "press";

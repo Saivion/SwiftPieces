@@ -118,13 +118,14 @@ const stamp = (i: number) => { const days = ["WED", "THU", "FRI", "MON", "TUE"],
  * The chart's colour scheme and corner radius are CSS variables, so a host can restyle the whole piece
  * (the landing page's agent demo does). Each falls back to the house palette:
  * accent (scrub dot, range pill), line (the line, rules, flag), surface (card, dot ring, flag text),
- * raised (range track, held band), chip (the rising delta chip), and `--scrub-radius` for the card.
+ * raised (range track, held band), chip and down (the rising and falling delta chips), and `--scrub-radius` for the card.
  */
 const SCRUB_ACCENT = `var(--scrub-accent, ${blocks.butter})`;
 const SCRUB_LINE = `var(--scrub-line, ${ground.text})`;
 const SCRUB_SURFACE = `var(--scrub-surface, ${ground.surface})`;
 const SCRUB_RAISED = `var(--scrub-raised, ${ground.raised})`;
 const SCRUB_CHIP = `var(--scrub-chip, ${blocks.sage})`;
+const SCRUB_DOWN = `var(--scrub-down, ${blocks.tangerine})`;
 
 export function ScrubChartPreview() {
   const [phase, setPhase] = useState(0);
@@ -148,7 +149,7 @@ export function ScrubChartPreview() {
         <p style={meta}>{band ? `${stamp(band[0])} – ${stamp(band[1])}` : active !== null ? stamp(active) : `Latest · ${RANGES[range][0]}`}</p>
         <div className="flex items-center" style={{ gap: pt(8), marginTop: pt(6) }}>
           <Numeral text={(band ? (shown < 0 ? "−" : "+") : "") + usd(Math.abs(shown))} size={32} />
-          <DeltaChip up={up} fill={up ? SCRUB_CHIP : undefined}>{!band && `${up ? "+" : "−"}${usd(Math.abs(chipTo - chipFrom))} `}{(Math.abs((chipTo - chipFrom) / chipFrom) * 100).toFixed(1)}%</DeltaChip>
+          <DeltaChip up={up} fill={up ? SCRUB_CHIP : SCRUB_DOWN}>{!band && `${up ? "+" : "−"}${usd(Math.abs(chipTo - chipFrom))} `}{(Math.abs((chipTo - chipFrom) / chipFrom) * 100).toFixed(1)}%</DeltaChip>
         </div>
         <svg viewBox={`0 0 ${W} ${H}`} className="block w-full overflow-visible" style={{ marginTop: pt(10) }} aria-hidden>
           {band ? <rect data-motion x={p[band[0]][0]} width={p[band[1]][0] - p[band[0]][0]} y={0} height={H} rx={8} style={{ fill: SCRUB_RAISED, transition: `width .25s ${ease}` }} /> : null}

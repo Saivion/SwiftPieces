@@ -23,7 +23,7 @@ export function Hero() {
           <div className="max-w-[46rem]">
             <Reveal priority><Eyebrow>New Components Every Week<LiveViews /></Eyebrow></Reveal>
             <AnimatedText as="h1" text="Native SwiftUI that feels alive." accent="alive" className="mt-8 text-[42px] leading-[1.02] font-medium tracking-[-0.035em] text-balance sm:text-[52px] lg:text-[60px]" />
-            <Reveal priority delay={0.35}><p className={cn("mt-6 max-w-xl", sectionBody)}>Designed SwiftUI interactions: swipe decks, glass menus, floating docks, scrubbable charts. One file each, iOS 17 and up, with the motion, haptics and states already done.</p></Reveal>       
+            <Reveal priority delay={0.35}><p className={cn("mt-6 max-w-xl", sectionBody)}>Production SwiftUI components, one file each. Motion, haptics and accessibility included.</p></Reveal>       
             <Reveal priority delay={0.45} className="mt-9 flex flex-wrap items-center gap-3">
               <Button href="/components">Browse the library <Arrow /></Button>
               {/* Same h-11 as the md Button, with its 10px corner and hairline so the pair reads as one row. */}
