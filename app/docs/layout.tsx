@@ -93,7 +93,7 @@ export default async function Layout({ children }: { children: ReactNode }) {
               { label: "Components", href: "/components" },
               { label: "Pro", href: "/pro" },
               { label: "Pricing", href: pro.pricing, external: true },
-              { label: "Sponsor", href: "/sponsors" },
+              { label: "Sponsors", href: "/sponsors" },
               { label: "GitHub", href: site.github, external: true },
             ]}
           />

@@ -15,7 +15,7 @@ const links: { label: string; href: string; badge?: string }[] = [
   { label: "Components", href: "/components" },
   { label: "Docs", href: "/docs" },
   { label: "Pro", href: "/pro" },
-  { label: "Sponsor", href: "/sponsors", badge: "New" },
+  { label: "Sponsors", href: "/sponsors", badge: "New" },
 ];
 
 
