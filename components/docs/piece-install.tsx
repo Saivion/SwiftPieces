@@ -2,6 +2,7 @@ import type { RegistryIndexEntry } from "@/lib/registry-schema";
 import { cliCommand, mcpPrompt } from "@/lib/registry-paths";
 import { Command } from "@/components/ui/code";
 import { pro } from "@/lib/site";
+import { WebBridgeNote } from "@/components/sections/web-bridge-note";
 
 /**
  * Two ways to install, not two steps: the terminal command, or a prompt for a coding agent that is
@@ -27,6 +28,7 @@ export function PieceInstall({ item }: { item: RegistryIndexEntry }) {
       </div>
 
       <p className="mt-5 text-[12.5px] text-muted">Or copy the source above into your app.</p>
+      <WebBridgeNote className="mt-6" />
       <p className="mt-6 flex items-center gap-2 rounded-[var(--radius)] bg-surface px-4 py-3 text-[12.5px] text-muted">
         <span className="size-1.5 shrink-0 rounded-full bg-accent" />
         Building a whole app?{" "}

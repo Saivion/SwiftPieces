@@ -4,6 +4,8 @@ interface CloudflareEnv {
   VIEWS_AE?: AnalyticsEngineDataset;
   /** The durable running total and the aggregation cursor. See lib/views.ts. */
   VIEWS?: KVNamespace;
+  /** Playground product events (app/api/events). Allow-listed names and enum values only. */
+  BUILDER_AE?: AnalyticsEngineDataset;
   /** Per-IP ceiling on /api/views writes. */
   VIEWS_LIMITER?: { limit(options: { key: string }): Promise<{ success: boolean }> };
   /** Per-IP ceiling on the rest of /api and /r (middleware.ts). */

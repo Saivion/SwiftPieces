@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "next dev",
-    "build": "npm run registry:build && next build",
+    "build": "npm run registry:build && npm run builder:build && next build",
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
@@ -17,8 +17,10 @@
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
     "deploy": "opennextjs-cloudflare build && npm run audit:public && opennextjs-cloudflare deploy",
     "upload": "opennextjs-cloudflare build && opennextjs-cloudflare upload",
-    "cf:build": "npm run brand:build && opennextjs-cloudflare build && npm run audit:public",
+    "cf:build": "npm run brand:build && npm run builder:build && opennextjs-cloudflare build && npm run audit:public",
     "brand:build": "npm run build --workspace packages/brand",
+    "builder:build": "npm run build --workspace packages/builder",
+    "builder:test": "npm test --workspace packages/builder",
     "cli:build": "npm run build --workspace packages/cli",
     "audit:public": "bash scripts/audit-public.sh"
   },
@@ -35,7 +37,8 @@
     "react-dom": "^19.3.0",
     "yaml": "^2.9.1",
     "zod": "^4.6.5",
-    "@swiftpieces/brand": "^0.2.0"
+    "@swiftpieces/brand": "^0.2.0",
+    "@swiftpieces/builder": "^0.1.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.3",

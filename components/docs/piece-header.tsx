@@ -3,6 +3,8 @@ import { PreviewFrame } from "@/components/previews/frame";
 import { PiecePreview } from "@/components/previews";
 import { Badge } from "@/components/ui/badge";
 import { proScreens, proScreenUrl } from "@/lib/pro-screens";
+import { playgroundComponentId } from "@swiftpieces/builder";
+import { playgroundComponentHref } from "@/lib/playground";
 import { cn } from "@/lib/cn";
 
 /**
@@ -13,6 +15,7 @@ import { cn } from "@/lib/cn";
 export function PieceHeader({ item }: { item: RegistryIndexEntry }) {
   const video = item.preview.video || item.preview.videoMp4;
   const black = video || item.category === "backgrounds";
+  const playground = playgroundComponentId(item.name);
   const details = [
     { label: "Type", value: item.name, mono: true },
     { label: "Files", value: [...item.files, ...item.shaders].map((f) => f.target.split("/").pop()).join(", "), mono: true },
@@ -35,6 +38,18 @@ export function PieceHeader({ item }: { item: RegistryIndexEntry }) {
           )}
         </div>
       </div>
+
+      {playground ? (
+        <div className="flex flex-wrap items-center gap-2">
+          <a href={playgroundComponentHref(playground)} className="btn-solid inline-flex h-9 items-center gap-2 rounded-[4px] px-4 text-[12.5px] font-semibold">
+            Customize this component <span aria-hidden>→</span>
+          </a>
+          <a href="#source" className="inline-flex h-9 items-center gap-2 rounded-[4px] bg-surface-2 px-4 text-[12.5px] font-semibold text-foreground transition-colors hover:bg-surface-3">
+            View SwiftUI <span aria-hidden>↓</span>
+          </a>
+          <span className="text-[12px] text-muted">Change it visually, compose a screen, export to Xcode. No account needed.</span>
+        </div>
+      ) : null}
 
       <div className="rounded-[var(--radius)] bg-surface p-5">
         <div className="flex flex-wrap gap-1.5">
