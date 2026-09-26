@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 import { createMDX } from "fumadocs-mdx/next";
 import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
+import { categories } from "./lib/categories";
 
 // Lets `next dev` see Cloudflare bindings (D1, R2, KV) from wrangler.jsonc.
 initOpenNextCloudflareForDev();
@@ -18,6 +19,9 @@ const SECURITY_HEADERS = [
 // builds (no WORKERS_CI_BRANCH) use whatever .env.production holds.
 const branch = process.env.WORKERS_CI_BRANCH;
 const beaconToken = branch && branch !== "main" ? "" : (process.env.NEXT_PUBLIC_CF_BEACON_TOKEN ?? "");
+
+/** Every category slug, for the redirects below. */
+const CATEGORY_SLUGS = Object.values(categories).map((c) => c.slug).join("|");
 
 const config: NextConfig = {
   env: { SP_BEACON_TOKEN: beaconToken },
@@ -40,6 +44,10 @@ const config: NextConfig = {
       { source: "/docs", destination: "/docs/introduction", permanent: true },
       // The Pro overview moved from /pricing to /pro: Free shows no prices, pricing lives on Pro.
       { source: "/pricing", destination: "/pro", permanent: true },
+      // Category filters used to be query strings on /components; each category has its own page now.
+      { source: "/components", has: [{ type: "query", key: "category", value: "(?<category>[a-z]+)" }], destination: "/components/:category", permanent: true },
+      // The docs sidebar's category folders have no page of their own; their URL leads to the hub.
+      { source: `/docs/components/:category(${CATEGORY_SLUGS})`, destination: "/components/:category", permanent: true },
     ];
   },
   async rewrites() {

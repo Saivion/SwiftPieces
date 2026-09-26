@@ -23,6 +23,7 @@ import {
 } from "../lib/registry-schema";
 import { categories } from "../lib/categories";
 import { proCatalog, proCountsLabel } from "../lib/pro-catalog";
+import { hubs, hubItems, hubPath } from "../lib/hubs";
 
 const ROOT = join(import.meta.dirname, "..");
 const SWIFT_DIR = join(ROOT, "registry/swift");
@@ -260,7 +261,7 @@ function writeDocs(items: RegistryItem[]) {
   mkdirSync(root, { recursive: true });
 
   const cats = (Object.keys(categories) as Category[]).filter((c) => items.some((i) => i.category === c));
-  writeFileSync(join(root, "index.mdx"), `---\ntitle: "All components"\ndescription: "Every free piece. Filter by category, open a piece for its parameters, source and install commands."\nindex: true\n---\n\n{/* GENERATED FILE. Edit scripts/build-registry.ts. */}\n`);
+  writeFileSync(join(root, "index.mdx"), `---\ntitle: "All SwiftUI components"\ndescription: "Every free Swift Pieces component for iOS with a live preview. Filter by category, then open a piece for its notes, parameters, source and install command."\nindex: true\n---\n\n{/* GENERATED FILE. Edit scripts/build-registry.ts. */}\n`);
   writeFileSync(join(root, "meta.json"), JSON.stringify({
     title: "Components",
     root: true,
@@ -286,16 +287,41 @@ function writeDocs(items: RegistryItem[]) {
       writeFileSync(join(dir, `${item.slug}.mdx`), `---\n${fm}\n---\n\n{/* GENERATED FILE. Edit registry/swift/${item.category}/${item.name}.swift or ${item.name}.mdx instead. */}\n\n${docs.summary}\n\n${prose}\n\n${usage}\n${paramsTable}\n## Source\n\n<Tabs items={[${tabNames}]}>\n${sourceTabs}\n</Tabs>\n`);
     }
   }
-  writeFileSync(join(DOCS_DIR, "meta.json"), JSON.stringify({ title: "Swift Pieces", pages: ["introduction", "installation", "cli", "mcp", "liquid-glass", "components"] }, null, 2));
+  writeFileSync(join(DOCS_DIR, "meta.json"), JSON.stringify({ title: "Swift Pieces", pages: ["introduction", "installation", "cli", "mcp", "liquid-glass", "guides", "components"] }, null, 2));
+}
+
+/** Frontmatter and body of each guide, in the sidebar's order, for llms.txt and llms-full.txt. */
+function readGuides(): { title: string; description: string; url: string; body: string }[] {
+  const dir = join(DOCS_DIR, "guides");
+  if (!existsSync(dir)) return [];
+  const meta = JSON.parse(readFileSync(join(dir, "meta.json"), "utf8")) as { pages: string[] };
+  return meta.pages
+    .filter((slug) => slug !== "index" && existsSync(join(dir, `${slug}.mdx`)))
+    .map((slug) => {
+      const raw = readFileSync(join(dir, `${slug}.mdx`), "utf8");
+      const m = raw.match(/^---\n([\s\S]*?)\n---\n?/);
+      const fm = (m ? parseYaml(m[1]) : {}) as { title?: string; description?: string };
+      return { title: fm.title ?? slug, description: fm.description ?? "", url: `${SITE_URL}/docs/guides/${slug}`, body: m ? raw.slice(m[0].length).trim() : raw };
+    });
 }
 
 function writeLlms(items: RegistryItem[]) {
   const byCat = new Map<string, RegistryItem[]>();
   for (const i of items) byCat.set(i.category, [...(byCat.get(i.category) ?? []), i]);
+  const guides = readGuides();
+  const catCount = new Set(items.map((i) => i.category)).size;
   const lines = [
     "# Swift Pieces",
     "",
-    "> Animated SwiftUI components, Liquid Glass (iOS 26) effects, and Metal shaders you copy into your app. Free pieces are MIT + Commons Clause. Install by copy-paste, `npx swiftpieces add <Name>`, or the Swift Pieces MCP server.",
+    `> Swift Pieces (swiftpieces.com) is a free library of ${items.length} SwiftUI components for iOS in ${catCount} categories: animated, gesture-driven interactions such as a swipeable card stack, Liquid Glass (iOS 26) menus, a floating tab bar, interactive charts, form inputs and AI chat surfaces. Each piece is one self-contained Swift file (plus a .metal file where a shader is involved) on Apple frameworks only, from iOS 17. Install by copy-paste, \`npx swiftpieces add <Name>\`, or the Swift Pieces MCP server.`,
+    "",
+    "Key facts:",
+    "",
+    "- License: MIT + Commons Clause. Free for personal and commercial apps, including client work. Source-available rather than OSI open source: the pieces themselves may not be sold or redistributed.",
+    "- No dependencies and no Swift package: the CLI copies source files into a SwiftPieces folder in the app, and they become the developer's own code.",
+    "- iOS 17 baseline. Liquid Glass pieces gate glass with `#available(iOS 26, *)` and fall back to Material.",
+    "- Motion, states and accessibility are built in (Dynamic Type, Reduce Motion, Reduce Transparency), with haptics (sensoryFeedback) where an interaction calls for them.",
+    `- Source: ${"https://github.com/Saivion/SwiftPieces"}`,
     "",
     "Rules for Liquid Glass: gate with `#available(iOS 26, *)` and a Material fallback; wrap multiple glass views in one `GlassEffectContainer`; apply `.glassEffect` after layout modifiers; respect `accessibilityReduceTransparency`; never use invented modifiers such as `.liquidGlassUltra`.",
     "",
@@ -304,25 +330,79 @@ function writeLlms(items: RegistryItem[]) {
     `- [Introduction](${SITE_URL}/docs/introduction)`,
     `- [Installation](${SITE_URL}/docs/installation)`,
     `- [CLI](${SITE_URL}/docs/cli)`,
+    `- [MCP and agents](${SITE_URL}/docs/mcp)`,
+    `- [SwiftUI Liquid Glass guide](${SITE_URL}/docs/liquid-glass)`,
     `- [Registry index (JSON)](${SITE_URL}/r/index.json)`,
     `- [Free MCP endpoint](${SITE_URL}/api/mcp): search_pieces, get_piece, install_piece, list_categories, get_liquid_glass_guide`,
+    `- [Full text for LLMs](${SITE_URL}/llms-full.txt): every piece's notes and parameters, and every guide`,
+    "",
+  ];
+  if (guides.length) {
+    lines.push("## Guides", "");
+    for (const g of guides) lines.push(`- [${g.title}](${g.url}): ${g.description}`);
+    lines.push("");
+  }
+  lines.push("## Collections", "");
+  for (const h of hubs) lines.push(`- [${h.h1}](${SITE_URL}${hubPath(h.slug)}): ${h.description} (${hubItems(h, items).length} pieces)`);
+  lines.push(
     "",
     "## Swift Pieces Pro",
     "",
-    `The complete library: ${proCountsLabel} (production-ready SwiftUI screens, complete Xcode projects, and agent skills that build the rest in the same design) at ${PRO_URL}/library. Plan and pricing: ${PRO_URL}/pro. Pro MCP endpoint: ${PRO_URL}/api/mcp (license key required): search_library, get_item, list_kit, get_kit_item, apply_design_skill, apply_recipe.`,
+    `A separate paid library for building whole apps: ${proCountsLabel} (production-ready SwiftUI screens, complete Xcode projects, and agent skills that build the rest in the same design) at ${PRO_URL}/library. One plan with lifetime access; plan and pricing: ${PRO_URL}/pro. Pro MCP endpoint: ${PRO_URL}/api/mcp (license key required): search_library, get_item, list_kit, get_kit_item, apply_design_skill, apply_recipe.`,
     "",
-  ];
+  );
   for (const [cat, list] of byCat) {
-    lines.push(`## ${cat}`, "");
+    lines.push(`## ${categories[cat as Category].title} (${SITE_URL}${hubPath(categories[cat as Category].slug)})`, "");
     for (const i of list) {
       lines.push(
-        `- [${i.title}](${i.docs}): ${i.description} (iOS ${i.minIOSVersion}+${i.liquidGlass ? ", Liquid Glass" : ""}${i.metal ? ", Metal" : ""}). Registry: ${SITE_URL}/r/${i.name}.json`,
+        `- [${i.title}](${i.docs}): ${i.description} (iOS ${i.minIOSVersion}+${i.liquidGlass ? ", Liquid Glass" : ""}${i.metal ? ", Metal" : ""}). Install: \`npx swiftpieces add ${i.name}\`. Registry: ${SITE_URL}/r/${i.name}.json`,
       );
     }
     lines.push("");
   }
   mkdirSync(join(ROOT, "public"), { recursive: true });
   writeFileSync(join(ROOT, "public/llms.txt"), lines.join("\n"));
+  writeLlmsFull(items, guides);
+}
+
+/**
+ * llms-full.txt: the whole free library as one plain document for assistants that read a site in
+ * one request. Each piece's summary, notes and parameters (not its source, which the registry
+ * serves), then each guide in full.
+ */
+function writeLlmsFull(items: RegistryItem[], guides: ReturnType<typeof readGuides>) {
+  const out = [
+    "# Swift Pieces: full text",
+    "",
+    `> ${items.length} free SwiftUI components for iOS, one Swift file each, MIT + Commons Clause. Index: ${SITE_URL}/llms.txt. Source for any piece: ${SITE_URL}/r/<Name>.json or its docs page.`,
+    "",
+    "# Components",
+    "",
+  ];
+  for (const item of items) {
+    const docs = extractDocs(item.files[0].content ?? "");
+    const sidecar = join(SWIFT_DIR, item.category, `${item.name}.mdx`);
+    const prose = existsSync(sidecar) ? readFileSync(sidecar, "utf8").trim() : "";
+    out.push(
+      `## ${item.title} (\`${item.name}\`)`,
+      "",
+      `URL: ${item.docs}`,
+      `Category: ${categories[item.category].title}. iOS ${item.minIOSVersion}+${item.liquidGlass ? ". Liquid Glass on iOS 26 with a Material fallback" : ""}${item.metal ? ". Metal shader" : ""}.`,
+      `Files: ${[...item.files, ...item.shaders].map((f) => basename(f.target)).join(", ")}`,
+      `Install: npx swiftpieces add ${item.name}`,
+      "",
+      item.description,
+      "",
+      ...(docs.summary ? [docs.summary, ""] : []),
+      ...(prose ? [prose.replace(/^## /gm, "### "), ""] : []),
+      ...(docs.params.length ? ["### Parameters", "", ...docs.params.map((p) => `- \`${p.name}\`: ${p.text}`), ""] : []),
+    );
+  }
+  if (guides.length) {
+    out.push("# Guides", "");
+    for (const g of guides) out.push(`## ${g.title}`, "", `URL: ${g.url}`, "", g.body.replace(/^(#{2,5}) /gm, "#$1 "), "");
+  }
+  writeFileSync(join(ROOT, "public/llms-full.txt"), out.join("\n"));
 }
 
 function writeSchema() {

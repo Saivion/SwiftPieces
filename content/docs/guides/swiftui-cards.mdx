@@ -1,0 +1,361 @@
+---
+title: "SwiftUI Cards: Card Views, Swipe Stacks and Flip Cards"
+description: "Build SwiftUI cards that feel native: continuous corners, layered shadows, press states, a swipeable card stack, a 3D flip card, tilt and scroll parallax."
+---
+
+A SwiftUI card is a view with a rounded, continuous-corner background, a soft shadow that separates it from the surface, and usually one interaction: tap, press, swipe or flip. There is no built-in `Card` type. You compose it from a shape, a background and modifiers, which means the quality is entirely in the details.
+
+This guide builds the common card patterns from scratch: a basic card, a pressable card, a Tinder-style swipe stack, a 3D flip card, a device-tilt card, and parallax in a scroll view. Everything targets iOS 17.
+
+## A basic card view
+
+Three details separate a card that looks native from one that looks like a web port: continuous corners, a layered shadow, and a hairline edge.
+
+```swift
+struct CardView: View {
+    let title: String
+    let subtitle: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(title).font(.title3.weight(.semibold))
+            Text(subtitle).font(.subheadline).foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(20)
+        .background(.background, in: .rect(cornerRadius: 24, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .strokeBorder(.primary.opacity(0.06))
+        }
+        .shadow(color: .black.opacity(0.06), radius: 1, y: 1)
+        .shadow(color: .black.opacity(0.08), radius: 16, y: 8)
+    }
+}
+```
+
+**Continuous corners.** `style: .continuous` gives the squircle curve Apple uses for app icons and system sheets. The default circular style has a visible kink where the straight edge meets the arc. On a large card you can see it.
+
+**Layered shadows.** One big blurry shadow looks like a glow. Real objects cast a tight contact shadow plus a wide ambient one. Stacking two `.shadow` modifiers, a small radius with low offset and a large radius with a larger offset, reads as depth without haze.
+
+**Hairline edge.** In dark mode shadows nearly vanish. A `strokeBorder` at very low opacity keeps the card's edge visible on any background. `strokeBorder` insets the stroke, so it never spills outside the shape.
+
+<Callout>
+Apply `.shadow` after `.background`, and make sure the background is opaque. A shadow on a translucent view is cast by every child, text included.
+</Callout>
+
+## A tappable, pressable card
+
+Wrap the card in a `Button` so it gets accessibility traits, keyboard support and correct hit testing for free. Then give it a press state with a custom `ButtonStyle`.
+
+```swift
+struct PressableCardStyle: ButtonStyle {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed && !reduceMotion ? 0.97 : 1)
+            .brightness(configuration.isPressed ? -0.02 : 0)
+            .animation(.spring(duration: 0.3, bounce: 0.25), value: configuration.isPressed)
+    }
+}
+
+struct PressableCardDemo: View {
+    var body: some View {
+        Button {
+            // open detail
+        } label: {
+            CardView(title: "Morning run", subtitle: "5.2 km, 27 min")
+        }
+        .buttonStyle(PressableCardStyle())
+        .padding()
+    }
+}
+```
+
+Keep the scale small. At 0.97 a full-width card visibly responds; at 0.9 it looks like it is falling away. The [SwiftUI buttons guide](/docs/guides/swiftui-buttons) covers press states in more depth.
+
+## A swipeable card stack
+
+The swipe stack has four parts: a `ZStack` of cards, a `DragGesture` on the top card only, a rotation that swings from the bottom edge, and a release rule that decides between throwing the card and snapping it back.
+
+```swift
+struct Profile: Identifiable {
+    let id = UUID()
+    let name: String
+    let color: Color
+}
+
+struct SwipeStack: View {
+    @State private var profiles: [Profile] = [
+        Profile(name: "Ada", color: .orange),
+        Profile(name: "Grace", color: .blue),
+        Profile(name: "Linus", color: .green)
+    ]
+    @State private var drag: CGSize = .zero
+
+    private let threshold: CGFloat = 120
+
+    var body: some View {
+        ZStack {
+            ForEach(Array(profiles.enumerated()), id: \.element.id) { index, profile in
+                let isTop = index == profiles.count - 1
+                card(profile)
+                    .offset(isTop ? drag : .zero)
+                    .rotationEffect(.degrees(isTop ? Double(drag.width / 20) : 0), anchor: .bottom)
+                    .scaleEffect(isTop ? 1 : 0.95)
+                    .gesture(isTop ? swipe : nil)
+                    .accessibilityAction(named: "Like") { remove(towards: 1) }
+                    .accessibilityAction(named: "Pass") { remove(towards: -1) }
+            }
+        }
+        .padding(24)
+    }
+
+    private func card(_ profile: Profile) -> some View {
+        RoundedRectangle(cornerRadius: 28, style: .continuous)
+            .fill(profile.color.gradient)
+            .overlay(alignment: .bottomLeading) {
+                Text(profile.name)
+                    .font(.largeTitle.bold())
+                    .foregroundStyle(.white)
+                    .padding(24)
+            }
+            .frame(height: 440)
+    }
+
+    private var swipe: some Gesture {
+        DragGesture()
+            .onChanged { drag = $0.translation }
+            .onEnded { value in
+                let projected = value.predictedEndTranslation.width
+                if abs(projected) > threshold {
+                    remove(towards: projected > 0 ? 1 : -1)
+                } else {
+                    withAnimation(.spring(duration: 0.4, bounce: 0.3)) { drag = .zero }
+                }
+            }
+    }
+
+    private func remove(towards direction: CGFloat) {
+        guard !profiles.isEmpty else { return }
+        withAnimation(.easeOut(duration: 0.25)) {
+            drag = CGSize(width: direction * 600, height: drag.height)
+        } completion: {
+            profiles.removeLast()
+            drag = .zero
+        }
+    }
+}
+```
+
+The details that matter:
+
+- **The top card is the last element.** In a `ZStack` later views draw on top, so `removeLast()` removes the visible card.
+- **Rotate from `.bottom`.** Rotating around the center makes the card spin in place. Anchoring at the bottom makes it swing like something held at its base, which is how a hand moves it.
+- **Use `predictedEndTranslation`, not `translation`.** It includes the gesture's velocity, so a short fast flick counts as a swipe while a slow drag that stops short springs back. This is the single biggest difference between a stack that feels right and one that feels sticky.
+- **Remove after the throw.** `withAnimation(_:completion:)` (iOS 17) lets the card finish leaving the screen before it is removed from the array.
+
+Production stacks need more: a badge that fades in with drag progress and locks at the threshold, the next card rising as the top one leaves, an up-swipe, a haptic at the threshold, and a way to trigger swipes from buttons. [Swipe Deck](/docs/components/cards/swipe-deck) does all of that, including a threshold tick through `sensoryFeedback`. The [SwiftUI haptics guide](/docs/guides/swiftui-haptics) explains that pattern.
+
+### Accessibility for swipes
+
+A swipe is invisible to VoiceOver. Every direction must also exist as a named action, which is what the `accessibilityAction(named:)` lines above do. VoiceOver users reach them through the actions rotor. Without them, the stack is unusable for anyone who cannot perform the gesture.
+
+## A 3D flip card
+
+A flip card rotates around the y axis with `rotation3DEffect`. Two problems catch everyone the first time: the back face renders mirrored, and both faces show during the turn.
+
+The fix for the mirror is to pre-rotate the back face 180 degrees, so the container's rotation cancels it out. The fix for the overlap is to choose the visible face from the current angle, on every frame of the animation. A view that conforms to `Animatable` gets exactly that.
+
+```swift
+struct FlipFaces<Front: View, Back: View>: View, Animatable {
+    var angle: Double
+    let front: Front
+    let back: Back
+
+    var animatableData: Double {
+        get { angle }
+        set { angle = newValue }
+    }
+
+    var body: some View {
+        let showsBack = angle > 90
+        ZStack {
+            front.opacity(showsBack ? 0 : 1)
+            back
+                .rotation3DEffect(.degrees(180), axis: (x: 0, y: 1, z: 0))
+                .opacity(showsBack ? 1 : 0)
+        }
+        .rotation3DEffect(.degrees(angle), axis: (x: 0, y: 1, z: 0), perspective: 0.5)
+    }
+}
+
+struct TwoSidedCard<Front: View, Back: View>: View {
+    @Binding var isFlipped: Bool
+    @ViewBuilder var front: Front
+    @ViewBuilder var back: Back
+
+    var body: some View {
+        FlipFaces(angle: isFlipped ? 180 : 0, front: front, back: back)
+            .animation(.spring(duration: 0.6, bounce: 0.15), value: isFlipped)
+            .contentShape(.rect)
+            .onTapGesture { isFlipped.toggle() }
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(isFlipped ? "Card back" : "Card front")
+            .accessibilityAddTraits(.isButton)
+            .accessibilityAction { isFlipped.toggle() }
+    }
+}
+```
+
+If you animated `opacity` directly with `isFlipped`, SwiftUI would cross-fade the faces over the whole turn, and at 90 degrees you would see half of each. Because `FlipFaces` is `Animatable`, its `body` runs with the interpolated angle, and the swap happens exactly when the card is edge-on. The `perspective` value controls how strong the depth looks; lower values flatten it.
+
+In a real app, replace the fixed accessibility label with a description of the visible face's content. [Flip Card](/docs/components/cards/flip-card) goes further: you can drag sideways to scrub the rotation, release commits or snaps back by velocity, the card lifts toward you mid-turn, and each face shades as it turns edge-on.
+
+## Device-tilt cards with Core Motion
+
+A card that tilts as you tilt the phone uses `CMMotionManager` device motion. Two rules matter more than the visual: filter the signal, and stop updates whenever the card is not on screen or the app is not active. Motion updates run the sensors continuously and cost battery.
+
+```swift
+import CoreMotion
+
+@Observable
+final class TiltModel {
+    var roll: Double = 0
+    var pitch: Double = 0
+    private let manager = CMMotionManager()
+    private var reference: CMAttitude?
+
+    func start() {
+        guard manager.isDeviceMotionAvailable, !manager.isDeviceMotionActive else { return }
+        reference = nil
+        manager.deviceMotionUpdateInterval = 1.0 / 60.0
+        manager.startDeviceMotionUpdates(to: .main) { [weak self] data, _ in
+            guard let self, let attitude = data?.attitude else { return }
+            // Measure tilt relative to how the phone was held when updates began.
+            if let reference = self.reference {
+                attitude.multiply(byInverseOf: reference)
+            } else {
+                self.reference = attitude.copy() as? CMAttitude
+            }
+            // Low-pass filter so the card drifts instead of jittering.
+            self.roll += (attitude.roll - self.roll) * 0.15
+            self.pitch += (attitude.pitch - self.pitch) * 0.15
+        }
+    }
+
+    func stop() {
+        manager.stopDeviceMotionUpdates()
+    }
+}
+
+struct TiltCard: View {
+    @State private var tilt = TiltModel()
+    @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        CardView(title: "Tilt me", subtitle: "Core Motion, filtered")
+            .rotation3DEffect(.degrees(tilt.pitch * 20), axis: (x: 1, y: 0, z: 0), perspective: 0.5)
+            .rotation3DEffect(.degrees(tilt.roll * 20), axis: (x: 0, y: 1, z: 0), perspective: 0.5)
+            .padding()
+            .onAppear { if !reduceMotion { tilt.start() } }
+            .onDisappear { tilt.stop() }
+            .onChange(of: scenePhase) { _, phase in
+                if phase == .active && !reduceMotion { tilt.start() } else { tilt.stop() }
+            }
+    }
+}
+```
+
+Attitude values are in radians, so a small multiplier gives a few degrees of tilt. Relative attitude matters: without the reference, a phone held upright reads as a large pitch and the card sits permanently tipped back.
+
+<Callout type="warn">
+Stop motion updates in `onDisappear` and when `scenePhase` leaves `.active`. A card in a scrolled-away tab that keeps the sensors running is a quiet battery drain that is hard to trace later. Under Reduce Motion, do not start updates at all.
+</Callout>
+
+[Motion Card](/docs/components/cards/motion-card) follows these rules: an exponential filter, a fixed-light sheen and layered shadow that slide as it turns, a press that settles it flat with a light impact, and Core Motion that stops whenever the scene is not active.
+
+## Parallax cards in a scroll view
+
+iOS 17 added `visualEffect`, which gives you a `GeometryProxy` for a view without a `GeometryReader` changing its layout. Read the view's frame in the `.scrollView` coordinate space and offset the inner content by a fraction of it.
+
+```swift
+struct ParallaxFeed: View {
+    let colors: [Color] = [.orange, .blue, .green, .pink, .purple]
+
+    var body: some View {
+        ScrollView {
+            LazyVStack(spacing: 20) {
+                ForEach(colors.indices, id: \.self) { index in
+                    RoundedRectangle(cornerRadius: 24, style: .continuous)
+                        .fill(colors[index].gradient)
+                        .overlay {
+                            Image(systemName: "mountain.2.fill")
+                                .font(.system(size: 72))
+                                .foregroundStyle(.white.opacity(0.9))
+                                .visualEffect { content, proxy in
+                                    let minY = proxy.frame(in: .scrollView).minY
+                                    return content.offset(y: -minY * 0.15)
+                                }
+                        }
+                        .frame(height: 220)
+                        .clipShape(.rect(cornerRadius: 24, style: .continuous))
+                }
+            }
+            .padding()
+        }
+    }
+}
+```
+
+With a photo instead of a symbol, make the image taller than the card by the maximum drift, so its edges never show through. [Parallax Card](/docs/components/cards/parallax-card) oversizes the image that way and moves a caption block at a slower rate still, so the card reads in three layers.
+
+For horizontal carousels, `scrollTransition` is simpler. It hands you a phase (`-1` leaving on one side, `0` centered, `1` on the other) and lets you scale, fade or rotate each card from it.
+
+```swift
+struct CarouselCards: View {
+    var body: some View {
+        ScrollView(.horizontal) {
+            LazyHStack(spacing: 16) {
+                ForEach(0..<8) { index in
+                    RoundedRectangle(cornerRadius: 24, style: .continuous)
+                        .fill(Color(hue: Double(index) / 8, saturation: 0.5, brightness: 0.9))
+                        .containerRelativeFrame(.horizontal, count: 1, spacing: 16)
+                        .frame(height: 300)
+                        .scrollTransition { content, phase in
+                            content
+                                .scaleEffect(phase.isIdentity ? 1 : 0.9)
+                                .opacity(phase.isIdentity ? 1 : 0.6)
+                                .rotation3DEffect(.degrees(phase.value * -20), axis: (x: 0, y: 1, z: 0))
+                        }
+                }
+            }
+            .scrollTargetLayout()
+        }
+        .scrollTargetBehavior(.viewAligned)
+        .contentMargins(.horizontal, 32, for: .scrollContent)
+    }
+}
+```
+
+[Depth Carousel](/docs/components/lists/depth-carousel) builds on this idea: paged cards recede in depth as they leave center, each page gets a phase value for its own inner parallax, and a scrubbable pill indicator tracks the page position.
+
+## Accessibility checklist for cards
+
+- Tappable cards are `Button`s, or at least carry `.isButton` and an action.
+- Every gesture (swipe, flip, drag) has an `accessibilityAction` equivalent.
+- Card content reads as one element where it makes sense (`.accessibilityElement(children: .combine)`), so VoiceOver does not stop on every label.
+- Tilt, parallax and 3D rotation are reduced or removed under Reduce Motion.
+- Text on image cards sits on an opaque block or a scrim with enough contrast.
+
+## Install a piece
+
+Browse every card in the [cards hub](/components/cards). Each is one Swift file using Apple frameworks only. From the folder that contains your `.xcodeproj`:
+
+```bash
+npx swiftpieces add SwipeDeck FlipCard MotionCard
+```
+
+See [installation](/docs/installation) for copy and paste and the details of what the CLI adds. For motion beyond cards, the [SwiftUI animations guide](/docs/guides/swiftui-animations) is the next stop.

@@ -23,8 +23,10 @@ const DESCRIPTION_MAX = 155;
 /**
  * A description that fits in a search snippet, built only from the page's own words: whole sentences
  * while they fit, otherwise the first sentence cut at a word boundary. Never adds claims.
+ * With `cut`, the text is filled up to the limit and cut at a word boundary, so a short lead
+ * sentence is followed by as much of the next one as fits instead of standing alone.
  */
-export function snippet(text: string, max = DESCRIPTION_MAX): string {
+export function snippet(text: string, max = DESCRIPTION_MAX, { cut: fill = false }: { cut?: boolean } = {}): string {
   const clean = text.replace(/\s+/g, " ").trim();
   if (clean.length <= max) return clean;
   const sentences = clean.match(/[^.!?]+[.!?]+(\s|$)/g) ?? [clean];
@@ -33,7 +35,7 @@ export function snippet(text: string, max = DESCRIPTION_MAX): string {
     if ((out + s).trim().length > max) break;
     out += s;
   }
-  if (out.trim()) return out.trim();
+  if (out.trim() && (!fill || out.trim().length > max * 0.75)) return out.trim();
   const cut = clean.slice(0, max - 1);
   return `${cut.slice(0, cut.lastIndexOf(" ")).replace(/[,;:\s]+$/, "")}…`;
 }
@@ -43,6 +45,7 @@ export function pageMetadata({
   description,
   path,
   image,
+  type = "website",
   absoluteTitle = false,
 }: {
   /** The page's own title. The layout template appends the site name unless `absoluteTitle`. */
@@ -52,6 +55,8 @@ export function pageMetadata({
   path: string;
   /** An absolute image URL for the share card. Defaults to the site card. */
   image?: string;
+  /** "article" for guides and piece pages, "website" (the default) for everything else. */
+  type?: "website" | "article";
   /** Use `title` as the whole title (the home page), without the " — Swift Pieces" suffix. */
   absoluteTitle?: boolean;
 }): Metadata {
@@ -63,7 +68,29 @@ export function pageMetadata({
     title: absoluteTitle ? { absolute: title } : title,
     description: desc,
     alternates: { canonical: url },
-    openGraph: { type: "website", siteName: site.name, url, title: full, description: desc, images },
+    openGraph: { type, siteName: site.name, url, title: full, description: desc, images },
     twitter: { card: "summary_large_image", title: full, description: desc, images: images.map((i) => i.url) },
+  };
+}
+
+/* ---------- Structured data ---------- */
+
+/** Stable ids, so every page's graph points at the same publisher and site nodes. */
+export const ORG_ID = `${site.url}/#organization`;
+export const WEBSITE_ID = `${site.url}/#website`;
+
+/** A BreadcrumbList from [name, path] pairs, home first. */
+export function breadcrumbJsonLd(trail: [name: string, path: string][]) {
+  return {
+    "@type": "BreadcrumbList",
+    itemListElement: trail.map(([name, path], i) => ({ "@type": "ListItem", position: i + 1, name, item: new URL(path, site.url).href })),
+  };
+}
+
+/** An FAQPage from the questions a page actually shows. */
+export function faqJsonLd(items: readonly { q: string; a: string }[]) {
+  return {
+    "@type": "FAQPage",
+    mainEntity: items.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
   };
 }

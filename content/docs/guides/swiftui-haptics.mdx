@@ -1,0 +1,278 @@
+---
+title: "SwiftUI Haptics: sensoryFeedback and Haptic Feedback"
+description: "A practical guide to SwiftUI haptics: sensoryFeedback triggers, conditions and feedback kinds, drag threshold ticks, UIKit generators, and restraint."
+---
+
+SwiftUI haptics are declarative: you attach `.sensoryFeedback(_:trigger:)` to a view, and SwiftUI plays the feedback every time the trigger value changes. It shipped in iOS 17, and in SwiftUI code it replaces most uses of `UIImpactFeedbackGenerator` in SwiftUI code because there is no generator to create, prepare or keep alive.
+
+The API is small. The hard part is taste: picking the right kind, firing it at the exact moment an animation crosses a meaningful line, and staying quiet the rest of the time. This guide covers all three.
+
+## The basic modifier
+
+`sensoryFeedback` watches an `Equatable` value. When the value changes, the feedback plays. You do not call anything imperatively, you change state.
+
+```swift
+struct SaveButton: View {
+    @State private var saves = 0
+
+    var body: some View {
+        Button("Save") {
+            // persist, then bump the trigger
+            saves += 1
+        }
+        .buttonStyle(.borderedProminent)
+        .sensoryFeedback(.success, trigger: saves)
+    }
+}
+```
+
+A counter is the most reliable trigger for one-shot events. A `Bool` works too, but it only fires when it flips, so setting `true` twice in a row plays once. If you want a haptic every time an event happens, increment an `Int`.
+
+## Three variants of sensoryFeedback
+
+There are three overloads, and each solves a different problem.
+
+### 1. Fixed feedback
+
+`.sensoryFeedback(.selection, trigger: value)` plays the same feedback on every change. Use it when every change means the same thing.
+
+### 2. Condition closure
+
+Pass a closure that receives the old and new values and returns `Bool`. The feedback plays only when it returns `true`. This lets you stack two modifiers on one trigger: a light tick for ordinary steps and a firmer bump at the bounds.
+
+```swift
+struct VolumeStepper: View {
+    @State private var level = 5
+
+    var body: some View {
+        Stepper("Level \(level)", value: $level, in: 0...10)
+            .sensoryFeedback(.selection, trigger: level) { oldValue, newValue in
+                newValue != 0 && newValue != 10
+            }
+            .sensoryFeedback(.impact(weight: .heavy), trigger: level) { _, newValue in
+                newValue == 0 || newValue == 10
+            }
+    }
+}
+```
+
+### 3. Feedback-returning closure
+
+The third form drops the first argument. The closure returns a `SensoryFeedback?`, so it can choose the kind per change, or return `nil` to stay silent.
+
+```swift
+struct CounterView: View {
+    @State private var count = 0
+
+    var body: some View {
+        HStack(spacing: 24) {
+            Button("Minus", systemImage: "minus") { count -= 1 }
+            Text("\(count)").monospacedDigit().font(.title)
+            Button("Plus", systemImage: "plus") { count += 1 }
+        }
+        .labelStyle(.iconOnly)
+        .sensoryFeedback(trigger: count) { oldValue, newValue in
+            newValue > oldValue ? .increase : .decrease
+        }
+    }
+}
+```
+
+[Scrub Stepper](/docs/components/inputs/scrub-stepper) uses exactly this shape: a selection tick while you scrub across the numeral, `.increase` or `.decrease` on taps, and a separate rigid impact at the bounds.
+
+## The feedback kinds
+
+`SensoryFeedback` has a fixed set of cases. They are semantic, so pick by meaning, not by how strong you want it to feel.
+
+| Kind | Use it for |
+| --- | --- |
+| `.selection` | A value moved one step: picker rows, slider steps, scrubbing across items. The lightest tick. |
+| `.impact(weight:intensity:)` | A physical collision. Weight is `.light`, `.medium` or `.heavy`, intensity is 0 to 1. |
+| `.impact(flexibility:intensity:)` | The same, described by material: `.rigid`, `.solid` or `.soft`. Rigid feels like a hard detent, soft like a cushion. |
+| `.success`, `.warning`, `.error` | The outcome of a task. Reserve these for results, not for taps. |
+| `.increase`, `.decrease` | A value went up or down, such as a stepper. |
+| `.alignment` | Something snapped into alignment, such as a dragged item meeting a guide. |
+| `.levelChange` | Moved between discrete levels, like pressure stages. |
+| `.start`, `.stop` | An activity began or ended, such as a recording or timer. |
+
+Plain `.impact` with no arguments also exists. The actual pattern each kind plays is up to the system and the hardware, and some kinds (`.alignment`, `.levelChange`, `.start`, `.stop`) were designed with other Apple platforms in mind, so test on a real iPhone before relying on one to feel distinct. The Simulator plays nothing.
+
+### A quick decision guide
+
+- The user is **choosing** among values: `.selection`.
+- Something **hit a wall** or **locked into place**: `.impact`, rigid or heavy.
+- Something **committed**: a single `.impact` at the moment of commit, then `.success` when the work actually finishes.
+- Something **failed**: `.error`, once, alongside a visible error state.
+
+## Haptics at animation thresholds
+
+The best haptics mark a moment the eye is already watching: a card crossing the point where release will throw it, a knob landing on a detent, a hold reaching its end. The pattern is always the same. Derive a discrete value from continuous gesture state, and put the haptic on the discrete value.
+
+### Tick when a drag crosses a threshold
+
+Drag offset changes every frame, so it is a terrible trigger. A `Bool` that says "past the threshold" changes twice per gesture at most.
+
+```swift
+struct PullToArchive: View {
+    @State private var offset: CGFloat = 0
+    @State private var isArmed = false
+    private let threshold: CGFloat = 120
+
+    var body: some View {
+        RoundedRectangle(cornerRadius: 20, style: .continuous)
+            .fill(isArmed ? Color.orange : Color.gray.opacity(0.2))
+            .frame(height: 80)
+            .offset(x: offset)
+            .gesture(
+                DragGesture()
+                    .onChanged { value in
+                        offset = value.translation.width
+                        let armed = abs(offset) > threshold
+                        if armed != isArmed {
+                            withAnimation(.spring(duration: 0.25, bounce: 0.3)) { isArmed = armed }
+                        }
+                    }
+                    .onEnded { _ in
+                        withAnimation(.spring(duration: 0.4, bounce: 0.2)) {
+                            offset = 0
+                            isArmed = false
+                        }
+                    }
+            )
+            .sensoryFeedback(.impact(weight: .medium), trigger: isArmed) { _, armed in armed }
+            .padding()
+    }
+}
+```
+
+The condition closure plays the impact only when the row arms, not when it disarms. The color change and the haptic land on the same frame, which is what makes it feel physical. [Swipe Deck](/docs/components/cards/swipe-deck) does the same thing with a computed boolean, `lift >= 1`, so the tick fires when the outcome badge locks at the threshold, and a solid impact fires when the card is actually thrown.
+
+### Detents on a continuous control
+
+For dials and sliders, quantize the value into steps and tick on each step, with a heavier bump on major marks.
+
+```swift
+struct DetentSlider: View {
+    @State private var value = 50.0
+    @State private var step = 50
+    @State private var detentCount = 0
+
+    var body: some View {
+        Slider(value: $value, in: 0...100)
+            .onChange(of: value) { _, newValue in
+                let newStep = Int(newValue.rounded())
+                guard newStep != step else { return }
+                step = newStep
+                if newStep.isMultiple(of: 25) { detentCount += 1 }
+            }
+            .sensoryFeedback(.selection, trigger: step) { _, newStep in
+                !newStep.isMultiple(of: 25)
+            }
+            .sensoryFeedback(.impact(flexibility: .rigid, intensity: 0.8), trigger: detentCount)
+            .padding()
+    }
+}
+```
+
+This is the structure behind [Timer Dial](/docs/components/controls/timer-dial): a selection tick per step, a rigid impact every 5 seconds, and `.success` when the countdown finishes. [Range Slider](/docs/components/inputs/range-slider) ticks every step and switches to a firmer impact when a thumb hits a bound or the minimum gap. [Rating Scrub](/docs/components/feedback/rating-scrub) ticks between stars and uses a rigid impact at zero and at the maximum.
+
+### Escalating feedback over time
+
+Hold interactions benefit from feedback that builds. [Hold to Confirm](/docs/components/controls/hold-to-confirm) passes three milestone dots while you hold, each with a soft impact of rising intensity, then plays `.success` on commit. The rising intensity tells the user "keep going" without any text. [Fan Stack](/docs/components/controls/fan-stack) uses the other end of the range: a soft impact as the avatars fan out, a selection tick each time your finger crosses a new face, and a solid impact on select.
+
+<Callout>
+Keep the haptic and the visual on the same state change. If the haptic fires from `onChanged` but the animation runs from a separate timer, they drift apart by a frame or two and the interaction feels loose.
+</Callout>
+
+## UIKit feedback generators
+
+`sensoryFeedback` needs iOS 17. For older targets, or for code outside a view (a view model, a game loop, a UIKit controller), use the generators directly.
+
+```swift
+struct LegacyHapticButton: View {
+    private let generator = UIImpactFeedbackGenerator(style: .medium)
+
+    var body: some View {
+        Button("Tap") {
+            generator.impactOccurred()
+        }
+        .onAppear { generator.prepare() }
+    }
+}
+
+final class Haptics {
+    static let notification = UINotificationFeedbackGenerator()
+    static let selection = UISelectionFeedbackGenerator()
+
+    static func success() { notification.notificationOccurred(.success) }
+    static func tick() { selection.selectionChanged() }
+}
+```
+
+There are three generator classes: `UIImpactFeedbackGenerator` (styles `.light`, `.medium`, `.heavy`, `.soft`, `.rigid`, plus `impactOccurred(intensity:)`), `UISelectionFeedbackGenerator`, and `UINotificationFeedbackGenerator` (`.success`, `.warning`, `.error`). Call `prepare()` shortly before you expect to fire, for example when a drag begins, so the Taptic Engine is awake and the first tick is not late.
+
+In SwiftUI on iOS 17 and later, prefer the modifier. It ties feedback to state, which keeps it in sync with animations and makes it easy to test by reading the state.
+
+## Core Haptics, briefly
+
+Core Haptics (`CHHapticEngine`) is for custom patterns: a textured rumble, a heartbeat, a sequence synced to audio. You describe events with intensity and sharpness and play them through an engine you keep alive.
+
+```swift
+import CoreHaptics
+
+final class TapPlayer {
+    private var engine: CHHapticEngine?
+
+    init() {
+        guard CHHapticEngine.capabilitiesForHardware().supportsHaptics else { return }
+        engine = try? CHHapticEngine()
+        try? engine?.start()
+    }
+
+    func play(intensity: Float = 0.8, sharpness: Float = 0.4) {
+        guard let engine else { return }
+        let event = CHHapticEvent(
+            eventType: .hapticTransient,
+            parameters: [
+                CHHapticEventParameter(parameterID: .hapticIntensity, value: intensity),
+                CHHapticEventParameter(parameterID: .hapticSharpness, value: sharpness)
+            ],
+            relativeTime: 0
+        )
+        do {
+            let pattern = try CHHapticPattern(events: [event], parameters: [])
+            try engine.makePlayer(with: pattern).start(atTime: CHHapticTimeImmediate)
+        } catch {
+            // Haptics are a garnish. Never fail the interaction over one.
+        }
+    }
+}
+```
+
+Keep the engine as a stored property. A local engine is released when the function returns and the pattern stops. For production use you also handle `stoppedHandler` and `resetHandler` to restart the engine after an interruption. Most interface work never needs Core Haptics. Reach for it only when none of the semantic kinds say what you mean.
+
+## Restraint and accessibility
+
+Haptics are a shared, physical channel. Overuse numbs people to the ones that matter.
+
+- **One haptic per meaningful moment.** Not on every tap of a normal button (the system already gives feedback where it should), not on scroll, not on appear.
+- **Never tie a haptic to a per-frame value.** Quantize first, as in the detent example.
+- **Match intensity to consequence.** A selection tick for browsing, an impact for committing, a notification kind for results.
+- **Pair every haptic with a visual.** Some devices have no Taptic Engine, and some people turn System Haptics off in Settings. The haptic confirms, it never carries information alone.
+- **Respect the rest of the system.** Under Reduce Motion, a threshold still deserves its tick, but the animation around it should shorten. Haptics are often more important for VoiceOver users, so actions exposed through `accessibilityAction` or `accessibilityAdjustableAction` should play the same feedback as the gesture path.
+
+The system switch is handled for you: `sensoryFeedback` and the UIKit generators stay silent when the user has disabled System Haptics.
+
+## Where the hard version already exists
+
+The patterns above cover most apps. The hard part is tuning, and every piece in the [haptics hub](/components/haptics) ships with it done: thresholds that match the visuals, bound impacts that differ from step ticks, and escalation that reads as progress. If you are also working on the motion side, [SwiftUI animations](/docs/guides/swiftui-animations) covers springs and phase animators, and [SwiftUI buttons](/docs/guides/swiftui-buttons) covers press states that pair with a tap haptic.
+
+## Install a piece
+
+Each piece is one Swift file built on Apple frameworks only. Run the CLI from the folder that contains your `.xcodeproj`:
+
+```bash
+npx swiftpieces add TimerDial HoldToConfirm ScrubStepper
+```
+
+See [installation](/docs/installation) for copy and paste and the details of what the CLI adds.

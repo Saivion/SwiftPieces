@@ -1,6 +1,6 @@
 {
   "title": "Navigation",
-  "description": "Docks, tracking tabs, stretch headers and receding drawers.",
+  "description": "Floating docks, tracking tabs and stretchy headers.",
   "defaultOpen": false,
   "pages": [
     "floating-dock",

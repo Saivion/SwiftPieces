@@ -4,9 +4,10 @@ import { Logo } from "@/components/ui/logo";
 import { pro, site } from "@/lib/site";
 
 const columns: { title: string; links: { label: string; href: string }[] }[] = [
-  { title: "Free", links: [{ label: "Components", href: "/components" }, { label: "Glass pieces", href: "/components?category=glass" }, { label: "Registry", href: "/r/index.json" }, { label: "CLI", href: "/docs/cli" }] },
+  { title: "Free", links: [{ label: "Components", href: "/components" }, { label: "Animations", href: "/components/animations" }, { label: "Liquid Glass", href: "/components/glass" }, { label: "Buttons", href: "/components/controls" }, { label: "Cards", href: "/components/cards" }, { label: "Inputs and forms", href: "/components/inputs" }, { label: "AI chat", href: "/components/ai" }] },
   { title: "Pro", links: [{ label: "Screens", href: pro.screens }, { label: "Templates", href: pro.templates }, { label: "MCP and agents", href: pro.mcpDocs }, { label: "Pricing", href: pro.pricing }, { label: "Account", href: pro.account }] },
-  { title: "Docs", links: [{ label: "Introduction", href: "/docs/introduction" }, { label: "Installation", href: "/docs/installation" }, { label: "CLI", href: "/docs/cli" }, { label: "MCP & agents", href: "/docs/mcp" }, { label: "Liquid Glass guide", href: "/docs/liquid-glass" }, { label: "llms.txt", href: "/llms.txt" }] },
+  { title: "Docs", links: [{ label: "Introduction", href: "/docs/introduction" }, { label: "Installation", href: "/docs/installation" }, { label: "CLI", href: "/docs/cli" }, { label: "MCP & agents", href: "/docs/mcp" }, { label: "Registry", href: "/r/index.json" }, { label: "llms.txt", href: "/llms.txt" }] },
+  { title: "Guides", links: [{ label: "SwiftUI animations", href: "/docs/guides/swiftui-animations" }, { label: "SwiftUI buttons", href: "/docs/guides/swiftui-buttons" }, { label: "SwiftUI cards", href: "/docs/guides/swiftui-cards" }, { label: "SwiftUI haptics", href: "/docs/guides/swiftui-haptics" }, { label: "Loading states", href: "/docs/guides/swiftui-loading-states" }, { label: "Liquid Glass", href: "/docs/liquid-glass" }] },
   { title: "Resources", links: [{ label: "About", href: "/about" }, { label: "Showcase", href: "/showcase" }, { label: "Changelog", href: "/changelog" }, { label: "Sponsors", href: "/sponsors" }, { label: "GitHub", href: site.github }, { label: "Contributing", href: `${site.github}/blob/main/CONTRIBUTING.md` }] },
   { title: "Legal", links: [{ label: "License", href: "/license" }, { label: "Privacy", href: "/privacy" }, { label: "Terms", href: "/terms" }] },
 ];
@@ -16,7 +17,7 @@ export function Footer() {
     <footer className="relative pt-24 pb-10" data-tone="black">
       <div aria-hidden className="dots-wide pointer-events-none absolute inset-0 opacity-50" style={{ maskImage: "linear-gradient(to bottom, transparent, black 40%)", WebkitMaskImage: "linear-gradient(to bottom, transparent, black 40%)" }} />
       <Container className="relative">
-        <div className="grid gap-12 sm:grid-cols-2 lg:grid-cols-[1.4fr_repeat(5,1fr)] lg:gap-6">
+        <div className="grid gap-12 sm:grid-cols-2 lg:grid-cols-[1.4fr_repeat(6,1fr)] lg:gap-6">
           <div className="max-w-xs">
             <Logo />
             <p className="mt-5 text-sm leading-relaxed text-muted">A collection of beautifully animated SwiftUI components. Yours to use, always free.</p>

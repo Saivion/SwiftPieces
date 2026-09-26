@@ -4,21 +4,45 @@ import { Features } from "@/components/sections/features";
 import { GetStarted } from "@/components/sections/get-started";
 import { SponsorStrip } from "@/components/sections/sponsors";
 import { getSponsorsFrom } from "@/lib/sponsors";
+import { LibraryIntro } from "@/components/sections/library-intro";
+import { Questions } from "@/components/sections/questions";
 import { JsonLd } from "@/components/seo/json-ld";
-import { pageMetadata } from "@/lib/seo";
+import { faqJsonLd, ORG_ID, pageMetadata, WEBSITE_ID } from "@/lib/seo";
 import { site } from "@/lib/site";
+import { homeFaqs } from "@/lib/faqs";
+import { proCatalog } from "@/lib/pro-catalog";
+import { getRegistryIndex } from "@/lib/registry";
 
 export const metadata = pageMetadata({ title: site.title, description: site.description, path: "/", absoluteTitle: true });
 
+const count = getRegistryIndex().length;
+const questions = homeFaqs(count, proCatalog);
+
 /**
- * Who publishes the site and what it is called, for search results and AI answers. Only facts the
- * page shows: the name in the header, the logo, and the GitHub and X profiles linked in the footer.
+ * Who publishes the site, what the library is and the questions the page answers, for search
+ * results and AI answers. Only facts the page shows: the name, the logo, the GitHub and X profiles
+ * in the footer, the library's license and baseline, and the questions below. No ratings: the
+ * site has none to report.
  */
 const structuredData = {
   "@context": "https://schema.org",
   "@graph": [
-    { "@type": "WebSite", "@id": `${site.url}/#website`, name: site.name, alternateName: "SwiftPieces", url: site.url, publisher: { "@id": `${site.url}/#organization` } },
-    { "@type": "Organization", "@id": `${site.url}/#organization`, name: site.name, url: site.url, logo: `${site.url}/logo.png`, sameAs: [site.github, site.twitter] },
+    { "@type": "WebSite", "@id": WEBSITE_ID, name: site.name, alternateName: "SwiftPieces", url: site.url, description: site.description, publisher: { "@id": ORG_ID } },
+    { "@type": "Organization", "@id": ORG_ID, name: site.name, alternateName: "SwiftPieces", url: site.url, logo: `${site.url}/logo.png`, sameAs: [site.github, site.twitter] },
+    {
+      "@type": "SoftwareSourceCode",
+      "@id": `${site.url}/#library`,
+      name: `${site.name} free SwiftUI component library`,
+      description: `${count} free SwiftUI components for iOS: one self-contained Swift file each, Apple frameworks only, installed by copy-paste, the swiftpieces CLI or an MCP server.`,
+      url: `${site.url}/components`,
+      codeRepository: site.github,
+      programmingLanguage: { "@type": "ComputerLanguage", name: "Swift" },
+      runtimePlatform: "iOS 17+",
+      license: `${site.url}/license`,
+      isAccessibleForFree: true,
+      publisher: { "@id": ORG_ID },
+    },
+    faqJsonLd(questions),
   ],
 };
 
@@ -49,6 +73,8 @@ export default async function HomePage() {
       <Ticker />
       <SponsorStrip sponsors={gold} />
       <Features />
+      <LibraryIntro />
+      <Questions items={questions} />
       <GetStarted />
     </>
   );

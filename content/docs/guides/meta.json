@@ -1,0 +1,12 @@
+{
+  "title": "Guides",
+  "defaultOpen": true,
+  "pages": [
+    "index",
+    "swiftui-animations",
+    "swiftui-buttons",
+    "swiftui-cards",
+    "swiftui-haptics",
+    "swiftui-loading-states"
+  ]
+}

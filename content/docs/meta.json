@@ -6,6 +6,7 @@
     "cli",
     "mcp",
     "liquid-glass",
+    "guides",
     "components"
   ]
 }

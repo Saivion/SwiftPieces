@@ -1,0 +1,438 @@
+---
+title: "SwiftUI Skeleton Loading, Shimmer and Loading States"
+description: "SwiftUI skeleton loading with redacted placeholders, a shimmer modifier, ProgressView styles, success and failure morphs, paging footers and Reduce Motion."
+---
+
+SwiftUI skeleton loading uses `.redacted(reason: .placeholder)` to draw your real layout as gray shapes while data loads, then swaps in content when it arrives. Add a shimmer (a soft highlight sweeping across the shapes) and the screen reads as "loading" without a spinner, and without the layout jumping when content lands.
+
+Skeletons are one loading state among several. This guide covers the skeleton itself, a shimmer you can reuse, `ProgressView`, the handoff from placeholder to content, an action that morphs through loading, success and failure, infinite-scroll footers, and an AI "thinking" placeholder. Everything targets iOS 17 and respects Reduce Motion.
+
+## Skeletons with redacted(reason:)
+
+`redacted(reason: .placeholder)` replaces text with rounded bars the size of the text, and tints images and shapes. You feed it placeholder data of a realistic length, so the skeleton has the same shape as the loaded screen.
+
+```swift
+struct Article: Identifiable {
+    let id: Int
+    let title: String
+    let author: String
+
+    static let placeholder = Article(id: -1, title: "A headline of typical length", author: "Author name")
+}
+
+struct ArticleRow: View {
+    let article: Article
+
+    var body: some View {
+        HStack(spacing: 12) {
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .fill(.quaternary)
+                .frame(width: 56, height: 56)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(article.title).font(.headline)
+                Text(article.author).font(.subheadline).foregroundStyle(.secondary)
+            }
+            Spacer()
+            Image(systemName: "bookmark")
+                .unredacted()
+        }
+    }
+}
+
+struct ArticleList: View {
+    @State private var articles: [Article] = []
+    @State private var isLoading = true
+
+    var body: some View {
+        List {
+            if isLoading {
+                ForEach(0..<6, id: \.self) { _ in
+                    ArticleRow(article: .placeholder)
+                }
+                .redacted(reason: .placeholder)
+            } else {
+                ForEach(articles) { ArticleRow(article: $0) }
+            }
+        }
+        .task {
+            // articles = try await api.articles()
+            isLoading = false
+        }
+    }
+}
+```
+
+`unredacted()` opts a subview out. Use it for chrome that does not depend on data: an icon, a section label, a button. Keeping those visible makes the skeleton feel like the real screen arriving rather than a generic gray block.
+
+Two things to know:
+
+- **Redaction is an environment value.** Custom views can read `@Environment(\.redactionReasons)` and draw their own placeholder, for example hiding a chart that would otherwise render with fake numbers.
+- **Placeholder text length is the layout.** A one-word placeholder title makes a short bar, and the row jumps when a two-line headline arrives. Pick placeholder strings that match typical content.
+
+## A shimmer modifier
+
+A shimmer is a light gradient that moves across the placeholder, masked to its shapes. The simplest version animates an offset with `repeatForever`.
+
+```swift
+struct Shimmer: ViewModifier {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var phase: CGFloat = -1
+
+    func body(content: Content) -> some View {
+        content
+            .overlay {
+                if !reduceMotion {
+                    GeometryReader { proxy in
+                        let width = proxy.size.width
+                        LinearGradient(
+                            colors: [.clear, .white.opacity(0.5), .clear],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                        .frame(width: width * 0.6)
+                        .offset(x: phase * width * 1.6)
+                        .blendMode(.plusLighter)
+                    }
+                    .mask(content)
+                    .allowsHitTesting(false)
+                }
+            }
+            .onAppear {
+                withAnimation(.linear(duration: 1.4).repeatForever(autoreverses: false)) {
+                    phase = 1
+                }
+            }
+    }
+}
+
+extension View {
+    func shimmer() -> some View { modifier(Shimmer()) }
+}
+```
+
+`.mask(content)` is the key line. The gradient only paints where the redacted content has pixels, so it sweeps across the bars and blocks, never across the gaps.
+
+### A clock-driven shimmer with TimelineView
+
+`repeatForever` has a weakness: every row starts its own animation when it appears, so rows that scroll in later are out of phase with the rest. Driving the shimmer from `TimelineView` puts every instance on the same wall clock, and it can be switched off cleanly.
+
+```swift
+struct TimelineShimmer: ViewModifier {
+    var isActive = true
+    var duration = 1.6
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func body(content: Content) -> some View {
+        content.overlay {
+            if isActive && !reduceMotion {
+                TimelineView(.animation) { context in
+                    let t = context.date.timeIntervalSinceReferenceDate
+                    let progress = t.truncatingRemainder(dividingBy: duration) / duration
+                    GeometryReader { proxy in
+                        LinearGradient(
+                            colors: [.clear, .white.opacity(0.45), .clear],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                        .frame(width: proxy.size.width * 0.5)
+                        // Travels from fully off the leading edge to fully off the trailing edge.
+                        .offset(x: (progress * 1.5 - 0.5) * proxy.size.width)
+                    }
+                }
+                .mask(content)
+                .allowsHitTesting(false)
+            }
+        }
+    }
+}
+```
+
+Because the phase comes from the date, not from per-view state, ten rows read as one surface with one highlight passing over it. [Skeleton Loader](/docs/components/feedback/skeleton-loader) uses the same idea: a self-masking modifier that turns any layout, color blocks included, into one quiet shape sweeping a diagonal highlight on a shared clock.
+
+## ProgressView styles
+
+Skeletons suit content. For actions and unknown waits in small spaces, `ProgressView` is still the right tool.
+
+```swift
+struct ProgressExamples: View {
+    @State private var fraction = 0.4
+
+    var body: some View {
+        VStack(spacing: 24) {
+            ProgressView()
+            ProgressView("Syncing")
+                .controlSize(.large)
+            ProgressView(value: fraction) {
+                Text("Uploading")
+            } currentValueLabel: {
+                Text(fraction, format: .percent.precision(.fractionLength(0)))
+            }
+            // On iOS this draws a spinner and ignores the value.
+            ProgressView(value: fraction)
+                .progressViewStyle(.circular)
+                .tint(.orange)
+            ProgressView(value: fraction)
+                .progressViewStyle(RingProgressStyle())
+        }
+        .padding()
+    }
+}
+
+struct RingProgressStyle: ProgressViewStyle {
+    var lineWidth: CGFloat = 6
+
+    func makeBody(configuration: Configuration) -> some View {
+        let fraction = configuration.fractionCompleted ?? 0
+        ZStack {
+            Circle().stroke(.quaternary, lineWidth: lineWidth)
+            Circle()
+                .trim(from: 0, to: fraction)
+                .stroke(.tint, style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
+                .rotationEffect(.degrees(-90))
+                .animation(.smooth, value: fraction)
+        }
+        .frame(width: 44, height: 44)
+    }
+}
+```
+
+A `ProgressView` without a value is indeterminate. With `value:` it is determinate, and `fractionCompleted` in a custom style is non-nil. On iOS, `.circular` with a value still draws the indeterminate spinner, so a determinate ring needs a custom `ProgressViewStyle` like the one above.
+
+A rough rule: under about a second, show nothing. For a known layout, show a skeleton. For an action the user started, show progress on the control they touched. For a long task with a known size, show a determinate bar.
+
+## Handing off from skeleton to content
+
+The handoff is where most loading states feel cheap: gray bars vanish and content pops in. Keep the same view, flip the redaction, and animate the change.
+
+```swift
+struct ProfileHeader: View {
+    @State private var name: String?
+
+    var body: some View {
+        let isLoading = name == nil
+        VStack(alignment: .leading, spacing: 8) {
+            Text(name ?? "Placeholder name")
+                .font(.title.bold())
+            Text("Joined 2024")
+                .foregroundStyle(.secondary)
+        }
+        .redacted(reason: isLoading ? .placeholder : [])
+        .modifier(TimelineShimmer(isActive: isLoading))
+        .animation(.easeOut(duration: 0.3), value: isLoading)
+        .task {
+            try? await Task.sleep(for: .seconds(1))
+            name = "Ada Lovelace"
+        }
+    }
+}
+```
+
+Because the view identity never changes, the layout does not jump. For lists, stagger the reveal by index so rows settle top to bottom. Skeleton Loader hands off this way: content unblurs and rises row by row, and its `.skeleton(isLoading:staggerIndex:)` modifier takes the row index to compute the delay. It also takes an `isFailed` flag for the case where loading ends in an error.
+
+## Loading, success and failure in one control
+
+When the user starts an action, the button they tapped should become the loading state, then the result. Model it as one phase enum rather than a pile of booleans.
+
+```swift
+struct SaveStatus: View {
+    enum Phase: Equatable { case idle, saving, saved, failed }
+    @State private var phase: Phase = .idle
+
+    var body: some View {
+        Button(action: save) {
+            HStack(spacing: 8) {
+                Image(systemName: symbol)
+                    .contentTransition(.symbolEffect(.replace))
+                Text(title)
+                    .contentTransition(.opacity)
+            }
+            .frame(minWidth: 140)
+        }
+        .buttonStyle(.borderedProminent)
+        .tint(tint)
+        .disabled(phase == .saving)
+        .animation(.spring(duration: 0.35, bounce: 0.2), value: phase)
+        .sensoryFeedback(.success, trigger: phase) { _, new in new == .saved }
+        .sensoryFeedback(.error, trigger: phase) { _, new in new == .failed }
+    }
+
+    private var tint: Color {
+        switch phase {
+        case .saved: .green
+        case .failed: .red
+        default: .accentColor
+        }
+    }
+
+    private var symbol: String {
+        switch phase {
+        case .idle: "square.and.arrow.down"
+        case .saving: "arrow.triangle.2.circlepath"
+        case .saved: "checkmark"
+        case .failed: "exclamationmark.triangle"
+        }
+    }
+
+    private var title: String {
+        switch phase {
+        case .idle: "Save"
+        case .saving: "Saving"
+        case .saved: "Saved"
+        case .failed: "Try again"
+        }
+    }
+
+    private func save() {
+        phase = .saving
+        Task {
+            do {
+                try await Task.sleep(for: .seconds(1)) // your async work
+                phase = .saved
+            } catch {
+                phase = .failed
+            }
+        }
+    }
+}
+```
+
+`contentTransition(.symbolEffect(.replace))` animates the symbol swap, and the failure state doubles as retry. Haptics fire on the result, not on the tap; the [SwiftUI haptics guide](/docs/guides/swiftui-haptics) explains why.
+
+The polished versions of this pattern are a single continuous shape rather than swapped icons. [Status Morph](/docs/components/feedback/status-morph) is one stroke that spins as a loading arc, closes into a ring, floods into a solid block and draws a check on success, or a cross with a nudge on failure. [Commit Button](/docs/components/controls/commit-button) applies the same idea to a button driven by one idle, loading, success, error and disabled phase, where the error state shakes and doubles as retry. When the result deserves a full screen, [Outcome Screen](/docs/components/feedback/outcome-screen) covers success, failure and empty outcomes with async retry.
+
+## Infinite scroll footer states
+
+A paged list has four footer states, and each needs a distinct view: idle (nothing), loading (a spinner), failed (a message and a retry that keeps loaded rows), and end (a quiet "all caught up").
+
+```swift
+struct Item: Identifiable, Hashable {
+    let id: Int
+    let title: String
+}
+
+@Observable
+@MainActor
+final class Feed {
+    enum Footer: Equatable { case idle, loading, failed(String), end }
+
+    private(set) var items: [Item] = []
+    private(set) var footer: Footer = .idle
+    private var nextPage = 0
+
+    func loadMoreIfNeeded(current item: Item?) async {
+        guard footer == .idle else { return }
+        if let item, items.suffix(5).contains(item) == false { return }
+        await loadMore()
+    }
+
+    func loadMore() async {
+        footer = .loading
+        do {
+            let page = try await fetch(page: nextPage)
+            let known = Set(items.map(\.id))
+            items += page.filter { !known.contains($0.id) }
+            nextPage += 1
+            footer = page.isEmpty ? .end : .idle
+        } catch {
+            footer = .failed("Couldn't load more")
+        }
+    }
+
+    private func fetch(page: Int) async throws -> [Item] {
+        try await Task.sleep(for: .milliseconds(600))
+        guard page < 5 else { return [] }
+        return (0..<20).map { Item(id: page * 20 + $0, title: "Item \(page * 20 + $0)") }
+    }
+}
+
+struct FeedView: View {
+    @State private var feed = Feed()
+
+    var body: some View {
+        List {
+            ForEach(feed.items) { item in
+                Text(item.title)
+                    .task { await feed.loadMoreIfNeeded(current: item) }
+            }
+            footer
+                .frame(maxWidth: .infinity)
+                .listRowSeparator(.hidden)
+        }
+        .task { await feed.loadMoreIfNeeded(current: nil) }
+    }
+
+    @ViewBuilder
+    private var footer: some View {
+        switch feed.footer {
+        case .idle:
+            EmptyView()
+        case .loading:
+            ProgressView()
+        case .failed(let message):
+            HStack {
+                Text(message).foregroundStyle(.secondary)
+                Button("Retry") { Task { await feed.loadMore() } }
+                    .buttonStyle(.bordered)
+            }
+        case .end:
+            Text("You're all caught up")
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+        }
+    }
+}
+```
+
+The guard on `footer == .idle` prevents two loads at once, loading starts five rows before the end so the spinner is rarely seen, and duplicate ids are dropped when pages overlap. What this sketch leaves out is refresh: a response that arrives after a pull to refresh must be ignored, not appended. [Paged List](/docs/components/lists/paged-list) handles that, along with skeleton rows for the first page and pull to refresh that replaces rows only on success.
+
+## An AI "thinking" placeholder
+
+A chat reply that has not started streaming needs a placeholder too. Three dots on a shared clock are the classic version.
+
+```swift
+struct ThinkingDots: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        TimelineView(.animation(paused: reduceMotion)) { context in
+            let t = context.date.timeIntervalSinceReferenceDate
+            HStack(spacing: 6) {
+                ForEach(0..<3, id: \.self) { index in
+                    let wave = reduceMotion ? 0.5 : (sin((t - Double(index) * 0.18) * 2 * .pi / 1.2) + 1) / 2
+                    Circle()
+                        .fill(.secondary)
+                        .frame(width: 8, height: 8)
+                        .opacity(0.35 + 0.65 * wave)
+                        .offset(y: -4 * wave)
+                }
+            }
+        }
+        .accessibilityElement()
+        .accessibilityLabel("Thinking")
+    }
+}
+```
+
+A better placeholder is shaped like the reply it becomes, so the answer replaces it without a jump. [Thinking State](/docs/components/ai/thinking-state) offers three presentations on one clock (rising dots, a sheen over reply-shaped bars, or a label whose glyphs carry the sheen), an elapsed-seconds label, and a `.thinkingState()` modifier that sweeps any view.
+
+## Reduce Motion
+
+Loading animations loop, which makes them the most tiring motion on screen for people sensitive to it. Every example above reads `accessibilityReduceMotion`:
+
+- **Shimmer:** drop the sweep entirely. The static redacted shapes still say "loading".
+- **Spinners and dots:** pause the clock (`TimelineView(.animation(paused:))`) or show a static state.
+- **Pulses:** replace with a fixed mid opacity.
+- **Handoffs:** swap blur-and-rise for a short cross-fade.
+- **Result morphs:** keep the color and symbol change, drop the shake.
+
+Reduce Motion does not mean no feedback. It means the state still changes clearly, just without looping or travelling motion.
+
+## Install a piece
+
+All of these live in the [feedback hub](/components/feedback) and related categories. Each piece is one Swift file on Apple frameworks only. From the folder that contains your `.xcodeproj`:
+
+```bash
+npx swiftpieces add SkeletonLoader StatusMorph PagedList ThinkingState
+```
+
+See [installation](/docs/installation) for copy and paste and the details of what the CLI adds.
