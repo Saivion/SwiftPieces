@@ -55,7 +55,7 @@ export function Features() {
 /** The flagship piece running live, with a second piece and the details it ships with. */
 function PiecesVisual() {
   return (
-    <div className="relative md:mr-8 md:mb-14 md:ml-10">
+    <div className="relative md:mb-14 md:ml-10">
       <Panel>
         {/* Previews scale with the stage's width, so the stage is held narrow and square: the top card
             has headroom to lift and swing without meeting the edge. No ground: the deck sits straight
@@ -66,8 +66,8 @@ function PiecesVisual() {
           </PreviewFrame>
         </div>
       </Panel>
-      <Floating className="hidden w-full md:-top-10 md:-right-8 md:block md:w-[220px]">
-        <PreviewFrame tone="clear" aspect="aspect-[4/3]" className="m-2 rounded-[10px]!">
+      <Floating className="hidden w-full md:-top-10 md:right-12 md:block md:w-[220px]">
+        <PreviewFrame tone="clear" aspect="aspect-[4/3]" className="m-2 rounded-[4px]!">
           <PiecePreview name="ReactionToggle" />
         </PreviewFrame>
       </Floating>

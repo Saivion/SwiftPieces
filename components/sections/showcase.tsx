@@ -1,7 +1,7 @@
 "use client";
 import { NewBadge } from "@/components/ui/new-badge";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { RegistryIndexEntry } from "@/lib/registry-schema";
 import { PreviewFrame } from "@/components/previews/frame";
 import { PiecePreview } from "@/components/previews";
@@ -26,7 +26,7 @@ export function ComponentCard({ item, index }: { item: RegistryIndexEntry; index
               <p className="p-item min-w-0 truncate">{item.title}</p>
               {item.isNew ? <NewBadge /> : null}
             </div>
-            <p className="p-body mt-2 line-clamp-2 text-[13.5px]">{item.description}</p>
+            <p className="p-body mt-2 line-clamp-2 text-[13px]">{item.description}</p>
           </PanelBody>
         </Panel>
       </Link>
@@ -47,9 +47,60 @@ function CardGrid({ items }: { items: RegistryIndexEntry[] }) {
 function GroupHeading({ label, count, badge, className }: { label: string; count: number; badge?: boolean; className?: string }) {
   return (
     <div className={cn("mb-6 flex items-center justify-between gap-4 border-b border-[var(--line)] pb-4", className)}>
-      <h2 className="flex items-center gap-2.5 text-[15px] font-medium text-foreground">{label}{badge ? <NewBadge /> : null}</h2>
-      <span className="text-[12px] tabular-nums text-subtle">{count}</span>
+      <h2 className="flex items-center gap-2.5 text-[14px] font-medium text-foreground">{label}{badge ? <NewBadge /> : null}</h2>
+      <span className="text-[11.5px] tabular-nums text-subtle">{count}</span>
     </div>
+  );
+}
+
+/**
+ * The shared pill both filter groups sit in. `scroll` lets the category group shrink and scroll;
+ * the edge fade appears only while there is more to scroll to, so a pill that fits stays crisp.
+ */
+function FilterPill({ children, scroll }: { children: ReactNode; scroll?: boolean }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [more, setMore] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!scroll || !el) return;
+    const check = () => setMore(el.scrollLeft + el.clientWidth < el.scrollWidth - 1);
+    check();
+    const ro = new ResizeObserver(check);
+    ro.observe(el);
+    el.addEventListener("scroll", check, { passive: true });
+    return () => { ro.disconnect(); el.removeEventListener("scroll", check); };
+  }, [scroll]);
+  return (
+    <div
+      ref={ref}
+      className={cn(
+        "flex items-center gap-0.5 rounded-[10px] bg-white/[0.04] p-1",
+        scroll ? "min-w-0 overflow-x-auto [scrollbar-width:none]" : "shrink-0",
+        more && "[mask-image:linear-gradient(to_right,black_calc(100%-40px),transparent)]",
+      )}
+    >
+      {children}
+    </div>
+  );
+}
+
+/** One filter. Active All is the red accent, active New is Pro pink, an active category is a soft lift. */
+function FilterButton({ label, count, active, tone, onClick }: { label: string; count: number; active: boolean; tone?: "all" | "new"; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={cn(
+        "flex h-8 shrink-0 items-center gap-1.5 rounded-[7px] px-3 text-[13px] font-medium whitespace-nowrap transition-colors",
+        active
+          ? tone === "all" ? "bg-accent text-black" : tone === "new" ? "bg-[#ff8fb8] text-[#2a0714]" : "bg-white/[0.09] text-foreground"
+          : tone === "new" ? "text-[#ff8fb8] hover:bg-white/[0.04]" : "text-muted hover:bg-white/[0.04] hover:text-foreground",
+      )}
+    >
+      {label}
+      <span className={cn("text-[11px] tabular-nums", active ? (tone ? "text-black/55" : "text-muted") : tone === "new" ? "text-[#ff8fb8]/60" : "text-subtle")}>{count}</span>
+    </button>
   );
 }
 
@@ -69,28 +120,20 @@ export function ShowcaseGrid({ items, filters = true, limit }: { items: Registry
   return (
     <div>
       {filters ? (
-        // Phones scroll one row (faded at the edge); wider screens wrap, so no category is ever cut off.
-        <div className="-mx-5 mb-12 flex gap-1.5 overflow-x-auto px-5 [mask-image:linear-gradient(to_right,black_85%,transparent)] [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:[mask-image:none]">
-          {cats.map((c) => {
-            const active = cat === c;
-            const isNewChip = c === "new";
-            return (
-              <button
-                key={c}
-                type="button"
-                onClick={() => setCat(c)}
-                className={cn(
-                  "relative h-9 shrink-0 rounded-[10px] px-3.5 text-sm font-medium transition-colors",
-                  active
-                    ? isNewChip ? "bg-[#ff8fb8] text-[#2a0714]" : "bg-accent text-black"
-                    : isNewChip ? "bg-[#ff8fb8]/10 text-[#ff8fb8] hover:bg-[#ff8fb8]/15" : "bg-white/[0.03] text-muted hover:bg-white/[0.06] hover:text-foreground",
-                )}
-              >
-                {c === "all" ? "All" : isNewChip ? "New" : categoryTitle(c)}
-                <span className={cn("ml-1.5 text-[11px]", active ? "text-black/60" : isNewChip ? "text-[#ff8fb8]/70" : "text-subtle")}>{count(c)}</span>
-              </button>
-            );
-          })}
+        // Two matching pills on one row: the broad views (All, New) on the left, the categories on the
+        // right. Same height, padding, radius and states on both sides, so the row reads as one
+        // balanced bar. The category pill scrolls inside itself (faded at its edge) when space is short.
+        <div className="mb-12 flex items-center justify-between gap-3">
+          <FilterPill>
+            {cats.filter((c) => c === "all" || c === "new").map((c) => (
+              <FilterButton key={c} active={cat === c} tone={c === "new" ? "new" : "all"} label={c === "new" ? "New" : "All"} count={count(c)} onClick={() => setCat(c)} />
+            ))}
+          </FilterPill>
+          <FilterPill scroll>
+            {cats.filter((c) => c !== "all" && c !== "new").map((c) => (
+              <FilterButton key={c} active={cat === c} label={categoryTitle(c)} count={count(c)} onClick={() => setCat(c)} />
+            ))}
+          </FilterPill>
         </div>
       ) : null}
       {/* On "All", new pieces get their own group on top and are left out of the grid below, so they

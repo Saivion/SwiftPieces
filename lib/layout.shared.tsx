@@ -9,7 +9,7 @@ export function baseOptions(): BaseLayoutProps {
       title: (
         <span className="inline-flex items-center gap-2.5 font-bold tracking-tight text-foreground">
           <LogoMark />
-          <span className="text-[17px]">Swift Pieces</span>
+          <span className="text-[15.5px]">Swift Pieces</span>
           <span className="rounded-[4px] bg-surface-2 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted">Free</span>
         </span>
       ),

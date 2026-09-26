@@ -31,7 +31,7 @@ export function ProSection({ heading = true }: { heading?: boolean }) {
                     <Index n={c.n} />
                     <p className="p-item mt-3 inline-flex items-center gap-2">{c.title}<Arrow className="size-3.5 text-subtle transition-colors group-hover:text-foreground" /></p>
                     <p className="p-body mt-2 max-w-md">{c.body}</p>
-                    <p className="mt-auto pt-6 text-[12px] text-subtle">On pro.swiftpieces.com</p>
+                    <p className="mt-auto pt-6 text-[11.5px] text-subtle">On pro.swiftpieces.com</p>
                   </PanelBody>
                 </Panel>
               </a>

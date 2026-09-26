@@ -60,7 +60,7 @@ export function Navbar({ star, starMobile }: { star?: ReactNode; starMobile?: Re
           data-condensed={condensed}
           className={cn(
             "nav-glass group/nav relative mx-auto flex items-center justify-between transition-[max-width,height,margin,padding,border-radius,background-color,border-color,box-shadow] duration-500 ease-[var(--ease-out)]",
-            condensed ? "mt-3 h-14 max-w-[880px] rounded-[20px] pr-2.5 pl-5" : "h-[var(--nav-h)] max-w-full rounded-none px-0",
+            condensed ? "mt-3 h-14 max-w-[880px] rounded-[6px] pr-2.5 pl-5" : "h-[var(--nav-h)] max-w-full rounded-none px-0",
           )}
           aria-label="Primary"
         >
@@ -68,7 +68,7 @@ export function Navbar({ star, starMobile }: { star?: ReactNode; starMobile?: Re
             <ul className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-0.5 lg:flex">
               {links.map((l) => (
                 <li key={l.href}>
-                  <Link href={l.href} className={cn("group/n relative flex h-9 items-center gap-2 px-3 text-[13.5px] font-medium transition-colors duration-300", isActive(l.href) ? "text-foreground" : "text-muted hover:text-foreground")}>
+                  <Link href={l.href} className={cn("group/n relative flex h-9 items-center gap-2 px-3 text-[12.5px] font-medium transition-colors duration-300", isActive(l.href) ? "text-foreground" : "text-muted hover:text-foreground")}>
                     <NavGlyph className={cn("transition-colors", isActive(l.href) ? "text-accent" : "group-hover/n:text-accent")} />
                     {l.label}
                     {l.badge ? <NewBadge>{l.badge}</NewBadge> : null}
@@ -82,7 +82,7 @@ export function Navbar({ star, starMobile }: { star?: ReactNode; starMobile?: Re
             <button
               type="button"
               onClick={() => setOpenSearch(true)}
-              className="hidden h-9 items-center gap-2 rounded-[10px] bg-surface-2 pl-3 pr-2 text-sm text-muted transition-colors hover:text-foreground group-data-[condensed=true]/nav:bg-white/[0.07] md:flex"
+              className="hidden h-9 items-center gap-2 rounded-[4px] bg-surface-2 pl-3 pr-2 text-sm text-muted transition-colors hover:text-foreground group-data-[condensed=true]/nav:bg-white/[0.07] md:flex"
               aria-label="Search"
             >
               <svg aria-hidden viewBox="0 0 16 16" className="size-4" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="7" cy="7" r="4.5" /><path d="M10.5 10.5L14 14" strokeLinecap="round" /></svg>
@@ -91,7 +91,7 @@ export function Navbar({ star, starMobile }: { star?: ReactNode; starMobile?: Re
             </button>
             {star}
             <Button href={pro.buy} size="sm" className="hidden sm:inline-flex">Get Pro</Button>
-            <button type="button" onClick={() => setOpen((v) => !v)} className="flex size-9 items-center justify-center rounded-[10px] bg-surface-2 lg:hidden" aria-expanded={open} aria-label="Menu">
+            <button type="button" onClick={() => setOpen((v) => !v)} className="flex size-9 items-center justify-center rounded-[4px] bg-surface-2 lg:hidden" aria-expanded={open} aria-label="Menu">
               {/* Crisp SVG glyphs: three bars closed, an X open. Both are 16px and drawn from the button's centre. */}
               <svg aria-hidden viewBox="0 0 16 16" className="size-4" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
                 {open ? <path d="M3.5 3.5l9 9M12.5 3.5l-9 9" /> : <path d="M2 4h12M2 8h12M2 12h12" />}
@@ -109,7 +109,7 @@ export function Navbar({ star, starMobile }: { star?: ReactNode; starMobile?: Re
           <ul className="flex flex-col">
             {[{ label: "Home", href: "/" } as (typeof links)[number], ...links].map((l, i) => (
               <li key={l.href} className="hair-b">
-                <Link href={l.href} className={cn("flex items-center justify-between py-3.5 text-[15px] font-medium transition-transform duration-500", open ? "translate-y-0" : "translate-y-3")} style={{ transitionDelay: `${i * 40}ms` }}>
+                <Link href={l.href} className={cn("flex items-center justify-between py-3.5 text-[14px] font-medium transition-transform duration-500", open ? "translate-y-0" : "translate-y-3")} style={{ transitionDelay: `${i * 40}ms` }}>
                   <span className="flex items-center gap-2">{l.label}{l.badge ? <NewBadge>{l.badge}</NewBadge> : null}</span>
                   {isActive(l.href) ? <span className="size-2 rounded-full bg-accent" /> : null}
                 </Link>

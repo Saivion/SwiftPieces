@@ -15,7 +15,7 @@ export default function ComponentsPage() {
         <Container>
           <SectionHeader
             label={`${items.length} free pieces`}
-            title="The library."
+            title="The Library"
             description="Single-file SwiftUI components with live previews. Filter by category, open a piece for its parameters, source and install commands."
             action={{ label: "Browse in the docs", href: "/docs/components" }}
           />

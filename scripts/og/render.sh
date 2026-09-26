@@ -56,7 +56,7 @@ EOF
   echo "wrote $1/app/opengraph-image.png"
 }
 
-render "$FREE" "Swift Pieces" "Native SwiftUI that feels <em>alive.</em>" "" "swiftpieces.com"
+render "$FREE" "Swift Pieces" "SwiftUI pieces, polished to <em>ship.</em>" "" "swiftpieces.com"
 [ -n "$PRO" ] && render "$PRO" "Swift Pieces <em>Pro</em>" "The pieces<br>to build the<br>whole <em>app.</em>" \
   '<div class="tags">Screens · App Templates · Build Kit</div>' "pro.swiftpieces.com"
 rm -rf "$TMP"

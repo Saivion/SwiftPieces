@@ -105,7 +105,7 @@ export function AgentDemo() {
   };
 
   return (
-    <div ref={root} className="frame-dashed relative grid gap-5 rounded-[16px] p-4 sm:h-[560px] sm:grid-cols-[1fr_240px] sm:p-5">
+    <div ref={root} className="frame-dashed relative grid gap-5 p-4 sm:h-[560px] sm:grid-cols-[1fr_240px] sm:p-5">
       <CornerTicks />
       {/* The piece: appears with the first message, restyled by the next two. */}
       <div className="flex items-center justify-center">
@@ -122,15 +122,15 @@ export function AgentDemo() {
         <div className="flex flex-1 flex-col justify-end gap-2.5 overflow-hidden">
           {TURNS.slice(0, sent).map((turn, i) => (
             <div key={turn.ask} className="chat-in flex flex-col items-end gap-1">
-              <p className="max-w-[92%] rounded-[12px] rounded-br-[4px] bg-white/[0.08] px-3 py-2 text-[13px] leading-[18px] text-foreground">{turn.ask}</p>
-              <p className="flex items-center gap-1.5 pr-1 text-[12px] text-muted transition-opacity duration-300" style={{ opacity: applied > i ? 1 : 0 }}>
+              <p className="max-w-[92%] rounded-[4px] rounded-br-[4px] bg-white/[0.08] px-3 py-2 text-[12.5px] leading-[18px] text-foreground">{turn.ask}</p>
+              <p className="flex items-center gap-1.5 pr-1 text-[11.5px] text-muted transition-opacity duration-300" style={{ opacity: applied > i ? 1 : 0 }}>
                 <svg aria-hidden viewBox="0 0 16 16" className="size-3 text-accent" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3.5 8.5l3 3 6-7" strokeLinecap="round" strokeLinejoin="round" /></svg>
                 {turn.reply}
               </p>
             </div>
           ))}
         </div>
-        <div className="mt-3 flex h-11 shrink-0 items-center justify-between gap-3 rounded-[12px] border border-white/[0.08] bg-[#1b1b1c] pr-1.5 pl-3.5 text-[13px]">
+        <div className="mt-3 flex h-11 shrink-0 items-center justify-between gap-3 rounded-[4px] border border-white/[0.08] bg-[#1b1b1c] pr-1.5 pl-3.5 text-[12.5px]">
           <span className="truncate text-foreground">
             {draft || <span className="text-muted">Ask your agent</span>}
             {draft ? <span aria-hidden className="ml-px inline-block h-[1.1em] w-px translate-y-[0.2em] bg-foreground" /> : null}

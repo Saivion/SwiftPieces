@@ -24,14 +24,14 @@ export function Questions({ items = faqs, title = "Questions", body }: { items?:
         <Reveal as="div" className="-mt-5">
           {items.map((f) => (
             <details key={f.q} className="qa group border-b border-[var(--line)]">
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-6 py-5 pr-2 text-[16px] leading-6 text-foreground [&::-webkit-details-marker]:hidden">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-6 py-5 pr-2 text-[15px] leading-6 text-foreground [&::-webkit-details-marker]:hidden">
                 {f.q}
                 <span aria-hidden className="relative size-3.5 shrink-0 text-subtle transition-transform duration-300 group-open:rotate-45">
                   <span className="absolute top-1/2 left-0 h-[1.5px] w-full -translate-y-1/2 rounded bg-current" />
                   <span className="absolute top-0 left-1/2 h-full w-[1.5px] -translate-x-1/2 rounded bg-current" />
                 </span>
               </summary>
-              <p className="max-w-[60ch] pr-10 pb-6 text-[15px] leading-[24px] text-pretty text-muted">{f.a}</p>
+              <p className="max-w-[60ch] pr-10 pb-6 text-[14px] leading-[24px] text-pretty text-muted">{f.a}</p>
             </details>
           ))}
         </Reveal>
