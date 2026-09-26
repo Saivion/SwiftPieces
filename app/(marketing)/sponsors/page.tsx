@@ -2,15 +2,17 @@ import type { Metadata } from "next";
 import { SponsorHero, SponsorTiers, SponsorWall, SponsorUse, sponsorFaqs } from "@/components/sections/sponsors";
 import { Questions } from "@/components/sections/questions";
 import { getSponsors } from "@/lib/sponsors";
-import { site } from "@/lib/site";
+import { pageMetadata } from "@/lib/seo";
 
 // Sponsorship funds the free, open-source library only; Pro is a product and is never sponsored.
 // Same page rhythm as /pro, shorter: the ask, the tiers, who already sponsors, where it goes.
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Sponsor Swift Pieces",
   description: "Sponsor the open-source SwiftUI library. Monthly tiers for individuals and companies, with your logo on the homepage, the docs and the README.",
-  alternates: { canonical: `${site.url}/sponsors` },
-};
+  path: "/sponsors",
+  // The title already names the site, so no " — Swift Pieces" suffix.
+  absoluteTitle: true,
+});
 
 // The sponsor list and reach numbers are read live, then held for an hour.
 export const revalidate = 3600;

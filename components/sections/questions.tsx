@@ -18,7 +18,7 @@ export function Questions({ items = faqs, title = "Questions", body }: { items?:
         <Reveal as="div">
           <h2 className={sectionTitle}>{title}</h2>
           <p className={cn("mt-4 max-w-xs", sectionBody)}>
-            {body ?? <>The short ones are here. The rest are in the <Link href="/docs" className="text-foreground underline decoration-white/25 underline-offset-4 transition-colors hover:decoration-white">docs</Link>.</>}
+            {body ?? <>The short ones are here. The rest are in the <Link href="/docs/introduction" className="text-foreground underline decoration-white/25 underline-offset-4 transition-colors hover:decoration-white">docs</Link>.</>}
           </p>
         </Reveal>
         <Reveal as="div" className="-mt-5">

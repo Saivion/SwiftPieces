@@ -36,7 +36,8 @@ const config: NextConfig = {
   images: { unoptimized: true },
   async redirects() {
     return [
-      { source: "/docs", destination: "/docs/introduction", permanent: false },
+      // One permanent hop for anyone still arriving at /docs; site links point at the final URL.
+      { source: "/docs", destination: "/docs/introduction", permanent: true },
       // The Pro overview moved from /pricing to /pro: Free shows no prices, pricing lives on Pro.
       { source: "/pricing", destination: "/pro", permanent: true },
     ];

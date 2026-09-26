@@ -13,7 +13,7 @@ import { pro } from "@/lib/site";
 
 const links: { label: string; href: string; badge?: string }[] = [
   { label: "Components", href: "/components" },
-  { label: "Docs", href: "/docs" },
+  { label: "Docs", href: "/docs/introduction" },
   { label: "Pro", href: "/pro" },
   { label: "Sponsors", href: "/sponsors", badge: "New" },
 ];
@@ -44,7 +44,8 @@ export function Navbar({ star, starMobile }: { star?: ReactNode; starMobile?: Re
     return () => { document.documentElement.style.overflow = ""; };
   }, [open]);
 
-  const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
+  // Docs links straight to its first page, but the tab stays lit anywhere under /docs.
+  const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href.startsWith("/docs/") ? "/docs" : href));
   // Scrolled, the whole bar condenses into one floating liquid-glass pill. The mobile sheet keeps
   // the full bar, so it opens flush under it.
   const condensed = scrolled && !open;

@@ -9,6 +9,8 @@ import { PieceHeader } from "@/components/docs/piece-header";
 import { PieceInstall } from "@/components/docs/piece-install";
 import { getRegistryItem, getRegistryIndex, piecePath } from "@/lib/registry";
 import { ShowcaseGrid } from "@/components/sections/showcase";
+import { pageMetadata } from "@/lib/seo";
+import { site } from "@/lib/site";
 
 type Props = { params: Promise<{ slug?: string[] }> };
 
@@ -51,9 +53,11 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
   const page = source.getPage(params.slug);
   if (!page) notFound();
   const item = page.data.piece ? getRegistryItem(page.data.piece) : null;
-  return {
+  // Canonical, share tags and a snippet-length description for every docs and piece page.
+  return pageMetadata({
     title: page.data.title,
-    description: page.data.description,
-    openGraph: item?.preview.poster ? { images: [item.preview.poster] } : undefined,
-  };
+    description: page.data.description ?? site.description,
+    path: page.url,
+    image: item?.preview.poster,
+  });
 }

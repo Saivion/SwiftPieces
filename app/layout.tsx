@@ -13,7 +13,7 @@ const ICON_VERSION = 4;
 
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
-  title: { default: `${site.name} — ${site.tagline}`, template: `%s — ${site.name}` },
+  title: { default: site.title, template: `%s — ${site.name}` },
   description: site.description,
   // Every icon comes from public/ (favicon.ico and logo.png, the official marks). Bump ICON_VERSION
   // when either file changes: browsers cache tab icons hard, and a new URL forces them to refetch.
