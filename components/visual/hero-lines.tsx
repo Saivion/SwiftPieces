@@ -15,6 +15,10 @@ const LINES = 44;
 const STEPS = 112;
 /** Half the length of a surge along its line, as a fraction of the line. */
 const SURGE = 0.11;
+/** The entrance: every line draws itself across the screen, left to right, over this long. */
+const INTRO_MS = 1800;
+/** Length of the bright tip that leads each line while it draws, as a fraction of the line. */
+const PEN = 0.07;
 
 function palette(t: number): RGB {
   const x = Math.min(0.9999, Math.max(0, t)) * (STOPS.length - 1);
@@ -40,9 +44,9 @@ const rgba = (c: RGB, a: number) => `rgba(${c[0] | 0},${c[1] | 0},${c[2] | 0},${
  * ribbon's width, and that offset turns with a slow twist, so the lines cross over one another the
  * way a real ribbon of threads does. Colour runs across the ribbon in the brand's palette.
  *
- * Like the rest of the first screen it waits for the motion gate (components/motion-gate.tsx): one
- * still frame until the visitor first interacts, then it flows. It stops while off screen or in a
- * hidden tab, and holds still for Reduce Motion.
+ * Unlike the rest of the first screen it does not wait for the motion gate: it starts on mount, each
+ * line drawing itself across the screen with a bright tip (INTRO_MS), then flows. It stops while off
+ * screen or in a hidden tab, and Reduce Motion gets the finished ribbon, still.
  */
 export function HeroLines() {
   const ref = useRef<HTMLCanvasElement>(null);
@@ -67,7 +71,6 @@ export function HeroLines() {
     let spread = 1;
     let raf = 0;
     let visible = true;
-    let gated = !document.documentElement.dataset.motion;
     let origin = 0;
     let veil: CanvasGradient | string = "transparent";
 
@@ -83,8 +86,12 @@ export function HeroLines() {
     const ys = new Float32Array(STEPS);
 
     const resize = () => {
-      // Hairlines stay crisp at 1.5x, and every pixel saved is fill time saved each frame.
-      const dpr = Math.min(1.5, window.devicePixelRatio || 1);
+      // Full screen density, so hairlines stay razor-sharp on Retina and 4K displays, capped at about
+      // one 4K frame of pixels (8.3M) so a very large window never costs more than a 4K screen does.
+      const MAX_PIXELS = 3840 * 2160;
+      let dpr = Math.min(3, window.devicePixelRatio || 1);
+      const cssPixels = Math.max(1, canvas.clientWidth * canvas.clientHeight);
+      if (cssPixels * dpr * dpr > MAX_PIXELS) dpr = Math.sqrt(MAX_PIXELS / cssPixels);
       w = canvas.clientWidth;
       h = canvas.clientHeight;
       dw = Math.max(w, h * 1.6);
@@ -127,48 +134,78 @@ export function HeroLines() {
       return [xs[k] + (xs[k + 1] - xs[k]) * r, ys[k] + (ys[k + 1] - ys[k]) * r];
     };
 
-    const draw = (t: number) => {
+    /** Stroke a stretch of the line last traced, from fraction `from` to `to`, at exact positions. */
+    const stroke = (from: number, to: number) => {
+      const [fx, fy] = at(from);
+      const [tx, ty] = at(to);
+      ctx.beginPath();
+      ctx.moveTo(fx, fy);
+      const k0 = Math.ceil(from * (STEPS - 1));
+      const k1 = Math.floor(to * (STEPS - 1));
+      for (let k = k0; k <= k1; k++) ctx.lineTo(xs[k], ys[k]);
+      ctx.lineTo(tx, ty);
+      ctx.stroke();
+      return [fx, fy, tx, ty] as const;
+    };
+
+    /** A gradient along a stretch, fading from `a0` at its start to `a1` at its end. */
+    const fade = (i: number, fx: number, fy: number, tx: number, ty: number, a0: number, a1: number, mid = (a0 + a1) / 2) => {
+      const g = ctx.createLinearGradient(fx, fy, tx, ty);
+      g.addColorStop(0, `rgba(${litRGB[i]},${a0.toFixed(3)})`);
+      g.addColorStop(0.5, `rgba(${litRGB[i]},${mid.toFixed(3)})`);
+      g.addColorStop(1, `rgba(${litRGB[i]},${a1.toFixed(3)})`);
+      return g;
+    };
+
+    // How far each line has drawn itself in, 0..1, `p` being the entrance's progress. The middle of
+    // the ribbon starts first and the edges follow, each line a little staggered, so the ribbon
+    // grows out of its own centre rather than wiping on as a block.
+    const delay = Array.from({ length: LINES }, (_, i) => Math.abs(i / (LINES - 1) - 0.5) * 0.5 + ((i * 37) % 11) * 0.006);
+    const reveal = (i: number, p: number) => {
+      const x = Math.min(1, Math.max(0, (p - delay[i]) / 0.7));
+      return 1 - Math.pow(1 - x, 3);
+    };
+
+    const draw = (t: number, p: number) => {
       ctx.globalCompositeOperation = "source-over";
       ctx.clearRect(0, 0, w, h);
       ctx.lineCap = "round";
       for (let i = 0; i < LINES; i++) {
+        const r = reveal(i, p);
+        if (r < 0.002) continue;
         const u = i / (LINES - 1) - 0.5;
         trace(u, t);
 
-        // The thread itself: faint, so the ribbon reads as a whole and no single line competes.
+        // The thread itself, drawn as far as it has grown: faint, so the ribbon reads as a whole.
         ctx.strokeStyle = thread[i];
         ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo(xs[0], ys[0]);
-        for (let k = 1; k < STEPS; k++) ctx.lineTo(xs[k], ys[k]);
-        ctx.stroke();
+        stroke(0, r);
 
-        // The surge: a short run of light travelling up the line, brightest at its head. Its ends are
-        // placed at exact fractional positions along the curve rather than snapped to the sample
-        // points (~20px apart on a wide screen), so the light glides instead of stepping.
+        // While it grows, a bright tip leads the line: the line being drawn, not wiped in.
+        if (r < 1) {
+          const from = Math.max(0, r - PEN);
+          const [fx, fy] = at(from);
+          const [tx, ty] = at(r);
+          ctx.strokeStyle = fade(i, fx, fy, tx, ty, 0, 0.9 * (1 - r * r), 0.35 * (1 - r * r));
+          ctx.lineWidth = 1.25;
+          stroke(from, r);
+        }
+
+        // The surge: a short run of light travelling up the line, brightest at its head, only on the
+        // part already drawn. Its ends sit at exact fractions along the curve rather than snapping to
+        // the sample points (~20px apart on a wide screen), so the light glides instead of stepping.
         const head = ((seed[i] + t * speed[i]) % 1.4) - 0.2;
         const tail = head - SURGE * 2;
         const from = Math.max(0, tail);
-        const to = Math.min(1, head);
+        const to = Math.min(r, head);
         if (to - from < 0.002) continue;
         const [fx, fy] = at(from);
         const [tx, ty] = at(to);
-        // Alpha along the surge, squared toward the tail. Sampled at the drawn ends, so a surge
-        // entering or leaving the line fades rather than popping in or out.
+        // Alpha along the surge, squared toward the tail, so a surge entering or leaving fades.
         const alpha = (f: number) => Math.pow(Math.min(1, Math.max(0, (f - tail) / (SURGE * 2))), 2) * 0.95;
-        const g = ctx.createLinearGradient(fx, fy, tx, ty);
-        g.addColorStop(0, `rgba(${litRGB[i]},${alpha(from).toFixed(3)})`);
-        g.addColorStop(0.5, `rgba(${litRGB[i]},${alpha((from + to) / 2).toFixed(3)})`);
-        g.addColorStop(1, `rgba(${litRGB[i]},${alpha(to).toFixed(3)})`);
-        ctx.strokeStyle = g;
+        ctx.strokeStyle = fade(i, fx, fy, tx, ty, alpha(from), alpha(to), alpha((from + to) / 2));
         ctx.lineWidth = 1.25;
-        ctx.beginPath();
-        ctx.moveTo(fx, fy);
-        const k0 = Math.ceil(from * (STEPS - 1));
-        const k1 = Math.floor(to * (STEPS - 1));
-        for (let k = k0; k <= k1; k++) ctx.lineTo(xs[k], ys[k]);
-        ctx.lineTo(tx, ty);
-        ctx.stroke();
+        stroke(from, to);
       }
 
       // Fade the ribbon out behind the copy, drawn into the canvas: a CSS mask on a full-size canvas
@@ -183,27 +220,26 @@ export function HeroLines() {
       ctx.globalCompositeOperation = "source-over";
     };
 
+    // The ribbon does not wait for the motion gate: it starts the moment this mounts, with the lines
+    // drawing themselves in, so there is never a still frame or a pause first. It is cheap (under a
+    // millisecond a frame), so it costs the first screen nothing measurable.
+    let born = 0;
+    const progress = (now: number) => (reduced ? 1 : Math.min(1.2, (now - born) / INTRO_MS));
     const frame = (now: number) => {
       raf = 0;
-      if (!visible || gated || reduced) return;
-      draw((now - origin) / 1000);
-      raf = requestAnimationFrame(frame);
+      if (!visible) return;
+      if (!born) born = now;
+      draw((now - origin) / 1000, progress(now));
+      if (!reduced) raf = requestAnimationFrame(frame);
     };
     const start = () => {
-      if (!raf && visible && !gated && !reduced) raf = requestAnimationFrame(frame);
+      if (!raf && visible) raf = requestAnimationFrame(frame);
     };
 
     resize();
-    // A still frame first: every line drawn and the surges caught mid-flight.
-    draw(12);
+    // The twist starts twelve seconds in, the composition the ribbon was tuned at.
     origin = performance.now() - 12000;
-
-    const onMotion = () => {
-      gated = false;
-      start();
-    };
-    if (gated) window.addEventListener("sp:motion", onMotion, { once: true });
-    else start();
+    start();
 
     const io = new IntersectionObserver(([e]) => {
       visible = e.isIntersecting && !document.hidden;
@@ -217,7 +253,7 @@ export function HeroLines() {
     document.addEventListener("visibilitychange", onVisibility);
     const ro = new ResizeObserver(() => {
       resize();
-      draw((performance.now() - origin) / 1000);
+      if (born) draw((performance.now() - origin) / 1000, progress(performance.now()));
     });
     ro.observe(canvas);
 
@@ -225,7 +261,6 @@ export function HeroLines() {
       cancelAnimationFrame(raf);
       io.disconnect();
       ro.disconnect();
-      window.removeEventListener("sp:motion", onMotion);
       document.removeEventListener("visibilitychange", onVisibility);
     };
   }, []);
