@@ -1,5 +1,12 @@
 import { ProsePage } from "@/components/ui/prose-page";
-export const metadata = { title: "About" };
+import { pageMetadata } from "@/lib/seo";
+export const metadata = pageMetadata({
+  title: "About",
+  description: "Why Swift Pieces exists: native SwiftUI you own, Liquid Glass first, and pieces your coding agent can install. The free library is the product; Pro funds it.",
+  path: "/about",
+});
+// TODO(content): this page is thin (about 70 words). Expand it with real detail, such as who builds
+// Swift Pieces, how pieces are verified, and the release cadence, before relying on it to rank.
 export default function AboutPage() {
   return (
     <ProsePage label="About" title="The central place for Swift pieces." lead="Swift Pieces exists because iOS developers rebuild the same effects every year, and the good ones never end up in one place.">

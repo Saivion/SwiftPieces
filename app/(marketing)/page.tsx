@@ -4,6 +4,23 @@ import { Features } from "@/components/sections/features";
 import { GetStarted } from "@/components/sections/get-started";
 import { SponsorStrip } from "@/components/sections/sponsors";
 import { getSponsorsFrom } from "@/lib/sponsors";
+import { JsonLd } from "@/components/seo/json-ld";
+import { pageMetadata } from "@/lib/seo";
+import { site } from "@/lib/site";
+
+export const metadata = pageMetadata({ title: site.title, description: site.description, path: "/", absoluteTitle: true });
+
+/**
+ * Who publishes the site and what it is called, for search results and AI answers. Only facts the
+ * page shows: the name in the header, the logo, and the GitHub and X profiles linked in the footer.
+ */
+const structuredData = {
+  "@context": "https://schema.org",
+  "@graph": [
+    { "@type": "WebSite", "@id": `${site.url}/#website`, name: site.name, alternateName: "SwiftPieces", url: site.url, publisher: { "@id": `${site.url}/#organization` } },
+    { "@type": "Organization", "@id": `${site.url}/#organization`, name: site.name, url: site.url, logo: `${site.url}/logo.png`, sameAs: [site.github, site.twitter] },
+  ],
+};
 
 /**
  * The hero shows the visit count, which only a render inside the Worker can produce: pages are
@@ -27,6 +44,7 @@ export default async function HomePage() {
   const gold = await getSponsorsFrom("gold");
   return (
     <>
+      <JsonLd data={structuredData} />
       <Hero />
       <Ticker />
       <SponsorStrip sponsors={gold} />

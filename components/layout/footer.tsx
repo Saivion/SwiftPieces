@@ -7,7 +7,7 @@ const columns: { title: string; links: { label: string; href: string }[] }[] = [
   { title: "Free", links: [{ label: "Components", href: "/components" }, { label: "Glass pieces", href: "/components?category=glass" }, { label: "Registry", href: "/r/index.json" }, { label: "CLI", href: "/docs/cli" }] },
   { title: "Pro", links: [{ label: "Screens", href: pro.screens }, { label: "Templates", href: pro.templates }, { label: "MCP and agents", href: pro.mcpDocs }, { label: "Pricing", href: pro.pricing }, { label: "Account", href: pro.account }] },
   { title: "Docs", links: [{ label: "Introduction", href: "/docs/introduction" }, { label: "Installation", href: "/docs/installation" }, { label: "CLI", href: "/docs/cli" }, { label: "MCP & agents", href: "/docs/mcp" }, { label: "Liquid Glass guide", href: "/docs/liquid-glass" }, { label: "llms.txt", href: "/llms.txt" }] },
-  { title: "Resources", links: [{ label: "Showcase", href: "/showcase" }, { label: "Changelog", href: "/changelog" }, { label: "Sponsors", href: "/sponsors" }, { label: "GitHub", href: site.github }, { label: "Contributing", href: `${site.github}/blob/main/CONTRIBUTING.md` }] },
+  { title: "Resources", links: [{ label: "About", href: "/about" }, { label: "Showcase", href: "/showcase" }, { label: "Changelog", href: "/changelog" }, { label: "Sponsors", href: "/sponsors" }, { label: "GitHub", href: site.github }, { label: "Contributing", href: `${site.github}/blob/main/CONTRIBUTING.md` }] },
   { title: "Legal", links: [{ label: "License", href: "/license" }, { label: "Privacy", href: "/privacy" }, { label: "Terms", href: "/terms" }] },
 ];
 

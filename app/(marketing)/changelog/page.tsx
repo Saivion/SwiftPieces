@@ -1,5 +1,10 @@
 import { ProsePage } from "@/components/ui/prose-page";
-export const metadata = { title: "Changelog" };
+import { pageMetadata } from "@/lib/seo";
+export const metadata = pageMetadata({
+  title: "Changelog",
+  description: "What shipped in the Swift Pieces library: every new piece, fix and API change, newest first.",
+  path: "/changelog",
+});
 export default function ChangelogPage() {
   return (
     <ProsePage label="Changelog" title="What shipped." lead="Every piece, fix and API change, newest first.">

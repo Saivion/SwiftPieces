@@ -1,6 +1,11 @@
 import { ProsePage } from "@/components/ui/prose-page";
 import { site } from "@/lib/site";
-export const metadata = { title: "License" };
+import { pageMetadata } from "@/lib/seo";
+export const metadata = pageMetadata({
+  title: "License",
+  description: "Free pieces are MIT + Commons Clause: use them in any app, including client work, but don't resell them. Pro is a per-developer commercial license.",
+  path: "/license",
+});
 export default function LicensePage() {
   return (
     <ProsePage label="Legal" title="License." lead="Free pieces are MIT + Commons Clause. Pro is a single-developer commercial license. Both in plain English.">
