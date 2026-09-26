@@ -23,7 +23,7 @@ export function CategoryDirectory({ hubs, items, current, className }: { hubs: H
                 </span>
                 <span className="mt-1 block text-[13px] leading-5 text-pretty text-muted">{hubBlurb(hub)}</span>
               </span>
-              <span className="mt-0.5 shrink-0 text-[11.5px] tabular-nums text-subtle">{count}</span>
+              <span className="mt-0.5 shrink-0 text-[11.5px] tabular-nums text-muted">{count}</span>
             </Link>
           </li>
         );
