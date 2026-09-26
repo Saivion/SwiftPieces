@@ -8,6 +8,12 @@ export const metadata = pageMetadata({
 export default function ChangelogPage() {
   return (
     <ProsePage label="Changelog" title="What shipped." lead="Every piece, fix and API change, newest first.">
+      <h2>September 2026 · Everyday pieces</h2>
+      <ul>
+        <li>7 new pieces for the parts of an app SwiftUI still leaves hard: Range Slider, Date Range Picker, Token Field, Amount Field, Form Field, Expandable Text and Paged List.</li>
+        <li>5 decorative pieces were removed: Ambient Mesh, Aurora, Grain, Pull to Refresh and Weight Wave.</li>
+        <li>The library is now 55 pieces across 14 categories.</li>
+      </ul>
       <h2>September 2026 · 0.3</h2>
       <ul>
         <li>The library was re-audited against a premium standard: hard to recreate, designed before it moves, iPhone-first. 48 generic pieces were removed, 47 were redesigned and renamed for the experience they deliver, and 7 signature pieces were added: Swipe Deck, Floating Dock, Hold to Confirm, Task Row, Confirm Sheet, Weight Wave and Photo Viewer.</li>

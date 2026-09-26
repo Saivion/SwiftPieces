@@ -1,0 +1,432 @@
+---
+title: "SwiftUI Animations: A Practical Guide with Examples"
+description: "SwiftUI animations explained with working examples: implicit and explicit animation, spring animation, transitions, keyframe animators, and gestures."
+---
+
+SwiftUI animations work by interpolating between two states of your view: you change some state, and SwiftUI animates every property that depends on it from the old value to the new one. You choose *when* to animate (implicitly with `.animation(_:value:)` or explicitly with `withAnimation`) and *how* to animate (a spring, an easing curve, or a keyframe timeline).
+
+This guide covers the full toolkit on iOS 17: springs, transitions, `matchedGeometryEffect`, phase and keyframe animators, numeric text, scroll-driven effects, gesture-driven motion that keeps the finger's velocity, and Reduce Motion. Every snippet compiles against the iOS 17 SDK.
+
+## Implicit vs explicit animation
+
+An **implicit** animation is attached to a view and fires whenever a specific value changes.
+
+```swift
+struct ImplicitExample: View {
+    @State private var isExpanded = false
+
+    var body: some View {
+        RoundedRectangle(cornerRadius: 20)
+            .fill(.orange)
+            .frame(width: isExpanded ? 280 : 120, height: 120)
+            .animation(.spring(duration: 0.4, bounce: 0.2), value: isExpanded)
+            .onTapGesture { isExpanded.toggle() }
+    }
+}
+```
+
+Always pass `value:`. The old `.animation(_:)` without a value animates every change that reaches the view, including ones you did not mean to animate, and it is deprecated.
+
+An **explicit** animation wraps the state change itself. Everything that changes as a result of that mutation animates, anywhere in the hierarchy.
+
+```swift
+struct ExplicitExample: View {
+    @State private var isExpanded = false
+
+    var body: some View {
+        VStack(spacing: 16) {
+            RoundedRectangle(cornerRadius: 20)
+                .fill(.orange)
+                .frame(width: isExpanded ? 280 : 120, height: 120)
+
+            Button(isExpanded ? "Collapse" : "Expand") {
+                withAnimation(.snappy) {
+                    isExpanded.toggle()
+                }
+            }
+        }
+    }
+}
+```
+
+A good rule: use `withAnimation` for user actions (a tap, a submit, a selection) and implicit animation for values that change on their own (a model update, a timer). On iOS 17, `withAnimation(_:completionCriteria:_:completion:)` also gives you a completion callback, which replaces most `DispatchQueue.main.asyncAfter` hacks.
+
+## Spring animations
+
+Springs are the default in modern SwiftUI, and they should be your default too. A spring is described by two numbers:
+
+- `duration`: how long the motion feels, not a hard stop time.
+- `bounce`: 0 is critically damped (no overshoot), 0.1 to 0.3 is a gentle overshoot, higher values wobble. Negative values are overdamped.
+
+```swift
+struct SpringExample: View {
+    @State private var isOn = false
+
+    var body: some View {
+        Circle()
+            .fill(.indigo)
+            .frame(width: 60, height: 60)
+            .offset(x: isOn ? 120 : -120)
+            .onTapGesture {
+                withAnimation(.spring(duration: 0.5, bounce: 0.3)) {
+                    isOn.toggle()
+                }
+            }
+    }
+}
+```
+
+SwiftUI ships three presets that cover most interface work:
+
+| Preset | Feel | Good for |
+| --- | --- | --- |
+| `.smooth` | No bounce | Layout changes, sheets, large surfaces |
+| `.snappy` | Small bounce, quick | Selection, toggles, small controls |
+| `.bouncy` | Visible bounce | Playful confirmations, badges, icons |
+
+Each takes `duration:` and `extraBounce:` if you need to tune it, for example `.snappy(duration: 0.3, extraBounce: 0.1)`.
+
+### Why springs beat easing curves
+
+Easing curves like `.easeInOut` have a fixed duration and assume the motion starts at rest. Real interfaces get interrupted: the user taps again mid-animation, or drags something that is still settling. When a spring is retargeted, SwiftUI carries the current velocity into the new motion, so the object bends toward the new target instead of stopping and restarting. That continuity is most of what makes an iOS interface feel physical. Keep `.linear` for things that really are linear, like a progress fill tied to a clock.
+
+## Transitions
+
+Animations change a view that stays on screen. **Transitions** describe how a view enters or leaves the hierarchy, usually inside an `if`. A transition only plays when the insertion or removal happens inside an animated transaction.
+
+```swift
+struct TransitionExample: View {
+    @State private var showsBanner = false
+
+    var body: some View {
+        VStack {
+            if showsBanner {
+                Text("Saved")
+                    .font(.headline)
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 12)
+                    .background(.green.opacity(0.3), in: Capsule())
+                    .transition(
+                        .asymmetric(
+                            insertion: .move(edge: .top).combined(with: .opacity),
+                            removal: .scale(scale: 0.9).combined(with: .opacity)
+                        )
+                    )
+            }
+
+            Spacer()
+
+            Button("Toggle banner") {
+                withAnimation(.bouncy) {
+                    showsBanner.toggle()
+                }
+            }
+        }
+        .padding()
+    }
+}
+```
+
+- `.combined(with:)` runs two transitions together.
+- `.asymmetric(insertion:removal:)` uses different motion on the way in and out. Arrivals can be lively; departures should be quick and quiet.
+- iOS 17 adds `.blurReplace`, which works well when one piece of content swaps for another in place. `.push(from:)` slides content in from an edge.
+
+If a transition does not play, check two things: the change happened inside `withAnimation` (or under an `.animation(_:value:)` on a parent), and the view really left the hierarchy rather than just changing opacity.
+
+## matchedGeometryEffect
+
+`matchedGeometryEffect` tells SwiftUI that two views in different places are the same thing, so it animates the frame from one to the other. The classic use is a selection indicator that glides between options.
+
+```swift
+struct SegmentedExample: View {
+    @Namespace private var namespace
+    @State private var selection = "Week"
+    private let options = ["Day", "Week", "Month"]
+
+    var body: some View {
+        HStack(spacing: 4) {
+            ForEach(options, id: \.self) { option in
+                Button {
+                    withAnimation(.snappy) { selection = option }
+                } label: {
+                    Text(option)
+                        .font(.subheadline.weight(.semibold))
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                        .background {
+                            if selection == option {
+                                Capsule()
+                                    .fill(.background)
+                                    .matchedGeometryEffect(id: "indicator", in: namespace)
+                            }
+                        }
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(4)
+        .background(.quaternary, in: Capsule())
+    }
+}
+```
+
+Only one view with a given `id` should be visible at a time (or mark one as `isSource: false`). For morphing a card into a detail screen, the same idea applies across a larger hierarchy. [Prompt Chips](/docs/components/ai/prompt-chips) uses it to morph a tapped suggestion into a composer-width block.
+
+## phaseAnimator and keyframeAnimator
+
+Both are iOS 17 APIs for motion that has more than two states.
+
+### phaseAnimator
+
+`phaseAnimator` steps through a sequence of values, animating between each one. Give it a `trigger` to run once per change, or leave the trigger out to loop forever.
+
+```swift
+struct BellExample: View {
+    @State private var rings = 0
+
+    var body: some View {
+        Image(systemName: "bell.fill")
+            .font(.largeTitle)
+            .phaseAnimator([0.0, -14.0, 12.0, -6.0, 0.0], trigger: rings) { content, angle in
+                content.rotationEffect(.degrees(angle), anchor: .top)
+            } animation: { _ in
+                .spring(duration: 0.15, bounce: 0.3)
+            }
+            .onTapGesture { rings += 1 }
+    }
+}
+```
+
+### keyframeAnimator
+
+`keyframeAnimator` gives each property its own timeline. Use it when scale, offset, and rotation should not move in lockstep.
+
+```swift
+struct HopValues {
+    var scale = 1.0
+    var offsetY = 0.0
+}
+
+struct HeartHopExample: View {
+    @State private var hops = 0
+
+    var body: some View {
+        Image(systemName: "heart.fill")
+            .font(.system(size: 44))
+            .foregroundStyle(.red)
+            .keyframeAnimator(initialValue: HopValues(), trigger: hops) { content, value in
+                content
+                    .scaleEffect(value.scale)
+                    .offset(y: value.offsetY)
+            } keyframes: { _ in
+                KeyframeTrack(\.scale) {
+                    SpringKeyframe(0.85, duration: 0.1)
+                    SpringKeyframe(1.2, duration: 0.2, spring: .bouncy)
+                    SpringKeyframe(1.0, spring: .smooth)
+                }
+                KeyframeTrack(\.offsetY) {
+                    CubicKeyframe(0, duration: 0.1)
+                    CubicKeyframe(-20, duration: 0.2)
+                    SpringKeyframe(0, spring: .bouncy)
+                }
+            }
+            .onTapGesture { hops += 1 }
+    }
+}
+```
+
+The press-in, pop, and settle pattern here is the same shape [Reaction Toggle](/docs/components/feedback/reaction-toggle) builds on, with a color flood and a halo on top.
+
+## Animating numbers and text
+
+`contentTransition(.numericText(value:))` rolls digits instead of cross-fading the whole label. Add `.monospacedDigit()` so the width does not jump.
+
+```swift
+struct CounterExample: View {
+    @State private var count = 0
+
+    var body: some View {
+        VStack(spacing: 12) {
+            Text(count, format: .number)
+                .font(.system(size: 56, weight: .semibold, design: .rounded))
+                .monospacedDigit()
+                .contentTransition(.numericText(value: Double(count)))
+
+            Button("Add") {
+                withAnimation(.snappy) { count += 1 }
+            }
+        }
+    }
+}
+```
+
+Passing `value:` tells SwiftUI the direction, so digits roll up when the number grows and down when it shrinks. For a mechanical counter where each digit rolls on its own slot and carries from the low digits up, see [Odometer](/docs/components/data/odometer). For headlines that rise in by character, word, or line with a stagger, see [Text Reveal](/docs/components/text/text-reveal).
+
+## Scroll-driven animation
+
+### scrollTransition
+
+`scrollTransition` gives each child a `phase` as it enters, sits in, and leaves the visible area. `phase.value` runs from -1 (leading edge) through 0 (fully visible) to 1 (trailing edge).
+
+```swift
+struct CarouselExample: View {
+    var body: some View {
+        ScrollView(.horizontal) {
+            LazyHStack(spacing: 16) {
+                ForEach(0..<10, id: \.self) { index in
+                    RoundedRectangle(cornerRadius: 24)
+                        .fill(Color(hue: Double(index) / 10, saturation: 0.5, brightness: 0.9))
+                        .containerRelativeFrame(.horizontal)
+                        .frame(height: 220)
+                        .scrollTransition { content, phase in
+                            content
+                                .scaleEffect(phase.isIdentity ? 1 : 0.88)
+                                .opacity(phase.isIdentity ? 1 : 0.6)
+                                .rotation3DEffect(.degrees(phase.value * -20), axis: (x: 0, y: 1, z: 0))
+                        }
+                }
+            }
+            .scrollTargetLayout()
+        }
+        .contentMargins(.horizontal, 40)
+        .scrollTargetBehavior(.viewAligned)
+    }
+}
+```
+
+[Depth Carousel](/docs/components/lists/depth-carousel) takes this further: pages recede in depth away from center, each page gets a phase value for inner parallax, and the page indicator is computed in absolute page coordinates so it never jumps.
+
+### visualEffect
+
+`visualEffect` hands you a `GeometryProxy` without affecting layout, so you can drive effects from a view's position cheaply.
+
+```swift
+struct ShrinkingRowsExample: View {
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 12) {
+                ForEach(0..<30, id: \.self) { index in
+                    Text("Row \(index)")
+                        .frame(maxWidth: .infinity, minHeight: 56)
+                        .background(.quaternary, in: RoundedRectangle(cornerRadius: 14))
+                        .visualEffect { content, proxy in
+                            let minY = proxy.frame(in: .scrollView).minY
+                            return content
+                                .scaleEffect(minY < 0 ? max(0.9, 1 + minY / 600) : 1)
+                                .opacity(minY < 0 ? max(0.4, 1 + minY / 300) : 1)
+                        }
+                }
+            }
+            .padding()
+        }
+    }
+}
+```
+
+This replaces the old pattern of reading a `GeometryReader` into `@State` on every scroll frame, which re-evaluates your view body far more than it needs to.
+
+## Gesture-driven motion that keeps velocity
+
+The difference between a drag that feels native and one that feels cheap is what happens on release. A good release decides based on where the finger was *heading* (`predictedEndTranslation`) and hands the finger's velocity to the spring, so there is no speed jump at the moment you let go.
+
+```swift
+struct FlingCardExample: View {
+    @State private var offset: CGSize = .zero
+    @State private var isGone = false
+
+    var body: some View {
+        RoundedRectangle(cornerRadius: 28)
+            .fill(.indigo)
+            .frame(width: 280, height: 380)
+            .offset(offset)
+            .rotationEffect(.degrees(Double(offset.width / 20)))
+            .opacity(isGone ? 0 : 1)
+            .gesture(
+                DragGesture()
+                    .onChanged { value in
+                        offset = value.translation
+                    }
+                    .onEnded { value in
+                        let projected = value.predictedEndTranslation.width
+                        let shouldThrow = abs(projected) > 200
+                        let targetX: CGFloat = shouldThrow ? (projected > 0 ? 600 : -600) : 0
+
+                        let velocity = relativeVelocity(
+                            value.velocity.width, from: offset.width, to: targetX
+                        )
+                        withAnimation(.interpolatingSpring(duration: 0.45, bounce: shouldThrow ? 0 : 0.25, initialVelocity: velocity)) {
+                            offset = CGSize(width: targetX, height: shouldThrow ? offset.height : 0)
+                            isGone = shouldThrow
+                        }
+                    }
+            )
+    }
+
+    /// Spring velocity is expressed relative to the remaining distance.
+    private func relativeVelocity(_ velocity: CGFloat, from current: CGFloat, to target: CGFloat) -> Double {
+        let distance = target - current
+        guard abs(distance) > 1 else { return 0 }
+        return Double(velocity / distance)
+    }
+}
+```
+
+Two details matter here:
+
+- **Decide on the projection, not the position.** A short, fast flick should throw the card even though the finger only moved 60 points. `predictedEndTranslation` captures that.
+- **Normalize the velocity.** `initialVelocity` is measured in "distances per second", where 1 means the full distance to the target. Dividing points per second by the remaining distance gets you there.
+
+This is the core of [Swipe Deck](/docs/components/cards/swipe-deck), which adds an outcome badge that locks at the threshold and cards beneath that rise as the top one leaves. [Drag to Dismiss](/docs/components/motion/drag-to-dismiss) applies it to photos and sheets on two axes, and [Flip Card](/docs/components/cards/flip-card) uses a drag to scrub a 3D rotation, then commits or snaps back by velocity.
+
+## Respect Reduce Motion
+
+Some people get motion sick from large movement, parallax, and zooms. Read `accessibilityReduceMotion` and swap spatial motion for a short fade. Do not remove feedback entirely: state changes still need to be visible.
+
+```swift
+struct ReduceMotionExample: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var isShowing = false
+
+    var body: some View {
+        VStack(spacing: 20) {
+            if isShowing {
+                Text("Welcome back")
+                    .font(.title.bold())
+                    .transition(reduceMotion ? AnyTransition.opacity : .move(edge: .bottom).combined(with: .opacity))
+            }
+
+            Button(isShowing ? "Hide" : "Show") {
+                withAnimation(reduceMotion ? .easeInOut(duration: 0.2) : .bouncy) {
+                    isShowing.toggle()
+                }
+            }
+        }
+    }
+}
+```
+
+What to reduce: travel across the screen, parallax, 3D rotation, zooming, looping motion. What to keep: opacity changes, color changes, and small scale feedback on press. Every Swift Pieces component reads this setting. [Elastic Button](/docs/components/controls/elastic-button), for example, keeps its scale and darken under Reduce Motion but drops the lean and stretch toward the finger.
+
+## Performance notes
+
+- **Prefer render effects over layout.** `scaleEffect`, `offset`, `opacity`, and `rotationEffect` do not trigger layout. Animating `frame` or padding on hundreds of views does.
+- **Scope animations tightly.** `.animation(_:value:)` on the smallest view that needs it, or the iOS 17 `.animation(_:body:)` form, avoids animating unrelated changes.
+- **Use `visualEffect` and `scrollTransition` instead of geometry in state.** Writing scroll offsets into `@State` every frame re-runs bodies for no visible gain.
+- **Flatten complex drawings.** `drawingGroup()` renders a subtree into one layer, which helps with many overlapping shapes and gradients. Test it, since it can hurt simple views.
+- **Stabilize identity.** Views in a `ForEach` need stable ids, or SwiftUI treats a moved row as a removal plus an insertion and plays transitions you did not ask for.
+- **Measure on a device.** The simulator hides frame drops. Profile with Instruments on real hardware, ideally a slower one.
+
+## Where to go next
+
+The [animations hub](/components/animations) collects every Swift Pieces component built around motion, from gesture-driven cards to scroll effects. Buttons are where most small motion lives, so the [SwiftUI buttons guide](/docs/guides/swiftui-buttons) continues with press styles and loading states, and [SwiftUI haptics](/docs/guides/swiftui-haptics) covers pairing motion with feel.
+
+## Install a piece
+
+Each piece is a single Swift file with no dependencies. Add one with the CLI:
+
+```bash
+npx swiftpieces add SwipeDeck
+npx swiftpieces add Odometer
+```
+
+See [installation](/docs/installation) for manual setup and Xcode details.

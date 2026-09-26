@@ -34,9 +34,9 @@ export function ComponentCard({ item, index }: { item: RegistryIndexEntry; index
   );
 }
 
-function CardGrid({ items }: { items: RegistryIndexEntry[] }) {
+function CardGrid({ items, narrow }: { items: RegistryIndexEntry[]; narrow?: boolean }) {
   return (
-    <RevealGroup className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" stagger={0.04}>
+    <RevealGroup className={cn("grid gap-4 sm:grid-cols-2 lg:grid-cols-3", !narrow && "xl:grid-cols-4")} stagger={0.04}>
       {items.map((item, i) => (
         <ComponentCard key={item.name} item={item} index={i} />
       ))}
@@ -104,7 +104,8 @@ function FilterButton({ label, count, active, tone, onClick }: { label: string; 
   );
 }
 
-export function ShowcaseGrid({ items, filters = true, limit }: { items: RegistryIndexEntry[]; filters?: boolean; limit?: number }) {
+/** `narrow` caps the grid at three columns, for a docs column rather than the full page. */
+export function ShowcaseGrid({ items, filters = true, limit, narrow }: { items: RegistryIndexEntry[]; filters?: boolean; limit?: number; narrow?: boolean }) {
   const [cat, setCat] = useState<string>("all");
   const fresh = useMemo(() => items.filter((i) => i.isNew), [items]);
   // "New" sits right after "All" while anything is new; it disappears with the last badge.
@@ -146,7 +147,7 @@ export function ShowcaseGrid({ items, filters = true, limit }: { items: Registry
           <CardGrid key={`${cat}-rest`} items={rest} />
         </>
       ) : (
-        <CardGrid key={cat} items={shown} />
+        <CardGrid key={cat} items={shown} narrow={narrow} />
       )}
     </div>
   );

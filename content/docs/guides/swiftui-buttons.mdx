@@ -1,0 +1,404 @@
+---
+title: "SwiftUI Buttons: Custom Styles, Animation, Loading"
+description: "SwiftUI buttons from the basics to custom ButtonStyle, press animation, haptics, async loading states, hold to confirm, and accessible hit targets."
+---
+
+A SwiftUI button is a `Button` view: an action closure plus a label, styled separately through `ButtonStyle`. Keep the action and label in the `Button`, and put the look and the press animation in a style you can reuse across the app.
+
+This guide goes from roles and built-in styles to a custom press-scale style with a spring, haptics, an async loading button with success and error states, hold to confirm for destructive actions, and the accessibility details that are easy to miss. Every snippet compiles against the iOS 17 SDK.
+
+## Button basics and roles
+
+```swift
+struct ButtonBasicsExample: View {
+    var body: some View {
+        VStack(spacing: 16) {
+            Button("Save") { save() }
+
+            Button("Delete", systemImage: "trash", role: .destructive) { delete() }
+
+            Button {
+                share()
+            } label: {
+                Label("Share", systemImage: "square.and.arrow.up")
+            }
+
+            Button("Cancel", role: .cancel) {}
+        }
+    }
+
+    private func save() {}
+    private func delete() {}
+    private func share() {}
+}
+```
+
+A **role** describes what the button does, not how it looks. `.destructive` tints the label red in system styles, and in alerts, confirmation dialogs, and swipe actions it also changes placement. `.cancel` tells the system which button dismisses. Always set roles, because system containers rely on them and VoiceOver users benefit from the ordering they produce.
+
+Prefer the `Label` or `systemImage:` forms over hand-built `HStack`s. The label adapts to its context (icon only in toolbars, title and icon in menus) and reads correctly to VoiceOver.
+
+## Built-in button styles
+
+```swift
+struct BuiltInStylesExample: View {
+    var body: some View {
+        VStack(spacing: 16) {
+            Button("Plain") {}
+                .buttonStyle(.plain)
+
+            Button("Bordered") {}
+                .buttonStyle(.bordered)
+
+            Button("Continue") {}
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                .tint(.indigo)
+
+            Button("Capsule") {}
+                .buttonStyle(.bordered)
+                .buttonBorderShape(.capsule)
+
+            if #available(iOS 26, *) {
+                Button("Glass") {}
+                    .buttonStyle(.glass)
+                Button("Prominent glass") {}
+                    .buttonStyle(.glassProminent)
+            }
+        }
+    }
+}
+```
+
+- `.borderedProminent` is the filled primary action. Use one per screen.
+- `.bordered` is a tinted secondary action.
+- `.controlSize` and `.buttonBorderShape` adjust size and shape without a custom style.
+- `.glass` and `.glassProminent` are **iOS 26 only** and render Liquid Glass. Gate them with `#available` if you support iOS 17. The [Liquid Glass docs](/docs/liquid-glass) cover fallbacks.
+
+## ButtonStyle vs PrimitiveButtonStyle
+
+Both let you restyle any `Button` with `.buttonStyle(_:)`. The difference is who owns the interaction.
+
+**`ButtonStyle`** keeps the system's tap handling. You get `configuration.label`, `configuration.role`, and `configuration.isPressed`, and you only decide how the button looks in each state. This is what you want almost every time.
+
+**`PrimitiveButtonStyle`** hands you `configuration.trigger()` and makes you define the gesture yourself. Use it when the activation itself changes, for example a button that fires on a long press:
+
+```swift
+struct LongPressButtonStyle: PrimitiveButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .padding()
+            .background(.quaternary, in: Capsule())
+            .onLongPressGesture(minimumDuration: 0.5) {
+                configuration.trigger()
+            }
+    }
+}
+```
+
+With a primitive style you lose the system's pressed state, cancellation when the finger slides off, and some accessibility behavior, so you rebuild those yourself.
+
+## A custom button style with a spring press
+
+A good press style does three things: it responds instantly on touch down, it springs back on release, and it still looks disabled when the button is disabled.
+
+```swift
+struct PressScaleStyle: ButtonStyle {
+    @Environment(\.isEnabled) private var isEnabled
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func makeBody(configuration: Configuration) -> some View {
+        let pressed = configuration.isPressed
+
+        configuration.label
+            .font(.body.weight(.semibold))
+            .foregroundStyle(isEnabled ? Color.white : Color.secondary)
+            .padding(.horizontal, 24)
+            .frame(minHeight: 52)
+            .background(isEnabled ? Color.black : Color.gray.opacity(0.2), in: Capsule())
+            .opacity(pressed ? 0.85 : 1)
+            .scaleEffect(pressed && !reduceMotion ? 0.96 : 1)
+            .animation(
+                pressed ? .spring(duration: 0.12, bounce: 0) : .spring(duration: 0.35, bounce: 0.35),
+                value: pressed
+            )
+    }
+}
+
+extension ButtonStyle where Self == PressScaleStyle {
+    static var pressScale: PressScaleStyle { PressScaleStyle() }
+}
+```
+
+Use it like a system style: `Button("Continue") { }.buttonStyle(.pressScale)`.
+
+The two springs are the important part. Pressing in uses a short, unbouncy spring so the button reacts under the finger with no lag. Releasing uses a longer spring with bounce, so it settles with a little life. One spring for both directions either feels sluggish on press or twitchy on release.
+
+This is the simple version. [Elastic Button](/docs/components/controls/elastic-button) is the full one: a `ButtonStyle` that squashes toward the touch point, stretches with rubber-band resistance when dragged, deepens after a hold, and snaps back with a spring. You apply it the same way:
+
+```swift
+struct ElasticUsageExample: View {
+    var body: some View {
+        Button("Continue") {}
+            .buttonStyle(.elastic(.signal))
+    }
+}
+```
+
+## Haptics on press
+
+`sensoryFeedback` (iOS 17) plays a haptic when a value changes. Attach it to the button and trigger it from the action:
+
+```swift
+struct AddToCartButton: View {
+    @State private var adds = 0
+
+    var body: some View {
+        Button("Add to cart") { adds += 1 }
+            .buttonStyle(.pressScale)
+            .sensoryFeedback(.impact(weight: .light), trigger: adds)
+    }
+}
+```
+
+For feedback on touch down rather than on release, trigger from `isPressed` inside the style and return `nil` when you want silence:
+
+```swift
+struct HapticPressStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .padding()
+            .scaleEffect(configuration.isPressed ? 0.96 : 1)
+            .animation(.snappy(duration: 0.2), value: configuration.isPressed)
+            .sensoryFeedback(trigger: configuration.isPressed) { _, isPressed in
+                isPressed ? .impact(flexibility: .soft, intensity: 0.6) : nil
+            }
+    }
+}
+```
+
+Keep press haptics light and reserve `.success`, `.warning`, and `.error` for outcomes. The [SwiftUI haptics guide](/docs/guides/swiftui-haptics) goes deeper.
+
+## A loading button with success and error states
+
+Async buttons are where most apps feel unfinished: a spinner appears, nothing tells you it worked, and a double tap sends the request twice. Model the button as a small state machine instead of a pile of booleans.
+
+```swift
+enum SubmitPhase: Equatable {
+    case idle
+    case loading
+    case success
+    case failure(String)
+}
+
+struct AsyncSubmitButton: View {
+    let title: String
+    let action: () async throws -> Void
+
+    @State private var phase: SubmitPhase = .idle
+
+    var body: some View {
+        VStack(spacing: 8) {
+            Button {
+                Task { await run() }
+            } label: {
+                ZStack {
+                    switch phase {
+                    case .idle:
+                        Text(title)
+                    case .loading:
+                        ProgressView().tint(.white)
+                    case .success:
+                        Image(systemName: "checkmark")
+                    case .failure:
+                        Text("Try again")
+                    }
+                }
+                .transition(.blurReplace)
+                .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.pressScale)
+            .disabled(phase == .loading)
+            .accessibilityLabel(accessibilityText)
+
+            if case .failure(let message) = phase {
+                Text(message)
+                    .font(.footnote)
+                    .foregroundStyle(.red)
+            }
+        }
+        .sensoryFeedback(trigger: phase) { _, newPhase in
+            switch newPhase {
+            case .success: .success
+            case .failure: .error
+            default: nil
+            }
+        }
+    }
+
+    private var accessibilityText: String {
+        switch phase {
+        case .idle, .failure: title
+        case .loading: "\(title), in progress"
+        case .success: "\(title), done"
+        }
+    }
+
+    private func run() async {
+        guard phase != .loading else { return }
+        withAnimation(.snappy) { phase = .loading }
+        do {
+            try await action()
+            withAnimation(.bouncy) { phase = .success }
+            try? await Task.sleep(for: .seconds(1.2))
+            withAnimation(.snappy) { phase = .idle }
+        } catch {
+            withAnimation(.snappy) { phase = .failure(error.localizedDescription) }
+        }
+    }
+}
+```
+
+What this gets right:
+
+- **One source of truth.** The label, disabled state, haptic, and VoiceOver text all derive from `phase`.
+- **No double submits.** The button is disabled while loading, and `run()` guards against re-entry.
+- **Success is visible.** The check holds for a moment before returning to idle.
+- **Errors are recoverable.** The failed state becomes the retry, with the message shown below.
+
+[Commit Button](/docs/components/controls/commit-button) is the designed version of this state machine. It uses one idle, loading, success, error, and disabled phase: the capsule collapses to a spinning ring, blooms into a success block with a drawn check, or re-expands as an error block that shakes and doubles as retry. Its API mirrors the pattern above:
+
+```swift
+struct CommitUsageExample: View {
+    @State private var phase: CommitButton.Phase = .idle
+
+    var body: some View {
+        CommitButton("Save changes", phase: $phase, successTitle: "Saved") {
+            phase = .loading
+            Task {
+                try? await Task.sleep(for: .seconds(1.4))
+                phase = .success
+            }
+        }
+    }
+}
+```
+
+For whole-screen results after an action, see the [loading states guide](/docs/guides/swiftui-loading-states).
+
+## Hold to confirm for destructive actions
+
+A confirmation alert interrupts every user to protect the few who tapped by mistake. For deletes, transfers, and other irreversible actions, a press-and-hold button is often better: it is fast when intended and nearly impossible to trigger by accident.
+
+```swift
+struct HoldToDeleteButton: View {
+    var duration: Double = 1.2
+    let onConfirm: () -> Void
+
+    @State private var progress: CGFloat = 0
+    @State private var isConfirmed = false
+
+    var body: some View {
+        Text(isConfirmed ? "Deleted" : "Hold to delete")
+            .font(.body.weight(.semibold))
+            .frame(maxWidth: .infinity, minHeight: 56)
+            .background(alignment: .leading) {
+                GeometryReader { proxy in
+                    Rectangle()
+                        .fill(.red.opacity(0.35))
+                        .frame(width: proxy.size.width * progress)
+                }
+            }
+            .background(.red.opacity(0.12))
+            .clipShape(Capsule())
+            .onLongPressGesture(minimumDuration: duration) {
+                progress = 1
+                isConfirmed = true
+                onConfirm()
+            } onPressingChanged: { isPressing in
+                guard !isConfirmed else { return }
+                if isPressing {
+                    withAnimation(.linear(duration: duration)) { progress = 1 }
+                } else {
+                    withAnimation(.spring(duration: 0.4, bounce: 0.2)) { progress = 0 }
+                }
+            }
+            .sensoryFeedback(.success, trigger: isConfirmed) { _, confirmed in confirmed }
+            .accessibilityAddTraits(.isButton)
+            .accessibilityHint("Double tap and hold to delete")
+    }
+}
+```
+
+The fill runs on a linear animation because it represents time, and it rewinds with a spring on early release so the user sees the action was cancelled. [Hold to Confirm](/docs/components/controls/hold-to-confirm) adds milestone dots with rising haptics along the way, inverts the label as the fill passes under it, and settles into a confirmed block:
+
+```swift
+struct HoldUsageExample: View {
+    var body: some View {
+        HoldToConfirm("Hold to delete", systemImage: "trash", committedTitle: "Deleted") {}
+    }
+}
+```
+
+## Hit targets
+
+Apple's Human Interface Guidelines ask for touch targets of at least 44 by 44 points. Icon buttons are the usual offenders, because a 17-point glyph produces a 17-point target.
+
+```swift
+struct CloseButton: View {
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: "xmark")
+                .font(.body.weight(.semibold))
+                .frame(width: 44, height: 44)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Close")
+    }
+}
+```
+
+`contentShape` makes the whole frame tappable, including transparent areas. Small toggles like a like or save button need the same treatment. [Reaction Toggle](/docs/components/feedback/reaction-toggle) is a good reference for a compact control that still presses in, floods with color, and sends out a halo on toggle.
+
+## Common button mistakes
+
+**Using `onTapGesture` instead of `Button`.** A tap gesture on a view gives you no pressed state, no disabled state, no keyboard or Switch Control support, and no button trait for VoiceOver. If it performs an action, make it a `Button` and style it.
+
+**Styling inside the label.** Padding, backgrounds, and press effects written directly into the label have to be copied to every button. Move them into a `ButtonStyle` once, and the whole app stays consistent when you change it.
+
+**Animating the press with `withAnimation` in the action.** The action runs on release, so the button looks dead while the finger is down. Press feedback belongs in the style, driven by `configuration.isPressed`, which updates on touch down.
+
+**Forgetting the cancel path.** Users often start a press, change their mind, and slide off. `ButtonStyle` handles this for free: `isPressed` goes false and the action never fires. Custom gestures in a `PrimitiveButtonStyle` or on a plain view have to handle it themselves.
+
+**Hiding a failure.** A loading button that silently returns to idle after an error is worse than no loading state at all. Show the error next to the button and make the next tap a retry.
+
+**One animation for everything.** A primary action, a destructive action, and a small toggle deserve different weights. Give the primary action the fuller press, keep secondary buttons quieter, and let only confirmations bounce.
+
+## Accessibility checklist
+
+- **Labels.** Icon-only buttons need `.accessibilityLabel`. Use a verb or a clear noun: "Close", "Share photo", not "X".
+- **State.** Loading and success states should change the label or value so VoiceOver users know what happened.
+- **Dynamic Type.** Use `minHeight` rather than a fixed `height`, and let text wrap. For custom sizes, `@ScaledMetric` scales padding and icon sizes with the user's text size.
+- **Reduce Motion.** Keep pressed feedback (opacity, color, a small scale) but drop travel, stretch, and bounce. The `PressScaleStyle` above does this.
+- **Disabled is a design state.** Read `@Environment(\.isEnabled)` in custom styles and draw a distinct disabled look instead of relying on opacity alone.
+- **Destructive actions.** Set `role: .destructive`, and for hold gestures make sure the VoiceOver path is clear.
+
+## Menus that grow from a button
+
+When one button needs to expose several actions, reach for `Menu` first. For a floating action button that fans out, [Glass Action Menu](/docs/components/glass/glass-action-menu) long-presses open into a line or arc of actions you can slide across and release to fire, and its glass morphs on iOS 26.
+
+The [controls hub](/components/controls) collects every button-like piece in Swift Pieces, and the [SwiftUI animations guide](/docs/guides/swiftui-animations) covers the springs and transitions used throughout this page.
+
+## Install a piece
+
+Each piece is one Swift file with no third-party dependencies:
+
+```bash
+npx swiftpieces add ElasticButton
+npx swiftpieces add CommitButton
+npx swiftpieces add HoldToConfirm
+```
+
+See [installation](/docs/installation) for manual setup.

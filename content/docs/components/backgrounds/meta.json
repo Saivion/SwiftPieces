@@ -1,6 +1,6 @@
 {
   "title": "Backgrounds",
-  "description": "Quiet atmospheres: shaders, meshes and touch-reactive fields.",
+  "description": "Quiet atmospheres: a Metal silk shader and a touch-reactive dot grid.",
   "defaultOpen": false,
   "pages": [
     "silk",

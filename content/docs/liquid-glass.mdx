@@ -1,6 +1,6 @@
 ---
-title: Liquid Glass guide
-description: How Swift Pieces uses glassEffect, GlassEffectContainer and glassEffectID, and how every piece falls back below iOS 26.
+title: SwiftUI Liquid Glass guide (iOS 26)
+description: How to use Liquid Glass in SwiftUI with glassEffect, GlassEffectContainer and glassEffectID, and how to fall back to Material below iOS 26.
 ---
 
 Liquid Glass shipped with iOS 26. The APIs are small, but the failure modes are not: glass sampling glass, missing fallbacks, invented modifiers from tutorials. Every glass piece here follows the same rules.
@@ -34,3 +34,15 @@ if #available(iOS 26, *), !reduceTransparency {
     content.background(.ultraThinMaterial, in: shape)
 }
 ```
+
+## Liquid Glass pieces
+
+Every piece below follows the rules above and builds from iOS 17, drawing glass on iOS 26 and its designed fallback everywhere else.
+
+- [Glass Surface](/docs/components/glass/glass-surface): the foundation. Glass in a capsule, rect, circle or concentric shape, with a layered Material fallback that keeps the press response and specular edge.
+- [Glass Segments](/docs/components/glass/glass-segments): a segmented control whose glass indicator you can grab and drag.
+- [Glass Action Menu](/docs/components/glass/glass-action-menu): a floating trigger that long-presses open into actions you slide across and release to fire.
+- [Floating Dock](/docs/components/navigation/floating-dock): a floating tab bar that tucks away on scroll.
+- [Glass Text](/docs/components/text/glass-text): Liquid Glass on the actual glyph outlines of a string.
+
+See them side by side on the [SwiftUI Liquid Glass components](/components/glass) page, or add one with `npx swiftpieces add GlassSurface`.

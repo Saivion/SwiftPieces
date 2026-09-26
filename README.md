@@ -14,7 +14,7 @@
 <img src="https://img.shields.io/badge/TypeScript-070708?logo=typescript&logoColor=FF0000" alt="TypeScript" />
 <img src="https://img.shields.io/badge/license-MIT_%2B_Commons_Clause-FF0000?labelColor=070708" alt="MIT + Commons Clause" />
 
-[**swiftpieces.com**](https://swiftpieces.com) &nbsp;&middot;&nbsp; [Components](https://swiftpieces.com/components) &nbsp;&middot;&nbsp; [Docs](https://swiftpieces.com/docs) &nbsp;&middot;&nbsp; [Follow on X](https://x.com/saivion)
+[**swiftpieces.com**](https://swiftpieces.com) &nbsp;&middot;&nbsp; [Components](https://swiftpieces.com/components) &nbsp;&middot;&nbsp; [Docs](https://swiftpieces.com/docs/introduction) &nbsp;&middot;&nbsp; [Follow on X](https://x.com/saivion)
 
 </div>
 
@@ -33,12 +33,14 @@ npx swiftpieces add AssistantOrb
 Several at once:
 
 ```bash
-npx swiftpieces add AssistantOrb SwipeDeck GlassMenu
+npx swiftpieces add AssistantOrb SwipeDeck GlassActionMenu
 ```
 
 Or open the file on [swiftpieces.com/components](https://swiftpieces.com/components) and copy it. There is nothing to install and no package to track.
 
-**55 pieces across 14 categories:** text, backgrounds, glass, controls, inputs, cards, lists, navigation, sheets, feedback, motion, data, AI and media.
+**55 pieces across 14 categories:** [text](https://swiftpieces.com/components/text), [backgrounds](https://swiftpieces.com/components/backgrounds), [Liquid Glass](https://swiftpieces.com/components/glass), [buttons and controls](https://swiftpieces.com/components/controls), [inputs and forms](https://swiftpieces.com/components/inputs), [cards](https://swiftpieces.com/components/cards), [lists](https://swiftpieces.com/components/lists), [navigation](https://swiftpieces.com/components/navigation), [sheets](https://swiftpieces.com/components/sheets), [feedback](https://swiftpieces.com/components/feedback), [motion](https://swiftpieces.com/components/motion), [data and charts](https://swiftpieces.com/components/data), [AI](https://swiftpieces.com/components/ai) and [media](https://swiftpieces.com/components/media).
+
+**Guides:** [SwiftUI animations](https://swiftpieces.com/docs/guides/swiftui-animations) · [SwiftUI buttons](https://swiftpieces.com/docs/guides/swiftui-buttons) · [SwiftUI cards](https://swiftpieces.com/docs/guides/swiftui-cards) · [SwiftUI haptics](https://swiftpieces.com/docs/guides/swiftui-haptics) · [Loading states](https://swiftpieces.com/docs/guides/swiftui-loading-states) · [Liquid Glass](https://swiftpieces.com/docs/liquid-glass)
 
 ## What you get
 
