@@ -17,7 +17,9 @@ import { cn } from "@/lib/cn";
  */
 export function Hero() {
   return (
-    <section className="relative overflow-hidden pt-20 pb-20 md:pt-28 md:pb-28 lg:pt-32">
+    <section className="relative overflow-x-clip pt-20 pb-20 md:pt-28 md:pb-28 lg:pt-32">
+      {/* Clipped sideways only: the ribbon runs up behind the fixed navbar, so it must not be cut at
+          the hero's top edge. */}
       <HeroLines />
       <Container className="relative">
         {/* <HeroDither /> */}
