@@ -12,7 +12,7 @@ import { GitHubStarLive } from "@/components/layout/github-star-live";
  */
 export default function MarketingLayout({ children }: { children: ReactNode }) {
   const desktop = "hidden sm:inline-flex";
-  const mobile = "h-12 justify-center text-[15px]";
+  const mobile = "h-12 justify-center text-[14px]";
   return (
     <>
       <Navbar star={<GitHubStarLive className={desktop} />} starMobile={<GitHubStarLive className={mobile} />} />

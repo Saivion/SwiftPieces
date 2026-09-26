@@ -37,7 +37,7 @@ export function Footer() {
               <ul className="flex flex-col gap-2.5">
                 {col.links.map((l) => (
                   <li key={l.label}>
-                    <Link href={l.href} className="text-[13.5px] text-muted transition-colors duration-300 hover:text-foreground">
+                    <Link href={l.href} className="text-[13px] text-muted transition-colors duration-300 hover:text-foreground">
                       {l.label}
                     </Link>
                   </li>
@@ -48,10 +48,10 @@ export function Footer() {
         </div>
 
         <div className="mt-24 overflow-hidden" aria-hidden>
-          <p className="select-none whitespace-nowrap text-center text-[clamp(2.6rem,10.3vw,10.5rem)] font-extrabold leading-[0.82] tracking-[-0.06em] text-[#0f0f0f]">SWIFTPIECES</p>
+          <p className="select-none whitespace-nowrap text-center text-[clamp(2.3rem,9.1vw,9.2rem)] font-extrabold leading-[0.82] tracking-[-0.06em] text-[#0f0f0f]">SWIFTPIECES</p>
         </div>
 
-        <div className="mt-10 flex flex-col gap-3 text-[12px] text-subtle md:flex-row md:items-center md:justify-between">
+        <div className="mt-10 flex flex-col gap-3 text-[11.5px] text-subtle md:flex-row md:items-center md:justify-between">
           <p>© {new Date().getFullYear()} Swift Pieces. Free pieces are MIT + Commons Clause.</p>
           <p className="inline-flex items-center gap-1.5">Curated with<svg aria-label="love" viewBox="0 0 16 16" className="size-3 text-accent" fill="currentColor"><path d="M8 14s-5.5-3.3-5.5-7.2A3 3 0 0 1 8 5.1a3 3 0 0 1 5.5 1.7C13.5 10.7 8 14 8 14z" /></svg>by <a href="https://x.com/saivion" target="_blank" rel="noreferrer" className="u-link text-foreground">Saivion</a></p>
         </div>

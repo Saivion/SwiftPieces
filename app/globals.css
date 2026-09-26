@@ -14,6 +14,10 @@
   --surface-muted: #17171a;
   --card-border: rgba(255, 255, 255, 0.075);
   --card-border-hover: rgba(255, 255, 255, 0.18);
+  /* Near-square corners (the brand default is 8/14/20), to sit with the square dashed frames. */
+  --radius-sm: 2px;
+  --radius: 4px;
+  --radius-lg: 6px;
 }
 
 /* The page's dot field: finer and fainter than the brand's `.dots`, which is tuned for panels. */
@@ -28,10 +32,19 @@
    as #121212 by every preview's Stage wrapper), so the piece sits straight on the dashed frame. */
 .stage-clear [style*="background: rgb(18, 18, 18)"] { background: transparent !important; }
 /* Landing visuals: an unfilled frame with a fine dashed edge (4 on, 6 off), drawn as an SVG so the
-   dashes stay thin and follow the 16px corners, which a CSS dashed border cannot do. */
+   dashes stay thin and evenly spaced, which a CSS dashed border cannot do. Square corners. */
+/* Four edges drawn separately, not one dashed path: a single path carries its dash phase round the
+   corners, so some corners landed on a gap. Here each edge is its own 1px strip of 10px tiles (a 4px
+   dash centred in each) laid out with `space`, which fits whole tiles and spreads them evenly, so
+   every edge starts and ends on the same half-gap and all four corners match at any size. */
 .frame-dashed::before {
+  --dash: rgb(255 255 255 / 0.16);
   content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: inherit;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100%25' height='100%25'%3E%3Crect x='0.5' y='0.5' width='calc(100%25 - 1px)' height='calc(100%25 - 1px)' rx='15.5' fill='none' stroke='%23ffffff' stroke-opacity='0.16' stroke-dasharray='4 6'/%3E%3C/svg%3E");
+  background:
+    linear-gradient(90deg, transparent 3px, var(--dash) 3px 7px, transparent 7px) top / 10px 1px space no-repeat,
+    linear-gradient(90deg, transparent 3px, var(--dash) 3px 7px, transparent 7px) bottom / 10px 1px space no-repeat,
+    linear-gradient(180deg, transparent 3px, var(--dash) 3px 7px, transparent 7px) left / 1px 10px no-repeat space,
+    linear-gradient(180deg, transparent 3px, var(--dash) 3px 7px, transparent 7px) right / 1px 10px no-repeat space;
 }
 
 /* Black panels need one lit edge or they read as holes: a 1px top highlight, nothing more. */
@@ -66,8 +79,8 @@
 /* Docs sidebar: 6px rounding on rows, hover and selection; the switcher card and its popover keep 10px like the filter box.
    Fumadocs top-aligns the icon in switcher options (md:mb-auto); center it instead. */
 #nd-docs-layout aside :is(a, button).rounded-lg { border-radius: 6px; }
-#nd-docs-layout aside button[aria-haspopup="dialog"].rounded-lg { border-radius: 10px; }
-[data-radix-popper-content-wrapper] .rounded-xl { border-radius: 10px; }
+#nd-docs-layout aside button[aria-haspopup="dialog"].rounded-lg { border-radius: 4px; }
+[data-radix-popper-content-wrapper] .rounded-xl { border-radius: 4px; }
 [data-radix-popper-content-wrapper] a.rounded-lg { border-radius: 6px; }
 [data-radix-popper-content-wrapper] a > div:first-child { margin-bottom: 0; }
 
@@ -121,7 +134,7 @@
 .marquee-reverse { animation-direction: reverse; }
 
 /* Search dialog: result rows (hover and keyboard selection) sit at 10px, a step tighter than the dialog itself. */
-[role="dialog"] button[aria-selected].rounded-lg { border-radius: 10px; }
+[role="dialog"] button[aria-selected].rounded-lg { border-radius: 4px; }
 
 /* Closing summary card: near-black, translucent so the page grid shows through. */
 .cta-wash {
@@ -237,10 +250,12 @@
 }
 .nav-glass[data-condensed="true"] {
   background-color: rgb(24 24 26 / 0.55);
-  border-color: rgb(255 255 255 / 0.1);
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.12), 0 18px 48px -18px rgb(0 0 0 / 0.85);
-  -webkit-backdrop-filter: blur(22px) saturate(180%);
-  backdrop-filter: blur(22px) saturate(180%);
+  /* No outline: the 1px border stacked on an inset highlight read as a thick frame. The glass fill,
+     blur and drop shadow alone set the bar off from the page. */
+  border-color: transparent;
+  box-shadow: 0 18px 48px -18px rgb(0 0 0 / 0.85);
+  -webkit-backdrop-filter: blur(6px) saturate(180%);
+  backdrop-filter: blur(6px) saturate(180%);
 }
 @media (prefers-reduced-motion: reduce) { .nav-glass { transition: none !important; } }
 
@@ -257,3 +272,63 @@
    first screen settles on paint. Finite entrances are unaffected. */
 html:not([data-motion]) .marquee,
 html:not([data-motion]) .pro-shimmer { animation-play-state: paused; }
+
+/* Every clickable control shows a pointer (Tailwind v4 resets buttons to the default cursor). Same
+   rule as Pro's globals.css, plus the menu, option and switch roles the search dialog and docs use.
+   In the base layer so a utility such as cursor-wait still wins. Text inputs keep the text cursor. */
+@layer base {
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  [role="tab"],
+  [role="option"],
+  [role="menuitem"],
+  [role="switch"],
+  input[type="button"]:not(:disabled),
+  input[type="submit"]:not(:disabled),
+  input[type="checkbox"]:not(:disabled),
+  input[type="radio"]:not(:disabled),
+  input[type="range"]:not(:disabled),
+  input[type="file"]:not(:disabled),
+  select:not(:disabled),
+  summary,
+  label[for] {
+    cursor: pointer;
+  }
+  button:disabled,
+  [aria-disabled="true"] {
+    cursor: not-allowed;
+  }
+}
+
+/* ── Compact type scale (2026-09-25) ──────────────────────────────────────────────────────────
+   Everything reads one step smaller at 100% zoom. The brand classes come from the published
+   @swiftpieces/brand package, so they are resized here (after its import) rather than in the
+   package, which Pro consumes from npm. Pixel sizes in components were scaled by the same curve:
+   ≤11px unchanged, 12–13.5px −0.5, 14–16px −1, 17–20px ×0.92, 21–39px ×0.9, ≥40px ×0.88.
+   Component previews (the iOS mock screens) are left alone: they size themselves to their stage. */
+@theme {
+  --text-xs: 0.71875rem;   /* 11.5px (was 12) */
+  --text-sm: 0.8125rem;    /* 13px   (was 14) */
+  --text-base: 0.9375rem;  /* 15px   (was 16) */
+  --text-lg: 1.0625rem;    /* 17px   (was 18) */
+  --text-xl: 1.1875rem;    /* 19px   (was 20) */
+  --text-2xl: 1.375rem;    /* 22px   (was 24) */
+  --text-3xl: 1.6875rem;   /* 27px   (was 30) */
+  --text-4xl: 2rem;        /* 32px   (was 36) */
+}
+.t-display { font-size: clamp(2.3rem, 1.25rem + 4.9vw, 5.7rem); }
+.t-h1 { font-size: clamp(2.2rem, 1.25rem + 3.2vw, 3.95rem); }
+.t-h2 { font-size: clamp(1.8rem, 1.25rem + 1.8vw, 2.7rem); }
+.t-h3 { font-size: clamp(1.15rem, 1rem + 0.55vw, 1.5rem); }
+.t-lead { font-size: clamp(1rem, 0.95rem + 0.35vw, 1.15rem); }
+.t-body { font-size: 0.9375rem; }
+.t-meta { font-size: 0.6875rem; }
+.t-mono { font-size: 0.78125rem; }
+.p-title { font-size: clamp(1.45rem, 1.1rem + 1.95vw, 2.65rem); }
+.p-hero { font-size: clamp(1.8rem, 1.05rem + 2.9vw, 3.45rem); }
+.p-item { font-size: 17.5px; }
+.p-body { font-size: 13px; }
+.p-lead { font-size: clamp(0.95rem, 0.9rem + 0.3vw, 1.1rem); }
+.wordmark-tag { font-size: 16.5px; }
+/* Docs body: Fumadocs sizes everything inside .prose in em, so one base size scales it all. */
+.prose { font-size: 0.9375rem; }

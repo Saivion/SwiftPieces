@@ -24,7 +24,7 @@ export function SidebarFilter() {
     });
   }, [q]);
   return (
-    <label className="flex h-9 items-center gap-2 rounded-[10px] bg-white/[.04] pl-3 pr-1.5 text-[13px] text-muted ring-1 ring-[var(--card-border)] focus-within:ring-white/20">
+    <label className="flex h-9 items-center gap-2 rounded-[4px] bg-white/[.04] pl-3 pr-1.5 text-[12.5px] text-muted ring-1 ring-[var(--card-border)] focus-within:ring-white/20">
       <svg aria-hidden viewBox="0 0 16 16" className="size-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="7" cy="7" r="4.5" /><path d="M10.5 10.5L14 14" strokeLinecap="round" /></svg>
       <input ref={ref} value={q} onChange={(e) => setQ(e.target.value)} placeholder="Filter…" className="min-w-0 flex-1 bg-transparent text-foreground placeholder:text-subtle focus:outline-none" aria-label="Filter sidebar" />
       <button type="button" onClick={() => setOpenSearch(true)} title="Search docs" className="shrink-0 rounded-[6px] bg-white/[.06] px-1.5 py-0.5 font-mono text-[10px] text-subtle transition-colors hover:bg-white/[.12] hover:text-foreground">
@@ -39,7 +39,7 @@ export type FooterLink = { label: string; href: string; external?: boolean };
 /** Quiet site links at the foot of the sidebar, so the body of the sidebar holds only the docs tree. */
 export function SidebarFooterLinks({ links }: { links: FooterLink[] }) {
   return (
-    <nav aria-label="Site" className="flex flex-wrap gap-x-3 gap-y-1 border-t border-[var(--card-border)] px-2 pt-3 text-[12px] text-subtle">
+    <nav aria-label="Site" className="flex flex-wrap gap-x-3 gap-y-1 border-t border-[var(--card-border)] px-2 pt-3 text-[11.5px] text-subtle">
       {links.map((l) => (
         <a key={l.href} href={l.href} {...(l.external ? { target: "_blank", rel: "noreferrer" } : {})} className="transition-colors hover:text-foreground">
           {l.label}

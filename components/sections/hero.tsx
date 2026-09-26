@@ -4,7 +4,9 @@ import { Button, Arrow } from "@/components/ui/button";
 import { Command } from "@/components/ui/code";
 import { AnimatedText } from "@/components/ui/animated-text";
 import { Reveal } from "@/components/effects/reveal";
-import { HeroDither } from "@/components/visual/hero-dither";
+// The halftone 3D Swift mark, retired for the flowing lines (hero-lines.tsx). Kept for now.
+// import { HeroDither } from "@/components/visual/hero-dither";
+import { HeroLines } from "@/components/visual/hero-lines";
 import { LiveViews } from "@/components/sections/live-views";
 import { sectionBody } from "@/components/sections/feature-row";
 import { cn } from "@/lib/cn";
@@ -16,18 +18,19 @@ import { cn } from "@/lib/cn";
 export function Hero() {
   return (
     <section className="relative overflow-hidden pt-20 pb-20 md:pt-28 md:pb-28 lg:pt-32">
+      <HeroLines />
       <Container className="relative">
-        <HeroDither />
+        {/* <HeroDither /> */}
         <div className="relative z-10">
           {/* The copy column stops short of the mark, so the headline never runs under it. */}
           <div className="max-w-[46rem]">
             <Reveal priority><Eyebrow>New Components Every Week<LiveViews /></Eyebrow></Reveal>
-            <AnimatedText as="h1" text="Native SwiftUI that feels alive." accent="alive" className="mt-8 text-[42px] leading-[1.02] font-medium tracking-[-0.035em] text-balance sm:text-[52px] lg:text-[60px]" />
-            <Reveal priority delay={0.35}><p className={cn("mt-6 max-w-xl", sectionBody)}>Production SwiftUI components, one file each. Motion, haptics and accessibility included.</p></Reveal>       
+            <AnimatedText as="h1" text="Build apps that belong in the App Store's top 1%." accent="1%" className="mt-8 text-[34px] leading-[1.04] font-medium tracking-[-0.035em] text-balance sm:text-[42px] lg:text-[49px]" />
+            <Reveal priority delay={0.35}><p className={cn("mt-6 max-w-xl", sectionBody)}>The motion, haptics and accessibility the best apps get right, as production SwiftUI components. Install with one command and make them yours.</p></Reveal>       
             <Reveal priority delay={0.45} className="mt-9 flex flex-wrap items-center gap-3">
               <Button href="/components">Browse the library <Arrow /></Button>
               {/* Same h-11 as the md Button, with its 10px corner and hairline so the pair reads as one row. */}
-              <Command text="npx swiftpieces init" className="rounded-[10px]! border border-[var(--card-border)]" />
+              <Command text="npx swiftpieces init" className="rounded-[4px]! border border-[var(--card-border)]" />
             </Reveal>
           </div>
         </div>

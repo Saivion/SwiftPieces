@@ -23,7 +23,7 @@ export function TabTitle({ label, count }: { label: string; count: number | stri
   return (
     <span className="inline-flex items-baseline gap-1.5">
       {label}
-      <span className="text-[12px] font-normal text-subtle">{count}</span>
+      <span className="text-[11.5px] font-normal text-subtle">{count}</span>
     </span>
   );
 }

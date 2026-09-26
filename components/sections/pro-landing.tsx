@@ -70,18 +70,18 @@ export function ProHero() {
 
 /* ---------- Gallery ---------- */
 
-/** Abstract phone mock so the gallery reads as a product wall without shipping Pro previews in Free. */
+/** Abstract phone mock so the gallery reads as a product wall without shipping Pro previews in Free. Greys only, so it never competes with the grounds it sits on. */
 function Mock({ kind, i }: { kind: Kind; i: number }) {
   const bar = "rounded-[3px] bg-foreground/[.10]";
   const rows = kind === "template" ? 6 : 5;
   return (
-    <div className="relative mx-auto h-[150px] w-[76px] rounded-[16px] border border-foreground/[.14] bg-background p-2">
+    <div className="relative mx-auto h-[150px] w-[76px] rounded-[6px] border border-foreground/[.14] bg-background p-2">
       <div className="mx-auto mb-2 h-1 w-6 rounded-full bg-foreground/[.12]" />
-      {kind === "screen" ? <div className={cn("mb-2 h-9 rounded-[6px]", i % 2 ? "bg-accent/40" : "bg-foreground/[.16]")} /> : null}
+      {kind === "screen" ? <div className="mb-2 h-9 rounded-[6px] bg-foreground/[.16]" /> : null}
       <div className="space-y-1.5">
         {Array.from({ length: rows }, (_, r) => <div key={r} className={cn(bar, "h-1.5")} style={{ width: `${[92, 64, 78, 50, 84, 40][(r + i) % 6]}%` }} />)}
       </div>
-      {kind === "template" ? <div className="absolute inset-x-2 bottom-2 flex h-5 items-center justify-around rounded-[6px] bg-foreground/[.10]">{[0, 1, 2, 3].map((d) => <span key={d} className={cn("size-1.5 rounded-full", d === 1 ? "bg-accent" : "bg-foreground/30")} />)}</div> : null}
+      {kind === "template" ? <div className="absolute inset-x-2 bottom-2 flex h-5 items-center justify-around rounded-[6px] bg-foreground/[.10]">{[0, 1, 2, 3].map((d) => <span key={d} className={cn("size-1.5 rounded-full", d === 1 ? "bg-foreground/60" : "bg-foreground/25")} />)}</div> : null}
     </div>
   );
 }
@@ -93,9 +93,9 @@ function Tile({ item, i }: { item: (typeof catalog)[number]; i: number }) {
       <div className="relative flex items-end justify-between gap-3">
         <div className="min-w-0">
           <p className="p-meta text-subtle">{kindLabel[item.kind]} · {item.cat}</p>
-          <p className="mt-1.5 text-[15px] font-semibold">{item.name}</p>
+          <p className="mt-1.5 text-[14px] font-semibold">{item.name}</p>
         </div>
-        <span className="pill inline-flex h-7 shrink-0 items-center gap-1.5 whitespace-nowrap bg-background/80 px-2.5 text-[12px] font-medium text-foreground opacity-0 transition-opacity duration-300 group-hover:opacity-100">Open in Pro <Arrow className="size-3" /></span>
+        <span className="pill inline-flex h-7 shrink-0 items-center gap-1.5 whitespace-nowrap bg-background/80 px-2.5 text-[11.5px] font-medium text-foreground opacity-0 transition-opacity duration-300 group-hover:opacity-100">Open in Pro <Arrow className="size-3" /></span>
       </div>
     </a>
   );
@@ -120,7 +120,7 @@ export function ProGallery() {
       <Container>
         <Reveal className="mt-10 flex flex-wrap justify-center gap-2">
           {tabs.map((t) => (
-            <a key={t.label} href={buy} className="pill inline-flex h-9 items-center gap-2 px-4 text-[13px] font-medium text-muted transition-colors hover:border-[var(--card-border-hover)] hover:bg-surface-2 hover:text-foreground">
+            <a key={t.label} href={buy} className="pill inline-flex h-9 items-center gap-2 px-4 text-[12.5px] font-medium text-muted transition-colors hover:border-[var(--card-border-hover)] hover:bg-surface-2 hover:text-foreground">
               {t.label}<span className="text-[11px] text-subtle">{t.n}</span>
             </a>
           ))}
@@ -152,11 +152,11 @@ export function WhatYouGet() {
                 {/* The same dithered Pro ground as Pro's library cards, seeded per card; the count sits on it in ink. */}
                 <div className="relative isolate flex h-[180px] flex-col justify-end overflow-hidden p-6 text-[#141414]">
                   <DitherStage seed={`pro-page-${s.label}`} className="-z-10 transition-transform duration-700 ease-out group-hover:scale-[1.03]" />
-                  <CountUp value={s.value} className="text-[72px] leading-[0.9] font-medium tracking-[-0.04em] tabular-nums" />
+                  <CountUp value={s.value} className="text-[63.5px] leading-[0.9] font-medium tracking-[-0.04em] tabular-nums" />
                 </div>
                 <div className="p-6">
-                  <p className="text-[17px] font-medium tracking-[-0.01em]">{s.label}</p>
-                  <p className="mt-2 text-[15px] leading-[24px] text-pretty text-muted">{s.detail}</p>
+                  <p className="text-[15.5px] font-medium tracking-[-0.01em]">{s.label}</p>
+                  <p className="mt-2 text-[14px] leading-[24px] text-pretty text-muted">{s.detail}</p>
                 </div>
               </a>
             </RevealItem>
@@ -173,20 +173,27 @@ function Check({ strong }: { strong?: boolean }) {
   return <svg aria-hidden viewBox="0 0 16 16" className={cn("mt-[3px] size-3.5 shrink-0", strong ? "text-foreground" : "text-subtle")} fill="none" stroke="currentColor" strokeWidth="1.75"><path d="M3.5 8.5l3 3 6-7" strokeLinecap="round" strokeLinejoin="round" /></svg>;
 }
 
-/** Quiet comparison card: tag, statement title, short body, three points, one action. The Pro card is set apart by its brighter edge and text. */
+/**
+ * Quiet comparison card: tag, statement title, short body, three points, one action. The Pro card is
+ * set apart by its brighter edge and text. On wide screens both cards share one set of rows
+ * (CSS subgrid), so tag, title, body, points and action line up across the pair whatever each
+ * holds; the header row is a fixed height so the Pro badge cannot push its card down.
+ */
 function PlanCard({ tag, title, body, points, cta, pro: isPro }: { tag: string; title: string; body: string; points: string[]; cta: string; pro?: boolean }) {
   return (
-    <div className={cn("card relative flex flex-col overflow-hidden p-8 md:p-9", isPro && "border-[var(--card-border-hover)]")}>
-      <div className="flex items-center justify-between">
+    <div className={cn("card relative isolate flex flex-col overflow-hidden p-8 md:p-9 lg:row-span-5 lg:grid lg:grid-rows-subgrid lg:gap-y-0", isPro && "border-[var(--card-border-hover)]")}>
+      {/* The Pro card wears the Pro corner, like every Pro card in both apps. */}
+      {isPro ? <CornerDither className="pointer-events-none absolute right-0 bottom-0 -z-10 h-56 w-full [mask-image:radial-gradient(120%_120%_at_100%_100%,black_35%,transparent_78%)] lg:h-[85%] lg:w-[58%]" /> : null}
+      <div className="flex h-6 items-center justify-between">
         <span className={cn("p-meta", isPro ? "text-accent" : "text-subtle")}>{tag}</span>
         {isPro ? <span className="rounded-[4px] bg-accent px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-accent-foreground">Pro</span> : null}
       </div>
-      <h3 className="mt-6 text-[20px] leading-[1.2] font-medium tracking-[-0.02em]">{title}</h3>
-      <p className="mt-3 max-w-md text-[15px] leading-[24px] text-pretty text-muted">{body}</p>
+      <h3 className="mt-6 text-[18.5px] leading-[1.2] font-medium tracking-[-0.02em]">{title}</h3>
+      <p className="mt-3 max-w-md text-[14px] leading-[24px] text-pretty text-muted">{body}</p>
       <ul className="mt-7 flex flex-col gap-2.5">
-        {points.map((pt) => <li key={pt} className={cn("flex gap-2.5 text-[14px] leading-snug", isPro ? "text-foreground" : "text-muted")}><Check strong={isPro} />{pt}</li>)}
+        {points.map((pt) => <li key={pt} className={cn("flex gap-2.5 text-[13px] leading-snug", isPro ? "text-foreground" : "text-muted")}><Check strong={isPro} />{pt}</li>)}
       </ul>
-      <a href={buy} className={cn("group mt-auto inline-flex items-center gap-2 pt-8 text-[13.5px] font-semibold", isPro ? "text-foreground" : "text-muted hover:text-foreground")}><span className="u-link">{cta}</span><Arrow className="size-3.5" /></a>
+      <a href={buy} className={cn("group mt-auto inline-flex items-center gap-2 justify-self-start pt-8 text-[13px] font-semibold", isPro ? "text-foreground" : "text-muted hover:text-foreground")}><span className="u-link">{cta}</span><Arrow className="size-3.5" /></a>
     </div>
   );
 }
@@ -200,7 +207,7 @@ export function Compare() {
           title="A curated taste, then the complete library"
           body="Free gives you standout pieces for a single moment. Pro gives you the screens and complete apps around them. Both are plain SwiftUI source in your project, so mixing them is the normal case."
         />
-        <Reveal className="mt-12 grid gap-3 lg:grid-cols-2">
+        <Reveal className="mt-12 grid gap-3 lg:grid-cols-2 lg:gap-y-0">
           <PlanCard tag="Free library" title="A curated taste of Swift Pieces." body={`${freeCount} animated pieces, Liquid Glass effects and Metal shaders. Genuinely good, and free to ship wherever a screen feels flat.`} points={["MIT + Commons Clause, forever", "Single-file pieces", "Install by CLI, MCP or copy-paste"]} cta="See what Pro adds" />
           <PlanCard tag="Swift Pieces Pro" title="The pieces to build the whole app." body="Production-ready SwiftUI screens, complete app templates, and a Build Kit that teaches your coding agent the same design. Install by copy, CLI or MCP." points={[proCountsLabel, "Full SwiftUI source that lives in your project", "Lifetime access, everything added later included"]} cta="Get Swift Pieces Pro" pro />
         </Reveal>
@@ -213,8 +220,8 @@ export function Compare() {
 
 export function TryFirst() {
   const cards = [
-    { eyebrow: "Pro screen", title: "Wallet", body: "Stacked cards and passes you tap forward, fan out and reorder, with springs and haptics already tuned.", kind: "screen" as Kind, more: "More screens", href: pro.screens },
-    { eyebrow: "Pro template", title: "AI Assistant", body: "Nimbus, a complete Xcode project with streaming chat, a conversation library, voice mode and widgets. Download it and it runs.", kind: "template" as Kind, more: "More templates", href: pro.templates },
+    { eyebrow: "Pro screen", cat: "Finance", title: "Wallet", body: "Stacked cards and passes you tap forward, fan out and reorder, with springs and haptics already tuned.", kind: "screen" as Kind, more: "More screens", href: pro.screens, seed: "try-wallet" },
+    { eyebrow: "Pro template", cat: "AI", title: "AI Assistant", body: "Nimbus, a complete Xcode project with streaming chat, a conversation library, voice mode and widgets. Download it and it runs.", kind: "template" as Kind, more: "More templates", href: pro.templates, seed: "try-assistant" },
   ];
   return (
     <section className="relative py-16 sm:py-24">
@@ -225,14 +232,45 @@ export function TryFirst() {
         />
         <RevealGroup className="mt-12 grid gap-4 lg:grid-cols-2" stagger={0.1}>
           {cards.map((c, i) => (
-            <RevealItem key={c.title}>
-              <div className="card flex h-full flex-col overflow-hidden">
-                <div className="stage dots relative h-[240px] rounded-none"><div className="absolute inset-x-0 top-8"><Mock kind={c.kind} i={i + 3} /></div></div>
-                <div className="p-8">
-                  <p className="text-[13px] text-muted">{c.eyebrow}</p>
-                  <h3 className="mt-3 text-[20px] leading-[1.2] font-medium tracking-[-0.02em]">{c.title}</h3>
-                  <p className="mt-3 max-w-md text-[15px] leading-[24px] text-pretty text-muted">{c.body}</p>
-                  <div className="mt-7 flex flex-wrap items-center gap-x-7 gap-y-4">
+            <RevealItem key={c.title} className="h-full">
+              {/* Same dithered ground as Pro's library cards, with the device rising out of the bottom edge. */}
+              <div className="card group flex h-full flex-col overflow-hidden">
+                <a href={c.href} className="relative isolate block h-[260px] overflow-hidden" aria-label={`${c.title} in Swift Pieces Pro`}>
+                  <DitherStage seed={c.seed} className="-z-10 transition-transform duration-700 ease-out group-hover:scale-[1.03]" />
+                  {c.kind === "template" ? (
+                    // A template is a whole app, so it shows three of its screens, stacked the way Pro's
+                    // template preview stacks them: the centre phone forward at full size, the two either
+                    // side tucked behind it at 86%, lower, overlapping its edges.
+                    <div className="absolute inset-x-0 top-10 origin-top scale-[1.7] transition-transform duration-500 ease-out group-hover:-translate-y-1">
+                      <div className="relative mx-auto h-[150px] w-[76px]">
+                        {[
+                          { x: -60, y: 10, s: 0.86, z: 1, kind: "screen" as Kind, i: 1 },
+                          { x: 60, y: 11, s: 0.86, z: 2, kind: "screen" as Kind, i: 4 },
+                          { x: 0, y: -3, s: 1, z: 3, kind: "template" as Kind, i: i + 3 },
+                        ].map((p) => (
+                          <div
+                            key={p.x}
+                            className={cn("absolute inset-0 rounded-[6px]", p.z === 3 ? "shadow-[0_12px_28px_-8px_rgb(0_0_0/0.7)]" : "opacity-90")}
+                            style={{ transform: `translate(${p.x}px, ${p.y}px) scale(${p.s})`, zIndex: p.z }}
+                          >
+                            <Mock kind={p.kind} i={p.i} />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="absolute inset-x-0 top-10 origin-top scale-[1.9] transition-transform duration-500 ease-out group-hover:-translate-y-1">
+                      <Mock kind={c.kind} i={i + 3} />
+                    </div>
+                  )}
+                  <span className="absolute top-4 left-4 rounded-[6px] bg-black/55 px-2 py-1 text-[11px] font-semibold text-white backdrop-blur-sm">{c.eyebrow}</span>
+                </a>
+                <div className="flex flex-1 flex-col p-7 md:p-8">
+                  <p className="text-[12px] text-subtle">{c.cat}</p>
+                  <h3 className="mt-2 text-[18.5px] leading-[1.2] font-medium tracking-[-0.02em]">{c.title}</h3>
+                  <p className="mt-3 max-w-md text-[14px] leading-[24px] text-pretty text-muted">{c.body}</p>
+                  {/* Pinned to the bottom so both cards' actions line up whatever the copy length. */}
+                  <div className="mt-auto flex flex-wrap items-center gap-x-7 gap-y-4 pt-8">
                     <Button href={c.href} variant="secondary">View in Pro <Arrow /></Button>
                     <TextLink href={c.href}>{c.more}</TextLink>
                   </div>
@@ -275,6 +313,8 @@ export function ProCTA({ className }: { className?: string }) {
     <section id="pro" className={cn("relative py-16 sm:py-24", className)}>
       <Container>
         <Reveal className="cta-wash relative isolate overflow-hidden">
+          {/* The Pro corner (OfferCorner on pro.swiftpieces.com), kept smaller here: this card's
+              bottom-right holds the template list, and a larger swell would sit over its labels. */}
           <CornerDither className="pointer-events-none absolute right-0 bottom-0 -z-10 h-32 w-full md:h-40 [mask-image:radial-gradient(120%_120%_at_100%_100%,black_35%,transparent_78%)] lg:h-[27%] lg:w-[36%]" />
           <div className="grid lg:grid-cols-[1.15fr_1fr]">
             <div className="flex flex-col p-8 md:p-12 lg:p-14">
@@ -282,7 +322,7 @@ export function ProCTA({ className }: { className?: string }) {
               <h2 className={cn("max-w-md", sectionTitle)}>One payment. Lifetime access.</h2>
               <p className={cn("mt-4 max-w-md", sectionBody)}>The complete library, {proCountsLabel}, delivered as Swift you keep.</p>
               <ul className="mt-10 flex flex-col gap-2.5">
-                {promises.map((p) => <li key={p} className="flex gap-2.5 text-[14px] leading-snug text-foreground/90"><Check strong />{p}</li>)}
+                {promises.map((p) => <li key={p} className="flex gap-2.5 text-[13px] leading-snug text-foreground/90"><Check strong />{p}</li>)}
               </ul>
               {/* Pinned to the bottom of the card, level with the end of the included list on the right. */}
               <div className="mt-10 flex flex-wrap items-center gap-x-7 gap-y-4 lg:mt-auto lg:pt-10">
@@ -295,9 +335,9 @@ export function ProCTA({ className }: { className?: string }) {
               <ul className="mt-6 grid gap-px overflow-hidden rounded-[var(--radius)] border border-[var(--line)] bg-[var(--line)] sm:grid-cols-2">
                 {included.map((row) => (
                   <li key={row.label} className="flex flex-col bg-background/80 p-6 sm:last:odd:col-span-2">
-                    <span className="text-[44px] leading-none font-medium tracking-[-0.04em] tabular-nums">{row.n}</span>
-                    <span className="mt-4 text-[15px] font-medium">{row.label}</span>
-                    <span className="mt-1.5 text-[12.5px] leading-snug text-muted">{row.note}</span>
+                    <span className="text-[38.5px] leading-none font-medium tracking-[-0.04em] tabular-nums">{row.n}</span>
+                    <span className="mt-4 text-[14px] font-medium">{row.label}</span>
+                    <span className="mt-1.5 text-[12px] leading-snug text-muted">{row.note}</span>
                   </li>
                 ))}
               </ul>
@@ -306,12 +346,12 @@ export function ProCTA({ className }: { className?: string }) {
               <ul className="mt-3 grid sm:grid-cols-2 sm:gap-x-8">
                 {proCatalog.templateApps.map((t) => (
                   <li key={t.app} className="flex items-baseline justify-between gap-4 border-b border-[var(--line)] py-3">
-                    <span className="text-[14px] font-semibold">{t.app}</span>
-                    <span className="text-[12.5px] text-muted">{t.kind}</span>
+                    <span className="text-[13px] font-semibold">{t.app}</span>
+                    <span className="text-[12px] text-muted">{t.kind}</span>
                   </li>
                 ))}
               </ul>
-              <p className="mt-6 max-w-xs text-[12.5px] leading-relaxed text-subtle">Each one a complete Xcode project, built on the same design system as every screen.</p>
+              <p className="mt-6 max-w-xs text-[12px] leading-relaxed text-subtle">Each one a complete Xcode project, built on the same design system as every screen.</p>
             </div>
           </div>
         </Reveal>

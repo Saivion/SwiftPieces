@@ -10,7 +10,7 @@ export function GitHubStar({ stars, className }: { stars: number | null; classNa
       target="_blank"
       rel="noreferrer"
       aria-label={stars === null ? "Star Swift Pieces on GitHub" : `${stars} stars on GitHub`}
-      className={cn("group inline-flex h-9 items-center gap-2 rounded-[10px] border border-[var(--card-border)] bg-transparent px-3 text-[13px] font-semibold text-foreground transition-colors hover:border-[var(--card-border-hover)] hover:bg-surface-2", className)}
+      className={cn("group inline-flex h-9 items-center gap-2 rounded-[4px] border border-[var(--card-border)] bg-transparent px-3 text-[12.5px] font-semibold text-foreground transition-colors hover:border-[var(--card-border-hover)] hover:bg-surface-2", className)}
     >
       {/* On hover the GitHub mark swaps for a gold star that pops in with two twinkling sparkles (CSS only, globals.css). */}
       <span aria-hidden className="gh-star relative size-4 shrink-0">

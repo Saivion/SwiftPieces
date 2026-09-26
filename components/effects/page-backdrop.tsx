@@ -13,7 +13,7 @@ export function PageBackdrop({ columns = 12 }: { columns?: number }) {
           and gone by the bottom, so the page has a direction instead of reading as graph paper. */}
       <div className="dots-ambient absolute inset-0 [mask-image:linear-gradient(to_bottom,rgb(0_0_0/0.85)_0%,rgb(0_0_0/0.55)_45%,transparent_92%)]" />
       {/* Alignment lines: just visible, so content reads as sitting on a grid. */}
-      <div className="absolute inset-0 mx-auto hidden w-full max-w-[var(--container)] px-5 sm:px-8 lg:block lg:px-12 2xl:px-16">
+      <div className="absolute inset-0 mx-auto hidden w-full max-w-[var(--container)] px-5 sm:px-8 lg:block lg:px-14 2xl:px-20">
         <div className="grid h-full gap-4 [mask-image:linear-gradient(to_bottom,rgb(0_0_0/0.9)_0%,rgb(0_0_0/0.45)_60%,transparent_95%)]" style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}>
           {Array.from({ length: columns }).map((_, i) => (
             <div key={i} className="h-full border-l border-line/70 last:border-r" />

@@ -6,7 +6,7 @@ type Variant = "primary" | "secondary" | "ghost" | "outline" | "dark";
 type Size = "sm" | "md" | "lg";
 
 // Pills everywhere, shared with Pro. Primary is the glossy accent pill.
-const base = "group inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-[10px] font-semibold select-none transition-[background-color,color,transform,border-color] duration-300 ease-[var(--ease-out)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-40 active:scale-[0.985]";
+const base = "group inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-[4px] font-semibold select-none transition-[background-color,color,transform,border-color] duration-300 ease-[var(--ease-out)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-40 active:scale-[0.985]";
 const variants: Record<Variant, string> = {
   primary: "btn-solid",
   secondary: "bg-foreground text-background hover:bg-[#e8e8e8]",
@@ -14,7 +14,7 @@ const variants: Record<Variant, string> = {
   outline: "pill bg-transparent text-foreground hover:border-[var(--card-border-hover)] hover:bg-surface-2",
   dark: "btn-dark",
 };
-const sizes: Record<Size, string> = { sm: "h-9 px-4 text-[13px]", md: "h-11 px-5 text-sm", lg: "h-12 px-6 text-[15px]" };
+const sizes: Record<Size, string> = { sm: "h-9 px-4 text-[12.5px]", md: "h-11 px-5 text-sm", lg: "h-12 px-6 text-[14px]" };
 
 type Props = { variant?: Variant; size?: Size; href?: string; children: ReactNode; className?: string } & Omit<ComponentProps<"button">, "children">;
 

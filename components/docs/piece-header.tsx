@@ -44,7 +44,7 @@ export function PieceHeader({ item }: { item: RegistryIndexEntry }) {
           {item.metal ? <Badge tone="outline">Metal</Badge> : null}
           {item.tags.map((t) => <Badge key={t}>{t}</Badge>)}
         </div>
-        <dl className="mt-5 grid grid-cols-2 gap-x-6 gap-y-4 border-t border-[var(--line)] pt-5 text-[13px] md:grid-cols-4">
+        <dl className="mt-5 grid grid-cols-2 gap-x-6 gap-y-4 border-t border-[var(--line)] pt-5 text-[12.5px] md:grid-cols-4">
           {details.map((d) => (
             <div key={d.label} className="min-w-0">
               <dt className="text-subtle">{d.label}</dt>
@@ -53,7 +53,7 @@ export function PieceHeader({ item }: { item: RegistryIndexEntry }) {
           ))}
         </dl>
         {item.requiredCapabilities.length || Object.keys(item.infoPlist).length ? (
-          <ul className="mt-4 list-disc pl-5 text-[13px] text-muted">
+          <ul className="mt-4 list-disc pl-5 text-[12.5px] text-muted">
             {item.requiredCapabilities.map((c) => <li key={c}>Capability <code>{c}</code></li>)}
             {Object.entries(item.infoPlist).map(([k, v]) => <li key={k}>Info.plist <code>{k}</code>: {v}</li>)}
           </ul>
@@ -62,8 +62,8 @@ export function PieceHeader({ item }: { item: RegistryIndexEntry }) {
           <a href={proScreenUrl(item.pro)} className="group mt-5 flex items-center justify-between gap-4 rounded-[var(--radius-sm)] bg-surface-2 p-4 transition-colors hover:bg-surface-3">
             <span className="min-w-0">
               <span className="t-meta block text-[10px] text-subtle">In a full screen · Swift Pieces Pro</span>
-              <span className="mt-1.5 block text-[14px] font-semibold text-foreground">{proScreens[item.pro].title}</span>
-              <span className="mt-1 block text-[12.5px] leading-snug text-muted">{proScreens[item.pro].summary}</span>
+              <span className="mt-1.5 block text-[13px] font-semibold text-foreground">{proScreens[item.pro].title}</span>
+              <span className="mt-1 block text-[12px] leading-snug text-muted">{proScreens[item.pro].summary}</span>
             </span>
             <span aria-hidden className="shrink-0 text-subtle transition-transform duration-300 group-hover:translate-x-0.5">→</span>
           </a>

@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { PreviewFrame } from "@/components/previews/frame";
 import { PiecePreview } from "@/components/previews";
+import { CornerTicks } from "@/components/sections/feature-row";
 import { cn } from "@/lib/cn";
 
 /**
@@ -59,29 +60,36 @@ export function PieceCarousel() {
     <div>
       {/* The stage: the piece at a fixed, legible size, centred, never cropped by a neighbour. Same height
           as the first row's visual: 400px, or the column's width when that is narrower. */}
-      <div className="frame-dashed relative overflow-hidden rounded-[16px]">
-        <div className="aspect-square max-h-[400px] w-full" />
-        {[leaving, i].map((k) =>
-          k === null ? null : (
-            <div
-              key={`${k}-${k === i ? "on" : "off"}`}
-              aria-hidden={k !== i}
-              className={cn("absolute inset-0 flex items-center justify-center p-6", k === i ? "piece-in" : "piece-out pointer-events-none")}
-            >
-              <PreviewFrame tone="clear" aspect="aspect-[4/3]" className="w-full max-w-[440px] rounded-none!">
-                <PiecePreview name={SLIDES[k].name} />
-              </PreviewFrame>
-            </div>
-          ),
-        )}
+      <div className="frame-dashed relative">
+        <CornerTicks />
+        {/* The clip lives inside the frame so the corner ticks, which sit across its edge, are not cut. */}
+        <div className="relative overflow-hidden">
+          <div className="aspect-square max-h-[400px] w-full" />
+          {[leaving, i].map((k) =>
+            k === null ? null : (
+              <div
+                key={`${k}-${k === i ? "on" : "off"}`}
+                aria-hidden={k !== i}
+                className={cn("absolute inset-0 flex items-center justify-center p-6", k === i ? "piece-in" : "piece-out pointer-events-none")}
+              >
+                <PreviewFrame tone="clear" aspect="aspect-[4/3]" className="w-full max-w-[440px] rounded-none!">
+                  <PiecePreview name={SLIDES[k].name} />
+                </PreviewFrame>
+              </div>
+            ),
+          )}
+        </div>
       </div>
 
-      {/* The rail: one pill track naming every piece. The active pill fills with light from its leading
-          edge over the piece's beat, so the tab itself is the progress bar. */}
+      {/* The rail. From sm: one pill track naming every piece, the active pill filling with light over
+          the piece's beat, so the tab itself is the progress bar. On phones the names do not fit, so it
+          is a stories-style row of hairline segments: pieces already shown stay lit, the current one
+          fills, the rest wait dim. Names stay for screen readers, and the install line names the piece. */}
       <div className="mt-4 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        <div role="tablist" aria-label="Pieces" className="flex w-max min-w-full gap-1 rounded-full border border-white/[0.08] bg-white/[0.02] p-1">
+        <div role="tablist" aria-label="Pieces" className="flex w-full gap-1.5 sm:w-max sm:min-w-full sm:gap-1 sm:rounded-[6px] sm:border sm:border-white/[0.08] sm:bg-white/[0.02] sm:p-1">
           {SLIDES.map((s, k) => {
             const active = k === i;
+            const fill = reduced ? undefined : { animation: `piece-progress ${s.ms}ms linear both` };
             return (
               <button
                 key={s.name}
@@ -90,26 +98,26 @@ export function PieceCarousel() {
                 aria-selected={active}
                 onClick={() => show(k)}
                 className={cn(
-                  "relative isolate flex h-9 flex-1 items-center justify-center overflow-hidden rounded-full px-3.5 text-[12.5px] font-medium whitespace-nowrap transition-colors duration-300",
-                  active ? "bg-white/[0.06] text-foreground" : "text-muted hover:bg-white/[0.03] hover:text-foreground",
+                  "group/tab relative isolate flex h-6 flex-1 items-center justify-center text-[12px] font-medium whitespace-nowrap transition-colors duration-300 sm:h-9 sm:overflow-hidden sm:rounded-[4px] sm:px-3.5",
+                  active ? "text-foreground sm:bg-white/[0.06]" : "text-muted hover:text-foreground sm:hover:bg-white/[0.03]",
                 )}
               >
+                {/* Phones: a 3px segment centred in a 24px tap target. */}
+                <span aria-hidden className="absolute inset-x-0 top-1/2 h-[3px] -translate-y-1/2 overflow-hidden rounded-full bg-white/[0.14] sm:hidden">
+                  {k < i ? <span className="absolute inset-0 bg-white/80" /> : null}
+                  {active ? <span key={`${s.name}-${i}`} className="absolute inset-0 origin-left bg-white rtl:origin-right" style={fill} /> : null}
+                </span>
                 {active ? (
-                  <span
-                    key={`${s.name}-${i}`}
-                    aria-hidden
-                    className="absolute inset-0 -z-10 origin-left bg-white/[0.1] rtl:origin-right"
-                    style={reduced ? undefined : { animation: `piece-progress ${s.ms}ms linear both` }}
-                  />
+                  <span key={`${s.name}-${i}`} aria-hidden className="absolute inset-0 -z-10 hidden origin-left bg-white/[0.1] rtl:origin-right sm:block" style={fill} />
                 ) : null}
-                {s.title}
+                <span className="sr-only sm:not-sr-only">{s.title}</span>
               </button>
             );
           })}
         </div>
       </div>
 
-      <p className="mt-5 truncate font-mono text-[13px] text-muted">
+      <p className="mt-5 truncate font-mono text-[12.5px] text-muted">
         <span className="text-muted">$</span> npx swiftpieces add <span className="text-foreground">{SLIDES[i].name}</span>
       </p>
     </div>

@@ -16,7 +16,7 @@ let counted = false;
 /**
  * The all-time view count, counted and read from our own Cloudflare KV counter (lib/views.ts).
  *
- * It rides inside the hero's eyebrow pill, after the tagline, as an eye and a number.
+ * It rides inside the hero's eyebrow pill, after the tagline: "Explored 1,284 times".
  *
  * The count is not rendered into the page: the homepage is static and cached at the edge, so a
  * number baked into it would be frozen at whatever the last build saw. It arrives just after first
@@ -86,12 +86,11 @@ export function LiveViews({ className }: { className?: string }) {
   return (
     <span className={`inline-flex items-center gap-1.5 ${className ?? ""}`}>
       <span aria-hidden className="mx-1 h-3.5 w-px bg-white/15" />
-      <svg aria-hidden width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-foreground">
-        <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z" />
-        <circle cx="12" cy="12" r="3" />
-      </svg>
+      {/* Words rather than an eye icon. The count is page views, not people, so it counts times
+          the library was explored rather than claiming a number of developers. */}
+      <span className="text-muted">Explored</span>
       <Odometer value={views} className="text-foreground" />
-      <span className="sr-only">views</span>
+      <span className="text-muted">Times</span>
     </span>
   );
 }
