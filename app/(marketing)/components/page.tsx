@@ -12,6 +12,7 @@ import { breadcrumbJsonLd, pageMetadata, WEBSITE_ID } from "@/lib/seo";
 import { hubs } from "@/lib/hubs";
 import { site } from "@/lib/site";
 import { cn } from "@/lib/cn";
+import { WebBridgeNote } from "@/components/sections/web-bridge-note";
 
 const count = getRegistryIndex().length;
 
@@ -54,7 +55,8 @@ export default function ComponentsPage() {
             description="Free, single-file SwiftUI components for iOS with live previews. Filter by category, open a piece for its parameters, source and install commands."
             action={{ label: "Browse in the docs", href: "/docs/components" }}
           />
-          <div className="mt-14">
+          <WebBridgeNote className="mt-8" />
+          <div className="mt-10">
             <ShowcaseGrid items={items} />
           </div>
         </Container>

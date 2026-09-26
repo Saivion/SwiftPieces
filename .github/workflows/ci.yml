@@ -36,6 +36,9 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run brand:build
+      - run: npm run builder:build
+      - name: Builder unit tests (schema, codegen, export)
+        run: npm run builder:test
       - run: npm run registry:build
       - name: Generated files are committed
         run: git diff --exit-code -- registry/__registry__ content/docs public/llms.txt public/schema

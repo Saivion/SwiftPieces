@@ -22,7 +22,9 @@
   // Page views. Analytics Engine takes every view (non-blocking, no per-key write ceiling); KV
   // holds the running total, because Analytics Engine only keeps three months (lib/views.ts).
   "analytics_engine_datasets": [
-    { "binding": "VIEWS_AE", "dataset": "swiftpieces_views" }
+    { "binding": "VIEWS_AE", "dataset": "swiftpieces_views" },
+    // Playground product events (app/api/events): names and small enums, never project content.
+    { "binding": "BUILDER_AE", "dataset": "swiftpieces_builder" }
   ],
   "kv_namespaces": [
     { "binding": "VIEWS", "id": "582df8ae584143c8bf2d899eeac92fda" }

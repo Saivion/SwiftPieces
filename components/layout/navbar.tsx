@@ -11,11 +11,14 @@ import { NewBadge } from "@/components/ui/new-badge";
 import { cn } from "@/lib/cn";
 import { pro } from "@/lib/site";
 
-const links: { label: string; href: string; badge?: string }[] = [
+const links: { label: string; href: string; badge?: string; wide?: boolean }[] = [
   { label: "Components", href: "/components" },
+  { label: "Screens", href: "/screens" },
+  { label: "Playground", href: "/playground", badge: "New" },
   { label: "Docs", href: "/docs/introduction" },
   { label: "Pro", href: "/pro" },
-  { label: "Sponsors", href: "/sponsors", badge: "New" },
+  // Only where the bar has room for it; always in the mobile sheet.
+  { label: "Sponsors", href: "/sponsors", wide: true },
 ];
 
 
@@ -68,7 +71,7 @@ export function Navbar({ star, starMobile }: { star?: ReactNode; starMobile?: Re
           <Logo className="flex shrink-0 items-center" />
             <ul className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-0.5 lg:flex">
               {links.map((l) => (
-                <li key={l.href}>
+                <li key={l.href} className={l.wide ? "hidden 2xl:block" : undefined}>
                   <Link href={l.href} className={cn("group/n relative flex h-9 items-center gap-2 px-3 text-[12.5px] font-medium transition-colors duration-300", isActive(l.href) ? "text-foreground" : "text-muted hover:text-foreground")}>
                     <NavGlyph className={cn("transition-colors", isActive(l.href) ? "text-accent" : "group-hover/n:text-accent")} />
                     {l.label}

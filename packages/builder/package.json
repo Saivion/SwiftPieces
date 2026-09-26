@@ -1,0 +1,54 @@
+{
+  "name": "@swiftpieces/builder",
+  "version": "0.1.0",
+  "description": "The SwiftPieces playground core: component and screen schema, registry, validation, SwiftUI generation, Xcode export and the builder UI.",
+  "license": "SEE LICENSE IN LICENSE",
+  "type": "module",
+  "sideEffects": [
+    "*.css"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./export": {
+      "types": "./dist/export/index.d.ts",
+      "default": "./dist/export/index.js"
+    },
+    "./react": {
+      "types": "./dist/react/index.d.ts",
+      "default": "./dist/react/index.js"
+    },
+    "./builder.css": "./builder.css"
+  },
+  "files": [
+    "dist",
+    "builder.css",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "node --import tsx --test test/*.test.ts",
+    "prepack": "npm run build",
+    "e2e": "node e2e/builder.e2e.mjs"
+  },
+  "peerDependencies": {
+    "react": ">=19",
+    "react-dom": ">=19"
+  },
+  "devDependencies": {
+    "@types/react": "^19.3.0",
+    "typescript": "^5.9.3"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "homepage": "https://github.com/saivion/swiftpieces/tree/main/packages/builder#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/saivion/swiftpieces.git",
+    "directory": "packages/builder"
+  }
+}

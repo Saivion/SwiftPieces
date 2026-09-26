@@ -41,7 +41,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <RootProvider
           theme={{ defaultTheme: "dark", forcedTheme: "dark", enabled: false }}
           // Shown before anyone types: the places people search for most.
-          search={{ links: [["Introduction", "/docs/introduction"], ["Installation", "/docs/installation"], ["All components", "/docs/components"], ["Liquid Glass guide", "/docs/liquid-glass"], ["MCP Server", "/docs/mcp"], ["Swift Pieces Pro", "/pro"]] }}
+          search={{ links: [["Introduction", "/docs/introduction"], ["Installation", "/docs/installation"], ["All components", "/docs/components"], ["Playground", "/playground"], ["Liquid Glass guide", "/docs/liquid-glass"], ["MCP Server", "/docs/mcp"], ["Swift Pieces Pro", "/pro"]] }}
         >
           {children}
         </RootProvider>
