@@ -3,33 +3,37 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { getRegistryIndex } from "@/lib/registry";
 
 /**
- * Page views: counted into Workers Analytics Engine, totalled in KV.
+ * Page views: the all-time total from Cloudflare Web Analytics, and per-piece reporting from
+ * Workers Analytics Engine.
  *
- * Three pieces, each doing the thing it is actually good at:
+ *   Web Analytics      the number the site shows. Its beacon (components/analytics.tsx) runs on every
+ *                      page, counts real browsers and filters bots, and Cloudflare keeps six months of
+ *                      it, which reaches back past launch. This is the same total as the dashboard.
+ *   Analytics Engine   every view the hero reports, one data point with its path and piece, so
+ *                      reporting can ask which screens and templates people look at (getTopPieces).
+ *   KV                 the last total fetched, so polling never reaches Cloudflare's API: it is asked
+ *                      at most once per `REFRESH_SECONDS` however many people are on the site.
  *
- *   Analytics Engine   every view, one data point. `writeDataPoint` does not await and does not
- *                      block the response, and there is no per-key write ceiling, so this scales
- *                      past anything a counter in KV could take.
- *   KV                 the durable running total, plus the timestamp we have counted up to.
- *   SQL API            reporting: which screens and templates people actually look at.
- *
- * KV is not used as the counter itself. A counter in KV is a read then a write, so simultaneous
- * views collapse into one, and KV allows a single write per second to a key. Analytics Engine has
- * neither problem.
- *
- * Why KV is still here: Analytics Engine keeps three months. An all-time number therefore cannot
- * come from a query alone, so the aggregation folds each new window into a total that outlives the
- * retention. Analytics Engine is the ledger; KV is the balance.
+ * Until 2026-10-01 the total was our own Analytics Engine counter, folded into KV. It only counted
+ * the home page, started from zero on 2026-09-20, and skipped views Analytics Engine had not made
+ * queryable yet, so it read a small fraction of the real traffic.
  */
 
-/** The durable all-time total. Only `refreshTotal` writes it. */
-const TOTAL_KEY = "views:total";
-/** How far the total has already counted. Everything after this is new. */
-const CURSOR_KEY = "views:cursor";
-/** How often the total is recomputed, at most. Reads in between are served from KV. */
-const REFRESH_SECONDS = 30;
-/** Held while a refresh is in flight, so concurrent reads do not all query. Expires on its own. */
+/** The last total fetched, and when, as JSON: `{ "views": 1234, "at": 1790000000000 }`. */
+const TOTAL_KEY = "views:web-analytics";
+/** How often the total is fetched, at most. Web Analytics itself lags a minute or two. */
+const REFRESH_SECONDS = 120;
+/** Held while a fetch is in flight, so concurrent reads do not all query. Expires on its own. */
 const CLAIM_KEY = "views:claim";
+/**
+ * How far back the total reaches. Cloudflare keeps six months of Web Analytics, so for a site
+ * younger than that (launched September 2026) this is everything. Past March 2027 it would become a
+ * rolling six months; the total never goes down (see `getViews`), so it would hold still instead,
+ * which is the signal to start persisting a running total.
+ */
+const LOOKBACK_DAYS = 180;
+/** Every plan serves 30 days, so this is what an over-long window falls back to. */
+const FALLBACK_DAYS = 30;
 
 function env(): Partial<CloudflareEnv> {
   try {
@@ -165,65 +169,106 @@ const num = (v: string | number | null | undefined): number => {
 };
 
 /**
- * Folds everything counted since the cursor into the running total.
- *
- * The cursor is written *before* the total, so a refresh that dies halfway loses a window rather
- * than counting one twice. Undercounting by a few views is invisible; a number that jumps is not.
+ * Every site on the account, not one site: there is one site, and Cloudflare shows several 32-hex
+ * ids per site of which only one is the tag this dataset keys on, so filtering by a plausible wrong
+ * one silently counted nothing. `count` is page loads, which is what "Explored N times" means.
  */
-async function refreshTotal(kv: KVNamespace): Promise<number> {
-  const [rawTotal, cursor] = await Promise.all([kv.get(TOTAL_KEY), kv.get(CURSOR_KEY)]);
-  const total = num(rawTotal);
-  const now = Date.now();
-  const parsed = cursor ? Date.parse(cursor) : NaN;
-  const since = Number.isFinite(parsed) ? parsed : now - 60_000;
+const PAGEVIEWS = `query Views($account: String!, $since: Time!, $until: Time!) {
+  viewer {
+    accounts(filter: { accountTag: $account }) {
+      rumPageloadEventsAdaptiveGroups(limit: 1, filter: { datetime_geq: $since, datetime_leq: $until }) {
+        count
+      }
+    }
+  }
+}`;
 
-  // The window is expressed as an interval back from now rather than as two timestamps: that is
-  // the form Cloudflare documents, and it avoids depending on how this dialect parses a literal
-  // date. A little slack on the upper end so a view landing mid-refresh is not skipped; counting
-  // one twice is the tradeoff, and it is the cheaper of the two.
-  // Bounded on both ends: never zero, and never a query that scans more than a day even if the
-  // cursor is missing, corrupt or far in the past. A wider window would cost more and return the
-  // same answer, because anything older is already inside the total.
-  const seconds = clampInt(Math.ceil((now - since) / 1000) + 2, 1, 86_400, 60);
+type PageviewsResponse = {
+  data?: { viewer?: { accounts?: { rumPageloadEventsAdaptiveGroups?: { count?: number }[] }[] } };
+  errors?: { message?: string }[];
+};
 
-  // SUM(_sample_interval), not COUNT(): Analytics Engine samples under load, and the sample
-  // interval is how many real views each returned row stands for.
-  const rows = await sql(
-    `SELECT SUM(_sample_interval) AS views FROM swiftpieces_views
-     WHERE timestamp > NOW() - INTERVAL '${seconds}' SECOND`,
-  );
-  if (rows === null) return total; // Query failed: keep the number we have rather than losing it.
+/**
+ * Page views over one window, or why there are none. A window the account cannot serve is worth
+ * retrying shorter (how far back a dataset reaches is set per plan); a bad token is not.
+ */
+async function queryPageviews(days: number): Promise<{ ok: true; views: number } | { ok: false; retryShorter: boolean }> {
+  const token = process.env.CF_ANALYTICS_API_TOKEN;
+  const account = process.env.CF_ACCOUNT_ID;
+  if (!token || !account) return { ok: false, retryShorter: false };
+  const until = new Date();
+  const since = new Date(until.getTime() - days * 86_400_000);
+  try {
+    const res = await fetch("https://api.cloudflare.com/client/v4/graphql", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ query: PAGEVIEWS, variables: { account, since: since.toISOString(), until: until.toISOString() } }),
+      signal: AbortSignal.timeout(5000),
+    });
+    if (!res.ok) {
+      // 403 almost always means the token is missing Account Analytics: Read.
+      console.warn(`[views] web analytics ${days}d: ${res.status} ${res.statusText}`);
+      return { ok: false, retryShorter: false };
+    }
+    const json = (await res.json()) as PageviewsResponse;
+    if (json.errors?.length) {
+      console.warn(`[views] web analytics ${days}d: ${json.errors.map((e) => e.message ?? "error").join("; ").slice(0, 200)}`);
+      return { ok: false, retryShorter: true };
+    }
+    const views = json.data?.viewer?.accounts?.[0]?.rumPageloadEventsAdaptiveGroups?.[0]?.count;
+    if (typeof views !== "number" || !Number.isFinite(views)) return { ok: false, retryShorter: true };
+    return { ok: true, views: Math.floor(views) };
+  } catch (error) {
+    console.warn(`[views] web analytics ${days}d failed: ${error instanceof Error ? error.message : String(error)}`);
+    return { ok: false, retryShorter: false };
+  }
+}
 
-  const fresh = num(rows[0]?.views);
-  const next = total + fresh;
-  // Cursor first: a refresh that dies halfway loses a window rather than counting one twice.
-  await kv.put(CURSOR_KEY, new Date(now).toISOString());
-  if (fresh > 0) await kv.put(TOTAL_KEY, String(next));
-  return next;
+/** The longest window this account serves: six months, else 30 days. Null when neither answers. */
+async function fetchPageviews(): Promise<number | null> {
+  const first = await queryPageviews(LOOKBACK_DAYS);
+  if (first.ok) return first.views;
+  if (!first.retryShorter) return null;
+  const fallback = await queryPageviews(FALLBACK_DAYS);
+  return fallback.ok ? fallback.views : null;
+}
+
+function readTotal(raw: string | null): { views: number; at: number } | null {
+  if (!raw) return null;
+  try {
+    const v = JSON.parse(raw) as { views?: unknown; at?: unknown };
+    return typeof v.views === "number" && typeof v.at === "number" ? { views: v.views, at: v.at } : null;
+  } catch {
+    return null;
+  }
 }
 
 /**
- * The all-time total, recomputed at most every `REFRESH_SECONDS`. Null when unconfigured.
+ * The all-time page views, fetched at most every `REFRESH_SECONDS` and served from KV in between.
+ * Null when unconfigured (forks, local `next dev`, the build itself) or before the first fetch lands.
  *
- * The refresh is claimed before it runs, so requests arriving together when the window expires run
- * one query and one read-add-write between them rather than one each. The claim is a KV write, so it is not a real lock: two isolates can still race
- * inside the same moment. It narrows the window from "every concurrent request" to "the rare
- * simultaneous pair", which for a decorative counter is the right amount of engineering.
+ * It never goes down. Web Analytics estimates older days from samples, so a fresh answer can come in
+ * a few views under the last one, and a counter that ticks backwards reads as broken. A lower
+ * answer keeps the higher number on screen; the real total soon passes it.
+ *
+ * The fetch is claimed first, so requests arriving together when the window expires make one call
+ * between them. The claim is a KV write, not a lock: two isolates can still race in the same moment,
+ * which for a decorative counter is the right amount of engineering.
  */
 export async function getViews(): Promise<number | null> {
   const kv = env().VIEWS;
   if (!kv) return null;
   try {
-    const cursor = await kv.get(CURSOR_KEY);
-    const parsed = cursor ? Date.parse(cursor) : NaN;
-    const stale = !Number.isFinite(parsed) || Date.now() - parsed > REFRESH_SECONDS * 1000;
-    if (!stale) return num(await kv.get(TOTAL_KEY));
-
-    const claimed = await kv.get(CLAIM_KEY);
-    if (claimed) return num(await kv.get(TOTAL_KEY)); // Someone else is already refreshing.
+    const last = readTotal(await kv.get(TOTAL_KEY));
+    if (last && Date.now() - last.at < REFRESH_SECONDS * 1000) return last.views;
+    if (await kv.get(CLAIM_KEY)) return last?.views ?? null; // Someone else is already fetching.
     await kv.put(CLAIM_KEY, "1", { expirationTtl: 60 });
 
-    return await refreshTotal(kv);
+    const fresh = await fetchPageviews();
+    if (fresh === null) return last?.views ?? null; // Keep the number we have rather than losing it.
+    const views = Math.max(fresh, last?.views ?? 0);
+    await kv.put(TOTAL_KEY, JSON.stringify({ views, at: Date.now() }));
+    return views;
   } catch (error) {
     console.warn(`[views] read failed: ${error instanceof Error ? error.message : String(error)}`);
     return null;

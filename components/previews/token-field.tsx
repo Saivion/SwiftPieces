@@ -11,7 +11,7 @@ import { blocks, font, ground, ink } from "./palette";
 const u = (px: number) => `${(px / 5.6).toFixed(3)}cqw`;
 const spring = "cubic-bezier(0.34, 1.4, 0.64, 1)";
 const ease = "cubic-bezier(0.22, 1, 0.36, 1)";
-const field = "#262626";
+const field = ground.field;
 
 function useReducedMotion() {
   const [reduced, setReduced] = useState(false);
@@ -127,7 +127,7 @@ export function TokenFieldPreview() {
           <div className="min-h-0 overflow-hidden">
             <div style={{ marginTop: u(8), paddingBlock: u(4), borderRadius: u(16), background: field }}>
               {list.map((m) => (
-                <div key={m} className="flex items-center" style={{ height: u(42), gap: u(12), paddingInline: u(16), fontSize: u(16), background: s.pick === m ? "#333333" : "transparent", transition: "background-color .15s" }}>
+                <div key={m} className="flex items-center" style={{ height: u(42), gap: u(12), paddingInline: u(16), fontSize: u(16), background: s.pick === m ? ground.control : "transparent", transition: "background-color .15s" }}>
                   <span className="rounded-full" style={{ width: u(10), height: u(10), background: chipColor(m) }} />
                   <span style={{ fontWeight: 400 }}><Highlight text={m} query={s.typed} /></span>
                 </div>

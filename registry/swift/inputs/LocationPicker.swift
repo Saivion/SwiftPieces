@@ -1,0 +1,1313 @@
+// swiftpieces:
+// title: Location Picker
+// description: "A map picker for delivery, rides, events and listings: drag the map under a fixed red pin that lifts while the map moves and drops with a small bounce when it settles, the address under it is looked up after a short pause with stale answers cancelled and recent ones cached, a floating card shows the street and locality (a dropped pin with coordinates where there is no address, Retry when the lookup fails), the locate button asks for location only when tapped and flies to you, and Confirm hands back the coordinate with its address."
+// category: inputs
+// minIOSVersion: "17.0"
+// version: "1.0.0"
+// added: "2026-09-29"
+// pro: detent-sheet
+// tags: [location, map, pin, mapkit, geocoding, delivery, address, corelocation]
+// infoPlist: { NSLocationWhenInUseUsageDescription: "Shows where you are so you can pick a spot on the map." }
+
+import Contacts
+import CoreLocation
+import MapKit
+import SwiftUI
+
+/// A map you drag under a fixed pin to choose an exact spot, with the address of wherever the pin lands.
+///
+/// The pin stays in the middle of the visible map. While the map moves it lifts and its shadow spreads; when the
+/// map settles it drops with a small bounce, `selection` is set to the coordinate, and the address is looked up
+/// after a short pause. A newer settle cancels the lookup in flight, so an address never lands on the wrong spot,
+/// and recent answers are cached by position (about 5 m), so nudging back costs no request. Location permission is
+/// only requested when the locate button is tapped.
+///
+/// ```swift
+/// @State private var place: LocationPicker.Place?
+///
+/// LocationPicker(selection: $place, initialCenter: store.coordinate) { place in
+///     order.dropOff = place
+/// }
+/// ```
+///
+/// - Parameters:
+///   - selection: The picked place. Set when the pin settles (coordinate only) and again when its address arrives. Setting it from outside moves the map there; a place that already has an address is shown without a lookup.
+///   - initialCenter: Where the map starts when `selection` is `nil`. `nil` starts at the person's location when the app already has permission, otherwise in central Lisbon.
+///   - span: How much map shows around the pin at first, in meters across. Defaults to 500, street level.
+///   - showsLocationButton: Shows the locate button in the top trailing corner. It asks for When In Use permission on its first tap, never before.
+///   - geocoder: Where addresses come from. `.mapKit` (the default) uses `MKReverseGeocodingRequest` on iOS 26 and the system geocoder before it. Pass your own for a backend, previews or tests.
+///   - messages: The card's copy. Defaults are localizable through your String Catalog; replace any line, for example `confirm` with "Deliver here".
+///   - style: Colors, the card's corner radius and the map's look. Defaults to the Swift Pieces house palette, adapting to light and dark, with the red pin and Confirm.
+///   - onConfirm: Called with the place when Confirm is tapped. Tapped while the address is still on its way, Confirm waits for it (up to four seconds) and then hands over what it has. `nil` hides the button, for pickers inside your own form.
+public struct LocationPicker: View {
+    // MARK: Public types
+
+    /// A spot on the map and, once it is known, its address. `coordinate` is always where the pin points; the
+    /// address parts describe the nearest address the geocoder found, and are `nil` where there is none (open
+    /// water, a field) or while the lookup is still running.
+    public struct Place: Hashable, Sendable, Codable {
+        /// Latitude of the pin, in degrees.
+        public let latitude: CLLocationDegrees
+        /// Longitude of the pin, in degrees.
+        public let longitude: CLLocationDegrees
+        /// The street line with the house number, formatted for the country, such as "Rua da Prata 79" or "19 W 33rd St", or the place's name where there is no street. `nil` when the spot has no address.
+        public let title: String?
+        /// The locality line, such as "1100-414 Lisboa" or "New York NY 10001". The country is added when it is not the device's own.
+        public let subtitle: String?
+        /// Postal or ZIP code.
+        public let postalCode: String?
+        /// City, town or locality.
+        public let locality: String?
+        /// State, province or region, as the country abbreviates it ("NY", "ON").
+        public let administrativeArea: String?
+        /// ISO 3166-1 alpha-2 country code in upper case, such as "PT".
+        public let countryCode: String?
+        /// The whole address on one line, formatted for its country and ending with the country.
+        public let formatted: String?
+
+        /// Builds a place. `formatted` is the title and subtitle joined when you leave it `nil`.
+        public init(coordinate: CLLocationCoordinate2D, title: String? = nil, subtitle: String? = nil, postalCode: String? = nil, locality: String? = nil, administrativeArea: String? = nil, countryCode: String? = nil, formatted: String? = nil) {
+            self.latitude = coordinate.latitude
+            self.longitude = coordinate.longitude
+            self.title = title.nonBlank
+            self.subtitle = subtitle.nonBlank
+            self.postalCode = postalCode.nonBlank
+            self.locality = locality.nonBlank
+            self.administrativeArea = administrativeArea.nonBlank
+            self.countryCode = countryCode.nonBlank?.uppercased()
+            self.formatted = formatted.nonBlank ?? [self.title, self.subtitle].compactMap(\.self).joined(separator: ", ").nonBlank
+        }
+
+        /// Where the pin points.
+        public var coordinate: CLLocationCoordinate2D {
+            CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
+        }
+
+        /// `true` once an address was found for the spot.
+        public var hasAddress: Bool { title != nil }
+
+        /// The same address, pinned at `coordinate`.
+        func pinned(at coordinate: CLLocationCoordinate2D) -> Place {
+            Place(coordinate: coordinate, title: title, subtitle: subtitle, postalCode: postalCode, locality: locality, administrativeArea: administrativeArea, countryCode: countryCode, formatted: formatted)
+        }
+    }
+
+    /// Turns the pin's coordinate into a place. The picker waits briefly after the map settles, cancels a lookup
+    /// whose spot is no longer under the pin, and caches recent answers, so your lookup runs once per real stop.
+    public struct Geocoder: Sendable {
+        /// Returns the address nearest to `coordinate`. Return a place without a `title` when there is no address
+        /// (open water, say); throw when the lookup fails (offline, throttled), which shows Retry on the card.
+        public var lookup: @MainActor @Sendable (_ coordinate: CLLocationCoordinate2D) async throws -> Place
+
+        public init(lookup: @escaping @MainActor @Sendable (_ coordinate: CLLocationCoordinate2D) async throws -> Place) {
+            self.lookup = lookup
+        }
+
+        /// MapKit: `MKReverseGeocodingRequest` on iOS 26, the system geocoder on iOS 17 to 25. Answers come in the
+        /// device's language. Cancelling a lookup cancels its request.
+        public static var mapKit: Geocoder {
+            Geocoder { try await PickerGeocoding.reverse($0) }
+        }
+    }
+
+    /// The picker's copy. Every default goes through `String(localized:)`, so it can be translated in your String
+    /// Catalog, and any line can be replaced: `.init(confirm: "Deliver here")`.
+    public struct Messages: Sendable {
+        /// What VoiceOver calls the address readout.
+        public var selectedLocation: String
+        /// Second line on the card while the map moves.
+        public var locating: String
+        /// Title for a spot without an address. The coordinates show under it.
+        public var droppedPin: String
+        /// Title when the address lookup fails. The coordinates show under it, and Confirm still works.
+        public var lookupFailed: String
+        /// The Retry button on a failed lookup.
+        public var retry: String
+        /// The primary button.
+        public var confirm: String
+        /// The locate button's label, and the matching VoiceOver action.
+        public var useMyLocation: String
+        /// Alert title when location access is off or restricted.
+        public var locationOff: String
+        /// Alert message when location access is turned off for the app.
+        public var locationOffDetail: String
+        /// Alert message when location access is restricted on the device, which the person may not be able to change.
+        public var locationRestricted: String
+        /// The alert button that opens the app's settings.
+        public var settings: String
+        /// The alert button that keeps location off.
+        public var notNow: String
+        /// Announced when the person's location can't be found.
+        public var locationUnavailable: String
+
+        /// Pass only the lines you want to change.
+        public init(
+            selectedLocation: String = String(localized: "Selected location", comment: "Location picker: VoiceOver label of the address readout"),
+            locating: String = String(localized: "Locating\u{2026}", comment: "Location picker: card line while the map moves"),
+            droppedPin: String = String(localized: "Dropped pin", comment: "Location picker: title for a spot without an address"),
+            lookupFailed: String = String(localized: "Couldn\u{2019}t find the address", comment: "Location picker: title when the address lookup fails"),
+            retry: String = String(localized: "Retry", comment: "Location picker: button that looks up the address again"),
+            confirm: String = String(localized: "Confirm location", comment: "Location picker: primary button"),
+            useMyLocation: String = String(localized: "Use my location", comment: "Location picker: locate button"),
+            locationOff: String = String(localized: "Location is off", comment: "Location picker: alert title when location access is off"),
+            locationOffDetail: String = String(localized: "Allow location access in Settings to jump to where you are. You can still drag the map to any spot.", comment: "Location picker: alert message when location access is denied"),
+            locationRestricted: String = String(localized: "Location access is restricted on this device. You can still drag the map to any spot.", comment: "Location picker: alert message when location access is restricted"),
+            settings: String = String(localized: "Settings", comment: "Location picker: alert button that opens Settings"),
+            notNow: String = String(localized: "Not now", comment: "Location picker: alert button that keeps location off"),
+            locationUnavailable: String = String(localized: "Couldn\u{2019}t find your location", comment: "Location picker: announced when locating fails")
+        ) {
+            self.selectedLocation = selectedLocation
+            self.locating = locating
+            self.droppedPin = droppedPin
+            self.lookupFailed = lookupFailed
+            self.retry = retry
+            self.confirm = confirm
+            self.useMyLocation = useMyLocation
+            self.locationOff = locationOff
+            self.locationOffDetail = locationOffDetail
+            self.locationRestricted = locationRestricted
+            self.settings = settings
+            self.notNow = notNow
+            self.locationUnavailable = locationUnavailable
+        }
+
+        public static var standard: Messages { Messages() }
+    }
+
+    /// Colors and shape. `.standard` is the house palette.
+    public struct Style: Sendable {
+        /// The address card and the locate button.
+        public var surface: Color
+        /// The address and glyphs.
+        public var label: Color
+        /// The locality line, coordinates and "Locating".
+        public var secondaryLabel: Color
+        /// Loading bars, the Retry button and Confirm while the map moves.
+        public var field: Color
+        /// The pin's head: the one accent on the map.
+        public var pin: Color
+        /// The pin's centre dot and stem, and the mark at the exact spot.
+        public var pinInk: Color
+        /// The Confirm button.
+        public var confirm: Color
+        /// Text and the spinner on `confirm`.
+        public var confirmInk: Color
+        /// The card's corner radius.
+        public var cornerRadius: CGFloat
+        /// Shows the map's points of interest (shops, stations, landmarks). Off by default, so the pin and the
+        /// streets read first.
+        public var showsPointsOfInterest: Bool
+        /// Draws the map with muted colors, so the pin and the card stand out. On by default.
+        public var mutesMap: Bool
+
+        /// Pass only what you want to change; `nil` keeps the house palette value.
+        public init(surface: Color? = nil, label: Color? = nil, secondaryLabel: Color? = nil, field: Color? = nil, pin: Color? = nil, pinInk: Color? = nil, confirm: Color? = nil, confirmInk: Color? = nil, cornerRadius: CGFloat = 26, showsPointsOfInterest: Bool = false, mutesMap: Bool = true) {
+            self.surface = surface ?? pickerColor(light: 0xFFFFFF, dark: 0x262626)
+            self.label = label ?? pickerColor(light: 0x141414, dark: 0xF4F3EF)
+            self.secondaryLabel = secondaryLabel ?? pickerColor(light: 0x5C5A56, dark: 0xA6A49F)
+            self.field = field ?? pickerColor(light: 0xE9E7E1, dark: 0x3A3A3A)
+            self.pin = pin ?? Color(red: 1, green: 0, blue: 0)
+            self.pinInk = pinInk ?? pickerColor(light: 0x141414, dark: 0x141414)
+            self.confirm = confirm ?? Color(red: 1, green: 0, blue: 0)
+            self.confirmInk = confirmInk ?? pickerColor(light: 0x141414, dark: 0x141414)
+            self.cornerRadius = cornerRadius
+            self.showsPointsOfInterest = showsPointsOfInterest
+            self.mutesMap = mutesMap
+        }
+
+        public static let standard = Style()
+    }
+
+    // MARK: State
+
+    private enum Phase: Equatable {
+        /// Before the map first settles.
+        case idle
+        /// The pin settled; its address is on the way.
+        case resolving
+        /// The address arrived. A place without a title is a spot with no address.
+        case resolved(Place)
+        /// The lookup failed. The coordinate still counts.
+        case failed
+    }
+
+    private enum LocationAlert: Equatable { case denied, restricted }
+
+    /// One lookup: the settled coordinate and the attempt (Retry bumps it).
+    private struct LookupKey: Equatable {
+        let latitude: Double
+        let longitude: Double
+        let attempt: Int
+        /// Started by Retry, so a failure is worth a haptic (a failed lookup after a pan is not).
+        var isRetry = false
+
+        var coordinate: CLLocationCoordinate2D { CLLocationCoordinate2D(latitude: latitude, longitude: longitude) }
+    }
+
+    /// Central Lisbon: where the map starts without a selection, an initial center or permission.
+    nonisolated static let defaultCenter = CLLocationCoordinate2D(latitude: 38.7110, longitude: -9.1395)
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.isEnabled) private var isEnabled
+    @Environment(\.openURL) private var openURL
+    @ScaledMetric(relativeTo: .body) private var buttonSize: CGFloat = 44
+    @ScaledMetric(relativeTo: .title3) private var titleBar: CGFloat = 13
+    @ScaledMetric(relativeTo: .subheadline) private var subtitleBar: CGFloat = 10
+
+    @Binding private var selection: Place?
+    @State private var position: MapCameraPosition
+    /// The camera as MapKit last reported it, for VoiceOver moves, zoom and the locate flight.
+    @State private var tracked = PickerCamera()
+    /// Lives for the picker's lifetime; its location manager is created on first use.
+    @State private var locator = PickerLocator()
+    /// Recent answers by rounded position, so a nudge back to a known spot needs no request.
+    @State private var cache = PickerCache()
+    @State private var phase: Phase = .idle
+    @State private var isMoving = false
+    /// The coordinate under the pin when the map last settled.
+    @State private var settled: CLLocationCoordinate2D?
+    /// The last address shown, kept dimmed on the card while the map moves.
+    @State private var lastTitle: String?
+    @State private var lookupKey: LookupKey?
+    @State private var attempt = 0
+    @State private var confirmPending = false
+    @State private var isLocating = false
+    @State private var locateTask: Task<Void, Never>?
+    /// Where a locate flight is heading, so the button can fill in once the pin lands on the person.
+    @State private var locateTarget: CLLocationCoordinate2D?
+    @State private var isAtUser = false
+    @State private var alert: LocationAlert?
+    /// The value this picker last wrote to `selection`, so its own writes are not taken for outside changes.
+    @State private var written: Place?
+    /// Announce the next address: the map was moved by the person, not by appearing.
+    @State private var announcesNext = false
+    @State private var didAppear = false
+    /// The card's tallest height so far. The map's center sits above it, and only grows, so the map never shifts as the card's text changes.
+    @State private var cardHeight: CGFloat = 0
+    @State private var dropTick = 0
+    @State private var confirmTick = 0
+    @State private var retryTick = 0
+    @State private var failTick = 0
+
+    private let initialCenter: CLLocationCoordinate2D?
+    private let span: CLLocationDistance
+    private let showsLocationButton: Bool
+    private let geocoder: Geocoder
+    private let messages: Messages
+    private let style: Style
+    private let onConfirm: ((Place) -> Void)?
+
+    public init(selection: Binding<Place?>, initialCenter: CLLocationCoordinate2D? = nil, span: CLLocationDistance = 500, showsLocationButton: Bool = true, geocoder: Geocoder = .mapKit, messages: Messages = .standard, style: Style = .standard, onConfirm: ((Place) -> Void)? = nil) {
+        self._selection = selection
+        self.initialCenter = initialCenter
+        self.span = max(span, 50)
+        self.showsLocationButton = showsLocationButton
+        self.geocoder = geocoder
+        self.messages = messages
+        self.style = style
+        self.onConfirm = onConfirm
+        let center = selection.wrappedValue?.coordinate ?? initialCenter ?? Self.defaultCenter
+        self._position = State(initialValue: .region(MKCoordinateRegion(center: center, latitudinalMeters: self.span, longitudinalMeters: self.span)))
+    }
+
+    private var motion: Animation { reduceMotion ? .easeInOut(duration: 0.2) : .smooth(duration: 0.3) }
+    /// The map's center sits in the middle of what the card leaves visible.
+    private var mapBottomInset: CGFloat { cardHeight > 0 ? cardHeight + 12 : 0 }
+    private var confirmEnabled: Bool { !isMoving && settled != nil && isEnabled }
+    private var mapStyle: MapStyle {
+        .standard(elevation: .flat, emphasis: style.mutesMap ? .muted : .automatic, pointsOfInterest: style.showsPointsOfInterest ? .all : .excludingAll)
+    }
+
+    public var body: some View {
+        map
+            .overlay {
+                PickerPin(isLifted: isMoving, style: style)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .padding(.bottom, mapBottomInset)
+                    .allowsHitTesting(false)
+                    .accessibilityHidden(true)
+            }
+            .overlay(alignment: .topTrailing) {
+                if showsLocationButton {
+                    locateButton
+                        .padding(12)
+                }
+            }
+            .overlay(alignment: .bottom) { card }
+            .frame(minHeight: 320)
+            .animation(motion, value: phase)
+            .animation(motion, value: isMoving)
+            .sensoryFeedback(.impact(weight: .light), trigger: dropTick)
+            .sensoryFeedback(.success, trigger: confirmTick)
+            .sensoryFeedback(.selection, trigger: retryTick)
+            .sensoryFeedback(.error, trigger: failTick)
+            // One lookup per settle. A new key (the map moved, or Retry) cancels the one in flight.
+            .task(id: lookupKey) { await lookUp() }
+            // A Confirm tapped while the address is on its way waits for it, but not forever.
+            .task(id: confirmPending) {
+                guard confirmPending else { return }
+                try? await Task.sleep(for: .seconds(4))
+                guard !Task.isCancelled, confirmPending else { return }
+                confirmPending = false
+                deliver()
+            }
+            .onChange(of: selection) { _, new in selectionChanged(to: new) }
+            .onChange(of: dynamicTypeSize) { _, _ in cardHeight = 0 }
+            .onAppear(perform: appear)
+            .onDisappear {
+                locateTask?.cancel()
+                locateTask = nil
+                isLocating = false
+            }
+            .alert(messages.locationOff, isPresented: alertShown, presenting: alert) { kind in
+                if kind == .denied {
+                    Button(messages.settings) {
+                        if let url = URL(string: UIApplication.openSettingsURLString) { openURL(url) }
+                    }
+                    Button(messages.notNow, role: .cancel) {}
+                }
+            } message: { kind in
+                Text(kind == .denied ? messages.locationOffDetail : messages.locationRestricted)
+            }
+    }
+
+    // MARK: Map
+
+    private var map: some View {
+        Map(position: $position, interactionModes: [.pan, .zoom]) {
+            if locator.isAuthorized {
+                UserAnnotation()
+            }
+        }
+        .mapStyle(mapStyle)
+        .mapControls {}
+        // MapKit centers the camera in its safe area, so the inset puts the camera's center (and the legal
+        // notice) above the card, exactly where the pin overlay sits.
+        .safeAreaPadding(.bottom, mapBottomInset)
+        .onMapCameraChange(frequency: .continuous) { cameraChanged($0, ended: false) }
+        .onMapCameraChange(frequency: .onEnd) { cameraChanged($0, ended: true) }
+    }
+
+    // MARK: Card
+
+    private var card: some View {
+        let shape = RoundedRectangle(cornerRadius: style.cornerRadius, style: .continuous)
+        // At accessibility sizes Retry moves under the text, so the address keeps the width.
+        let row = dynamicTypeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 8)) : AnyLayout(HStackLayout(alignment: .center, spacing: 12))
+        return VStack(alignment: .leading, spacing: 14) {
+            row {
+                readout
+                if case .failed = phase, !isMoving {
+                    retryButton
+                        .transition(.opacity)
+                }
+            }
+            if onConfirm != nil {
+                confirmButton
+            }
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity, minHeight: cardHeight, alignment: .top)
+        .background(style.surface, in: shape)
+        .shadow(color: .black.opacity(0.16), radius: 22, y: 8)
+        .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { height in
+            if height > cardHeight + 0.5 { cardHeight = height }
+        }
+        .frame(maxWidth: 560)
+        .padding(.horizontal, 12)
+        .padding(.bottom, 12)
+        .dynamicTypeSize(...DynamicTypeSize.accessibility3)
+    }
+
+    /// Street and locality, or the moving, loading, no-address and failed states. Every state keeps the same two
+    /// lines, so the card never jumps.
+    private var readout: some View {
+        let large = dynamicTypeSize.isAccessibilitySize
+        return VStack(alignment: .leading, spacing: 2) {
+            switch display {
+            case .loading:
+                bar(font: .title3.weight(.bold), height: titleBar, fraction: 0.62)
+                bar(font: .subheadline, height: subtitleBar, fraction: 0.4)
+            case let .text(title, subtitle, dimmed):
+                Text(title)
+                    .font(.title3.weight(.bold))
+                    .foregroundStyle(style.label)
+                    .opacity(dimmed ? 0.35 : 1)
+                    .lineLimit(large ? 3 : 1)
+                    .minimumScaleFactor(large ? 1 : 0.8)
+                    .contentTransition(.opacity)
+                Text(subtitle)
+                    .font(.subheadline)
+                    .monospacedDigit()
+                    .foregroundStyle(style.secondaryLabel)
+                    .lineLimit(large ? 3 : 1)
+                    .contentTransition(.opacity)
+            }
+        }
+        .multilineTextAlignment(.leading)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(messages.selectedLocation)
+        .accessibilityValue(spokenValue)
+        .accessibilityHint(String(localized: "Swipe up or down for actions that move the map.", comment: "Location picker: VoiceOver hint of the address readout"))
+        .accessibilityActions {
+            Button(String(localized: "Move north", comment: "Location picker: VoiceOver action")) { nudge(north: 1, east: 0) }
+            Button(String(localized: "Move south", comment: "Location picker: VoiceOver action")) { nudge(north: -1, east: 0) }
+            Button(String(localized: "Move east", comment: "Location picker: VoiceOver action")) { nudge(north: 0, east: 1) }
+            Button(String(localized: "Move west", comment: "Location picker: VoiceOver action")) { nudge(north: 0, east: -1) }
+            Button(String(localized: "Zoom in", comment: "Location picker: VoiceOver action")) { zoom(by: 0.5) }
+            Button(String(localized: "Zoom out", comment: "Location picker: VoiceOver action")) { zoom(by: 2) }
+            if showsLocationButton {
+                Button(messages.useMyLocation) { locate() }
+            }
+            if phase == .failed {
+                Button(messages.retry) { retry() }
+            }
+        }
+    }
+
+    /// A loading bar with the height of a line of `font`, so the card keeps its size while the address loads.
+    private func bar(font: Font, height: CGFloat, fraction: CGFloat) -> some View {
+        Text(verbatim: "Ag")
+            .font(font)
+            .hidden()
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .overlay(alignment: .leading) {
+                GeometryReader { proxy in
+                    Capsule()
+                        .fill(style.field)
+                        .frame(width: proxy.size.width * fraction, height: height)
+                        .frame(maxHeight: .infinity)
+                }
+            }
+            .modifier(PickerPulse())
+    }
+
+    private enum Display {
+        case loading
+        case text(String, String, dimmed: Bool)
+    }
+
+    private var display: Display {
+        if isMoving {
+            return .text(lastTitle ?? messages.droppedPin, messages.locating, dimmed: true)
+        }
+        switch phase {
+        case .idle, .resolving:
+            return .loading
+        case .resolved(let place):
+            if let title = place.title {
+                return .text(title, place.subtitle ?? PickerFormat.coordinates(place.coordinate), dimmed: false)
+            }
+            return .text(messages.droppedPin, PickerFormat.coordinates(place.coordinate), dimmed: false)
+        case .failed:
+            return .text(messages.lookupFailed, settled.map { PickerFormat.coordinates($0) } ?? "", dimmed: false)
+        }
+    }
+
+    private var spokenValue: String {
+        if isMoving { return messages.locating }
+        switch phase {
+        case .idle, .resolving:
+            return String(localized: "Finding the address", comment: "Location picker: VoiceOver value while the address loads")
+        case .resolved(let place):
+            if let title = place.title {
+                return [title, place.subtitle].compactMap(\.self).joined(separator: ", ")
+            }
+            return "\(messages.droppedPin), \(PickerFormat.coordinates(place.coordinate, spoken: true))"
+        case .failed:
+            return [messages.lookupFailed, settled.map { PickerFormat.coordinates($0, spoken: true) }].compactMap(\.self).joined(separator: ", ")
+        }
+    }
+
+    private var retryButton: some View {
+        Button(action: retry) {
+            Text(messages.retry)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(style.label)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 8)
+                .background(style.field, in: .capsule)
+                .frame(minHeight: 44)
+                .contentShape(.rect)
+        }
+        .buttonStyle(PickerPressStyle(scale: 0.94))
+        .accessibilityHint(String(localized: "Looks up the address again.", comment: "Location picker: VoiceOver hint of Retry"))
+    }
+
+    private var confirmButton: some View {
+        Button(action: confirm) {
+            ZStack {
+                Text(messages.confirm)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.center)
+                    .opacity(confirmPending ? 0 : 1)
+                if confirmPending {
+                    ProgressView()
+                        .tint(style.confirmInk)
+                        .transition(.opacity)
+                }
+            }
+            .font(.headline)
+            .foregroundStyle(isEnabled ? style.confirmInk : style.secondaryLabel)
+            // While the map moves the label dims and the capsule stays solid: no washed-out red.
+            .opacity(isMoving ? 0.35 : 1)
+            .padding(.horizontal, 20)
+            .padding(.vertical, 12)
+            .frame(maxWidth: .infinity, minHeight: 50)
+            .background(isEnabled ? style.confirm : style.field, in: .capsule)
+            .contentShape(.capsule)
+        }
+        .buttonStyle(PickerPressStyle(scale: 0.97))
+        .disabled(!confirmEnabled)
+        // Return confirms with a hardware keyboard.
+        .keyboardShortcut(.defaultAction)
+        .animation(.smooth(duration: 0.25), value: confirmEnabled)
+        .animation(.smooth(duration: 0.2), value: confirmPending)
+        .accessibilityValue(confirmPending ? String(localized: "Waiting for the address", comment: "Location picker: VoiceOver value of Confirm while the address loads") : "")
+    }
+
+    // MARK: Locate button
+
+    private var locateButton: some View {
+        let denied = locator.status == .denied || locator.status == .restricted
+        return Button(action: locate) {
+            ZStack {
+                if isLocating {
+                    ProgressView()
+                        .tint(style.label)
+                        .transition(.opacity)
+                } else {
+                    Image(systemName: denied ? "location.slash" : isAtUser ? "location.fill" : "location")
+                        .font(.body.weight(.semibold))
+                        .foregroundStyle(denied ? style.secondaryLabel : style.label)
+                        .contentTransition(.symbolEffect(.replace))
+                        .transition(.opacity)
+                }
+            }
+            .frame(width: min(max(buttonSize, 44), 64), height: min(max(buttonSize, 44), 64))
+            .background(style.surface, in: .circle)
+            .shadow(color: .black.opacity(0.16), radius: 10, y: 4)
+            .contentShape(.circle)
+        }
+        .buttonStyle(PickerPressStyle(scale: 0.9))
+        .opacity(isEnabled ? 1 : 0.5)
+        .dynamicTypeSize(...DynamicTypeSize.accessibility2)
+        .animation(.smooth(duration: 0.2), value: isLocating)
+        .accessibilityLabel(messages.useMyLocation)
+        .accessibilityValue(isLocating ? String(localized: "Finding your location", comment: "Location picker: VoiceOver value of the locate button while locating") : denied ? messages.locationOff : "")
+        .accessibilityHint(String(localized: "Moves the map to where you are.", comment: "Location picker: VoiceOver hint of the locate button"))
+    }
+
+    private var alertShown: Binding<Bool> {
+        Binding { alert != nil } set: { if !$0 { alert = nil } }
+    }
+
+    // MARK: Camera
+
+    /// Continuous changes lift the pin once the spot under it really changes; the end of a change settles it.
+    /// MapKit also reports the camera when it appears, resizes or re-centers, which changes nothing here.
+    private func cameraChanged(_ context: MapCameraUpdateContext, ended: Bool) {
+        tracked.camera = context.camera
+        tracked.region = context.region
+        let center = context.camera.centerCoordinate
+        let moved = settled.map { !Self.same($0, center, span: context.region.span) } ?? true
+        if !ended {
+            if moved, settled != nil, !isMoving { beginMoving() }
+            return
+        }
+        guard moved else {
+            if isMoving { isMoving = false }
+            return
+        }
+        settle(at: center)
+    }
+
+    private func beginMoving() {
+        isMoving = true
+        announcesNext = true
+        lookupKey = nil
+        confirmPending = false
+        if locateTarget == nil { isAtUser = false }
+    }
+
+    private func settle(at center: CLLocationCoordinate2D) {
+        let wasMoving = isMoving
+        let first = settled == nil
+        isMoving = false
+        settled = center
+        if wasMoving { dropTick += 1 }
+        if let target = locateTarget {
+            isAtUser = Self.same(target, center, span: MKCoordinateSpan(latitudeDelta: 0.0005, longitudeDelta: 0.0005))
+            locateTarget = nil
+        }
+        // A place passed in (or cached) for this spot needs no lookup.
+        if let known = selection.flatMap({ $0.hasAddress && Self.near($0.coordinate, center) ? $0 : nil }) ?? cache.place(near: center) {
+            resolve(known.pinned(at: center), announce: !first)
+            return
+        }
+        withAnimation(motion) { phase = .resolving }
+        write(Place(coordinate: center))
+        lookupKey = LookupKey(latitude: center.latitude, longitude: center.longitude, attempt: attempt)
+    }
+
+    // MARK: Lookup
+
+    private func lookUp() async {
+        guard let key = lookupKey else { return }
+        // Debounce: a settle inside this window (a quick second nudge) cancels before anything is sent.
+        do { try await Task.sleep(for: .milliseconds(300)) } catch { return }
+        do {
+            let found = try await geocoder.lookup(key.coordinate)
+            guard !Task.isCancelled, key == lookupKey else { return }
+            let place = found.pinned(at: key.coordinate)
+            cache.store(place, near: key.coordinate)
+            resolve(place, announce: announcesNext)
+        } catch {
+            guard !Task.isCancelled, !(error is CancellationError), key == lookupKey else { return }
+            withAnimation(motion) { phase = .failed }
+            if key.isRetry { failTick += 1 }
+            if announcesNext { announce(messages.lookupFailed) }
+            finishPendingConfirm()
+        }
+    }
+
+    private func resolve(_ place: Place, announce shouldAnnounce: Bool) {
+        withAnimation(motion) { phase = .resolved(place) }
+        if let title = place.title { lastTitle = title }
+        write(place)
+        if shouldAnnounce {
+            announce(place.title.map { [$0, place.subtitle].compactMap(\.self).joined(separator: ", ") } ?? "\(messages.droppedPin), \(PickerFormat.coordinates(place.coordinate, spoken: true))")
+        }
+        announcesNext = false
+        finishPendingConfirm()
+    }
+
+    private func retry() {
+        guard let settled, phase == .failed else { return }
+        retryTick += 1
+        attempt += 1
+        announcesNext = true
+        withAnimation(motion) { phase = .resolving }
+        lookupKey = LookupKey(latitude: settled.latitude, longitude: settled.longitude, attempt: attempt, isRetry: true)
+    }
+
+    // MARK: Selection
+
+    private func write(_ place: Place) {
+        written = place
+        if selection != place { selection = place }
+    }
+
+    /// A place set from outside: go there. One with an address is shown as is.
+    private func selectionChanged(to new: Place?) {
+        guard let new, new != written else { return }
+        written = new
+        if new.hasAddress { cache.store(new, near: new.coordinate) }
+        if let settled, Self.near(settled, new.coordinate) {
+            if new.hasAddress { resolve(new.pinned(at: settled), announce: false) }
+            return
+        }
+        move(to: new.coordinate, distance: nil)
+    }
+
+    // MARK: Confirm
+
+    private func confirm() {
+        guard confirmEnabled, onConfirm != nil else { return }
+        switch phase {
+        case .resolved, .failed: deliver()
+        case .idle, .resolving: confirmPending = true
+        }
+    }
+
+    private func finishPendingConfirm() {
+        guard confirmPending else { return }
+        confirmPending = false
+        deliver()
+    }
+
+    /// Hands over the place as it stands: with its address once found, else the coordinate alone.
+    private func deliver() {
+        guard let settled, let onConfirm, !isMoving else { return }
+        let place: Place
+        if case .resolved(let resolved) = phase { place = resolved } else { place = Place(coordinate: settled) }
+        confirmTick += 1
+        onConfirm(place)
+    }
+
+    // MARK: Moving the map
+
+    /// Flies (or, with Reduce Motion, jumps) to `center`, keeping the zoom unless a distance is given.
+    private func move(to center: CLLocationCoordinate2D, distance: CLLocationDistance?) {
+        let target: MapCameraPosition
+        if let distance {
+            target = .camera(MapCamera(centerCoordinate: center, distance: distance, heading: 0, pitch: 0))
+        } else if let camera = tracked.camera {
+            target = .camera(MapCamera(centerCoordinate: center, distance: camera.distance, heading: 0, pitch: 0))
+        } else {
+            target = .region(MKCoordinateRegion(center: center, latitudinalMeters: span, longitudinalMeters: span))
+        }
+        if reduceMotion {
+            position = target
+        } else {
+            withAnimation(.smooth(duration: 0.7)) { position = target }
+        }
+    }
+
+    /// Moves the map by a quarter of the visible span: VoiceOver's way to drag it.
+    private func nudge(north: Double, east: Double) {
+        guard let camera = tracked.camera, let span = tracked.region?.span else { return }
+        var center = camera.centerCoordinate
+        center.latitude = min(max(center.latitude + north * span.latitudeDelta / 4, -85), 85)
+        center.longitude = center.longitude + east * span.longitudeDelta / 4
+        if center.longitude > 180 { center.longitude -= 360 }
+        if center.longitude < -180 { center.longitude += 360 }
+        move(to: center, distance: nil)
+    }
+
+    private func zoom(by factor: Double) {
+        guard let camera = tracked.camera else { return }
+        move(to: camera.centerCoordinate, distance: min(max(camera.distance * factor, 150), 40_000_000))
+    }
+
+    // MARK: Locating
+
+    private func appear() {
+        guard !didAppear else { return }
+        didAppear = true
+        if showsLocationButton || (selection == nil && initialCenter == nil) { locator.activate() }
+        // No place to start from: start where the person is, when the app may already know.
+        guard selection == nil, initialCenter == nil, locator.isAuthorized else { return }
+        if let known = locator.recentLocation {
+            position = .region(MKCoordinateRegion(center: known.coordinate, latitudinalMeters: span, longitudinalMeters: span))
+            return
+        }
+        locateTask = Task {
+            guard let location = await locator.currentLocation(), !Task.isCancelled else { return }
+            // Only if the person hasn't started picking in the meantime.
+            guard !isMoving, let settled, Self.near(settled, Self.defaultCenter) else { return }
+            move(to: location.coordinate, distance: nil)
+        }
+    }
+
+    private func locate() {
+        guard isEnabled, !isLocating else { return }
+        switch locator.status {
+        case .denied:
+            alert = .denied
+        case .restricted:
+            alert = .restricted
+        default:
+            locateTask?.cancel()
+            locateTask = Task { await flyToUser() }
+        }
+    }
+
+    private func flyToUser() async {
+        isLocating = true
+        defer { isLocating = false }
+        if locator.status == .notDetermined {
+            let answer = await locator.requestAuthorization()
+            guard !Task.isCancelled, answer == .authorizedWhenInUse || answer == .authorizedAlways else { return }
+        }
+        guard let location = await locator.currentLocation() else {
+            if !Task.isCancelled {
+                failTick += 1
+                announce(messages.locationUnavailable)
+            }
+            return
+        }
+        guard !Task.isCancelled else { return }
+        // Already there: the map won't move, so there is no settle to wait for.
+        if let settled, Self.near(settled, location.coordinate) {
+            isAtUser = true
+            return
+        }
+        // Approximate location is only good to a few kilometers: show the area it covers, not a street.
+        let current = tracked.camera?.distance ?? span * 4
+        let distance = locator.isApproximate ? max(current, location.horizontalAccuracy * 6) : min(current, 2_400)
+        locateTarget = location.coordinate
+        announcesNext = true
+        move(to: location.coordinate, distance: distance)
+    }
+
+    // MARK: Helpers
+
+    /// Two coordinates closer than about a point at the current zoom count as the same spot.
+    private static func same(_ a: CLLocationCoordinate2D, _ b: CLLocationCoordinate2D, span: MKCoordinateSpan) -> Bool {
+        abs(a.latitude - b.latitude) <= max(span.latitudeDelta * 0.002, 1e-7) && abs(a.longitude - b.longitude) <= max(span.longitudeDelta * 0.002, 1e-7)
+    }
+
+    /// Within a couple of meters.
+    private static func near(_ a: CLLocationCoordinate2D, _ b: CLLocationCoordinate2D) -> Bool {
+        abs(a.latitude - b.latitude) < 0.00002 && abs(a.longitude - b.longitude) < 0.00002
+    }
+
+    private func announce(_ message: String) {
+        AccessibilityNotification.Announcement(message).post()
+    }
+}
+
+// MARK: - Pin
+
+/// The pin over the map's center. The tip of the stem is the exact spot and sits at the center of this view, on a
+/// small mark that stays put while the pin lifts.
+private struct PickerPin: View {
+    let isLifted: Bool
+    let style: LocationPicker.Style
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    private let head: CGFloat = 30
+    private let dot: CGFloat = 10
+    private let stem: CGFloat = 16
+    private let lift: CGFloat = 12
+
+    var body: some View {
+        let lifted = isLifted && !reduceMotion
+        let height = head + stem
+        ZStack {
+            // The shadow on the ground spreads and fades as the pin rises.
+            Ellipse()
+                .fill(.black)
+                .frame(width: 18, height: 6)
+                .blur(radius: lifted ? 3 : 1.2)
+                .scaleEffect(lifted ? 1.7 : 1)
+                .opacity(lifted ? 0.16 : 0.34)
+            // The exact spot.
+            Ellipse()
+                .fill(style.pinInk)
+                .frame(width: 6, height: 3)
+            ZStack(alignment: .top) {
+                Capsule()
+                    .fill(style.pinInk)
+                    .frame(width: 3, height: height - head / 2)
+                    .offset(y: head / 2)
+                Circle()
+                    .fill(style.pin)
+                    .frame(width: head, height: head)
+                    .overlay {
+                        Circle()
+                            .fill(style.pinInk)
+                            .frame(width: dot, height: dot)
+                    }
+                    .shadow(color: .black.opacity(0.24), radius: 2, y: 1)
+            }
+            .frame(width: head, height: height, alignment: .top)
+            .offset(y: -height / 2 - (lifted ? lift : 0))
+            // Reduce Motion: the pin dims while the map moves instead of lifting.
+            .opacity(isLifted && reduceMotion ? 0.55 : 1)
+        }
+        .frame(width: head * 2, height: (height + lift) * 2 + 8)
+        .animation(reduceMotion ? .easeInOut(duration: 0.2) : isLifted ? .spring(duration: 0.24, bounce: 0) : .spring(duration: 0.45, bounce: 0.5), value: isLifted)
+    }
+}
+
+/// The camera as MapKit last reported it. A plain reference, not observed: it changes on every frame of a pan
+/// and is only read when the person acts, so keeping it out of SwiftUI state keeps panning from redrawing the view.
+@MainActor
+private final class PickerCamera {
+    var camera: MapCamera?
+    var region: MKCoordinateRegion?
+}
+
+/// The loading bars' gentle breathing. Still under Reduce Motion.
+private struct PickerPulse: ViewModifier {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var dimmed = false
+
+    func body(content: Content) -> some View {
+        content
+            .opacity(dimmed ? 0.45 : 1)
+            .onAppear {
+                guard !reduceMotion else { return }
+                withAnimation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true)) { dimmed = true }
+            }
+    }
+}
+
+/// A quick dip on press that springs back; a dim instead under Reduce Motion.
+private struct PickerPressStyle: ButtonStyle {
+    var scale: CGFloat
+
+    func makeBody(configuration: Configuration) -> some View {
+        PickerPressBody(configuration: configuration, scale: scale)
+    }
+}
+
+private struct PickerPressBody: View {
+    let configuration: ButtonStyleConfiguration
+    let scale: CGFloat
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed && !reduceMotion ? scale : 1)
+            .opacity(configuration.isPressed && reduceMotion ? 0.7 : 1)
+            .animation(.spring(duration: 0.3, bounce: 0.35), value: configuration.isPressed)
+    }
+}
+
+// MARK: - Location
+
+/// The person's location, on request. A `CLLocationManager` is created on first use (never on init, so the
+/// picker can be re-created freely) and asks for When In Use permission only from `requestAuthorization()`.
+@MainActor
+@Observable
+private final class PickerLocator: NSObject, CLLocationManagerDelegate {
+    private(set) var status: CLAuthorizationStatus = .notDetermined
+    /// Approximate location: the app may only know the area, a few kilometers wide.
+    private(set) var isApproximate = false
+
+    @ObservationIgnored private var manager: CLLocationManager?
+    @ObservationIgnored private var authorizationWaiters: [CheckedContinuation<CLAuthorizationStatus, Never>] = []
+    @ObservationIgnored private var locationWaiters: [CheckedContinuation<CLLocation?, Never>] = []
+
+    var isAuthorized: Bool { status == .authorizedWhenInUse || status == .authorizedAlways }
+
+    /// Creates the manager and reads the current permission. Asks nothing.
+    func activate() {
+        guard manager == nil else { return }
+        let manager = CLLocationManager()
+        manager.desiredAccuracy = kCLLocationAccuracyNearestTenMeters
+        manager.delegate = self
+        self.manager = manager
+        status = manager.authorizationStatus
+        isApproximate = manager.accuracyAuthorization == .reducedAccuracy
+    }
+
+    /// A fix from the last minute that is good to 100 m, if the system has one.
+    var recentLocation: CLLocation? {
+        guard isAuthorized, let location = manager?.location, location.horizontalAccuracy >= 0, location.horizontalAccuracy <= 100, -location.timestamp.timeIntervalSinceNow < 60 else { return nil }
+        return location
+    }
+
+    /// Shows the system prompt if permission was never asked for, and returns the answer.
+    func requestAuthorization() async -> CLAuthorizationStatus {
+        activate()
+        guard let manager, manager.authorizationStatus == .notDetermined else { return status }
+        return await withCheckedContinuation { continuation in
+            authorizationWaiters.append(continuation)
+            manager.requestWhenInUseAuthorization()
+        }
+    }
+
+    /// The person's location: a recent fix at once, else one new fix. `nil` when it can't be found.
+    func currentLocation() async -> CLLocation? {
+        activate()
+        if let recentLocation { return recentLocation }
+        guard isAuthorized, let manager else { return nil }
+        return await withCheckedContinuation { continuation in
+            locationWaiters.append(continuation)
+            if locationWaiters.count == 1 { manager.requestLocation() }
+        }
+    }
+
+    // The manager calls its delegate on the thread it was created on: the main thread.
+    nonisolated func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+        let status = manager.authorizationStatus
+        let approximate = manager.accuracyAuthorization == .reducedAccuracy
+        MainActor.assumeIsolated { self.authorizationChanged(status, approximate: approximate) }
+    }
+
+    nonisolated func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        let location = locations.last
+        MainActor.assumeIsolated { self.finishLocating(location) }
+    }
+
+    nonisolated func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        MainActor.assumeIsolated { self.finishLocating(nil) }
+    }
+
+    private func authorizationChanged(_ status: CLAuthorizationStatus, approximate: Bool) {
+        self.status = status
+        isApproximate = approximate
+        guard status != .notDetermined else { return }
+        let waiters = authorizationWaiters
+        authorizationWaiters = []
+        waiters.forEach { $0.resume(returning: status) }
+        // Permission taken away while a fix was pending.
+        if !isAuthorized { finishLocating(nil) }
+    }
+
+    private func finishLocating(_ location: CLLocation?) {
+        let waiters = locationWaiters
+        locationWaiters = []
+        waiters.forEach { $0.resume(returning: location) }
+    }
+}
+
+// MARK: - Geocoding
+
+/// Reverse geocoding for `Geocoder.mapKit`, cancellable from Swift concurrency on both paths.
+private enum PickerGeocoding {
+    private enum Failure: Error { case invalidCoordinate }
+
+    @MainActor
+    static func reverse(_ coordinate: CLLocationCoordinate2D) async throws -> LocationPicker.Place {
+        guard CLLocationCoordinate2DIsValid(coordinate) else { throw Failure.invalidCoordinate }
+        let location = CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
+        do {
+            if #available(iOS 26.0, *) {
+                return try await mapKitReverse(location)
+            } else {
+                return try await legacyReverse(location)
+            }
+        } catch where isNoResult(error) {
+            // Nothing there (open water, the middle of nowhere): a spot without an address, not a failure.
+            return LocationPicker.Place(coordinate: coordinate)
+        }
+    }
+
+    @available(iOS 26.0, *)
+    @MainActor
+    private static func mapKitReverse(_ location: CLLocation) async throws -> LocationPicker.Place {
+        guard let request = MKReverseGeocodingRequest(location: location) else { throw Failure.invalidCoordinate }
+        let lookup = PickerLookup<LocationPicker.Place>()
+        return try await withTaskCancellationHandler {
+            try await withCheckedThrowingContinuation { continuation in
+                lookup.start(continuation) { request.cancel() }
+                request.getMapItems { items, error in
+                    if let item = items?.first {
+                        lookup.finish(.success(place(from: item, at: location.coordinate)))
+                    } else {
+                        lookup.finish(.failure(error ?? MKError(.placemarkNotFound)))
+                    }
+                }
+            }
+        } onCancel: {
+            Task { @MainActor in lookup.cancel() }
+        }
+    }
+
+    /// iOS 17 to 25. `CLGeocoder` is deprecated in iOS 26, so it lives in this deprecated function, which is only
+    /// called from the `else` branch of the iOS 26 check: the file builds without warnings on both SDK targets.
+    @available(iOS, deprecated: 26.0, message: "The iOS 17 to 25 path. iOS 26 uses MKReverseGeocodingRequest.")
+    @MainActor
+    private static func legacyReverse(_ location: CLLocation) async throws -> LocationPicker.Place {
+        let geocoder = CLGeocoder()
+        let lookup = PickerLookup<LocationPicker.Place>()
+        return try await withTaskCancellationHandler {
+            try await withCheckedThrowingContinuation { continuation in
+                lookup.start(continuation) { geocoder.cancelGeocode() }
+                // The geocoder calls back on the main thread.
+                geocoder.reverseGeocodeLocation(location) { placemarks, error in
+                    MainActor.assumeIsolated {
+                        if let placemark = placemarks?.first {
+                            lookup.finish(.success(place(from: placemark, at: location.coordinate)))
+                        } else {
+                            lookup.finish(.failure(error ?? CLError(.geocodeFoundNoResult)))
+                        }
+                    }
+                }
+            }
+        } onCancel: {
+            Task { @MainActor in lookup.cancel() }
+        }
+    }
+
+    private static func isNoResult(_ error: Error) -> Bool {
+        if let error = error as? CLError { return error.code == .geocodeFoundNoResult }
+        if let error = error as? MKError { return error.code == .placemarkNotFound }
+        return false
+    }
+
+    /// iOS 26 map items carry their structured placemark only through a deprecated property, which is read
+    /// dynamically so the file builds without warnings. Without it, MapKit's own strings fill in.
+    @available(iOS 26.0, *)
+    @MainActor
+    private static func place(from item: MKMapItem, at coordinate: CLLocationCoordinate2D) -> LocationPicker.Place {
+        let key = "placemark"
+        if item.responds(to: NSSelectorFromString(key)), let placemark = item.value(forKey: key) as? CLPlacemark {
+            return place(from: placemark, at: coordinate)
+        }
+        let representations = item.addressRepresentations
+        guard let city = representations?.cityName else { return LocationPicker.Place(coordinate: coordinate) }
+        return LocationPicker.Place(
+            coordinate: coordinate,
+            title: item.name ?? city,
+            subtitle: representations?.cityWithContext,
+            locality: city,
+            countryCode: representations?.region?.identifier,
+            formatted: representations?.fullAddress(includingRegion: true, singleLine: true) ?? item.address?.fullAddress
+        )
+    }
+
+    /// The street line as the title, the rest of the mailing label (minus the device's own country) as the
+    /// subtitle. Open water has no address.
+    @MainActor
+    static func place(from placemark: CLPlacemark, at coordinate: CLLocationCoordinate2D) -> LocationPicker.Place {
+        let postal = placemark.postalAddress
+        let street = postal?.street.nonBlank ?? [placemark.subThoroughfare, placemark.thoroughfare].compactMap(\.self).joined(separator: " ").nonBlank
+        if street == nil, placemark.locality == nil, placemark.ocean != nil || placemark.inlandWater != nil {
+            return LocationPicker.Place(coordinate: coordinate, countryCode: placemark.isoCountryCode)
+        }
+        let city = postal?.city.nonBlank ?? placemark.locality
+        let state = postal?.state.nonBlank ?? placemark.administrativeArea
+        let postalCode = postal?.postalCode.nonBlank ?? placemark.postalCode
+        let country = postal?.country.nonBlank ?? placemark.country
+        let code = (postal?.isoCountryCode.nonBlank ?? placemark.isoCountryCode)?.uppercased()
+        let title = street ?? placemark.name.nonBlank ?? placemark.areasOfInterest?.first ?? placemark.subLocality ?? city
+        var locality = PickerFormat.mailingLines(street: nil, city: city, state: state, postalCode: postalCode, country: country, countryCode: code)
+        if locality.count > 1, let country, locality.last == country, code == Locale.current.region?.identifier {
+            locality.removeLast()
+        }
+        let subtitle = locality.joined(separator: ", ").nonBlank
+        let full = PickerFormat.mailingLines(street: street ?? title, city: city, state: state, postalCode: postalCode, country: country, countryCode: code)
+        return LocationPicker.Place(
+            coordinate: coordinate,
+            title: title,
+            subtitle: subtitle == title ? nil : subtitle,
+            postalCode: postalCode,
+            locality: city,
+            administrativeArea: state,
+            countryCode: code,
+            formatted: full.joined(separator: ", ")
+        )
+    }
+}
+
+/// Bridges a completion-handler lookup to a continuation that resumes exactly once: with the answer, with an
+/// error, or with `CancellationError` when the task is cancelled (the request is cancelled too, and a late
+/// answer is ignored).
+@MainActor
+private final class PickerLookup<Value: Sendable> {
+    private var continuation: CheckedContinuation<Value, Error>?
+    private var cancelRequest: (() -> Void)?
+    private var isCancelled = false
+
+    func start(_ continuation: CheckedContinuation<Value, Error>, cancel: @escaping () -> Void) {
+        if isCancelled {
+            continuation.resume(throwing: CancellationError())
+            return
+        }
+        self.continuation = continuation
+        self.cancelRequest = cancel
+    }
+
+    func finish(_ result: Result<Value, Error>) {
+        guard let continuation else { return }
+        self.continuation = nil
+        cancelRequest = nil
+        continuation.resume(with: result)
+    }
+
+    func cancel() {
+        isCancelled = true
+        cancelRequest?()
+        finish(.failure(CancellationError()))
+    }
+}
+
+/// Recent answers, keyed by position rounded to 0.00005 degrees (about 5 m). Bounded to the 40 most recent, per
+/// picker; nothing is shared between pickers or kept after the picker goes away.
+@MainActor
+private final class PickerCache {
+    private struct Key: Hashable {
+        let latitude: Int
+        let longitude: Int
+
+        init(_ coordinate: CLLocationCoordinate2D) {
+            latitude = Int((coordinate.latitude * 20_000).rounded())
+            longitude = Int((coordinate.longitude * 20_000).rounded())
+        }
+    }
+
+    private var places: [Key: LocationPicker.Place] = [:]
+    private var order: [Key] = []
+    private let limit = 40
+
+    func place(near coordinate: CLLocationCoordinate2D) -> LocationPicker.Place? {
+        places[Key(coordinate)]
+    }
+
+    func store(_ place: LocationPicker.Place, near coordinate: CLLocationCoordinate2D) {
+        let key = Key(coordinate)
+        if places.updateValue(place, forKey: key) == nil {
+            order.append(key)
+            if order.count > limit { places[order.removeFirst()] = nil }
+        }
+    }
+}
+
+// MARK: - Formatting
+
+private enum PickerFormat {
+    /// "38.7110° N, 9.1395° W", or "38.7110 degrees north, 9.1395 degrees west" for VoiceOver.
+    static func coordinates(_ coordinate: CLLocationCoordinate2D, spoken: Bool = false) -> String {
+        let latitude = abs(coordinate.latitude).formatted(.number.precision(.fractionLength(4)))
+        let longitude = abs(coordinate.longitude).formatted(.number.precision(.fractionLength(4)))
+        let north = coordinate.latitude >= 0
+        let east = coordinate.longitude >= 0
+        if spoken {
+            let ns = north ? String(localized: "north", comment: "Location picker: spoken hemisphere") : String(localized: "south", comment: "Location picker: spoken hemisphere")
+            let ew = east ? String(localized: "east", comment: "Location picker: spoken hemisphere") : String(localized: "west", comment: "Location picker: spoken hemisphere")
+            return String(localized: "\(latitude) degrees \(ns), \(longitude) degrees \(ew)", comment: "Location picker: coordinates read by VoiceOver")
+        }
+        let ns = north ? String(localized: "N", comment: "Location picker: north, after a latitude") : String(localized: "S", comment: "Location picker: south, after a latitude")
+        let ew = east ? String(localized: "E", comment: "Location picker: east, after a longitude") : String(localized: "W", comment: "Location picker: west, after a longitude")
+        return String(localized: "\(latitude)° \(ns), \(longitude)° \(ew)", comment: "Location picker: coordinates of a spot without an address")
+    }
+
+    /// The lines of a mailing label in the country's own order (postal code before the city in Portugal, after it
+    /// in the United States).
+    static func mailingLines(street: String?, city: String?, state: String?, postalCode: String?, country: String?, countryCode: String?) -> [String] {
+        guard [street, city, state, postalCode, country].contains(where: { $0 != nil }) else { return [] }
+        let postal = CNMutablePostalAddress()
+        postal.street = street ?? ""
+        postal.city = city ?? ""
+        postal.state = state ?? ""
+        postal.postalCode = postalCode ?? ""
+        postal.country = country ?? ""
+        postal.isoCountryCode = countryCode?.lowercased() ?? ""
+        return CNPostalAddressFormatter.string(from: postal, style: .mailingAddress)
+            .split(whereSeparator: \.isNewline)
+            .map { $0.split(whereSeparator: { $0 == " " || $0 == "\u{00A0}" }).joined(separator: " ") }
+            .filter { !$0.isEmpty }
+    }
+}
+
+private extension Optional where Wrapped == String {
+    var nonBlank: String? { self?.nonBlank }
+}
+
+private extension String {
+    var nonBlank: String? {
+        let trimmed = trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
+    }
+}
+
+/// A house-palette color that follows the interface style.
+private func pickerColor(light: UInt32, dark: UInt32) -> Color {
+    Color(uiColor: UIColor { traits in
+        let hex = traits.userInterfaceStyle == .dark ? dark : light
+        return UIColor(red: CGFloat((hex >> 16) & 0xFF) / 255, green: CGFloat((hex >> 8) & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
+    })
+}
+
+// MARK: - Example
+
+/// A drop-off spot in central Lisbon. Drag the map; the card follows the pin.
+private struct LocationPickerExample: View {
+    @State private var place: LocationPicker.Place?
+    @State private var confirmed: LocationPicker.Place?
+
+    var body: some View {
+        LocationPicker(selection: $place, initialCenter: CLLocationCoordinate2D(latitude: 38.7105, longitude: -9.1366)) { place in
+            confirmed = place
+        }
+    }
+}
+
+#Preview("Light") {
+    LocationPickerExample()
+}
+
+#Preview("Dark") {
+    LocationPickerExample()
+        .preferredColorScheme(.dark)
+}

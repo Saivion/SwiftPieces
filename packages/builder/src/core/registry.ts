@@ -1,4 +1,4 @@
-import type { BuilderLimits, Props, ScreenNode, SwiftPieceDefinition, TemplateDefinition } from "./schema.js";
+import type { BuilderLimits, Props, ScreenNode, SwiftPieceDefinition } from "./schema.js";
 import { newId } from "./tree.js";
 
 /**
@@ -40,12 +40,4 @@ export function createNode(def: SwiftPieceDefinition, overrides: Props = {}, chi
   const node: ScreenNode = { id: newId(), component: def.id, props: { ...defaultProps(def), ...overrides } };
   if (def.container) node.children = children ?? [];
   return node;
-}
-
-export type TemplateRegistry = { all: TemplateDefinition[]; get(id: string): TemplateDefinition | undefined };
-
-export function createTemplateRegistry(...groups: TemplateDefinition[][]): TemplateRegistry {
-  const all = groups.flat();
-  const byId = new Map(all.map((t) => [t.id, t]));
-  return { all, get: (id) => byId.get(id) };
 }

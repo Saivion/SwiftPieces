@@ -16,6 +16,8 @@ export default function LicensePage() {
       <h2>Swift Pieces Pro</h2>
       <p>Swift Pieces Pro is a one-time purchase and a per-developer license. It covers the person who holds it across unlimited personal and commercial apps, including client work, with lifetime access to the complete library and everything added to it later.</p>
       <p>You cannot resell or redistribute the Pro pieces as a competing library, and you cannot share your license key with people who do not hold a license.</p>
+      <h2>Third-party apps</h2>
+      <p>These licenses cover Swift Pieces code only. They grant no rights to any app shown in the App Library, or to its name, icon, screenshots, trademarks or design, which belong to their developers. See <a href="/terms#third-party-apps">Terms</a>.</p>
       <h2>Teams</h2>
       <p>Each developer who installs or works with Pro pieces needs their own license. Contributors who only build, review or ship the app without touching the pieces themselves do not. Team and volume pricing is available by email, and the full text ships with the Pro launch.</p>
     </ProsePage>

@@ -34,6 +34,18 @@ if grep -rl "import SwiftUI" public .open-next/assets 2>/dev/null | grep -q .; t
 # 5. No references into a sibling pro/ checkout.
 if grep -rn "\.\./\.\./pro\|\.\./pro/" --include='*.ts' --include='*.tsx' --include='*.json' app components lib scripts packages 2>/dev/null | grep -q .; then note FAIL "imports reach into ../pro"; fail=1; else note ok "no imports into ../pro"; fi
 
+# 6. The app library: only the free apps' remixes are built here. The Pro apps' screens live in the
+#    Pro repo and reach Pro sessions through the Pro API, never this repo or its bundle. A stale
+#    builder dist (tsc never deletes) counts too: it is what Next bundles.
+recreations=packages/builder/src/definitions/catalog/recreations
+free=$(sed -n 's/^export const FREE_RECREATIONS.*= \[\(.*\)\];$/\1/p' "$recreations/index.ts" | tr -d '" ' | tr ',' '\n' | sort)
+built=$(ls "$recreations" | sed -n 's/\.build\.ts$//p' | sort)
+if [ -n "$free" ] && [ "$free" = "$built" ]; then note ok "only the free apps' remixes are built here ($(echo "$free" | wc -l | tr -d ' '))"; else note FAIL "app remix builds here don't match FREE_RECREATIONS: $(echo $built)"; fail=1; fi
+if [ -d packages/builder/dist/definitions/catalog/recreations ]; then
+  dist=$(ls packages/builder/dist/definitions/catalog/recreations | sed -n 's/\.build\.js$//p' | sort)
+  if [ "$dist" = "$free" ]; then note ok "the builder dist holds only the free apps' builds"; else note FAIL "the builder dist holds other builds (stale? npm run builder:build): $(echo $dist)"; fail=1; fi
+fi
+
 # Source maps: built client assets must not ship .map files or point at one, so DevTools only
 # ever shows minified bundles.
 for dir in .next/static .open-next/assets; do

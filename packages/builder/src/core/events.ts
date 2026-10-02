@@ -3,14 +3,19 @@
 // people typed, no identifiers. Anything else is dropped here, on the server, before it is stored.
 
 export const BUILDER_EVENTS = [
-  "builder_opened", "component_selected", "component_customized", "screen_created", "template_selected",
-  "export_clicked", "code_copied", "project_downloaded", "signup_started", "signup_completed", "pro_cta_clicked",
-  "onboarding_answered", "explain_opened", "describe_used", "builder_error", "builder_perf",
+  // The Playground funnel: Explore → Interact → Inspect → Remix → Build.
+  "playground_opened", "screen_viewed", "flow_started", "flow_completed", "component_inspected", "component_remixed",
+  "remix_saved", "remix_shared", "code_viewed", "code_copied", "component_opened", "project_downloaded", "xcode_opened",
+  "pro_gate_viewed", "pro_upgrade_clicked", "search_used",
+  // Composing: screens added, replaced, moved or removed across apps, and the look changed.
+  "screen_composed",
+  // Health.
+  "builder_error", "builder_perf",
 ] as const;
 export type BuilderEventName = (typeof BUILDER_EVENTS)[number];
 
 const NAMES = new Set<string>(BUILDER_EVENTS);
-const KEYS = new Set(["tier", "persona", "entry", "component", "property", "template", "via", "from", "kind", "screens", "pieces", "concept", "matched", "where", "init", "update", "codegen", "over"]);
+const KEYS = new Set(["tier", "entry", "kind", "slug", "component", "property", "group", "via", "from", "scope", "screens", "step", "where", "init", "update", "codegen", "over", "target", "results"]);
 
 export type CleanEvent = { name: BuilderEventName; props: Record<string, string | number> };
 

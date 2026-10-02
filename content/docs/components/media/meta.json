@@ -1,8 +1,11 @@
 {
   "title": "Media",
-  "description": "Photo viewing and story playback.",
+  "description": "Photo viewing and cropping, story playback, attachments and link previews.",
   "defaultOpen": false,
   "pages": [
+    "attachment-tray",
+    "link-preview",
+    "photo-cropper",
     "photo-viewer",
     "story-strip"
   ]

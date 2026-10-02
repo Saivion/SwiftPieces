@@ -12,7 +12,22 @@ export type XcodeProjectInput = {
   minIOS?: string;
   /** Extra README sections, e.g. capabilities to enable. */
   notes?: string[];
+  /** The app's accent for the AccentColor asset, per appearance. Absent: Xcode's default blue. */
+  accent?: { light: string; dark: string };
+  /** AGENTS.md content: design rules for the developer's coding agent. Written as AGENTS.md and CLAUDE.md. */
+  agentGuide?: string;
 };
+
+/** A colorset entry for a hex color, optionally for dark appearance. */
+function colorEntry(hex: string, dark: boolean) {
+  const v = hex.replace("#", "");
+  const c = (i: number) => (parseInt(v.slice(i, i + 2), 16) / 255).toFixed(3);
+  return {
+    ...(dark ? { appearances: [{ appearance: "luminosity", value: "dark" }] } : {}),
+    color: { "color-space": "srgb", components: { alpha: "1.000", red: c(0), green: c(2), blue: c(4) } },
+    idiom: "universal",
+  };
+}
 
 /** 24-hex-digit object ids derived from a name, so the same app always gets the same ids. */
 function objectId(seed: string): string {
@@ -295,7 +310,10 @@ export function xcodeProjectFiles(input: XcodeProjectInput): SourceFile[] {
     { path: `${app}/${app}.xcodeproj/project.pbxproj`, content: pbxproj(app, bundleId, minIOS) },
     { path: `${app}/${app}.xcodeproj/project.xcworkspace/contents.xcworkspacedata`, content: '<?xml version="1.0" encoding="UTF-8"?>\n<Workspace\n   version = "1.0">\n   <FileRef\n      location = "self:">\n   </FileRef>\n</Workspace>\n' },
     { path: `${app}/${app}/Assets.xcassets/Contents.json`, content: json({ info: { author: "xcode", version: 1 } }) },
-    { path: `${app}/${app}/Assets.xcassets/AccentColor.colorset/Contents.json`, content: json({ colors: [{ idiom: "universal" }], info: { author: "xcode", version: 1 } }) },
+    {
+      path: `${app}/${app}/Assets.xcassets/AccentColor.colorset/Contents.json`,
+      content: json({ colors: input.accent ? [colorEntry(input.accent.light, false), colorEntry(input.accent.dark, true)] : [{ idiom: "universal" }], info: { author: "xcode", version: 1 } }),
+    },
     {
       path: `${app}/${app}/Assets.xcassets/AppIcon.appiconset/Contents.json`,
       content: json({
@@ -309,6 +327,7 @@ export function xcodeProjectFiles(input: XcodeProjectInput): SourceFile[] {
     },
     { path: `${app}/swiftpieces.json`, content: json({ $schema: "https://swiftpieces.com/schema/config.json", directory: `${app}/SwiftPieces`, minIOSVersion: minIOS, registries: { free: "https://swiftpieces.com/r", pro: "https://pro.swiftpieces.com/r" } }) },
     { path: `${app}/README.md`, content: readme(app, input.notes ?? []) },
+    ...(input.agentGuide ? [{ path: `${app}/AGENTS.md`, content: input.agentGuide }, { path: `${app}/CLAUDE.md`, content: input.agentGuide }] : []),
     ...input.sources.map((s) => ({ path: `${app}/${app}/${s.path}`, content: s.content })),
   ];
   return files;

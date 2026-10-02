@@ -72,6 +72,10 @@ export const POST = createMcpHandler({
   ],
 });
 
-export function GET() {
+// Streamable HTTP clients GET here to open a server-to-client event stream. We don't offer one,
+// and the spec's answer is 405: anything else (a 200 that ends at once) reads as a dropped stream
+// and the client reconnects in a loop. Browsers and people still get the endpoint's description.
+export function GET(req: Request) {
+  if (req.headers.get("accept")?.includes("text/event-stream")) return new Response(null, { status: 405, headers: { Allow: "POST" } });
   return Response.json({ name: "swiftpieces", transport: "streamable-http", endpoint: `${site.url}/api/mcp`, pro: pro.mcp });
 }

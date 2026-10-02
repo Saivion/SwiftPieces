@@ -153,6 +153,12 @@ function paint(
 }
 
 /**
+ * Pro's dither palette led by the accent: an orange-to-red wash, a pink ribbon and a blue bloom.
+ * The pale honeydew stop is left out, so it stays as colourful as Pro's cards but reads deeper.
+ */
+export const ACCENT_DITHER = ["#ff7a3c", "#ff0000", "#ff8fb8", "#4d8dff"] as const;
+
+/**
  * `palette` overrides the seeded colours with four hex stops, in paint order: wash from, wash to,
  * ribbon, corner bloom. The seed still sets the angle and warp.
  */

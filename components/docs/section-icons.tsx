@@ -1,19 +1,85 @@
-const paths: Record<string, string> = {
-  components: "M3 3h4v4H3zM9 3h4v4H9zM3 9h4v4H3zM9 9h4v4H9z",
-  blocks: "M2.5 4.5h11v3h-11zM2.5 9.5h5v3h-5zM9.5 9.5h4v3h-4z",
-  screens: "M4 2.5h8a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1zM6 12h4",
-  templates: "M2.5 3.5h11v2h-11zM2.5 7.5h11v5h-11z",
-  agent: "M8 2l1.2 3.3L12.5 6.5 9.2 7.8 8 11 6.8 7.8 3.5 6.5l3.3-1.2z",
-  free: "M8 2.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11zM5.5 8h5",
-  collections: "M3 5.5h10M3 8h10M3 10.5h6M5.5 3v10",
-  library: "M3 2.5h3v11H3zM7.5 2.5h3v11h-3zM11.5 3.2l2 .5-2.4 10-2-.5z",
+import type { CSSProperties, ReactNode } from "react";
+
+const i = (n: number) => ({ "--i": n }) as CSSProperties;
+
+/**
+ * 16px glyphs, drawn as separate parts so each can move on its own when its row is pointed at
+ * (the .ai-* classes in app/globals.css): the grid's tiles pop in turn, the phone tilts, the
+ * template's top bar settles, the Build Kit spark twinkles.
+ */
+const grid16: Record<string, { motion?: string; parts: ReactNode }> = {
+  components: { parts: <>{[[3, 3], [9, 3], [3, 9], [9, 9]].map(([x, y], n) => <rect key={n} className="ai-pop" style={i(n)} x={x} y={y} width="4" height="4" />)}</> },
+  blocks: { parts: <><rect className="ai-pop" x="2.5" y="4.5" width="11" height="3" /><rect className="ai-pop" style={i(1)} x="2.5" y="9.5" width="5" height="3" /><rect className="ai-pop" style={i(2)} x="9.5" y="9.5" width="4" height="3" /></> },
+  screens: { motion: "ai-tilt", parts: <path d="M4 2.5h8a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1zM6 12h4" /> },
+  templates: { parts: <><rect className="ai-drop" x="2.5" y="3.5" width="11" height="2" /><rect x="2.5" y="7.5" width="11" height="5" /></> },
+  agent: { parts: <path className="ai-twinkle" d="M8 2l1.2 3.3L12.5 6.5 9.2 7.8 8 11 6.8 7.8 3.5 6.5l3.3-1.2z" /> },
+  free: { parts: <><path d="M8 2.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11z" /><path className="ai-spin" style={{ "--ai-turn": "180deg" } as CSSProperties} d="M5.5 8h5" /></> },
+  collections: { parts: <>{["M3 5.5h10", "M3 8h10", "M3 10.5h6", "M5.5 3v10"].map((d, n) => <path key={d} className="ai-redraw" style={i(n)} pathLength={1} d={d} />)}</> },
 };
 
-/** Bare 16px glyph. Fumadocs supplies the icon container in the section switcher, so this must not add its own box. */
-export function SectionIcon({ kind }: { kind: keyof typeof paths }) {
+/**
+ * Icons drawn on Lucide's 24px grid (ISC licence), kept as separate paths because several start with a
+ * relative move that would shift if merged into one. The stroke is scaled so they read at the same
+ * weight as the 16px set: 1.3 x 24/16.
+ */
+const grid24: Record<string, string[][]> = {
+  // Lucide "pencil-ruler": the Playground, where you try, take apart and remix native UI. The ruler
+  // stays put and the pencil tilts, as if drawing.
+  playground: [
+    [
+      "M13 7 8.7 2.7a2.41 2.41 0 0 0-3.4 0L2.7 5.3a2.41 2.41 0 0 0 0 3.4L7 13",
+      "m8 6 2-2",
+      "m18 16 2-2",
+      "m17 11 4.3 4.3c.94.94.94 2.46 0 3.4l-2.6 2.6c-.94.94-2.46.94-3.4 0L11 17",
+    ],
+    [
+      "M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z",
+      "m15 5 4 4",
+    ],
+  ],
+  // Lucide "boxes": the whole library, every kind of piece stacked together. Three boxes: the
+  // bottom two, then the top one, which lifts off the stack on hover.
+  library: [
+    [
+      "M2.97 12.92A2 2 0 0 0 2 14.63v3.24a2 2 0 0 0 .97 1.71l3 1.8a2 2 0 0 0 2.06 0L12 19v-5.5l-5-3-4.03 2.42Z",
+      "m7 16.5-4.74-2.85",
+      "m7 16.5 5-3",
+      "M7 16.5v5.17",
+      "M12 13.5V19l3.97 2.38a2 2 0 0 0 2.06 0l3-1.8a2 2 0 0 0 .97-1.71v-3.24a2 2 0 0 0-.97-1.71L17 10.5l-5 3Z",
+      "m17 16.5-5-3",
+      "m17 16.5 4.74-2.85",
+      "M17 16.5v5.17",
+    ],
+    [
+      "M7.97 4.42A2 2 0 0 0 7 6.13v4.37l5 3 5-3V6.13a2 2 0 0 0-.97-1.71l-3-1.8a2 2 0 0 0-2.06 0l-3 1.8Z",
+      "M12 8 7.26 5.15",
+      "m12 8 4.74-2.85",
+      "M12 13.5V8",
+    ],
+  ],
+};
+
+/**
+ * Bare 16px glyph. Fumadocs supplies the icon container in the section switcher, so this must not add
+ * its own box. `tone` sets the colour; "text-current" follows the surrounding text (an active row).
+ * The glyph animates when the link or row it sits in is hovered, focused or becomes current.
+ */
+export function SectionIcon({ kind, tone = "text-foreground" }: { kind: keyof typeof grid16 | keyof typeof grid24; tone?: string }) {
+  const big = grid24[kind];
+  if (big) {
+    const [base, top] = big;
+    const move = kind === "playground" ? "ai-tilt" : "ai-lift";
+    return (
+      <svg aria-hidden viewBox="0 0 24 24" className={`ai m-0.5 block size-4 overflow-visible ${tone}`} fill="none" stroke="currentColor" strokeWidth="1.95" strokeLinecap="round" strokeLinejoin="round">
+        <g>{base.map((d) => <path key={d} d={d} />)}</g>
+        <g className={move} style={{ "--ai-y": "-3px" } as CSSProperties}>{top.map((d) => <path key={d} d={d} />)}</g>
+      </svg>
+    );
+  }
+  const g = grid16[kind];
   return (
-    <svg aria-hidden viewBox="0 0 16 16" className="m-0.5 block size-4 text-foreground" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round">
-      <path d={paths[kind]} />
+    <svg aria-hidden viewBox="0 0 16 16" className={`ai m-0.5 block size-4 overflow-visible ${g.motion ?? ""} ${tone}`} fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round">
+      {g.parts}
     </svg>
   );
 }

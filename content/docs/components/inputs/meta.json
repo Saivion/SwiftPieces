@@ -1,16 +1,19 @@
 {
   "title": "Inputs",
-  "description": "Tracks, steppers, rails and fields built for the thumb.",
+  "description": "Tracks, steppers, rails and fields built for the thumb, down to addresses, map pins and signatures.",
   "defaultOpen": false,
   "pages": [
+    "address-field",
     "amount-field",
     "date-range-picker",
     "expanding-track",
     "filter-rail",
     "form-field",
+    "location-picker",
     "range-slider",
     "scrub-stepper",
     "secure-entry",
+    "signature-pad",
     "token-field"
   ]
 }

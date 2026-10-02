@@ -6,7 +6,7 @@ import { AnimatedText } from "@/components/ui/animated-text";
 import { Reveal, RevealGroup, RevealItem } from "@/components/effects/reveal";
 import { DitherStage } from "@/components/visual/dither-stage";
 import { CornerDither } from "@/components/visual/corner-dither";
-import { SectionCopy, Glyph } from "@/components/sections/feature-row";
+import { SectionCopy, Glyph, heroTitle, sectionBody } from "@/components/sections/feature-row";
 import { getRegistryIndex } from "@/lib/registry";
 import { getStarCount, formatCount } from "@/lib/github";
 import { getViews } from "@/lib/views";
@@ -29,9 +29,10 @@ export async function SponsorHero() {
     <section className="relative overflow-hidden pt-20 pb-10 md:pt-28">
       <Container className="flex flex-col items-center text-center">
         <Reveal priority><Eyebrow>Sponsor · Open-source SwiftUI</Eyebrow></Reveal>
-        <AnimatedText as="h1" text="Keep the pieces free." accent="free." className="p-hero mt-8 max-w-4xl" />
+        {/* Same title and subtitle styles as the homepage and /pro heroes (feature-row.tsx). */}
+        <AnimatedText as="h1" text="Keep the pieces free." accent="free." className={cn("mt-8 max-w-4xl", heroTitle)} />
         <Reveal priority delay={0.35}>
-          <p className="p-body mx-auto mt-7 max-w-xl text-[14px]">Swift Pieces is built and maintained by one developer. Sponsorship pays for new free pieces, updates for every iOS release, and the docs, CLI and MCP server that go with them. Companies get their logo in front of the iOS developers who use it.</p>
+          <p className={cn("mx-auto mt-6 max-w-xl", sectionBody)}>Swift Pieces is built and maintained by one developer. Sponsorship pays for new free pieces, updates for every iOS release, and the docs, CLI and MCP server that go with them. Companies get their logo in front of the iOS developers who use it.</p>
         </Reveal>
         <Reveal priority delay={0.45} className="mt-9 flex flex-col items-center gap-4 sm:flex-row">
           <Button href={sponsorLinks.github}>Sponsor on GitHub <Arrow /></Button>
@@ -56,7 +57,7 @@ export async function SponsorHero() {
 /* ---------- Tiers ---------- */
 
 function Check() {
-  return <svg aria-hidden viewBox="0 0 16 16" className="mt-[3px] size-3.5 shrink-0 text-foreground" fill="none" stroke="currentColor" strokeWidth="1.75"><path d="M3.5 8.5l3 3 6-7" strokeLinecap="round" strokeLinejoin="round" /></svg>;
+  return <svg aria-hidden viewBox="0 0 16 16" className="ai mt-[3px] size-3.5 shrink-0 text-foreground" fill="none" stroke="currentColor" strokeWidth="1.75"><path className="ai-check" pathLength={1} d="M3.5 8.5l3 3 6-7" strokeLinecap="round" strokeLinejoin="round" /></svg>;
 }
 
 function TierCard({ tier, taken }: { tier: Tier; taken: number }) {
@@ -136,7 +137,7 @@ function GoldSeat({ sponsor, price }: { sponsor?: Sponsor; price: number }) {
   return (
     <a href={sponsorLinks.github} className="group flex h-40 flex-col items-center justify-center gap-3 px-6 text-center transition-colors hover:bg-white/[0.02]">
       <span aria-hidden className="grid size-10 place-items-center rounded-[6px] border border-dashed border-accent/40 text-accent transition-colors group-hover:border-accent">
-        <svg viewBox="0 0 16 16" className="size-4" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"><path d="M8 3.5v9M3.5 8h9" /></svg>
+        <svg viewBox="0 0 16 16" className="ai ai-spin size-4" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"><path d="M8 3.5v9M3.5 8h9" /></svg>
       </span>
       <span className="text-[13px] font-medium text-foreground">Your logo on the homepage</span>
       <span className="-mt-1.5 inline-flex items-center gap-1.5 text-[12px] text-muted transition-colors group-hover:text-foreground">${price} / month <Arrow className="size-3" /></span>
@@ -205,7 +206,7 @@ export function SponsorWall({ sponsors }: { sponsors: Sponsor[] }) {
         <Reveal className="mt-12">
           {/* Gold: a 1px gradient edge around a dark panel, with the Pro cards' halftone corner. */}
           <div className="rounded-[7px] bg-[linear-gradient(135deg,#ff7a3c,#ff0000_35%,#ff8fb8_70%,#4d8dff)] p-px shadow-[0_24px_60px_-44px_rgb(255_0_0/0.5)]">
-            <div className="relative isolate overflow-hidden rounded-[6px] bg-[#0b0b0c]">
+            <div className="relative isolate overflow-hidden rounded-[6px] bg-[var(--gold-panel)]">
               {/* The Pro cards' halftone corner, so Gold reads as part of that family. Smaller and dimmer than
                   on the Pro cards: here the third seat's copy sits in that corner and has to stay legible. */}
               <CornerDither className="pointer-events-none absolute right-0 bottom-0 -z-10 h-40 w-full opacity-70 [mask-image:radial-gradient(110%_110%_at_100%_100%,black_30%,transparent_72%)] lg:h-[62%] lg:w-[30%]" />
@@ -217,7 +218,7 @@ export function SponsorWall({ sponsors }: { sponsors: Sponsor[] }) {
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="text-[12.5px] text-muted tabular-nums">${goldTier.price} / month</span>
-                  <span className="rounded-full border border-accent/30 bg-accent/10 px-3 py-1 text-[11.5px] font-semibold text-accent tabular-nums">
+                  <span className="rounded-[var(--radius)] border border-accent/30 bg-accent/10 px-3 py-1 text-[11.5px] font-semibold text-accent tabular-nums">
                     {open ? `${open} of ${seats} seats open` : "All seats taken"}
                   </span>
                 </div>
@@ -324,23 +325,3 @@ export function SponsorStrip({ sponsors }: { sponsors: Sponsor[] }) {
   );
 }
 
-/** The docs sidebar's Silver-and-up slot. Nothing until someone sponsors at that level. */
-export function DocsSponsors({ sponsors }: { sponsors: Sponsor[] }) {
-  if (!sponsors.length) return null;
-  return (
-    <div className="mb-3 border-b border-[var(--line)] pb-3">
-      <a href="/sponsors" className="mb-2 block text-[11px] font-medium tracking-wider text-subtle uppercase hover:text-foreground">Sponsors</a>
-      <ul className="flex flex-col gap-1">
-        {sponsors.map((s) => (
-          <li key={s.name}>
-            <a href={s.url} target="_blank" rel="noreferrer sponsored" className="flex items-center gap-2 rounded-[4px] px-1.5 py-1 text-[12.5px] text-muted hover:bg-surface-2 hover:text-foreground">
-              {/* eslint-disable-next-line @next/next/no-img-element -- remote sponsor avatars */}
-              <img src={s.logo} alt="" className="size-5 rounded-[4px] object-cover" loading="lazy" />
-              <span className="truncate">{s.name}</span>
-            </a>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}

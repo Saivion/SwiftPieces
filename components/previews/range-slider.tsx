@@ -99,7 +99,7 @@ function Track({ lo, hi, min, max, fill, grab }: { lo: number; hi: number; min: 
   );
   return (
     <div className="relative" style={{ width: u(W), height: u(TARGET) }}>
-      <div className="absolute inset-x-0 overflow-hidden rounded-full" style={{ top: u((TARGET - TRACK) / 2), height: u(TRACK), background: "#2a2a2a" }}>
+      <div className="absolute inset-x-0 overflow-hidden rounded-full" style={{ top: u((TARGET - TRACK) / 2), height: u(TRACK), background: ground.trough }}>
         <span data-motion className="absolute inset-y-0" style={{ left: u(lx), width: u(hx - lx), background: fill, transition: `left .18s ${follow}, width .18s ${follow}` }} />
       </div>
       {thumb(lx, grab === "l")}

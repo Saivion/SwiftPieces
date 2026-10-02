@@ -1,28 +1,35 @@
 "use client";
 import dynamic from "next/dynamic";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
+import type { Project } from "@swiftpieces/builder";
+import { prefetchProBuilds } from "@/lib/pro-apps";
+import { proSession, proSessionHint } from "@/lib/pro-bridge";
+import type { PlaygroundPage } from "./playground-app";
 
 /**
- * The builder is client-only (its draft lives in this browser) and is the heaviest thing on the
- * site, so it loads as its own chunk after the shell has painted. No other page imports it.
+ * The Playground runs in the browser only (remixes live in this browser) and is the heaviest thing
+ * on the site, so it loads as its own chunk. Until it arrives the server-rendered shell shows the
+ * same layout with the page's real content, so nothing jumps and crawlers read the page.
  */
-const BuilderApp = dynamic(() => import("./builder-app"), { ssr: false, loading: () => <PlaygroundSkeleton /> });
+const PlaygroundApp = dynamic(() => import("./playground-app"), { ssr: false });
 
-export function PlaygroundLoader() {
-  return <BuilderApp />;
-}
-
-/** Same grid as the builder, so nothing jumps when it arrives. */
-function PlaygroundSkeleton() {
+export function PlaygroundLoader({ page, project, children }: { page: PlaygroundPage; project: Project | null; children: ReactNode }) {
+  const [ready, setReady] = useState(false);
+  const onReady = useCallback(() => setReady(true), []);
+  // Who the visitor is, asked now, while the Playground's chunk downloads. A Pro owner's Pro apps
+  // start loading with the check when the last one here said Pro, else as soon as this one does, so
+  // a Pro app opens straight from the loading phone and switching to one is instant.
+  useEffect(() => {
+    const hinted = proSessionHint() === "pro";
+    if (hinted) prefetchProBuilds();
+    void proSession().then((s) => {
+      if (s === "pro" && !hinted) prefetchProBuilds();
+    });
+  }, []);
   return (
-    <div className="grid h-[calc(100dvh-var(--nav-h))] min-h-[520px] grid-rows-[52px_1fr]" aria-busy="true" aria-label="Loading the playground">
-      <div className="border-b border-[var(--card-border)]" />
-      <div className="grid grid-cols-1 lg:grid-cols-[244px_1fr_296px]">
-        <div className="hidden border-r border-[var(--card-border)] lg:block" />
-        <div className="grid place-items-center">
-          <div className="h-[min(640px,70vh)] w-[min(296px,60vw)] rounded-[44px] bg-surface-3 shadow-[0_0_0_8px_#111]" />
-        </div>
-        <div className="hidden border-l border-[var(--card-border)] lg:block" />
-      </div>
-    </div>
+    <>
+      {ready ? null : children}
+      <PlaygroundApp page={page} project={project} onReady={onReady} />
+    </>
   );
 }

@@ -15,8 +15,8 @@ export const site = {
 /** Pro destinations, kept in one place so every CTA resolves the same way. */
 export const pro = {
   home: site.proUrl,
-  /** "View pricing" and "Pricing" links. The Pro homepage, like every Pro CTA on this site. */
-  pricing: site.proUrl,
+  /** "View pricing" and "Pricing" links: the plan and price page on Pro. */
+  pricing: `${site.proUrl}/pro`,
   /** Every "Get Pro" button resolves here: the Pro homepage. */
   buy: site.proUrl,
   library: `${site.proUrl}/library`,

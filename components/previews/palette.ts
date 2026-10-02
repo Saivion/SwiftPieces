@@ -3,8 +3,11 @@
 //
 // Free ships one confident palette. Whole color schemes, brand presets and theming are Pro.
 
-/** Grounds and ink for the dark stage every preview stands on. */
-export const ground = {
+/**
+ * The dark stage's values as plain hex, for code that needs real colour values (canvas drawing,
+ * colour maths) and for pieces that stay dark in both site themes (the Backgrounds shaders).
+ */
+export const groundHex = {
   bg: "#121212",
   surface: "#1c1c1c",
   raised: "#262626",
@@ -12,6 +15,29 @@ export const ground = {
   text: "#f4f3ef",
   muted: "#a6a49f",
   subtle: "#6f6d69",
+} as const;
+
+/**
+ * Grounds and ink for the stage every preview stands on, as CSS variables so the stage follows the
+ * site theme: `groundHex` in dark, `paper` in light (app/globals.css, --pv-*). The fallbacks are the
+ * dark values, so a preview rendered outside the site still reads.
+ */
+export const ground = {
+  bg: "var(--pv-bg, #121212)",
+  surface: "var(--pv-surface, #1c1c1c)",
+  raised: "var(--pv-raised, #262626)",
+  line: "var(--pv-line, rgba(255,255,255,0.08))",
+  text: "var(--pv-text, #f4f3ef)",
+  muted: "var(--pv-muted, #a6a49f)",
+  subtle: "var(--pv-subtle, #6f6d69)",
+  /** Input fields and chips sitting on the stage. */
+  field: "var(--pv-field, #262626)",
+  /** A step above a field: pressed keys, toggles, the selected row. */
+  control: "var(--pv-control, #3a3a3a)",
+  /** Slider and progress tracks. */
+  trough: "var(--pv-trough, #2a2a2a)",
+  /** The selected span in a range (Date Range Picker). */
+  band: "var(--pv-band, #4a4029)",
 } as const;
 
 /** The light appearance, for pieces shown on paper. */

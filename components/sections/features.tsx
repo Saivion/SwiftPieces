@@ -1,8 +1,11 @@
 import type { ReactNode } from "react";
+import { cn } from "@/lib/cn";
 import { Container } from "@/components/ui/container";
-import { PreviewFrame } from "@/components/previews/frame";
-import { PiecePreview } from "@/components/previews";
-import { FeatureRow, Panel, Floating, ListRow } from "@/components/sections/feature-row";
+import { PictureSticker } from "@/components/previews";
+import { FeatureRow, ListRow } from "@/components/sections/feature-row";
+import { Parallax, Stage } from "@/components/sections/stage";
+import { IPhone } from "@/components/visual/iphone";
+import { Bone, Slot } from "@/components/visual/skeleton";
 import { PieceCarousel } from "@/components/sections/piece-carousel";
 import { AgentDemo } from "@/components/sections/agent-demo";
 
@@ -15,13 +18,13 @@ import { AgentDemo } from "@/components/sections/agent-demo";
 export function Features() {
   return (
     // Full-width clip: the visuals' glow reaches past the container, never past the viewport.
-    // Top clearance so the first row's raised floating card never reaches up into the hero art.
+    // Tops the first row's half gap up to a full one below the ticker's text (its strip pads 20).
     <div className="overflow-x-clip">
-    <Container className="pt-10 sm:pt-16">
+    <Container className="pt-7 sm:pt-11">
       <FeatureRow
         tags={[{ label: "Gestures", icon: <I.hand /> }, { label: "Motion", icon: <I.spark /> }, { label: "Haptics", icon: <I.wave /> }, { label: "Glass", icon: <I.layers /> }]}
         title="Interactions that feel native"
-        body="Swipe decks, glass menus, floating docks and scrubbable charts, with the motion, haptics and states already done."
+        body="Picture headlines, swipe decks, glass menus and scrubbable charts, with the motion, haptics and states already done."
         cta={{ label: "Browse components", href: "/components" }}
       >
         <PiecesVisual />
@@ -52,32 +55,61 @@ export function Features() {
 
 /* ---------- Visuals ---------- */
 
-/** The flagship piece running live, with a second piece and the details it ships with. */
+/** A floating card on a stage: the site's raised surface, lifted well off the ground. */
+export const stageCard = "rounded-[12px] border border-white/[0.09] bg-[var(--raised)] shadow-[0_40px_80px_-28px_rgb(0_0_0/0.8),0_12px_28px_-14px_rgb(0_0_0/0.5),inset_0_1px_0_rgb(255_255_255/0.05)]";
+
+/**
+ * The newest piece running live on an iPhone that rises out of the artboard: Picture Headline as the
+ * headline of an onboarding screen, the one real thing on it. The red mascot floats over the frame's
+ * edge as a sticker lifted out of the line, and the details the piece ships with sit on a card beside it.
+ */
 function PiecesVisual() {
   return (
-    <div className="relative md:mb-14 md:ml-10">
-      <Panel>
-        {/* Previews scale with the stage's width, so the stage is held narrow and square: the top card
-            has headroom to lift and swing without meeting the edge. No ground: the deck sits straight
-            on the dashed frame. */}
-        <div className="flex justify-center">
-          <PreviewFrame tone="clear" aspect="aspect-square" className="w-full max-w-[400px] overflow-visible! rounded-none!">
-            <PiecePreview name="SwipeDeck" />
-          </PreviewFrame>
-        </div>
-      </Panel>
-      <Floating className="hidden w-full md:-top-10 md:right-12 md:block md:w-[220px]">
-        <PreviewFrame tone="clear" aspect="aspect-[4/3]" className="m-2 rounded-[4px]!">
-          <PiecePreview name="ReactionToggle" />
-        </PreviewFrame>
-      </Floating>
-      {/* Straight from SwipeDeck.swift: the spring, the two haptics and the accessibility work. */}
-      <Floating className="w-full md:-bottom-14 md:-left-10 md:w-[300px]">
-        <ListRow icon={<I.spark />} label="Spring" value="0.4s · 0.2 bounce" />
-        <ListRow icon={<I.wave />} label="Haptics" value="selection · impact" />
-        <ListRow icon={<I.eye />} label="Reduce Motion" value="respected" />
-      </Floating>
-    </div>
+    <Stage
+      className="h-[480px] sm:h-[560px]"
+      overlay={
+        <>
+          {/* A sticker lifted out of the headline: the mascot sun, live, tilted a little further than the line's. */}
+          <Parallax depth={16} className="absolute top-12 -left-7 z-10 hidden md:block">
+            <PictureSticker scene="sun" size={92} width={2.2} tilt={-6} />
+          </Parallax>
+          {/* Straight from PictureHeadline.swift: the opening spring, the haptic ticks and type that scales. */}
+          <Parallax depth={22} className="absolute -right-5 bottom-14 z-10 hidden w-[290px] md:block">
+            <div className={cn(stageCard, "overflow-hidden")} style={{ rotate: "2.5deg" }}>
+              <ListRow icon={<I.spark />} label="Spring" value="0.7s · 0.28 bounce" />
+              <ListRow icon={<I.wave />} label="Haptics" value="land · lift" />
+              <ListRow icon={<I.type />} label="Dynamic Type" value="pictures scale" />
+            </div>
+          </Parallax>
+        </>
+      }
+    >
+      <div className="absolute inset-x-0 top-10 flex justify-center sm:top-12">
+        <Parallax depth={-7} className="w-[272px] sm:w-[296px]">
+          {/* An onboarding screen whose headline is the piece: the words and stickers are the one thing on
+              it that moves, over a skeleton of the rest (a caption, page dots and the button). */}
+          <IPhone>
+            <div className="flex items-center justify-between px-4 pt-2">
+              <Bone w={26} h={26} round strong />
+              <Bone w={34} h={8} />
+            </div>
+            <Slot name="PictureHeadline" h={262} scale={1.3} className="mt-3" />
+            <div className="flex flex-col items-center gap-2 px-10">
+              <Bone w="88%" h={8} />
+              <Bone w="62%" h={8} />
+            </div>
+            <div className="mt-7 flex justify-center gap-1.5">
+              <Bone w={16} h={6} round strong />
+              <Bone w={6} h={6} round />
+              <Bone w={6} h={6} round />
+            </div>
+            <div className="mx-4 mt-5">
+              <Bone h={46} round strong />
+            </div>
+          </IPhone>
+        </Parallax>
+      </div>
+    </Stage>
   );
 }
 
@@ -109,6 +141,7 @@ const I = {
   doc: () => <G><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5Z" /><path d="M14 3v5h5M9 13h6M9 17h4" /></G>,
   braces: () => <G><path d="M8 3H7a2 2 0 0 0-2 2v4a2 2 0 0 1-2 2 2 2 0 0 1 2 2v4a2 2 0 0 0 2 2h1" /><path d="M16 3h1a2 2 0 0 1 2 2v4a2 2 0 0 0 2 2 2 2 0 0 0-2 2v4a2 2 0 0 1-2 2h-1" /></G>,
   eye: () => <G><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" /><circle cx="12" cy="12" r="3" /></G>,
+  type: () => <G><path d="M5 7V5h14v2" /><path d="M12 5v14" /><path d="M9 19h6" /></G>,
   folder: () => <G fill><path d="M3 6.5A2.5 2.5 0 0 1 5.5 4h3.6l2 2.5h7.4A2.5 2.5 0 0 1 21 9v8.5a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 17.5v-11Z" /></G>,
   swift: () => <G fill><path d="M20.5 15.6c.1-.3 1.3-4.5-3-9.1 0 0 1.5 3.6-.4 6.5 0 0-4.6-3-8.8-7.6 0 0 3.2 4.2 5.3 6.2 0 0-5.1-3-9.1-7.3 0 0 3.6 5.8 8.6 9.6-3.4 1.6-7.4.3-9.4-1 1.8 2.5 5.4 5.4 10 5.4 3.8 0 5.5-2 6.9-1.1.9.6 1.2 1.6 1.2 1.6s.6-1.5-1.3-3.2Z" /></G>,
 };

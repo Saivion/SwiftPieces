@@ -1,0 +1,17 @@
+## Notes
+
+- `.indexScrubber(titles, proxy: proxy)` on a `ScrollView` or `List` inside a `ScrollViewReader` is the whole setup. Give each section an id equal to its title (`ForEach(sections, id: \.title) { Section { … } }`). Jumps scroll without animation, the section's top at `anchor` (`.top` by default), the way the system index does.
+- The modifier insets the scroll view's content by the rail's width (44pt at the default text size), so rows lay out beside the rail instead of under it. With no reachable sections the rail takes no space and no touches.
+- Use `IndexScrubber(titles, selection: $current) { title in … }` when you scroll some other way; place it on the trailing edge yourself. `onSelect` fires once on touch down, then only when the finger reaches a new section, plus on VoiceOver and keyboard moves.
+- `index: .sections` shows your titles as they are. `.alphabet` shows the current locale's index letters (A to Z and # in English, from `UILocalizedIndexedCollation`) and matches each section by its whole title, then its first character, then its first character without accents; titles starting with a digit or symbol fall under #. `.custom([...])` takes your own entries.
+- Entries without a section are dimmed by default and a touch on one lands on the nearest section after it (or before it at the end). `missing: .hidden` leaves them out. The letter block and the haptic only change when the landing section changes.
+- When the rail is too short for every entry (landscape, accessibility text sizes), it shows evenly spaced entries with a dot between each, like the system index. The finger still maps proportionally along the whole column, so a dot lands on the letters it stands for and the block shows the real one.
+- While a finger is down the rail keeps its touch-down geometry, pinned on screen, so a jump that resizes the scroll view (a large title collapsing) never moves letters under the finger. It settles into its new place on release.
+- The letter block follows the finger with a spring and the letter rolls in the direction of travel. A `.selection` haptic plays on touch down and on each new section, never on dimmed entries or repeated positions.
+- The drag lives on the rail itself, outside the scrolling content, so it never competes with the scroll view's pan; the scroll view keeps scrolling everywhere else. A system-cancelled touch resets the rail cleanly.
+- VoiceOver: the rail is one adjustable element, "Section index", whose value is the current section. Swipe up or down to step through every section (including any the rail's entries do not reach); each step scrolls. Write `selection` from your own scroll tracking so it starts from the section on screen.
+- Hardware keyboard: when the rail has focus, typing a letter jumps to it, arrow keys step between sections, and Home and End go to the first and last. The track shows while focused.
+- Dynamic Type: letters, rows and the block scale up to the first accessibility size, then the rail collapses entries instead of growing; the block shows the section at display size while scrubbing.
+- Right-to-left: the rail sits on the leading edge and the block opens to its inner side.
+- Reduce Motion: the block and the letter fade instead of scaling, rolling and springing.
+- `Style` sets the letter, dimmed, track, block and ink colors. `.disabled(true)` dims the rail and ignores touches.

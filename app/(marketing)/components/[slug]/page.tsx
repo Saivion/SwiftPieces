@@ -9,7 +9,7 @@ import { CategoryDirectory } from "@/components/sections/category-directory";
 import { CTA } from "@/components/sections/cta";
 import { Reveal } from "@/components/effects/reveal";
 import { JsonLd } from "@/components/seo/json-ld";
-import { sectionTitle, sectionBody } from "@/components/sections/feature-row";
+import { sectionTitle, sectionBody, stickyColumn } from "@/components/sections/feature-row";
 import { getRegistryIndex, piecePath } from "@/lib/registry";
 import { getHub, hubItems, hubPath, hubs, type Hub } from "@/lib/hubs";
 import { breadcrumbJsonLd, faqJsonLd, pageMetadata, WEBSITE_ID } from "@/lib/seo";
@@ -84,7 +84,7 @@ export default async function HubPage(props: Props) {
         {/* What the pieces are for: the same 1:2 grid as the questions below it. */}
         <Container className="mt-24 sm:mt-32">
           <section className="grid gap-10 lg:grid-cols-[1fr_2fr] lg:gap-20">
-            <Reveal as="div">
+            <Reveal as="div" className={stickyColumn}>
               <h2 className={sectionTitle}>About these pieces</h2>
               <p className={cn("mt-4 max-w-xs", sectionBody)}>One self-contained Swift file each, Apple frameworks only, from iOS 17.</p>
             </Reveal>
@@ -112,7 +112,7 @@ export default async function HubPage(props: Props) {
 
         <Container className="mt-24 sm:mt-32">
           <section className="grid gap-10 lg:grid-cols-[1fr_2fr] lg:gap-20">
-            <Reveal as="div">
+            <Reveal as="div" className={stickyColumn}>
               <h2 className={sectionTitle}>Keep browsing</h2>
               <p className={cn("mt-4 max-w-xs", sectionBody)}>Nearby collections, then every category in the library.</p>
             </Reveal>

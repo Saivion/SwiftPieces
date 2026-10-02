@@ -9,6 +9,10 @@ import { PieceHeader } from "@/components/docs/piece-header";
 import { PieceInstall } from "@/components/docs/piece-install";
 import { getRegistryItem, getRegistryIndex, piecePath } from "@/lib/registry";
 import { ShowcaseGrid } from "@/components/sections/showcase";
+import { ProCardGrid } from "@/components/docs/pro-cards";
+import { DocsAside, DocsAsideColumn } from "@/components/docs/docs-aside";
+import { WhatsNewButton } from "@/components/changelog/whats-new";
+import { getSponsorsFrom } from "@/lib/sponsors";
 import { PieceRelated } from "@/components/docs/piece-related";
 import { JsonLd } from "@/components/seo/json-ld";
 import { breadcrumbJsonLd, ORG_ID, pageMetadata, WEBSITE_ID } from "@/lib/seo";
@@ -32,9 +36,18 @@ export default async function Page(props: Props) {
   const MDX = page.data.body;
   const item = page.data.piece ? getRegistryItem(page.data.piece) : null;
   const isIndex = Boolean(page.data.index);
+  const proType = page.data.pro;
+  const hasToc = !isIndex && !proType && page.data.toc.length > 0;
+  const aside = <DocsAside sponsors={await getSponsorsFrom("silver")} />;
 
   return (
-    <DocsPage toc={item || isIndex ? [] : page.data.toc} full={isIndex}>
+    <DocsPage
+      toc={hasToc ? page.data.toc : []}
+      full={isIndex || Boolean(proType)}
+      // What's new heads the right column on every docs page and Sponsors and Pro sit at its foot:
+      // around "On this page" where there is one, on their own where there is not (the full-width grids).
+      tableOfContent={hasToc ? { header: <WhatsNewButton />, footer: aside } : { enabled: true, component: <DocsAsideColumn><WhatsNewButton />{aside}</DocsAsideColumn> }}
+    >
       <JsonLd data={structuredData(page.url, page.data.title, page.data.description, page.slugs, item)} />
       <DocsTitle className={item?.isNew ? "flex items-center gap-3" : undefined}>
         {page.data.title}
@@ -43,6 +56,7 @@ export default async function Page(props: Props) {
       <DocsDescription>{page.data.description}</DocsDescription>
       {item ? <PieceHeader item={item} /> : null}
       {isIndex ? <div className="not-prose mb-10"><ShowcaseGrid items={getRegistryIndex()} /></div> : null}
+      {proType ? <ProCardGrid type={proType} /> : null}
       <DocsBody>
         <MDX components={getMDXComponents({ a: createRelativeLink(source, page) })} />
         {item ? <PieceInstall item={item} /> : null}

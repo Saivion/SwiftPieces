@@ -5,6 +5,7 @@ import type { ComponentType } from "react";
 /** Web-equivalent animated previews, keyed by Swift type name. Loaded lazily per chunk. */
 const map: Record<string, ComponentType> = {
   TextReveal: dynamic(() => import("./text").then((m) => m.TextRevealPreview)),
+  PictureHeadline: dynamic(() => import("./picture-headline").then((m) => m.PictureHeadlinePreview)),
   GlassText: dynamic(() => import("./text").then((m) => m.GlassTextPreview)),
   Silk: dynamic(() => import("./backgrounds").then((m) => m.SilkPreview)),
   TouchGrid: dynamic(() => import("./backgrounds").then((m) => m.TouchGridPreview)),
@@ -59,7 +60,21 @@ const map: Record<string, ComponentType> = {
   FormField: dynamic(() => import("./form-field").then((m) => m.FormFieldPreview)),
   ExpandableText: dynamic(() => import("./expandable-text").then((m) => m.ExpandableTextPreview)),
   PagedList: dynamic(() => import("./paged-list").then((m) => m.PagedListPreview)),
+  IndexScrubber: dynamic(() => import("./index-scrubber").then((m) => m.IndexScrubberPreview)),
+  DragSelectGrid: dynamic(() => import("./drag-select-grid").then((m) => m.DragSelectGridPreview)),
+  AttachmentTray: dynamic(() => import("./attachment-tray").then((m) => m.AttachmentTrayPreview)),
+  FollowScroll: dynamic(() => import("./follow-scroll").then((m) => m.FollowScrollPreview)),
+  AddressField: dynamic(() => import("./address-field").then((m) => m.AddressFieldPreview)),
+  SignaturePad: dynamic(() => import("./signature-pad").then((m) => m.SignaturePadPreview)),
+  LinkPreview: dynamic(() => import("./link-preview").then((m) => m.LinkPreviewPreview)),
+  PhotoCropper: dynamic(() => import("./photo-cropper").then((m) => m.PhotoCropperPreview)),
+  LocationPicker: dynamic(() => import("./location-picker").then((m) => m.LocationPickerPreview)),
+  SpotlightTour: dynamic(() => import("./spotlight-tour").then((m) => m.SpotlightTourPreview)),
+  ActivityHeatmap: dynamic(() => import("./activity-heatmap").then((m) => m.ActivityHeatmapPreview)),
 };
+
+/** One Picture Headline sticker on its own (the landing's floating mascot), from the preview's own chunk. */
+export const PictureSticker = dynamic(() => import("./picture-headline").then((m) => m.PictureSticker));
 
 export function PiecePreview({ name }: { name: string }) {
   const C = map[name];

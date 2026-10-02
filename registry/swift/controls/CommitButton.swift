@@ -15,6 +15,7 @@ import SwiftUI
 ///   - title: Idle label.
 ///   - phase: Bound `.idle`, `.loading`, `.success`, `.error(message)` or `.disabled`. The button returns itself to `.idle` after a success hold.
 ///   - tint: Overrides the style's fill while idle and loading, with white ink. `nil` uses `style.fill`.
+///   - tintInk: The ink on `tint`, for a tint white doesn't read on (an app's accent and its ink). `nil` is white.
 ///   - errorTint: Overrides the style's error fill, with white ink. `nil` uses `style.errorFill`.
 ///   - successHold: How long the success state stays before the label expands back.
 ///   - successTitle: Text shown beside the check on success, such as "Saved". `nil` keeps the success state a closed circle.
@@ -88,16 +89,18 @@ public struct CommitButton: View {
 
     private let title: String
     private let tint: Color?
+    private let tintInk: Color?
     private let errorTint: Color?
     private let successHold: Duration
     private let successTitle: String?
     private let style: Style
     private let action: () -> Void
 
-    public init(_ title: String, phase: Binding<Phase>, tint: Color? = nil, errorTint: Color? = nil, successHold: Duration = .milliseconds(900), successTitle: String? = nil, style: Style = .standard, action: @escaping () -> Void) {
+    public init(_ title: String, phase: Binding<Phase>, tint: Color? = nil, tintInk: Color? = nil, errorTint: Color? = nil, successHold: Duration = .milliseconds(900), successTitle: String? = nil, style: Style = .standard, action: @escaping () -> Void) {
         self.title = title
         self._phase = phase
         self.tint = tint
+        self.tintInk = tintInk
         self.errorTint = errorTint
         self.successHold = successHold
         self.successTitle = successTitle
@@ -125,7 +128,7 @@ public struct CommitButton: View {
         case .disabled: style.disabledInk
         case .error: errorTint == nil ? style.ink : .white
         case .success where ringClosed: style.ink
-        default: tint == nil ? style.ink : .white
+        default: tint == nil ? style.ink : (tintInk ?? .white)
         }
     }
 
@@ -165,7 +168,7 @@ public struct CommitButton: View {
             }
             .foregroundStyle(ink)
             .frame(height: style.height)
-            .frame(width: collapsed ? style.height : nil)
+            .frame(maxWidth: collapsed ? style.height : .infinity)
             .padding(.horizontal, collapsed ? 0 : 28)
             .background(fill, in: Capsule())
             .clipShape(Capsule())

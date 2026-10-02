@@ -12,7 +12,7 @@ import { blocks, font, ground, ink } from "./palette";
 const u = (px: number) => `${(px / 5.6).toFixed(3)}cqw`;
 const spring = "cubic-bezier(0.34, 1.4, 0.64, 1)";
 const ease = "cubic-bezier(0.22, 1, 0.36, 1)";
-const trough = "#2a2a2a";
+const trough = ground.trough;
 
 function useReducedMotion() {
   const [reduced, setReduced] = useState(false);
@@ -183,14 +183,14 @@ function Stepper({ value, min, max, block, press, scrub, shift = 0, nudge = 0 }:
     return (
       <span className="flex items-center justify-center" style={{ width: u(H), height: u(H) }}>
         <span data-motion className="flex items-center justify-center rounded-full" style={{
-          width: u(inner), height: u(inner), background: down ? ground.text : "#3a3a3a", color: down ? "#3a3a3a" : ground.text,
+          width: u(inner), height: u(inner), background: down ? ground.text : ground.control, color: down ? ground.control : ground.text,
           opacity: enabled ? 1 : 0.35, transform: `scale(${down ? 0.86 : 1})`, transition: `transform .3s ${spring}, background-color .15s, color .15s, opacity .2s`,
         }}><Glyph name={name} size={15} stroke={3} /></span>
       </span>
     );
   };
   return (
-    <span data-motion className="flex items-center rounded-full" style={{ height: u(H), background: "#262626", transform: `translateX(${u(nudge)})`, transition: `transform ${nudge ? ".3s" : ".45s"} ${spring}` }}>
+    <span data-motion className="flex items-center rounded-full" style={{ height: u(H), background: ground.field, transform: `translateX(${u(nudge)})`, transition: `transform ${nudge ? ".3s" : ".45s"} ${spring}` }}>
       {button("minus", value > min)}
       <span data-motion className="relative flex items-center justify-center overflow-hidden" style={{
         height: u(inner), minWidth: u(62), paddingInline: u(scrub ? 20 : 14), borderRadius: u(14), background: block, color: ink,
@@ -261,7 +261,7 @@ function Rail({ options, selected, multi, counts }: { options: string[]; selecte
         {sel ? <span data-motion className="absolute rounded-full" style={{ left: u(sel.x), top: u(4), width: u(sel.w), height: u(H), background: ground.text, transition: `left .45s ${spring}, width .45s ${spring}` }} /> : null}
         {pos.map((p) => {
           const picked = on(p.o);
-          const fill = multi && picked ? GENRE_BLOCKS[options.indexOf(p.o) % GENRE_BLOCKS.length] : !multi && picked ? "transparent" : "#262626";
+          const fill = multi && picked ? GENRE_BLOCKS[options.indexOf(p.o) % GENRE_BLOCKS.length] : !multi && picked ? "transparent" : ground.field;
           const color = picked ? (multi ? ink : ground.bg) : ground.text;
           return (
             <span key={p.o} data-motion className="absolute flex items-center justify-center whitespace-nowrap rounded-full" style={{
@@ -316,7 +316,7 @@ function Field({ label, dots, focused, error, check }: { label: string; dots: nu
     <div>
       <p style={meta}>{label}</p>
       <div ref={ref} className="flex items-center" style={{
-        marginTop: u(8), height: u(48), paddingLeft: u(16), paddingRight: u(5), borderRadius: u(16), background: "#262626",
+        marginTop: u(8), height: u(48), paddingLeft: u(16), paddingRight: u(5), borderRadius: u(16), background: ground.field,
         boxShadow: `inset 0 0 0 ${u(2)} ${error ? blocks.tangerine : focused ? ground.text : "transparent"}`, transition: "box-shadow .2s",
       }}>
         <span className="flex flex-1 items-center" style={{ gap: u(4) }}>
@@ -324,7 +324,7 @@ function Field({ label, dots, focused, error, check }: { label: string; dots: nu
           {focused ? <span data-motion style={{ width: u(2), height: u(20), marginLeft: u(2), background: ground.text, animation: "in-caret 1s steps(1) infinite" }} /> : null}
         </span>
         <span data-motion className="flex items-center justify-center rounded-full" style={{ width: u(24), height: u(24), marginRight: u(6), background: blocks.sage, color: ink, opacity: check ? 1 : 0, transform: `scale(${check ? 1 : 0.4})`, transition: `transform .35s ${spring}, opacity .2s` }}><Glyph name="check" size={13} stroke={3.4} /></span>
-        <span className="flex items-center justify-center rounded-full" style={{ width: u(36), height: u(36), background: "#3a3a3a", color: ground.text }}><Glyph name="eye" size={17} stroke={2} /></span>
+        <span className="flex items-center justify-center rounded-full" style={{ width: u(36), height: u(36), background: ground.control, color: ground.text }}><Glyph name="eye" size={17} stroke={2} /></span>
       </div>
     </div>
   );
@@ -342,7 +342,7 @@ export function SecureEntryPreview() {
       <div className="flex flex-col" style={{ gap: u(10) }}>
         <Field label="New password" dots={pw.length} focused={s.focus === "new"} check={complete} />
         <div className="flex items-center" style={{ gap: u(10) }}>
-          <span className="relative flex-1 overflow-hidden rounded-full" style={{ height: u(8), background: "#262626" }}>
+          <span className="relative flex-1 overflow-hidden rounded-full" style={{ height: u(8), background: ground.field }}>
             <span data-motion className="absolute inset-y-0 left-0 rounded-full" style={{ width: `${score * 25}%`, background: levelColor, transition: `width .45s ${spring}, background-color .3s` }} />
           </span>
           <span data-motion className="flex items-center justify-center rounded-full" style={{ width: u(64), height: u(22), background: levelColor, color: ink, fontSize: u(10), fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", transition: "background-color .3s" }}>{level}</span>
@@ -350,7 +350,7 @@ export function SecureEntryPreview() {
         <div data-motion className="grid" style={{ gridTemplateRows: complete ? "0fr" : "1fr", opacity: complete ? 0 : 1, transition: `grid-template-rows .45s ${ease}, opacity .3s` }}>
           <div className="grid min-h-0 grid-cols-2 overflow-hidden" style={{ gap: u(6) }}>
             {reqs.map(([t, m]) => (
-              <span key={t} data-motion className="flex items-center" style={{ height: u(30), gap: u(6), paddingInline: u(10), borderRadius: u(12), background: m ? blocks.sage : "#262626", color: m ? ink : ground.muted, fontSize: u(12.5), fontWeight: 600, transition: "background-color .25s, color .25s" }}>
+              <span key={t} data-motion className="flex items-center" style={{ height: u(30), gap: u(6), paddingInline: u(10), borderRadius: u(12), background: m ? blocks.sage : ground.field, color: m ? ink : ground.muted, fontSize: u(12.5), fontWeight: 600, transition: "background-color .25s, color .25s" }}>
                 <svg aria-hidden viewBox="0 0 24 24" fill="none" strokeLinecap="round" strokeLinejoin="round" style={{ width: u(14), height: u(14), flexShrink: 0 }}>
                   <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2.4" style={{ opacity: m ? 0 : 0.6, transition: "opacity .2s" }} />
                   <path data-motion d="M5 12.5l4.5 4.5L19 7" stroke={ink} strokeWidth="3.4" pathLength={1} strokeDasharray={1} strokeDashoffset={m ? 0 : 1} style={{ transition: `stroke-dashoffset .35s ${ease} ${m ? "80ms" : "0ms"}` }} />

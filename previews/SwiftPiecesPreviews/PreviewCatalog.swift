@@ -1,3 +1,4 @@
+import MapKit
 import SwiftUI
 
 /// One representative scene per registry piece. scripts/build-registry.ts verifies
@@ -16,9 +17,15 @@ enum PreviewCatalog {
         "AssistantOrb", "ThoughtOrb",
         // everyday inputs, text and lists
         "RangeSlider", "DateRangePicker", "TokenField", "AmountField", "FormField", "ExpandableText", "PagedList",
+        // everyday utilities
+        "IndexScrubber", "DragSelectGrid", "AttachmentTray", "FollowScroll", "AddressField", "SignaturePad", "LinkPreview",
+        // everyday utilities, second wave
+        "PhotoCropper", "LocationPicker", "SpotlightTour", "ActivityHeatmap",
+        // text, 2026-10-01
+        "PictureHeadline",
     ]
 
-    @ViewBuilder
+    @MainActor @ViewBuilder
     static func scene(for name: String) -> some View {
         switch name {
         // visual
@@ -140,6 +147,32 @@ enum PreviewCatalog {
             Stage { ExpandableTextScene() }
         case "PagedList":
             Stage { PagedListScene() }
+        // everyday utilities
+        case "IndexScrubber":
+            Stage { IndexScrubberScene() }
+        case "DragSelectGrid":
+            Stage { DragSelectGridScene() }
+        case "AttachmentTray":
+            Stage { AttachmentTrayScene() }
+        case "FollowScroll":
+            Stage { FollowScrollScene() }
+        case "AddressField":
+            Stage { AddressFieldScene() }
+        case "PictureHeadline":
+            Stage { PictureHeadlineScene() }
+        case "SignaturePad":
+            Stage { SignaturePadScene() }
+        case "LinkPreview":
+            Stage { LinkPreviewScene() }
+        // everyday utilities, second wave
+        case "PhotoCropper":
+            Stage { PhotoCropperScene() }
+        case "LocationPicker":
+            Stage { LocationPickerScene() }
+        case "SpotlightTour":
+            Stage { SpotlightTourScene() }
+        case "ActivityHeatmap":
+            Stage { ActivityHeatmapScene() }
         default:
             Text("Unknown piece: \(name)")
         }
@@ -2267,5 +2300,929 @@ private struct PagedListSceneRow: View {
         .padding(.vertical, 6)
         .listRowBackground(Color.clear)
         .listRowSeparator(.hidden)
+    }
+}
+
+// MARK: - IndexScrubber
+
+/// The rail beside a contacts list, nothing else. The scrub itself needs a finger (the block, the roll and the
+/// ticks follow a real touch), so this scene is interactive rather than self-running: touch or drag the rail.
+private struct IndexScrubberScene: View {
+    private struct ContactGroup: Identifiable {
+        let title: String
+        let names: [String]
+        var id: String { title }
+    }
+
+    private static let groups: [ContactGroup] = {
+        let names = [
+            "Aiko Tanaka", "Amara Okafor", "Anders Lind", "Beatriz Souza", "Bram de Vries", "Camille Roche", "Chen Wei",
+            "Cora Whitfield", "Dalia Haddad", "Dmitri Volkov", "Elena Petrova", "Emeka Obi", "Farah Siddiqui", "Felix Brandt",
+            "Grace Holloway", "Hana Kobayashi", "Hugo Marchetti", "Ines Castillo", "Isla Mackenzie", "Jonah Reyes", "Julia Novak",
+            "Kofi Mensah", "Leila Farouk", "Liam Gallagher", "Lucia Ferraro", "Mateo Alvarez", "Maya Lindqvist", "Mira Sato",
+            "Nadia Rahman", "Noor Aziz", "Oscar Bergman", "Priya Raman", "Rafael Duarte", "Rosa Delgado", "Sofia Esposito",
+            "Soren Dahl", "Tariq Nasser", "Uma Iyer", "Vera Lindgren", "Wren Calloway", "Yusuf Demir", "4th Floor Reception",
+        ]
+        return Dictionary(grouping: names) { name -> String in
+            let first = String(name.prefix(1))
+            return first.first?.isLetter == true ? first : "#"
+        }
+        .map { ContactGroup(title: $0.key, names: $0.value.sorted()) }
+        .sorted { ($0.title == "#" ? "~" : $0.title) < ($1.title == "#" ? "~" : $1.title) }
+    }()
+
+    var body: some View {
+        ScrollViewReader { proxy in
+            ScrollView {
+                LazyVStack(alignment: .leading, spacing: 0, pinnedViews: .sectionHeaders) {
+                    ForEach(Self.groups) { group in
+                        Section {
+                            ForEach(group.names, id: \.self) { name in
+                                Text(name)
+                                    .font(.body)
+                                    .frame(maxWidth: .infinity, minHeight: 48, alignment: .leading)
+                                    .padding(.leading, 24)
+                            }
+                        } header: {
+                            Text(group.title)
+                                .font(.subheadline.weight(.bold))
+                                .foregroundStyle(bmColor(light: 0x5C5A56, dark: 0xA6A49F))
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.horizontal, 24)
+                                .padding(.vertical, 6)
+                                .background(bmColor(light: 0xF3F2EE, dark: 0x121212))
+                        }
+                    }
+                }
+            }
+            .indexScrubber(Self.groups.map(\.title), proxy: proxy, index: .alphabet)
+        }
+        .foregroundStyle(bmColor(light: 0x141414, dark: 0xF4F3EF))
+        .frame(maxWidth: 520)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(bmColor(light: 0xF3F2EE, dark: 0x121212))
+    }
+}
+
+// MARK: - DragSelectGrid
+
+/// The component alone: a grid in selection mode. The selection is driven from outside through the
+/// binding, the way a drag writes it: a range paints item by item from item 5, runs down a row,
+/// shrinks back as the finger returns, then a single tap deselects one. Cells inset and badge exactly
+/// as they do under a real drag; a finger on the grid paints and scrolls for real.
+private struct DragSelectGridScene: View {
+    private struct Shot: Identifiable {
+        let id: Int
+        let tint: Color
+        let symbol: String
+    }
+
+    private static let base: Set<Int> = [1, 2, 13]
+    private static let shots: [Shot] = {
+        let tints: [UInt32] = [0xFF0000, 0x9CC2FF, 0xFFD976, 0xA9DCB7, 0xCDB8FF, 0xE9D5B3]
+        let symbols = ["sun.max", "leaf", "moon", "cup.and.saucer", "cloud", "drop"]
+        var out: [Shot] = []
+        for i in 0..<40 {
+            let hex: UInt32 = tints[(i * 7 + i / 5) % tints.count]
+            let tint = Color(red: Double((hex >> 16) & 0xFF) / 255, green: Double((hex >> 8) & 0xFF) / 255, blue: Double(hex & 0xFF) / 255)
+            out.append(Shot(id: i, tint: tint, symbol: symbols[(i * 5 + i / 4) % symbols.count]))
+        }
+        return out
+    }()
+
+    @State private var selection = DragSelectGridScene.base
+    @State private var isSelecting = true
+
+    var body: some View {
+        DragSelectGrid(Self.shots, selection: $selection, isSelecting: $isSelecting, minimumCellWidth: 84) { shot, _ in
+            ZStack {
+                shot.tint
+                Image(systemName: shot.symbol)
+                    .font(.system(size: 24, weight: .medium))
+                    .foregroundStyle(Color(red: 0x14 / 255, green: 0x14 / 255, blue: 0x14 / 255).opacity(0.7))
+            }
+        }
+        .contentMargins(.horizontal, 14, for: .scrollContent)
+        .contentMargins(.vertical, 14, for: .scrollContent)
+        .frame(maxWidth: 460)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(bmColor(light: 0xF3F2EE, dark: 0x121212))
+        .task {
+            // The same rule the grid applies under a finger: the starting snapshot with anchor...current painted.
+            let base = Self.base
+            func paint(to current: Int) -> Set<Int> {
+                base.union(min(5, current)...max(5, current))
+            }
+            while !Task.isCancelled {
+                selection = base
+                try? await Task.sleep(for: .seconds(1.6))
+                for current in [5, 6, 7, 11, 15, 14] {
+                    selection = paint(to: current)
+                    try? await Task.sleep(for: .milliseconds(current > 7 ? 320 : 170))
+                }
+                try? await Task.sleep(for: .seconds(0.6))
+                for current in [10, 9] {
+                    selection = paint(to: current)
+                    try? await Task.sleep(for: .milliseconds(300))
+                }
+                try? await Task.sleep(for: .seconds(1.0))
+                selection.remove(2)
+                try? await Task.sleep(for: .seconds(1.8))
+            }
+        }
+    }
+}
+
+// MARK: - AttachmentTray
+
+/// The tray alone: three photos, then two picks land as loading tiles, one fills its ring and settles,
+/// the other fails once and retries, the tray reaches its limit, and both new tiles are removed.
+private struct AttachmentTrayScene: View {
+    @State private var attachments: [AttachmentTray.Attachment] = []
+
+    var body: some View {
+        AttachmentTray(attachments: $attachments, limit: 5)
+            .contentMargins(.horizontal, 30, for: .scrollContent)
+            .frame(maxWidth: 520)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(ATScenePhoto.ground)
+            .task {
+                // Driven through the binding, exactly as an app appends picks, retries and removes.
+                while !Task.isCancelled {
+                    attachments = (0..<3).map { .init(data: ATScenePhoto.data($0)) }
+                    try? await Task.sleep(for: .seconds(1.6))
+                    let flaky = ATScenePhoto.Flaky()
+                    attachments.append(ATScenePhoto.download(3, seconds: 1.4))
+                    attachments.append(.init { progress in
+                        progress.totalUnitCount = 10
+                        for step in 1...5 {
+                            try await Task.sleep(for: .milliseconds(160))
+                            progress.completedUnitCount = Int64(step)
+                        }
+                        if await flaky.failsOnce() { throw URLError(.networkConnectionLost) }
+                        return ATScenePhoto.data(4)
+                    })
+                    try? await Task.sleep(for: .seconds(2.6))
+                    if let last = attachments.indices.last { attachments[last].retry() }
+                    try? await Task.sleep(for: .seconds(2.2))
+                    attachments.removeLast()
+                    try? await Task.sleep(for: .seconds(0.9))
+                    attachments.removeLast()
+                    try? await Task.sleep(for: .seconds(1.2))
+                }
+            }
+    }
+}
+
+/// Flat drawn scenes standing in for photos (the same ones the web preview draws).
+private enum ATScenePhoto {
+    static let ground = Color(uiColor: UIColor { $0.userInterfaceStyle == .dark ? UIColor(red: 0.071, green: 0.071, blue: 0.071, alpha: 1) : UIColor(red: 0.953, green: 0.949, blue: 0.933, alpha: 1) })
+    static let scenes: [(UInt32, UInt32, UInt32)] = [
+        (0x9CC2FF, 0xFFD976, 0xA9DCB7), (0xE9D5B3, 0xFF0000, 0xCDB8FF), (0xA9DCB7, 0xF4F3EF, 0x9CC2FF), (0xCDB8FF, 0xFFD976, 0x9CC2FF), (0xFFD976, 0xF4F3EF, 0xE9D5B3),
+    ]
+
+    actor Flaky {
+        private var failed = false
+        func failsOnce() -> Bool {
+            defer { failed = true }
+            return !failed
+        }
+    }
+
+    static func download(_ index: Int, seconds: Double) -> AttachmentTray.Attachment {
+        .init { progress in
+            progress.totalUnitCount = 10
+            for step in 1...10 {
+                try await Task.sleep(for: .seconds(seconds / 10))
+                progress.completedUnitCount = Int64(step)
+            }
+            return data(index)
+        }
+    }
+
+    static func data(_ index: Int) -> Data {
+        let (sky, sun, land) = scenes[index % scenes.count]
+        let size = CGSize(width: 1200, height: 900)
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1
+        let image = UIGraphicsImageRenderer(size: size, format: format).image { context in
+            func fill(_ hex: UInt32) { UIColor(red: CGFloat((hex >> 16) & 0xFF) / 255, green: CGFloat((hex >> 8) & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1).setFill() }
+            fill(sky); context.fill(CGRect(origin: .zero, size: size))
+            fill(sun); UIBezierPath(ovalIn: CGRect(x: 480, y: 160, width: 260, height: 260)).fill()
+            fill(land)
+            let hill = UIBezierPath()
+            hill.move(to: CGPoint(x: 0, y: 640))
+            hill.addQuadCurve(to: CGPoint(x: 1200, y: 560), controlPoint: CGPoint(x: 520, y: 420))
+            hill.addLine(to: CGPoint(x: 1200, y: 900))
+            hill.addLine(to: CGPoint(x: 0, y: 900))
+            hill.fill()
+        }
+        return image.jpegData(compressionQuality: 0.9) ?? Data()
+    }
+}
+
+// MARK: - FollowScroll
+
+/// The thread alone on the house ground, mirroring components/previews/follow-scroll.tsx: a reply arrives and scrolls
+/// in, the reader scrolls up, three replies land below without moving anything and count into the "3 new" pill, then
+/// the pill's jump brings the thread back to the latest. Loops by replacing the thread, which starts again at the bottom.
+private struct FollowScrollScene: View {
+    private static let lines = ["Boarding in ten, gate 32", "Grabbed you a flat white", "Seats 14A and 14B", "They moved us to gate 35", "Running, save my spot", "Made it. Window or aisle?", "Window please", "Landing at 6:40 local", "Taxi or train?", "Train, it's faster at rush hour", "Dinner at Tasca do Rio at 8?", "Booked for four, under Maya"]
+    private static let replies = ["Just parked, coming up", "Table by the window", "Order the clams for me", "Five minutes away"]
+    private static let base = (0..<24).map { FollowScrollSceneMessage(id: $0, text: lines[$0 % lines.count], isMine: $0 % 3 == 1) }
+
+    @State private var messages = FollowScrollScene.base
+    @State private var following = true
+    @State private var cycle = 0
+
+    var body: some View {
+        ScrollViewReader { proxy in
+            FollowScroll(messages, isFollowing: $following) { message in
+                Text(message.text)
+                    .font(.body)
+                    .foregroundStyle(message.isMine ? bmColor(0x141414) : bmColor(light: 0x141414, dark: 0xF4F3EF))
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 10)
+                    .background(message.isMine ? bmColor(0xFF0000) : bmColor(light: 0xFFFFFF, dark: 0x262626), in: .rect(cornerRadius: 18, style: .continuous))
+                    .frame(maxWidth: .infinity, alignment: message.isMine ? .trailing : .leading)
+                    .id(message.id)
+            }
+            .frame(maxWidth: 420)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(bmColor(light: 0xF3F2EE, dark: 0x121212))
+            .task {
+                while !Task.isCancelled {
+                    try? await Task.sleep(for: .seconds(1.5))
+                    append(0)
+                    try? await Task.sleep(for: .seconds(1.3))
+                    // The reader scrolls up to read.
+                    withAnimation(.smooth(duration: 0.6)) { proxy.scrollTo(messages[messages.count - 7].id, anchor: .bottom) }
+                    try? await Task.sleep(for: .seconds(1.1))
+                    for k in 1...3 {
+                        append(k)
+                        try? await Task.sleep(for: .milliseconds(k == 3 ? 1600 : 800))
+                    }
+                    // What tapping the pill does.
+                    following = true
+                    try? await Task.sleep(for: .seconds(2.2))
+                    guard !Task.isCancelled else { return }
+                    cycle += 1
+                    messages = Self.base.map { FollowScrollSceneMessage(id: $0.id + cycle * 1000, text: $0.text, isMine: $0.isMine) }
+                }
+            }
+        }
+    }
+
+    private func append(_ k: Int) {
+        let id = (messages.last?.id ?? 0) + 1
+        messages.append(FollowScrollSceneMessage(id: id, text: Self.replies[k % Self.replies.count], isMine: false))
+    }
+}
+
+private struct FollowScrollSceneMessage: Identifiable {
+    let id: Int
+    let text: String
+    let isMine: Bool
+}
+
+// MARK: - AddressField
+
+/// The field alone: a query typed letter by letter, four suggestions with the match in bold, then the resolved address.
+private struct AddressFieldScene: View {
+    @State private var query = ""
+    @State private var address: AddressField.Address?
+
+    private static let resolved = AddressField.Address(
+        street: "48 Juniper Lane", city: "Bellmont", state: "OR", postalCode: "97321",
+        country: "United States", isoCountryCode: "US",
+        coordinate: CLLocationCoordinate2D(latitude: 44.61, longitude: -123.12)
+    )
+
+    private static let source = AddressField.Source(
+        suggest: { query in
+            try await Task.sleep(for: .milliseconds(350))
+            let all = [
+                AddressField.Suggestion(title: "48 Juniper Lane", subtitle: "Bellmont, OR, United States"),
+                AddressField.Suggestion(title: "48 Juniper Court", subtitle: "Ashford, WA, United States"),
+                AddressField.Suggestion(title: "480 Juniper Avenue", subtitle: "Bellmont, OR, United States"),
+                AddressField.Suggestion(title: "48 Juniper Row", subtitle: "Harlow, ON, Canada"),
+            ]
+            return all.filter { $0.title.localizedStandardContains(query) }
+        },
+        resolve: { _ in
+            try await Task.sleep(for: .milliseconds(700))
+            return AddressFieldScene.resolved
+        }
+    )
+
+    var body: some View {
+        AddressField("Delivery address", text: $query, address: $address, source: Self.source)
+            .padding(.horizontal, 30)
+            .frame(maxWidth: 440)
+            // Pinned from the top so the field stays put while the list opens and closes under it.
+            .padding(.top, 140)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            .background(bmColor(light: 0xF3F2EE, dark: 0x121212))
+            .task {
+                while !Task.isCancelled {
+                    address = nil
+                    query = ""
+                    try? await Task.sleep(for: .seconds(1.4))
+                    for character in "48 Juni" {
+                        guard !Task.isCancelled else { return }
+                        query.append(character)
+                        try? await Task.sleep(for: .milliseconds(170))
+                    }
+                    try? await Task.sleep(for: .seconds(2.2))
+                    // Setting the address from outside is what a pick ends in: the field shows the street and locality.
+                    address = Self.resolved
+                    try? await Task.sleep(for: .seconds(2.6))
+                }
+            }
+    }
+}
+
+// MARK: - PictureHeadline
+
+/// The headline alone on the house ground: words rise and three built-in scenes open between them,
+/// keep drifting, and the reveal replays. Mirrors the web preview.
+private struct PictureHeadlineScene: View {
+    @State private var replay = 0
+
+    var body: some View {
+        PictureHeadline(
+            ["Slow", .art(.sun, label: "a sunrise"), "mornings, long", .art(.waves, label: "the sea"), "walks and", .art(.hills, width: 1.8, label: "hills"), "early", .art(.moon, label: "the moon"), "nights."],
+            alignment: .center,
+            trigger: replay
+        )
+        .font(.system(size: 40, weight: .bold))
+        .tracking(-1.2)
+        .foregroundStyle(bmColor(light: 0x141414, dark: 0xF4F3EF))
+        .padding(.horizontal, 24)
+        .frame(maxWidth: 400)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(bmColor(light: 0xF3F2EE, dark: 0x121212))
+        .task {
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(5.5))
+                replay += 1
+            }
+        }
+    }
+}
+
+// MARK: - SignaturePad
+
+/// The pad alone: it rests with its hint, then "Swift Pieces" is signed through the binding with real handwriting
+/// timing (so the ink thins on quick sweeps and runs full in slow turns), Undo fades the flourish, it is
+/// drawn again, and Clear wipes the pad.
+private struct SignaturePadScene: View {
+    @State private var signature = SignaturePad.Signature()
+
+    var body: some View {
+        SignaturePad(signature: $signature)
+            .padding(.horizontal, 24)
+            .frame(maxWidth: 440)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(bmColor(light: 0xF3F2EE, dark: 0x121212))
+            .task {
+                let strokes = SignaturePadScript.sampled
+                while !Task.isCancelled {
+                    signature = SignaturePad.Signature()
+                    try? await Task.sleep(for: .seconds(1.1))
+                    signature.canvasSize = SignaturePadScript.canvas
+                    for stroke in strokes {
+                        await play(stroke)
+                        try? await Task.sleep(for: .milliseconds(170))
+                    }
+                    try? await Task.sleep(for: .seconds(1.3))
+                    withAnimation(.easeOut(duration: 0.22)) { _ = signature.strokes.popLast() }
+                    try? await Task.sleep(for: .milliseconds(800))
+                    await play(strokes[strokes.count - 1])
+                    try? await Task.sleep(for: .seconds(1.5))
+                    withAnimation(.easeOut(duration: 0.3)) { signature.strokes = [] }
+                    try? await Task.sleep(for: .seconds(1.3))
+                }
+            }
+    }
+
+    /// Appends one stroke's samples through the binding as their timestamps come due, like live touches.
+    private func play(_ points: [SignaturePad.Signature.Point]) async {
+        let clock = ContinuousClock()
+        let start = clock.now
+        signature.strokes.append(SignaturePad.Signature.Stroke(points: [points[0]]))
+        let index = signature.strokes.count - 1
+        var shown = 1
+        while shown < points.count, !Task.isCancelled {
+            let elapsed = (clock.now - start) / .seconds(1)
+            let due = points[shown...].prefix { $0.time <= elapsed }.count
+            if due > 0, index < signature.strokes.count {
+                signature.strokes[index].points.append(contentsOf: points[shown..<(shown + due)])
+                shown += due
+            }
+            try? await Task.sleep(for: .milliseconds(16))
+        }
+    }
+}
+
+/// Synthesized handwriting for the scene: pass-through points (Catmull-Rom) of "Swift Pieces", its dots, t cross
+/// and a flourish, with a speed profile after the two-thirds power law (slow in tight turns, fast on sweeps),
+/// sampled at 120 Hz like touch input.
+private enum SignaturePadScript {
+    static let canvas = CGSize(width: 360, height: 200)
+
+    /// Pass-through points in a 360 x 150 box, placed on the 360 x 200 pad.
+    private static let raw: [[(CGFloat, CGFloat)]] = [
+        [(53.6, 50), (45.8, 40), (33, 44), (28.3, 56), (35.7, 68), (45, 80), (45.5, 96), (34.4, 110), (19.6, 114),
+         (11.3, 106)],
+        [(51.7, 86), (54.6, 100), (56, 112), (64.6, 100), (70.2, 93), (71.8, 104), (74, 112), (83.1, 98), (89.7, 86),
+         (93.5, 96), (94.4, 110), (100, 112), (108.6, 100), (113.7, 86), (110.9, 108), (116, 112), (124.6, 100), (139.2, 70),
+         (151, 44), (156.7, 36), (159, 44), (147.9, 76), (136, 112), (126.3, 138), (120.1, 148), (117.8, 140), (128.2, 120),
+         (140.4, 110), (147.3, 106), (153.5, 96), (164.1, 66), (156.6, 100), (158, 112), (166.9, 108), (175.1, 98)],
+        [(116.4, 74)],
+        [(148.6, 82), (175, 80)],
+        [(211, 44), (201.5, 78), (189.6, 114)],
+        [(205.6, 50), (221.8, 40), (237, 44), (237.9, 58), (223.2, 70), (204.4, 74)],
+        [(206.9, 108), (217.1, 98), (225.7, 86), (221.3, 106), (226, 112), (234.9, 108), (244.2, 102), (254, 94), (255.3, 88),
+         (249.7, 86), (240, 94), (237.3, 106), (244, 112), (256.4, 110), (263.8, 104)],
+        [(283.6, 91), (277.9, 85), (269.1, 89), (262.9, 99), (263.7, 109), (272, 112), (282.4, 110), (291.8, 104), (301.5, 96),
+         (303.3, 88), (297.7, 86), (290, 94), (288.9, 108), (296, 112), (306.9, 108), (315.5, 96), (323.7, 86), (324.1, 98),
+         (323.1, 107), (314.8, 113), (305.2, 111)],
+        [(229.4, 74)],
+        [(20, 134), (90, 140), (180, 138), (260, 132), (316, 124), (346, 116)],
+    ]
+
+    static let sampled: [[SignaturePad.Signature.Point]] = raw.map { stroke in
+        sample(stroke.map { CGPoint(x: $0.0 * 0.9 + 36, y: $0.1 * 0.9 + 56) })
+    }
+
+    private static func sample(_ p: [CGPoint]) -> [SignaturePad.Signature.Point] {
+        if p.count == 1 { return [.init(x: p[0].x, y: p[0].y, time: 0)] }
+        var dense: [CGPoint] = []
+        for i in 0..<(p.count - 1) {
+            let p0 = p[max(0, i - 1)], p1 = p[i], p2 = p[i + 1], p3 = p[min(p.count - 1, i + 2)]
+            let b1 = CGPoint(x: p1.x + (p2.x - p0.x) / 6, y: p1.y + (p2.y - p0.y) / 6)
+            let b2 = CGPoint(x: p2.x - (p3.x - p1.x) / 6, y: p2.y - (p3.y - p1.y) / 6)
+            for j in (i == 0 ? 0 : 1)...24 {
+                let t = CGFloat(j) / 24, u = 1 - t
+                dense.append(CGPoint(
+                    x: u * u * u * p1.x + 3 * u * u * t * b1.x + 3 * u * t * t * b2.x + t * t * t * p2.x,
+                    y: u * u * u * p1.y + 3 * u * u * t * b1.y + 3 * u * t * t * b2.y + t * t * t * p2.y))
+            }
+        }
+        let m = dense.count
+        var kappa = [CGFloat](repeating: 0, count: m)
+        for i in 1..<(m - 1) {
+            let a = dense[i - 1], b = dense[i], c = dense[i + 1]
+            var d = atan2(c.y - b.y, c.x - b.x) - atan2(b.y - a.y, b.x - a.x)
+            while d > .pi { d -= 2 * .pi }
+            while d < -.pi { d += 2 * .pi }
+            kappa[i] = abs(d) / max((hypot(b.x - a.x, b.y - a.y) + hypot(c.x - b.x, c.y - b.y)) / 2, 0.001)
+        }
+        var length: [CGFloat] = [0]
+        for i in 1..<m { length.append(length[i - 1] + hypot(dense[i].x - dense[i - 1].x, dense[i].y - dense[i - 1].y)) }
+        let total = length[m - 1]
+        var time: [Double] = [0]
+        for i in 1..<m {
+            let window = max(0, i - 4)...min(m - 1, i + 4)
+            let curvature = window.map { kappa[$0] }.reduce(0, +) / CGFloat(window.count)
+            var speed = min(2400, max(110, 300 * pow(curvature + 0.0001, -1.0 / 3)))
+            speed *= 0.35 + 0.65 * min(1, length[i] / 18)
+            if total - length[i] < 30 { speed *= 1 + (1 - (total - length[i]) / 30) * 0.9 }
+            time.append(time[i - 1] + Double((length[i] - length[i - 1]) / speed))
+        }
+        var out: [SignaturePad.Signature.Point] = []
+        var j = 0
+        var t = 0.0
+        while t <= time[m - 1] {
+            while j < m - 2 && time[j + 1] < t { j += 1 }
+            let f = CGFloat(min(1, max(0, (t - time[j]) / max(1e-6, time[j + 1] - time[j]))))
+            out.append(.init(x: dense[j].x + (dense[j + 1].x - dense[j].x) * f, y: dense[j].y + (dense[j + 1].y - dense[j].y) * f, time: t))
+            t += 1.0 / 120
+        }
+        out.append(.init(x: dense[m - 1].x, y: dense[m - 1].y, time: time[m - 1]))
+        return out
+    }
+}
+
+// MARK: - LinkPreview
+
+/// The cards alone on the house ground: a large card and a compact one hold their size as skeletons, then the
+/// image settles in and the text fades up, hold, and go round again. Mirrors the web preview.
+private struct LinkPreviewScene: View {
+    @State private var loaded = false
+    @State private var round = 0
+
+    /// An unroutable address keeps the fetch pending, so the skeleton shows exactly as it does on a slow network.
+    private static let pending = URL(string: "https://10.255.255.1/loading")!
+    private static let article = URL(string: "https://fieldnotes.travel/lisbon-tram-28")!
+    private static let note = URL(string: "https://slowdesk.co/notes/quiet-mornings")!
+
+    var body: some View {
+        VStack(spacing: 14) {
+            LinkPreview(
+                url: loaded ? Self.article : Self.pending,
+                layout: .large,
+                metadata: loaded ? .init(title: "Twelve stops on the old tram line through Lisbon", image: LinkPreviewSceneArt.cover) : nil,
+                timeout: 60
+            )
+            LinkPreview(
+                url: loaded ? Self.note : Self.pending,
+                metadata: loaded ? .init(title: "Quiet mornings: a note-taking routine that sticks") : nil,
+                timeout: 60
+            )
+        }
+        .id(round)
+        .padding(.horizontal, 30)
+        .frame(maxWidth: 420)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(bmColor(light: 0xF3F2EE, dark: 0x121212))
+        .task {
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(1.8))
+                withAnimation(.spring(duration: 0.45, bounce: 0.12)) { loaded = true }
+                try? await Task.sleep(for: .seconds(3.6))
+                loaded = false
+                round += 1
+            }
+        }
+    }
+}
+
+/// Sample cover art drawn in code: a red tram under its wire, in front of Lisbon rooftops.
+@MainActor
+private enum LinkPreviewSceneArt {
+    static let cover: Image? = {
+        let art = Canvas { context, _ in
+            let butter = Color(red: 1, green: 0.851, blue: 0.463), lilac = Color(red: 0.804, green: 0.722, blue: 1)
+            let red = Color(red: 1, green: 0, blue: 0), ink = Color(red: 0.078, green: 0.078, blue: 0.078)
+            func rect(_ x: CGFloat, _ y: CGFloat, _ w: CGFloat, _ h: CGFloat, _ r: CGFloat = 0) -> Path {
+                Path(roundedRect: CGRect(x: x, y: y, width: w, height: h), cornerRadius: r, style: .continuous)
+            }
+            func house(_ x: CGFloat, _ top: CGFloat, _ eave: CGFloat, _ w: CGFloat) -> Path {
+                Path { p in p.move(to: CGPoint(x: x, y: eave)); p.addLine(to: CGPoint(x: x + w / 2, y: top)); p.addLine(to: CGPoint(x: x + w, y: eave)); p.addLine(to: CGPoint(x: x + w, y: 300)); p.addLine(to: CGPoint(x: x, y: 300)); p.closeSubpath() }
+            }
+            context.fill(rect(0, 0, 573, 300), with: .color(butter))
+            for p in [house(0, 112, 140, 70), rect(78, 116, 64, 184), house(384, 100, 128, 70), rect(462, 104, 60, 196), house(530, 128, 146, 43)] {
+                context.fill(p, with: .color(lilac))
+            }
+            context.stroke(Path { p in p.move(to: CGPoint(x: 0, y: 46)); p.addLine(to: CGPoint(x: 573, y: 36)) }, with: .color(ink), lineWidth: 3)
+            context.stroke(Path { p in
+                p.move(to: CGPoint(x: 262, y: 118)); p.addLine(to: CGPoint(x: 292, y: 80)); p.addLine(to: CGPoint(x: 270, y: 44))
+                p.move(to: CGPoint(x: 322, y: 118)); p.addLine(to: CGPoint(x: 292, y: 80))
+                p.move(to: CGPoint(x: 254, y: 42)); p.addLine(to: CGPoint(x: 288, y: 42))
+            }, with: .color(ink), style: StrokeStyle(lineWidth: 4, lineCap: .round, lineJoin: .round))
+            context.fill(rect(170, 114, 230, 22, 8), with: .color(red))
+            context.fill(rect(150, 130, 270, 116, 20), with: .color(red))
+            context.fill(UnevenRoundedRectangle(bottomLeadingRadius: 20, bottomTrailingRadius: 20, style: .continuous).path(in: CGRect(x: 150, y: 222, width: 270, height: 24)), with: .color(ink.opacity(0.16)))
+            for x in [168, 218, 268, 318] as [CGFloat] { context.fill(rect(x, 148, 40, 42, 7), with: .color(butter)) }
+            context.fill(rect(370, 148, 34, 84, 7), with: .color(butter))
+            context.fill(rect(0, 256, 573, 44), with: .color(ink))
+            context.stroke(Path { p in p.move(to: CGPoint(x: 0, y: 272)); p.addLine(to: CGPoint(x: 573, y: 272)) }, with: .color(butter.opacity(0.5)), lineWidth: 3)
+            for x in [200, 244, 326, 370] as [CGFloat] { context.fill(Path(ellipseIn: CGRect(x: x - 13, y: 235, width: 26, height: 26)), with: .color(ink)) }
+        }
+        .frame(width: 573, height: 300)
+        .clipped()
+        let renderer = ImageRenderer(content: art)
+        renderer.scale = 2
+        return renderer.uiImage.map { Image(uiImage: $0) }
+    }()
+}
+
+// MARK: - PhotoCropper
+
+/// The cropper alone, driven through its framing binding exactly as an app restores or adjusts a crop: it rests on
+/// the square frame, zooms in on the tram, glides along the track and back onto it, morphs to 4:5, turns a quarter, then settles back
+/// to the square. Mirrors the web preview's storyboard (the web adds the fingers, the grid and Choose).
+private struct PhotoCropperScene: View {
+    @State private var framing = PhotoCropper.Framing(aspect: .square)
+
+    var body: some View {
+        PhotoCropper(image: PhotoCropperScenePhoto.photo, framing: $framing, onCancel: {}) { _ in }
+            .frame(maxWidth: 520)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(PhotoCropperScenePhoto.ground)
+            .task {
+                while !Task.isCancelled {
+                    framing = PhotoCropper.Framing(aspect: .square)
+                    try? await Task.sleep(for: .seconds(1.4))
+                    // Zoom in on the tram, as a pinch about it would.
+                    withAnimation(.spring(duration: 0.9, bounce: 0)) { framing.zoom = 1.9; framing.center = CGPoint(x: 0.5, y: 0.66) }
+                    try? await Task.sleep(for: .seconds(1.3))
+                    // Along the track towards the left edge, and back a little.
+                    withAnimation(.spring(duration: 0.8, bounce: 0)) { framing.center = CGPoint(x: 0.28, y: 0.66) }
+                    try? await Task.sleep(for: .seconds(1.0))
+                    withAnimation(.spring(duration: 0.6, bounce: 0)) { framing.center = CGPoint(x: 0.47, y: 0.68) }
+                    try? await Task.sleep(for: .seconds(1.0))
+                    // The 4:5 chip: the frame morphs and the photo keeps the tram in frame.
+                    withAnimation(.spring(duration: 0.46, bounce: 0)) { framing.aspect = .portrait }
+                    try? await Task.sleep(for: .seconds(1.3))
+                    // Rotate left.
+                    withAnimation(.spring(duration: 0.5, bounce: 0)) { framing.quarterTurns = 1 }
+                    try? await Task.sleep(for: .seconds(1.5))
+                    // Back to rest: upright (the short way round), square, filling the frame.
+                    withAnimation(.spring(duration: 0.6, bounce: 0)) { framing = PhotoCropper.Framing(aspect: .square) }
+                    try? await Task.sleep(for: .seconds(1.2))
+                }
+            }
+    }
+}
+
+/// The same photo the piece's own preview and the web preview draw: a sky, the sun, clouds, layered hills, cypresses
+/// and a red tram under its wire, 2400 by 1800 pixels.
+private enum PhotoCropperScenePhoto {
+    static let ground = Color(uiColor: UIColor { $0.userInterfaceStyle == .dark ? UIColor(red: 0.071, green: 0.071, blue: 0.071, alpha: 1) : UIColor(red: 0.953, green: 0.949, blue: 0.933, alpha: 1) })
+    static let photo: UIImage = draw(scale: 1.5)
+
+    static func draw(scale: CGFloat) -> UIImage {
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1
+        format.opaque = true
+        return UIGraphicsImageRenderer(size: CGSize(width: 1600 * scale, height: 1200 * scale), format: format).image { context in
+            context.cgContext.scaleBy(x: scale, y: scale)
+            func paint(_ hex: UInt32) -> UIColor {
+                UIColor(red: CGFloat((hex >> 16) & 0xFF) / 255, green: CGFloat((hex >> 8) & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
+            }
+            func fill(_ hex: UInt32, _ path: UIBezierPath) {
+                paint(hex).setFill()
+                path.fill()
+            }
+            func oval(_ x: CGFloat, _ y: CGFloat, _ rx: CGFloat, _ ry: CGFloat) -> UIBezierPath {
+                UIBezierPath(ovalIn: CGRect(x: x - rx, y: y - ry, width: rx * 2, height: ry * 2))
+            }
+            func box(_ x: CGFloat, _ y: CGFloat, _ w: CGFloat, _ h: CGFloat, _ r: CGFloat) -> UIBezierPath {
+                UIBezierPath(roundedRect: CGRect(x: x, y: y, width: w, height: h), cornerRadius: r)
+            }
+            func land(_ start: CGPoint, _ curves: [(CGPoint, CGPoint, CGPoint)]) -> UIBezierPath {
+                let path = UIBezierPath()
+                path.move(to: start)
+                for (c1, c2, end) in curves { path.addCurve(to: end, controlPoint1: c1, controlPoint2: c2) }
+                path.addLine(to: CGPoint(x: 1600, y: 1200))
+                path.addLine(to: CGPoint(x: 0, y: 1200))
+                path.close()
+                return path
+            }
+            let ink: UInt32 = 0x141414, paper: UInt32 = 0xF4F3EF
+            fill(0x9CC2FF, UIBezierPath(rect: CGRect(x: 0, y: 0, width: 1600, height: 1200)))
+            fill(0xFFD976, oval(1215, 285, 105, 105))
+            for cloud in [box(262, 300, 268, 56, 28), oval(352, 300, 50, 50), oval(436, 286, 62, 62), box(930, 212, 176, 38, 19), oval(990, 212, 32, 32), oval(1046, 204, 40, 40)] {
+                fill(paper, cloud)
+            }
+            fill(0xCDB8FF, land(CGPoint(x: 0, y: 690), [
+                (CGPoint(x: 180, y: 560), CGPoint(x: 380, y: 560), CGPoint(x: 560, y: 650)),
+                (CGPoint(x: 720, y: 730), CGPoint(x: 860, y: 560), CGPoint(x: 1060, y: 590)),
+                (CGPoint(x: 1260, y: 620), CGPoint(x: 1380, y: 540), CGPoint(x: 1600, y: 600)),
+            ]))
+            fill(0xA9DCB7, land(CGPoint(x: 0, y: 840), [
+                (CGPoint(x: 260, y: 720), CGPoint(x: 520, y: 760), CGPoint(x: 760, y: 820)),
+                (CGPoint(x: 1000, y: 880), CGPoint(x: 1260, y: 760), CGPoint(x: 1600, y: 790)),
+            ]))
+            for tree in [oval(196, 770, 16, 48), oval(236, 784, 12, 36), oval(1372, 752, 15, 46), oval(1408, 766, 11, 32)] {
+                fill(ink, tree)
+            }
+            fill(0xE9D5B3, land(CGPoint(x: 0, y: 980), [
+                (CGPoint(x: 400, y: 900), CGPoint(x: 1000, y: 930), CGPoint(x: 1600, y: 960)),
+            ]))
+            fill(ink, UIBezierPath(rect: CGRect(x: 0, y: 1048, width: 1600, height: 7)))
+            fill(ink, UIBezierPath(rect: CGRect(x: 0, y: 1070, width: 1600, height: 7)))
+            let wire = UIBezierPath()
+            wire.move(to: CGPoint(x: 0, y: 790))
+            wire.addCurve(to: CGPoint(x: 1600, y: 786), controlPoint1: CGPoint(x: 540, y: 812), controlPoint2: CGPoint(x: 1060, y: 812))
+            wire.lineWidth = 5
+            paint(ink).setStroke()
+            wire.stroke()
+            let pantograph = UIBezierPath()
+            pantograph.move(to: CGPoint(x: 748, y: 838))
+            pantograph.addLine(to: CGPoint(x: 790, y: 806))
+            pantograph.addLine(to: CGPoint(x: 832, y: 838))
+            pantograph.lineWidth = 5
+            pantograph.lineJoinStyle = .round
+            pantograph.stroke()
+            fill(0xFF0000, box(560, 858, 440, 170, 34))
+            fill(paper, box(588, 838, 384, 30, 15))
+            for x in [592, 680, 768, 856] as [CGFloat] { fill(ink, box(x, 888, 70, 58, 12)) }
+            fill(ink, box(944, 888, 40, 58, 12))
+            fill(paper, UIBezierPath(rect: CGRect(x: 560, y: 964, width: 440, height: 12)))
+            fill(ink, oval(640, 1030, 24, 24))
+            fill(ink, oval(920, 1030, 24, 24))
+            fill(0xFFD976, oval(986, 996, 9, 9))
+        }
+    }
+}
+
+// MARK: - LocationPicker
+
+/// The picker alone over central Lisbon, framed as it sits in a screen. On its own the map moves between nearby
+/// spots: the pin lifts while the camera travels and drops with a bounce, the card goes Locating…, shows its
+/// loading lines and names the street. Each round ends back on a spot it has already looked up, so that address
+/// lands at once. Addresses come from MapKit, so record with a network connection.
+private struct LocationPickerScene: View {
+    @State private var place: LocationPicker.Place?
+
+    var body: some View {
+        LocationPicker(selection: $place, initialCenter: LocationPickerSceneStops.stop(0, round: 0)) { _ in }
+            .frame(height: 560)
+            .clipShape(.rect(cornerRadius: 26, style: .continuous))
+            .padding(.horizontal, 20)
+            .frame(maxWidth: 460)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(bmColor(light: 0xF3F2EE, dark: 0x121212))
+            .task {
+                var round = 0
+                while !Task.isCancelled {
+                    // Three fresh spots, then back to the first of them: it is already looked up, so its address lands at once.
+                    for index in [1, 2, 3, 1] {
+                        try? await Task.sleep(for: .seconds(3.4))
+                        guard !Task.isCancelled else { return }
+                        // Setting the selection from outside moves the map there, as a search result or saved place would.
+                        place = LocationPicker.Place(coordinate: LocationPickerSceneStops.stop(index, round: round))
+                    }
+                    round += 1
+                }
+            }
+    }
+}
+
+/// Nearby stops in the Baixa, a street or two apart, so each move reads as a short drag. Each round sits about
+/// 11 m from the last, so its stops are looked up afresh (the picker caches answers by position).
+private enum LocationPickerSceneStops {
+    private static let base = [
+        CLLocationCoordinate2D(latitude: 38.7105, longitude: -9.1366),
+        CLLocationCoordinate2D(latitude: 38.7117, longitude: -9.1381),
+        CLLocationCoordinate2D(latitude: 38.7129, longitude: -9.1369),
+        CLLocationCoordinate2D(latitude: 38.7114, longitude: -9.1352),
+    ]
+
+    static func stop(_ index: Int, round: Int) -> CLLocationCoordinate2D {
+        let shift = Double(round % 12) * 0.0001
+        return CLLocationCoordinate2D(latitude: base[index].latitude + shift, longitude: base[index].longitude - shift)
+    }
+}
+
+// MARK: - ActivityHeatmap
+
+/// The heatmap alone: the weeks fill in with a wave, a finger runs along today's row week by week with the
+/// callout following, stops on today, and today fills in as the streak rolls from 11 to 12 days. Driven
+/// through the selection binding and the data, so it loops on its own. Mirrors the web preview.
+private struct ActivityHeatmapScene: View {
+    @State private var minutes = ActivityHeatmapSceneData.minutes()
+    @State private var day: Date?
+    @State private var loop = 0
+
+    var body: some View {
+        ActivityHeatmap(minutes, selection: $day) { value in
+            Measurement(value: value, unit: UnitDuration.minutes).formatted(.measurement(width: .abbreviated, usage: .asProvided))
+        }
+        // A new identity each loop, so the entrance wave plays again.
+        .id(loop)
+        .padding(.horizontal, 24)
+        .frame(maxWidth: 460)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(bmColor(light: 0xF3F2EE, dark: 0x121212))
+        .task {
+            let calendar = Calendar.current
+            let today = calendar.startOfDay(for: .now)
+            while !Task.isCancelled {
+                minutes = ActivityHeatmapSceneData.minutes()
+                day = nil
+                loop += 1
+                try? await Task.sleep(for: .seconds(1.6))
+                // Along today's row, five weeks back to today.
+                for weeksBack in stride(from: 5, through: 0, by: -1) {
+                    day = calendar.date(byAdding: .day, value: -7 * weeksBack, to: today)
+                    try? await Task.sleep(for: .milliseconds(170))
+                }
+                try? await Task.sleep(for: .seconds(0.7))
+                minutes[today] = 70
+                try? await Task.sleep(for: .seconds(1.8))
+                day = nil
+                try? await Task.sleep(for: .seconds(1.8))
+            }
+        }
+    }
+}
+
+/// Minutes of practice for the last 20 weeks: a slow start, a week off, a 31 day run, and an 11 day streak
+/// that is still waiting on today. The same shape as the piece's own example.
+private enum ActivityHeatmapSceneData {
+    static func minutes(calendar: Calendar = .current, now: Date = .now) -> [Date: Double] {
+        var seed: UInt64 = 0x9E37_79B9_7F4A_7C15
+        func random() -> Double {
+            seed = seed &* 6_364_136_223_846_793_005 &+ 1_442_695_040_888_963_407
+            return Double(seed >> 33) / Double(UInt64(1) << 31)
+        }
+        let today = calendar.startOfDay(for: now)
+        var result: [Date: Double] = [:]
+        for back in 0..<140 {
+            let r = random()
+            guard back > 0, let day = calendar.date(byAdding: .day, value: -back, to: today) else { continue }
+            let weekend = calendar.isDateInWeekend(day)
+            let active: Bool
+            switch back {
+            case 1...11, 48...78: active = true
+            case 12, 41...47, 79: active = false
+            case 13...40: active = r > (weekend ? 0.45 : 0.18)
+            default: active = r > (weekend ? 0.7 : 0.45)
+            }
+            guard active else { continue }
+            result[day] = ((back > 80 ? 15.0 : 25.0) + (r * 70).rounded()).rounded()
+        }
+        return result
+    }
+}
+
+// MARK: - SpotlightTour
+
+/// The tour alone over plain placeholders (a search capsule, three rows, a round add button): it rests,
+/// presents on the add button as the red ring draws in, springs up to the search capsule with the callout
+/// flipping below it, moves on to the first row's pin, finishes and rests again. Driven through the step
+/// binding, the way an app moves a tour on. Mirrors components/previews/spotlight-tour.tsx.
+private struct SpotlightTourScene: View {
+    @State private var touring = false
+    @State private var step = 0
+
+    var body: some View {
+        VStack(spacing: 14) {
+            SpotlightTourSceneSearch()
+                .spotlightAnchor("search")
+            ForEach(0..<3, id: \.self) { row in
+                SpotlightTourSceneRow(anchor: row == 0 ? "pin" : "pin.\(row)")
+            }
+            Spacer(minLength: 0)
+            Image(systemName: "plus")
+                .font(.title3.weight(.bold))
+                .foregroundStyle(bmColor(light: 0xF4F3EF, dark: 0x141414))
+                .frame(width: 56, height: 56)
+                .background(bmColor(light: 0x141414, dark: 0xF4F3EF), in: .circle)
+                .spotlightAnchor("add")
+                .frame(maxWidth: .infinity, alignment: .trailing)
+        }
+        .padding(24)
+        .frame(maxWidth: 440)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(bmColor(light: 0xF3F2EE, dark: 0x121212))
+        .spotlightTour(isPresented: $touring, step: $step, steps: [
+            .init("add", title: "Start a note", message: "Tap here to write something new.", systemImage: "square.and.pencil"),
+            .init("search", title: "Find it fast", message: "Search every note by title, tag or person."),
+            .init("pin", title: "Keep it on top", message: "Pin a note and it stays first in the list."),
+        ])
+        .task {
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(1.4))
+                step = 0
+                touring = true
+                try? await Task.sleep(for: .seconds(2.6))
+                step = 1
+                try? await Task.sleep(for: .seconds(2.3))
+                step = 2
+                try? await Task.sleep(for: .seconds(2.3))
+                touring = false
+                try? await Task.sleep(for: .seconds(0.9))
+            }
+        }
+    }
+}
+
+/// A search field placeholder: a glyph and a bar in a capsule, no copy.
+private struct SpotlightTourSceneSearch: View {
+    var body: some View {
+        HStack(spacing: 10) {
+            Image(systemName: "magnifyingglass")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(bmColor(light: 0x5C5A56, dark: 0xA6A49F))
+            Capsule()
+                .fill(bmColor(light: 0xD9D6CF, dark: 0x3A3A3A))
+                .frame(width: 96, height: 8)
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, 16)
+        .frame(height: 46)
+        .background(bmColor(light: 0xE9E7E1, dark: 0x262626), in: .capsule)
+    }
+}
+
+/// A row placeholder: an avatar disc, two bars and a round pin control at the trailing edge.
+private struct SpotlightTourSceneRow: View {
+    let anchor: String
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Circle()
+                .fill(bmColor(light: 0xE9E7E1, dark: 0x2A2A2A))
+                .frame(width: 40, height: 40)
+            VStack(alignment: .leading, spacing: 7) {
+                Capsule().fill(bmColor(light: 0xD9D6CF, dark: 0x3A3A3A)).frame(width: 128, height: 8)
+                Capsule().fill(bmColor(light: 0xE9E7E1, dark: 0x2E2E2E)).frame(width: 84, height: 8)
+            }
+            Spacer(minLength: 0)
+            Image(systemName: "pin")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(bmColor(light: 0x5C5A56, dark: 0xA6A49F))
+                .frame(width: 36, height: 36)
+                .background(bmColor(light: 0xE9E7E1, dark: 0x2A2A2A), in: .circle)
+                .spotlightAnchor(anchor)
+        }
+        .padding(12)
+        .background(bmColor(light: 0xFFFFFF, dark: 0x1C1C1C), in: .rect(cornerRadius: 18, style: .continuous))
     }
 }

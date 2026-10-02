@@ -7,6 +7,10 @@
    hair above black so black panels read as panels, and one hairline border carries the edge.
    Overridden here rather than in @swiftpieces/brand, which Pro also ships. */
 :root {
+  /* Pro's palette, same names and values as pro.swiftpieces.com, for Pro marks shown on Free. */
+  --pro-c1: #ff0000;
+  --pro-c2: #ff7a3c;
+  --pro-c3: #4d8dff;
   --background: #070708;
   --surface: #000000;
   --surface-2: #000000;
@@ -14,6 +18,18 @@
   --surface-muted: #17171a;
   --card-border: rgba(255, 255, 255, 0.075);
   --card-border-hover: rgba(255, 255, 255, 0.18);
+  /* Theme-aware colours that used to be hex literals in components (light values in the Light mode block). */
+  --raised: #1a1a1b;        /* floating cards and inputs that sit above a panel */
+  --gold-panel: #0b0b0c;    /* the Gold sponsor panel */
+  --tag-ink: #c4c4c4;       /* feature-row tag glyphs */
+  --button-2-hover: #e8e8e8;/* the white secondary button's hover */
+  /* Preview stage (components/previews/palette.ts `ground`): dark here, paper in light mode. */
+  --pv-bg: #121212; --pv-surface: #1c1c1c; --pv-raised: #262626; --pv-line: rgba(255,255,255,0.08);
+  --pv-text: #f4f3ef; --pv-muted: #a6a49f; --pv-subtle: #6f6d69;
+  --pv-field: #262626; --pv-control: #3a3a3a; --pv-trough: #2a2a2a; --pv-band: #4a4029;
+  --footer-word: #232326;   /* the giant SWIFTPIECES word in the footer */
+  --beta: #00a6fb;           /* Beta badge: bright cyan-blue, text in full, fill at low opacity */
+  --new: #ff8fb8;            /* New badge: the same treatment in Pro pink */
   /* Near-square corners (the brand default is 8/14/20), to sit with the square dashed frames. */
   --radius-sm: 2px;
   --radius: 4px;
@@ -27,10 +43,10 @@
 /* Every preview tile shares one ground: the same #121212 the previews themselves paint (see
    components/previews/palette.ts `ground.bg`), so a piece that does not fill its tile still
    matches the ones that do. */
-.stage-ground { background-color: #121212; }
+.stage-ground { background-color: var(--pv-bg); }
 /* A clear stage drops the ground each preview paints for itself (palette.ts `ground.bg`, set inline
    as #121212 by every preview's Stage wrapper), so the piece sits straight on the dashed frame. */
-.stage-clear [style*="background: rgb(18, 18, 18)"] { background: transparent !important; }
+.stage-clear [style*="background: var(--pv-bg"] { background: transparent !important; }
 /* Landing visuals: an unfilled frame with a fine dashed edge (4 on, 6 off), drawn as an SVG so the
    dashes stay thin and evenly spaced, which a CSS dashed border cannot do. Square corners. */
 /* Four edges drawn separately, not one dashed path: a single path carries its dash phase round the
@@ -45,7 +61,108 @@
     linear-gradient(90deg, transparent 3px, var(--dash) 3px 7px, transparent 7px) bottom / 10px 1px space no-repeat,
     linear-gradient(180deg, transparent 3px, var(--dash) 3px 7px, transparent 7px) left / 1px 10px no-repeat space,
     linear-gradient(180deg, transparent 3px, var(--dash) 3px 7px, transparent 7px) right / 1px 10px no-repeat space;
+  /* Keep the corners clear: the edges stop one tile (10px) short of each corner, so the corner tick
+     stands on its own instead of running into the first dash. Two bands, unioned: one without the
+     left and right 10px, one without the top and bottom 10px; only the four corner squares drop out. */
+  -webkit-mask: linear-gradient(#000 0 0) center / calc(100% - 20px) 100% no-repeat, linear-gradient(#000 0 0) center / 100% calc(100% - 20px) no-repeat;
+  mask: linear-gradient(#000 0 0) center / calc(100% - 20px) 100% no-repeat, linear-gradient(#000 0 0) center / 100% calc(100% - 20px) no-repeat;
 }
+
+/* A frame that is a link: the dashes and the corner crosses take the accent on hover. */
+.frame-hover:hover::before { --dash: color-mix(in srgb, var(--accent) 60%, transparent) !important; }
+.frame-hover:hover > svg[viewBox="0 0 9 9"] { color: var(--accent); }
+/* A Pro frame (the App Library's way into the Pro apps): on hover it fills with the animated Pro
+   halftone from its corner, as every Pro card does (components/apps/pro-unlock.tsx), and its dashes
+   and crosses take the Pro badge's colours, blue into orange. */
+.frame-pro { --pb-a: var(--pro-c3); --pb-b: var(--pro-c2); transition: color .2s ease; }
+.frame-pro:hover, .frame-pro:has(:focus-visible) { color: var(--foreground); }
+.frame-pro::before { transition: --dash .3s ease; }
+.frame-pro:hover::before, .frame-pro:has(:focus-visible)::before { --dash: color-mix(in srgb, var(--pb-a) 55%, var(--pb-b)) !important; }
+.frame-pro > svg[viewBox="0 0 9 9"] { transition: color .3s ease; }
+.frame-pro:hover > svg[viewBox="0 0 9 9"]:nth-of-type(odd), .frame-pro:has(:focus-visible) > svg[viewBox="0 0 9 9"]:nth-of-type(odd) { color: var(--pb-a); }
+.frame-pro:hover > svg[viewBox="0 0 9 9"]:nth-of-type(even), .frame-pro:has(:focus-visible) > svg[viewBox="0 0 9 9"]:nth-of-type(even) { color: var(--pb-b); }
+
+/* A text link's underline (.u-link, brand theme.css) draws when anywhere on its link is hovered,
+   so the arrow and any badge beside the words count too. */
+.group:hover > .u-link::after, .group:focus-visible > .u-link::after { transform: scaleX(1); transform-origin: left; }
+
+/* App Library header (remix-header.tsx): the picked app's pair fades in over the last one; its row in
+   the picker fills a bar along its bottom edge over its turn, and the bar running out picks the next
+   app. So the motion gate pausing the bar until the visitor first interacts pauses the turns too,
+   and reduced motion (no bar animation) leaves the turns to clicks. */
+.remix-pair { opacity: 0; visibility: hidden; transition: opacity .5s ease, visibility .5s; }
+.remix-pair[data-active] { opacity: 1; visibility: visible; }
+/* The captions don't cross-fade: the leaving pair's is gone before the arriving pair's shows, so two
+   lines of small text never sit on top of each other mid-turn. */
+.remix-pair figcaption { transition: opacity .2s ease; }
+.remix-pair:not([data-active]) figcaption { opacity: 0; }
+.remix-pair[data-active] figcaption { transition-delay: .3s; }
+.remix-pick { color: var(--text-muted); transition: color .2s ease, background-color .2s ease; }
+.remix-pick:hover, .remix-pick[data-active] { color: var(--foreground); }
+.remix-pick[data-active] { background: rgb(255 255 255 / .025); }
+html.light .remix-pick[data-active] { background: rgb(0 0 0 / .025); }
+.remix-pick > img { opacity: .55; transition: opacity .2s ease; }
+.remix-pick:hover > img, .remix-pick[data-active] > img { opacity: 1; }
+.remix-progress { position: absolute; left: 10px; right: 10px; bottom: 0; height: 2px; background: var(--accent); transform-origin: left; animation: remix-fill 4s linear forwards; }
+@keyframes remix-fill { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+html:not([data-motion]) .remix-progress { animation-play-state: paused; }
+@media (prefers-reduced-motion: reduce) { .remix-pair { transition: none; } .remix-progress { animation: none; transform: none; } }
+
+/* A framed list: each row is its own cell of a .frame-dashed frame. A cell draws its sides and
+   bottom (the first also its top) in the same 4px dash, with the same cleared corners, so every
+   place lines meet has a gap for the cross drawn there (CornerTicks). Rows read as separate
+   sections, not one long outline with lines through it. */
+.frame-cell { position: relative; }
+.frame-cell::before {
+  --dash: rgb(255 255 255 / 0.16);
+  --edge-h: linear-gradient(90deg, transparent 3px, var(--dash) 3px 7px, transparent 7px);
+  --edge-v: linear-gradient(180deg, transparent 3px, var(--dash) 3px 7px, transparent 7px);
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background:
+    var(--edge-h) bottom / 10px 1px space no-repeat,
+    var(--edge-v) left / 1px 10px no-repeat space,
+    var(--edge-v) right / 1px 10px no-repeat space;
+  -webkit-mask: linear-gradient(#000 0 0) center / calc(100% - 20px) 100% no-repeat, linear-gradient(#000 0 0) center / 100% calc(100% - 20px) no-repeat;
+  mask: linear-gradient(#000 0 0) center / calc(100% - 20px) 100% no-repeat, linear-gradient(#000 0 0) center / 100% calc(100% - 20px) no-repeat;
+}
+.frame-cell:first-child::before {
+  background:
+    var(--edge-h) top / 10px 1px space no-repeat,
+    var(--edge-h) bottom / 10px 1px space no-repeat,
+    var(--edge-v) left / 1px 10px no-repeat space,
+    var(--edge-v) right / 1px 10px no-repeat space;
+}
+
+/* A 2x2 inside a .frame-dashed frame: the cells draw only the seams between them (right of the left
+   column, under the top row), in the frame's dash, with the same cleared ends, so every place lines
+   meet stays open for a cross (remix-header.tsx draws them). */
+.frame-quad > * { position: relative; }
+.frame-quad > *::before {
+  --dash: rgb(255 255 255 / 0.16);
+  --edge-h: linear-gradient(90deg, transparent 3px, var(--dash) 3px 7px, transparent 7px);
+  --edge-v: linear-gradient(180deg, transparent 3px, var(--dash) 3px 7px, transparent 7px);
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  -webkit-mask: linear-gradient(#000 0 0) center / calc(100% - 20px) 100% no-repeat, linear-gradient(#000 0 0) center / 100% calc(100% - 20px) no-repeat;
+  mask: linear-gradient(#000 0 0) center / calc(100% - 20px) 100% no-repeat, linear-gradient(#000 0 0) center / 100% calc(100% - 20px) no-repeat;
+}
+.frame-quad > :nth-child(1)::before { background: var(--edge-v) right / 1px 10px no-repeat space, var(--edge-h) bottom / 10px 1px space no-repeat; }
+.frame-quad > :nth-child(2)::before { background: var(--edge-h) bottom / 10px 1px space no-repeat; }
+.frame-quad > :nth-child(3)::before { background: var(--edge-v) right / 1px 10px no-repeat space; }
+html.light .frame-quad > *::before { --dash: rgb(0 0 0 / 0.2); }
+
+/* A row inside a .frame-dashed frame: each cell but the last draws the seam on its right, in the
+   frame's dash with the same cleared ends, so the crosses where seams meet the edges sit in the gaps
+   (remix-header.tsx draws them). */
+.frame-row > * { position: relative; }
+.frame-row > *:not(:last-child)::before {
+  --dash: rgb(255 255 255 / 0.16);
+  --edge-v: linear-gradient(180deg, transparent 3px, var(--dash) 3px 7px, transparent 7px);
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: var(--edge-v) right / 1px 10px no-repeat space;
+  -webkit-mask: linear-gradient(#000 0 0) center / 100% calc(100% - 20px) no-repeat;
+  mask: linear-gradient(#000 0 0) center / 100% calc(100% - 20px) no-repeat;
+}
+html.light .frame-row > *::before { --dash: rgb(0 0 0 / 0.2); }
 
 /* Black panels need one lit edge or they read as holes: a 1px top highlight, nothing more. */
 .card,
@@ -53,8 +170,8 @@
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.035);
 }
 
-/* Fumadocs consumes these; the docs inherit the brand tokens. */
-.dark {
+/* Fumadocs consumes these; the docs inherit the brand tokens, which flip with the theme. */
+.dark, .light {
   --color-fd-background: var(--background);
   --color-fd-foreground: var(--foreground);
   --color-fd-muted: var(--surface-2);
@@ -76,9 +193,9 @@
 @media (min-width: 48rem) { #nd-docs-layout { --fd-sidebar-width: 272px; } }
 .prose :where(code):not(:where(pre *)) { font-weight: 500; }
 
-/* Docs sidebar: 6px rounding on rows, hover and selection; the switcher card and its popover keep 10px like the filter box.
+/* Docs sidebar: the site radius (4px) on rows, hover and selection; the switcher card and its popover keep 10px like the filter box.
    Fumadocs top-aligns the icon in switcher options (md:mb-auto); center it instead. */
-#nd-docs-layout aside :is(a, button).rounded-lg { border-radius: 6px; }
+#nd-docs-layout aside :is(a, button).rounded-lg { border-radius: var(--radius); }
 #nd-docs-layout aside button[aria-haspopup="dialog"].rounded-lg { border-radius: 4px; }
 [data-radix-popper-content-wrapper] .rounded-xl { border-radius: 4px; }
 [data-radix-popper-content-wrapper] a.rounded-lg { border-radius: 6px; }
@@ -122,12 +239,15 @@
 
 /* Ticker: Pro counts drift slowly through red, orange, purple and blue. */
 .pro-shimmer {
-  background: linear-gradient(90deg, #ff0000, #ff7a3c, #a855f7, #4d8dff) 0 0 / 400% 100%;
+  /* The whole Pro palette across the text at once (red, orange, pink, blue), mirrored so the tile repeats
+     seamlessly, drifting sideways in one direction. The tile is two text-widths wide, so half of it, one full
+     red-to-blue sweep, is always in view. */
+  background: linear-gradient(90deg, #ff0000, #ff7a3c, #ff8fb8, #4d8dff, #ff8fb8, #ff7a3c, #ff0000) 0 0 / 200% 100% repeat-x;
   -webkit-background-clip: text; background-clip: text; color: transparent;
-  /* Alternates rather than loops, so it eases back from blue to red instead of jumping. */
-  animation: pro-shimmer 2.4s ease-in-out infinite alternate;
+  animation: pro-shimmer 6s linear infinite;
 }
-@keyframes pro-shimmer { to { background-position: 100% 0; } }
+/* 200% of a 200%-wide tile moves it exactly one tile, so the loop has no seam. */
+@keyframes pro-shimmer { to { background-position: -200% 0; } }
 @media (prefers-reduced-motion: reduce) { .pro-shimmer { animation: none; } }
 
 /* Second gallery row drifts the other way. */
@@ -267,6 +387,19 @@
 @keyframes piece-in { from { opacity: 0; transform: translateY(10px) scale(0.98); filter: blur(4px); } }
 @keyframes piece-out { to { opacity: 0; transform: scale(0.985); filter: blur(4px); } }
 @media (prefers-reduced-motion: reduce) { .piece-in, .piece-out { animation: none; } .piece-out { opacity: 0; } }
+/* Always-dark islands on the landing stages (the iPhones, the terminal): the dark preview stage and the
+   real white and black, even in light mode, where html.light swaps them. */
+.stage-dark, html.light .stage-dark {
+  --color-white: #fff; --color-black: #000;
+  --pv-bg: #121212; --pv-surface: #1c1c1c; --pv-raised: #262626; --pv-line: rgba(255,255,255,0.08);
+  --pv-text: #f4f3ef; --pv-muted: #a6a49f; --pv-subtle: #6f6d69;
+  --pv-field: #262626; --pv-control: #3a3a3a; --pv-trough: #2a2a2a; --pv-band: #4a4029;
+  --scrub-line: #f4f3ef; --scrub-surface: #1c1c1c; --scrub-raised: #262626;
+}
+/* The terminal on the CLI stage: lines land one by one after the command is typed. */
+.term-line { animation: term-line .32s cubic-bezier(0.22, 1, 0.36, 1) both; }
+@keyframes term-line { from { opacity: 0; transform: translateY(4px); } }
+@media (prefers-reduced-motion: reduce) { .term-line { animation: none; } }
 
 /* Motion gate (app/layout.tsx): endless loops hold still until the visitor first interacts, so the
    first screen settles on paint. Finite entrances are unaffected. */
@@ -332,3 +465,298 @@ html:not([data-motion]) .pro-shimmer { animation-play-state: paused; }
 .wordmark-tag { font-size: 16.5px; }
 /* Docs body: Fumadocs sizes everything inside .prose in em, so one base size scales it all. */
 .prose { font-size: 0.9375rem; }
+
+/* ── Light mode ─────────────────────────────────────────────────────────────────────────────
+   next-themes puts `light` or `dark` on <html> (system by default, the footer toggle overrides).
+   Dark stays the design reference; light reuses the brand's `[data-tone="light"]` palette.
+
+   Most of the dark UI is drawn in white-on-black overlays (`bg-white/[.04]`, `border-white/10`,
+   `text-black` on a white button...). Tailwind v4 reads those colours from --color-white and
+   --color-black, so swapping the two here turns every overlay into its light counterpart at once:
+   ink stays ink, ground stays ground.
+
+   Component previews (the iOS mock screens) keep their dark #121212 stage in both themes. */
+html.light {
+  color-scheme: light;
+  --background: #f7f7f6;
+  --foreground: #0a0a0a;
+  --surface: #ffffff;
+  --surface-2: #ffffff;
+  --surface-3: #f1f1f0;
+  --surface-muted: #e4e4e2;
+  --text-muted: #5c5c5c;
+  --text-subtle: #8c8c8c;
+  --accent-soft: rgba(255, 0, 0, 0.1);
+  --grid-color: rgba(0, 0, 0, 0.13);
+  --line: rgba(0, 0, 0, 0.08);
+  --line-strong: rgba(0, 0, 0, 0.14);
+  --card-border: rgba(0, 0, 0, 0.09);
+  --card-border-hover: rgba(0, 0, 0, 0.2);
+  --color-white: #0a0a0a;
+  --color-black: #ffffff;
+  --footer-word: #dddbd6;
+  --beta: #00a6fb;
+  --new: #e23a7e;            /* deeper pink, so the label holds up on a light ground */
+  --raised: #ffffff;
+  --gold-panel: #ffffff;
+  --tag-ink: #3d3d3d;
+  --button-2-hover: #262626;
+  /* Preview stage: the Free "paper" palette (palette.ts `paper`), an off-white ground with dark ink. */
+  --pv-bg: #f3f2ee; --pv-surface: #ffffff; --pv-raised: #ffffff; --pv-line: rgba(0,0,0,0.08);
+  --pv-text: #141414; --pv-muted: #5c5a56; --pv-subtle: #8b8984;
+  --pv-field: #ebe9e3; --pv-control: #dcd9d1; --pv-trough: #e3e1db; --pv-band: #f7e7b4;
+  /* Scrub Chart's colours are registered properties (initial values are dark), so set them here. */
+  --scrub-line: #141414; --scrub-surface: #ffffff; --scrub-raised: #f1efea;
+}
+/* The footer asks for a black ground in dark; in light it sits on the page ground. */
+html.light [data-tone="black"] { --background: #f1f1f0; --surface: #ffffff; --surface-2: #ffffff; }
+html.light .dots-ambient { background-image: radial-gradient(circle, rgb(0 0 0 / 0.09) 0.9px, transparent 1.1px); }
+html.light .frame-dashed::before, html.light .frame-cell::before { --dash: rgb(0 0 0 / 0.2); }
+html.light .card,
+html.light .stage { box-shadow: 0 1px 2px rgb(0 0 0 / 0.04); }
+html.light .cta-wash { background: rgb(255 255 255 / 0.7); }
+html.light .pro-page .card,
+html.light .pro-page .stage { background-color: rgb(255 255 255 / 0.75); }
+html.light .pro-page a.card:hover { background-color: #ffffff; }
+html.light .nav-glass[data-condensed="true"] { background-color: rgb(255 255 255 / 0.72); box-shadow: 0 18px 48px -22px rgb(0 0 0 / 0.18); }
+/* The brand's solid buttons hard-code black text for the accent fill; follow the accent's own
+   foreground instead (Pro's accent turns black in light mode, Free's stays red with black text). */
+html.light .btn-solid, html.light .btn-gloss { color: var(--accent-foreground); border-color: transparent; }
+
+/* Footer wordmark: solid, in --footer-word (dark / light values). The Pro halftone swell rises
+   behind its base from both bottom corners (components/layout/footer.tsx). */
+.footer-word { color: var(--footer-word); }
+
+/* ---------------------------------------------------------------- Docs sidebar
+   A panel in the Playground's layout (packages/builder builder.css, .spb-panel: inset from the page,
+   head row, uppercase group labels, 34px rows), styled like the rest of the site: the page's own
+   ground with a hairline, the site's 4px radius, muted rows that brighten on hover like the navbar,
+   and the current page marked the way the navbar marks Docs, with a short accent rule. The navbar
+   above is docked to the same grid (components/layout/navbar.tsx), so its logo lines up with the
+   panel's contents. */
+:root {
+  --docs-fill: color-mix(in srgb, var(--foreground) 4%, transparent);
+  --docs-fill-2: color-mix(in srgb, var(--foreground) 7%, transparent);
+  /* About half the site hairline: the panel is outlined, not boxed. */
+  --docs-line: color-mix(in srgb, var(--line) 55%, transparent);
+}
+#nd-sidebar {
+  /* Pinned to the sidebar column (its right-hand 268px), not stretched across the page gutter on wide screens. */
+  inset: 12px 0 12px auto !important;
+  width: calc(var(--fd-sidebar-width) - 12px) !important;
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+#nd-sidebar > * { width: 100% !important; }
+/* The rest holds for the phone drawer too (#nd-sidebar-mobile, below).
+   The brand lives in the navbar and the sidebar does not collapse, so the title row goes; in the
+   drawer that row held only its close button, which the panel head carries instead. */
+:is(#nd-sidebar, #nd-sidebar-mobile) > div:first-child { padding: 0 0 4px; gap: 0; }
+:is(#nd-sidebar, #nd-sidebar-mobile) > div:first-child > div:first-child { display: none; }
+:is(#nd-sidebar, #nd-sidebar-mobile) > div:last-child { padding: 8px 12px 12px; border-top: 0; }
+/* The list's own inset matches the head's, so rows start on the filter's left edge. */
+:is(#nd-sidebar, #nd-sidebar-mobile) .overscroll-contain { padding: 10px 12px !important; }
+:is(#nd-sidebar, #nd-sidebar-mobile) a[data-active] {
+  position: relative;
+  min-height: 34px;
+  padding-block: 0;
+  border-radius: var(--radius);
+  font-size: 12.5px;
+  color: var(--text-muted);
+  transition: background-color .15s, color .15s;
+}
+:is(#nd-sidebar, #nd-sidebar-mobile) a[data-active="false"]:hover { background: var(--docs-fill); color: var(--foreground); }
+:is(#nd-sidebar, #nd-sidebar-mobile) a[data-active="true"] { background: var(--docs-fill); color: var(--foreground); font-weight: 500; }
+:is(#nd-sidebar, #nd-sidebar-mobile) a[data-active="true"]::after {
+  content: ""; position: absolute; left: 0; top: 9px; bottom: 9px; width: 2px; border-radius: 1px; background: var(--accent);
+}
+
+/* The docs navbar and sidebar wear the landing navbar's scrolled glass (.nav-glass[data-condensed]):
+   a translucent fill, a 6px blur that saturates what scrolls beneath, a long soft drop shadow and no
+   outline. */
+.docs-glass, #nd-sidebar, .spp[data-layout="docked"] :is(.spp-left, .spp-dockbar, .spp-rail) {
+  background-color: rgb(24 24 26 / 0.55) !important;
+  border-color: transparent !important;
+  box-shadow: 0 18px 48px -18px rgb(0 0 0 / 0.85);
+  -webkit-backdrop-filter: blur(6px) saturate(180%);
+  backdrop-filter: blur(6px) saturate(180%);
+}
+html.light :is(.docs-glass, #nd-sidebar, .spp[data-layout="docked"] .spp-left, .spp[data-layout="docked"] .spp-dockbar, .spp[data-layout="docked"] .spp-rail) { background-color: rgb(255 255 255 / 0.72) !important; box-shadow: 0 18px 48px -22px rgb(0 0 0 / 0.18); }
+
+/* Phones: under 768px Fumadocs swaps the sidebar for a drawer, #nd-sidebar-mobile. It is the same
+   panel, inset like the docked navbar (12px down, 8px in), sliding in from the right. The page runs
+   beneath it here, so its glass is near solid and unsaturated, or the previews behind it bleed through
+   as coloured smudges. It and its overlay (the div Fumadocs renders just before it) share the
+   navbar's z-index and come after it in the page, so they cover the bar; the search dialog, z-50 too
+   and portalled to the end of <body>, still opens over both. Rows grow to 40px with 14px type for touch. */
+#nd-sidebar-mobile {
+  inset: 12px 8px 12px auto !important;
+  width: min(360px, calc(100% - 56px)) !important;
+  max-width: none !important;
+  z-index: 50 !important;
+  border-radius: var(--radius);
+  overflow: hidden;
+  background-color: rgb(24 24 26 / 0.94) !important;
+  border-color: transparent !important;
+  box-shadow: 0 24px 64px -16px rgb(0 0 0 / 0.9);
+  -webkit-backdrop-filter: blur(24px);
+  backdrop-filter: blur(24px);
+  /* The slide clears the 8px inset as well, so no sliver waits at the edge. */
+  --fd-sidebar-drawer-offset: calc(100% + 8px);
+}
+html.light #nd-sidebar-mobile { background-color: rgb(255 255 255 / 0.94) !important; box-shadow: 0 24px 64px -20px rgb(0 0 0 / 0.25); }
+#nd-sidebar-mobile a[data-active] { min-height: 40px; font-size: 14px; }
+#nd-sidebar-mobile a[data-active="true"]::after { top: 11px; bottom: 11px; }
+#nd-sidebar-mobile nav[aria-label="Site"] { row-gap: 6px; font-size: 12.5px; }
+div:has(+ #nd-sidebar-mobile) { z-index: 50 !important; background: var(--color-fd-overlay); }
+
+/* Fumadocs renders its search dialog inline at the top of <body>, before the fixed navbar, so at the
+   same z-50 the bar painted over it: on a phone, where the dialog opens at the top of the screen, over
+   its search field. Its overlay and the dialog after it sit above the navbar and the phone drawer (both
+   50) and the sidebar's hover preview (60). */
+.bg-fd-overlay, .bg-fd-overlay + [role="dialog"] { z-index: 70; }
+
+/* The Playground's panels sit on the stage, not over scrolling content, so the long drop shadow only
+   read as a dark smudge (under the top bar onto the sidebar, around the screen bar). A hairline instead. */
+.spp[data-layout="docked"] :is(.spp-left, .spp-dockbar, .spp-rail) { box-shadow: inset 0 0 0 1px var(--docs-line) !important; }
+
+/* Docs pages don't rubber-band. On macOS, overscrolling past the top or bottom bounces the page;
+   the fixed navbar holds still while the sticky sidebar and right column ride the bounce, so they
+   looked like they scrolled with the page. The docs are an app surface, like the Playground. */
+html:has(#nd-docs-layout), html:has(#nd-docs-layout) body { overscroll-behavior-y: none; }
+
+/* Changelog cards (components/changelog): pastel washes of the tint in both themes, with dark ink.
+   Dark mode mixes into a warm off-white rather than pure white, so the pastels sit softly on the
+   dark page instead of glaring. */
+.changelog-tint { background: linear-gradient(135deg, color-mix(in srgb, var(--tint) 30%, #efece6), color-mix(in srgb, var(--tint) 15%, #efece6)); }
+html.light .changelog-tint { background: linear-gradient(135deg, color-mix(in srgb, var(--tint) 24%, var(--surface)), color-mix(in srgb, var(--tint) 11%, var(--surface))); }
+
+/* ---------- Animated icons ----------
+   Icons move when the control they sit in is pointed at or focused: they play once on the way in,
+   the way a physical switch answers a press, and never loop on their own. The host is the nearest
+   link, button or label (or an `.ai-host` for a row that is not a control). The landing's tag rows
+   (Tags and their glyphs) stay still on purpose: they are captions, not controls.
+   Parts rotate and scale about their own centre (fill-box), so a ray or a box turns in place. */
+/* Same layer as pro.swiftpieces.com (app/globals.css there): keep the two in step. */
+:root { --ai-ease: cubic-bezier(0.22, 1, 0.36, 1); }
+.ai, .ai * { transform-box: fill-box; transform-origin: center; }
+@keyframes ai-tilt { 0% { transform: rotate(0); } 30% { transform: rotate(-12deg); } 62% { transform: rotate(8deg); } 100% { transform: rotate(0); } }
+@keyframes ai-lift { 0% { transform: translateY(0); } 40% { transform: translateY(var(--ai-y, -2px)); } 72% { transform: translateY(.5px); } 100% { transform: translateY(0); } }
+@keyframes ai-nudge { 0%, 100% { transform: translateX(0); } 45% { transform: translateX(var(--ai-x, 2.5px)); } }
+@keyframes ai-spin { from { transform: rotate(0); } to { transform: rotate(var(--ai-turn, 90deg)); } }
+@keyframes ai-twinkle { 0% { transform: rotate(0) scale(1); } 50% { transform: rotate(45deg) scale(.72); } 100% { transform: rotate(90deg) scale(1); } }
+@keyframes ai-pop { 0% { transform: scale(1); } 40% { transform: scale(.55); } 100% { transform: scale(1); } }
+@keyframes ai-drop { 0% { transform: translateY(0); } 40% { transform: translateY(var(--ai-y, 2px)); } 100% { transform: translateY(0); } }
+@keyframes ai-beat { 0%, 100% { transform: scale(1); } 20% { transform: scale(1.28); } 40% { transform: scale(.94); } 60% { transform: scale(1.16); } }
+@keyframes ai-draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+@keyframes ai-search { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(1px, -1px); } 50% { transform: translate(0, -1.6px); } 75% { transform: translate(-1px, -1px); } }
+@keyframes ai-key { 0% { transform: rotate(0); } 35% { transform: rotate(-24deg); } 70% { transform: rotate(6deg); } 100% { transform: rotate(0); } }
+@keyframes ai-latch { 0% { transform: translateY(-2.5px); } 55% { transform: translateY(.6px); } 100% { transform: translateY(0); } }
+@keyframes ai-out { 0%, 100% { transform: translate(0, 0); } 45% { transform: translate(2px, -2px); } }
+@keyframes ai-bob { 0% { transform: scale(1); } 45% { transform: scale(1.18); } 100% { transform: scale(1); } }
+
+/* One timing for all of them: quick in, soft out. Parts stagger with --i. */
+.ai-tilt, .ai-lift, .ai-nudge, .ai-spin, .ai-twinkle, .ai-pop, .ai-drop, .ai-beat, .ai-redraw, .ai-search, .ai-key, .ai-bob, .ai-out {
+  animation-duration: .62s; animation-timing-function: var(--ai-ease); animation-delay: calc(var(--i, 0) * 70ms); animation-fill-mode: both;
+}
+.ai-redraw, .ai-draw-in { stroke-dasharray: 1; }
+@media (hover: hover) {
+  :is(a, button, label, summary, .ai-host):hover .ai-tilt { animation-name: ai-tilt; }
+  :is(a, button, label, summary, .ai-host):hover .ai-lift { animation-name: ai-lift; }
+  :is(a, button, label, summary, .ai-host):hover .ai-nudge { animation-name: ai-nudge; }
+  :is(a, button, label, summary, .ai-host):hover .ai-spin { animation-name: ai-spin; }
+  :is(a, button, label, summary, .ai-host):hover .ai-twinkle { animation-name: ai-twinkle; }
+  :is(a, button, label, summary, .ai-host):hover .ai-pop { animation-name: ai-pop; }
+  :is(a, button, label, summary, .ai-host):hover .ai-drop { animation-name: ai-drop; }
+  :is(a, button, label, summary, .ai-host):hover .ai-beat { animation-name: ai-beat; }
+  :is(a, button, label, summary, .ai-host):hover .ai-redraw { animation-name: ai-draw; }
+  :is(a, button, label, summary, .ai-host):hover .ai-search { animation-name: ai-search; }
+  :is(a, button, label, summary, .ai-host):hover .ai-key { animation-name: ai-key; }
+  :is(a, button, label, summary, .ai-host):hover .ai-bob { animation-name: ai-bob; }
+  :is(a, button, label, summary, .ai-host):hover .ai-out { animation-name: ai-out; }
+}
+/* Keyboard focus plays the same move; a chosen tab or option plays it once as it is picked. */
+:is(a, button):focus-visible :is(.ai-tilt, .ai-lift, .ai-nudge, .ai-spin, .ai-twinkle, .ai-pop, .ai-drop, .ai-key, .ai-bob, .ai-out),
+:is([aria-checked="true"], [aria-current="page"]) :is(.ai-tilt, .ai-lift, .ai-nudge, .ai-spin, .ai-twinkle, .ai-pop, .ai-drop, .ai-key, .ai-bob, .ai-out) { animation-name: var(--ai-play); }
+.ai-tilt { --ai-play: ai-tilt; } .ai-lift { --ai-play: ai-lift; } .ai-nudge { --ai-play: ai-nudge; } .ai-spin { --ai-play: ai-spin; }
+.ai-twinkle { --ai-play: ai-twinkle; } .ai-pop { --ai-play: ai-pop; } .ai-drop { --ai-play: ai-drop; } .ai-key { --ai-play: ai-key; } .ai-bob { --ai-play: ai-bob; } .ai-out { --ai-play: ai-out; }
+/* A search field: the lens looks around while the field has focus, and keeps looking while results load. */
+:is(form, label):focus-within .ai-search { animation-name: ai-search; }
+.ai-search[data-busy] { animation: ai-search 1s cubic-bezier(0.65, 0, 0.35, 1) infinite; }
+/* Drawn once when it appears (a copied tick), or as it scrolls in (a checklist). */
+.ai-draw-in { animation: ai-draw .5s var(--ai-ease) calc(var(--i, 0) * 70ms) both; }
+@supports (animation-timeline: view()) {
+  .ai-check { stroke-dasharray: 1; animation: ai-draw 1s linear both; animation-timeline: view(); animation-range: entry 40% cover 30%; }
+}
+/* Shown once when a notice opens: the lock clicks shut, the mark drops in. */
+.ai-latch { animation: ai-latch .55s var(--ai-ease) .25s both; }
+.ai-enter { animation: ai-lift .6s var(--ai-ease) .2s both; }
+/* A close cross turns a quarter on hover; the menu's three lines fold into it and back. */
+.ai-close { transition: transform 220ms var(--ai-ease); }
+@media (hover: hover) { :is(a, button):hover .ai-close { transform: rotate(90deg); } }
+.ai-menu path { transition: transform 220ms var(--ai-ease), opacity 220ms var(--ai-ease); }
+.ai-menu[data-open] path:nth-child(1) { transform: translateY(4px) rotate(45deg); }
+.ai-menu[data-open] path:nth-child(2) { transform: scaleX(0); opacity: 0; }
+.ai-menu[data-open] path:nth-child(3) { transform: translateY(-4px) rotate(-45deg); }
+@media (prefers-reduced-motion: reduce) {
+  .ai, .ai * { animation: none !important; transition: none !important; }
+  .ai-check, .ai-draw-in, .ai-redraw { stroke-dasharray: none; }
+}
+
+/* ---------------------------------------------------------------- The Playground's apps
+   The Apps tab (components/playground/app-sidebar.tsx): the free apps, then the Pro ones, each a
+   row that opens in place; the open one lit. */
+.spa { display: flex; flex-direction: column; gap: 18px; padding: 14px 10px 18px; }
+.spa-group { display: flex; flex-direction: column; gap: 4px; }
+.spa-head { display: flex; align-items: center; gap: 8px; padding: 0 8px 4px; font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--text-muted); }
+.spa-head .spp-pro-tag { margin: 0; text-transform: none; letter-spacing: 0; }
+.spa-head-n { margin-left: auto; font-weight: 500; letter-spacing: 0; text-transform: none; color: var(--spp-subtle, var(--text-muted)); font-variant-numeric: tabular-nums; }
+.spa ul { display: flex; flex-direction: column; gap: 1px; }
+.spa-app { display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 7px 8px; border-radius: 8px; color: inherit; text-decoration: none; transition: background-color .15s; }
+.spa-app:hover { background: var(--spp-fill, rgb(127 127 127 / .08)); }
+.spa-app.is-here { background: var(--spp-fill-2, rgb(127 127 127 / .14)); box-shadow: inset 2px 0 0 var(--accent); }
+.spa-app:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.spa-icon { flex: none; width: 28px; height: 28px; border-radius: 7px; background: var(--spp-fill, rgb(127 127 127 / .1)); }
+.spa-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.spa-name { font-size: 13px; font-weight: 600; line-height: 1.25; color: var(--foreground); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.spa-sub { font-size: 11.5px; line-height: 1.3; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.spa-count { flex: none; min-width: 18px; font-size: 11px; color: var(--spp-subtle, var(--text-muted)); text-align: right; font-variant-numeric: tabular-nums; }
+.spa-lock { flex: none; display: grid; place-items: center; width: 18px; color: var(--spp-subtle, var(--text-muted)); }
+
+/* The open app, centered above its screens (the Playground's stageBadge). */
+.spa-badge { display: inline-flex; align-items: center; gap: 8px; max-width: 100%; height: 34px; padding: 0 12px 0 6px; border-radius: var(--spp-r, 4px);
+  background: color-mix(in srgb, var(--background) 82%, transparent); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: inset 0 0 0 1px var(--spp-line); }
+.spa-badge-icon { flex: none; width: 22px; height: 22px; border-radius: 6px; }
+.spa-badge-name { flex: none; font-size: 12.5px; font-weight: 600; color: var(--foreground); white-space: nowrap; }
+.spa-badge-sub { min-width: 0; font-size: 12px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.spa-badge .spp-pro-tag { flex: none; margin: 0; }
+/* With the Pro tag at its end, the badge closes on the same 6px it opens with. */
+.spa-badge:has(.spp-pro-tag) { padding-right: 6px; }
+@container (max-width: 640px) { .spa-badge-sub { display: none; } }
+
+/* ---------------------------------------------------------------- Pro apps, locked
+   A Pro app's stage without Pro (components/playground/locked-app.tsx): its screens as blurred
+   stills in their phone shape, each with a lock, in a row that scrolls when it outgrows the stage,
+   and the way in under it. Crisp edges, no shadows: the stills carry the colour. Inside the
+   Playground's stage, so sizes read the stage's width (cqw). The stills are dark, like every preview. */
+.spl { flex: 1; align-self: stretch; min-width: 0; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 30px; padding: 2px 0 12px; }
+.spl-wall { display: flex; gap: 18px; max-width: 100%; overflow-x: auto; justify-content: safe center; padding: 4px 24px 6px; scroll-snap-type: x proximity; scroll-padding: 0 24px; scrollbar-width: none; }
+.spl-wall::-webkit-scrollbar { display: none; }
+.spl-screen { flex: none; display: flex; flex-direction: column; align-items: center; gap: 10px; scroll-snap-align: start; animation: spl-in .45s cubic-bezier(.22, 1, .36, 1) both; }
+@keyframes spl-in { from { opacity: 0; transform: translateY(6px); } }
+.spl-phone { position: relative; display: block; width: clamp(118px, 12.5cqw, 168px); aspect-ratio: 300 / 650; border-radius: 14.1% / 6.5%; overflow: hidden; background: #0b0b0c; box-shadow: 0 0 0 1px rgb(255 255 255 / .09); }
+html.light .spl-phone { box-shadow: 0 0 0 1px rgb(0 0 0 / .1); }
+.spl-phone img { display: block; width: 100%; height: 100%; object-fit: cover; user-select: none; -webkit-user-drag: none; }
+.spl-lock { position: absolute; inset: 0; display: grid; place-items: center; }
+.spl-lock svg { box-sizing: content-box; padding: 8px; border-radius: 50%; color: #fff; background: rgb(0 0 0 / .42); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); box-shadow: inset 0 0 0 1px rgb(255 255 255 / .2); }
+.spl-title { max-width: clamp(118px, 12.5cqw, 168px); font-size: 11.5px; font-weight: 500; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.spl-card { display: flex; flex-direction: column; align-items: center; gap: 10px; max-width: 460px; padding: 0 20px; text-align: center; animation: spl-in .45s .12s cubic-bezier(.22, 1, .36, 1) both; }
+.spl-card h2 { font-size: 22px; line-height: 1.2; font-weight: 600; letter-spacing: -.015em; color: var(--foreground); text-wrap: balance; }
+.spl-card > p:not(.spl-note) { font-size: 13px; line-height: 1.6; color: var(--text-muted); text-wrap: pretty; }
+.spl-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 20px; margin-top: 6px; }
+.spl-note { font-size: 11.5px; color: var(--spp-subtle); }
+@media (max-width: 767px) {
+  .spl { justify-content: flex-start; gap: 20px; padding-top: 0; }
+  .spl-card h2 { font-size: 19px; }
+}
+@media (prefers-reduced-motion: reduce) { .spl-screen, .spl-card { animation: none; } }

@@ -1,11 +1,12 @@
 // Free SwiftPieces components in the builder. Each emitter calls the piece's public API exactly as
 // its Swift source declares it (argument labels, order and defaults), and names the registry entry
 // so the project export can include the source file. Only arguments that differ from the Swift
-// default are written, so the generated call reads like hand-written code.
+// default are written, so the generated call reads like hand-written code. Their web renderers
+// (react/preview/pieces.tsx) behave like the Swift: holds fill, fields type, steppers scrub.
 import { house, houseBlocks, swiftRGB } from "../core/palette.js";
-import type { Props, SwiftPieceDefinition } from "../core/schema.js";
+import type { EmitContext, Props, SwiftPieceDefinition } from "../core/schema.js";
 import { type Arg, INDENT, call, list, modifiers, num, str } from "../core/swift.js";
-import { bool, icon, number, opts, select, text, textStyleOptions } from "./shared.js";
+import { bool, icon, link, linkStatement, number, opts, select, tappable, text, textStyleOptions } from "./shared.js";
 
 const s = (p: Props, k: string) => String(p[k] ?? "");
 const n = (p: Props, k: string) => Number(p[k] ?? 0);
@@ -35,45 +36,112 @@ function callWithArray(name: string, before: Arg[], array: { label: string | nul
   return trailing.length ? [...lines, ...trailing.map((l) => INDENT + l), "}"] : lines;
 }
 
+/**
+ * A link run from an action closure (a piece that takes `primaryAction: () -> Void` rather than a
+ * label): the closure body, and the modifiers that present the destination. Push uses
+ * `.navigationDestination(isPresented:)`, a sheet `.sheet(isPresented:)`, back the dismiss action,
+ * and a new root sets the flag the app reads.
+ */
+function linkAction(ctx: EmitContext, value: unknown): { action: string; present: string[] } | null {
+  const target = ctx.link(String(value ?? ""));
+  if (!target) return null;
+  if (target.kind === "back") return { action: `{ ${ctx.dismiss()}() }`, present: [] };
+  if (target.kind === "root") return { action: `{ ${target.flag} = true }`, present: [] };
+  if (target.kind === "tab") return { action: `{ ${target.set} }`, present: [] };
+  const flag = ctx.state(`show${target.view.replace(/View$/, "")}`, "", "false");
+  if (target.kind === "push") return { action: `{ ${flag} = true }`, present: [`.navigationDestination(isPresented: $${flag}) {`, `${INDENT}${target.view}()`, "}"] };
+  const detents: Record<string, string> = { medium: "[.medium]", both: "[.medium, .large]" };
+  return {
+    action: `{ ${flag} = true }`,
+    present: [`.sheet(isPresented: $${flag}) {`, `${INDENT}NavigationStack { ${target.view}() }`, ...(detents[target.detent] ? [`${INDENT}${INDENT}.presentationDetents(${detents[target.detent]})`] : []), "}"],
+  };
+}
+
+/** Appends a multi-line modifier (`.sheet { … }`) at the indent `modifiers` would give it. */
+function attach(lines: string[], block: string[]): string[] {
+  const pad = lines.length === 1 || lines.slice(1).every((l) => l.startsWith(`${INDENT}.`)) ? INDENT : "";
+  return [...lines, ...block.map((l) => pad + l)];
+}
+
 const docs = (category: string, slug: string) => `/docs/components/${category}/${slug}`;
 const piece = (name: string) => ({ registry: "free" as const, name });
 
 // ---------------------------------------------------------------- Controls
 
+/**
+ * What an outline or glass primary button adds around its button style: the accent edge, or the
+ * frosted material behind with a hairline. Pill-shaped like the button (a rounded rectangle when
+ * Style's corners are tighter than standard, as the button's own shape becomes).
+ */
+function buttonFinish(ctx: EmitContext, kind: string): string[] {
+  if (!ctx.theme || (kind !== "outline" && kind !== "glass")) return [];
+  const shape = ctx.theme.cornerScale < 1 ? "RoundedRectangle(cornerRadius: Theme.pillRadius, style: .continuous)" : "Capsule()";
+  return kind === "outline"
+    ? [`overlay(${shape}.strokeBorder(Theme.accent, lineWidth: 1.5))`]
+    : [`background(.ultraThinMaterial, in: ${shape})`, `overlay(${shape}.strokeBorder(.white.opacity(0.3), lineWidth: 0.5))`];
+}
+
 export const elasticButton: SwiftPieceDefinition = {
   id: "elastic-button",
   name: "Elastic Button",
   category: "pieces",
-  description: "A button style that squashes toward your finger and springs back.",
+  description: "A button that squashes under your finger and springs back.",
   availability: "free",
   preview: { component: "elastic-button" },
   source: piece("ElasticButton"),
   docs: docs("controls", "elastic-button"),
-  concepts: ["buttonstyle", "modifier", "spring"],
+  icon: "bolt",
+  concepts: ["buttonstyle", "spring", "piece"],
+  anatomy: [
+    { part: "Label", props: ["title"] },
+    { part: "Icon", props: ["icon", "iconPosition"] },
+    { part: "Fill", props: ["style", "fullWidth"] },
+    { part: "Motion", props: ["squash", "bounce"] },
+    { part: "Interaction", props: ["link", "disabled"] },
+  ],
+  interactions: ["press", "spring", "tap", "push", "haptic"],
+  variants: [
+    { id: "signal", label: "Signal", props: { style: "signal", icon: "arrow.right", fullWidth: true } },
+    { id: "block", label: "Color block", props: { style: "block:lilac", icon: "plus", iconPosition: "leading", title: "Add guest", fullWidth: false } },
+    { id: "raised", label: "Raised", props: { style: "raised", icon: "none", fullWidth: true } },
+  ],
+  states: [
+    { id: "enabled", label: "Enabled", props: { disabled: false } },
+    { id: "disabled", label: "Disabled", props: { disabled: true } },
+  ],
   properties: [
     text("title", "Text", "Reserve table", { maxLength: 40 }),
+    link(),
     icon("icon", "Icon", "arrow.right"),
     select("iconPosition", "Icon position", "trailing", opts(["leading", "Before text"], ["trailing", "After text"]), { when: { prop: "icon", notEquals: ["none"] } }),
     select("style", "Style", "signal", opts(["signal", "Signal"], ["raised", "Raised"], ["standard", "Text only"], ...houseBlocks.map((b): [string, string] => [`block:${b}`, `Block · ${b}`]))),
     bool("fullWidth", "Full width", true),
     bool("disabled", "Disabled", false, { level: "advanced" }),
-    number("squash", "Squash", 0.96, 0.85, 0.99, 0.01, { level: "advanced", pro: true, hint: "How far the button presses in." }),
+    number("squash", "Squash", 0.96, 0.85, 0.99, 0.01, { level: "advanced", pro: true, group: "motion", hint: "How far the button presses in." }),
     number("bounce", "Bounce", 0.2, 0, 0.6, 0.05, { level: "advanced", pro: true, hint: "Spring bounce on release." }),
   ],
   swift: {
     imports: [],
-    emit(p) {
+    emit(p, ctx) {
       const title = str(s(p, "title"));
       const ic = s(p, "icon");
       let label: string[] = ic === "none" ? [`Text(${title})`] : s(p, "iconPosition") === "trailing" ? call("HStack", [["spacing", "8"]], [`Text(${title})`, `Image(systemName: ${str(ic)})`]) : [`Label(${title}, systemImage: ${str(ic)})`];
       if (b(p, "fullWidth")) label = modifiers(label, ["frame(maxWidth: .infinity)"]);
       const style = s(p, "style");
-      const styleExpr = style.startsWith("block:") ? `.block(.${style.slice(6)})` : `.${style}`;
+      // With a look, the signal style takes the look's accent (and the ink that reads on it).
+      // Style → Buttons: the primary style as a solid fill, a tinted wash, an outline or glass.
+      const kind = ctx.theme && style === "signal" ? ctx.theme.buttons : "solid";
+      const solid = ".init(fill: Theme.accent, ink: Theme.accentInk)";
+      const primary = kind === "tinted" ? ".init(fill: Theme.accent.opacity(0.16), ink: Theme.accent, depth: false)" : kind === "outline" ? ".init(fill: .clear, ink: Theme.accent, depth: false)" : kind === "glass" ? ".init(fill: Theme.accent.opacity(0.14), ink: Theme.accent, depth: false)" : solid;
+      const baseExpr = style.startsWith("block:") ? `.block(.${style.slice(6)})` : style === "signal" && ctx.theme ? primary : style === "raised" && ctx.theme ? ".init(fill: Theme.accent.opacity(0.14), ink: Theme.accent, depth: false)" : `.${style}`;
+      // Style → Button size: the same style at the app's button height.
+      const height = ctx.theme?.buttonHeight ?? 56;
+      const styleExpr = height === 56 ? baseExpr : `{ var style: ElasticButton.Style = ${baseExpr}; style.height = ${height}; return style }()`;
       const custom = n(p, "squash") !== 0.96 || n(p, "bounce") !== 0.2;
       const buttonStyle = custom
-        ? `.elastic(${[n(p, "squash") !== 0.96 && `squash: ${num(n(p, "squash"))}`, n(p, "bounce") !== 0.2 && `bounce: ${num(n(p, "bounce"))}`, style !== "standard" && `style: ${styleExpr}`].filter(Boolean).join(", ")})`
-        : style === "standard" ? ".elastic" : `.elastic(${styleExpr})`;
-      return { lines: modifiers(call("Button", [["action", "{}"]], label), [`buttonStyle(${buttonStyle})`, b(p, "disabled") && "disabled(true)"]) };
+        ? `.elastic(${[n(p, "squash") !== 0.96 && `squash: ${num(n(p, "squash"))}`, n(p, "bounce") !== 0.2 && `bounce: ${num(n(p, "bounce"))}`, (style !== "standard" || height !== 56) && `style: ${styleExpr}`].filter(Boolean).join(", ")})`
+        : style === "standard" && height === 56 ? ".elastic" : `.elastic(${styleExpr})`;
+      return { lines: modifiers(tappable(ctx, p.link, label, title), [`buttonStyle(${buttonStyle})`, ...buttonFinish(ctx, kind), b(p, "disabled") && "disabled(true)"]) };
     },
   },
 };
@@ -82,17 +150,37 @@ export const commitButton: SwiftPieceDefinition = {
   id: "commit-button",
   name: "Commit Button",
   category: "pieces",
-  description: "An async button that shows loading, success and error in place.",
+  description: "A button that shows loading, success and error in place.",
   availability: "free",
   preview: { component: "commit-button" },
   source: piece("CommitButton"),
   docs: docs("controls", "commit-button"),
-  concepts: ["state", "binding", "async", "closure"],
+  icon: "checkmark.circle.fill",
+  concepts: ["state", "binding", "async", "closure", "piece"],
+  anatomy: [
+    { part: "Label", props: ["title", "successTitle"] },
+    { part: "Phase", props: ["phase", "errorMessage"] },
+    { part: "After success", props: ["link"] },
+  ],
+  interactions: ["tap", "loading", "transition", "haptic"],
+  variants: [
+    { id: "save", label: "Save", props: { title: "Save changes", successTitle: "Saved" } },
+    { id: "pay", label: "Pay", props: { title: "Pay $24.00", successTitle: "Paid" } },
+    { id: "send", label: "Send", props: { title: "Send invite", successTitle: "Sent" } },
+  ],
+  states: [
+    { id: "idle", label: "Ready", props: { phase: "idle" } },
+    { id: "loading", label: "Loading", props: { phase: "loading" } },
+    { id: "success", label: "Success", props: { phase: "success" } },
+    { id: "error", label: "Error", props: { phase: "error" } },
+    { id: "disabled", label: "Disabled", props: { phase: "disabled" } },
+  ],
   properties: [
     text("title", "Text", "Save changes", { maxLength: 40 }),
     text("successTitle", "Success text", "Saved", { maxLength: 30 }),
     select("phase", "Starts as", "idle", opts(["idle", "Ready"], ["loading", "Loading"], ["success", "Success"], ["error", "Error"], ["disabled", "Disabled"]), { hint: "The initial phase. Tapping runs the action." }),
     text("errorMessage", "Error message", "Couldn't save", { when: { prop: "phase", equals: ["error"] }, maxLength: 40 }),
+    link("link", "After success"),
   ],
   swift: {
     imports: [],
@@ -100,8 +188,14 @@ export const commitButton: SwiftPieceDefinition = {
       const phase = s(p, "phase");
       const initial = phase === "error" ? `.error(${str(s(p, "errorMessage"))})` : `.${phase}`;
       const name = ctx.state(`${s(p, "title")} phase`, "CommitButton.Phase", initial);
-      const action = [`${name} = .loading`, "Task {", `${INDENT}try? await Task.sleep(for: .seconds(1))`, `${INDENT}${name} = .success`, "}"];
-      return { lines: call("CommitButton", [[null, str(s(p, "title"))], ["phase", `$${name}`], s(p, "successTitle").trim() !== "" && ["successTitle", str(s(p, "successTitle").trim())]], action) };
+      const then = linkStatement(ctx, p.link);
+      const action = [`${name} = .loading`, "Task {", `${INDENT}try? await Task.sleep(for: .seconds(1))`, `${INDENT}${name} = .success`, ...(then ? [`${INDENT}try? await Task.sleep(for: .seconds(0.6))`, `${INDENT}${then}`] : []), "}"];
+      const kind = ctx.theme?.buttons ?? "solid";
+      const tint = kind === "tinted" ? "Theme.accent.opacity(0.16)" : kind === "outline" ? ".clear" : kind === "glass" ? "Theme.accent.opacity(0.14)" : "Theme.accent";
+      const tintInk = kind === "solid" ? "Theme.accentInk" : "Theme.accent";
+      const height = ctx.theme?.buttonHeight ?? 56;
+      const lines = call("CommitButton", [[null, str(s(p, "title"))], ["phase", `$${name}`], ctx.theme && ["tint", tint], ctx.theme && ["tintInk", tintInk], s(p, "successTitle").trim() !== "" && ["successTitle", str(s(p, "successTitle").trim())], height !== 56 && ["style", `.init(height: ${height})`]], action);
+      return { lines: modifiers(lines, buttonFinish(ctx, kind)) };
     },
   },
 };
@@ -115,22 +209,36 @@ export const holdToConfirm: SwiftPieceDefinition = {
   preview: { component: "hold-to-confirm" },
   source: piece("HoldToConfirm"),
   docs: docs("controls", "hold-to-confirm"),
-  concepts: ["closure", "gesture"],
+  icon: "hourglass",
+  concepts: ["closure", "gesture", "piece"],
+  anatomy: [
+    { part: "Label", props: ["title", "committedTitle"] },
+    { part: "Icon", props: ["icon"] },
+    { part: "Fill", props: ["style"] },
+    { part: "Timing", props: ["duration"] },
+  ],
+  interactions: ["hold", "haptic", "spring"],
+  variants: [
+    { id: "delete", label: "Delete", props: { title: "Hold to delete", icon: "trash", committedTitle: "Deleted", style: "standard" } },
+    { id: "transfer", label: "Transfer", props: { title: "Hold to transfer", icon: "arrow.right", committedTitle: "Sent", style: "butter" } },
+    { id: "pay", label: "Pay", props: { title: "Hold to pay", icon: "creditcard", committedTitle: "Paid", style: "standard" } },
+  ],
   properties: [
     text("title", "Text", "Hold to delete", { maxLength: 40 }),
     icon("icon", "Icon", "trash"),
     text("committedTitle", "Confirmed text", "Deleted", { maxLength: 30 }),
-    select("style", "Style", "standard", opts(["standard", "Signal"], ["butter", "Butter"])),
-    number("duration", "Hold time (s)", 1.2, 0.5, 3, 0.1, { level: "advanced", pro: true }),
+    select("style", "Style", "standard", opts(["standard", "Signal"], ["butter", "Butter"]), { hint: "The color that fills while you hold." }),
+    number("duration", "Hold time (s)", 1.2, 0.5, 3, 0.1, { level: "advanced", pro: true, hint: "How long a full hold takes." }),
   ],
   swift: {
     imports: [],
-    emit(p) {
+    emit(p, ctx) {
       return {
         lines: call("HoldToConfirm", [
           [null, str(s(p, "title"))],
           s(p, "icon") !== "none" && ["systemImage", str(s(p, "icon"))],
           n(p, "duration") !== 1.2 && ["duration", num(n(p, "duration"))],
+          ctx.theme && ["tint", "Theme.accent"],
           s(p, "committedTitle").trim() !== "" && ["committedTitle", str(s(p, "committedTitle").trim())],
           s(p, "style") !== "standard" && ["style", `.${s(p, "style")}`],
         ], []),
@@ -158,11 +266,24 @@ export const formField: SwiftPieceDefinition = {
   preview: { component: "form-field" },
   source: piece("FormField"),
   docs: docs("inputs", "form-field"),
-  concepts: ["state", "binding", "textfield"],
+  icon: "square.and.pencil",
+  concepts: ["state", "binding", "textfield", "piece"],
+  anatomy: [
+    { part: "Label", props: ["label", "prompt"] },
+    { part: "Icon", props: ["icon"] },
+    { part: "Help", props: ["help"] },
+    { part: "Keyboard", props: ["content", "limit"] },
+  ],
+  interactions: ["type"],
+  variants: [
+    { id: "email", label: "Email", props: { label: "Email", prompt: "you@example.com", icon: "envelope", content: "email", help: "", limit: 0 } },
+    { id: "name", label: "Name", props: { label: "Full name", prompt: "Your name", icon: "person", content: "name", help: "", limit: 0 } },
+    { id: "bio", label: "Bio with limit", props: { label: "Bio", prompt: "A line about you", icon: "none", content: "none", help: "Shown on your profile.", limit: 80 } },
+  ],
   properties: [
     text("label", "Label", "Email", { maxLength: 40 }),
     text("prompt", "Placeholder", "you@example.com", { maxLength: 60 }),
-    text("help", "Help text", "", { maxLength: 80 }),
+    text("help", "Help text", "", { maxLength: 80, hint: "A line under the field." }),
     icon("icon", "Icon", "envelope"),
     select("content", "Content", "email", opts(["none", "Anything"], ["email", "Email"], ["name", "Name"], ["username", "Username"], ["phone", "Phone number"])),
     number("limit", "Character limit", 0, 0, 500, 1, { level: "advanced", hint: "0 means no limit." }),
@@ -197,8 +318,24 @@ export const secureEntry: SwiftPieceDefinition = {
   preview: { component: "secure-entry" },
   source: piece("SecureEntry"),
   docs: docs("inputs", "secure-entry"),
-  concepts: ["state", "binding"],
-  properties: [text("label", "Label", "Password", { maxLength: 40 }), bool("showsStrength", "Strength bar", true), bool("showsRequirements", "Requirement chips", true)],
+  icon: "lock",
+  concepts: ["state", "binding", "textfield", "piece"],
+  anatomy: [
+    { part: "Field", props: ["label"] },
+    { part: "Strength", props: ["showsStrength"] },
+    { part: "Requirements", props: ["showsRequirements"] },
+  ],
+  interactions: ["type", "toggle"],
+  variants: [
+    { id: "full", label: "Full", props: { showsStrength: true, showsRequirements: true } },
+    { id: "strength", label: "Strength only", props: { showsStrength: true, showsRequirements: false } },
+    { id: "plain", label: "Plain", props: { showsStrength: false, showsRequirements: false } },
+  ],
+  properties: [
+    text("label", "Label", "Password", { maxLength: 40 }),
+    bool("showsStrength", "Strength bar", true, { hint: "A bar that fills as the password gets stronger." }),
+    bool("showsRequirements", "Requirement chips", true, { hint: "Chips that light up as each rule is met." }),
+  ],
   swift: {
     imports: [],
     emit(p, ctx) {
@@ -224,12 +361,25 @@ export const amountField: SwiftPieceDefinition = {
   preview: { component: "amount-field" },
   source: piece("AmountField"),
   docs: docs("inputs", "amount-field"),
-  concepts: ["state", "binding"],
+  icon: "dollarsign.circle",
+  concepts: ["state", "binding", "formatstyle", "piece"],
+  anatomy: [
+    { part: "Label", props: ["label"] },
+    { part: "Amount", props: ["amount", "currency"] },
+    { part: "Size", props: ["size"] },
+    { part: "Limit", props: ["limit"] },
+  ],
+  interactions: ["type"],
+  variants: [
+    { id: "hero", label: "Hero", props: { size: "hero", currency: "USD", label: "Send" } },
+    { id: "compact", label: "Compact", props: { size: "compact", currency: "EUR", label: "Amount" } },
+    { id: "yen", label: "Yen", props: { size: "hero", currency: "JPY", label: "Request" } },
+  ],
   properties: [
     text("label", "Label", "Send", { maxLength: 30 }),
     select("currency", "Currency", "USD", opts(["USD", "US dollar"], ["EUR", "Euro"], ["GBP", "Pound"], ["JPY", "Yen"])),
     select("size", "Size", "hero", opts(["hero", "Hero"], ["compact", "Compact"])),
-    number("amount", "Starting amount", 0, 0, 1_000_000, 0.01),
+    number("amount", "Starting amount", 0, 0, 1_000_000, 0.01, { group: "state" }),
     number("limit", "Limit", 0, 0, 1_000_000, 1, { level: "advanced", hint: "0 means no limit." }),
   ],
   swift: {
@@ -258,8 +408,22 @@ export const filterRail: SwiftPieceDefinition = {
   preview: { component: "filter-rail" },
   source: piece("FilterRail"),
   docs: docs("inputs", "filter-rail"),
-  concepts: ["state", "binding", "array"],
-  properties: [text("options", "Options", "All, Jazz, Hip-Hop, Classical, Ambient", { hint: "Separate options with commas." }), bool("multiple", "Multiple selection", false)],
+  icon: "line.3.horizontal.decrease",
+  concepts: ["state", "binding", "array", "piece"],
+  anatomy: [
+    { part: "Options", props: ["options"] },
+    { part: "Selection", props: ["multiple"] },
+  ],
+  interactions: ["select", "scroll", "haptic"],
+  variants: [
+    { id: "genres", label: "Genres", props: { options: "All, Jazz, Hip-Hop, Classical, Ambient", multiple: false } },
+    { id: "sort", label: "Sort", props: { options: "Recent, Popular, A to Z, Longest", multiple: false } },
+    { id: "multi", label: "Pick several", props: { options: "Jazz, Hip-Hop, Classical, Electronic, Folk", multiple: true } },
+  ],
+  properties: [
+    text("options", "Options", "All, Jazz, Hip-Hop, Classical, Ambient", { hint: "Separate options with commas." }),
+    bool("multiple", "Multiple selection", false, { group: "interaction", hint: "Lets people pick more than one chip." }),
+  ],
   swift: {
     imports: [],
     emit(p, ctx) {
@@ -280,7 +444,19 @@ export const scrubStepper: SwiftPieceDefinition = {
   preview: { component: "scrub-stepper" },
   source: piece("ScrubStepper"),
   docs: docs("inputs", "scrub-stepper"),
-  concepts: ["state", "binding", "range"],
+  icon: "plus.circle.fill",
+  concepts: ["state", "binding", "range", "gesture", "piece"],
+  anatomy: [
+    { part: "Value", props: ["value"] },
+    { part: "Range", props: ["min", "max"] },
+    { part: "Accessibility", props: ["label"] },
+  ],
+  interactions: ["tap", "scrub", "haptic"],
+  variants: [
+    { id: "guests", label: "Guests", props: { label: "Guests", value: 4, min: 1, max: 10 } },
+    { id: "nights", label: "Nights", props: { label: "Nights", value: 2, min: 1, max: 30 } },
+    { id: "tickets", label: "Tickets", props: { label: "Tickets", value: 0, min: 0, max: 8 } },
+  ],
   properties: [text("label", "Accessibility label", "Guests", { maxLength: 30 }), number("value", "Starting value", 4, 0, 999), number("min", "Minimum", 1, 0, 999), number("max", "Maximum", 10, 1, 999)],
   swift: {
     imports: [],
@@ -302,9 +478,31 @@ export const taskRow: SwiftPieceDefinition = {
   description: "A task card that completes with a drawn check and swipes to snooze or delete.",
   availability: "free",
   preview: { component: "task-row" },
+  card: () => 22,
+  // In a styled list the row's own card goes clear (its swipe tile still appears in the gap it
+  // opens); it pads itself 14 top and bottom and 12 on the leading side.
+  list: { bare: { listed: true }, pad: 0, inset: 4 },
   source: piece("TaskRow"),
   docs: docs("lists", "task-row"),
-  concepts: ["state", "binding", "enum"],
+  icon: "checkmark",
+  concepts: ["state", "binding", "enum", "piece"],
+  anatomy: [
+    { part: "Checkbox", props: ["status"] },
+    { part: "Title", props: ["title"] },
+    { part: "Due", props: ["due"] },
+    { part: "Priority", props: ["priority"] },
+  ],
+  interactions: ["tap", "swipe", "spring", "haptic"],
+  variants: [
+    { id: "urgent", label: "Urgent", props: { priority: "high", due: "Today, 5 PM" } },
+    { id: "later", label: "Low priority", props: { priority: "low", due: "Next week" } },
+    { id: "simple", label: "Simple", props: { priority: "none", due: "" } },
+  ],
+  states: [
+    { id: "open", label: "Open", props: { status: "open" } },
+    { id: "completed", label: "Completed", props: { status: "completed" } },
+    { id: "snoozed", label: "Snoozed", props: { status: "snoozed" } },
+  ],
   properties: [
     text("title", "Title", "Review the launch checklist", { maxLength: 60 }),
     text("due", "Due", "Today, 5 PM", { maxLength: 30 }),
@@ -315,7 +513,8 @@ export const taskRow: SwiftPieceDefinition = {
     imports: [],
     emit(p, ctx) {
       const name = ctx.state("task status", "TaskRow.Status", `.${s(p, "status")}`);
-      return { lines: call("TaskRow", [[null, str(s(p, "title"))], ["status", `$${name}`], s(p, "due").trim() !== "" && ["due", str(s(p, "due"))], s(p, "priority") !== "none" && ["priority", `.${s(p, "priority")}`]]) };
+      const listed = p.listed === true && (["style", "{ var style = TaskRow.Style.standard; style.surface = .clear; style.cornerRadius = 12; return style }()"] as [string, string]);
+      return { lines: call("TaskRow", [[null, str(s(p, "title"))], ["status", `$${name}`], s(p, "due").trim() !== "" && ["due", str(s(p, "due"))], s(p, "priority") !== "none" && ["priority", `.${s(p, "priority")}`], listed]) };
     },
   },
 };
@@ -329,15 +528,34 @@ export const statusTimeline: SwiftPieceDefinition = {
   preview: { component: "status-timeline" },
   source: piece("StatusTimeline"),
   docs: docs("lists", "status-timeline"),
-  concepts: ["array", "enum"],
-  properties: [text("steps", "Steps", "Order placed, Packed, Out for delivery, Delivered", { hint: "Separate steps with commas.", maxLength: 200 }), number("current", "Current step", 2, 0, 11, 1, { hint: "0 is the first step." })],
+  icon: "shippingbox",
+  concepts: ["array", "enum", "piece"],
+  anatomy: [
+    { part: "Steps", props: ["steps"] },
+    { part: "Progress", props: ["current"] },
+  ],
+  interactions: ["tap", "transition"],
+  variants: [
+    { id: "delivery", label: "Delivery", props: { steps: "Order placed, Packed, Out for delivery, Delivered", current: 2 } },
+    { id: "setup", label: "Setup", props: { steps: "Account, Profile, Payment, Done", current: 1 } },
+    { id: "review", label: "Review", props: { steps: "Submitted, In review, Approved", current: 1 } },
+  ],
+  states: [
+    { id: "start", label: "Just started", props: { current: 0 } },
+    { id: "midway", label: "Midway", props: { current: 2 } },
+    { id: "done", label: "All done", props: { current: 11 } },
+  ],
+  properties: [
+    text("steps", "Steps", "Order placed, Packed, Out for delivery, Delivered", { hint: "Separate steps with commas.", maxLength: 200 }),
+    number("current", "Current step", 2, 0, 11, 1, { hint: "0 is the first step. Tap the timeline to advance it." }),
+  ],
   swift: {
     imports: [],
-    emit(p) {
+    emit(p, ctx) {
       const steps = list(p.steps);
       const current = n(p, "current");
       const items = (steps.length ? steps : ["Step"]).map((t, i) => `.init(${str(t)}, status: .${i < current ? "complete" : i === current ? "current" : "pending"})`);
-      return { lines: callWithArray("StatusTimeline", [], { label: "steps", items }, []) };
+      return { lines: callWithArray("StatusTimeline", [], { label: "steps", items }, [ctx.theme && ["tint", "Theme.accent"]]) };
     },
   },
 };
@@ -353,13 +571,28 @@ export const liveStat: SwiftPieceDefinition = {
   description: "A metric tile with a rolling value, a delta chip and a sparkline.",
   availability: "free",
   preview: { component: "live-stat" },
+  card: () => 26,
   source: piece("LiveStat"),
   docs: docs("data", "live-stat"),
-  concepts: ["formatstyle"],
+  icon: "chart.line.uptrend.xyaxis",
+  concepts: ["formatstyle", "piece"],
+  anatomy: [
+    { part: "Label", props: ["label"] },
+    { part: "Figure", props: ["value", "format"] },
+    { part: "Change", props: ["delta"] },
+    { part: "Chart", props: ["sparkline"] },
+  ],
+  interactions: ["transition", "stream"],
+  variants: [
+    { id: "revenue", label: "Revenue", props: { label: "Revenue", value: 48250.4, format: "currency", delta: 12.4, sparkline: true } },
+    { id: "users", label: "Users", props: { label: "Active users", value: 1284, format: "number", delta: 3.2, sparkline: true } },
+    { id: "down", label: "Falling", props: { label: "Refunds", value: 312, format: "number", delta: -8.5, sparkline: false } },
+  ],
   properties: [
     text("label", "Label", "Revenue", { maxLength: 30 }),
-    number("value", "Value", 48250.4, -1_000_000_000, 1_000_000_000, 0.01),
-    select("format", "Format", "currency", opts(["number", "Number"], ["currency", "Currency (USD)"])),
+    number("value", "Value", 48250.4, -1_000_000_000, 1_000_000_000, 0.01, { group: "content" }),
+    select("format", "Format", "currency", opts(["number", "Number"], ["currency", "Currency"])),
+    select("code", "Currency code", "USD", opts(["USD", "US dollar"], ["GBP", "Pound"], ["EUR", "Euro"], ["JPY", "Yen"], ["CAD", "Canadian dollar"], ["AUD", "Australian dollar"]), { when: { prop: "format", equals: ["currency"] } }),
     number("delta", "Change (%)", 12.4, -100, 1000, 0.1, { hint: "0 hides the chip." }),
     bool("sparkline", "Sparkline", true),
   ],
@@ -370,7 +603,7 @@ export const liveStat: SwiftPieceDefinition = {
         lines: call("LiveStat", [
           ["label", str(s(p, "label"))],
           ["value", num(n(p, "value"))],
-          s(p, "format") === "currency" && ["format", '.currency(code: "USD")'],
+          s(p, "format") === "currency" && ["format", `.currency(code: ${str(s(p, "code") || "USD")})`],
           n(p, "delta") !== 0 && ["delta", num(n(p, "delta") / 100)],
           b(p, "sparkline") && ["series", `[${SERIES.map(num).join(", ")}]`],
         ]),
@@ -378,6 +611,9 @@ export const liveStat: SwiftPieceDefinition = {
     },
   },
 };
+
+/** Decimal places a figure shows (up to 2), so "3.4" stays 3.4 in Swift as it does on the web. */
+const fractionDigits = (v: number) => (Number.isInteger(v) ? 0 : Math.min(2, (String(Math.round(v * 100) / 100).split(".")[1] ?? "").length));
 
 export const odometer: SwiftPieceDefinition = {
   id: "odometer",
@@ -388,12 +624,29 @@ export const odometer: SwiftPieceDefinition = {
   preview: { component: "odometer" },
   source: piece("Odometer"),
   docs: docs("data", "odometer"),
-  concepts: ["formatstyle", "modifier"],
-  properties: [number("value", "Value", 12480.55, -1_000_000_000, 1_000_000_000, 0.01), bool("currency", "Currency (USD)", true), number("size", "Size", 48, 16, 96)],
+  icon: "timer",
+  concepts: ["formatstyle", "animation", "piece"],
+  anatomy: [
+    { part: "Figure", props: ["value"] },
+    { part: "Format", props: ["currency"] },
+    { part: "Size", props: ["size"] },
+  ],
+  interactions: ["transition", "spring"],
+  variants: [
+    { id: "balance", label: "Balance", props: { value: 12480.55, currency: true, size: 48 } },
+    { id: "count", label: "Count", props: { value: 1284, currency: false, size: 48 } },
+    { id: "hero", label: "Hero", props: { value: 98.6, currency: false, size: 80 } },
+  ],
+  properties: [
+    number("value", "Value", 12480.55, -1_000_000_000, 1_000_000_000, 0.01, { group: "content", hint: "Change it and the digits roll to the new number." }),
+    bool("currency", "Currency", true),
+    select("code", "Currency code", "USD", opts(["USD", "US dollar"], ["GBP", "Pound"], ["EUR", "Euro"], ["JPY", "Yen"], ["CAD", "Canadian dollar"], ["AUD", "Australian dollar"]), { when: { prop: "currency", equals: [true] } }),
+    number("size", "Size", 48, 16, 96),
+  ],
   swift: {
     imports: [],
     emit(p) {
-      return { lines: modifiers(call("Odometer", [["value", num(n(p, "value"))], b(p, "currency") && ["format", '.currency(code: "USD")']]), [`font(.system(size: ${num(n(p, "size"))}, weight: .light))`]) };
+      return { lines: modifiers(call("Odometer", [["value", num(n(p, "value"))], b(p, "currency") ? ["format", `.currency(code: ${str(s(p, "code") || "USD")})`] : fractionDigits(n(p, "value")) > 0 && ["format", `.number.precision(.fractionLength(${fractionDigits(n(p, "value"))}))`]]), [`font(.system(size: ${num(n(p, "size"))}, weight: .light))`]) };
     },
   },
 };
@@ -407,11 +660,23 @@ export const ringBreakdown: SwiftPieceDefinition = {
   preview: { component: "ring-breakdown" },
   source: piece("RingBreakdown"),
   docs: docs("data", "ring-breakdown"),
-  concepts: ["array", "formatstyle"],
+  icon: "chart.pie",
+  concepts: ["array", "formatstyle", "piece"],
+  anatomy: [
+    { part: "Slices", props: ["slices"] },
+    { part: "Format", props: ["currency"] },
+    { part: "Legend", props: ["legend"] },
+  ],
+  interactions: ["tap", "scrub", "select", "haptic"],
+  variants: [
+    { id: "budget", label: "Budget", props: { slices: "Housing: 1450, Food: 620, Transport: 310, Leisure: 270", currency: true, legend: true } },
+    { id: "time", label: "Time", props: { slices: "Deep work: 4, Meetings: 2, Email: 1, Breaks: 1", currency: false, legend: true } },
+    { id: "ring", label: "Ring only", props: { legend: false } },
+  ],
   properties: [
     text("slices", "Slices", "Housing: 1450, Food: 620, Transport: 310, Leisure: 270", { hint: "Label: value, separated by commas.", maxLength: 200 }),
     bool("currency", "Currency (USD)", true),
-    bool("legend", "Legend", true),
+    bool("legend", "Legend", true, { hint: "Lists each slice with its value under the ring." }),
   ],
   swift: {
     imports: [],
@@ -444,8 +709,30 @@ export const ratingScrub: SwiftPieceDefinition = {
   preview: { component: "rating-scrub" },
   source: piece("RatingScrub"),
   docs: docs("feedback", "rating-scrub"),
-  concepts: ["state", "binding"],
-  properties: [number("rating", "Starting rating", 4, 0, 5, 0.5), bool("labels", "Word labels", true), number("size", "Star size", 36, 16, 60), bool("readOnly", "Read only", false)],
+  icon: "star.fill",
+  concepts: ["state", "binding", "gesture", "piece"],
+  anatomy: [
+    { part: "Stars", props: ["rating", "size"] },
+    { part: "Label", props: ["labels"] },
+    { part: "Interaction", props: ["readOnly"] },
+  ],
+  interactions: ["tap", "scrub", "haptic"],
+  variants: [
+    { id: "large", label: "Large", props: { size: 36, labels: true, readOnly: false } },
+    { id: "compact", label: "Compact", props: { size: 22, labels: false, readOnly: false } },
+    { id: "display", label: "Display only", props: { size: 28, labels: true, readOnly: true } },
+  ],
+  states: [
+    { id: "empty", label: "No rating", props: { rating: 0 } },
+    { id: "fair", label: "Fair", props: { rating: 2 } },
+    { id: "great", label: "Great", props: { rating: 5 } },
+  ],
+  properties: [
+    number("rating", "Starting rating", 4, 0, 5, 0.5, { hint: "Half steps turn on half stars." }),
+    bool("labels", "Word labels", true),
+    number("size", "Star size", 36, 16, 60),
+    bool("readOnly", "Read only", false, { group: "interaction", hint: "Shows the rating without letting people change it." }),
+  ],
   swift: {
     imports: [],
     emit(p, ctx) {
@@ -472,7 +759,25 @@ export const reactionToggle: SwiftPieceDefinition = {
   preview: { component: "reaction-toggle" },
   source: piece("ReactionToggle"),
   docs: docs("feedback", "reaction-toggle"),
-  concepts: ["state", "binding"],
+  icon: "heart.fill",
+  concepts: ["state", "binding", "spring", "piece"],
+  anatomy: [
+    { part: "Icon", props: ["icon", "size"] },
+    { part: "Fill", props: ["fill"] },
+    { part: "Count", props: ["count"] },
+    { part: "Confirmation", props: ["confirmation"] },
+    { part: "State", props: ["isOn"] },
+  ],
+  interactions: ["toggle", "spring", "haptic"],
+  variants: [
+    { id: "like", label: "Like", props: { icon: "heart", fill: "tangerine", count: 128, confirmation: "" } },
+    { id: "save", label: "Save", props: { icon: "bookmark", fill: "sky", count: 0, confirmation: "Saved" } },
+    { id: "star", label: "Star", props: { icon: "star", fill: "butter", count: 42, confirmation: "" } },
+  ],
+  states: [
+    { id: "off", label: "Off", props: { isOn: false } },
+    { id: "on", label: "On", props: { isOn: true } },
+  ],
   properties: [
     select("icon", "Icon", "heart", opts(["heart", "Heart"], ["bookmark", "Bookmark"], ["star", "Star"], ["bell", "Bell"])),
     bool("isOn", "Starts on", false),
@@ -508,26 +813,45 @@ export const outcomeScreen: SwiftPieceDefinition = {
   preview: { component: "outcome-screen" },
   source: piece("OutcomeScreen"),
   docs: docs("feedback", "outcome-screen"),
-  concepts: ["enum", "closure"],
+  icon: "flag",
+  concepts: ["enum", "closure", "navigation", "piece"],
+  anatomy: [
+    { part: "Mark", props: ["outcome"] },
+    { part: "Text", props: ["eyebrow", "title", "message"] },
+    { part: "Action", props: ["primaryTitle", "link"] },
+  ],
+  interactions: ["tap", "press", "push", "transition"],
+  variants: [
+    { id: "backup", label: "Backup done", props: { outcome: "success", title: "Backup complete", message: "2,418 photos and 36 videos are safe in your library.", primaryTitle: "Done" } },
+    { id: "upload", label: "Upload failed", props: { outcome: "failure", title: "Upload failed", message: "Check your connection and try again.", primaryTitle: "Try again" } },
+    { id: "inbox", label: "Empty inbox", props: { outcome: "empty", title: "No messages yet", message: "Start a conversation and it shows up here.", primaryTitle: "New message" } },
+  ],
+  states: [
+    { id: "success", label: "Success", props: { outcome: "success" } },
+    { id: "failure", label: "Failure", props: { outcome: "failure" } },
+    { id: "empty", label: "Empty", props: { outcome: "empty" } },
+  ],
   properties: [
     select("outcome", "Outcome", "success", opts(["success", "Success"], ["failure", "Failure"], ["empty", "Empty"])),
     text("eyebrow", "Eyebrow", "", { maxLength: 30 }),
     text("title", "Title", "Backup complete", { maxLength: 60 }),
     text("message", "Message", "2,418 photos and 36 videos are safe in your library.", { maxLength: 160 }),
     text("primaryTitle", "Button", "Done", { maxLength: 30 }),
+    link("link", "Button opens"),
   ],
   swift: {
     imports: [],
-    emit(p) {
-      return {
-        lines: call("OutcomeScreen", [
-          ["outcome", `.${s(p, "outcome")}`],
-          ["title", str(s(p, "title"))],
-          s(p, "message").trim() !== "" && ["message", str(s(p, "message"))],
-          s(p, "primaryTitle") !== "Continue" && ["primaryTitle", str(s(p, "primaryTitle"))],
-          s(p, "eyebrow").trim() !== "" && ["eyebrow", str(s(p, "eyebrow"))],
-        ]),
-      };
+    emit(p, ctx) {
+      const go = linkAction(ctx, p.link);
+      const lines = call("OutcomeScreen", [
+        ["outcome", `.${s(p, "outcome")}`],
+        ["title", str(s(p, "title"))],
+        s(p, "message").trim() !== "" && ["message", str(s(p, "message"))],
+        s(p, "primaryTitle") !== "Continue" && ["primaryTitle", str(s(p, "primaryTitle"))],
+        go && ["primaryAction", go.action],
+        s(p, "eyebrow").trim() !== "" && ["eyebrow", str(s(p, "eyebrow"))],
+      ]);
+      return { lines: go ? attach(lines, go.present) : lines };
     },
   },
 };
@@ -541,19 +865,38 @@ export const skeletonLoader: SwiftPieceDefinition = {
   preview: { component: "skeleton-loader" },
   source: piece("SkeletonLoader"),
   docs: docs("feedback", "skeleton-loader"),
-  concepts: ["enum", "modifier"],
+  icon: "rectangle.stack",
+  concepts: ["enum", "frame", "piece"],
+  anatomy: [
+    { part: "Shape", props: ["shape"] },
+    { part: "Size", props: ["lines", "height"] },
+    { part: "State", props: ["failed"] },
+  ],
+  interactions: ["loading"],
+  variants: [
+    { id: "text", label: "Text lines", props: { shape: "text", lines: 3 } },
+    { id: "avatar", label: "Avatar", props: { shape: "circle", height: 56 } },
+    { id: "card", label: "Card", props: { shape: "rounded", height: 160 } },
+    { id: "pill", label: "Pill", props: { shape: "capsule", height: 44 } },
+  ],
+  states: [
+    { id: "loading", label: "Loading", props: { failed: false } },
+    { id: "failed", label: "Failed", props: { failed: true } },
+  ],
   properties: [
     select("shape", "Shape", "text", opts(["rounded", "Rounded"], ["circle", "Circle"], ["capsule", "Capsule"], ["text", "Text lines"])),
     number("lines", "Lines", 3, 1, 6, 1, { when: { prop: "shape", equals: ["text"] } }),
     number("height", "Height", 56, 12, 240, 1, { when: { prop: "shape", notEquals: ["text"] } }),
+    bool("failed", "Failed", false, { group: "state", hint: "Stops the shimmer and dims the placeholder, for a load that failed." }),
   ],
   swift: {
     imports: [],
     emit(p) {
       const shape = s(p, "shape");
-      if (shape === "text") return { lines: [`SkeletonLoader(${n(p, "lines") === 1 ? "shape: .text(lines: 1)" : `shape: .text(lines: ${num(n(p, "lines"))})`})`] };
+      const failed = b(p, "failed") ? ", isFailed: true" : "";
+      if (shape === "text") return { lines: [`SkeletonLoader(shape: .text(lines: ${num(n(p, "lines"))})${failed})`] };
       const h = num(n(p, "height"));
-      const head = shape === "rounded" ? "SkeletonLoader()" : `SkeletonLoader(shape: .${shape})`;
+      const head = shape === "rounded" ? (failed ? "SkeletonLoader(isFailed: true)" : "SkeletonLoader()") : `SkeletonLoader(shape: .${shape}${failed})`;
       return { lines: modifiers([head], [shape === "circle" ? `frame(width: ${h}, height: ${h})` : `frame(height: ${h})`]) };
     },
   },
@@ -568,8 +911,29 @@ export const statusMorph: SwiftPieceDefinition = {
   preview: { component: "status-morph" },
   source: piece("StatusMorph"),
   docs: docs("feedback", "status-morph"),
-  concepts: ["enum"],
-  properties: [select("state", "State", "success", opts(["idle", "Idle"], ["loading", "Loading"], ["success", "Success"], ["failure", "Failure"])), bool("captions", "Captions (Saving…/Saved)", false), number("size", "Size", 64, 24, 200)],
+  icon: "arrow.triangle.2.circlepath",
+  concepts: ["enum", "animation", "piece"],
+  anatomy: [
+    { part: "Mark", props: ["state", "size"] },
+    { part: "Caption", props: ["captions"] },
+  ],
+  interactions: ["tap", "loading", "transition"],
+  variants: [
+    { id: "mark", label: "Mark", props: { captions: false, size: 64 } },
+    { id: "captioned", label: "With caption", props: { captions: true, size: 48 } },
+    { id: "hero", label: "Large", props: { captions: false, size: 120 } },
+  ],
+  states: [
+    { id: "idle", label: "Idle", props: { state: "idle" } },
+    { id: "loading", label: "Loading", props: { state: "loading" } },
+    { id: "success", label: "Success", props: { state: "success" } },
+    { id: "failure", label: "Failure", props: { state: "failure" } },
+  ],
+  properties: [
+    select("state", "State", "success", opts(["idle", "Idle"], ["loading", "Loading"], ["success", "Success"], ["failure", "Failure"]), { hint: "Tap it in the preview to run loading, then this result." }),
+    bool("captions", "Captions (Saving…/Saved)", false),
+    number("size", "Size", 64, 24, 200),
+  ],
   swift: {
     imports: [],
     emit(p) {
@@ -591,7 +955,15 @@ export const promptChips: SwiftPieceDefinition = {
   preview: { component: "prompt-chips" },
   source: piece("PromptChips"),
   docs: docs("ai", "prompt-chips"),
-  concepts: ["array", "closure"],
+  icon: "bubble.left",
+  concepts: ["array", "closure", "piece"],
+  anatomy: [{ part: "Suggestions", props: ["suggestions"] }],
+  interactions: ["tap", "press", "scroll", "haptic"],
+  variants: [
+    { id: "work", label: "Work", props: { suggestions: "Summarize this page, Draft a reply, Find action items, Plan my week" } },
+    { id: "travel", label: "Travel", props: { suggestions: "Plan a weekend in Lisbon, Pack for rain, Find a quiet cafe" } },
+    { id: "code", label: "Code", props: { suggestions: "Explain this error, Write a test, Refactor this view" } },
+  ],
   properties: [text("suggestions", "Suggestions", "Summarize this page, Draft a reply, Find action items, Plan my week", { hint: "Separate suggestions with commas.", maxLength: 240 })],
   swift: {
     imports: [],
@@ -613,7 +985,19 @@ export const thinkingState: SwiftPieceDefinition = {
   preview: { component: "thinking-state" },
   source: piece("ThinkingState"),
   docs: docs("ai", "thinking-state"),
-  concepts: ["enum"],
+  icon: "sparkles",
+  concepts: ["enum", "animation", "piece"],
+  anatomy: [
+    { part: "Presentation", props: ["presentation"] },
+    { part: "Label", props: ["text"] },
+    { part: "Lines", props: ["lineCount"] },
+  ],
+  interactions: ["loading", "stream"],
+  variants: [
+    { id: "sheen", label: "Sheen", props: { presentation: "sheen" } },
+    { id: "dots", label: "Dots", props: { presentation: "dots" } },
+    { id: "label", label: "Label", props: { presentation: "text" } },
+  ],
   properties: [
     select("presentation", "Presentation", "sheen", opts(["dots", "Dots"], ["sheen", "Sheen"], ["text", "Label"])),
     text("text", "Label", "Reading the report", { when: { prop: "presentation", equals: ["text"] }, maxLength: 40 }),
@@ -641,14 +1025,26 @@ export const textReveal: SwiftPieceDefinition = {
   preview: { component: "text-reveal" },
   source: piece("TextReveal"),
   docs: docs("text", "text-reveal"),
-  concepts: ["modifier", "animation"],
+  icon: "wand.and.stars",
+  concepts: ["animation", "font", "piece"],
+  anatomy: [
+    { part: "Text", props: ["text", "highlights"] },
+    { part: "Type", props: ["size", "alignment"] },
+    { part: "Motion", props: ["unit", "preset"] },
+  ],
+  interactions: ["transition", "tap"],
+  variants: [
+    { id: "headline", label: "Headline", props: { size: 40, alignment: "leading", highlights: "one calm glance" } },
+    { id: "centered", label: "Centered", props: { size: 34, alignment: "center" } },
+    { id: "plain", label: "No highlight", props: { highlights: "", size: 44 } },
+  ],
   properties: [
     text("text", "Text", "Plan the week in one calm glance.", { maxLength: 160 }),
     text("highlights", "Highlight", "one calm glance", { hint: "Phrases to highlight, separated by commas.", maxLength: 120 }),
     number("size", "Size", 40, 16, 72),
     select("alignment", "Alignment", "leading", opts(["leading", "Leading"], ["center", "Center"])),
-    select("unit", "Reveal by", "words", opts(["characters", "Characters"], ["words", "Words"], ["lines", "Lines"]), { level: "advanced", pro: true }),
-    select("preset", "Motion", "rise", opts(["rise", "Rise"], ["blur", "Blur"], ["soften", "Soften"]), { level: "advanced", pro: true }),
+    select("unit", "Reveal by", "words", opts(["characters", "Characters"], ["words", "Words"], ["lines", "Lines"]), { level: "advanced", pro: true, group: "motion" }),
+    select("preset", "Motion", "rise", opts(["rise", "Rise"], ["blur", "Blur"], ["soften", "Soften"]), { level: "advanced", pro: true, group: "motion" }),
   ],
   swift: {
     imports: [],
@@ -676,16 +1072,37 @@ export const expandableText: SwiftPieceDefinition = {
   preview: { component: "expandable-text" },
   source: piece("ExpandableText"),
   docs: docs("text", "expandable-text"),
-  concepts: ["modifier"],
+  icon: "chevron.down",
+  concepts: ["state", "font", "piece"],
+  anatomy: [
+    { part: "Text", props: ["text"] },
+    { part: "Clamp", props: ["lineLimit", "expanded"] },
+    { part: "Type", props: ["style"] },
+  ],
+  interactions: ["expand", "tap"],
+  variants: [
+    { id: "review", label: "Review", props: { lineLimit: 3, style: "subheadline" } },
+    { id: "teaser", label: "One-line teaser", props: { lineLimit: 1, style: "body" } },
+    { id: "long", label: "Longer preview", props: { lineLimit: 5, style: "footnote" } },
+  ],
+  states: [
+    { id: "collapsed", label: "Collapsed", props: { expanded: false } },
+    { id: "expanded", label: "Expanded", props: { expanded: true } },
+  ],
   properties: [
     text("text", "Text", "The best coffee in the neighbourhood, and the pastries are baked every morning. Service is warm, the playlist is quiet and the window seats get the afternoon sun. Worth the walk.", { maxLength: 600 }),
     number("lineLimit", "Lines before \"more\"", 3, 1, 8),
-    select("style", "Style", "subheadline", textStyleOptions),
+    select("style", "Style", "subheadline", textStyleOptions, { group: "typography" }),
+    bool("expanded", "Starts expanded", false, { group: "state", hint: "Tap \"more\" or \"less\" in the preview to switch." }),
   ],
   swift: {
     imports: [],
-    emit(p) {
-      return { lines: modifiers(call("ExpandableText", [[null, str(s(p, "text"))], n(p, "lineLimit") !== 3 && ["lineLimit", num(n(p, "lineLimit"))]]), [`font(.${s(p, "style")})`]) };
+    emit(p, ctx) {
+      // Collapsed is the piece's own state; starting expanded needs a binding the screen owns.
+      const expanded = b(p, "expanded") ? ctx.state("expanded", "", "true") : null;
+      return {
+        lines: modifiers(call("ExpandableText", [[null, str(s(p, "text"))], n(p, "lineLimit") !== 3 && ["lineLimit", num(n(p, "lineLimit"))], expanded && ["isExpanded", `$${expanded}`]]), [`font(.${s(p, "style")})`]),
+      };
     },
   },
 };
@@ -708,8 +1125,22 @@ export const floatingDock: SwiftPieceDefinition = {
   preview: { component: "floating-dock" },
   source: piece("FloatingDock"),
   docs: docs("navigation", "floating-dock"),
-  concepts: ["state", "binding", "array"],
-  properties: [text("items", "Tabs", "Home, Search, Inbox, Profile", { hint: "Separate tab names with commas. Icons follow the names.", maxLength: 120 }), number("selected", "Selected", 0, 0, 5)],
+  icon: "house",
+  concepts: ["state", "binding", "array", "sfsymbol", "piece"],
+  anatomy: [
+    { part: "Tabs", props: ["items"] },
+    { part: "Selection", props: ["selected"] },
+  ],
+  interactions: ["select", "tabs", "spring", "haptic"],
+  variants: [
+    { id: "four", label: "Four tabs", props: { items: "Home, Search, Inbox, Profile", selected: 0 } },
+    { id: "three", label: "Three tabs", props: { items: "Home, Stats, Profile", selected: 1 } },
+    { id: "shop", label: "Shop", props: { items: "Home, Search, Cart, Saved, Profile", selected: 0 } },
+  ],
+  properties: [
+    text("items", "Tabs", "Home, Search, Inbox, Profile", { hint: "Separate tab names with commas. Icons follow the names.", maxLength: 120 }),
+    number("selected", "Selected", 0, 0, 5, 1, { hint: "0 is the first tab." }),
+  ],
   swift: {
     imports: [],
     emit(p, ctx) {
@@ -728,10 +1159,22 @@ export const motionCard: SwiftPieceDefinition = {
   description: "A solid color card that tilts with the device, holding anything you put in it.",
   availability: "free",
   preview: { component: "motion-card" },
+  card: () => 26,
   source: piece("MotionCard"),
   docs: docs("cards", "motion-card"),
   container: {},
-  concepts: ["viewbuilder", "modifier"],
+  icon: "creditcard",
+  concepts: ["viewbuilder", "gesture", "spring", "piece"],
+  anatomy: [
+    { part: "Card", props: ["fill", "radius", "height"] },
+    { part: "Motion", props: ["maxAngle"] },
+  ],
+  interactions: ["drag", "spring"],
+  variants: [
+    { id: "signal", label: "Red", props: { fill: "signal", radius: 26, height: 200 } },
+    { id: "sky", label: "Sky", props: { fill: "sky", radius: 26, height: 200 } },
+    { id: "butter", label: "Butter, tall", props: { fill: "butter", radius: 32, height: 280 } },
+  ],
   properties: [
     select("fill", "Color", "signal", opts(["signal", "Red"], ...houseBlocks.filter((x) => x !== "tangerine").map((b): [string, string] => [b, b[0].toUpperCase() + b.slice(1)]))),
     number("radius", "Corner radius", 26, 0, 44),

@@ -22,7 +22,8 @@
     "builder:build": "npm run build --workspace packages/builder",
     "builder:test": "npm test --workspace packages/builder",
     "cli:build": "npm run build --workspace packages/cli",
-    "audit:public": "bash scripts/audit-public.sh"
+    "audit:public": "bash scripts/audit-public.sh",
+    "test": "node --import tsx --test lib/*.test.ts"
   },
   "workspaces": [
     "packages/*"

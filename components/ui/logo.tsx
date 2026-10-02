@@ -7,7 +7,7 @@ export { LogoMark };
 export function Logo({ className, withTag = false }: { className?: string; withTag?: boolean }) {
   return (
     <Link href="/" className={className} aria-label="Swift Pieces home">
-      <Wordmark tag={withTag ? "Free" : undefined} className="[&>img]:size-[22px] [&>span:first-of-type]:text-[15.5px] [&_.wordmark-tag]:text-[15px]" />
+      <Wordmark tag={withTag ? "Free" : undefined} className="[&>img]:size-[22px] [&>span:first-of-type]:text-[15.5px] [&>span:first-of-type]:font-semibold [&>span:first-of-type]:tracking-[-0.03em] [&_.wordmark-tag]:text-[15px]" />
     </Link>
   );
 }

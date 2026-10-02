@@ -1,7 +1,7 @@
 import { Container } from "@/components/ui/container";
 import { Reveal } from "@/components/effects/reveal";
 import { CategoryDirectory } from "@/components/sections/category-directory";
-import { RowLink, sectionTitle, sectionBody } from "@/components/sections/feature-row";
+import { RowLink, band, sectionTitle, sectionBody, stickyColumn } from "@/components/sections/feature-row";
 import { getRegistryIndex } from "@/lib/registry";
 import { categories } from "@/lib/categories";
 import { hubs } from "@/lib/hubs";
@@ -15,9 +15,9 @@ import { cn } from "@/lib/cn";
 export function LibraryIntro() {
   const items = getRegistryIndex();
   return (
-    <Container className="mt-8 sm:mt-16">
+    <Container className={band}>
       <section className="grid gap-10 lg:grid-cols-[1fr_2fr] lg:gap-20" aria-labelledby="library-intro">
-        <Reveal as="div">
+        <Reveal as="div" className={stickyColumn}>
           <h2 id="library-intro" className={sectionTitle}>Free SwiftUI components for iOS</h2>
           <p className={cn("mt-4 max-w-sm", sectionBody)}>
             Swift Pieces is a free library of {items.length} SwiftUI components in {Object.keys(categories).length} categories. Each one is a single Swift file on Apple frameworks only, from iOS 17, that you copy, add with the CLI or install through your AI agent.

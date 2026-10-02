@@ -11,7 +11,7 @@ import { blocks, font, ground, ink } from "./palette";
 const u = (px: number) => `${(px / 5.6).toFixed(3)}cqw`;
 const spring = "cubic-bezier(0.34, 1.4, 0.64, 1)";
 const ease = "cubic-bezier(0.22, 1, 0.36, 1)";
-const field = "#262626";
+const field = ground.field;
 
 function useReducedMotion() {
   const [reduced, setReduced] = useState(false);

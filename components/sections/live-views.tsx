@@ -14,7 +14,8 @@ const POLL_MS = 15_000;
 let counted = false;
 
 /**
- * The all-time view count, counted and read from our own Cloudflare KV counter (lib/views.ts).
+ * The all-time page views across the whole site, from Cloudflare Web Analytics (lib/views.ts). The
+ * POST on load also reports this view to Analytics Engine, which is only for per-piece reporting.
  *
  * It rides inside the hero's eyebrow pill, after the tagline: "Explored 1,284 times".
  *

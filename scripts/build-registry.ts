@@ -22,7 +22,7 @@ import {
   type RegistryItem,
 } from "../lib/registry-schema";
 import { categories } from "../lib/categories";
-import { proCatalog, proCountsLabel } from "../lib/pro-catalog";
+import { exploreProPages, proCatalog, proCountsLabel } from "../lib/pro-catalog";
 import { hubs, hubItems, hubPath } from "../lib/hubs";
 
 const ROOT = join(import.meta.dirname, "..");
@@ -52,9 +52,12 @@ const headerSchema = z.object({
   added: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
 });
 
-/** How long a piece wears the "New" badge after its `added` date, measured at registry build time. */
+/**
+ * The "New" badge marks only the latest wave: pieces sharing the most recent `added` date, and only for
+ * this many days after it (measured at registry build time). An earlier wave loses it when the next ships.
+ */
 const NEW_FOR_DAYS = 30;
-const isNewPiece = (added?: string) => Boolean(added) && Date.now() - Date.parse(`${added}T00:00:00Z`) < NEW_FOR_DAYS * 86_400_000;
+const isRecent = (added: string) => Date.now() - Date.parse(`${added}T00:00:00Z`) < NEW_FOR_DAYS * 86_400_000;
 
 // Docs live under the single "components" root section: /docs/components/<category slug>/<piece slug>.
 export const docsPath = (category: Category, slug: string) => `/docs/components/${categories[category].slug}/${slug}`;
@@ -175,13 +178,15 @@ function build() {
         docs: `${SITE_URL}${docsPath(header.category, slug)}`,
         pro: header.pro,
         added: header.added,
-        isNew: isNewPiece(header.added),
+        isNew: false, // set below, once the latest wave is known
         liquidGlass: /glassEffect|GlassEffectContainer|buttonStyle\(\.glass/.test(body),
         metal: shaders.length > 0 || /ShaderLibrary/.test(body),
       });
       items.push(item);
     }
   }
+  const latestWave = items.reduce((max, i) => (i.added && i.added > max ? i.added : max), "");
+  for (const i of items) i.isNew = Boolean(i.added) && i.added === latestWave && isRecent(latestWave);
 
   const names = new Set(items.map((i) => i.name));
   for (const item of items) {
@@ -262,10 +267,14 @@ function writeDocs(items: RegistryItem[]) {
 
   const cats = (Object.keys(categories) as Category[]).filter((c) => items.some((i) => i.category === c));
   writeFileSync(join(root, "index.mdx"), `---\ntitle: "All SwiftUI components"\ndescription: "Every free Swift Pieces component for iOS with a live preview. Filter by category, then open a piece for its notes, parameters, source and install command."\nindex: true\n---\n\n{/* GENERATED FILE. Edit scripts/build-registry.ts. */}\n`);
+  // Explore Pro: Pro's screens and templates as cards that open on pro.swiftpieces.com. The cards
+  // come from lib/pro-cards.json and public/pro-cards/, refreshed by scripts/pro-cards/capture.ts.
+  writeFileSync(join(root, "screens.mdx"), `---\ntitle: "Screens"\ndescription: "Production-ready SwiftUI screens from Swift Pieces Pro. Each one is a complete, themed screen you drop into your app and wire to your data."\npro: "screen"\n---\n\n{/* GENERATED FILE. Edit scripts/build-registry.ts. */}\n`);
+  writeFileSync(join(root, "templates.mdx"), `---\ntitle: "Templates"\ndescription: "Complete Xcode app templates from Swift Pieces Pro, wired end to end. Open the project, swap the brand and the copy, ship."\npro: "template"\n---\n\n{/* GENERATED FILE. Edit scripts/build-registry.ts. */}\n`);
   writeFileSync(join(root, "meta.json"), JSON.stringify({
     title: "Components",
     root: true,
-    pages: ["index", `---Categories · ${cats.length}---`, ...cats.map((c) => categories[c].slug)],
+    pages: ["index", "---Explore Pro---", ...exploreProPages, `---Categories · ${cats.length}---`, ...cats.map((c) => categories[c].slug)],
   }, null, 2));
 
   for (const cat of cats) {
@@ -348,7 +357,7 @@ function writeLlms(items: RegistryItem[]) {
     "",
     "## Swift Pieces Pro",
     "",
-    `A separate paid library for building whole apps: ${proCountsLabel} (production-ready SwiftUI screens, complete Xcode projects, and agent skills that build the rest in the same design) at ${PRO_URL}/library. One plan with lifetime access; plan and pricing: ${PRO_URL}/pro. Pro MCP endpoint: ${PRO_URL}/api/mcp (license key required): search_library, get_item, list_kit, get_kit_item, apply_design_skill, apply_recipe.`,
+    `A separate paid library for building whole apps: ${proCountsLabel} (production-ready SwiftUI screens, complete Xcode projects, and agent skills that build the rest in the same design) at ${PRO_URL}/library, plus Pro remixing in the Playground at ${SITE_URL}/apps (all ${proCatalog.remixing.apps} apps in the App Library, remix any app with AI, keep up to ${proCatalog.remixing.saves} remixes). One plan with lifetime access; plan and pricing: ${PRO_URL}/pro. Pro MCP endpoint: ${PRO_URL}/api/mcp (license key required): search_library, get_item, list_kit, get_kit_item, apply_design_skill, apply_recipe.`,
     "",
   );
   for (const [cat, list] of byCat) {

@@ -1,23 +1,34 @@
 "use client";
-import { Component, memo, Suspense, use, type ReactNode } from "react";
+import { Component, createContext, memo, Suspense, use, useContext, type CSSProperties, type ReactNode } from "react";
+import { bareProps, LIST_GAP, LIST_INSET, LIST_RADIUS, planList, rowInset, rowPad, type ListMode } from "../../core/lists.js";
 import { defaultProps } from "../../core/registry.js";
 import type { ScreenNode } from "../../core/schema.js";
-import { useBuilder } from "../context.js";
-import { useStore } from "../store.js";
-import { useScheme, type Renderer } from "./env.js";
+import { Frame, useScheme, useTheme, type Renderer } from "./env.js";
+import { useRuntime } from "./runtime.js";
 import { fills } from "./fills.js";
 import { primitiveRenderers } from "./primitives.js";
 
-/** Renderer groups loaded on demand, e.g. the free pieces or a host's Pro components. */
+/** Renderer groups loaded on demand, e.g. a host's Pro components. */
 export type RendererGroup = { ids: string[]; load: () => Promise<Record<string, Renderer>> };
 
 const loaded = new Map<string, Renderer>(Object.entries(primitiveRenderers));
-const groups: RendererGroup[] = [{ ids: [], load: () => import("./pieces.js").then((m) => m.pieceRenderers) }];
+
+/** The package's own renderer chunks, by `SwiftPieceDefinition.preview.chunk`. */
+const chunks: Record<string, RendererGroup> = {
+  pieces: { ids: [], load: () => import("./pieces.js").then((m) => m.pieceRenderers) },
+  native: { ids: [], load: () => import("./native.js").then((m) => m.nativeRenderers) },
+  "pieces-motion": { ids: [], load: () => import("./pieces-motion.js").then((m) => m.motionPieceRenderers) },
+  "pieces-surfaces": { ids: [], load: () => import("./pieces-surfaces.js").then((m) => m.surfacePieceRenderers) },
+  "pieces-media": { ids: [], load: () => import("./pieces-media.js").then((m) => m.mediaPieceRenderers) },
+  "pieces-utility": { ids: [], load: () => import("./pieces-utility.js").then((m) => m.utilityPieceRenderers) },
+  "app-pieces": { ids: [], load: () => import("./app-pieces/index.js").then((m) => m.appPieceRenderers) },
+};
+const hostGroups: RendererGroup[] = [];
 const pending = new Map<RendererGroup, Promise<void>>();
 
-/** Hosts add their own renderer groups (Pro components) before the builder mounts. */
+/** Hosts add their own renderer groups (Pro components) before the Playground mounts. */
 export function registerRenderers(group: RendererGroup) {
-  if (!groups.includes(group)) groups.push(group);
+  if (!hostGroups.includes(group)) hostGroups.push(group);
 }
 
 function loadGroup(group: RendererGroup): Promise<void> {
@@ -32,43 +43,112 @@ function loadGroup(group: RendererGroup): Promise<void> {
   return p;
 }
 
+function groupFor(id: string, chunk: string | undefined): RendererGroup {
+  return hostGroups.find((g) => g.ids.includes(id)) ?? chunks[chunk ?? "pieces"] ?? chunks.pieces;
+}
+
 /** The renderer for a component, suspending while its chunk loads. */
-function useRenderer(id: string): Renderer | null {
+function useRenderer(id: string, chunk: string | undefined): Renderer | null {
   const hit = loaded.get(id);
   if (hit) return hit;
-  // The first group (free pieces) lists no ids: it is the fallback for anything not yet known.
-  const group = groups.find((g) => g.ids.includes(id)) ?? groups[0];
-  use(loadGroup(group));
+  use(loadGroup(groupFor(id, chunk)));
   return loaded.get(id) ?? null;
 }
 
-/** Preloads every renderer a tree needs, so switching templates never flashes placeholders. */
-export function preloadFor(root: ScreenNode) {
+/**
+ * Preloads every renderer a tree needs, so pushing a screen never flashes placeholders. Resolves
+ * when they have all arrived (a failed chunk resolves too: its nodes fall back as usual).
+ */
+export function preloadFor(root: ScreenNode, registry: { get(id: string): { preview: { chunk?: string } } | undefined }): Promise<void> {
   const ids = new Set<string>();
   const walk = (n: ScreenNode) => {
     ids.add(n.component);
     n.children?.forEach(walk);
   };
   walk(root);
+  const waits: Promise<void>[] = [];
   for (const id of ids) {
     if (loaded.has(id)) continue;
-    void loadGroup(groups.find((g) => g.ids.includes(id)) ?? groups[0]);
+    waits.push(loadGroup(groupFor(id, registry.get(id)?.preview.chunk)).catch(() => {}));
   }
+  return Promise.all(waits).then(() => {});
 }
 
+/**
+ * One node. Memoized on the node object: an edit rebuilds only the path to the edited node, so a
+ * remix re-renders that component and its ancestors, never the whole screen. Selection is drawn
+ * by the device as an overlay, so selecting never re-renders a node at all.
+ */
 const NodeView = memo(function NodeView({ node }: { node: ScreenNode }) {
-  const { store, host } = useBuilder();
-  const selected = useStore(store, (s) => s.selectedId === node.id);
+  const { registry } = useRuntime();
   const scheme = useScheme();
-  const R = useRenderer(node.component);
-  const def = host.registry.get(node.component);
-  const children = node.children?.map((c) => <NodeBoundary key={c.id} node={c} />) ?? null;
-  const box = { "data-node-id": node.id, className: `spb-node${selected ? " is-selected" : ""}${node.component === "screen" ? " spb-screen" : ""}` };
+  const theme = useTheme();
+  // Read before useRenderer, which can suspend: hooks keep one order.
+  const inList = useContext(ListRowContext) === node.id;
+  const def = registry.get(node.component);
+  const R = useRenderer(node.component, def?.preview.chunk);
+  // Style → Lists (core/lists.ts, as the Swift does): runs of rows in this column draw as one list,
+  // a row inside one goes bare, and a column that is the list drops its own card.
+  const plan = theme ? planList(node, registry, theme.lists) : null;
+  const children = plan
+    ? plan.parts.map((part) => ("node" in part ? <NodeBoundary key={part.node.id} node={part.node} /> : <ListRun key={part.rows[0].id} rows={part.rows} mode={theme!.lists!} />))
+    : (node.children?.map((c) => <NodeBoundary key={c.id} node={c} />) ?? null);
+  let props = def ? { ...defaultProps(def), ...node.props } : node.props;
+  if (inList) props = bareProps(def, props);
+  if (plan?.whole) props = { ...props, style: "plain" };
+  // A component that is a list of its own (several items) takes the style through its props.
+  const own = theme?.lists && def?.listStyle ? def.listStyle(theme.lists, props) : null;
+  if (own) props = { ...props, ...own };
+  // A card-shaped component takes Style's card edge (builder.css .spb-card-piece) whenever Cards isn't flat.
+  // Its radius goes on the root too, so the edge follows the card's corners even when the root is a wrapper.
+  const cardRadius = theme && theme.cards !== "flat" && def?.card && !inList ? def.card(props) : null;
+  const box = {
+    "data-node-id": node.id,
+    "data-component": node.component,
+    className: `spb-node${node.component === "screen" ? " spb-screen" : ""}${cardRadius != null ? " spb-card-piece" : ""}`,
+    ...(cardRadius != null ? { style: { borderRadius: `calc(${cardRadius}px * var(--spb-corner, 1))` } } : {}),
+  };
   if (!R || !def) return <Missing box={box} label={node.component} />;
-  return <R node={node} p={{ ...defaultProps(def), ...node.props }} box={box} fill={fills(node)} scheme={scheme}>{children}</R>;
+  return <R node={node} p={props} box={box} fill={fills(node, registry.get)} scheme={scheme}>{children}</R>;
 });
 
-function Missing({ box, label }: { box: { "data-node-id": string; className: string }; label: string }) {
+/** The row a list is drawing bare (its node id), for NodeView. */
+const ListRowContext = createContext<string | null>(null);
+
+/** Style's card surface, as a plain card Group draws it (primitives.tsx). */
+const LIST_CARD: CSSProperties = {
+  backgroundColor: "var(--spb-card, var(--ios-fill))",
+  boxShadow: "var(--spb-card-edge, none)",
+  backdropFilter: "var(--spb-card-blur, none)",
+  WebkitBackdropFilter: "var(--spb-card-blur, none)",
+  borderRadius: `calc(${LIST_RADIUS}px * var(--spb-corner, 1))`,
+};
+const px = (v: number) => `calc(${v}px * var(--spb-space, 1))`;
+
+/** A run of rows as a list: separate cards, one grouped card with hairlines, or plain rows with hairlines (as generate.ts emits it). */
+function ListRun({ rows, mode }: { rows: ScreenNode[]; mode: ListMode }) {
+  const { registry } = useRuntime();
+  const carded = mode !== "plain";
+  const items = rows.flatMap((row, i) => {
+    const def = registry.get(row.component);
+    const item = (
+      <div key={row.id} className="spb-list-row" style={{ display: "flex", flexDirection: "column", alignItems: "stretch", minWidth: 0, padding: `${px(rowPad(def))} ${carded ? px(rowInset(def)) : "0"}`, ...(mode === "cards" ? LIST_CARD : {}) }}>
+        <ListRowContext.Provider value={row.id}>
+          <NodeBoundary node={row} />
+        </ListRowContext.Provider>
+      </div>
+    );
+    const line = <div key={`${row.id}-line`} aria-hidden style={{ height: 1, flex: "none", background: "var(--ios-sep)", marginLeft: mode === "grouped" ? px(LIST_INSET) : 0 }} />;
+    return i && mode !== "cards" ? [line, item] : [item];
+  });
+  return (
+    <div className="spb-list" data-list={mode} style={{ display: "flex", flexDirection: "column", alignSelf: "stretch", minWidth: 0, gap: mode === "cards" ? px(LIST_GAP) : 0, ...(mode === "grouped" ? LIST_CARD : {}) }}>
+      <Frame axis="v">{items}</Frame>
+    </div>
+  );
+}
+
+function Missing({ box, label }: { box: { "data-node-id": string; "data-component": string; className: string }; label: string }) {
   return <div {...box} className={`${box.className} spb-node-missing`}>{label}</div>;
 }
 
@@ -102,9 +182,9 @@ class Boundary extends Component<{ node: ScreenNode; children: ReactNode; onErro
 }
 
 export function NodeBoundary({ node }: { node: ScreenNode }) {
-  const { track } = useBuilder();
+  const { onError } = useRuntime();
   return (
-    <Boundary node={node} onError={() => track("builder_error", { where: "preview", component: node.component })}>
+    <Boundary node={node} onError={() => onError(node.component)}>
       <Suspense fallback={<div className="spb-node spb-node-loading" data-node-id={node.id} />}>
         <NodeView node={node} />
       </Suspense>

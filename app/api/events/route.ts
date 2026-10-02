@@ -1,5 +1,6 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { sanitizeEvents } from "@swiftpieces/builder";
+import { readCapped } from "@/lib/body";
 
 /**
  * Playground product analytics: which steps people reach, and where beginners stop.
@@ -15,8 +16,8 @@ export const dynamic = "force-dynamic";
 
 export async function POST(req: Request): Promise<Response> {
   try {
-    const text = await req.text();
-    if (text.length <= 16 * 1024) {
+    const text = await readCapped(req, 16 * 1024);
+    if (text !== null) {
       const events = sanitizeEvents(JSON.parse(text));
       const ae = getCloudflareContext().env.BUILDER_AE;
       for (const e of events) {

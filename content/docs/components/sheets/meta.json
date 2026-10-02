@@ -1,10 +1,11 @@
 {
   "title": "Sheets",
-  "description": "Toasts, confirmations and permission moments.",
+  "description": "Toasts, confirmations, permission moments and guided tours.",
   "defaultOpen": false,
   "pages": [
     "confirm-sheet",
     "permission-sheet",
+    "spotlight-tour",
     "toast"
   ]
 }

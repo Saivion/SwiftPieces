@@ -1,9 +1,10 @@
 {
   "title": "Navigation",
-  "description": "Floating docks, tracking tabs and stretchy headers.",
+  "description": "Floating docks, tracking tabs, stretchy headers and an A to Z index.",
   "defaultOpen": false,
   "pages": [
     "floating-dock",
+    "index-scrubber",
     "stretch-header",
     "tracking-tabs"
   ]

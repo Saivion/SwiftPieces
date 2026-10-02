@@ -1,0 +1,530 @@
+[
+  {
+    "id": "wallet-stack",
+    "title": "Wallet",
+    "type": "screen",
+    "category": "Finance",
+    "summary": "A wallet of stacked cards and passes you can bring forward, fan out and reorder.",
+    "isNew": false
+  },
+  {
+    "id": "spending-ring",
+    "title": "Budget",
+    "type": "screen",
+    "category": "Finance",
+    "summary": "A budget overview around a ring you can scrub, with category limits and period switching.",
+    "isNew": false
+  },
+  {
+    "id": "transaction-row",
+    "title": "Activity",
+    "type": "screen",
+    "category": "Finance",
+    "summary": "Account activity grouped by day, with rows that swipe to categorize, split or hide.",
+    "isNew": false
+  },
+  {
+    "id": "dashboard-screen",
+    "title": "Dashboard",
+    "type": "screen",
+    "category": "Productivity",
+    "summary": "A home dashboard with a collapsing greeting, live metrics, a scrubbable chart and activity.",
+    "isNew": false
+  },
+  {
+    "id": "settings-screen",
+    "title": "Settings",
+    "type": "screen",
+    "category": "Account",
+    "summary": "A settings home with a collapsing profile header, grouped rows, toggles and sign out.",
+    "isNew": false
+  },
+  {
+    "id": "tab-shell",
+    "title": "App Shell",
+    "type": "screen",
+    "category": "Navigation",
+    "summary": "The root of a tabbed app: a floating tab bar, a stack per tab and real reselect behaviour.",
+    "isNew": false
+  },
+  {
+    "id": "ai-chat-screen",
+    "title": "Chat",
+    "type": "screen",
+    "category": "AI",
+    "summary": "A complete AI chat with streaming replies, a composer that stops generation and follow-scroll.",
+    "isNew": false
+  },
+  {
+    "id": "voice-orb",
+    "title": "Voice Mode",
+    "type": "screen",
+    "category": "AI",
+    "summary": "A voice conversation screen around a Metal glass orb with a Siri-style wave, locked to thinking.",
+    "isNew": false
+  },
+  {
+    "id": "glass-paywall",
+    "title": "Paywall",
+    "type": "screen",
+    "category": "Commerce",
+    "summary": "A paywall with plan cards, trial lines and every loading, purchasing and error state.",
+    "isNew": false
+  },
+  {
+    "id": "focus-timer",
+    "title": "Focus",
+    "type": "screen",
+    "category": "Productivity",
+    "summary": "A focus session with a dial you drag to set minutes and a ring that drains as you work.",
+    "isNew": false
+  },
+  {
+    "id": "calendar-strip",
+    "title": "Agenda",
+    "type": "screen",
+    "category": "Productivity",
+    "summary": "A day agenda under a week strip you can page, scrub and pull open into a month.",
+    "isNew": false
+  },
+  {
+    "id": "mini-player",
+    "title": "Now Playing",
+    "type": "screen",
+    "category": "Media",
+    "summary": "A music library with a floating player that grows into a full now-playing screen.",
+    "isNew": false
+  },
+  {
+    "id": "waveform-scrubber",
+    "title": "Podcast Player",
+    "type": "screen",
+    "category": "Media",
+    "summary": "An episode player built on a waveform you scrub, with chapters, speed and sleep.",
+    "isNew": false
+  },
+  {
+    "id": "depth-gallery",
+    "title": "Gallery",
+    "type": "screen",
+    "category": "Media",
+    "summary": "A trip album that pages with depth, captions on color blocks, and a pinch to peek at the centred photo.",
+    "isNew": false
+  },
+  {
+    "id": "onboarding-stack",
+    "title": "Welcome",
+    "type": "screen",
+    "category": "Onboarding",
+    "summary": "First-run pages as color posters with arch windows, where parallax and progress follow your finger.",
+    "isNew": false
+  },
+  {
+    "id": "bento-grid",
+    "title": "What's New",
+    "type": "screen",
+    "category": "Onboarding",
+    "summary": "A what's-new screen of mixed-size tiles that open into detail.",
+    "isNew": false
+  },
+  {
+    "id": "onboarding-flow",
+    "title": "Onboarding",
+    "type": "screen",
+    "category": "Onboarding",
+    "summary": "First run end to end: welcome pages, a permission step and a trial offer, then into the app.",
+    "isNew": false
+  },
+  {
+    "id": "glass-paywall-screen",
+    "title": "Purchase",
+    "type": "screen",
+    "category": "Commerce",
+    "summary": "A complete StoreKit 2 purchase: plans load, the purchase runs, success lands, the app unlocks.",
+    "isNew": false
+  },
+  {
+    "id": "detent-sheet",
+    "title": "Nearby",
+    "type": "screen",
+    "category": "Travel",
+    "summary": "A map of places nearby with a Maps-style sheet that scrolls, snaps and hands off to its list.",
+    "isNew": false
+  },
+  {
+    "id": "glass-sheet",
+    "title": "Stay",
+    "type": "screen",
+    "category": "Travel",
+    "summary": "A stay detail screen over full-bleed scenery, with a floating booking card that rises and flicks away.",
+    "isNew": false
+  },
+  {
+    "id": "toast-stack",
+    "title": "Notifications",
+    "type": "screen",
+    "category": "Account",
+    "summary": "An activity feed where new alerts land as a stack of toasts you can fan out and swipe away.",
+    "isNew": false
+  },
+  {
+    "id": "command-palette",
+    "title": "Search",
+    "type": "screen",
+    "category": "Productivity",
+    "summary": "A search screen with recent items and quick actions, and a fuzzy command palette with hold-and-slide to run.",
+    "isNew": false
+  },
+  {
+    "id": "lens-tab-bar",
+    "title": "Lessons",
+    "type": "screen",
+    "category": "Education",
+    "summary": "A language-learning home with a streak, today's goals as color blocks and a floating tab bar whose lens follows your finger.",
+    "isNew": false
+  },
+  {
+    "id": "morph-nav",
+    "title": "Reader",
+    "type": "screen",
+    "category": "Media",
+    "summary": "A long-read article with a serif headline and a floating pill that morphs into a reading toolbar.",
+    "isNew": false
+  },
+  {
+    "id": "code-entry",
+    "title": "Verify",
+    "type": "screen",
+    "category": "Account",
+    "summary": "A sign-in verification screen with springing digits, SMS autofill and a shake on a wrong code.",
+    "isNew": false
+  },
+  {
+    "id": "swipe-to-confirm",
+    "title": "Send Money",
+    "type": "screen",
+    "category": "Finance",
+    "summary": "A transfer review with the recipient, a huge amount and a slide-to-send control that commits with a haptic.",
+    "isNew": false
+  },
+  {
+    "id": "payment-card",
+    "title": "Card Details",
+    "type": "screen",
+    "category": "Finance",
+    "summary": "A card screen with a card that catches the light and flips to its CVV, plus limits and controls.",
+    "isNew": false
+  },
+  {
+    "id": "hero-expand",
+    "title": "Discover",
+    "type": "screen",
+    "category": "Travel",
+    "summary": "A travel discover feed of story cards that expand into full-screen guides and pull back.",
+    "isNew": false
+  },
+  {
+    "id": "ghost-state",
+    "title": "Projects",
+    "type": "screen",
+    "category": "Productivity",
+    "summary": "A projects screen that starts as breathing ghost rows and hands off to your real projects.",
+    "isNew": false
+  },
+  {
+    "id": "prompt-composer",
+    "title": "Ask",
+    "type": "screen",
+    "category": "AI",
+    "summary": "An assistant home with a briefing, suggested prompts and a composer that grows, attaches and records.",
+    "isNew": false
+  },
+  {
+    "id": "streaming-markdown",
+    "title": "Research",
+    "type": "screen",
+    "category": "AI",
+    "summary": "A research answer that writes itself word by word, with sources and a follow-up bar.",
+    "isNew": false
+  },
+  {
+    "id": "tool-execution-card",
+    "title": "Agent Task",
+    "type": "screen",
+    "category": "AI",
+    "summary": "An agent task screen with a live timeline of tool calls, durations and expandable results.",
+    "isNew": false
+  },
+  {
+    "id": "phase-orb",
+    "title": "Breathe",
+    "type": "screen",
+    "category": "Health",
+    "summary": "A guided breathing session around a glass orb with a Siri-style wave inside.",
+    "isNew": false
+  },
+  {
+    "id": "noise-orb",
+    "title": "Mood",
+    "type": "screen",
+    "category": "Health",
+    "summary": "A daily mood check-in around a glass orb with a Siri-style wave inside and a week of moods as bars.",
+    "isNew": false
+  },
+  {
+    "id": "filter-sheet",
+    "title": "Filters",
+    "type": "screen",
+    "category": "Commerce",
+    "summary": "A filter panel with chip groups, a two-handle price range and a result count that recounts as you choose.",
+    "isNew": false
+  },
+  {
+    "id": "product-detail",
+    "title": "Product",
+    "type": "screen",
+    "category": "Commerce",
+    "summary": "A product page whose buy bar docks to the bottom as the hero scrolls away.",
+    "isNew": false
+  },
+  {
+    "id": "order-tracking",
+    "title": "Order",
+    "type": "screen",
+    "category": "Commerce",
+    "summary": "A delivery status timeline that advances live, with a courier card and a counting ETA.",
+    "isNew": false
+  },
+  {
+    "id": "activity-rings",
+    "title": "Workout",
+    "type": "screen",
+    "category": "Health",
+    "summary": "Concentric activity rings that fill on appear, over a week strip you can scrub.",
+    "isNew": false
+  },
+  {
+    "id": "slot-picker",
+    "title": "Booking",
+    "type": "screen",
+    "category": "Productivity",
+    "summary": "A date rail bound to a grid of time slots that reloads for the day you pick.",
+    "isNew": false
+  },
+  {
+    "id": "reorder-list",
+    "title": "Reorder",
+    "type": "screen",
+    "category": "Productivity",
+    "summary": "A list you reorder by dragging: rows lift, the others part, and the drop settles with a spring.",
+    "isNew": false
+  },
+  {
+    "id": "readiness-carousel",
+    "title": "Readiness",
+    "type": "screen",
+    "category": "Health",
+    "summary": "Daily scores on a rail of tilted cards, paged by a half-circle tick dial you turn.",
+    "isNew": false
+  },
+  {
+    "id": "sleep-timeline",
+    "title": "Sleep",
+    "type": "screen",
+    "category": "Health",
+    "summary": "Last night as a stepped stage timeline you scrub, with stage totals as capsule bars.",
+    "isNew": false
+  },
+  {
+    "id": "device-hub",
+    "title": "Home",
+    "type": "screen",
+    "category": "Home",
+    "summary": "A room at the centre, its devices in a ring around it: tap to toggle, swipe to change rooms.",
+    "isNew": false
+  },
+  {
+    "id": "climate-dial",
+    "title": "Climate",
+    "type": "screen",
+    "category": "Home",
+    "summary": "A thermostat knob you turn around a ring of ticks, with modes and the day's schedule.",
+    "isNew": false
+  },
+  {
+    "id": "recipe-tiles",
+    "title": "Recipes",
+    "type": "screen",
+    "category": "Food",
+    "summary": "Drawn category tiles that re-rank with a spring as you pick what you need.",
+    "isNew": false
+  },
+  {
+    "id": "bubble-chart",
+    "title": "Nutrition",
+    "type": "screen",
+    "category": "Food",
+    "summary": "A week in packed bubbles you tap to focus, with a progress figure and capsule bars.",
+    "isNew": false
+  },
+  {
+    "id": "forecast-scrubber",
+    "title": "Forecast",
+    "type": "screen",
+    "category": "Weather",
+    "summary": "A giant tabular reading you scrub hour by hour on a ruled tape, over a ten-day range table.",
+    "isNew": false
+  },
+  {
+    "id": "dot-radar",
+    "title": "Radar",
+    "type": "screen",
+    "category": "Weather",
+    "summary": "A dot-matrix map that plays the next two hours, with a time slider and legend blocks.",
+    "isNew": false
+  },
+  {
+    "id": "training-plan",
+    "title": "Plan",
+    "type": "screen",
+    "category": "Health",
+    "summary": "A training home where the week is drawn as its sessions and the day's session as its rhythm of work and rest.",
+    "isNew": true
+  },
+  {
+    "id": "interval-timer",
+    "title": "Intervals",
+    "type": "screen",
+    "category": "Health",
+    "summary": "Intervals you build on steppers and run full screen in the color of each phase, with the whole workout as a strip you move through.",
+    "isNew": true
+  },
+  {
+    "id": "training-progress",
+    "title": "Progress",
+    "type": "screen",
+    "category": "Health",
+    "summary": "Training progress as a load curve you scrub, personal bests with their climb, and where your work went.",
+    "isNew": true
+  },
+  {
+    "id": "lesson-path",
+    "title": "Path",
+    "type": "screen",
+    "category": "Education",
+    "summary": "A course as a winding path of lessons you press, with units as colored banners, a coach beside you and your streak on top.",
+    "isNew": true
+  },
+  {
+    "id": "sentence-builder",
+    "title": "Practice",
+    "type": "screen",
+    "category": "Education",
+    "summary": "A lesson exercise in chunky word tiles you press into place, with a talking coach, instant feedback and a confetti finish.",
+    "isNew": true
+  },
+  {
+    "id": "passport-stamps",
+    "title": "Passport",
+    "type": "screen",
+    "category": "Education",
+    "summary": "Progress as passport stamps you collect, with your streak, your totals and today's new stamp pressed in.",
+    "isNew": true
+  },
+  {
+    "id": "subscription-app",
+    "title": "Subscription App",
+    "type": "template",
+    "category": "Commerce",
+    "summary": "Cadence, a subscription habit tracker: a complete Xcode project with onboarding, a StoreKit 2 paywall, SwiftData, widgets and three brand presets.",
+    "isNew": false
+  },
+  {
+    "id": "finance-app",
+    "title": "Finance App",
+    "type": "template",
+    "category": "Finance",
+    "summary": "Ledgerly, a personal finance app: a complete Xcode project with cards, budgets, activity, transfers, widgets and three brand presets.",
+    "isNew": false
+  },
+  {
+    "id": "ai-app",
+    "title": "AI Assistant",
+    "type": "template",
+    "category": "AI",
+    "summary": "Nimbus, an AI assistant: a complete Xcode project with streaming chat, a conversation library, voice mode, widgets and three brand presets.",
+    "isNew": false
+  },
+  {
+    "id": "productivity-app",
+    "title": "Productivity App",
+    "type": "template",
+    "category": "Productivity",
+    "summary": "Margin, a workday app: a complete Xcode project with an agenda, focus sessions, notes, insights, widgets and three brand presets.",
+    "isNew": false
+  },
+  {
+    "id": "meditation-app",
+    "title": "Meditation App",
+    "type": "template",
+    "category": "Health",
+    "summary": "Stillwater, a calm wellbeing app: a complete Xcode project with mood check-ins, guided breathing, short courses, a journal, widgets and three brand presets.",
+    "isNew": false
+  },
+  {
+    "id": "travel-app",
+    "title": "Travel App",
+    "type": "template",
+    "category": "Travel",
+    "summary": "Wayfare, a trip planning and booking app: a complete Xcode project with guides, a map of nearby places, day-by-day itineraries, stay booking, widgets and three brand presets.",
+    "isNew": false
+  },
+  {
+    "id": "sleep-app",
+    "title": "Sleep App",
+    "type": "template",
+    "category": "Health",
+    "summary": "Drift, a sleep and recovery companion for a smart ring: a complete Xcode project with pairing, daily readiness, sleep stages, trends, widgets and three brand presets.",
+    "isNew": false
+  },
+  {
+    "id": "home-app",
+    "title": "Smart Home App",
+    "type": "template",
+    "category": "Home",
+    "summary": "Maison, a smart home app: a complete Xcode project with a radial device hub, climate control, rooms and scenes, energy, widgets and three brand presets.",
+    "isNew": false
+  },
+  {
+    "id": "weather-app",
+    "title": "Weather App",
+    "type": "template",
+    "category": "Weather",
+    "summary": "Almanac, a weather app set like a printed page: a complete Xcode project with an hour-by-hour forecast, a dot-matrix radar, saved places, alerts, widgets and three brand presets.",
+    "isNew": false
+  },
+  {
+    "id": "meal-app",
+    "title": "Meal Planner",
+    "type": "template",
+    "category": "Food",
+    "summary": "Sprig, a meal planning app: a complete Xcode project with recipes that fit your pantry, a week plan, a grocery list, nutrition stats, cook mode, widgets and three brand presets.",
+    "isNew": false
+  },
+  {
+    "id": "fitness-app",
+    "title": "Fitness App",
+    "type": "template",
+    "category": "Health",
+    "summary": "Pulse, a training app with rhythm: a complete Xcode project with a weekly plan, full-screen interval sessions, progress, widgets and three brand presets.",
+    "isNew": true
+  },
+  {
+    "id": "language-app",
+    "title": "Language App",
+    "type": "template",
+    "category": "Education",
+    "summary": "Parla, a language course you play: a complete Xcode project with a lesson path, chunky word exercises, a talking coach, passport stamps, streaks, widgets and three brand presets.",
+    "isNew": true
+  }
+]

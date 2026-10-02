@@ -20,7 +20,7 @@ Please give a fix a reasonable window before disclosing publicly. If a report go
 
 Fixes land on `main` and deploy from there. There are no long-lived release branches, and older tags are not patched, so the supported version is whatever `main` currently is.
 
-Pieces are copied into your project rather than installed as a package, so a fix here does not reach code you have already copied. Anything security-relevant in a piece is called out in the [changelog](https://swiftpieces.com/changelog) so you can re-copy it.
+Pieces are copied into your project rather than installed as a package, so a fix here does not reach code you have already copied. Anything security-relevant in a piece is called out in the [changelog](https://swiftpieces.com/docs/changelog) so you can re-copy it.
 
 ## Scope
 

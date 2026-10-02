@@ -9,7 +9,7 @@ type Size = "sm" | "md" | "lg";
 const base = "group inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-[4px] font-semibold select-none transition-[background-color,color,transform,border-color] duration-300 ease-[var(--ease-out)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-40 active:scale-[0.985]";
 const variants: Record<Variant, string> = {
   primary: "btn-solid",
-  secondary: "bg-foreground text-background hover:bg-[#e8e8e8]",
+  secondary: "bg-foreground text-background hover:bg-[var(--button-2-hover)]",
   ghost: "bg-surface-2 text-foreground hover:bg-surface-3",
   outline: "pill bg-transparent text-foreground hover:border-[var(--card-border-hover)] hover:bg-surface-2",
   dark: "btn-dark",
@@ -25,9 +25,13 @@ export function Button({ variant = "primary", size = "md", href, className, chil
   return <button type="button" className={cls} {...rest}>{inner}</button>;
 }
 
-export function Arrow({ className }: { className?: string }) {
+/**
+ * A forward arrow. It slides on its host's hover; with `motion` it plays the animated-icon nudge
+ * instead (globals.css .ai-nudge), like the icons around it.
+ */
+export function Arrow({ className, motion = false }: { className?: string; motion?: boolean }) {
   return (
-    <svg aria-hidden viewBox="0 0 16 16" className={cn("size-4 transition-transform duration-300 ease-out group-hover:translate-x-0.5", className)} fill="none" stroke="currentColor" strokeWidth="1.75">
+    <svg aria-hidden viewBox="0 0 16 16" className={cn("size-4", motion ? "ai ai-nudge overflow-visible" : "transition-transform duration-300 ease-out group-hover:translate-x-0.5", className)} fill="none" stroke="currentColor" strokeWidth="1.75">
       <path d="M3 8h10M9 4l4 4-4 4" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );

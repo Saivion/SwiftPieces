@@ -1,13 +1,19 @@
 // Export entry point, loaded on demand when someone opens Export: the zip writer and the Xcode
 // project template never ship with the builder's first load.
+import { styleSwiftSource } from "../core/theme-swift.js";
 import { generateProject, type GeneratedProject } from "../core/generate.js";
 import type { ComponentRegistry } from "../core/registry.js";
 import type { Project } from "../core/schema.js";
 import { xcodeProjectFiles, type SourceFile } from "./xcode.js";
+import { agentGuide } from "./agents.js";
+import { resolveTheme } from "../core/looks.js";
 import { zip } from "./zip.js";
+
+import { buildGitRepo, XCODE_GITIGNORE, type GitRepo } from "./git.js";
 
 export { zip, crc32 } from "./zip.js";
 export { xcodeProjectFiles } from "./xcode.js";
+export { advertiseRefs, buildGitRepo, uploadPack, XCODE_GITIGNORE, type GitFile, type GitRepo } from "./git.js";
 
 export type PieceRef = { registry: "free" | "pro"; name: string };
 /** Fetches a SwiftPieces component's source files, with install paths such as "SwiftPieces/Controls/X.swift". */
@@ -31,14 +37,17 @@ function notesFor(generated: GeneratedProject): string[] {
   return notes;
 }
 
-export async function exportXcodeProject(project: Project, registry: ComponentRegistry, resolve: SourceResolver): Promise<ExportResult> {
+/** The generated app plus every component source, as Xcode project files rooted at `<App>/`. */
+async function projectFiles(project: Project, registry: ComponentRegistry, resolve: SourceResolver) {
   const generated = generateProject(project, registry);
+  const theme = project.theme ? resolveTheme(project.theme) : null;
   const missing: PieceRef[] = [];
   const pieceFiles = new Map<string, string>();
   await Promise.all(
     generated.pieces.map(async (p) => {
       try {
-        for (const f of await resolve(p)) pieceFiles.set(f.target, f.content);
+        // In a styled app, the components' sources take its fonts and corners too (they become the app's own code).
+        for (const f of await resolve(p)) pieceFiles.set(f.target, theme && f.target.endsWith(".swift") ? styleSwiftSource(f.content, theme) : f.content);
       } catch {
         missing.push(p);
       }
@@ -52,7 +61,32 @@ export async function exportXcodeProject(project: Project, registry: ComponentRe
     ...generated.files,
     ...[...pieceFiles.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([path, content]) => ({ path, content })),
   ];
-  const files = xcodeProjectFiles({ appName: generated.appName, sources, notes });
+  return {
+    generated,
+    missing,
+    files: xcodeProjectFiles({ appName: generated.appName, sources, notes, accent: theme?.accent, agentGuide: agentGuide(project, generated, theme) }),
+  };
+}
+
+/**
+ * The same project as a one-commit Git repository, for "Open in Xcode": Xcode clones it straight
+ * from the site. The repository root holds `<App>.xcodeproj`, the `<App>/` sources, the README and
+ * a .gitignore, which is the layout Xcode expects to open after a clone.
+ */
+export async function xcodeRepo(project: Project, registry: ComponentRegistry, resolve: SourceResolver): Promise<{ repo: GitRepo; generated: GeneratedProject; missing: PieceRef[] }> {
+  const { generated, missing, files } = await projectFiles(project, registry, resolve);
+  const prefix = `${generated.appName}/`;
+  const rooted = files.map((f) => ({ path: f.path.startsWith(prefix) ? f.path.slice(prefix.length) : f.path, content: f.content }));
+  const screens = project.screens.map((s) => s.name).join(", ");
+  const repo = await buildGitRepo([...rooted, { path: ".gitignore", content: XCODE_GITIGNORE }], {
+    message: `${generated.appName}, made with the Swift Pieces playground\n\nScreens: ${screens}`,
+    time: project.updatedAt / 1000,
+  });
+  return { repo, generated, missing };
+}
+
+export async function exportXcodeProject(project: Project, registry: ComponentRegistry, resolve: SourceResolver): Promise<ExportResult> {
+  const { generated, missing, files } = await projectFiles(project, registry, resolve);
   return { generated, files, archive: zip(files), missing };
 }
 

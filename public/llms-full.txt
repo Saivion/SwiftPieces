@@ -1,6 +1,6 @@
 # Swift Pieces: full text
 
-> 55 free SwiftUI components for iOS, one Swift file each, MIT + Commons Clause. Index: https://swiftpieces.com/llms.txt. Source for any piece: https://swiftpieces.com/r/<Name>.json or its docs page.
+> 67 free SwiftUI components for iOS, one Swift file each, MIT + Commons Clause. Index: https://swiftpieces.com/llms.txt. Source for any piece: https://swiftpieces.com/r/<Name>.json or its docs page.
 
 # Components
 
@@ -171,7 +171,7 @@ The mark next to the verb an agent is doing. Copy `ThoughtOrb.metal` alongside t
 
 - Requires `ThoughtOrb.metal` in the same target. The `[[ stitchable ]] thoughtOrbSiriWave` function is looked up through `ShaderLibrary` at runtime. Its helpers live in the `thoughtOrbSiri` namespace, so it can share a target with other orb kernels.
 - The mark has one look: thinking. Four thin sine membranes travel left to right through the equator of a dark glass ball. There are no motion states and no drag; the sphere never scales or pulses, only the wave inside it moves.
-- Colour says what kind of work is happening. Presets: `.siri` for thinking (blue, pink, orange, red over violet), `.searching` (cyan into teal), `.reading` (lavender into indigo) and `.writing` (amber into coral). Build your own with `ThoughtOrb.Palette(bands:ground:crest:rimCool:rimWarm:)`. A change crossfades over 0.8s, instantly under Reduce Motion.
+- Colour says what kind of work is happening. Presets: `.siri` for thinking (blue, pink, orange, red over violet), `.searching` (electric blue, aqua and mint), `.reading` (indigo, lavender and a teal glint) and `.writing` (red, amber, rose and violet). Build your own with `ThoughtOrb.Palette(bands:ground:crest:rimCool:rimWarm:)`. A change crossfades over 0.8s, instantly under Reduce Motion.
 - Drive it from the current step: `ThoughtOrb.Pill(step.title, palette: step.palette)` changes the label with a numeric text transition and crossfades the mark to the step's colour, while the motion keeps thinking. `ThoughtOrb(size: 64)` works at avatar size.
 - `Pill` derives type, padding and dots from `markSize` (0.47x label, 0.2x padding) and scales the whole thing with Dynamic Type through `@ScaledMetric`. The dots run on the clock rather than a repeating animation so they stay in phase however long the pill is up; VoiceOver hears the label with "Thinking" as its value and skips the dots. Reduce Transparency swaps the material for an opaque secondary background.
 - Reduce Motion pauses the wave on a still frame and holds the dots.
@@ -401,6 +401,7 @@ Async action button whose whole lifecycle is one bound `phase`.
 - `title`: Idle label.
 - `phase`: Bound `.idle`, `.loading`, `.success`, `.error(message)` or `.disabled`. The button returns itself to `.idle` after a success hold.
 - `tint`: Overrides the style's fill while idle and loading, with white ink. `nil` uses `style.fill`.
+- `tintInk`: The ink on `tint`, for a tint white doesn't read on (an app's accent and its ink). `nil` is white.
 - `errorTint`: Overrides the style's error fill, with white ink. `nil` uses `style.errorFill`.
 - `successHold`: How long the success state stays before the label expands back.
 - `successTitle`: Text shown beside the check on success, such as "Saved". `nil` keeps the success state a closed circle.
@@ -530,6 +531,46 @@ Settable countdown ring, or a determinate progress ring with the same look.
 - `style`: Ring, track, knob, tick, warning and finish colors plus the numeral size. `.standard` is the house palette with a tangerine ring.
 - `onFinish`: Called once when the ring reaches zero.
 - `progress`: Determinate mode: a 0–1 value with a percent readout and no clock.
+
+## Activity Heatmap (`ActivityHeatmap`)
+
+URL: https://swiftpieces.com/docs/components/data/activity-heatmap
+Category: Data. iOS 17.0+.
+Files: ActivityHeatmap.swift
+Install: npx swiftpieces add ActivityHeatmap
+
+A streak calendar for habit, fitness, study and journaling apps: weeks of days drawn in one Canvas as rounded cells in solid steps from a pale red mix up to pure red, laid out by the locale's first weekday with month labels on their week columns, a light streak numeral that stays alive until midnight beside the longest run and active days, a scrub that lifts the day under your finger with a callout and a haptic tick per day, sideways scrolling that opens on today when the weeks outgrow the width, and VoiceOver that steps day by day or plays the weeks as an audio graph.
+
+A calendar heatmap of daily activity with the current streak, a scrub callout and full VoiceOver support. Columns are weeks, oldest leading and newest trailing, and rows are weekdays in the calendar's order, so Monday-first regions get Monday on top. Each day is one rounded cell: level 0 is an empty field and levels 1 to 4 are solid steps of the accent mixed into the ground, up to the pure accent. Drag sideways across the grid, or press and move, to read any day, and tap to select one; vertical swipes still scroll the screen. When the weeks outgrow the width the grid scrolls sideways and a short hold starts the reading instead. The cells are drawn in one `Canvas` and hit-tested by geometry, so a year of days stays light.
+
+### Notes
+
+- Pass activity keyed by day as `[Date: Double]` or `[Date: Int]`. Each key lands on the day it falls on in the calendar's time zone, so exact timestamps work and several entries on one day add up. Zero, negative and non-finite values count as no activity. If you store days as midnight UTC, pass a calendar whose time zone is UTC.
+- Columns are weeks, oldest leading and newest trailing, and rows are weekdays in the calendar's order: the person's own first weekday by default, so Monday-first regions get Monday on top. Days are stepped from noon, so daylight saving changes and leap days never skip or double a cell. Month labels sit above the first week of each month, and the weekday labels mark Monday, Wednesday and Friday on whichever rows they fall.
+- Level 0 is the empty field. Levels 1 to 4 are solid steps of the accent mixed into the ground (pale on light, deep on dark, further apart with Increase Contrast), up to the pure accent, never transparency. `.automatic` splits the non-zero days in view into quartiles, so one huge day does not wash out the rest and the busiest day always takes the top shade. `.thresholds([1, 3, 6, 10])` sets the minimum for each level; fewer than four spread over the shades, so `.thresholds([1])` draws a done or not done habit in the full accent.
+- The current streak counts back from today and stays alive until midnight while today has nothing yet. It looks back through all of your data, so a streak that began before the first visible week is counted in full; the longest streak and the active days cover the visible weeks. With `.thresholds`, the first value is what counts as active. `ActivityHeatmap.summary(of:)` returns the same figures for a widget or a reminder.
+- Drag sideways across the grid, or press and move, and the day under the finger lifts with a callout (date, value and its shade) and a selection tick for each new day. Vertical swipes that start on the grid still scroll the screen or move a sheet. Tap a day to select it and tap it again to clear it.
+- With a `selection` binding, a scrub moves the selection live and release keeps it; setting it from outside selects that day and scrolls it into view. Without a binding, a scrub shows the callout only while the finger is down, and a tap keeps it.
+- Cells grow to fill the width up to `Style.maximumCellSize`. When the weeks would make them smaller than `Style.minimumCellSize`, the grid scrolls sideways, opens on today and comes to rest on whole weeks; sideways swipes scroll it and a quarter-second hold starts reading instead.
+- Today wears a ring in the text color, and days after the end date are left out. `endDate` shows an earlier range; `nil` (the default) follows today and moves on by itself at midnight or when the time zone changes.
+- The cells fill in with a quick wave once, a day whose value changes pops, and the streak numeral rolls to its new value. Reduce Motion drops the wave, the pop and the lift's spring.
+- VoiceOver reads the heatmap as one adjustable element: "Activity, last 20 weeks. Current streak 12 days. Longest 31 days. Active 86 days." Swipe up or down to move a day (the value reads "Tuesday, September 30, 45 min"), use the Previous week and Next week actions, and the escape gesture clears the selection. It also offers the days as an audio graph. With a hardware keyboard, the up and down arrows move a day and left and right move a week.
+- While your data loads, apply `.redacted(reason: .placeholder)`: the grid keeps its shape in empty cells and the figures redact. With no activity in view the summary reads "No activity yet".
+- Dynamic Type scales the streak, the figures and the labels; the summary stacks at large sizes and the grid labels stop growing before they crowd the rows, while cells keep their size. Right to left, the weeks run from the right, newest on the left.
+- `Style` sets the accent, the ground the shades are mixed into (set it to the surface the heatmap sits on), the empty, text, secondary and callout colors, the cell radius and spacing, the smallest and largest cell, and the numeral size. `Style.fill(level:)` gives the same shades for your own day details. `Messages` replaces any line of built-in copy, and `valueLabel` names your unit, for example minutes formatted as a `Measurement`.
+
+### Parameters
+
+- `counts`: Activity per day, such as sessions, minutes or entries. Each key is placed on the day it falls on in `calendar` (its time zone), so exact timestamps work and several on one day add up. Zero, negative and non-finite values count as no activity. Days outside the visible weeks are ignored, except that a current streak which began earlier is counted in full. `[Date: Int]` works too.
+- `weeks`: How many week columns to show. Defaults to 20. Cells grow to fill the width up to `Style.maximumCellSize`; when they would fall below `Style.minimumCellSize` the grid scrolls sideways and opens on the newest week.
+- `endDate`: The last day shown; later days in its week are left out. `nil` (the default) is today, and the grid moves on by itself at midnight.
+- `calendar`: The calendar for days, weeks and the first weekday. `nil` (the default) uses the environment's calendar, which is the person's own.
+- `levels`: How values map to the four shades. `.automatic` splits the non-zero days in view into quartiles. `.thresholds([1, 3, 6, 10])` sets the minimum for each level, and its first value is also what counts as an active day for streaks.
+- `showsSummary`: Shows the current streak, the longest streak and the number of active days above the grid.
+- `selection`: The selected day, as the start of that day. Tapping a day selects it and tapping it again clears it; with a binding, a scrub moves it live and release keeps it. Without a binding, a scrub shows the callout only while the finger is down. Setting it from outside selects that day and scrolls it into view.
+- `messages`: Built-in copy. Defaults are localizable through your String Catalog; replace any line, for example `title` with "Workouts".
+- `style`: Colors and cell metrics. Defaults to the Swift Pieces house palette with a red accent, adapting to light and dark.
+- `valueLabel`: How a day's value reads in the callout and to VoiceOver, for example minutes formatted as a `Measurement`. Defaults to the plain number. Days with no activity read `messages.noActivity`.
 
 ## Live Stat (`LiveStat`)
 
@@ -891,6 +932,46 @@ Liquid Glass on iOS 26, a layered Material surface everywhere else, with the sam
 - `interactive`: Press response: system glass on iOS 26; on the fallback the surface scales to `style.pressedScale`, brightens and plays a light impact.
 - `style`: Fallback tint strength, specular edge, depth shadow, press scale, disabled opacity and the Reduce Transparency fill.
 
+## Address Field (`AddressField`)
+
+URL: https://swiftpieces.com/docs/components/inputs/address-field
+Category: Inputs. iOS 17.0+.
+Files: AddressField.swift
+Install: npx swiftpieces add AddressField
+
+An address field for checkout, delivery and sign-up that lists type-ahead suggestions under a soft 56pt block with the matched text in bold, picks one with a tap or the hardware keyboard, shows a spinner on the chosen row while it resolves into a structured address with street, city, state, postal code, country and coordinate, then settles into the field with the locality on a second line and a sage check, keeping the typed text usable with a "Use as typed" row and an inline retry when a lookup fails.
+
+Address entry with type-ahead suggestions that resolve to a structured, verified address. Typing searches after a short pause (three characters or more). Each new keystroke cancels the search in flight, so a slow answer for an older query never replaces a newer one. Picking a suggestion looks up the full address; when it arrives, `address` is set, `text` becomes the address's first line (usually the street) and the locality shows under it. Editing the text again clears `address`. Location permission is never requested: suggestions come from the query alone, optionally biased by `region`. ```swift @State private var query = "" @State private var address: AddressField.Address? AddressField("Delivery address", text: $query, address: $address, countries: ["US", "CA"]) ```
+
+### Notes
+
+- Typing searches once the trimmed text is three characters or more, after a 250ms pause. The search runs in a task keyed on the text, so every keystroke cancels the one in flight: a slow answer for an older query can never replace a newer list. Earlier suggestions stay on screen while the next ones load, with a small spinner in the field instead of a flicker.
+- Suggestions come from `MKLocalSearchCompleter` with `resultTypes = .address`, at most five, the matched runs in bold and the locality on a second line. Picking one runs an `MKLocalSearch` for that completion, with a spinner on the chosen row and the other rows dimmed. Picking another row, editing the text or leaving the screen cancels the lookup, and a late answer is ignored.
+- Once resolved, `address` holds the street, city, state, postal code, country, ISO country code, coordinate and a single line formatted for the address's own country. `text` becomes the first line (usually the street), the rest shows under it in the field and a sage check appears. `mailingLines` gives the label lines in the country's postal order.
+- Editing the text clears `address`. Setting `address` from outside (a saved address) fills the field without searching; setting `text` and `address` together is not treated as an edit.
+- A failed lookup stays on its row in red with a Retry pill; a failed suggestion request shows "Couldn't load suggestions" with Retry. No matches is a quiet line. In each of these cases a "Use as typed" row sets an address with `isVerified == false` holding only the typed text. Turn it off with `allowsUnverified: false`.
+- `countries: ["US", "CA"]` leaves out suggestions whose last line names another country, and a picked address outside the list shows "Choose an address in United States" on its row instead of being set. `region` biases suggestions toward an area. Location permission is never requested.
+- iOS 26 moves map items to `MKAddress`, which has no separate street or postal code, and deprecates `MKPlacemark`. On iOS 17 to 25 the parts come from the placemark; on iOS 26 from the item's placemark read dynamically (so the file builds without deprecation warnings), with `MKAddressRepresentations` for the formatted line, city and country as the fallback.
+- `source:` swaps MapKit for your own backend, or a fixed list for previews and tests. Both calls are cancelled when their result is no longer wanted.
+- Hardware keyboard: up and down arrows move the highlight, Return picks the highlighted row (or the top one), Escape closes the list. A long street wraps up to three lines. A pasted multi-line address is joined with commas.
+- The list sits inline under the field and pushes content down, so it scrolls with a form and never clips inside a scroll view. Leaving the field hides it; coming back shows it again.
+- VoiceOver: the field's hint says whether the address is verified; the suggestion count ("5 suggestions", inflected), "Finding address", the result and any error are announced; rows are buttons read as title and locality with the selected trait when highlighted.
+- Haptics: a soft impact on pick, success when the address resolves, error when a lookup fails, selection ticks for arrow-key moves. Nothing per keystroke.
+- Dynamic Type: rows and the field grow and wrap; at accessibility sizes the leading glyphs step aside so titles get the width.
+- `Style` sets the field, label, secondary label, focus ring, row highlight, success, error and ink colors, the corner radius and the minimum height.
+- Reduce Motion: the list, check and rows fade instead of sliding and scaling.
+
+### Parameters
+
+- `label`: The placeholder shown while the field is empty, and its accessibility label.
+- `text`: Bound text. Set by typing, and to the address's first line once a suggestion resolves.
+- `address`: The resolved address, or `nil` while there is none. Setting it from outside (a saved address) fills the field and skips searching. Editing the text sets it back to `nil`.
+- `region`: Biases suggestions toward an area, such as the city a store delivers in. `nil` searches everywhere, starting with the device's region.
+- `source`: Where suggestions and addresses come from. `nil` (the default) uses MapKit. Pass your own for a geocoding backend, previews or tests.
+- `countries`: ISO 3166 country codes that are accepted, such as `["US", "CA"]`. Suggestions clearly in another country are left out, and a picked address outside the list shows an inline error instead of being set. Empty accepts every country.
+- `allowsUnverified`: When `true`, a "Use as typed" row appears when there are no matches or a lookup fails, and picking it sets an address with `isVerified == false` holding only the typed text.
+- `style`: Colors and field metrics. Defaults to the Swift Pieces house palette, adapting to light and dark.
+
 ## Amount Field (`AmountField`)
 
 URL: https://swiftpieces.com/docs/components/inputs/amount-field
@@ -1072,6 +1153,47 @@ Text field with a floating label, help and error text, a character limit and a c
 - `onSubmit`: Called when Return is pressed in a one-line field. Move focus to the next field here.
 - `style`: Colors and field metrics. Defaults to the Swift Pieces house palette, adapting to light and dark.
 
+## Location Picker (`LocationPicker`)
+
+URL: https://swiftpieces.com/docs/components/inputs/location-picker
+Category: Inputs. iOS 17.0+.
+Files: LocationPicker.swift
+Install: npx swiftpieces add LocationPicker
+
+A map picker for delivery, rides, events and listings: drag the map under a fixed red pin that lifts while the map moves and drops with a small bounce when it settles, the address under it is looked up after a short pause with stale answers cancelled and recent ones cached, a floating card shows the street and locality (a dropped pin with coordinates where there is no address, Retry when the lookup fails), the locate button asks for location only when tapped and flies to you, and Confirm hands back the coordinate with its address.
+
+A map you drag under a fixed pin to choose an exact spot, with the address of wherever the pin lands. The pin stays in the middle of the visible map. While the map moves it lifts and its shadow spreads; when the map settles it drops with a small bounce, `selection` is set to the coordinate, and the address is looked up after a short pause. A newer settle cancels the lookup in flight, so an address never lands on the wrong spot, and recent answers are cached by position (about 5 m), so nudging back costs no request. Location permission is only requested when the locate button is tapped. ```swift @State private var place: LocationPicker.Place? LocationPicker(selection: $place, initialCenter: store.coordinate) { place in order.dropOff = place } ```
+
+### Notes
+
+- The picker takes the size it is given, at least 320 pt tall: full screen, in a sheet, or `.frame(height: 340).clipShape(.rect(cornerRadius: 26))` inside a form. Bind `selection`, and pass `onConfirm` for the Confirm button. Add `NSLocationWhenInUseUsageDescription` to your Info.plist for the locate button. Full screen, the map already runs under the status bar and the home indicator while the card and the locate button stay clear of them, so leave out `.ignoresSafeArea()`, which would push both under the system bars.
+- The pin stays in the middle of the map the card leaves visible. While the map moves it lifts 12 pt, its shadow spreads and a small mark stays on the exact spot; when the map settles it drops with a small bounce and a light tap. Only a real change of the spot under the pin lifts it, so the camera reports MapKit sends on appear, on rotation and on resize do nothing.
+- `selection` is set when the pin settles (coordinate only) and again when the address arrives. Its coordinate is always where the pin points; the address is the nearest one found. Setting `selection` from outside, a search result or a saved place, moves the map there, and a place that already has an address is shown without a lookup.
+- The address is looked up 300 ms after the map settles. A new settle, or leaving the screen, cancels the lookup in flight and its request, and an answer for a spot that is no longer under the pin is dropped. Answers are cached per picker by position rounded to about 5 m (the 40 most recent), so nudging back to a known spot sends nothing, which also keeps clear of the geocoder's rate limit.
+- iOS 26 uses `MKReverseGeocodingRequest`, reading the street and postal code from the map item's placemark (dynamically, as Address Field does) with `MKAddressRepresentations` as the fallback. iOS 17 to 25 uses `CLGeocoder`, kept in a deprecated function that only runs below iOS 26, so the file builds without warnings on both.
+- The card has one state per moment: the last address dimmed with "Locating…" while the map moves, loading lines while the address is on its way, street and locality once found, "Dropped pin" with the coordinates where there is no address (open water), and "Couldn't find the address" with the coordinates and Retry when the lookup fails (offline, throttled). Every state keeps the same two lines, and the map's center only moves when the card grows, so nothing jumps as the text changes.
+- Confirm is a red capsule. While the map moves its label dims and it is disabled. Tapped while the address is on its way, it spins and waits for it (up to four seconds), then hands over the place; after a failed lookup it hands over the coordinate alone. Return confirms with a hardware keyboard. Leave out `onConfirm` to hide it and read `selection` yourself.
+- The locate button asks for When In Use permission on its first tap, never on appear. It spins while finding you, flies the camera to you, and fills in once the pin sits on you; a fix from the last minute is used at once. With approximate location the map shows the area the fix covers instead of a street. When access is denied the arrow is slashed and a tap explains and offers Settings; when it is restricted a tap explains. Dragging works the same without permission.
+- Where the map starts: the place in `selection`, else `initialCenter`, else the person's location when the app already has permission, else central Lisbon.
+- MapKit's logo and legal notice stay visible above the card: the card insets the map's safe area, which is also where MapKit puts the camera's center.
+- VoiceOver: the address readout is one element, "Selected location", with the address, "Dropped pin" and the coordinates, "Locating" or "Finding the address" as its value. Its actions move the map a quarter of the visible span north, south, east or west, zoom in and out, use your location and retry. After the map settles from a move the new address is announced. The pin is decorative and hidden; the locate button reads its state.
+- Haptics: a light tap when the pin drops, success when Confirm hands over the place, a selection tick on Retry, and an error when Retry or locating fails. Nothing while panning, and nothing for a lookup that fails on its own.
+- Dynamic Type: the card's text grows and wraps up to accessibility sizes, Retry moves under the text, Confirm stays full width, and the locate button grows up to 64 pt. Right to left, the card mirrors and the locate button sits top left; the map is never mirrored.
+- Reduce Motion: the pin dims instead of lifting, the camera jumps instead of flying, the loading lines hold still, and buttons dim instead of dipping when pressed.
+- The map pans and zooms but doesn't rotate or tilt, so north stays up. A drag that starts on the map pans it, inside a `ScrollView` or a `Form` too; in a sheet, the grabber still dismisses.
+- `Style` sets the card surface, label, secondary label, field, the pin and its ink, Confirm and its ink, the card's corner radius, points of interest (off by default, so the streets and the pin read first) and the muted map (on by default). `Messages` replaces any line, for example `confirm: "Deliver here"`. `Geocoder` swaps MapKit for your own backend, or a fixed answer for previews and tests.
+
+### Parameters
+
+- `selection`: The picked place. Set when the pin settles (coordinate only) and again when its address arrives. Setting it from outside moves the map there; a place that already has an address is shown without a lookup.
+- `initialCenter`: Where the map starts when `selection` is `nil`. `nil` starts at the person's location when the app already has permission, otherwise in central Lisbon.
+- `span`: How much map shows around the pin at first, in meters across. Defaults to 500, street level.
+- `showsLocationButton`: Shows the locate button in the top trailing corner. It asks for When In Use permission on its first tap, never before.
+- `geocoder`: Where addresses come from. `.mapKit` (the default) uses `MKReverseGeocodingRequest` on iOS 26 and the system geocoder before it. Pass your own for a backend, previews or tests.
+- `messages`: The card's copy. Defaults are localizable through your String Catalog; replace any line, for example `confirm` with "Deliver here".
+- `style`: Colors, the card's corner radius and the map's look. Defaults to the Swift Pieces house palette, adapting to light and dark, with the red pin and Confirm.
+- `onConfirm`: Called with the place when Confirm is tapped. Tapped while the address is still on its way, Confirm waits for it (up to four seconds) and then hands over what it has. `nil` hides the button, for pickers inside your own form.
+
 ## Range Slider (`RangeSlider`)
 
 URL: https://swiftpieces.com/docs/components/inputs/range-slider
@@ -1170,6 +1292,41 @@ Password field with strength meter, live requirements, and inline error.
 - `showsRequirements`: Show the 8+ / number / symbol / mixed-case chips while focused or filled; they collapse once all four pass and a check appears in the field.
 - `style`: Colors and field metrics. Defaults to the Swift Pieces house palette, adapting to light and dark.
 
+## Signature Pad (`SignaturePad`)
+
+URL: https://swiftpieces.com/docs/components/inputs/signature-pad
+Category: Inputs. iOS 17.0+.
+Files: SignaturePad.swift
+Install: npx swiftpieces add SignaturePad
+
+A signature field that lays smooth, velocity-weighted ink into a Canvas as the finger moves, thinning on quick flicks and pooling on slow turns, over a baseline whose Sign here hint fades on the first stroke, with Undo, Clear and Undo after Clear, a Type instead mode that sets the typed name in a script face on the same line, strokes that rescale with the pad on rotation, and export to a transparent PNG or a vector PDF.
+
+Signature capture that feels like ink, bound to a `SignaturePad.Signature` value you own. Strokes are smoothed through midpoint quadratics and weighted by speed (fast strokes run thin, slow turns run full), drawn in a `Canvas` one layer per stroke so finished strokes never redraw while you sign. Points are stored in the pad's coordinate space together with the pad size they were captured at, so the signature rescales with the pad on rotation and exports at any size. A drag that starts in the pad draws and never scrolls an enclosing `ScrollView`; a drag that starts outside still scrolls. ```swift @State private var signature = SignaturePad.Signature() SignaturePad(signature: $signature) Button("Confirm delivery") { upload(signature.pngData(size: CGSize(width: 600, height: 200))) } .disabled(signature.isEmpty) ```
+
+### Notes
+
+- Ink is weighted by speed, the way a pen behaves: each sample's width falls from `Style.lineWidth` toward about 40% of it as the finger speeds up, eased over 35 ms so strokes swell and thin smoothly. The line runs through the midpoints of the touch samples as quadratic curves, cut into short pieces whose widths interpolate, so there are no corners or width steps, and long gaps from very fast strokes are bridged by the same curves.
+- Each stroke is its own `Canvas` layer, grouped into a few paths by width. Finished strokes never redraw while you sign, so long signatures stay smooth.
+- A tap draws a dot. `isEmpty` stays `true` until there is at least `Signature.minimumInk` of ink (12% of the pad width, about 40pt on a phone) or a typed name, so a stray tap or speck never enables your submit button. `strokes.isEmpty` tells you whether anything is on the pad at all, and `inkLength` lets you set a stricter rule.
+- Points are stored in the pad's coordinates together with the pad size they were captured at (`canvasSize`). When the pad changes size (rotation, split view, a different `Style.height`) the signature scales uniformly, anchored to the bottom and the leading edge so it stays on the line next to the cross. Strokes added after a resize join the same space.
+- Undo removes the last stroke with a short fade and a rigid tick. Clear fades out the whole signature with a medium tick, and Undo right after Clear brings it all back until anything else changes. A soft tick marks the first touch of each stroke. With a hardware keyboard, Command-Z undoes and Command-Delete clears.
+- The "Sign here" hint fades and drops a few points on the first touch. Reduce Motion keeps the fade and drops the movement.
+- A drag that starts in the pad draws from the first touch and never scrolls an enclosing `ScrollView` or `Form`; a drag that starts outside the pad scrolls as usual. If the system cancels a touch (a call, a presented sheet), the stroke so far is kept.
+- Type instead turns the line into a text field set in a script face (Snell Roundhand, a system font, so nothing is bundled). The name sits on the same baseline and shrinks to fit when it is long. Scripts the face lacks fall back to the system font. Drawn strokes are kept while typing, so Draw instead brings them back; while `typedName` is non-nil it is the signature for `isEmpty` and export.
+- Export: `image(size:scale:ink:lineWidth:trimmed:)` and `pngData` give a transparent PNG, and `pdfData` gives a one-page vector PDF. `trimmed` (the default) crops to the ink so the signature fills the image; `false` keeps the whole pad area with the signature where it sat. Ink defaults to black, whatever the on-screen appearance. A typed signature exports in the same script face. Both can be called off the main actor.
+- `Signature` is `Codable` and `Equatable`, so a draft can be saved and restored, and `.onChange(of:)` sees every stroke.
+- VoiceOver: the pad reads "Signature" with a value of Empty, Too short to count as a signature, or Signed. Double-tapping lets a VoiceOver user draw directly on it (direct touch), and the pad offers Type your name instead, Undo and Clear as actions. Undo, Clear and restores are announced. The typed field reads "Signature, typed name".
+- Dynamic Type: the controls under the pad scale and stack when they no longer fit on one line. The hint grows up to accessibility sizes and shrinks to fit under the line; the cross and baseline keep a fixed position so they stay aligned with stored strokes.
+- `allowsTyping: false` removes Type instead. It is the accessible path for people who cannot draw a signature, so turn it off only when your flow offers another way to sign.
+- `Style` sets the pad, ink, label and secondary colors, ink weight, corner radius and pad height (`nil` fills the height offered, for a full-screen signing sheet). `.disabled(true)` dims the pad and stops drawing.
+
+### Parameters
+
+- `signature`: The bound signature. Drawn strokes, or a typed name when the person chose Type instead. `isEmpty` stays `true` until there is a typed name or enough ink to count (a stray dot or speck does not), so it is the right check for enabling a submit button. Setting it from outside redraws the pad; a stroke removed from outside inside `withAnimation` fades out.
+- `prompt`: The hint under the baseline, shown until the first stroke. Defaults to "Sign here".
+- `allowsTyping`: Offers Type instead, which sets the typed name in a script face on the same baseline. This is the accessible path for people who cannot draw a signature (VoiceOver, motor impairments), so turn it off only when your flow offers another way to sign.
+- `style`: Colors, ink weight, corner radius and pad height. Defaults to the Swift Pieces house palette, adapting to light and dark.
+
 ## Token Field (`TokenField`)
 
 URL: https://swiftpieces.com/docs/components/inputs/token-field
@@ -1238,6 +1395,76 @@ Centered paging carousel with depth recession, per-page parallax phase, and a pr
 - `selection`: Optional binding to the centered element's id, for reading the page or moving programmatically.
 - `style`: Depth amounts, indicator colors and whether the page counter shows. Defaults to the house palette.
 - `content`: Builds one page from an element and its phase: 0 at center, -1 one page toward the leading edge, 1 toward the trailing edge. Use it for inner parallax, for example `.offset(x: phase * 24)` on a shape inside a clipped card.
+
+## Drag Select Grid (`DragSelectGrid`)
+
+URL: https://swiftpieces.com/docs/components/lists/drag-select-grid
+Category: Lists. iOS 17.0+.
+Files: DragSelectGrid.swift
+Install: npx swiftpieces add DragSelectGrid
+
+A multi-select photo and file grid where one drag paints a whole reading-order range the way the system photo library does, a sideways drag or a short hold starts painting while vertical swipes still scroll, dragging back unpaints, starting on a selected item deselects, the grid auto-scrolls faster the deeper the finger sits in the top or bottom edge, and selected cells inset under a check badge with a haptic tick per item.
+
+A scrolling grid of `Identifiable` items with drag-to-select: photos, files, attachments, media. In selection mode a sideways drag (or a short hold, then any direction) paints every item from the first one touched to the one under the finger, in reading order. Dragging back unpaints. Starting on a selected item deselects instead. A vertical swipe still scrolls, and holding the finger near the top or bottom edge scrolls the grid while painting. Tap toggles one item.
+
+### Notes
+
+- In selection mode, a drag that starts mostly sideways (within about 40 degrees of horizontal) paints. So does a short hold (0.25s) followed by a drag in any direction, which is how you paint straight down a column. Anything steeper than 40 degrees without a hold scrolls, the same as any grid.
+- Painting covers the reading-order range from the first item touched to the one under the finger, like the system photo library. Dragging back shrinks the range and each item returns to what it was before the drag. Starting on a selected item deselects the range instead.
+- Hold the finger in the top or bottom band (72pt by default) and the grid auto-scrolls while you paint. Speed grows linearly with depth into the band, up to 1200pt a second at the edge, and rows scrolled into view keep painting under a still finger.
+- A tap toggles one item. Outside selection mode taps reach your cell content (buttons, links), and with `longPressToSelect` a 0.45s hold turns selection mode on, selects that item and keeps painting. Pass `false` if your cells have their own context menu.
+- The gesture is a small UIKit recognizer the grid installs on its own scroll view. It decides between painting and scrolling within the first 8 points of movement, and the grid's scroll view (and any scroll view around it, such as a screen-level `ScrollView`) waits for that decision, so a paint never scrolls and a scroll never paints.
+- Columns are as many as fit at `minimumCellWidth`, so the grid adapts to rotation, iPad and split view. Selection is kept by ID across column changes. Items are hit-tested from the grid's geometry, not from cell frames, so painting works through rows a lazy grid has not built yet.
+- When items disappear, their IDs drop out of `selection`, and a drag in progress ends. Turning `isSelecting` off keeps `selection`; clear it yourself if your design does.
+- Selected cells inset (`selectedScale`, 0.86) under a check badge in the bottom trailing corner. In selection mode unselected cells show an empty ring, so it is clear they can be picked. The badge scales with Dynamic Type up to 34pt, and never past a third of the cell.
+- Haptics: a soft impact when a paint starts, a selection tick per item crossed (at most about 22 a second, so fast drags and auto-scroll do not buzz), and a selection tick on tap.
+- VoiceOver: each cell is one element with your content's label and the selected trait. In selection mode it is a button that toggles on double-tap. Every cell has a Select or Deselect action, and Select also turns selection mode on, so everything painting does is reachable without it. After a paint, the new count is announced.
+- Right-to-left layouts mirror the grid; painting follows the mirrored reading order.
+- Reduce Motion: the inset and the check badge change with a short fade instead of a spring. Auto-scroll still runs, since it is driven by the finger.
+- `.disabled(true)` turns off painting, taps and the hold. `Style` sets spacing, corner radius, the selected inset, badge, check and ring colors, the auto-scroll band and speed.
+
+### Parameters
+
+- `items`: The items, in reading order. When items disappear, their IDs are dropped from `selection`.
+- `selection`: The selected IDs. Painting and taps write here; set it yourself for Select All or Clear.
+- `isSelecting`: Selection mode. While `false`, cells behave like your content (taps reach your buttons and links) and painting is off. Turning it off keeps `selection`; clear it yourself if you want to.
+- `minimumCellWidth`: The narrowest a cell may be. The column count is the most that fit at this width, so it adapts to rotation, iPad and split view.
+- `aspectRatio`: Cell width divided by height. `1` is square; `0.75` suits portrait posters or documents.
+- `longPressToSelect`: When `true`, holding a cell outside selection mode turns selection mode on, selects that cell and keeps painting as the finger moves. Pass `false` if your cells have their own context menu.
+- `style`: Spacing, corner radius, the selected inset, badge colors and auto-scroll tuning. Defaults to the Swift Pieces house palette.
+- `cell`: Builds a cell's content from the item and whether it is selected. It fills the cell and is clipped to the cell's rounded shape; the grid draws the badge and inset.
+
+## Follow Scroll (`FollowScroll`)
+
+URL: https://swiftpieces.com/docs/components/lists/follow-scroll
+Category: Lists. iOS 17.0+. Liquid Glass on iOS 26 with a Material fallback.
+Files: FollowScroll.swift
+Install: npx swiftpieces add FollowScroll
+
+A chat, log and live-feed scroll container that opens on the newest item and stays pinned to it while the reader is at the bottom, but never yanks them away once they scroll up to read; items that arrive below are counted into a floating Liquid Glass pill that jumps back to the latest, older items loaded at the top keep the visible row exactly where it was, and keyboard, rotation, growing rows and removals all hold the reader's place.
+
+Colors and metrics for `FollowScroll`. `.standard` is the house palette.
+
+### Notes
+
+- Opens on the newest item and, while the reader is within `followThreshold` (48pt) of the bottom, scrolls each new item into view with a short smooth scroll. Many items arriving in one update scroll once.
+- Once the reader scrolls up, new items never move the content. They are counted into a floating pill at the bottom, such as "3 new", with a red dot and a down arrow. Tapping it (or ⌘↓ on a hardware keyboard) jumps to the latest and clears the count; scrolling back down by hand clears it too. Items removed before they are seen drop out of the count.
+- More than most of a screen above the latest with nothing new, the pill shows as a compact round jump button. Turn it off with `Style(showsJumpButton: false)`.
+- `alwaysFollow` jumps to the bottom for chosen items even when scrolled up. Pass `\.isMine` so the reader's own sent message always comes into view.
+- `onReachTop` loads older items when the reader nears the top (within about three quarters of a screen). Prepend them to `items` before it returns: the rows on screen stay exactly where they are, including when the reader is resting on the very top edge. A small spinner floats at the top while it runs. It never runs twice at once, it runs again while a short list still reaches the top, and a call that adds nothing is not repeated until the reader scrolls away and back, so an exhausted history or a failed request never loops.
+- Stays pinned to the bottom when the container changes size while following: the keyboard (for a composer in `safeAreaInset(edge: .bottom)`), rotation, or the last row growing as text streams into it. Scrolled up, the reader's place holds through all of these.
+- Replacing the whole array (another conversation, a new filter) starts again at the latest with the count cleared. Removing the newest items is not treated as a reset.
+- Only a scroll by the reader leaves the bottom: rows inserted above, lazy rows re-measuring and resizes never do. On iOS 18 and later a finger on the content also holds back any automatic scroll until the gesture ends.
+- `isFollowing` (optional binding) reflects whether the view is pinned, for a "Live" badge or a toolbar button; set it to `true` to jump to the latest.
+- `empty` is shown centered while there are no items. Rows are laid out in a `LazyVStack`, so long threads and logs stay cheap.
+- Tracking: iOS 18 and later read `onScrollGeometryChange` and `onScrollPhaseChange`; iOS 17 measures the content in the scroll view's coordinate space. Both feed the same logic, and position is held through `scrollPosition(id:anchor:)` on the bottom-most row.
+- Pill: Liquid Glass on iOS 26 (`glassEffect(.regular.interactive())`), a material with a soft shadow earlier, and a solid surface under Reduce Transparency.
+- VoiceOver: the pill is a button read as its label ("3 new") with the hint "Jump to latest"; the scroll view offers a "Jump to latest" action while scrolled up; new items that arrive while scrolled up are announced once per burst with the final count.
+- Localization: `newItemLabel` gives the pill text and the announcement. The default is a localized "3 new" through `String(localized:)`; add plural variants in your String Catalog, or pass your own. The pill mirrors in right-to-left layouts.
+- Dynamic Type: the pill and its dot scale, the label wraps to two lines at the largest sizes, and the hit area never drops below 44pt.
+- Reduce Motion: jumps are instant instead of scrolling, and the pill fades rather than scaling in.
+- Haptics: a light tap when the pill first appears with news, and a soft one when you jump. Nothing fires for each new item.
+- `Style` sets the pill's label, signal dot and ink, the Reduce Transparency surface, the spinner color, row spacing, horizontal and vertical padding, the follow threshold and whether the compact jump button shows.
 
 ## Paged List (`PagedList`)
 
@@ -1320,7 +1547,7 @@ Row with swipe-to-reveal actions that works in a plain `VStack` or `ScrollView`,
 - `id`: Identity used with `open`. Defaults to a private id, which still lets a parent close the row.
 - `leading`: Actions revealed by swiping right. The first one sits at the edge and fires on a full swipe.
 - `trailing`: Actions revealed by swiping left. The first one sits at the edge and fires on a full swipe.
-- `background`: Opaque surface of the row card, which covers the tiles when closed. `nil` uses `style.surface`.
+- `background`: Surface of the row card. `nil` uses `style.surface`. `.clear` suits a list that draws its own surface: tiles only appear in the gap the row opens, and a clear row drops its lift shadow.
 - `open`: Shared binding to the id of the open row. Swiping a row stores its id here and closes every other row bound to it; set it to `nil` to close all, or to a row id to reveal that row's trailing actions.
 - `style`: Card surface, corner radius, tile ink, tile width and gap. Defaults to the house palette.
 - `content`: Row content.
@@ -1359,6 +1586,124 @@ Interactive task row for to-do lists, driven by a bound `Status`.
 - `onSnooze`: Adds a Snooze block behind a left swipe and is called when it is chosen.
 - `onDelete`: Adds a Delete block behind a left swipe and is called when it is chosen.
 - `onMove`: Enables long-press lift and reports how many rows the user dragged it (negative is up) on release.
+
+## Attachment Tray (`AttachmentTray`)
+
+URL: https://swiftpieces.com/docs/components/media/attachment-tray
+Category: Media. iOS 17.0+.
+Files: AttachmentTray.swift
+Install: npx swiftpieces add AttachmentTray
+
+A horizontal attachment strip for composers, support forms and listings: an add tile opens the photo picker with the remaining limit, each pick lands as its own tile that loads with a live progress ring, downsamples off the main thread into a crisp thumbnail and settles in with a spring, failures turn into a retry tile, the remove badge cancels an in-flight load, duplicates and over-limit picks are caught, and the caller owns every attachment for upload.
+
+A strip of photo and video attachments with an add tile, per-item loading, retry, remove and a limit. The caller owns the attachments. Picks from the built-in add tile are appended for you; anything else (a camera capture, a paste, a drop, a draft restored from disk, your own picker) is added by appending an ``Attachment`` to the binding, and the tray runs the same loading pipeline for it.
+
+### Notes
+
+- You own the attachments through a `@Binding [AttachmentTray.Attachment]`. Picks from the add tile are appended for you; the tray writes load progress, the thumbnail and the payload back by id, and removes an attachment when its badge is tapped.
+- Anything else goes through the same pipeline by appending an attachment: `Attachment(image:)` for a camera capture or paste, `Attachment(data:)` for a drop or a saved draft, `Attachment(fileURL:)` for a file, `Attachment(item:)` for your own `PhotosPicker`, and `Attachment { progress in ... }` for your own download. For drops, add `.dropDestination(for: Data.self) { items, _ in attachments += items.map { .init(data: $0) }; return true }`.
+- Each tile goes loading, then loaded or failed. The ring spins until the source reports progress (an iCloud download, or your loader setting `totalUnitCount` and `completedUnitCount` on the `Progress` it is given), then fills. Failed tiles show a red Retry disc; tapping it, or calling `attachments[i].retry()`, loads again.
+- Thumbnails are cut with ImageIO on a background task at the largest tile size times the screen scale, with orientation applied. The full-size image is never decoded, so a 48 MP photo costs a few hundred kilobytes, not a hundred megabytes. A text size change never triggers a reload.
+- Picked images keep their original bytes in `data` (HEIC stays HEIC, nothing is transcoded). `jpegData(maxPixelSize:compressionQuality:)` gives an upload-ready JPEG, downsampled, with location and other metadata removed.
+- Videos (with `matching: .videos` or `.any(of: [.images, .videos])`) are copied to the temporary directory, never loaded into memory. `fileURL` points at the copy, the tile shows a poster frame and a duration badge, and `duration` is set. Delete the copy after upload if you need the space sooner than the system does.
+- Removing a tile cancels its load, including the photo library transfer. A load that finishes after its tile was removed, or after a newer attempt started, is dropped.
+- The picker only allows the remaining count. Photos already in the tray (matched by library identifier, also within one pick) are skipped and their tile pulses into view. Anything past the limit is left out with a warning haptic and one announcement. At the limit the add tile shows "6/6" and disables.
+- Set `uploadProgress` on an attachment to show your upload: the tile dims under a ring while below 1 and shows a check once it reaches 1.
+- Empty, the add tile is wide and shows the title with "Up to 6". With attachments it shrinks to a square with the count. New tiles spring in and the strip scrolls to them; removed tiles shrink away.
+- Loaded tiles call `onSelect` when tapped, for example to open a full-screen viewer. Every tile has a context menu with Remove (and Retry when failed).
+- VoiceOver: each tile is one element read as "Photo 2 of 4" with a value such as "Loading, 40%", "Couldn't load", "Uploading, 62%" or "Loaded", and Remove and Retry actions. The add tile reads its title and "3 remaining" or "Limit reached". Adds, skipped picks, removals and failures are announced once, and "All attachments loaded" when the last load finishes.
+- Haptics: a soft impact when picks land, a rigid impact on remove, a warning for skipped picks, an error when a load fails, a selection tick on retry.
+- Dynamic Type grows tiles up to 1.5 times `Style.tileSize`; text inside tiles stops growing at the same point so it never outgrows its tile. Right to left, the add tile leads from the right and badges sit top left; thumbnails are never mirrored.
+- Reduce Motion: tiles fade instead of scaling, presses dim instead of dipping, and the spinner is the system indicator.
+- Horizontal inset: apply `.contentMargins(.horizontal, 20, for: .scrollContent)` to the tray so tiles line up with your content and still scroll to the screen edge.
+- `Style` sets the tile, label, secondary, badge, signal and uploaded colors, the corner radius, tile size and spacing. `.disabled(true)` dims the add tile and hides the remove badges.
+
+### Parameters
+
+- `title`: Label of the add tile while the tray is empty, and its VoiceOver label. Once there are attachments the tile shrinks to a square showing the count.
+- `attachments`: Bound attachments, in display order. The tray appends picks, writes load progress, thumbnails and payloads back by id, and removes an attachment when its remove badge is tapped. Loads for attachments you remove are cancelled and their results ignored.
+- `limit`: Most attachments the tray lets people pick (at least 1). The picker only allows the remaining count; at the limit the add tile shows "6/6" and disables. Extra picks and picks already in the tray are not added.
+- `matching`: What the picker offers, such as `.images`, `.videos` or `.any(of: [.images, .videos])`. Videos load as a file copied to the temporary directory with a poster frame thumbnail and a duration badge.
+- `style`: Colors and tile metrics. Defaults to the Swift Pieces house palette, adapting to light and dark.
+- `onSelect`: Called when a loaded tile is tapped, for example to open it full screen. When `nil`, loaded tiles have no tap action.
+
+## Link Preview (`LinkPreview`)
+
+URL: https://swiftpieces.com/docs/components/media/link-preview
+Category: Media. iOS 17.0+.
+Files: LinkPreview.swift
+Install: npx swiftpieces add LinkPreview
+
+A rich card for any URL that holds its final size while a skeleton sweeps, then settles the page's image, title and host into place, fetched once with LinkPresentation, shared by every card showing the same link and cached so scrolling never refetches, falling back to a quiet card with the address when a page cannot be read, opening on tap and offering Copy Link and Share on long press.
+
+A rich preview card for a URL: the page's image, title and host, fetched once and cached. Tapping opens `url` through the environment's `openURL`, so an app that shows links in its own browser routes it with `.environment(\.openURL, OpenURLAction { url in … })` like any other link.
+
+### Notes
+
+- `LinkPreview(url:)` fetches the page with LinkPresentation and shows its image, title and host. Pass `metadata:` to show your own (previews, tests, links your server already unfurled) with no request.
+- Three states, one footprint. While loading, the card is a skeleton built from the real layout, so the large card keeps its exact size when the content arrives: the image settles in with a short fade and scale, the text fades in. A page that cannot be read (offline, timeout, unknown host, a page with nothing in it) becomes the quiet address card: a link glyph, the host and the address, still tappable.
+- `.compact` is a row with a square thumbnail, for chats and lists. `.large` puts a 1.91 : 1 image on top, capped at 280pt tall so a wide card crops instead of growing. Both take the width they are offered. A failed large card shrinks to the compact address card.
+- No image falls back to the site icon on a quiet tile, then to the host's first letter on a solid block picked from the host, so a site keeps its color. A tiny "image" is treated as an icon rather than stretched.
+- Links that are not `http` or `https` never make a request: email, phone and message links show the address card with their own glyph and a meta line such as "Email".
+- Redirects show the final host. Titles are trimmed with runs of whitespace collapsed, at most two lines (three at accessibility sizes). Long addresses truncate in the middle.
+- One cache for the whole app: at most 150 pages and about 48 MB of decoded images in an `NSCache`, emptied by the system under memory pressure. Cards showing the same URL share one fetch, a card that scrolls back into view starts from the cache with no skeleton, and a failure is remembered for 30 seconds so a failing link does not refetch on every scroll.
+- A card that disappears or changes its URL stops waiting at once; the fetch itself is cancelled when no card is waiting for it. A late result can never land on a card whose URL has changed. `timeout` (15 seconds) is enforced even while a connection is still being attempted.
+- Each fetch uses its own `LPMetadataProvider`, created, started and cancelled on the main actor. Images are decoded and downsampled with ImageIO off the main actor and never kept at full size.
+- Tap opens the link through the environment's `openURL`, so an app with its own browser routes it with `.environment(\.openURL, OpenURLAction { … })`. Long press shows Open Link, Copy Link and Share (with the title and image in the share sheet); copying plays a success haptic.
+- VoiceOver: one element read as "Title, host" with the link trait, a Copy Link action, and "Loading preview" as its value while loading. Copying is announced.
+- Dynamic Type: text scales, the thumbnail grows to 96pt, and at accessibility sizes the compact card stacks the text under the thumbnail at full width.
+- Reduce Motion: no skeleton sweep, no press dip and no scale on reveal; content fades.
+- `Style` sets the card, skeleton, highlight, title, secondary and tile colors, the letter ink and the corner radius. `.disabled(true)` dims the card.
+
+### Parameters
+
+- `url`: The link to preview and open. `http` and `https` links are fetched; any other scheme (email, phone, app links) shows the quiet link card at once, without a request.
+- `layout`: `.compact` is a row with a square thumbnail on the leading side, for chat bubbles and lists. `.large` puts a wide image on top, for feeds and composers. Both take the width they are offered.
+- `metadata`: Metadata to show as is, with no request: for previews, tests, or links your server has already unfurled. `nil` fetches.
+- `timeout`: Seconds before a fetch gives up and the card falls back to the address.
+- `style`: Colors and corner radius. Defaults to the Swift Pieces house palette, adapting to light and dark.
+
+## Photo Cropper (`PhotoCropper`)
+
+URL: https://swiftpieces.com/docs/components/media/photo-cropper
+Category: Media. iOS 17.0+.
+Files: PhotoCropper.swift
+Install: npx swiftpieces add PhotoCropper
+
+A crop step for profile photos, posts and listings that keeps the picked photo covering a frame of the chosen aspect at every zoom and offset, pinches around the fingers while it pans, rubber-bands past its limits and springs back with a red flash on the frame and a rigid tick at a zoom limit, morphs between circle, square, 4:5, 16:9 and the photo's own shape without losing the subject, turns a quarter at a time, fades in a rule-of-thirds grid under the finger, and renders the crop off the main thread at the original's full resolution together with its pixel rect and rotation for cropping again on a server.
+
+A crop step for a picked photo: the photo under a frame of the chosen aspect, with pinch, pan, rotate and aspect chips. The photo always covers the frame. It can't be zoomed out or dragged so far that an empty edge stays in the frame: past a limit it resists and springs back on release. The framing is stored relative to the photo (zoom relative to the smallest scale that fills the frame, and the photo point at the frame's centre), so rotating, switching aspect and size changes keep the same subject in frame. Choose renders the crop from the original, off the main actor, and hands you a ``Crop``. A drag that starts on the photo pans it; it never scrolls an enclosing scroll view or pulls a sheet down. ```swift @State private var photo: UIImage   // keep it in state, never create it in `body` PhotoCropper(image: photo, aspect: .circle, onCancel: { dismiss() }) { crop in avatar = crop.image dismiss() } ```
+
+### Notes
+
+- Put it after a `PhotosPicker` (or the camera) in a `.fullScreenCover`, a pushed screen or a sheet. Keep the photo in state, for example `@State private var photo: UIImage?`, never created in `body`: a new image starts the cropper over.
+- The photo always covers the frame. Zoom is relative to the smallest scale that fills the frame (1 to 5, less for very small photos so a crop never drops below 32 pixels), and the framing is stored as that zoom plus the photo point at the frame's centre. Rotating, switching aspect, rotating the device and resizing all keep the same subject in frame.
+- Pinch zooms about the fingers while they pan, both at once. Past the edges of the photo, or past 1x and the maximum zoom, it follows with a scroll view's resistance and springs back on release, with a short coast from a flick. At a zoom limit the frame's edge and corner marks flash red for an instant with a rigid tick. Double-tap toggles between filling the frame and 2.5x about the tapped point.
+- A rule-of-thirds grid fades in while a finger is down and out half a second after the last one lifts. The zoom level shows above the frame while pinching.
+- The aspect chips default to circle, square, 4:5, 16:9 and the photo's own shape; pass your own list (`[.square, .portrait, .ratio(3, 2)]`), retitle one with `.titled("Post")`, or pass a single aspect (or none) for a fixed frame. The selected chip's picture turns solid red. `.circle` shows a round frame but the crop is square: clip it when you draw it.
+- Rotate turns the photo a quarter to the left each tap; quick taps keep turning the same way. Mid-turn the photo grows just enough that the frame's corners never leave it. `.original` turns with the photo.
+- Choose renders from the original, off the main actor, in the photo's own color space (Display P3 stays P3), upright, at up to `maxOutputDimension` (4096) on the longer side and never scaled up. `onCrop` gets a `Crop` with the `image`, the `rect` in pixels of the upright original and `quarterTurns` (to the left, applied after the rect), so a server can repeat the crop on the original, plus the `framing`. Choose spins until your `onCrop` returns, so you can await an upload there, then shows a check. If the cropper goes away mid-render the render is dropped; an `onCrop` that has started is never cut off.
+- `framing:` binds the aspect, zoom, centre and rotation instead of `aspect:`. Store `crop.framing` (it is `Codable`) and pass it back to reopen a crop where it was left, or drive the cropper from your own controls. Reset returns to the photo filling the starting aspect and is enabled only once something changed.
+- EXIF orientation is respected on screen and in the output. A photo that is much larger than the screen is shown from a copy cut once, off the main actor, so a 48 MP photo never decodes on the main thread; a quiet placeholder holds the frame meanwhile. A photo that can't be drawn shows "Couldn't open this photo" in the frame and Choose turns neutral. A failed render shows a short notice with an error haptic.
+- A drag on the photo pans it: it never scrolls an enclosing scroll view or pulls a sheet down, because those pans wait for the cropper's own. Pinch and pan come from UIKit's recognizers, which report the fingers' moving centre.
+- Haptics: a selection tick when the aspect changes, a light impact on rotate, a rigid tick at a zoom limit or an edge, a soft tick on Reset, success when the crop is delivered, an error if rendering fails.
+- VoiceOver: the photo is one adjustable element, "Crop area", with a value such as "2.5×, 4:5, Rotated left 90°". Swipe up and down to zoom, and use the Move up, down, left and right actions (a fifth of the frame each), Rotate left and Reset. Aspect chips are buttons with the selected trait ("4 to 5"), and rotations, resets and the finished crop are announced.
+- Hardware keyboard: the arrow keys move and + and - zoom when the photo is focused, Return chooses, Escape cancels and Command-R rotates.
+- Reduce Motion: the photo settles with a short ease instead of springs, rotation and the grid change without animating.
+- Dynamic Type: chips and buttons scale (chips stop at the second accessibility size so the photo keeps its room). When the buttons no longer fit on one line, Choose moves to its own full-width row, and at the largest sizes Cancel does too. Right to left mirrors the toolbar; the photo is never mirrored.
+- `Style` sets the toolbar ground, the photo's well (dark in both appearances so the photo, scrim and frame read the same), the scrim, the frame's edge, the red accent and the ink on it, the chip and button fills, labels, the well's corner radius (`0` runs the photo edge to edge) and the frame inset. `Messages` replaces any of the copy, such as `choose: "Use photo"`.
+
+### Parameters
+
+- `image`: The photo to crop, at full size, such as one loaded from a `PhotosPicker` item. Its orientation is respected. An on-screen copy is cut from it once, off the main actor; the crop is always rendered from this original. Keep it in state rather than creating it in `body`, or every update starts over.
+- `aspect`: The frame to start with. Defaults to `.square`.
+- `framing`: Bound framing, instead of `aspect`: the aspect, zoom, centre and rotation, updated as people adjust them. Set it to reopen a crop where it was left (`crop.framing` from an earlier result) or to drive the cropper from your own controls. While a finger is down it can briefly sit past the limits (the rubber band); it settles inside them on release.
+- `aspects`: The aspect chips under the photo, in order. Defaults to circle, square, 4:5, 16:9 and the photo's own shape. One aspect, or none, hides the chips for a fixed frame. An aspect that isn't listed is added at the front.
+- `maxOutputDimension`: The longest side of the rendered crop, in pixels. Defaults to 4096. Larger crops are scaled down to it; smaller ones keep the original's pixels and are never scaled up.
+- `messages`: The cropper's copy. Defaults are localizable through your String Catalog; replace any line, for example `choose` with "Use photo".
+- `style`: Colors, the photo's well and the frame inset. Defaults to the Swift Pieces house palette, adapting to light and dark, with red for Choose, the selected aspect and the limit flash.
+- `onCancel`: Shows a Cancel button (and Escape on a hardware keyboard) that calls this. `nil` hides it.
+- `onCrop`: Called on the main actor with the rendered ``Crop`` when Choose is tapped (or Return is pressed). Choose keeps spinning until this returns, so you can await an upload here.
 
 ## Photo Viewer (`PhotoViewer`)
 
@@ -1488,6 +1833,44 @@ Floating bottom dock of 4–5 icon items with a solid block selection and a scru
 - `scrollProgress`: 0 keeps the dock in place, 1 tucks it below the screen. Feed it a value derived from scroll direction to hide the dock while scrolling down.
 - `style`: Surface, indicator, ink, and badge colors. Defaults to `.standard`, the house palette.
 
+## Index Scrubber (`IndexScrubber`)
+
+URL: https://swiftpieces.com/docs/components/navigation/index-scrubber
+Category: Navigation. iOS 17.0+.
+Files: IndexScrubber.swift
+Install: npx swiftpieces add IndexScrubber
+
+An A to Z section index for long lists in any scroll view: touch or drag the trailing rail to jump to the section under your finger with a selection tick per new section, a large letter block that follows the finger and rolls in the direction of travel, letters without a section dimmed or hidden, a dotted collapse when the rail is too short for every title, one adjustable VoiceOver element and type-to-jump on a hardware keyboard.
+
+A section index rail for long sectioned lists (contacts, glossaries, countries, recipes) that works with `ScrollView`, `LazyVStack` and `List` on iOS 17 and later. Touch down or drag along the rail to jump to the section under the finger. Most apps use the `.indexScrubber(_:proxy:)` modifier on a scroll view inside a `ScrollViewReader`; use the view itself when you scroll some other way, and place it on the trailing edge yourself.
+
+### Notes
+
+- `.indexScrubber(titles, proxy: proxy)` on a `ScrollView` or `List` inside a `ScrollViewReader` is the whole setup. Give each section an id equal to its title (`ForEach(sections, id: \.title) { Section { … } }`). Jumps scroll without animation, the section's top at `anchor` (`.top` by default), the way the system index does.
+- The modifier insets the scroll view's content by the rail's width (44pt at the default text size), so rows lay out beside the rail instead of under it. With no reachable sections the rail takes no space and no touches.
+- Use `IndexScrubber(titles, selection: $current) { title in … }` when you scroll some other way; place it on the trailing edge yourself. `onSelect` fires once on touch down, then only when the finger reaches a new section, plus on VoiceOver and keyboard moves.
+- `index: .sections` shows your titles as they are. `.alphabet` shows the current locale's index letters (A to Z and # in English, from `UILocalizedIndexedCollation`) and matches each section by its whole title, then its first character, then its first character without accents; titles starting with a digit or symbol fall under #. `.custom([...])` takes your own entries.
+- Entries without a section are dimmed by default and a touch on one lands on the nearest section after it (or before it at the end). `missing: .hidden` leaves them out. The letter block and the haptic only change when the landing section changes.
+- When the rail is too short for every entry (landscape, accessibility text sizes), it shows evenly spaced entries with a dot between each, like the system index. The finger still maps proportionally along the whole column, so a dot lands on the letters it stands for and the block shows the real one.
+- While a finger is down the rail keeps its touch-down geometry, pinned on screen, so a jump that resizes the scroll view (a large title collapsing) never moves letters under the finger. It settles into its new place on release.
+- The letter block follows the finger with a spring and the letter rolls in the direction of travel. A `.selection` haptic plays on touch down and on each new section, never on dimmed entries or repeated positions.
+- The drag lives on the rail itself, outside the scrolling content, so it never competes with the scroll view's pan; the scroll view keeps scrolling everywhere else. A system-cancelled touch resets the rail cleanly.
+- VoiceOver: the rail is one adjustable element, "Section index", whose value is the current section. Swipe up or down to step through every section (including any the rail's entries do not reach); each step scrolls. Write `selection` from your own scroll tracking so it starts from the section on screen.
+- Hardware keyboard: when the rail has focus, typing a letter jumps to it, arrow keys step between sections, and Home and End go to the first and last. The track shows while focused.
+- Dynamic Type: letters, rows and the block scale up to the first accessibility size, then the rail collapses entries instead of growing; the block shows the section at display size while scrubbing.
+- Right-to-left: the rail sits on the leading edge and the block opens to its inner side.
+- Reduce Motion: the block and the letter fade instead of scaling, rolling and springing.
+- `Style` sets the letter, dimmed, track, block and ink colors. `.disabled(true)` dims the rail and ignores touches.
+
+### Parameters
+
+- `titles`: Your section titles, in list order. They are also the values passed to `onSelect`, so use the same strings as the ids you scroll to. Duplicates and empty strings are ignored.
+- `selection`: The section last jumped to. Written on every jump; write it yourself (for example from your own scroll tracking) so VoiceOver starts adjusting from the section on screen.
+- `index`: What the rail lists. `.sections` shows exactly `titles`; `.alphabet` shows the current locale's index letters (A to Z and # in English) and matches each section to a letter by its first character; `.custom` takes your own entries.
+- `missing`: What happens to index entries that have no section: `.dimmed` keeps them in place in a quieter color (the finger lands on the nearest section after them), `.hidden` leaves them out.
+- `style`: Colors for the letters, the track behind the rail while scrubbing and the letter block. Defaults to the Swift Pieces house palette, adapting to light and dark.
+- `onSelect`: Called with the section title to jump to: once on touch down, then each time the finger reaches a new section, and on VoiceOver or keyboard moves. Scroll without animation here, the way the system index does.
+
 ## Stretch Header (`StretchHeader`)
 
 URL: https://swiftpieces.com/docs/components/navigation/stretch-header
@@ -1616,6 +1999,45 @@ Explains a permission, runs the real request, and reacts to the result.
 - `onGranted`: Called about a second after a grant, once the tile has turned into a check. Dismiss the sheet here.
 - `onSkip`: Secondary handler. Omit to hide the "Not now" button.
 
+## Spotlight Tour (`SpotlightTour`)
+
+URL: https://swiftpieces.com/docs/components/sheets/spotlight-tour
+Category: Sheets. iOS 17.0+.
+Files: SpotlightTour.swift
+Install: npx swiftpieces add SpotlightTour
+
+A first-run feature tour for any screen: mark controls with .spotlightAnchor and .spotlightTour dims everything else through a cutout that springs from stop to stop as a red ring draws around it, sets a callout with step progress, Skip and a red Next below or above the target inside the safe area, lets taps through to the real control (which can also advance the tour), skips stops that aren't on screen, follows its target through scrolling, rotation and the keyboard, can show itself only once, and keeps VoiceOver, hardware keyboards and Reduce Motion in step.
+
+Walks people through the controls on a screen, one stop at a time: everything but the current stop is dimmed, a red ring draws around it, and a callout explains it with Skip and Next. Mark each control with `.spotlightAnchor("compose")`, then apply `.spotlightTour` once, high in the hierarchy: on the `NavigationStack` or `TabView`, so the scrim covers the bars too, or on a sheet's root. Anchors anywhere inside it are found, toolbar items included. Taps inside the cutout reach the real control. Steps whose anchor is not on screen are skipped; while none is on screen, the tour waits.
+
+### Notes
+
+- Two modifiers. `.spotlightAnchor("compose")` marks a control as a stop; `.spotlightTour(isPresented:steps:)` goes once on the container that holds them, ideally the `NavigationStack` or `TabView` so the scrim covers the bars too, or a sheet's root. Each `SpotlightTour.Step` names its anchor, a title and a message, and optionally an SF Symbol, the cutout's shape (`.automatic`, `.capsule`, `.circle`, `.rectangle(cornerRadius:)`) and its padding.
+- Put the anchor right on the control, before modifiers that widen its frame: `.spotlightAnchor("add")` then `.frame(maxWidth: .infinity, alignment: .trailing)`, not the other way round. Anchors report their frame in window coordinates through the environment, so toolbar items, safe area insets and other hosted content work. Use one id per stop.
+- While a stop shows, everything else is dimmed and a 2 pt red ring draws itself around the cutout from the top. Next springs the cutout to the next stop, morphing between rounded rectangles, capsules and circles, and the callout travels with it while its text dips out and back so words never smear. `.automatic` picks a circle for small square targets, a capsule for short wide ones and a rounded rectangle for the rest, with corners running parallel to the target's.
+- The callout sits below its target when it fits, else above, else on the roomier side, always inside the safe area and the keyboard with 16 pt margins and at most 360 pt wide. Its nub points at the target's centre and hides when the callout had to overlap the target (very large text on a small screen).
+- Taps inside the cutout reach the real control, UIKit bar buttons included. With `advancesOnTargetTap` (the default) the tap also moves the tour on. Taps and drags on the scrim are absorbed with a small nudge of the callout and a light tap, so nothing underneath changes by accident. Swipe the callout toward the end of the line for Next, back toward its start to go back.
+- Steps whose anchor isn't on screen (a lazy row scrolled away, a view that isn't there yet) are skipped, and the count shows only the steps on screen. While no anchor is on screen the tour waits without dimming anything, then starts when one appears. The tour gives an anchor a moment before moving on, so toolbar items that report late and the frame changes of a rotation never make it jump. The cutout follows its target through scrolling, rotation, size changes and the keyboard.
+- `isPresented` works with `@AppStorage`: `@AppStorage("inbox.showTour") var showTour = true` shows it until it is finished or skipped. Or pass `showOnceKey: "inbox.tour.v1"` and the tour presents itself the first time the view appears and records completion in `UserDefaults`; `.spotlightTour(steps, showOnceKey:)` does the same without a binding. `SpotlightTour.resetShowOnce(_:)` brings it back, for a "Show tips again" setting.
+- `step:` takes an optional binding to the current step, to resume a tour or move it on when someone completes the thing you pointed at. The tour writes it as people move through and sets it back to 0 when it ends. `onFinish` reports `.completed` or `.skipped`.
+- VoiceOver: while the tour shows it is modal and the screen under it is hidden; focus moves to the callout, which reads "Step 2 of 4. Find it fast. Narrow the inbox by sender, date, attachments or unread." Skip and Next are buttons, Previous step is a custom action, the escape gesture skips, and each step change is announced.
+- Hardware keyboard: Return is Next or Done, Escape skips, and the arrow keys move along the steps in reading order. The tour never takes focus, so a text field keeps its keyboard.
+- Dynamic Type: the callout grows and flips above its target when it no longer fits below. At accessibility sizes Next and Skip stack full width, the symbol tile steps aside and the callout may use the full width. RTL mirrors the callout; the cutout stays on the physical control.
+- Reduce Motion: the cutout and callout crossfade from stop to stop instead of travelling, the ring appears without drawing, and nothing scales.
+- Haptics: a selection tick when a step changes, a soft impact when the tour ends, a light tap for a nudge. Nothing when the tour appears on its own.
+- All copy goes through `String(localized:)` and can be replaced with `Messages` (Next, Done, Skip, Previous step and the "2 of 4" and "Step 2 of 4" formats). `Style` sets the scrim, the accent used for the ring, the current step and the Next capsule, its ink, the callout surface and text colors, the track, the corner radius, the ring width and the callout's widest size.
+
+### Parameters
+
+- `isPresented`: Shows the tour while `true`. Done, Skip and Escape set it back to `false`. Works with `@AppStorage` too, for example `@AppStorage("inbox.showTour") var showTour = true`, which then stays off once the tour has been seen.
+- `step`: Optional binding to the current step's index in `steps`, to read it or drive it (move on when someone completes an action, resume a tour). The tour writes it as people move through and sets it back to 0 when the tour is finished or skipped. `nil` keeps it internal.
+- `steps`: The stops in order. Each names the anchor it points at, its title and message, and optionally a symbol, the cutout's shape and its padding.
+- `showOnceKey`: A `UserDefaults` key. When set, the tour presents itself (by setting `isPresented`) the first time the view appears, once the screen has settled, and records under this key when it is finished or skipped, so it never presents itself again. Setting `isPresented` yourself always presents it. Reset with `SpotlightTour.resetShowOnce(_:)`.
+- `advancesOnTargetTap`: Tapping the highlighted control also moves the tour on, as well as running the control's own action. Defaults to `true`.
+- `messages`: The built-in copy: Next, Done, Skip and the step count. Defaults are localizable through your String Catalog.
+- `style`: Colors and metrics. Defaults to the Swift Pieces house palette, adapting to light and dark, with the red ring, current step and Next capsule.
+- `onFinish`: Called when the tour ends with Done (`.completed`) or Skip (`.skipped`), for analytics or to save that it was seen. Not called when you set `isPresented` to `false` yourself.
+
 ## Toast (`Toast`)
 
 URL: https://swiftpieces.com/docs/components/sheets/toast
@@ -1717,6 +2139,44 @@ Liquid Glass applied to text outlines via Core Text glyph paths. The glyph path 
 - `tint`: Optional glass tint. The Material fallback blends it in at `style.fallbackTintAmount`.
 - `scalesWithDynamicType`: Set false to pin the point size.
 - `style`: Line alignment and leading, fallback specular strength, depth shadow and the Reduce Transparency fill.
+
+## Picture Headline (`PictureHeadline`)
+
+URL: https://swiftpieces.com/docs/components/text/picture-headline
+Category: Text. iOS 17.0+.
+Files: PictureHeadline.swift
+Install: npx swiftpieces add PictureHeadline
+
+A headline with living pictures stuck between its words like a hand-placed collage. Each word rises into place and each picture opens from a dot into a tilted sticker with a white rim, landing with a spring, a light tick and a flash of crop marks, then keeps drifting. Press a sticker to lift it. Use the built-in house-palette scenes (the sun is our red mascot), your own images or SF Symbols; it wraps like text at any width and Dynamic Type size.
+
+A headline with pictures stuck between its words like stickers, revealed in reading order. Write it as a list of segments: strings are words, pictures sit where you put them. ```swift PictureHeadline(["Slow", .art(.sun), "mornings, long", .art(.waves), "walks and early", .art(.moon), "nights."]) .font(.system(size: 40, weight: .bold)) ``` Pictures are sized from the font, so they follow Dynamic Type and every font you set. Each lands as a sticker: a white rim, a soft shadow and a small tilt that alternates along the headline, with crop marks flashing at its corners. Press and hold one to lift it. Text wraps word by word and a picture never breaks from the row it lands on.
+
+### Notes
+
+- Write the headline as a list: string literals are words and pictures go where you put them, for example `["Slow", .art(.sun), "mornings, long", .art(.waves), "walks."]`. A string can hold several words; each word rises on its own.
+- Pictures land as stickers: a white rim, a soft shadow and a small resting tilt that alternates along the headline (`Style.tilt`, 4 degrees at most), so a line reads as placed by hand. As each one lands, four hairline crop marks flash at its corners, the crosses Swift Pieces draws on its artboards. `Style.tilt = 0` lays them flat, `Style.rim = 0` drops the rim and `Style.cropMarks = false` skips the marks.
+- Press and hold a sticker to lift it: it straightens, scales up and casts a deeper shadow above its neighbours, with a light tick, then springs back to its tilt when you let go. The press uses `onLongPressGesture(onPressingChanged:)` with a small tolerance, so scrolling over the headline still scrolls. `Style.lifts = false` turns it off.
+- Pictures are sized from the font: `Style.pictureHeight` is a fraction of the line height (0.82 by default) and each picture's `width` is in picture heights (2.4 is a wide frame, 1 a square). Set the font with `.font(...)` as usual and the pictures follow it, Dynamic Type included.
+- Words and pictures wrap like text with a private `Layout`, so the headline breaks across rows at any width and a picture never splits from the row it lands on. `alignment` sets each row's alignment.
+- The reveal runs in reading order. Each word slides up from behind its own baseline and each picture opens from a dot as tall as the frame into the full sticker on a spring, turning from flat to its tilt as it lands, its contents settling from a slight zoom. The stagger is sized from the number of items, so a short and a long headline both land in about `duration` (1.2 seconds by default). `delay` holds the start; change `trigger` to replay.
+- Three kinds of picture: `.art(_:)` draws one of five built-in scenes in the house palette (`.sun` is the red Swift Pieces mascot, bobbing and blinking over the sand; `.waves`, `.moon`, `.hills` and `.bloom`), so a headline looks finished before you have artwork; `.image(_:)` fills the frame with your own `Image`; `.symbol(_:fill:ink:)` sets an SF Symbol on a solid block.
+- After landing, pictures keep moving: scenes drift (the sun bobs, the sea slides, stars twinkle), images pan slowly and symbols bob. Set `Style.drift = false` for still pictures. Drawing uses `Canvas` driven by a `TimelineView` at up to 30 frames a second.
+- `revealOnScroll` waits until the headline scrolls into view with `onScrollVisibilityChange` on iOS 18; on iOS 17 it reveals on appear.
+- Haptics: a light tick as each picture lands, in time with the spring, and another when you lift one. Pass `haptics: false` to stay silent.
+- VoiceOver reads the headline as one header: the words in order, plus a picture's `label` where it sits, so `.art(.sun, label: "a sunrise")` is read and an unlabelled picture is skipped.
+- Reduce Motion drops the rise, the zoom, the tilt, the crop marks, the lift and the drift: words and pictures fade in together and pictures sit flat and still.
+- `Style` (`.standard` is the house look): `pictureHeight`, `cornerRadius` (a fraction of the picture height; 0.5 makes a capsule), `tilt`, `rim`, `rimColor`, `cropMarks`, `lifts`, `drift`, `openDuration` and `openBounce`.
+
+### Parameters
+
+- `segments`: Words (string literals) and pictures (`.art`, `.image`, `.symbol`), in reading order.
+- `alignment`: Row alignment, like `multilineTextAlignment`.
+- `duration`: Target time for the whole reveal, in seconds. The stagger is sized from the number of words and pictures, so short and long headlines both land in about this long.
+- `delay`: Delay before the first word starts.
+- `revealOnScroll`: When true, the reveal waits until the headline scrolls into view (iOS 18). Below iOS 18 it reveals on appear.
+- `trigger`: Change this value to replay the reveal.
+- `haptics`: A light tick as each picture lands and when one is lifted. On by default.
+- `style`: Picture size, corner rounding, tilt, rim, crop marks, lifting, drift and the opening spring.
 
 ## Text Reveal (`TextReveal`)
 

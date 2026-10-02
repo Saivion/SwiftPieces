@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef } from "react";
-import { blocks, ground } from "./palette";
+import { blocks, groundHex } from "./palette";
 
 /* Backgrounds. Each preview is the field itself, full bleed, with nothing on top of it: these pieces are surfaces,
    so any card, headline or button in front of them would be previewing something that is not the component. */
@@ -92,7 +92,7 @@ export function TouchGridPreview() {
       else if (s < 3.72) press(w * 0.5, h * 0.5);
       else lift();
     };
-    const tan = hexRgb(blocks.tangerine).map((c) => Math.round(c * 255)).join(","), dot = hexRgb(ground.text).map((c) => Math.round(c * 255)).join(",");
+    const tan = hexRgb(blocks.tangerine).map((c) => Math.round(c * 255)).join(","), dot = hexRgb(groundHex.text).map((c) => Math.round(c * 255)).join(",");
     const draw = (now: number) => {
       if (!pointer && now > hold && !reduce) probe(now);
       ctx.clearRect(0, 0, w, h);
@@ -122,7 +122,7 @@ export function TouchGridPreview() {
     return () => { cancelAnimationFrame(raf); ro.disconnect(); canvas.removeEventListener("pointerdown", down); canvas.removeEventListener("pointermove", move); canvas.removeEventListener("pointerup", up); canvas.removeEventListener("pointerleave", up); };
   }, []);
   return (
-    <div className="absolute inset-0 overflow-hidden" style={{ background: ground.bg }}>
+    <div className="absolute inset-0 overflow-hidden" style={{ background: groundHex.bg }}>
       <canvas ref={ref} data-motion className="absolute inset-0 h-full w-full touch-none" aria-hidden />
     </div>
   );
