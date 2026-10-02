@@ -24,7 +24,11 @@ function palette(u: number): RGB {
  * must be `relative overflow-hidden`. Holds one still frame under reduced motion and pauses
  * off-screen.
  */
-export function CornerDither({ className }: { className?: string }) {
+/**
+ * `origin="bottom"` rises from the whole bottom edge instead of the corner: dots grow toward the base
+ * across the full width and the palette sweeps left to right (the footer wordmark uses it).
+ */
+export function CornerDither({ className, origin = "corner" }: { className?: string; origin?: "corner" | "bottom" }) {
   const ref = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -58,9 +62,11 @@ export function CornerDither({ className }: { className?: string }) {
           // Distance from the bottom-right corner, 0 at the corner and 1 at the edge of the field.
           const dx = w - x;
           const dy = h - y;
-          const d = Math.hypot(dx, dy) / reach;
+          const edge = origin === "bottom";
+          const d = edge ? dy / h : Math.hypot(dx, dy) / reach;
           if (d >= 1) continue;
-          const angle = Math.atan2(dy, dx) / (Math.PI / 2); // 0 along the bottom edge, 1 up the right edge
+          // Corner: 0 along the bottom edge, 1 up the right edge. Bottom: 0 at the left, 1 at the right.
+          const angle = edge ? x / w : Math.atan2(dy, dx) / (Math.PI / 2);
           const swell = 0.5 + 0.5 * Math.sin(d * 11 - t * 0.9 + Math.sin(angle * 3 + t * 0.35) * 1.4);
           const falloff = Math.pow(1 - d, 1.4);
           const r = maxR * falloff * (0.35 + 0.65 * swell);
@@ -94,7 +100,7 @@ export function CornerDither({ className }: { className?: string }) {
       ro.disconnect();
       io.disconnect();
     };
-  }, []);
+  }, [origin]);
 
   return <canvas ref={ref} aria-hidden className={className} />;
 }

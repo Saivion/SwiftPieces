@@ -37,6 +37,7 @@ coverage
 # ─── Xcode / Swift (previews harness) ────────────────────────
 previews/build
 previews/out
+previews/remix-sim
 DerivedData
 xcuserdata
 *.xcuserstate
@@ -66,6 +67,14 @@ GEMINI.md
 *.swp
 *~
 
+# ─── Tests (kept local, not published) ──────────────────────
+# The builder's test suite runs on this machine only; CI skips it when absent.
+packages/builder/test/
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+
 # ─── Internal notes, briefs and scratch (not public docs) ────
 # Public docs live in content/docs/, README.md and CONTRIBUTING.md.
 .redesign
@@ -75,6 +84,29 @@ scratch
 tmp
 *.local.md
 *.private.md
+# The app library's remix design brief and the QA tools that enforce it (owner's simulators).
+packages/builder/src/definitions/catalog/recreations/DESIGN.md
+scripts/remix-preflight.ts
+scripts/remix-sim.ts
+
+# ─── Maintainer-only asset tools ─────────────────────────────
+# They need the private Pro repo, a Pro sign-in or this machine's Chrome, so nobody else can run
+# them. What they make IS committed (the site serves it): public/pro-cards/, lib/pro-cards.json,
+# public/app-remixes/ and app/opengraph-image.png.
+/scripts/pro-cards/
+/scripts/app-remixes/
+/scripts/og/
+# Screenshots and recordings dropped at the repo root while checking something.
+/*.png
+/*.jpg
+/*.jpeg
+/*.webp
+/*.gif
+/*.mov
+/*.mp4
+test-results/
+playwright-report/
+.playwright-mcp/
 
 # ─── Logs and OS files ───────────────────────────────────────
 *.log

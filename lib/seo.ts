@@ -14,8 +14,12 @@ import { site } from "@/lib/site";
  * title, and the social title is composed the same way here.
  */
 
-/** The site-wide share card: app/opengraph-image.png, served from the root. */
-export const DEFAULT_OG_IMAGE = { url: `${site.url}/opengraph-image.png`, width: 1200, height: 630, alt: `${site.name}` };
+/**
+ * The site-wide share card: app/opengraph-image.png, served from the root. Bump `v` whenever the card
+ * is re-rendered (scripts/og/render.sh), as README.md does for the banner, so X, Slack and the rest
+ * fetch the new card instead of the one they cached under the old URL.
+ */
+export const DEFAULT_OG_IMAGE = { url: `${site.url}/opengraph-image.png?v=9`, width: 1200, height: 630, alt: `${site.name}` };
 
 /** Longest meta description before search results start cutting it off. */
 const DESCRIPTION_MAX = 155;

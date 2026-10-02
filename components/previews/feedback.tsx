@@ -74,7 +74,7 @@ function Reaction({ on, pressed, d, fill, count, pill, k }: { on: boolean; press
   return (
     <div data-motion className="relative" style={{ transform: `scale(${pressed ? 0.92 : 1})`, transition: pressed ? "transform .12s ease-out" : `transform .45s ${SPRING}` }}>
       {pill && (
-        <span data-motion className="pointer-events-none absolute left-1/2 flex items-center whitespace-nowrap rounded-full" style={{ bottom: `calc(100% + ${u(10 * k)})`, gap: u(5 * k), padding: `${u(6 * k)} ${u(12 * k)}`, fontSize: u(13 * k), fontWeight: 600, background: ground.text, color: ink, boxShadow: `0 ${u(5 * k)} ${u(10 * k)} rgba(0,0,0,.25)`, transformOrigin: "bottom center", transform: `translate(-50%, ${pillUp ? 0 : u(8 * k)}) scale(${pillUp ? 1 : 0.6})`, opacity: pillUp ? 1 : 0, transition: pillUp ? `transform .4s ${SPRING}, opacity .2s` : "transform .25s ease-out, opacity .25s ease-out" }}>
+        <span data-motion className="pointer-events-none absolute left-1/2 flex items-center whitespace-nowrap rounded-full" style={{ bottom: `calc(100% + ${u(10 * k)})`, gap: u(5 * k), padding: `${u(6 * k)} ${u(12 * k)}`, fontSize: u(13 * k), fontWeight: 600, background: ground.text, color: ground.bg, boxShadow: `0 ${u(5 * k)} ${u(10 * k)} rgba(0,0,0,.25)`, transformOrigin: "bottom center", transform: `translate(-50%, ${pillUp ? 0 : u(8 * k)}) scale(${pillUp ? 1 : 0.6})`, opacity: pillUp ? 1 : 0, transition: pillUp ? `transform .4s ${SPRING}, opacity .2s` : "transform .25s ease-out, opacity .25s ease-out" }}>
           <svg viewBox="0 0 24 24" style={{ width: u(11 * k), height: u(11 * k) }} fill="none" stroke="currentColor" strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>
           {pill}
         </span>

@@ -3,6 +3,8 @@ import { PreviewFrame } from "@/components/previews/frame";
 import { PiecePreview } from "@/components/previews";
 import { Badge } from "@/components/ui/badge";
 import { proScreens, proScreenUrl } from "@/lib/pro-screens";
+import { playgroundComponentId } from "@swiftpieces/builder";
+import { playgroundComponentHref } from "@/lib/playground";
 import { cn } from "@/lib/cn";
 
 /**
@@ -13,6 +15,7 @@ import { cn } from "@/lib/cn";
 export function PieceHeader({ item }: { item: RegistryIndexEntry }) {
   const video = item.preview.video || item.preview.videoMp4;
   const black = video || item.category === "backgrounds";
+  const playground = playgroundComponentHref(playgroundComponentId(item.name));
   const details = [
     { label: "Type", value: item.name, mono: true },
     { label: "Files", value: [...item.files, ...item.shaders].map((f) => f.target.split("/").pop()).join(", "), mono: true },
@@ -35,6 +38,22 @@ export function PieceHeader({ item }: { item: RegistryIndexEntry }) {
           )}
         </div>
       </div>
+
+      {playground ? (
+        <div className="flex flex-wrap items-center gap-2">
+          <a href={playground.href} className="btn-solid inline-flex h-9 items-center gap-2 rounded-[4px] px-4 text-[12.5px] font-semibold">
+            {playground.pro ? "See it in a Pro app" : "Try it in the Playground"} <span aria-hidden>→</span>
+          </a>
+          <a href="#source" className="inline-flex h-9 items-center gap-2 rounded-[4px] bg-surface-2 px-4 text-[12.5px] font-semibold text-foreground transition-colors hover:bg-surface-3">
+            View SwiftUI <span aria-hidden>↓</span>
+          </a>
+          <span className="text-[12px] text-muted">
+            {playground.pro
+              ? "On a real screen in one of the Pro apps: open it with Pro, take it apart, remix it, and copy the SwiftUI."
+              : "Use it on a real screen, take it apart, remix it, and copy the SwiftUI. No account needed."}
+          </span>
+        </div>
+      ) : null}
 
       <div className="rounded-[var(--radius)] bg-surface p-5">
         <div className="flex flex-wrap gap-1.5">

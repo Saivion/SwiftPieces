@@ -54,12 +54,12 @@ public struct ThoughtOrb: View {
 
         /// The Siri Wave colours: electric blue, hot pink, orange and red over deep violet.
         public static let siri = Palette(bands: [0x2b5cff, 0xff4fa3, 0xff6a2b, 0xe3170a], ground: 0x12082e, rimCool: 0x4d8aff, rimWarm: 0xff4a1a)
-        /// Searching: cyan into deep teal, a cool scan through sources.
-        public static let searching = Palette(bands: [0x5ee7ff, 0x22c3e6, 0x1492b8, 0x0b5f86], ground: 0x04161f, rimCool: 0x9af0ff, rimWarm: 0x3fd6b4)
-        /// Reading: lavender into deep indigo, quiet and inward.
-        public static let reading = Palette(bands: [0xa99bff, 0x7b6cff, 0x5a3ff0, 0x3a20b8], ground: 0x0d0826, rimCool: 0xc4baff, rimWarm: 0xb07cff)
-        /// Writing: amber into coral and brick, warm and productive.
-        public static let writing = Palette(bands: [0xffc46b, 0xff9a4a, 0xff6a3d, 0xd9412b], ground: 0x1e0a05, rimCool: 0xffd9a0, rimWarm: 0xff7a3a)
+        /// Searching: electric blue, aqua and mint with a violet rim, a cool scan through sources.
+        public static let searching = Palette(bands: [0x2b5cff, 0x22d3ee, 0x34d399, 0x7c3aed], ground: 0x06122a, rimCool: 0x67e8f9, rimWarm: 0xa78bfa)
+        /// Reading: indigo, lavender and a teal glint over deep violet, quiet and inward.
+        public static let reading = Palette(bands: [0x4c1dff, 0xa855f7, 0x14b8a6, 0x818cf8], ground: 0x0b0724, rimCool: 0xc7d2fe, rimWarm: 0x99f6e4)
+        /// Writing: red, amber, rose and violet, warm and productive.
+        public static let writing = Palette(bands: [0xe3170a, 0xffb020, 0xff4f8a, 0x8b5cf6], ground: 0x1c0907, rimCool: 0xffcf7a, rimWarm: 0xff5a3c)
 
         private static func components(_ hex: UInt32) -> SIMD3<Float> {
             SIMD3(Float((hex >> 16) & 0xff), Float((hex >> 8) & 0xff), Float(hex & 0xff)) / 255

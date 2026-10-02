@@ -36,6 +36,11 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run brand:build
+      - run: npm run builder:build
+      # The test suite is kept out of the public repo; this runs only if it is present.
+      - name: Builder unit tests (schema, codegen, export)
+        if: hashFiles('packages/builder/test/*.test.ts') != ''
+        run: npm run builder:test
       - run: npm run registry:build
       - name: Generated files are committed
         run: git diff --exit-code -- registry/__registry__ content/docs public/llms.txt public/schema

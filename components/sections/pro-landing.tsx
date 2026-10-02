@@ -3,14 +3,14 @@ import { Container } from "@/components/ui/container";
 import { Eyebrow } from "@/components/ui/badge";
 import { Button, Arrow, TextLink } from "@/components/ui/button";
 import { AnimatedText } from "@/components/ui/animated-text";
-import { SectionCopy, Tags, Glyph, heroTitle, sectionTitle, sectionBody } from "@/components/sections/feature-row";
+import { CornerTicks, SectionCopy, Tags, Glyph, heroTitle, sectionTitle, sectionBody } from "@/components/sections/feature-row";
 import { CountUp } from "@/components/ui/stat";
 import { DitherStage } from "@/components/visual/dither-stage";
 import { Reveal, RevealGroup, RevealItem } from "@/components/effects/reveal";
 import { cn } from "@/lib/cn";
 import { CornerDither } from "@/components/visual/corner-dither";
 import { pro } from "@/lib/site";
-import { buildKitLine, namesWithMore, proCatalog, proCountsLabel } from "@/lib/pro-catalog";
+import { buildKitLine, namesWithMore, proCatalog, proCountsLabel, remixingLine, remixingPoint } from "@/lib/pro-catalog";
 import { getRegistryIndex } from "@/lib/registry";
 
 // Marketing copy only. Counts and names come from lib/pro-catalog.ts, the one hand-maintained copy of Pro's catalog.
@@ -52,7 +52,7 @@ export function ProHero() {
         <Reveal priority><Eyebrow>Swift Pieces Pro · Production-ready SwiftUI</Eyebrow></Reveal>
         <AnimatedText as="h1" text="The pieces to build the whole app." accent="whole" className={cn("mt-8 max-w-4xl", heroTitle)} />
         <Reveal priority delay={0.35}>
-          <p className={cn("mx-auto mt-6 max-w-xl", sectionBody)}>Free is a curated taste of Swift Pieces. Pro is the complete library: production-ready SwiftUI screens, complete app templates and the Build Kit for your coding agent. Start from a finished screen or a whole Xcode project. Copy the source. Make it yours.</p>
+          <p className={cn("mx-auto mt-6 max-w-xl", sectionBody)}>Free is a curated taste of Swift Pieces. Pro is the complete library: production-ready SwiftUI screens, complete app templates, the Build Kit for your coding agent and Pro remixing in the Playground. Start from a finished screen or a whole Xcode project. Copy the source. Make it yours.</p>
         </Reveal>
         <Reveal priority delay={0.45} className="mt-9 flex flex-wrap items-center justify-center gap-x-7 gap-y-4">
           <Button href={buy}>Start building <Arrow /></Button>
@@ -60,7 +60,7 @@ export function ProHero() {
         </Reveal>
         <Reveal priority delay={0.55}>
           <p className="t-meta mt-10 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-subtle">
-            <span>{screens} screens</span><span aria-hidden>·</span><span>{templates} app templates</span><span aria-hidden>·</span><span>{buildKit.total}-item Build Kit</span><span aria-hidden>·</span><span>Swift source, no runtime</span>
+            <span>{screens} screens</span><span aria-hidden>·</span><span>{templates} app templates</span><span aria-hidden>·</span><span>{buildKit.total}-item Build Kit</span><span aria-hidden>·</span><span>Pro remixing</span><span aria-hidden>·</span><span>Swift source, no runtime</span>
           </p>
         </Reveal>
       </Container>
@@ -137,15 +137,16 @@ export function WhatYouGet() {
     { value: screens, label: "Screens", detail: `${namesWithMore(proCatalog.screenExamples)}. Production-ready, not mockups.` },
     { value: templates, label: "App templates", detail: `Complete Xcode projects: ${namesWithMore(proCatalog.templateNames, 5)} apps, each a running app you download, rename and ship.` },
     { value: proCatalog.buildKit.total, label: "Build Kit items", detail: `${buildKitLine}.` },
+    { value: proCatalog.remixing.apps, label: "Apps to remix", detail: `${remixingLine}.` },
   ];
   return (
     <section className="relative py-16 sm:py-24">
       <Container>
         <SectionCopy
-          tags={[{ label: "Screens", icon: <Glyph.phone /> }, { label: "App templates", icon: <Glyph.grid /> }, { label: "Build Kit", icon: <Glyph.wand /> }]}
+          tags={[{ label: "Screens", icon: <Glyph.phone /> }, { label: "App templates", icon: <Glyph.grid /> }, { label: "Build Kit", icon: <Glyph.wand /> }, { label: "Remixing", icon: <Glyph.split /> }]}
           title="Finished screens, whole apps, and an agent that builds the rest to match"
         />
-        <RevealGroup className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3" stagger={0.08}>
+        <RevealGroup className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4" stagger={0.08}>
           {items.map((s) => (
             <RevealItem key={s.label}>
               <a href={buy} className="card group flex h-full flex-col overflow-hidden transition-colors">
@@ -170,7 +171,7 @@ export function WhatYouGet() {
 /* ---------- Free vs Pro ---------- */
 
 function Check({ strong }: { strong?: boolean }) {
-  return <svg aria-hidden viewBox="0 0 16 16" className={cn("mt-[3px] size-3.5 shrink-0", strong ? "text-foreground" : "text-subtle")} fill="none" stroke="currentColor" strokeWidth="1.75"><path d="M3.5 8.5l3 3 6-7" strokeLinecap="round" strokeLinejoin="round" /></svg>;
+  return <svg aria-hidden viewBox="0 0 16 16" className={cn("ai mt-[3px] size-3.5 shrink-0", strong ? "text-foreground" : "text-subtle")} fill="none" stroke="currentColor" strokeWidth="1.75"><path className="ai-check" pathLength={1} d="M3.5 8.5l3 3 6-7" strokeLinecap="round" strokeLinejoin="round" /></svg>;
 }
 
 /**
@@ -181,7 +182,15 @@ function Check({ strong }: { strong?: boolean }) {
  */
 function PlanCard({ tag, title, body, points, cta, pro: isPro }: { tag: string; title: string; body: string; points: string[]; cta: string; pro?: boolean }) {
   return (
-    <div className={cn("card relative isolate flex flex-col overflow-hidden p-8 md:p-9 lg:row-span-5 lg:grid lg:grid-rows-subgrid lg:gap-y-0", isPro && "border-[var(--card-border-hover)]")}>
+    <div
+      className={cn(
+        "relative isolate flex flex-col p-8 md:p-9 lg:row-span-5 lg:grid lg:grid-rows-subgrid lg:gap-y-0",
+        // Free is drawn as an open artboard (dashed edge, corner ticks, the page's dots showing
+        // through), the same frame as the offer below; Pro is the solid, finished card beside it.
+        isPro ? "card overflow-hidden border-[var(--card-border-hover)]" : "frame-dashed rounded-[var(--radius)]",
+      )}
+    >
+      {isPro ? null : <CornerTicks />}
       {/* The Pro card wears the Pro corner, like every Pro card in both apps. */}
       {isPro ? <CornerDither className="pointer-events-none absolute right-0 bottom-0 -z-10 h-56 w-full [mask-image:radial-gradient(120%_120%_at_100%_100%,black_35%,transparent_78%)] lg:h-[85%] lg:w-[58%]" /> : null}
       <div className="flex h-6 items-center justify-between">
@@ -209,7 +218,7 @@ export function Compare() {
         />
         <Reveal className="mt-12 grid gap-3 lg:grid-cols-2 lg:gap-y-0">
           <PlanCard tag="Free library" title="A curated taste of Swift Pieces." body={`${freeCount} animated pieces, Liquid Glass effects and Metal shaders. Genuinely good, and free to ship wherever a screen feels flat.`} points={["MIT + Commons Clause, forever", "Single-file pieces", "Install by CLI, MCP or copy-paste"]} cta="See what Pro adds" />
-          <PlanCard tag="Swift Pieces Pro" title="The pieces to build the whole app." body="Production-ready SwiftUI screens, complete app templates, and a Build Kit that teaches your coding agent the same design. Install by copy, CLI or MCP." points={[proCountsLabel, "Full SwiftUI source that lives in your project", "Lifetime access, everything added later included"]} cta="Get Swift Pieces Pro" pro />
+          <PlanCard tag="Swift Pieces Pro" title="The pieces to build the whole app." body="Production-ready SwiftUI screens, complete app templates, and a Build Kit that teaches your coding agent the same design. Install by copy, CLI or MCP." points={[proCountsLabel, remixingPoint, "Full SwiftUI source that lives in your project", "Lifetime access, everything added later included"]} cta="Get Swift Pieces Pro" pro />
         </Reveal>
       </Container>
     </section>
@@ -307,12 +316,17 @@ export function ProCTA({ className }: { className?: string }) {
     { n: screens, label: "Screens", note: namesWithMore(proCatalog.screenExamples, 4) },
     { n: templates, label: "App templates", note: "Complete Xcode projects you download and ship" },
     { n: proCatalog.buildKit.total, label: "Build Kit items", note: `${buildKit.styles} styles, ${buildKit.briefs} briefs, ${buildKit.recipes} recipes and ${buildKit.tools} tools for your coding agent` },
+    { n: proCatalog.remixing.apps, label: "Apps to remix", note: `Every app in the Playground, with AI remix and ${proCatalog.remixing.saves} saved remixes` },
   ];
   const promises = ["Unlimited apps, commercial use included", "Everything added later included", "No subscription, nothing expires"];
   return (
     <section id="pro" className={cn("relative py-16 sm:py-24", className)}>
       <Container>
-        <Reveal className="cta-wash relative isolate overflow-hidden">
+        {/* Drawn like an artboard, the same as the offer on pro.swiftpieces.com/pro: no fill, a dashed
+            frame with corner ticks, the page's dot grid showing through. */}
+        <Reveal className="relative">
+          <CornerTicks />
+          <div className="frame-dashed relative isolate overflow-hidden rounded-[var(--radius)]">
           {/* The Pro corner (OfferCorner on pro.swiftpieces.com), kept smaller here: this card's
               bottom-right holds the template list, and a larger swell would sit over its labels. */}
           <CornerDither className="pointer-events-none absolute right-0 bottom-0 -z-10 h-32 w-full md:h-40 [mask-image:radial-gradient(120%_120%_at_100%_100%,black_35%,transparent_78%)] lg:h-[27%] lg:w-[36%]" />
@@ -320,7 +334,7 @@ export function ProCTA({ className }: { className?: string }) {
             <div className="flex flex-col p-8 md:p-12 lg:p-14">
               <Tags tags={[{ label: "One purchase", icon: <Glyph.tag /> }]} className="mb-5" />
               <h2 className={cn("max-w-md", sectionTitle)}>One payment. Lifetime access.</h2>
-              <p className={cn("mt-4 max-w-md", sectionBody)}>The complete library, {proCountsLabel}, delivered as Swift you keep.</p>
+              <p className={cn("mt-4 max-w-md", sectionBody)}>The complete library, {proCountsLabel}, delivered as Swift you keep, with Pro remixing in the Playground.</p>
               <ul className="mt-10 flex flex-col gap-2.5">
                 {promises.map((p) => <li key={p} className="flex gap-2.5 text-[13px] leading-snug text-foreground/90"><Check strong />{p}</li>)}
               </ul>
@@ -330,11 +344,11 @@ export function ProCTA({ className }: { className?: string }) {
                 <TextLink href={pro.library}>Browse the library</TextLink>
               </div>
             </div>
-            <div className="flex flex-col border-t border-[var(--line)] p-8 pb-28 md:p-12 md:pb-32 lg:border-t-0 lg:border-l lg:p-14">
+            <div className="flex flex-col p-8 pb-28 md:p-12 md:pb-32 lg:p-14">
               <p className="p-meta text-subtle">Included</p>
-              <ul className="mt-6 grid gap-px overflow-hidden rounded-[var(--radius)] border border-[var(--line)] bg-[var(--line)] sm:grid-cols-2">
+              <ul className="mt-6 grid gap-2 sm:grid-cols-2">
                 {included.map((row) => (
-                  <li key={row.label} className="flex flex-col bg-background/80 p-6 sm:last:odd:col-span-2">
+                  <li key={row.label} className="flex flex-col rounded-[var(--radius)] border border-[var(--card-border)] bg-background/70 p-6 backdrop-blur-[6px] sm:last:odd:col-span-2">
                     <span className="text-[38.5px] leading-none font-medium tracking-[-0.04em] tabular-nums">{row.n}</span>
                     <span className="mt-4 text-[14px] font-medium">{row.label}</span>
                     <span className="mt-1.5 text-[12px] leading-snug text-muted">{row.note}</span>
@@ -353,6 +367,7 @@ export function ProCTA({ className }: { className?: string }) {
               </ul>
               <p className="mt-6 max-w-xs text-[12px] leading-relaxed text-subtle">Each one a complete Xcode project, built on the same design system as every screen.</p>
             </div>
+          </div>
           </div>
         </Reveal>
       </Container>

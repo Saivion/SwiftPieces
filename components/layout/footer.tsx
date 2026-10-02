@@ -2,19 +2,20 @@ import Link from "next/link";
 import { Container } from "@/components/ui/container";
 import { Logo } from "@/components/ui/logo";
 import { pro, site } from "@/lib/site";
+import { ThemeToggle } from "@/components/layout/theme-toggle";
 
 const columns: { title: string; links: { label: string; href: string }[] }[] = [
   { title: "Free", links: [{ label: "Components", href: "/components" }, { label: "Animations", href: "/components/animations" }, { label: "Liquid Glass", href: "/components/glass" }, { label: "Buttons", href: "/components/controls" }, { label: "Cards", href: "/components/cards" }, { label: "Inputs and forms", href: "/components/inputs" }, { label: "AI chat", href: "/components/ai" }] },
   { title: "Pro", links: [{ label: "Screens", href: pro.screens }, { label: "Templates", href: pro.templates }, { label: "MCP and agents", href: pro.mcpDocs }, { label: "Pricing", href: pro.pricing }, { label: "Account", href: pro.account }] },
   { title: "Docs", links: [{ label: "Introduction", href: "/docs/introduction" }, { label: "Installation", href: "/docs/installation" }, { label: "CLI", href: "/docs/cli" }, { label: "MCP & agents", href: "/docs/mcp" }, { label: "Registry", href: "/r/index.json" }, { label: "llms.txt", href: "/llms.txt" }] },
-  { title: "Guides", links: [{ label: "SwiftUI animations", href: "/docs/guides/swiftui-animations" }, { label: "SwiftUI buttons", href: "/docs/guides/swiftui-buttons" }, { label: "SwiftUI cards", href: "/docs/guides/swiftui-cards" }, { label: "SwiftUI haptics", href: "/docs/guides/swiftui-haptics" }, { label: "Loading states", href: "/docs/guides/swiftui-loading-states" }, { label: "Liquid Glass", href: "/docs/liquid-glass" }] },
-  { title: "Resources", links: [{ label: "About", href: "/about" }, { label: "Showcase", href: "/showcase" }, { label: "Changelog", href: "/changelog" }, { label: "Sponsors", href: "/sponsors" }, { label: "GitHub", href: site.github }, { label: "Contributing", href: `${site.github}/blob/main/CONTRIBUTING.md` }] },
+  { title: "Guides", links: [{ label: "SwiftUI Animations", href: "/docs/guides/swiftui-animations" }, { label: "SwiftUI Buttons", href: "/docs/guides/swiftui-buttons" }, { label: "SwiftUI Cards", href: "/docs/guides/swiftui-cards" }, { label: "SwiftUI Haptics", href: "/docs/guides/swiftui-haptics" }, { label: "Loading States", href: "/docs/guides/swiftui-loading-states" }, { label: "Liquid Glass", href: "/docs/liquid-glass" }] },
+  { title: "Resources", links: [{ label: "About", href: "/about" }, { label: "Showcase", href: "/showcase" }, { label: "Changelog", href: "/docs/changelog" }, { label: "Sponsors", href: "/sponsors" }, { label: "GitHub", href: site.github }] },
   { title: "Legal", links: [{ label: "License", href: "/license" }, { label: "Privacy", href: "/privacy" }, { label: "Terms", href: "/terms" }] },
 ];
 
 export function Footer() {
   return (
-    <footer className="relative pt-24 pb-10" data-tone="black">
+    <footer className="relative overflow-hidden pt-24" data-tone="black">
       <div aria-hidden className="dots-wide pointer-events-none absolute inset-0 opacity-50" style={{ maskImage: "linear-gradient(to bottom, transparent, black 40%)", WebkitMaskImage: "linear-gradient(to bottom, transparent, black 40%)" }} />
       <Container className="relative">
         <div className="grid gap-12 sm:grid-cols-2 lg:grid-cols-[1.4fr_repeat(6,1fr)] lg:gap-6">
@@ -27,10 +28,12 @@ export function Footer() {
                 { href: site.twitter, label: "X", d: "M12.6 1h2.2L9.9 6.6 15.7 15h-4.5L7.7 10.4 3.6 15H1.4l5.3-6L1.1 1h4.6l3.2 4.2L12.6 1Zm-.8 12.7h1.2L4.9 2.2H3.6l8.2 11.5Z" },
               ].map((s) => (
                 <a key={s.label} href={s.href} aria-label={s.label} className="flex size-9 items-center justify-center rounded-[var(--radius-sm)] bg-surface-2 text-muted transition-colors hover:bg-surface-3 hover:text-foreground">
-                  <svg viewBox="0 0 16 16" className="size-4" fill="currentColor"><path d={s.d} /></svg>
+                  <svg viewBox="0 0 16 16" className="ai ai-lift size-4 overflow-visible" fill="currentColor"><path d={s.d} /></svg>
                 </a>
               ))}
             </div>
+            {/* Light, dark or follow the system; remembered per browser. */}
+            <ThemeToggle className="mt-4" />
           </div>
           {columns.map((col) => (
             <div key={col.title}>
@@ -48,15 +51,28 @@ export function Footer() {
           ))}
         </div>
 
-        <div className="mt-24 overflow-hidden" aria-hidden>
-          <p className="select-none whitespace-nowrap text-center text-[clamp(2.3rem,9.1vw,9.2rem)] font-extrabold leading-[0.82] tracking-[-0.06em] text-[#0f0f0f]">SWIFTPIECES</p>
-        </div>
-
         <div className="mt-10 flex flex-col gap-3 text-[11.5px] text-subtle md:flex-row md:items-center md:justify-between">
           <p>© {new Date().getFullYear()} Swift Pieces. Free pieces are MIT + Commons Clause.</p>
-          <p className="inline-flex items-center gap-1.5">Curated with<svg aria-label="love" viewBox="0 0 16 16" className="size-3 text-accent" fill="currentColor"><path d="M8 14s-5.5-3.3-5.5-7.2A3 3 0 0 1 8 5.1a3 3 0 0 1 5.5 1.7C13.5 10.7 8 14 8 14z" /></svg>by <a href="https://x.com/saivion" target="_blank" rel="noreferrer" className="u-link text-foreground">Saivion</a></p>
+          <p className="ai-host inline-flex items-center gap-1.5">Curated with<svg aria-label="love" viewBox="0 0 16 16" className="ai ai-beat size-3 overflow-visible text-accent" fill="currentColor"><path d="M8 14s-5.5-3.3-5.5-7.2A3 3 0 0 1 8 5.1a3 3 0 0 1 5.5 1.7C13.5 10.7 8 14 8 14z" /></svg>by <a href="https://x.com/saivion" target="_blank" rel="noreferrer" className="u-link text-foreground">Saivion</a></p>
         </div>
+        <FooterWordmark text="SWIFTPIECES" size={158} crop={0.86} />
       </Container>
     </footer>
+  );
+}
+
+/**
+ * The footer's closing wordmark, set like a poster: the word fills the full content width exactly
+ * (SVG `textLength`), in solid foreground, and runs off the bottom of the page so the letters are cut
+ * along their base. The viewBox is shorter than the capitals, which is what crops them.
+ */
+function FooterWordmark({ text, size, crop }: { text: string; size: number; crop: number }) {
+  // Baseline sits a little below Figtree's cap height (0.7em) so round letters' overshoot and the
+  // tops of every capital stay fully inside the box; only the base is cropped.
+  const cap = Math.round(size * 0.76);
+  return (
+    <svg aria-hidden viewBox={`0 0 1000 ${Math.round(cap * crop)}`} overflow="hidden" className="mt-12 block w-full select-none text-foreground" preserveAspectRatio="xMidYMin meet">
+      <text x="0" y={cap} textLength="1000" lengthAdjust="spacing" fill="currentColor" style={{ fontSize: size, fontWeight: 800, fontFamily: "var(--font-sans)" }}>{text}</text>
+    </svg>
   );
 }

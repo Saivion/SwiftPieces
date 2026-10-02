@@ -14,6 +14,16 @@ export type Tag = { label: string; icon: ReactNode };
 /** The section heading and subtitle every block below the hero uses, so they cannot drift apart. */
 export const sectionTitle = "text-[23.5px] leading-[1.12] font-medium tracking-[-0.025em] text-balance sm:text-[27px]";
 export const sectionBody = "text-[15px] leading-[26px] text-pretty text-muted";
+/**
+ * The heading column of a 1:2 section: from lg up it stays in view below the navbar while the
+ * longer column beside it scrolls, and lets go where that column ends. Same as Pro's screen pages.
+ */
+/**
+ * The landing page's vertical rhythm. Every section carries half the gap above and below, so any
+ * two neighbours sit one gap apart (96 on phones, 128 from sm up), measured content to content.
+ */
+export const band = "py-12 sm:py-16";
+export const stickyColumn = "lg:sticky lg:top-24 lg:self-start";
 export const heroTitle = "text-[34px] leading-[1.04] font-medium tracking-[-0.035em] text-balance sm:text-[42px] lg:text-[49px]";
 
 export function Tags({ tags, className }: { tags: Tag[]; className?: string }) {
@@ -44,7 +54,7 @@ export function SectionCopy({ tags, title, body, action, className, bodyClassNam
 /** `reverse` puts the visual on the left from `lg` up; on small screens the copy always leads. */
 export function FeatureRow({ tags, title, body, cta, reverse, children }: { tags: Tag[]; title: string; body: string; cta: { label: string; href: string }; reverse?: boolean; children: ReactNode }) {
   return (
-    <section className={cn("grid grid-cols-1 items-center gap-12 py-16 sm:py-24 lg:gap-16", reverse ? "lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]" : "lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]")}>
+    <section className={cn("grid grid-cols-1 items-center gap-12 lg:gap-16", band, reverse ? "lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]" : "lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]")}>
       <Reveal className={reverse ? "lg:order-2" : undefined}>
         <ul className="mb-5 flex flex-wrap gap-x-4 gap-y-2">
           {tags.map((t) => (
@@ -72,7 +82,7 @@ export function RowLink({ href, children, className }: { href: string; children:
 /** A 16px tile behind a tag's glyph: a lifted chip, not a colored badge. */
 export function TagIcon({ children, accent }: { children: ReactNode; accent?: boolean }) {
   return (
-    <span aria-hidden className={cn("grid size-4 place-items-center rounded-[5px] p-[3px] shadow-[inset_0_0_0_1px_rgb(255_255_255/0.08)] [&_svg]:size-full", accent ? "bg-accent/15 text-accent" : "bg-surface-muted text-[#c4c4c4]")}>
+    <span aria-hidden className={cn("grid size-4 place-items-center rounded-[5px] p-[3px] shadow-[inset_0_0_0_1px_rgb(255_255_255/0.08)] [&_svg]:size-full", accent ? "bg-accent/15 text-accent" : "bg-surface-muted text-[var(--tag-ink)]")}>
       {children}
     </span>
   );
@@ -95,10 +105,14 @@ export function Panel({ children, className }: { children: ReactNode; className?
 }
 
 /** Four small crosshairs sitting on a frame's corners. */
-export function CornerTicks() {
+const TICKS = { tl: "-top-[4px] -left-[4px]", tr: "-top-[4px] -right-[4px]", bl: "-bottom-[4px] -left-[4px]", br: "-bottom-[4px] -right-[4px]" };
+
+/** The crosses on a dashed frame's corners; `corners` picks some (a .frame-cell row draws only its own). */
+export function CornerTicks({ corners = ["tl", "tr", "bl", "br"] }: { corners?: Array<keyof typeof TICKS> }) {
   return (
     <>
-      {["-top-[5px] -left-[5px]", "-top-[5px] -right-[5px]", "-bottom-[5px] -left-[5px]", "-bottom-[5px] -right-[5px]"].map((pos) => (
+      {/* -4px: the cross's 1px arms (at 4 to 5 in its 9px box) land exactly on the frame's 1px edge. */}
+      {corners.map((c) => TICKS[c]).map((pos) => (
         <svg key={pos} aria-hidden viewBox="0 0 9 9" className={cn("pointer-events-none absolute size-[9px] text-white/35", pos)}>
           <path d="M4.5 0v9M0 4.5h9" stroke="currentColor" strokeWidth="1" />
         </svg>
@@ -113,7 +127,7 @@ export function CornerTicks() {
  */
 export function Floating({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <div className={cn("relative mt-3 rounded-[6px] border border-white/[0.09] bg-[#1a1a1b] shadow-[0_30px_70px_-24px_rgb(0_0_0/0.95),inset_0_1px_0_rgb(255_255_255/0.05)] md:absolute md:mt-0", className)}>
+    <div className={cn("relative mt-3 rounded-[6px] border border-white/[0.09] bg-[var(--raised)] shadow-[0_30px_70px_-24px_rgb(0_0_0/0.95),inset_0_1px_0_rgb(255_255_255/0.05)] md:absolute md:mt-0", className)}>
       {children}
     </div>
   );

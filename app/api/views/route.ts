@@ -4,8 +4,10 @@ import { getViews, recordView, sanitiseView } from "@/lib/views";
 /**
  * The hero's view counter.
  *
- *   POST  counts this page load, then returns the current total
- *   GET   reads the total without counting
+ *   POST  reports this page load (Analytics Engine, for per-piece reporting), then returns the total
+ *   GET   reads the total without reporting
+ *
+ * The total itself is the site's all-time page views from Cloudflare Web Analytics (lib/views.ts).
  *
  * The split matters: a page counts once when it loads and then polls with GET, so watching the
  * number never inflates it.

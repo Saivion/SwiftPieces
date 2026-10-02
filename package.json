@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "next dev",
-    "build": "npm run registry:build && next build",
+    "build": "npm run registry:build && npm run builder:build && next build",
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
@@ -17,16 +17,21 @@
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
     "deploy": "opennextjs-cloudflare build && npm run audit:public && opennextjs-cloudflare deploy",
     "upload": "opennextjs-cloudflare build && opennextjs-cloudflare upload",
-    "cf:build": "npm run brand:build && opennextjs-cloudflare build && npm run audit:public",
+    "cf:build": "npm run brand:build && npm run builder:build && opennextjs-cloudflare build && npm run audit:public",
     "brand:build": "npm run build --workspace packages/brand",
+    "builder:build": "npm run build --workspace packages/builder",
+    "builder:test": "npm test --workspace packages/builder",
     "cli:build": "npm run build --workspace packages/cli",
-    "audit:public": "bash scripts/audit-public.sh"
+    "audit:public": "bash scripts/audit-public.sh",
+    "test": "node --import tsx --test lib/*.test.ts"
   },
   "workspaces": [
     "packages/*"
   ],
   "dependencies": {
     "@opennextjs/cloudflare": "^1.20.6",
+    "@swiftpieces/brand": "^0.2.0",
+    "@swiftpieces/builder": "^0.1.0",
     "fumadocs-core": "^16.15.10",
     "fumadocs-mdx": "^15.4.0",
     "fumadocs-ui": "^16.15.10",
@@ -34,8 +39,7 @@
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "yaml": "^2.9.1",
-    "zod": "^4.6.5",
-    "@swiftpieces/brand": "^0.2.0"
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.3",
@@ -43,6 +47,7 @@
     "@types/node": "^26.5.1",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
+    "remark-mdx": "^3.1.1",
     "tailwindcss": "^4.3.3",
     "tsx": "^4.23.13",
     "typescript": "^5.9.3",

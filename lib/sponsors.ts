@@ -46,7 +46,7 @@ export const tiers: Tier[] = [
     price: 100,
     audience: "company",
     pitch: "For studios and indie teams who build on Swift Pieces.",
-    perks: ["Small logo on this page", "Logo in the GitHub README", "Everything in Supporter"],
+    perks: ["Logo on this page", "Logo in the GitHub README", "Everything in Supporter"],
   },
   {
     id: "silver",
@@ -54,7 +54,7 @@ export const tiers: Tier[] = [
     price: 300,
     audience: "company",
     pitch: "For tools and companies that want to reach iOS developers where they read.",
-    perks: ["Medium logo on this page", "Logo in the docs sidebar, on every docs page", "A thank-you post from @saivion on X", "Everything in Bronze"],
+    perks: ["Large logo on this page", "Logo on every docs page", "A thank-you post from @saivion on X", "Everything in Bronze"],
   },
   {
     id: "gold",
@@ -62,7 +62,7 @@ export const tiers: Tier[] = [
     price: 750,
     audience: "company",
     pitch: "The headline placement, limited to three sponsors at a time.",
-    perks: ["Large logo on the swiftpieces.com homepage", "Top of this page and the README", "One Swift Pieces Pro license for your team", "Everything in Silver"],
+    perks: ["Largest logo on the swiftpieces.com homepage", "Top of this page and the README", "One Swift Pieces Pro license for your team", "Everything in Silver"],
     slots: 3,
   },
 ];

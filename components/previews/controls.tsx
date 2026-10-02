@@ -287,13 +287,15 @@ export function TimerDialPreview() {
   const running = now >= START && now < FINISH, finished = now >= FINISH;
   const remaining = finished ? 0 : running ? TOTAL - (now - START) / 1000 : set;
   const shown = Math.ceil(remaining), warning = running && shown <= 5;
-  const fraction = running || finished ? remaining / TOTAL : set / 60;
+  // One scale throughout, the dial's 60-second face: the ring winds back to the set time, then counts
+  // down from there on the same face (it used to jump to a full ring and count down on a 10s scale).
+  const fraction = remaining / 60;
   const breathe = warning && !reduced() ? 1 + 0.012 * Math.sin((now / 1000) * 2 * Math.PI) : 1;
   const caption = finished ? "DONE" : running ? "REMAINING" : "READY";
   return (
     <Stage>
       <div className="relative flex flex-col items-center" style={{ gap: u(16) }}>
-        <Dial side={DIAL} lw={19} fraction={fraction} color={warning ? signal.fill : blocks.tangerine} knob={!running} ticks finished={finished} breathe={breathe}>
+        <Dial side={DIAL} lw={19} fraction={fraction} color={warning ? signal.fill : blocks.tangerine} knob ticks finished={finished} breathe={breathe}>
           <span className="tabular-nums" style={{ fontSize: u(60), fontWeight: font.numeralWeight, letterSpacing: "-0.03em", lineHeight: 1 }}>
             <span style={{ color: ground.muted, opacity: 0.6 }}>0:</span>
             <span style={{ color: warning ? signal.fill : ground.text, transition: "color .3s" }}>{String(shown).padStart(2, "0")}</span>

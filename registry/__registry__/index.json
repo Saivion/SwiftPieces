@@ -709,6 +709,50 @@
   },
   {
     "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "ActivityHeatmap",
+    "slug": "activity-heatmap",
+    "type": "registry:component",
+    "title": "Activity Heatmap",
+    "description": "A streak calendar for habit, fitness, study and journaling apps: weeks of days drawn in one Canvas as rounded cells in solid steps from a pale red mix up to pure red, laid out by the locale's first weekday with month labels on their week columns, a light streak numeral that stays alive until midnight beside the longest run and active days, a scrub that lifts the day under your finger with a callout and a haptic tick per day, sideways scrolling that opens on today when the weeks outgrow the width, and VoiceOver that steps day by day or plays the weeks as an audio graph.",
+    "category": "data",
+    "license": "MIT+Commons-Clause",
+    "version": "1.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "heatmap",
+      "streak",
+      "calendar",
+      "habits",
+      "activity",
+      "contributions",
+      "scrub",
+      "accessibility"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/data/ActivityHeatmap.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Data/ActivityHeatmap.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/data/activity-heatmap",
+    "pro": "lens-tab-bar",
+    "added": "2026-09-29",
+    "isNew": true,
+    "liquidGlass": false,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
     "name": "LiveStat",
     "slug": "live-stat",
     "type": "registry:component",
@@ -1200,6 +1244,48 @@
   },
   {
     "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "AddressField",
+    "slug": "address-field",
+    "type": "registry:component",
+    "title": "Address Field",
+    "description": "An address field for checkout, delivery and sign-up that lists type-ahead suggestions under a soft 56pt block with the matched text in bold, picks one with a tap or the hardware keyboard, shows a spinner on the chosen row while it resolves into a structured address with street, city, state, postal code, country and coordinate, then settles into the field with the locality on a second line and a sage check, keeping the typed text usable with a \"Use as typed\" row and an inline retry when a lookup fails.",
+    "category": "inputs",
+    "license": "MIT+Commons-Clause",
+    "version": "1.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "address",
+      "autocomplete",
+      "mapkit",
+      "checkout",
+      "delivery",
+      "form",
+      "search"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/inputs/AddressField.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Inputs/AddressField.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/inputs/address-field",
+    "added": "2026-09-29",
+    "isNew": true,
+    "liquidGlass": false,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
     "name": "AmountField",
     "slug": "amount-field",
     "type": "registry:component",
@@ -1236,7 +1322,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/inputs/amount-field",
     "added": "2026-09-23",
-    "isNew": true,
+    "isNew": false,
     "liquidGlass": false,
     "metal": false
   },
@@ -1277,7 +1363,7 @@
     "docs": "https://swiftpieces.com/docs/components/inputs/date-range-picker",
     "pro": "slot-picker",
     "added": "2026-09-23",
-    "isNew": true,
+    "isNew": false,
     "liquidGlass": false,
     "metal": false
   },
@@ -1397,6 +1483,52 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/inputs/form-field",
     "added": "2026-09-23",
+    "isNew": false,
+    "liquidGlass": false,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "LocationPicker",
+    "slug": "location-picker",
+    "type": "registry:component",
+    "title": "Location Picker",
+    "description": "A map picker for delivery, rides, events and listings: drag the map under a fixed red pin that lifts while the map moves and drops with a small bounce when it settles, the address under it is looked up after a short pause with stale answers cancelled and recent ones cached, a floating card shows the street and locality (a dropped pin with coordinates where there is no address, Retry when the lookup fails), the locate button asks for location only when tapped and flies to you, and Confirm hands back the coordinate with its address.",
+    "category": "inputs",
+    "license": "MIT+Commons-Clause",
+    "version": "1.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "location",
+      "map",
+      "pin",
+      "mapkit",
+      "geocoding",
+      "delivery",
+      "address",
+      "corelocation"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {
+      "NSLocationWhenInUseUsageDescription": "Shows where you are so you can pick a spot on the map."
+    },
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/inputs/LocationPicker.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Inputs/LocationPicker.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/inputs/location-picker",
+    "pro": "detent-sheet",
+    "added": "2026-09-29",
     "isNew": true,
     "liquidGlass": false,
     "metal": false
@@ -1439,7 +1571,7 @@
     "docs": "https://swiftpieces.com/docs/components/inputs/range-slider",
     "pro": "filter-sheet",
     "added": "2026-09-23",
-    "isNew": true,
+    "isNew": false,
     "liquidGlass": false,
     "metal": false
   },
@@ -1525,6 +1657,49 @@
   },
   {
     "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "SignaturePad",
+    "slug": "signature-pad",
+    "type": "registry:component",
+    "title": "Signature Pad",
+    "description": "A signature field that lays smooth, velocity-weighted ink into a Canvas as the finger moves, thinning on quick flicks and pooling on slow turns, over a baseline whose Sign here hint fades on the first stroke, with Undo, Clear and Undo after Clear, a Type instead mode that sets the typed name in a script face on the same line, strokes that rescale with the pad on rotation, and export to a transparent PNG or a vector PDF.",
+    "category": "inputs",
+    "license": "MIT+Commons-Clause",
+    "version": "1.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "signature",
+      "ink",
+      "drawing",
+      "canvas",
+      "forms",
+      "export",
+      "pdf",
+      "accessibility"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/inputs/SignaturePad.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Inputs/SignaturePad.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/inputs/signature-pad",
+    "added": "2026-09-29",
+    "isNew": true,
+    "liquidGlass": false,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
     "name": "TokenField",
     "slug": "token-field",
     "type": "registry:component",
@@ -1561,7 +1736,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/inputs/token-field",
     "added": "2026-09-23",
-    "isNew": true,
+    "isNew": false,
     "liquidGlass": false,
     "metal": false
   },
@@ -1608,6 +1783,92 @@
   },
   {
     "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "DragSelectGrid",
+    "slug": "drag-select-grid",
+    "type": "registry:component",
+    "title": "Drag Select Grid",
+    "description": "A multi-select photo and file grid where one drag paints a whole reading-order range the way the system photo library does, a sideways drag or a short hold starts painting while vertical swipes still scroll, dragging back unpaints, starting on a selected item deselects, the grid auto-scrolls faster the deeper the finger sits in the top or bottom edge, and selected cells inset under a check badge with a haptic tick per item.",
+    "category": "lists",
+    "license": "MIT+Commons-Clause",
+    "version": "1.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "selection",
+      "multi-select",
+      "grid",
+      "photos",
+      "drag-to-select",
+      "gesture",
+      "auto-scroll",
+      "haptics"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/lists/DragSelectGrid.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Lists/DragSelectGrid.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/lists/drag-select-grid",
+    "added": "2026-09-29",
+    "isNew": true,
+    "liquidGlass": false,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "FollowScroll",
+    "slug": "follow-scroll",
+    "type": "registry:component",
+    "title": "Follow Scroll",
+    "description": "A chat, log and live-feed scroll container that opens on the newest item and stays pinned to it while the reader is at the bottom, but never yanks them away once they scroll up to read; items that arrive below are counted into a floating Liquid Glass pill that jumps back to the latest, older items loaded at the top keep the visible row exactly where it was, and keyboard, rotation, growing rows and removals all hold the reader's place.",
+    "category": "lists",
+    "license": "MIT+Commons-Clause",
+    "version": "1.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "chat",
+      "feed",
+      "log",
+      "scroll",
+      "auto-scroll",
+      "new-messages",
+      "pagination",
+      "liquid-glass"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/lists/FollowScroll.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Lists/FollowScroll.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/lists/follow-scroll",
+    "added": "2026-09-29",
+    "isNew": true,
+    "liquidGlass": true,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
     "name": "PagedList",
     "slug": "paged-list",
     "type": "registry:component",
@@ -1644,7 +1905,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/lists/paged-list",
     "added": "2026-09-23",
-    "isNew": true,
+    "isNew": false,
     "liquidGlass": false,
     "metal": false
   },
@@ -1766,6 +2027,135 @@
     "docs": "https://swiftpieces.com/docs/components/lists/task-row",
     "pro": "transaction-row",
     "isNew": false,
+    "liquidGlass": false,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "AttachmentTray",
+    "slug": "attachment-tray",
+    "type": "registry:component",
+    "title": "Attachment Tray",
+    "description": "A horizontal attachment strip for composers, support forms and listings: an add tile opens the photo picker with the remaining limit, each pick lands as its own tile that loads with a live progress ring, downsamples off the main thread into a crisp thumbnail and settles in with a spring, failures turn into a retry tile, the remove badge cancels an in-flight load, duplicates and over-limit picks are caught, and the caller owns every attachment for upload.",
+    "category": "media",
+    "license": "MIT+Commons-Clause",
+    "version": "1.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "attachments",
+      "photos",
+      "photos-picker",
+      "upload",
+      "thumbnails",
+      "imageio",
+      "composer",
+      "media"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/media/AttachmentTray.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Media/AttachmentTray.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/media/attachment-tray",
+    "added": "2026-09-29",
+    "isNew": true,
+    "liquidGlass": false,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "LinkPreview",
+    "slug": "link-preview",
+    "type": "registry:component",
+    "title": "Link Preview",
+    "description": "A rich card for any URL that holds its final size while a skeleton sweeps, then settles the page's image, title and host into place, fetched once with LinkPresentation, shared by every card showing the same link and cached so scrolling never refetches, falling back to a quiet card with the address when a page cannot be read, opening on tap and offering Copy Link and Share on long press.",
+    "category": "media",
+    "license": "MIT+Commons-Clause",
+    "version": "1.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "link",
+      "url",
+      "preview",
+      "unfurl",
+      "metadata",
+      "linkpresentation",
+      "cache",
+      "chat"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/media/LinkPreview.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Media/LinkPreview.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/media/link-preview",
+    "added": "2026-09-29",
+    "isNew": true,
+    "liquidGlass": false,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "PhotoCropper",
+    "slug": "photo-cropper",
+    "type": "registry:component",
+    "title": "Photo Cropper",
+    "description": "A crop step for profile photos, posts and listings that keeps the picked photo covering a frame of the chosen aspect at every zoom and offset, pinches around the fingers while it pans, rubber-bands past its limits and springs back with a red flash on the frame and a rigid tick at a zoom limit, morphs between circle, square, 4:5, 16:9 and the photo's own shape without losing the subject, turns a quarter at a time, fades in a rule-of-thirds grid under the finger, and renders the crop off the main thread at the original's full resolution together with its pixel rect and rotation for cropping again on a server.",
+    "category": "media",
+    "license": "MIT+Commons-Clause",
+    "version": "1.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "crop",
+      "photo",
+      "avatar",
+      "pinch-zoom",
+      "rotate",
+      "aspect-ratio",
+      "image",
+      "editor"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/media/PhotoCropper.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Media/PhotoCropper.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/media/photo-cropper",
+    "added": "2026-09-29",
+    "isNew": true,
     "liquidGlass": false,
     "metal": false
   },
@@ -1936,6 +2326,49 @@
   },
   {
     "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "IndexScrubber",
+    "slug": "index-scrubber",
+    "type": "registry:component",
+    "title": "Index Scrubber",
+    "description": "An A to Z section index for long lists in any scroll view: touch or drag the trailing rail to jump to the section under your finger with a selection tick per new section, a large letter block that follows the finger and rolls in the direction of travel, letters without a section dimmed or hidden, a dotted collapse when the rail is too short for every title, one adjustable VoiceOver element and type-to-jump on a hardware keyboard.",
+    "category": "navigation",
+    "license": "MIT+Commons-Clause",
+    "version": "1.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "index",
+      "alphabet",
+      "sections",
+      "scrubber",
+      "jump",
+      "contacts",
+      "list",
+      "scroll"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/navigation/IndexScrubber.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Navigation/IndexScrubber.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/navigation/index-scrubber",
+    "added": "2026-09-29",
+    "isNew": true,
+    "liquidGlass": false,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
     "name": "StretchHeader",
     "slug": "stretch-header",
     "type": "registry:component",
@@ -2098,6 +2531,50 @@
   },
   {
     "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "SpotlightTour",
+    "slug": "spotlight-tour",
+    "type": "registry:component",
+    "title": "Spotlight Tour",
+    "description": "A first-run feature tour for any screen: mark controls with .spotlightAnchor and .spotlightTour dims everything else through a cutout that springs from stop to stop as a red ring draws around it, sets a callout with step progress, Skip and a red Next below or above the target inside the safe area, lets taps through to the real control (which can also advance the tour), skips stops that aren't on screen, follows its target through scrolling, rotation and the keyboard, can show itself only once, and keeps VoiceOver, hardware keyboards and Reduce Motion in step.",
+    "category": "sheets",
+    "license": "MIT+Commons-Clause",
+    "version": "1.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "onboarding",
+      "coach-marks",
+      "tour",
+      "tips",
+      "spotlight",
+      "overlay",
+      "first-run",
+      "accessibility"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/sheets/SpotlightTour.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Sheets/SpotlightTour.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/sheets/spotlight-tour",
+    "pro": "onboarding-flow",
+    "added": "2026-09-29",
+    "isNew": true,
+    "liquidGlass": false,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
     "name": "Toast",
     "slug": "toast",
     "type": "registry:component",
@@ -2174,7 +2651,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/text/expandable-text",
     "added": "2026-09-23",
-    "isNew": true,
+    "isNew": false,
     "liquidGlass": false,
     "metal": false
   },
@@ -2216,6 +2693,50 @@
     "pro": "glass-paywall-screen",
     "isNew": false,
     "liquidGlass": true,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "PictureHeadline",
+    "slug": "picture-headline",
+    "type": "registry:component",
+    "title": "Picture Headline",
+    "description": "A headline with living pictures stuck between its words like a hand-placed collage. Each word rises into place and each picture opens from a dot into a tilted sticker with a white rim, landing with a spring, a light tick and a flash of crop marks, then keeps drifting. Press a sticker to lift it. Use the built-in house-palette scenes (the sun is our red mascot), your own images or SF Symbols; it wraps like text at any width and Dynamic Type size.",
+    "category": "text",
+    "license": "MIT+Commons-Clause",
+    "version": "1.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "text",
+      "headline",
+      "inline images",
+      "pictures",
+      "reveal",
+      "stagger",
+      "onboarding",
+      "hero",
+      "typography"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/text/PictureHeadline.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Text/PictureHeadline.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/text/picture-headline",
+    "added": "2026-09-29",
+    "isNew": true,
+    "liquidGlass": false,
     "metal": false
   },
   {

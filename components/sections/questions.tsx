@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { Container } from "@/components/ui/container";
 import { Reveal } from "@/components/effects/reveal";
 import { faqs } from "@/lib/faqs";
-import { sectionTitle, sectionBody } from "@/components/sections/feature-row";
+import { sectionTitle, sectionBody, stickyColumn } from "@/components/sections/feature-row";
 import { cn } from "@/lib/cn";
 
 /**
@@ -11,11 +11,11 @@ import { cn } from "@/lib/cn";
  * page's 1:2 grid. Native <details>, so it is server-rendered, works without JavaScript and is
  * searchable with find-in-page; the open animation is CSS (see `.qa` in globals.css).
  */
-export function Questions({ items = faqs, title = "Questions", body }: { items?: readonly { q: string; a: string }[]; title?: string; body?: ReactNode } = {}) {
+export function Questions({ items = faqs, title = "Questions", body, spacing = "mt-24 sm:mt-32" }: { items?: readonly { q: string; a: string }[]; title?: string; body?: ReactNode; spacing?: string } = {}) {
   return (
-    <Container className="mt-24 sm:mt-32">
+    <Container className={spacing}>
       <section className="grid gap-10 lg:grid-cols-[1fr_2fr] lg:gap-20">
-        <Reveal as="div">
+        <Reveal as="div" className={stickyColumn}>
           <h2 className={sectionTitle}>{title}</h2>
           <p className={cn("mt-4 max-w-xs", sectionBody)}>
             {body ?? <>The short ones are here. The rest are in the <Link href="/docs/introduction" className="text-foreground underline decoration-white/25 underline-offset-4 transition-colors hover:decoration-white">docs</Link>.</>}

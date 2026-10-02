@@ -12,7 +12,7 @@ import { blocks, font, ground, ink, signal } from "./palette";
 const u = (px: number) => `${(px / 5.6).toFixed(3)}cqw`;
 const spring = "cubic-bezier(0.34, 1.35, 0.64, 1)";
 const ease = "cubic-bezier(0.22, 1, 0.36, 1)";
-const quiet = "#2a2a2a";
+const quiet = ground.trough;
 
 function useReducedMotion() {
   const [reduced, setReduced] = useState(false);
@@ -105,7 +105,7 @@ export function ToastPreview() {
     <Ground>
       <style>{keyframes}</style>
       <div data-motion className="absolute inset-x-0 flex justify-center" style={{ top: "50%", paddingInline: u(28), opacity: shown ? 1 : 0, transform: shown ? `translateY(-50%) scale(${phase === "touched" ? 0.97 : 1})` : `translateY(calc(-50% - ${u(64)})) scale(0.92)`, transformOrigin: "top", transition: `transform .55s ${spring}, opacity .3s` }}>
-        <div className="relative flex w-full items-center" style={{ maxWidth: u(476), gap: u(14), padding: u(12), borderRadius: u(24), background: "#2a2a2a", boxShadow: `0 ${u(12)} ${u(28)} rgba(0,0,0,.45)` }}>
+        <div className="relative flex w-full items-center" style={{ maxWidth: u(476), gap: u(14), padding: u(12), borderRadius: u(24), background: ground.trough, boxShadow: `0 ${u(12)} ${u(28)} rgba(0,0,0,.45)` }}>
           <span key={shown ? "in" : "out"} data-motion className="flex items-center justify-center" style={{ width: u(46), height: u(46), borderRadius: u(14), background: blocks.sage, color: ink, animation: shown ? `sh-bounce .5s ${spring} .15s both` : undefined }}><Glyph d={G.check} size={23} stroke={3} /></span>
           <span className="min-w-0 flex-1">
             <span className="block" style={{ fontSize: u(17), fontWeight: 600 }}>Conversation archived</span>

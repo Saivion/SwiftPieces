@@ -7,11 +7,16 @@
  *   registry/__registry__/index.json   public index (no file contents)
  *   registry/__registry__/items.json   full items, imported only by Route Handlers
  *   content/docs/<category>/<slug>.mdx generated docs pages
+ *   registry/__registry__/docs.json    every docs page's URL, title and search text (search, sitemap)
  *   public/llms.txt                    AI discoverability
  *   public/schema/registry-item.json   JSON schema for the registry protocol
  */
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { basename, join, relative } from "node:path";
+import { structure } from "fumadocs-core/mdx-plugins";
+import { findPath, type Root } from "fumadocs-core/page-tree";
+import { loader, type VirtualFile } from "fumadocs-core/source";
+import remarkMdx from "remark-mdx";
 import { parse as parseYaml } from "yaml";
 import { z } from "zod";
 import {
@@ -22,7 +27,7 @@ import {
   type RegistryItem,
 } from "../lib/registry-schema";
 import { categories } from "../lib/categories";
-import { proCatalog, proCountsLabel } from "../lib/pro-catalog";
+import { exploreProPages, proCatalog, proCountsLabel } from "../lib/pro-catalog";
 import { hubs, hubItems, hubPath } from "../lib/hubs";
 
 const ROOT = join(import.meta.dirname, "..");
@@ -52,9 +57,12 @@ const headerSchema = z.object({
   added: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
 });
 
-/** How long a piece wears the "New" badge after its `added` date, measured at registry build time. */
+/**
+ * The "New" badge marks only the latest wave: pieces sharing the most recent `added` date, and only for
+ * this many days after it (measured at registry build time). An earlier wave loses it when the next ships.
+ */
 const NEW_FOR_DAYS = 30;
-const isNewPiece = (added?: string) => Boolean(added) && Date.now() - Date.parse(`${added}T00:00:00Z`) < NEW_FOR_DAYS * 86_400_000;
+const isRecent = (added: string) => Date.now() - Date.parse(`${added}T00:00:00Z`) < NEW_FOR_DAYS * 86_400_000;
 
 // Docs live under the single "components" root section: /docs/components/<category slug>/<piece slug>.
 export const docsPath = (category: Category, slug: string) => `/docs/components/${categories[category].slug}/${slug}`;
@@ -175,13 +183,15 @@ function build() {
         docs: `${SITE_URL}${docsPath(header.category, slug)}`,
         pro: header.pro,
         added: header.added,
-        isNew: isNewPiece(header.added),
+        isNew: false, // set below, once the latest wave is known
         liquidGlass: /glassEffect|GlassEffectContainer|buttonStyle\(\.glass/.test(body),
         metal: shaders.length > 0 || /ShaderLibrary/.test(body),
       });
       items.push(item);
     }
   }
+  const latestWave = items.reduce((max, i) => (i.added && i.added > max ? i.added : max), "");
+  for (const i of items) i.isNew = Boolean(i.added) && i.added === latestWave && isRecent(latestWave);
 
   const names = new Set(items.map((i) => i.name));
   for (const item of items) {
@@ -206,6 +216,7 @@ function build() {
   writeFileSync(join(OUT_DIR, "items.json"), JSON.stringify(Object.fromEntries(items.map((i) => [i.name, i])), null, 2));
 
   writeDocs(items);
+  writeDocsIndex();
   writeLlms(items);
   writeSchema();
 
@@ -262,10 +273,14 @@ function writeDocs(items: RegistryItem[]) {
 
   const cats = (Object.keys(categories) as Category[]).filter((c) => items.some((i) => i.category === c));
   writeFileSync(join(root, "index.mdx"), `---\ntitle: "All SwiftUI components"\ndescription: "Every free Swift Pieces component for iOS with a live preview. Filter by category, then open a piece for its notes, parameters, source and install command."\nindex: true\n---\n\n{/* GENERATED FILE. Edit scripts/build-registry.ts. */}\n`);
+  // Explore Pro: Pro's screens and templates as cards that open on pro.swiftpieces.com. The cards
+  // come from lib/pro-cards.json and public/pro-cards/, refreshed by scripts/pro-cards/capture.ts.
+  writeFileSync(join(root, "screens.mdx"), `---\ntitle: "Screens"\ndescription: "Production-ready SwiftUI screens from Swift Pieces Pro. Each one is a complete, themed screen you drop into your app and wire to your data."\npro: "screen"\n---\n\n{/* GENERATED FILE. Edit scripts/build-registry.ts. */}\n`);
+  writeFileSync(join(root, "templates.mdx"), `---\ntitle: "Templates"\ndescription: "Complete Xcode app templates from Swift Pieces Pro, wired end to end. Open the project, swap the brand and the copy, ship."\npro: "template"\n---\n\n{/* GENERATED FILE. Edit scripts/build-registry.ts. */}\n`);
   writeFileSync(join(root, "meta.json"), JSON.stringify({
     title: "Components",
     root: true,
-    pages: ["index", `---Categories · ${cats.length}---`, ...cats.map((c) => categories[c].slug)],
+    pages: ["index", "---Explore Pro---", ...exploreProPages, `---Categories · ${cats.length}---`, ...cats.map((c) => categories[c].slug)],
   }, null, 2));
 
   for (const cat of cats) {
@@ -288,6 +303,83 @@ function writeDocs(items: RegistryItem[]) {
     }
   }
   writeFileSync(join(DOCS_DIR, "meta.json"), JSON.stringify({ title: "Swift Pieces", pages: ["introduction", "installation", "cli", "mcp", "liquid-glass", "guides", "components"] }, null, 2));
+}
+
+/**
+ * registry/__registry__/docs.json: every docs page's URL, title, description, sidebar breadcrumbs and
+ * searchable text, for the search route and the sitemap. They used to import lib/source.ts, the
+ * compiled MDX (about 20 MB once every piece's Swift source is highlighted), and every server entry
+ * that imports it carries its own copy into the Worker: three copies broke Cloudflare's 64 MiB
+ * limit. Only the docs pages import lib/source.ts now. The URLs and breadcrumbs come from fumadocs'
+ * loader over the same files, and the text from its structure() with the MDX parser, so search
+ * returns what createFromSource(source) did.
+ */
+function writeDocsIndex() {
+  const files: VirtualFile[] = [];
+  const bodies = new Map<string, string>();
+  // Breadth first, a folder's files before its subfolders, like the glob fumadocs-mdx reads the docs
+  // with: equal search scores then rank in the same order.
+  const queue = [DOCS_DIR];
+  const walk = (dir: string) => {
+    for (const entry of readdirSync(dir, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
+      const abs = join(dir, entry.name), path = relative(DOCS_DIR, abs);
+      if (entry.isDirectory()) queue.push(abs);
+      else if (entry.name === "meta.json") files.push({ type: "meta", path, data: JSON.parse(readFileSync(abs, "utf8")) });
+      else if (entry.name.endsWith(".mdx")) {
+        const raw = readFileSync(abs, "utf8");
+        const m = raw.match(/^---\n([\s\S]*?)\n---\n?/);
+        const fm = (m ? parseYaml(m[1]) : {}) as { title?: string; description?: string };
+        bodies.set(path, m ? raw.slice(m[0].length) : raw);
+        files.push({ type: "page", path, data: { ...fm, title: fm.title ?? basename(entry.name, ".mdx") } });
+      }
+    }
+  };
+  while (queue.length) walk(queue.shift()!);
+  const docs = loader({ baseUrl: "/docs", source: { files } });
+  const tree = docs.getPageTree();
+  const pages = docs.getPages().map((page) => ({
+    url: page.url,
+    title: page.data.title,
+    description: page.data.description,
+    breadcrumbs: breadcrumbs(tree, page.url),
+    structuredData: structure(bodies.get(page.path) ?? "", [remarkMdx, remarkUnravel]),
+  }));
+  writeFileSync(join(OUT_DIR, "docs.json"), JSON.stringify(pages, null, 2));
+}
+
+/**
+ * MDX's mark-and-unravel step, which its compiler runs before any remark plugin (so before fumadocs'
+ * structure at build time): a paragraph holding only JSX, like a line of <Tab>s, becomes those
+ * elements. Without it the index would hold text the docs search never had.
+ */
+type MdNode = { type: string; value?: string; children?: MdNode[] };
+function remarkUnravel() {
+  const walk = (parent: MdNode) => {
+    const kids = parent.children ?? [];
+    for (let i = 0; i < kids.length; i++) {
+      const node = kids[i];
+      const inner = node.children ?? [];
+      const onlyJsx = node.type === "paragraph"
+        && inner.some((c) => c.type === "mdxJsxTextElement" || c.type === "mdxTextExpression")
+        && inner.every((c) => c.type === "mdxJsxTextElement" || c.type === "mdxTextExpression" || (c.type === "text" && !c.value?.trim()));
+      if (onlyJsx) {
+        const lifted = inner.filter((c) => c.type !== "text").map((c) => ({ ...c, type: c.type === "mdxJsxTextElement" ? "mdxJsxFlowElement" : "mdxFlowExpression" }));
+        kids.splice(i, 1, ...lifted);
+        i--;
+        continue;
+      }
+      walk(node);
+    }
+  };
+  return (tree: MdNode) => walk(tree);
+}
+
+/** fumadocs' own breadcrumbs for search results: the names of the folders above a page in the sidebar tree. */
+function breadcrumbs(tree: Root, url: string): string[] | undefined {
+  const path = findPath(tree.children, (node) => node.type === "page" && node.url === url);
+  if (!path) return undefined;
+  path.pop();
+  return [tree.name, ...path.map((node) => node.name)].filter((name): name is string => typeof name === "string" && name.length > 0);
 }
 
 /** Frontmatter and body of each guide, in the sidebar's order, for llms.txt and llms-full.txt. */
@@ -348,7 +440,7 @@ function writeLlms(items: RegistryItem[]) {
     "",
     "## Swift Pieces Pro",
     "",
-    `A separate paid library for building whole apps: ${proCountsLabel} (production-ready SwiftUI screens, complete Xcode projects, and agent skills that build the rest in the same design) at ${PRO_URL}/library. One plan with lifetime access; plan and pricing: ${PRO_URL}/pro. Pro MCP endpoint: ${PRO_URL}/api/mcp (license key required): search_library, get_item, list_kit, get_kit_item, apply_design_skill, apply_recipe.`,
+    `A separate paid library for building whole apps: ${proCountsLabel} (production-ready SwiftUI screens, complete Xcode projects, and agent skills that build the rest in the same design) at ${PRO_URL}/library, plus Pro remixing in the Playground at ${SITE_URL}/apps (all ${proCatalog.remixing.apps} apps in the App Library, remix any app with AI, keep up to ${proCatalog.remixing.saves} remixes). One plan with lifetime access; plan and pricing: ${PRO_URL}/pro. Pro MCP endpoint: ${PRO_URL}/api/mcp (license key required): search_library, get_item, list_kit, get_kit_item, apply_design_skill, apply_recipe.`,
     "",
   );
   for (const [cat, list] of byCat) {

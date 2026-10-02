@@ -1,0 +1,848 @@
+---
+title: "Link Preview"
+description: "A rich card for any URL that holds its final size while a skeleton sweeps, then settles the page's image, title and host into place, fetched once with LinkPresentation, shared by every card showing the same link and cached so scrolling never refetches, falling back to a quiet card with the address when a page cannot be read, opening on tap and offering Copy Link and Share on long press."
+piece: "LinkPreview"
+category: "media"
+minIOSVersion: "17.0"
+version: "1.0.0"
+tags: ["link","url","preview","unfurl","metadata","linkpresentation","cache","chat"]
+registryDependencies: []
+---
+
+{/* GENERATED FILE. Edit registry/swift/media/LinkPreview.swift or LinkPreview.mdx instead. */}
+
+A rich preview card for a URL: the page's image, title and host, fetched once and cached. Tapping opens `url` through the environment's `openURL`, so an app that shows links in its own browser routes it with `.environment(\.openURL, OpenURLAction { url in … })` like any other link.
+
+## Notes
+
+- `LinkPreview(url:)` fetches the page with LinkPresentation and shows its image, title and host. Pass `metadata:` to show your own (previews, tests, links your server already unfurled) with no request.
+- Three states, one footprint. While loading, the card is a skeleton built from the real layout, so the large card keeps its exact size when the content arrives: the image settles in with a short fade and scale, the text fades in. A page that cannot be read (offline, timeout, unknown host, a page with nothing in it) becomes the quiet address card: a link glyph, the host and the address, still tappable.
+- `.compact` is a row with a square thumbnail, for chats and lists. `.large` puts a 1.91 : 1 image on top, capped at 280pt tall so a wide card crops instead of growing. Both take the width they are offered. A failed large card shrinks to the compact address card.
+- No image falls back to the site icon on a quiet tile, then to the host's first letter on a solid block picked from the host, so a site keeps its color. A tiny "image" is treated as an icon rather than stretched.
+- Links that are not `http` or `https` never make a request: email, phone and message links show the address card with their own glyph and a meta line such as "Email".
+- Redirects show the final host. Titles are trimmed with runs of whitespace collapsed, at most two lines (three at accessibility sizes). Long addresses truncate in the middle.
+- One cache for the whole app: at most 150 pages and about 48 MB of decoded images in an `NSCache`, emptied by the system under memory pressure. Cards showing the same URL share one fetch, a card that scrolls back into view starts from the cache with no skeleton, and a failure is remembered for 30 seconds so a failing link does not refetch on every scroll.
+- A card that disappears or changes its URL stops waiting at once; the fetch itself is cancelled when no card is waiting for it. A late result can never land on a card whose URL has changed. `timeout` (15 seconds) is enforced even while a connection is still being attempted.
+- Each fetch uses its own `LPMetadataProvider`, created, started and cancelled on the main actor. Images are decoded and downsampled with ImageIO off the main actor and never kept at full size.
+- Tap opens the link through the environment's `openURL`, so an app with its own browser routes it with `.environment(\.openURL, OpenURLAction { … })`. Long press shows Open Link, Copy Link and Share (with the title and image in the share sheet); copying plays a success haptic.
+- VoiceOver: one element read as "Title, host" with the link trait, a Copy Link action, and "Loading preview" as its value while loading. Copying is announced.
+- Dynamic Type: text scales, the thumbnail grows to 96pt, and at accessibility sizes the compact card stacks the text under the thumbnail at full width.
+- Reduce Motion: no skeleton sweep, no press dip and no scale on reveal; content fades.
+- `Style` sets the card, skeleton, highlight, title, secondary and tile colors, the letter ink and the corner radius. `.disabled(true)` dims the card.
+
+## Usage
+
+```swift
+LinkPreviewExample()
+```
+
+## Parameters
+
+| Parameter | Description |
+| --- | --- |
+| `url` | The link to preview and open. `http` and `https` links are fetched; any other scheme (email, phone, app links) shows the quiet link card at once, without a request. |
+| `layout` | `.compact` is a row with a square thumbnail on the leading side, for chat bubbles and lists. `.large` puts a wide image on top, for feeds and composers. Both take the width they are offered. |
+| `metadata` | Metadata to show as is, with no request: for previews, tests, or links your server has already unfurled. `nil` fetches. |
+| `timeout` | Seconds before a fetch gives up and the card falls back to the address. |
+| `style` | Colors and corner radius. Defaults to the Swift Pieces house palette, adapting to light and dark. |
+
+## Source
+
+<Tabs items={["LinkPreview.swift"]}>
+<Tab value="LinkPreview.swift">
+
+```swift title="LinkPreview.swift"
+import SwiftUI
+import LinkPresentation
+import ImageIO
+import UniformTypeIdentifiers
+
+/// A rich preview card for a URL: the page's image, title and host, fetched once and cached.
+///
+/// Tapping opens `url` through the environment's `openURL`, so an app that shows links in its own browser
+/// routes it with `.environment(\.openURL, OpenURLAction { url in … })` like any other link.
+///
+/// - Parameters:
+///   - url: The link to preview and open. `http` and `https` links are fetched; any other scheme (email, phone, app links) shows the quiet link card at once, without a request.
+///   - layout: `.compact` is a row with a square thumbnail on the leading side, for chat bubbles and lists. `.large` puts a wide image on top, for feeds and composers. Both take the width they are offered.
+///   - metadata: Metadata to show as is, with no request: for previews, tests, or links your server has already unfurled. `nil` fetches.
+///   - timeout: Seconds before a fetch gives up and the card falls back to the address.
+///   - style: Colors and corner radius. Defaults to the Swift Pieces house palette, adapting to light and dark.
+public struct LinkPreview: View {
+    /// How the card arranges the image and the text.
+    public enum Layout: Sendable, Hashable {
+        /// A row: square thumbnail on the leading side, title and host beside it.
+        case compact
+        /// A wide image on top (1.91 : 1, the shape most sites publish), title and host below.
+        case large
+    }
+
+    /// What the card shows for a page.
+    public struct Metadata: Sendable, Equatable {
+        /// The page title. `nil` or empty shows the address instead.
+        public var title: String?
+        /// The address that answered, after redirects. The card shows its host. `nil` uses the card's `url`.
+        public var url: URL?
+        /// A wide preview image, cropped to fill the thumbnail or the top of the card.
+        public var image: Image?
+        /// A site icon, shown on a quiet tile when there is no image.
+        public var icon: Image?
+
+        public init(title: String? = nil, url: URL? = nil, image: Image? = nil, icon: Image? = nil) {
+            self.title = title
+            self.url = url
+            self.image = image
+            self.icon = icon
+        }
+    }
+
+    /// Colors and metrics. `.standard` is the house palette.
+    public struct Style: Sendable {
+        /// The card itself.
+        public var card: Color
+        /// Skeleton bones while loading, and the tile behind a site icon.
+        public var placeholder: Color
+        /// The soft band that sweeps across the skeleton.
+        public var highlight: Color
+        /// The title.
+        public var title: Color
+        /// The host line and the glyph on the fallback tile.
+        public var secondary: Color
+        /// Solid blocks for a page with no image and no icon; the block and its letter are picked from the host, so a site keeps its color.
+        public var tiles: [Color]
+        /// The letter on a tile.
+        public var ink: Color
+        /// Card corner radius. The thumbnail follows it, concentric with the card.
+        public var cornerRadius: CGFloat
+
+        /// Pass only what you want to change; `nil` keeps the house palette value.
+        public init(card: Color? = nil, placeholder: Color? = nil, highlight: Color? = nil, title: Color? = nil, secondary: Color? = nil, tiles: [Color]? = nil, ink: Color? = nil, cornerRadius: CGFloat = 18) {
+            self.card = card ?? adaptive(light: 0xFFFFFF, dark: 0x1C1C1C)
+            self.placeholder = placeholder ?? adaptive(light: 0xEAE8E2, dark: 0x2A2A2A)
+            self.highlight = highlight ?? adaptive(light: 0xF8F7F3, dark: 0x3A3A3A)
+            self.title = title ?? adaptive(light: 0x141414, dark: 0xF4F3EF)
+            self.secondary = secondary ?? adaptive(light: 0x5C5A56, dark: 0xA6A49F)
+            self.tiles = (tiles?.isEmpty == false ? tiles : nil) ?? [0x9CC2FF, 0xFFD976, 0xA9DCB7, 0xCDB8FF, 0xE9D5B3].map { adaptive(light: $0, dark: $0) }
+            self.ink = ink ?? adaptive(light: 0x141414, dark: 0x141414)
+            self.cornerRadius = max(cornerRadius, 0)
+        }
+
+        public static let standard = Style()
+
+        /// A stable block per host, so a site's tile never changes color between cards.
+        func tile(for key: String) -> Color {
+            var hash: UInt64 = 5381
+            for scalar in key.lowercased().unicodeScalars { hash = (hash &* 33) &+ UInt64(scalar.value) }
+            return tiles[Int(hash % UInt64(tiles.count))]
+        }
+    }
+
+    @Environment(\.openURL) private var openURL
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.isEnabled) private var isEnabled
+    @ScaledMetric(relativeTo: .subheadline) private var thumbnailSize: CGFloat = 64
+    @ScaledMetric(relativeTo: .subheadline) private var textSpacing: CGFloat = 4
+    @State private var fetched: Fetched?
+    @State private var copyTick = 0
+
+    private let url: URL
+    private let layout: Layout
+    private let metadata: Metadata?
+    private let timeout: TimeInterval
+    private let style: Style
+
+    public init(url: URL, layout: Layout = .compact, metadata: Metadata? = nil, timeout: TimeInterval = 15, style: Style = .standard) {
+        self.url = url
+        self.layout = layout
+        self.metadata = metadata
+        self.timeout = max(timeout, 1)
+        self.style = style
+    }
+
+    private enum Phase: Equatable {
+        case loading
+        case loaded(Metadata)
+        /// The page could not be read, or the link is not a web page: the quiet address card.
+        case fallback
+    }
+
+    /// A fetch result tagged with the URL it belongs to, so a late result can never show on a card whose URL has changed.
+    private struct Fetched: Equatable {
+        let url: URL
+        let phase: Phase
+    }
+
+    private var phase: Phase {
+        if let metadata { return .loaded(metadata) }
+        guard LinkPreviewLoader.isFetchable(url) else { return .fallback }
+        if let fetched, fetched.url == url { return fetched.phase }
+        // A card scrolled back into view (a new identity in a lazy stack) starts from the cache, with no skeleton flash.
+        if let hit = LinkPreviewLoader.shared.cached(url) { return .loaded(hit) }
+        if LinkPreviewLoader.shared.recentlyFailed(url) { return .fallback }
+        return .loading
+    }
+
+    private var motion: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(duration: 0.45, bounce: 0.12) }
+    private var shape: RoundedRectangle { RoundedRectangle(cornerRadius: style.cornerRadius, style: .continuous) }
+    private var titleLines: Int { dynamicTypeSize.isAccessibilitySize ? 3 : 2 }
+
+    public var body: some View {
+        let phase = self.phase
+        Button { openURL(url) } label: {
+            card(phase)
+        }
+        .buttonStyle(PressStyle(reduceMotion: reduceMotion))
+        .contentShape(.contextMenuPreview, shape)
+        .contextMenu { menu(phase) }
+        .opacity(isEnabled ? 1 : 0.5)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(accessibilityLabel(phase))
+        .accessibilityValue(phase == .loading ? Text("Loading preview") : Text(verbatim: ""))
+        .accessibilityRemoveTraits(.isButton)
+        .accessibilityAddTraits(.isLink)
+        .accessibilityAction(named: Text("Copy Link"), copy)
+        .sensoryFeedback(.success, trigger: copyTick)
+        .task(id: url) { await load() }
+    }
+
+    // MARK: Card
+
+    @ViewBuilder
+    private func card(_ phase: Phase) -> some View {
+        Group {
+            // A page that cannot be read shrinks to the compact address card, whatever the layout.
+            if layout == .large, phase != .fallback {
+                VStack(alignment: .leading, spacing: 0) {
+                    HeroFrame(aspectRatio: 1.91, maxHeight: 280) { hero(phase) }
+                        .clipped()
+                    text(phase, large: true)
+                        .padding(.horizontal, 16)
+                        .padding(.top, 12)
+                        .padding(.bottom, 14)
+                }
+                .transition(.opacity)
+            } else {
+                // At accessibility sizes the text takes the full width under the thumbnail instead of squeezing beside it.
+                let row = dynamicTypeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 10)) : AnyLayout(HStackLayout(spacing: 12))
+                row {
+                    thumbnail(phase)
+                    text(phase, large: false)
+                        .frame(minHeight: dynamicTypeSize.isAccessibilitySize ? nil : thumbnail, alignment: .center)
+                }
+                .padding(8)
+                .padding(.trailing, 6)
+                .transition(.opacity)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(style.card)
+        .clipShape(shape)
+        .contentShape(shape)
+    }
+
+    private var thumbnail: CGFloat { min(thumbnailSize, 96) }
+
+    private func thumbnail(_ phase: Phase) -> some View {
+        let tile = RoundedRectangle(cornerRadius: max(style.cornerRadius - 8, 4), style: .continuous)
+        return ZStack {
+            switch phase {
+            case .loading:
+                tile.fill(style.placeholder)
+            case .loaded(let metadata):
+                artwork(metadata, compact: true)
+                    .transition(reveal)
+            case .fallback:
+                tile.fill(style.placeholder)
+                Image(systemName: LinkPreviewLoader.glyph(for: url))
+                    .font(.system(size: thumbnail * 0.34, weight: .semibold))
+                    .foregroundStyle(style.secondary)
+            }
+        }
+        .frame(width: thumbnail, height: thumbnail)
+        .clipShape(tile)
+        .overlay { if phase == .loading { Sweep(color: style.highlight).clipShape(tile) } }
+    }
+
+    @ViewBuilder
+    private func hero(_ phase: Phase) -> some View {
+        ZStack {
+            style.placeholder
+            if case .loaded(let metadata) = phase {
+                artwork(metadata, compact: false)
+                    .transition(reveal)
+            }
+        }
+        .overlay { if phase == .loading { Sweep(color: style.highlight) } }
+    }
+
+    /// The image, else the site icon on a quiet tile, else the host's first letter on a solid block.
+    @ViewBuilder
+    private func artwork(_ metadata: Metadata, compact: Bool) -> some View {
+        let host = LinkPreviewLoader.host(of: metadata.url ?? url)
+        if let image = metadata.image {
+            Color.clear.overlay {
+                image.resizable().scaledToFill()
+            }
+            .clipped()
+            .accessibilityHidden(true)
+        } else if let icon = metadata.icon {
+            let side = compact ? thumbnail * 0.56 : 60
+            style.placeholder.overlay {
+                icon.resizable().scaledToFit()
+                    .frame(width: side, height: side)
+                    .clipShape(RoundedRectangle(cornerRadius: side * 0.22, style: .continuous))
+            }
+        } else {
+            style.tile(for: host).overlay {
+                Text(LinkPreviewLoader.monogram(for: host))
+                    .font(.system(size: compact ? thumbnail * 0.44 : 64, weight: .heavy, design: .rounded))
+                    .foregroundStyle(style.ink)
+                    .minimumScaleFactor(0.5)
+                    .accessibilityHidden(true)
+            }
+        }
+    }
+
+    private var reveal: AnyTransition {
+        reduceMotion ? .opacity : .opacity.combined(with: .scale(scale: 1.06))
+    }
+
+    // MARK: Text
+
+    @ViewBuilder
+    private func text(_ phase: Phase, large: Bool) -> some View {
+        let titleFont: Font = large ? .headline : .subheadline.weight(.semibold)
+        // The large card reserves every title line so a short title never changes its height after the skeleton.
+        // The compact row is as tall as its thumbnail, which already holds two lines and the host.
+        VStack(alignment: .leading, spacing: textSpacing) {
+            switch phase {
+            case .loading:
+                // Real text laid out and redacted into solid bones, so the skeleton has exactly the loaded geometry.
+                bones(titleFont, reserves: large)
+                    .hidden()
+                    .overlay { SolidBones(color: style.placeholder) { bones(titleFont, reserves: large) } }
+                    .overlay { Sweep(color: style.highlight).mask { SolidBones(color: .black) { bones(titleFont, reserves: large) } } }
+                    .transition(.opacity)
+            case .loaded(let metadata):
+                let finalURL = metadata.url ?? url
+                meta(LinkPreviewLoader.host(of: finalURL))
+                Text(verbatim: LinkPreviewLoader.clean(metadata.title) ?? LinkPreviewLoader.address(of: finalURL))
+                    .font(titleFont)
+                    .foregroundStyle(style.title)
+                    .lineLimit(titleLines, reservesSpace: large)
+                    .truncationMode(.tail)
+                    .multilineTextAlignment(.leading)
+            case .fallback:
+                meta(LinkPreviewLoader.kind(of: url))
+                Text(verbatim: LinkPreviewLoader.address(of: url))
+                    .font(titleFont)
+                    .foregroundStyle(style.title)
+                    .lineLimit(titleLines)
+                    .truncationMode(.middle)
+                    .multilineTextAlignment(.leading)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func bones(_ titleFont: Font, reserves: Bool) -> some View {
+        VStack(alignment: .leading, spacing: textSpacing) {
+            Text(verbatim: LinkPreviewLoader.host(of: url))
+                .font(.caption.weight(.semibold))
+                .lineLimit(1)
+            Text(verbatim: "A page title that runs across the full width of two lines of the card")
+                .font(titleFont)
+                .lineLimit(titleLines, reservesSpace: reserves)
+        }
+        .redacted(reason: .placeholder)
+    }
+
+    private func meta(_ text: String) -> some View {
+        Text(verbatim: text)
+            .font(.caption.weight(.semibold))
+            .textCase(.uppercase)
+            .tracking(0.4)
+            .foregroundStyle(style.secondary)
+            .lineLimit(1)
+            .truncationMode(.middle)
+    }
+
+    // MARK: Menu and actions
+
+    @ViewBuilder
+    private func menu(_ phase: Phase) -> some View {
+        Button { openURL(url) } label: { Label("Open Link", systemImage: "safari") }
+        Button(action: copy) { Label("Copy Link", systemImage: "doc.on.doc") }
+        if case .loaded(let metadata) = phase, let title = LinkPreviewLoader.clean(metadata.title) {
+            if let image = metadata.image ?? metadata.icon {
+                ShareLink(item: url, preview: SharePreview(title, image: image))
+            } else {
+                ShareLink(item: url, preview: SharePreview(title))
+            }
+        } else {
+            ShareLink(item: url)
+        }
+    }
+
+    private func copy() {
+        UIPasteboard.general.url = url
+        copyTick += 1
+        AccessibilityNotification.Announcement(String(localized: "Link copied")).post()
+    }
+
+    private func accessibilityLabel(_ phase: Phase) -> String {
+        switch phase {
+        case .loading:
+            return LinkPreviewLoader.host(of: url)
+        case .loaded(let metadata):
+            let finalURL = metadata.url ?? url
+            guard let title = LinkPreviewLoader.clean(metadata.title) else { return LinkPreviewLoader.address(of: finalURL) }
+            return "\(title), \(LinkPreviewLoader.host(of: finalURL))"
+        case .fallback:
+            return LinkPreviewLoader.address(of: url)
+        }
+    }
+
+    // MARK: Loading
+
+    private func load() async {
+        let url = self.url
+        guard metadata == nil, LinkPreviewLoader.isFetchable(url) else { return }
+        if let hit = LinkPreviewLoader.shared.cached(url) {
+            fetched = Fetched(url: url, phase: .loaded(hit))
+            return
+        }
+        if LinkPreviewLoader.shared.recentlyFailed(url) {
+            fetched = Fetched(url: url, phase: .fallback)
+            return
+        }
+        do {
+            let result = try await LinkPreviewLoader.shared.metadata(for: url, timeout: timeout)
+            guard !Task.isCancelled else { return }
+            withAnimation(motion) { fetched = Fetched(url: url, phase: .loaded(result)) }
+        } catch {
+            // Cancelled: the card left the screen or its URL changed; the next appearance starts again.
+            guard !Task.isCancelled, !(error is CancellationError) else { return }
+            withAnimation(motion) { fetched = Fetched(url: url, phase: .fallback) }
+        }
+    }
+}
+
+// MARK: - Press
+
+/// A soft dip on press, springing back on release. Reduce Motion keeps only the dim.
+private struct PressStyle: ButtonStyle {
+    let reduceMotion: Bool
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed && !reduceMotion ? 0.97 : 1)
+            .opacity(configuration.isPressed ? 0.85 : 1)
+            .animation(.spring(duration: 0.3, bounce: 0.35), value: configuration.isPressed)
+    }
+}
+
+// MARK: - Skeleton sweep
+
+/// A soft diagonal band on a shared clock, so every loading card sweeps in phase. Off under Reduce Motion.
+private struct Sweep: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    let color: Color
+    var period: Double = 1.6
+
+    var body: some View {
+        if !reduceMotion {
+            TimelineView(.animation) { context in
+                GeometryReader { proxy in
+                    let width = proxy.size.width
+                    let band = max(80, width * 0.5)
+                    let phase = (context.date.timeIntervalSinceReferenceDate / period).truncatingRemainder(dividingBy: 1)
+                    LinearGradient(
+                        stops: [.init(color: color.opacity(0), location: 0), .init(color: color, location: 0.5), .init(color: color.opacity(0), location: 1)],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                    .frame(width: band, height: max(proxy.size.height * 3, 160))
+                    .rotationEffect(.degrees(16))
+                    .offset(x: -band * 1.5 + (width + band * 3) * phase, y: -max(proxy.size.height, 50))
+                }
+            }
+            .allowsHitTesting(false)
+            .accessibilityHidden(true)
+        }
+    }
+}
+
+// MARK: - Bones
+
+/// Draws redacted content as fully opaque bones: the system placeholder shapes, thresholded to one solid color.
+private struct SolidBones<Content: View>: View {
+    let color: Color
+    @ViewBuilder var content: Content
+
+    var body: some View {
+        Canvas { context, size in
+            context.addFilter(.alphaThreshold(min: 0.01, color: color))
+            if let symbol = context.resolveSymbol(id: 0) {
+                context.draw(symbol, at: CGPoint(x: size.width / 2, y: size.height / 2))
+            }
+        } symbols: {
+            content.tag(0)
+        }
+        .accessibilityHidden(true)
+    }
+}
+
+// MARK: - Hero frame
+
+/// Full width at a fixed aspect ratio, capped in height so a wide card (iPad, landscape) crops the image instead of growing tall.
+private struct HeroFrame: Layout {
+    var aspectRatio: CGFloat
+    var maxHeight: CGFloat
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let proposed = proposal.width ?? 320
+        let width = proposed.isFinite ? max(proposed, 0) : 320
+        return CGSize(width: width, height: min(width / aspectRatio, maxHeight))
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        for subview in subviews {
+            subview.place(at: bounds.origin, anchor: .topLeading, proposal: ProposedViewSize(bounds.size))
+        }
+    }
+}
+
+// MARK: - Loader and cache
+
+/// Fetches and caches metadata for every `LinkPreview` in the app.
+///
+/// - One `LPMetadataProvider` per fetch (providers are single use), created and started on the main actor.
+/// - Cards showing the same URL at the same time share one fetch. A card that disappears stops waiting at once;
+///   the fetch itself is cancelled when the last card waiting for it has gone.
+/// - Results live in an `NSCache` keyed by URL: at most 150 pages and about 48 MB of decoded images, emptied by the
+///   system under memory pressure. A failure is remembered for 30 seconds, so a failing link scrolled past
+///   repeatedly shows its address card at once instead of refetching; after that a card that appears again retries.
+/// - Images are decoded and downsampled with ImageIO on the item provider's background queue, never on the main actor,
+///   and never kept at full size.
+@MainActor
+private final class LinkPreviewLoader {
+    static let shared = LinkPreviewLoader()
+
+    private final class Entry {
+        let metadata: LinkPreview.Metadata
+        init(_ metadata: LinkPreview.Metadata) { self.metadata = metadata }
+    }
+
+    private final class Flight {
+        var waiters: [UUID: CheckedContinuation<LinkPreview.Metadata, any Error>] = [:]
+        var task: Task<Void, Never>?
+    }
+
+    private let cache: NSCache<NSURL, Entry> = {
+        let cache = NSCache<NSURL, Entry>()
+        cache.countLimit = 150
+        cache.totalCostLimit = 48 * 1024 * 1024
+        return cache
+    }()
+    private var flights: [URL: Flight] = [:]
+    private var failures: [URL: ContinuousClock.Instant] = [:]
+    private static let failureMemory: Duration = .seconds(30)
+
+    /// Whether `url` failed in the last 30 seconds.
+    func recentlyFailed(_ url: URL) -> Bool {
+        guard let at = failures[url] else { return false }
+        return ContinuousClock.now - at < Self.failureMemory
+    }
+
+    func cached(_ url: URL) -> LinkPreview.Metadata? {
+        cache.object(forKey: url as NSURL)?.metadata
+    }
+
+    /// The metadata for `url`, from the cache, from a fetch already in flight, or from a new one.
+    func metadata(for url: URL, timeout: TimeInterval) async throws -> LinkPreview.Metadata {
+        if let hit = cached(url) { return hit }
+        if recentlyFailed(url) { throw URLError(.resourceUnavailable) }
+        let id = UUID()
+        return try await withTaskCancellationHandler {
+            try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<LinkPreview.Metadata, any Error>) in
+                guard !Task.isCancelled else {
+                    continuation.resume(throwing: CancellationError())
+                    return
+                }
+                let flight = flights[url] ?? start(url, timeout: timeout)
+                flight.waiters[id] = continuation
+            }
+        } onCancel: {
+            Task { @MainActor in LinkPreviewLoader.shared.leave(id, url: url) }
+        }
+    }
+
+    private func start(_ url: URL, timeout: TimeInterval) -> Flight {
+        let flight = Flight()
+        flights[url] = flight
+        flight.task = Task { @MainActor in
+            let result: Result<(LinkPreview.Metadata, Int), any Error>
+            do { result = .success(try await Self.fetch(url, timeout: timeout)) } catch { result = .failure(error) }
+            self.finish(url, flight: flight, result: result)
+        }
+        return flight
+    }
+
+    private func finish(_ url: URL, flight: Flight, result: Result<(LinkPreview.Metadata, Int), any Error>) {
+        if flights[url] === flight { flights[url] = nil }
+        switch result {
+        case .success(let (metadata, cost)):
+            failures[url] = nil
+            cache.setObject(Entry(metadata), forKey: url as NSURL, cost: cost)
+        case .failure:
+            // A fetch cancelled because every card left is not a failure of the page: only remember failures someone
+            // was still waiting for (including our own deadline). Old entries are pruned here, so the table stays small.
+            let now = ContinuousClock.now
+            failures = failures.filter { now - $0.value < Self.failureMemory }
+            if !flight.waiters.isEmpty { failures[url] = now }
+        }
+        let waiters = flight.waiters.values
+        flight.waiters = [:]
+        for waiter in waiters { waiter.resume(with: result.map(\.0)) }
+    }
+
+    /// A waiting card went away. The last one out cancels the fetch.
+    private func leave(_ id: UUID, url: URL) {
+        guard let flight = flights[url], let waiter = flight.waiters.removeValue(forKey: id) else { return }
+        waiter.resume(throwing: CancellationError())
+        if flight.waiters.isEmpty {
+            flights[url] = nil
+            flight.task?.cancel()
+        }
+    }
+
+    // MARK: Fetch
+
+    /// `LPMetadataProvider` is not Sendable. It is only created, started and cancelled on the main actor;
+    /// this box lets the cancellation handler hop back to the main actor to call `cancel()`.
+    private struct ProviderBox: @unchecked Sendable { let provider: LPMetadataProvider }
+    /// The fetched `LPLinkMetadata` crosses from the provider's completion queue to the main actor once and is only read there.
+    private struct MetadataBox: @unchecked Sendable { let metadata: LPLinkMetadata }
+
+    private static func fetch(_ url: URL, timeout: TimeInterval) async throws -> (LinkPreview.Metadata, Int) {
+        let provider = LPMetadataProvider()
+        provider.timeout = timeout
+        let box = ProviderBox(provider: provider)
+        // The provider's own timeout does not always fire while a connection is still being attempted
+        // (an unreachable address), so a deadline of our own cancels it too; that surfaces as a failure.
+        let deadline = Task { @MainActor in
+            try await Task.sleep(for: .seconds(timeout))
+            box.provider.cancel()
+        }
+        defer { deadline.cancel() }
+        let fetched: MetadataBox = try await withTaskCancellationHandler {
+            try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<MetadataBox, any Error>) in
+                // The completion handler runs on a background queue: explicitly @Sendable (nonisolated), so Swift
+                // does not assume it runs on the main actor.
+                provider.startFetchingMetadata(for: url) { @Sendable metadata, error in
+                    if let metadata {
+                        continuation.resume(returning: MetadataBox(metadata: metadata))
+                    } else {
+                        continuation.resume(throwing: error ?? URLError(.cannotParseResponse))
+                    }
+                }
+            }
+        } onCancel: {
+            Task { @MainActor in box.provider.cancel() }
+        }
+        try Task.checkCancellation()
+
+        let metadata = fetched.metadata
+        var cost = 512
+        var image: Image?
+        var icon: Image?
+        if let provider = metadata.imageProvider, let decoded = await load(provider, maxPixelSize: 1200) {
+            cost += decoded.cost
+            // A tiny "image" is an icon in disguise; stretched across a card it would look broken.
+            if decoded.longestSide >= 240 { image = decoded.image } else { icon = decoded.image }
+        }
+        if image == nil, icon == nil, let provider = metadata.iconProvider, let decoded = await load(provider, maxPixelSize: 192) {
+            cost += decoded.cost
+            icon = decoded.image
+        }
+        try Task.checkCancellation()
+        // An unreachable host can still "succeed" with nothing in it; show the address card instead of an empty preview.
+        guard clean(metadata.title) != nil || image != nil || icon != nil else { throw URLError(.cannotParseResponse) }
+        return (LinkPreview.Metadata(title: clean(metadata.title), url: metadata.url ?? url, image: image, icon: icon), cost)
+    }
+
+    private struct Decoded: Sendable {
+        let image: Image
+        let longestSide: Int
+        let cost: Int
+    }
+
+    /// Loads an image from an item provider and downsamples it on the provider's background queue. `nil` on any failure.
+    private static func load(_ provider: NSItemProvider, maxPixelSize: Int) async -> Decoded? {
+        guard provider.hasItemConformingToTypeIdentifier(UTType.image.identifier) else { return nil }
+        return await withCheckedContinuation { (continuation: CheckedContinuation<Decoded?, Never>) in
+            _ = provider.loadDataRepresentation(forTypeIdentifier: UTType.image.identifier) { @Sendable data, _ in
+                continuation.resume(returning: data.flatMap { downsample($0, maxPixelSize: maxPixelSize) })
+            }
+        }
+    }
+
+    nonisolated private static func downsample(_ data: Data, maxPixelSize: Int) -> Decoded? {
+        guard let source = CGImageSourceCreateWithData(data as CFData, [kCGImageSourceShouldCache: false] as CFDictionary) else { return nil }
+        let options: [CFString: Any] = [
+            kCGImageSourceCreateThumbnailFromImageAlways: true,
+            kCGImageSourceCreateThumbnailWithTransform: true,
+            kCGImageSourceShouldCacheImmediately: true,
+            kCGImageSourceThumbnailMaxPixelSize: maxPixelSize,
+        ]
+        guard let cgImage = CGImageSourceCreateThumbnailAtIndex(source, 0, options as CFDictionary) else { return nil }
+        return Decoded(image: Image(uiImage: UIImage(cgImage: cgImage)), longestSide: max(cgImage.width, cgImage.height), cost: cgImage.bytesPerRow * cgImage.height)
+    }
+
+    // MARK: Text helpers
+
+    nonisolated static func isFetchable(_ url: URL) -> Bool {
+        guard let scheme = url.scheme?.lowercased(), scheme == "http" || scheme == "https" else { return false }
+        return url.host?.isEmpty == false
+    }
+
+    /// Trimmed, with runs of whitespace and line breaks collapsed. `nil` when nothing is left.
+    nonisolated static func clean(_ title: String?) -> String? {
+        guard let title else { return nil }
+        let words = title.split(whereSeparator: { $0.isWhitespace || $0.isNewline })
+        return words.isEmpty ? nil : words.joined(separator: " ")
+    }
+
+    /// "developer.example.com" without a leading "www.".
+    nonisolated static func host(of url: URL) -> String {
+        guard var host = url.host(percentEncoded: false)?.lowercased(), !host.isEmpty else { return address(of: url) }
+        if host.hasPrefix("www.") { host.removeFirst(4) }
+        return host
+    }
+
+    /// The link as people read it: host and path with no scheme or trailing slash, or the address of an email or phone link.
+    nonisolated static func address(of url: URL) -> String {
+        guard url.host(percentEncoded: false)?.isEmpty == false else {
+            let text = url.absoluteString.removingPercentEncoding ?? url.absoluteString
+            guard let scheme = url.scheme, text.lowercased().hasPrefix(scheme.lowercased() + ":") else { return text }
+            let rest = text.dropFirst(scheme.count + 1)
+            return String(rest.hasPrefix("//") ? rest.dropFirst(2) : rest)
+        }
+        var path = url.path(percentEncoded: false)
+        if path.hasSuffix("/") { path.removeLast() }
+        return host(of: url) + path
+    }
+
+    /// The meta line of the address card: the host for web links, the kind of link otherwise.
+    nonisolated static func kind(of url: URL) -> String {
+        switch url.scheme?.lowercased() {
+        case "http", "https": return host(of: url)
+        case "mailto": return String(localized: "Email")
+        case "tel": return String(localized: "Phone")
+        case "sms": return String(localized: "Message")
+        default: return String(localized: "Link")
+        }
+    }
+
+    nonisolated static func glyph(for url: URL) -> String {
+        switch url.scheme?.lowercased() {
+        case "mailto": return "envelope"
+        case "tel": return "phone"
+        case "sms": return "message"
+        default: return "link"
+        }
+    }
+
+    /// The first letter of the site's name ("fieldnotes.travel" → "F").
+    nonisolated static func monogram(for host: String) -> String {
+        host.first(where: \.isLetter).map { String($0).uppercased() } ?? "#"
+    }
+}
+
+/// A house-palette color that follows the interface style.
+private func adaptive(light: UInt32, dark: UInt32) -> Color {
+    Color(uiColor: UIColor { traits in
+        let hex = traits.userInterfaceStyle == .dark ? dark : light
+        return UIColor(red: CGFloat((hex >> 16) & 0xFF) / 255, green: CGFloat((hex >> 8) & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
+    })
+}
+
+// MARK: - Example
+
+/// A large card and a compact one with supplied metadata, one live fetch of a reserved example domain, and an email link.
+private struct LinkPreviewExample: View {
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 14) {
+                LinkPreview(
+                    url: URL(string: "https://fieldnotes.travel/lisbon-tram-28")!,
+                    layout: .large,
+                    metadata: .init(title: "Twelve stops on the old tram line through Lisbon", image: LinkPreviewExampleArt.cover)
+                )
+                LinkPreview(
+                    url: URL(string: "https://slowdesk.co/notes/quiet-mornings")!,
+                    metadata: .init(title: "Quiet mornings: a note-taking routine that sticks")
+                )
+                LinkPreview(url: URL(string: "https://example.com")!)
+                LinkPreview(url: URL(string: "mailto:hello@slowdesk.co")!)
+            }
+            .padding(20)
+        }
+        .background(adaptive(light: 0xF3F2EE, dark: 0x121212))
+    }
+}
+
+/// Sample cover art drawn in code: a red tram under its wire, in front of Lisbon rooftops.
+@MainActor
+private enum LinkPreviewExampleArt {
+    static let cover: Image? = {
+        let art = Canvas { context, _ in
+            let butter = Color(red: 1, green: 0.851, blue: 0.463), lilac = Color(red: 0.804, green: 0.722, blue: 1)
+            let red = Color(red: 1, green: 0, blue: 0), ink = Color(red: 0.078, green: 0.078, blue: 0.078)
+            func rect(_ x: CGFloat, _ y: CGFloat, _ w: CGFloat, _ h: CGFloat, _ r: CGFloat = 0) -> Path {
+                Path(roundedRect: CGRect(x: x, y: y, width: w, height: h), cornerRadius: r, style: .continuous)
+            }
+            func house(_ x: CGFloat, _ top: CGFloat, _ eave: CGFloat, _ w: CGFloat) -> Path {
+                Path { p in p.move(to: CGPoint(x: x, y: eave)); p.addLine(to: CGPoint(x: x + w / 2, y: top)); p.addLine(to: CGPoint(x: x + w, y: eave)); p.addLine(to: CGPoint(x: x + w, y: 300)); p.addLine(to: CGPoint(x: x, y: 300)); p.closeSubpath() }
+            }
+            context.fill(rect(0, 0, 573, 300), with: .color(butter))
+            for p in [house(0, 112, 140, 70), rect(78, 116, 64, 184), house(384, 100, 128, 70), rect(462, 104, 60, 196), house(530, 128, 146, 43)] {
+                context.fill(p, with: .color(lilac))
+            }
+            context.stroke(Path { p in p.move(to: CGPoint(x: 0, y: 46)); p.addLine(to: CGPoint(x: 573, y: 36)) }, with: .color(ink), lineWidth: 3)
+            context.stroke(Path { p in
+                p.move(to: CGPoint(x: 262, y: 118)); p.addLine(to: CGPoint(x: 292, y: 80)); p.addLine(to: CGPoint(x: 270, y: 44))
+                p.move(to: CGPoint(x: 322, y: 118)); p.addLine(to: CGPoint(x: 292, y: 80))
+                p.move(to: CGPoint(x: 254, y: 42)); p.addLine(to: CGPoint(x: 288, y: 42))
+            }, with: .color(ink), style: StrokeStyle(lineWidth: 4, lineCap: .round, lineJoin: .round))
+            context.fill(rect(170, 114, 230, 22, 8), with: .color(red))
+            context.fill(rect(150, 130, 270, 116, 20), with: .color(red))
+            context.fill(UnevenRoundedRectangle(bottomLeadingRadius: 20, bottomTrailingRadius: 20, style: .continuous).path(in: CGRect(x: 150, y: 222, width: 270, height: 24)), with: .color(ink.opacity(0.16)))
+            for x in [168, 218, 268, 318] as [CGFloat] { context.fill(rect(x, 148, 40, 42, 7), with: .color(butter)) }
+            context.fill(rect(370, 148, 34, 84, 7), with: .color(butter))
+            context.fill(rect(0, 256, 573, 44), with: .color(ink))
+            context.stroke(Path { p in p.move(to: CGPoint(x: 0, y: 272)); p.addLine(to: CGPoint(x: 573, y: 272)) }, with: .color(butter.opacity(0.5)), lineWidth: 3)
+            for x in [200, 244, 326, 370] as [CGFloat] { context.fill(Path(ellipseIn: CGRect(x: x - 13, y: 235, width: 26, height: 26)), with: .color(ink)) }
+        }
+        .frame(width: 573, height: 300)
+        .clipped()
+        let renderer = ImageRenderer(content: art)
+        renderer.scale = 2
+        return renderer.uiImage.map { Image(uiImage: $0) }
+    }()
+}
+
+#Preview("Light") {
+    LinkPreviewExample()
+}
+
+#Preview("Dark") {
+    LinkPreviewExample()
+        .preferredColorScheme(.dark)
+}
+```
+
+</Tab>
+</Tabs>

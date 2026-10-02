@@ -66,6 +66,8 @@ public struct TrackingTabs<Page: View>: View {
     @State private var progress: CGFloat = 0
     @State private var frames: [Int: CGRect] = [:]
     @State private var pageWidth: CGFloat = 1
+    /// Each page's natural height, so the pager takes the selected page's height, not the first one's.
+    @State private var heights: [Int: CGFloat] = [:]
 
     private let titles: [String]
     private let counts: [Int]
@@ -186,11 +188,20 @@ public struct TrackingTabs<Page: View>: View {
 
     // MARK: Pages
 
+    /// The selected page's height once measured (the tallest before that).
+    private var pagerHeight: CGFloat? { heights[position ?? selection] ?? heights.values.max() }
+
     private var pager: some View {
         let scroll = ScrollView(.horizontal) {
-            LazyHStack(spacing: 0) {
+            HStack(alignment: .top, spacing: 0) {
                 ForEach(titles.indices, id: \.self) { index in
                     page(index)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { heights[index] = $0 }
+                        // Every page is as tall as the selected one, top-aligned, so a taller page
+                        // never sits centred (and pushed up) inside a shorter pager.
+                        .frame(height: pagerHeight, alignment: .top)
+                        .clipped()
                         .containerRelativeFrame(.horizontal)
                         .id(index)
                 }
@@ -201,6 +212,8 @@ public struct TrackingTabs<Page: View>: View {
         .scrollTargetBehavior(.paging)
         .scrollPosition(id: $position)
         .scrollIndicators(.hidden)
+        .frame(height: pagerHeight)
+        .animation(spring, value: position)
         .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { pageWidth = max($0, 1) }
 
         return Group {

@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { Center } from "./frame";
-import { blocks, font, ground, ink } from "./palette";
+import { blocks, font, ground, ink, groundHex } from "./palette";
 import { SIRI, SiriWaveOrb, type OrbPalette } from "./siri-wave-orb";
 
 const springEase = "cubic-bezier(0.34, 1.4, 0.64, 1)";
@@ -237,16 +237,16 @@ export function CodeBlockPreview() {
   return (
     <Stage>
       <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2" style={{ width: pt(420, s) }}>
-        <div style={{ borderRadius: pt(26, s), background: ground.surface }}>
+        <div style={{ borderRadius: pt(26, s), background: groundHex.surface }}>
           <div className="flex items-center" style={{ height: pt(52, s), paddingLeft: pt(18, s), paddingRight: pt(8, s), gap: pt(8, s) }}>
             <span className="rounded-full" style={{ background: blocks.butter, color: ink, fontSize: pt(11, s), fontWeight: 800, letterSpacing: "0.07em", paddingInline: pt(8, s), paddingBlock: pt(4, s) }}>SWIFT</span>
             <span className="flex-1" style={{ fontSize: pt(13, s), fontWeight: 600 }}>Greeter.swift</span>
-            <span className="grid place-items-center rounded-full" style={{ width: pt(34, s), height: pt(34, s), background: ground.raised, color: ground.muted }}><Icon d={RETURN} size={pt(14, s)} /></span>
-            <span data-motion className="flex items-center rounded-full" style={{ height: pt(34, s), paddingInline: pt(12, s), gap: pt(6, s), fontSize: pt(13, s), fontWeight: 600, background: copied ? blocks.sage : ground.raised, color: copied ? ink : ground.text, transform: copied ? "scale(1.04)" : "none", transition: `background 250ms, color 250ms, transform 350ms ${springEase}` }}>
+            <span className="grid place-items-center rounded-full" style={{ width: pt(34, s), height: pt(34, s), background: groundHex.raised, color: groundHex.muted }}><Icon d={RETURN} size={pt(14, s)} /></span>
+            <span data-motion className="flex items-center rounded-full" style={{ height: pt(34, s), paddingInline: pt(12, s), gap: pt(6, s), fontSize: pt(13, s), fontWeight: 600, background: copied ? blocks.sage : groundHex.raised, color: copied ? ink : groundHex.text, transform: copied ? "scale(1.04)" : "none", transition: `background 250ms, color 250ms, transform 350ms ${springEase}` }}>
               <Icon key={String(copied)} d={copied ? CHECK : COPY} size={pt(14, s)} stroke={2.4} />{copied ? "Copied" : "Copy"}
             </span>
           </div>
-          <pre className="flex" style={{ gap: pt(14, s), paddingInline: pt(18, s), paddingBottom: pt(18, s), fontFamily: font.mono, fontSize: pt(13, s), lineHeight: 1.55, color: ground.text, height: pt(8 * 13 * 1.55 + 18, s), boxSizing: "content-box" }}>
+          <pre className="flex" style={{ gap: pt(14, s), paddingInline: pt(18, s), paddingBottom: pt(18, s), fontFamily: font.mono, fontSize: pt(13, s), lineHeight: 1.55, color: groundHex.text, height: pt(8 * 13 * 1.55 + 18, s), boxSizing: "content-box" }}>
             <span className="text-right" style={{ color: "#6e6b66" }}>{CODE.slice(0, shown).map((_, i) => <span key={i} className="block">{i + 1}</span>)}</span>
             <span className="min-w-0">
               {CODE.slice(0, shown).map((line, i) => (
@@ -282,9 +282,9 @@ export function AssistantOrbPreview() {
 // MARK: Thought Orb
 
 /** The Swift `ThoughtOrb.Palette` presets, same hex values: the mark's colour is the kind of work. */
-const SEARCHING: OrbPalette = { bands: ["#5ee7ff", "#22c3e6", "#1492b8", "#0b5f86"], ground: "#04161f", cool: "#9af0ff", warm: "#3fd6b4" };
-const READING: OrbPalette = { bands: ["#a99bff", "#7b6cff", "#5a3ff0", "#3a20b8"], ground: "#0d0826", cool: "#c4baff", warm: "#b07cff" };
-const WRITING: OrbPalette = { bands: ["#ffc46b", "#ff9a4a", "#ff6a3d", "#d9412b"], ground: "#1e0a05", cool: "#ffd9a0", warm: "#ff7a3a" };
+const SEARCHING: OrbPalette = { bands: ["#2b5cff", "#22d3ee", "#34d399", "#7c3aed"], ground: "#06122a", cool: "#67e8f9", warm: "#a78bfa" };
+const READING: OrbPalette = { bands: ["#4c1dff", "#a855f7", "#14b8a6", "#818cf8"], ground: "#0b0724", cool: "#c7d2fe", warm: "#99f6e4" };
+const WRITING: OrbPalette = { bands: ["#e3170a", "#ffb020", "#ff4f8a", "#8b5cf6"], ground: "#1c0907", cool: "#ffcf7a", warm: "#ff5a3c" };
 const STEPS: [string, OrbPalette][] = [["Thinking", SIRI], ["Searching sources", SEARCHING], ["Reading the thread", READING], ["Drafting a reply", WRITING]];
 
 /** Hero mark over the status pill. The label steps through kinds of work and the mark's colour follows it; the motion never changes. */
@@ -297,10 +297,18 @@ export function ThoughtOrbPreview() {
     <Stage>
     <Center className="flex-col gap-5">
       <SiriWaveOrb size="min(38cqw, 50cqh)" palette={STEPS[step][1]} />
-      <span className="flex items-center gap-[7px] rounded-full border border-white/10 py-1 pr-3.5 pl-1.5 text-[12.5px] font-medium shadow-[0_1px_3px_rgba(0,0,0,.25)]" style={{ background: ground.raised, color: ground.text }}>
-        <SiriWaveOrb size={18} palette={STEPS[step][1]} />
+      {/* The pill as the Swift one draws it: a see-through material capsule with a hairline edge, not a solid slab. */}
+      <span
+        className="flex items-center gap-2 rounded-full py-[5px] pr-4 pl-[5px] text-[12.5px] font-medium tracking-[-0.005em] backdrop-blur-md"
+        style={{
+          background: `color-mix(in srgb, ${ground.text} 5%, transparent)`,
+          boxShadow: `inset 0 0 0 1px color-mix(in srgb, ${ground.text} 9%, transparent), inset 0 1px 0 color-mix(in srgb, ${ground.text} 7%, transparent), 0 8px 24px -12px rgba(0,0,0,.5)`,
+          color: `color-mix(in srgb, ${ground.text} 88%, transparent)`,
+        }}
+      >
+        <SiriWaveOrb size={20} palette={STEPS[step][1]} />
         <span key={step} data-motion style={{ animation: "rise .3s var(--ease-out)" }}>{STEPS[step][0]}</span>
-        <span className="ml-[1px] flex gap-[2px]" aria-hidden>{[0, 1, 2, 3].map((i) => <span key={i} data-motion className="size-[3px] rounded-full bg-foreground" style={{ opacity: dotOpacity(i) }} />)}</span>
+        <span className="flex gap-[3px]" aria-hidden>{[0, 1, 2, 3].map((i) => <span key={i} data-motion className="size-[3px] rounded-full" style={{ background: ground.muted, opacity: dotOpacity(i) }} />)}</span>
       </span>
     </Center>
     </Stage>

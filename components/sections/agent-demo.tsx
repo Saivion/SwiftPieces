@@ -1,7 +1,9 @@
 "use client";
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import { PreviewFrame } from "@/components/previews/frame";
-import { CornerTicks } from "@/components/sections/feature-row";
+import { Parallax, Stage, Tilt } from "@/components/sections/stage";
+import { IPhone } from "@/components/visual/iphone";
+import { SkeletonChips, SkeletonHeader, SkeletonRow } from "@/components/visual/skeleton";
 import { PiecePreview } from "@/components/previews";
 import { useInView } from "@/lib/use-in-view";
 
@@ -38,9 +40,12 @@ const RED_SCHEME = {
 
 type Cursor = "off" | "rest" | "aim" | "press";
 
+
 export function AgentDemo() {
   const root = useRef<HTMLDivElement>(null);
   const send = useRef<HTMLSpanElement>(null);
+  // The chat card's layer: the cursor lives in it, so both move together with the pointer.
+  const layer = useRef<HTMLDivElement>(null);
   const inView = useInView(root, { margin: "0px 0px -15% 0px" });
   const [reduced, setReduced] = useState(false);
   const [draft, setDraft] = useState("");
@@ -55,7 +60,7 @@ export function AgentDemo() {
   // Where the send button's centre sits inside the stage, for the cursor to travel to.
   useLayoutEffect(() => {
     const measure = () => {
-      const s = send.current, r = root.current;
+      const s = send.current, r = layer.current;
       if (!s || !r) return;
       const a = s.getBoundingClientRect(), b = r.getBoundingClientRect();
       setAimAt({ x: a.left - b.left + a.width / 2, y: a.top - b.top + a.height / 2 });
@@ -105,24 +110,49 @@ export function AgentDemo() {
   };
 
   return (
-    <div ref={root} className="frame-dashed relative grid gap-5 p-4 sm:h-[560px] sm:grid-cols-[1fr_240px] sm:p-5">
-      <CornerTicks />
-      {/* The piece: appears with the first message, restyled by the next two. */}
-      <div className="flex items-center justify-center">
-        <div className="scrub-tint w-full max-w-[560px] transition-[opacity,transform] duration-500 ease-out" style={chart}>
-          <PreviewFrame tone="clear" aspect="aspect-[4/3]" className="rounded-none!">
-            {applied >= 1 ? <PiecePreview name="ScrubChart" /> : null}
-          </PreviewFrame>
+    <div ref={root}>
+    <Tilt className="relative">
+      {/* The piece: an iPhone rising out of the stage, running the chart the conversation builds. */}
+      <Stage className="h-[460px] sm:h-[540px]">
+        <div className="absolute inset-x-0 top-10 flex justify-center sm:top-12 md:justify-start md:pl-[12%]">
+          <Parallax depth={-7} className="w-[264px] sm:w-[284px]">
+            {/* A skeleton finance app; the chart is the piece the conversation builds. */}
+            <IPhone>
+              <SkeletonHeader />
+              <div className="relative z-10 h-[232px] shrink-0">
+                <div className="scrub-tint absolute inset-x-[-4%] top-0 transition-[opacity,transform] duration-500 ease-out" style={chart}>
+                  <PreviewFrame tone="clear" aspect="aspect-[4/3]" className="rounded-none!">
+                    {applied >= 1 ? <PiecePreview name="ScrubChart" /> : null}
+                  </PreviewFrame>
+                </div>
+              </div>
+              <SkeletonChips widths={[64, 54, 70]} className="mt-1 mb-2" />
+              <SkeletonRow />
+              <SkeletonRow />
+            </IPhone>
+          </Parallax>
         </div>
-      </div>
+      </Stage>
 
-      {/* The chat: the thread fills from the bottom, the composer sits under it. Split from the piece by
-          a dashed rule rather than boxed, so the frame stays one open canvas. */}
-      <div className="flex h-[300px] flex-col border-t border-dashed border-white/[0.12] pt-4 sm:h-auto sm:border-t-0 sm:border-l sm:pt-0 sm:pl-5">
-        <div className="flex flex-1 flex-col justify-end gap-2.5 overflow-hidden">
+      {/* The chat: a card floating over the stage's right edge from md up, under it on phones. The thread
+          fills from the bottom and the composer sits under it. */}
+      <Parallax depth={18} className="relative z-10 mt-3 md:absolute md:top-[88px] md:-right-6 md:mt-0 md:w-[290px]">
+      <div ref={layer} className="relative">
+      <div className="flex h-[340px] flex-col overflow-hidden rounded-[12px] border border-white/[0.09] bg-[var(--raised)] shadow-[0_40px_80px_-28px_rgb(0_0_0/0.8),0_12px_28px_-14px_rgb(0_0_0/0.5)]" style={{ rotate: "1.5deg" }}>
+        <div className="flex items-center gap-2.5 border-b border-[var(--line)] px-4 py-3">
+          <span className="grid size-6 place-items-center rounded-[7px] bg-accent text-[var(--accent-foreground)]">
+            <svg aria-hidden viewBox="0 0 24 24" className="size-3.5" fill="currentColor"><path d="M12 2c.4 4.8 2.2 7.6 8 10-5.8 2.4-7.6 5.2-8 10-.4-4.8-2.2-7.6-8-10 5.8-2.4 7.6-5.2 8-10Z" /></svg>
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-[12.5px] font-medium text-foreground">Your agent</span>
+            <span className="block text-[11px] text-muted">Swift Pieces MCP</span>
+          </span>
+          <span className="flex items-center gap-1.5 text-[11px] text-muted"><span className="size-1.5 rounded-full bg-[#28c840]" />Connected</span>
+        </div>
+        <div className="flex flex-1 flex-col justify-end gap-2.5 overflow-hidden px-4 pt-3">
           {TURNS.slice(0, sent).map((turn, i) => (
             <div key={turn.ask} className="chat-in flex flex-col items-end gap-1">
-              <p className="max-w-[92%] rounded-[4px] rounded-br-[4px] bg-white/[0.08] px-3 py-2 text-[12.5px] leading-[18px] text-foreground">{turn.ask}</p>
+              <p className="max-w-[92%] rounded-[12px] rounded-br-[4px] bg-white/[0.08] px-3 py-2 text-[12.5px] leading-[18px] text-foreground">{turn.ask}</p>
               <p className="flex items-center gap-1.5 pr-1 text-[11.5px] text-muted transition-opacity duration-300" style={{ opacity: applied > i ? 1 : 0 }}>
                 <svg aria-hidden viewBox="0 0 16 16" className="size-3 text-accent" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3.5 8.5l3 3 6-7" strokeLinecap="round" strokeLinejoin="round" /></svg>
                 {turn.reply}
@@ -130,7 +160,7 @@ export function AgentDemo() {
             </div>
           ))}
         </div>
-        <div className="mt-3 flex h-11 shrink-0 items-center justify-between gap-3 rounded-[4px] border border-white/[0.08] bg-[#1b1b1c] pr-1.5 pl-3.5 text-[12.5px]">
+        <div className="m-3 flex h-11 shrink-0 items-center justify-between gap-3 rounded-[10px] border border-white/[0.08] bg-white/[0.03] pr-1.5 pl-3.5 text-[12.5px]">
           <span className="truncate text-foreground">
             {draft || <span className="text-muted">Ask your agent</span>}
             {draft ? <span aria-hidden className="ml-px inline-block h-[1.1em] w-px translate-y-[0.2em] bg-foreground" /> : null}
@@ -140,7 +170,6 @@ export function AgentDemo() {
           </span>
         </div>
       </div>
-
       {/* The cursor: rests just off the send button between messages, glides onto it to press. */}
       <svg
         aria-hidden
@@ -159,6 +188,11 @@ export function AgentDemo() {
       >
         <path d="M5 3l14 8-6 1.6L10 19 5 3Z" fill="#fff" stroke="#000" strokeWidth="1.3" strokeLinejoin="round" />
       </svg>
+      </div>
+      </Parallax>
+
+
+    </Tilt>
     </div>
   );
 }

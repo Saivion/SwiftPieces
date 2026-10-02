@@ -34,6 +34,18 @@ if grep -rl "import SwiftUI" public .open-next/assets 2>/dev/null | grep -q .; t
 # 5. No references into a sibling pro/ checkout.
 if grep -rn "\.\./\.\./pro\|\.\./pro/" --include='*.ts' --include='*.tsx' --include='*.json' app components lib scripts packages 2>/dev/null | grep -q .; then note FAIL "imports reach into ../pro"; fail=1; else note ok "no imports into ../pro"; fi
 
+# 6. The app library: only the free apps' remixes are built here. The Pro apps' screens live in the
+#    Pro repo and reach Pro sessions through the Pro API, never this repo or its bundle. A stale
+#    builder dist (tsc never deletes) counts too: it is what Next bundles.
+recreations=packages/builder/src/definitions/catalog/recreations
+free=$(sed -n 's/^export const FREE_RECREATIONS.*= \[\(.*\)\];$/\1/p' "$recreations/index.ts" | tr -d '" ' | tr ',' '\n' | sort)
+built=$(ls "$recreations" | sed -n 's/\.build\.ts$//p' | sort)
+if [ -n "$free" ] && [ "$free" = "$built" ]; then note ok "only the free apps' remixes are built here ($(echo "$free" | wc -l | tr -d ' '))"; else note FAIL "app remix builds here don't match FREE_RECREATIONS: $(echo $built)"; fail=1; fi
+if [ -d packages/builder/dist/definitions/catalog/recreations ]; then
+  dist=$(ls packages/builder/dist/definitions/catalog/recreations | sed -n 's/\.build\.js$//p' | sort)
+  if [ "$dist" = "$free" ]; then note ok "the builder dist holds only the free apps' builds"; else note FAIL "the builder dist holds other builds (stale? npm run builder:build): $(echo $dist)"; fail=1; fi
+fi
+
 # Source maps: built client assets must not ship .map files or point at one, so DevTools only
 # ever shows minified bundles.
 for dir in .next/static .open-next/assets; do
@@ -52,6 +64,18 @@ if [ -d .open-next/assets ]; then
   else
     note FAIL "_headers missing or without an immutable policy in .open-next/assets"; fail=1
   fi
+fi
+
+# Worker size: Cloudflare refuses a Worker over 64 MiB uncompressed, on every plan. lib/source.ts is
+# the docs' compiled MDX (about 20 MB with every piece's highlighted source), and each server entry
+# that imports it bundles its own copy, so only the docs pages may: search and the sitemap read
+# registry/__registry__/docs.json. Three copies is what broke the 2026-10-02 deploy.
+importers=$(grep -rlE "from ['\"]@/lib/source['\"]" app components lib 2>/dev/null | grep -v "^app/docs/")
+if [ -n "$importers" ]; then note FAIL "lib/source.ts imported outside app/docs (each importer adds a ~20 MB copy):"; echo "$importers" | sed 's/^/           /'; fail=1; else note ok "only the docs pages import the compiled MDX"; fi
+handler=.open-next/server-functions/default/handler.mjs
+if [ -f "$handler" ]; then
+  mib=$(( $(wc -c < "$handler") / 1048576 ))
+  if [ "$mib" -ge 56 ]; then note FAIL "server bundle is ${mib} MiB uncompressed (Cloudflare's limit is 64 MiB for the whole Worker)"; fail=1; else note ok "server bundle ${mib} MiB uncompressed (Cloudflare's limit: 64)"; fi
 fi
 
 # Cache interception answers segment prefetches with the whole page, so the client re-prefetches

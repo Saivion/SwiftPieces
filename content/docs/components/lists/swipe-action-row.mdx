@@ -37,7 +37,7 @@ SwipeActionRowExample().preferredColorScheme(.light)
 | `id` | Identity used with `open`. Defaults to a private id, which still lets a parent close the row. |
 | `leading` | Actions revealed by swiping right. The first one sits at the edge and fires on a full swipe. |
 | `trailing` | Actions revealed by swiping left. The first one sits at the edge and fires on a full swipe. |
-| `background` | Opaque surface of the row card, which covers the tiles when closed. `nil` uses `style.surface`. |
+| `background` | Surface of the row card. `nil` uses `style.surface`. `.clear` suits a list that draws its own surface: tiles only appear in the gap the row opens, and a clear row drops its lift shadow. |
 | `open` | Shared binding to the id of the open row. Swiping a row stores its id here and closes every other row bound to it; set it to `nil` to close all, or to a row id to reveal that row's trailing actions. |
 | `style` | Card surface, corner radius, tile ink, tile width and gap. Defaults to the house palette. |
 | `content` | Row content. |
@@ -57,7 +57,7 @@ import UIKit
 ///   - id: Identity used with `open`. Defaults to a private id, which still lets a parent close the row.
 ///   - leading: Actions revealed by swiping right. The first one sits at the edge and fires on a full swipe.
 ///   - trailing: Actions revealed by swiping left. The first one sits at the edge and fires on a full swipe.
-///   - background: Opaque surface of the row card, which covers the tiles when closed. `nil` uses `style.surface`.
+///   - background: Surface of the row card. `nil` uses `style.surface`. `.clear` suits a list that draws its own surface: tiles only appear in the gap the row opens, and a clear row drops its lift shadow.
 ///   - open: Shared binding to the id of the open row. Swiping a row stores its id here and closes every other row bound to it; set it to `nil` to close all, or to a row id to reveal that row's trailing actions.
 ///   - style: Card surface, corner radius, tile ink, tile width and gap. Defaults to the house palette.
 ///   - content: Row content.
@@ -123,7 +123,8 @@ public struct SwipeActionRow<Content: View>: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(background ?? style.surface, in: card)
             // The sliding card lifts off the tiles as it opens, so it reads as a layer above them.
-            .shadow(color: .black.opacity(0.16 * lift), radius: 14, x: offset > 0 ? -3 : 3, y: 4 * lift)
+            // A clear row (in a list that draws its own surface) has no card to lift.
+            .shadow(color: .black.opacity(background == Color.clear ? 0 : 0.16 * lift), radius: 14, x: offset > 0 ? -3 : 3, y: 4 * lift)
             .offset(x: offset)
             .background(alignment: .leading) { tileBar(leading, edge: .leading) }
             .background(alignment: .trailing) { tileBar(trailing, edge: .trailing) }

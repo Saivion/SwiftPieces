@@ -143,7 +143,7 @@ export function GlassActionMenuPreview() {
                 </span>
                 <span data-motion className="absolute whitespace-nowrap rounded-full" style={{
                   ...(above ? { left: "50%", bottom: `calc(100% + ${p(8)})`, transform: `translate(-50%, ${labels ? "0" : p(6)})` } : { right: `calc(100% + ${p(10)})`, top: "50%", transform: `translate(${labels ? "0" : p(6)}, -50%)` }),
-                  opacity: labels ? 1 : 0, transition: "opacity .25s, transform .25s", background: "#262626", color: ground.text,
+                  opacity: labels ? 1 : 0, transition: "opacity .25s, transform .25s", background: ground.field, color: ground.text,
                   padding: `${p(7)} ${p(12)}`, fontSize: p(15), fontWeight: 600, lineHeight: 1, boxShadow: `0 ${p(3)} ${p(8)} rgba(0,0,0,.2)`,
                 }}>{item.label}</span>
               </div>
@@ -207,7 +207,7 @@ export function GlassSegmentsPreview() {
     <Stage>
       <div className="relative rounded-full" style={{ width: p(400), height: p(50), padding: p(3), background: ground.raised }}>
         <div className="relative size-full">
-          <div ref={indicator} data-motion className="absolute inset-y-0 left-0 rounded-full" style={{ width: "25%", background: "#3a3a3a", boxShadow: `inset 0 ${p(1)} 0 rgba(255,255,255,.14)` }} />
+          <div ref={indicator} data-motion className="absolute inset-y-0 left-0 rounded-full" style={{ width: "25%", background: ground.control, boxShadow: `inset 0 ${p(1)} 0 rgba(255,255,255,.14)` }} />
           <div aria-hidden className="absolute inset-0 flex">{row(ground.muted)}</div>
           <div ref={inked} data-motion className="absolute inset-0 flex">{row(ground.text)}</div>
         </div>

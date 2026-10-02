@@ -3,6 +3,9 @@
   "root": true,
   "pages": [
     "index",
+    "---Explore Pro---",
+    "screens",
+    "templates",
     "---Categories · 14---",
     "text",
     "backgrounds",

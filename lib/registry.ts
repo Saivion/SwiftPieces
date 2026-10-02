@@ -28,3 +28,8 @@ export async function loadFullRegistryItem(name: string): Promise<RegistryItem |
   return entry ? (items[entry.name] ?? null) : null;
 }
 
+
+/** How many pieces carry the New badge right now: the latest wave, while it is recent (scripts/build-registry.ts). */
+export function freshCount(): number {
+  return getRegistryIndex().filter((e) => e.isNew).length;
+}

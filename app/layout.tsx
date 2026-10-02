@@ -28,20 +28,25 @@ export const metadata: Metadata = {
   twitter: { card: "summary_large_image" },
 };
 
-export const viewport: Viewport = { themeColor: "#0a0a0a", colorScheme: "dark" };
+// Light and dark both ship; next-themes (through Fumadocs' RootProvider) sets the class on <html>.
+export const viewport: Viewport = {
+  themeColor: [{ media: "(prefers-color-scheme: dark)", color: "#070708" }, { media: "(prefers-color-scheme: light)", color: "#f7f7f7" }],
+  colorScheme: "dark light",
+};
 
 // Free carries no auth. A signed-in user reaching pro.swiftpieces.com is already
 // authenticated because Clerk's session cookie lives on the shared root domain (Rev 3 §6).
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className={`dark ${figtree.variable}`} suppressHydrationWarning>
+    <html lang="en" className={figtree.variable} suppressHydrationWarning>
       <body className="flex min-h-screen flex-col antialiased">
         {/* The first screen's endless loops hold still until the visitor first interacts (components/motion-gate.tsx). */}
         <MotionGate />
         <RootProvider
-          theme={{ defaultTheme: "dark", forcedTheme: "dark", enabled: false }}
+          // Follows the system until the visitor picks light or dark in the footer; the choice is remembered.
+          theme={{ enabled: true, defaultTheme: "system", enableSystem: true, disableTransitionOnChange: true }}
           // Shown before anyone types: the places people search for most.
-          search={{ links: [["Introduction", "/docs/introduction"], ["Installation", "/docs/installation"], ["All components", "/docs/components"], ["Liquid Glass guide", "/docs/liquid-glass"], ["MCP Server", "/docs/mcp"], ["Swift Pieces Pro", "/pro"]] }}
+          search={{ links: [["Introduction", "/docs/introduction"], ["Installation", "/docs/installation"], ["All components", "/docs/components"], ["App Library", "/apps"], ["Liquid Glass guide", "/docs/liquid-glass"], ["MCP Server", "/docs/mcp"], ["Swift Pieces Pro", "/pro"]] }}
         >
           {children}
         </RootProvider>

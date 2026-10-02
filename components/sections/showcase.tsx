@@ -57,7 +57,7 @@ function GroupHeading({ label, count, badge, className }: { label: string; count
  * The shared pill both filter groups sit in. `scroll` lets the category group shrink and scroll;
  * the edge fade appears only while there is more to scroll to, so a pill that fits stays crisp.
  */
-function FilterPill({ children, scroll }: { children: ReactNode; scroll?: boolean }) {
+export function FilterPill({ children, scroll }: { children: ReactNode; scroll?: boolean }) {
   const ref = useRef<HTMLDivElement>(null);
   const [more, setMore] = useState(false);
   useEffect(() => {
@@ -84,8 +84,12 @@ function FilterPill({ children, scroll }: { children: ReactNode; scroll?: boolea
   );
 }
 
-/** One filter. Active All is the red accent, active New is Pro pink, an active category is a soft lift. */
-function FilterButton({ label, count, active, tone, onClick }: { label: string; count: number; active: boolean; tone?: "all" | "new"; onClick: () => void }) {
+/**
+ * One filter. Active All is the red accent, active New is the New badge's pink with its dark ink (the
+ * same in light and dark, so the label and count always read), an active category is a soft lift.
+ * Inactive filters all share the muted ink.
+ */
+export function FilterButton({ label, count, active, tone, onClick }: { label: string; count: number; active: boolean; tone?: "all" | "new"; onClick: () => void }) {
   return (
     <button
       type="button"
@@ -95,19 +99,25 @@ function FilterButton({ label, count, active, tone, onClick }: { label: string; 
         "flex h-8 shrink-0 items-center gap-1.5 rounded-[7px] px-3 text-[13px] font-medium whitespace-nowrap transition-colors",
         active
           ? tone === "all" ? "bg-accent text-black" : tone === "new" ? "bg-[#ff8fb8] text-[#2a0714]" : "bg-white/[0.09] text-foreground"
-          : tone === "new" ? "text-[#ff8fb8] hover:bg-white/[0.04]" : "text-muted hover:bg-white/[0.04] hover:text-foreground",
+          : "text-muted hover:bg-white/[0.04] hover:text-foreground",
       )}
     >
       {label}
-      <span className={cn("text-[11px] tabular-nums", active ? (tone ? "text-black/55" : "text-muted") : tone === "new" ? "text-[#ff8fb8]/60" : "text-subtle")}>{count}</span>
+      <span className={cn("text-[11px] tabular-nums", active ? (tone === "new" ? "text-[#2a0714]/60" : tone ? "text-black/55" : "text-muted") : "text-subtle")}>{count}</span>
     </button>
   );
 }
 
+/**
+ * The piece the new wave opens with, in "Just added" and on the New tab; the rest of the wave keeps
+ * registry order behind it. Once it is no longer new this does nothing, so it never needs undoing.
+ */
+const NEW_LEAD = "PictureHeadline";
+
 /** `narrow` caps the grid at three columns, for a docs column rather than the full page. */
 export function ShowcaseGrid({ items, filters = true, limit, narrow }: { items: RegistryIndexEntry[]; filters?: boolean; limit?: number; narrow?: boolean }) {
   const [cat, setCat] = useState<string>("all");
-  const fresh = useMemo(() => items.filter((i) => i.isNew), [items]);
+  const fresh = useMemo(() => items.filter((i) => i.isNew).sort((a, b) => Number(b.name === NEW_LEAD) - Number(a.name === NEW_LEAD)), [items]);
   // "New" sits right after "All" while anything is new; it disappears with the last badge.
   const cats = useMemo(() => ["all", ...(fresh.length ? ["new"] : []), ...Array.from(new Set(items.map((i) => i.category)))], [items, fresh]);
   const count = (c: string) => (c === "all" ? items.length : c === "new" ? fresh.length : items.filter((i) => i.category === c).length);

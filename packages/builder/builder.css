@@ -1,0 +1,1292 @@
+/* @swiftpieces/builder — the Playground's styles. Loaded only on Playground routes.
+   Built on the @swiftpieces/brand tokens (--background, --foreground, --surface*, --accent, --line,
+   --card-border, --text-muted, --text-subtle), so it follows each site's values and both themes.
+   Plain CSS: no Tailwind scanning of this package needed.
+
+   Layout: a full-screen workspace. A top bar; then Explore, the stage, and Inspect as three columns
+   divided by hairlines, not boxed cards. The stage is the one place with texture: a quiet dot grid
+   under a real-size iPhone. The phone (.spb-*) keeps iOS's own values and is dark in both themes. */
+
+html.spb-app, html.spb-app body { overflow: hidden; overscroll-behavior: none; }
+
+/* Tokens, shared with the Build dialog (which renders in the top layer, outside .spp). */
+.spp, .spp-dialog {
+  --spp-r: 4px;
+  --spp-line: var(--line, var(--card-border));
+  --spp-line-strong: var(--line-strong, var(--card-border-hover));
+  --spp-fill: color-mix(in srgb, var(--foreground) 4.5%, transparent);
+  --spp-fill-2: color-mix(in srgb, var(--foreground) 8%, transparent);
+  --spp-fill-3: color-mix(in srgb, var(--foreground) 12%, transparent);
+  --spp-subtle: var(--text-subtle, var(--text-muted));
+  --spp-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, monospace;
+  --spp-ease: var(--ease-out, cubic-bezier(.22, 1, .36, 1));
+}
+.spp-dialog *, .spp-dialog *::before, .spp-dialog *::after { box-sizing: border-box; }
+.spp-dialog button { font: inherit; color: inherit; cursor: pointer; }
+.spp-dialog h2, .spp-dialog p, .spp-dialog ul { margin: 0; padding: 0; list-style: none; }
+.spp-dialog code, .spp-dialog kbd { font-family: var(--spp-mono); }
+
+.spp {
+  --spp-left: 292px;
+  --spp-right: 360px;
+  --spp-top: 52px;
+  --spp-panel: var(--background);
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  grid-template-columns: var(--spp-left) minmax(0, 1fr) var(--spp-right);
+  grid-template-rows: var(--spp-top) minmax(0, 1fr);
+  background: var(--background);
+  color: var(--foreground);
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.5;
+  isolation: isolate;
+  -webkit-font-smoothing: antialiased;
+}
+.spp *, .spp *::before, .spp *::after { box-sizing: border-box; }
+.spp button { font: inherit; color: inherit; cursor: pointer; }
+.spp button:disabled { cursor: default; opacity: .38; }
+/* Buttons take the page's font, but the button classes keep their own size and weight: the base
+   rule above outranks a single class, so they are restated here at its strength. The primary
+   weight matches the site's Get Pro button (semibold, 12.5). */
+.spp .spp-btn, .spp-dialog .spp-btn { font-size: 12.5px; font-weight: 500; }
+.spp .spp-btn-sm, .spp-dialog .spp-btn-sm { font-size: 12px; }
+.spp .spp-btn-primary, .spp-dialog .spp-btn-primary { font-size: 12.5px; font-weight: 600; }
+.spp :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }
+.spp h1, .spp h2, .spp h3, .spp p, .spp ol, .spp ul, .spp dl, .spp dd { margin: 0; }
+.spp ul, .spp ol { padding: 0; list-style: none; }
+.spp code, .spp kbd, .spp pre { font-family: var(--spp-mono); }
+
+/* ---------------------------------------------------------------- Shared type */
+.spp-label, .spp-eyebrow { display: flex; align-items: center; gap: 8px; font-size: 10.5px; line-height: 1.3; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--spp-subtle); }
+.spp-label-note { margin-left: auto; letter-spacing: .02em; text-transform: none; font-weight: 500; color: var(--text-muted); }
+.spp-label-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.spp-muted { color: var(--text-muted); }
+.spp-hint { color: var(--text-muted); font-size: 12px; line-height: 1.55; }
+.spp-link { padding: 0; border: 0; background: none; color: var(--foreground); font-size: 12.5px; font-weight: 500; text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--foreground) 28%, transparent); text-underline-offset: 3px; transition: text-decoration-color .15s; }
+.spp-link:hover { text-decoration-color: currentColor; }
+.spp-pro-tag { display: inline-flex; align-items: center; height: 16px; padding: 0 5px; margin-left: 6px; border-radius: 3px; background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--accent); font-size: 9.5px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; vertical-align: 1px; }
+.spp-sp-tag, .spp-native-tag { flex: none; height: 17px; padding: 0 5px; display: inline-flex; align-items: center; border-radius: 3px; font-size: 9.5px; font-weight: 700; letter-spacing: .05em; }
+.spp-sp-tag { background: var(--foreground); color: var(--background); }
+.spp-native-tag { box-shadow: inset 0 0 0 1px var(--spp-line-strong); color: var(--text-muted); font-weight: 600; letter-spacing: .02em; }
+/* "Remixed": a quiet status, an accent dot and muted text, the height of the controls beside it. */
+.spp-remix-tag { display: inline-flex; align-items: center; gap: 7px; height: 28px; padding: 0 10px; border-radius: var(--spp-r); box-shadow: inset 0 0 0 1px var(--spp-line-strong); color: var(--text-muted); font-size: 12px; font-weight: 500; white-space: nowrap; }
+/* Beside the app's name, the status and Save are one outlined control: "● Remixed | Save". The two
+   halves mirror each other: same type, same padding, a 14px mark before each label, and one real
+   border colour for the outline and the divider. The dot is the only accent, so Build stays the one
+   red button in the bar. Once saved it reads "Saved" with a check, muted, until the next edit. */
+.spp-save-group { display: inline-flex; align-items: stretch; box-sizing: border-box; height: 28px; margin-left: 4px; flex: none; overflow: hidden; border: 1px solid var(--spp-line-strong); border-radius: var(--spp-r); }
+.spp-save-group .spp-remix-tag,
+.spp .spp-save-group .spp-save-btn { height: auto; gap: 7px; padding: 0 12px 0 10px; border: 0; border-radius: 0; box-shadow: none; background: transparent; color: var(--foreground); font-size: 12px; font-weight: 500; letter-spacing: 0; }
+.spp-save-group .spp-remix-tag::before { margin-inline: 4px; }
+.spp .spp-save-group .spp-remix-tag + .spp-save-btn { border-left: 1px solid var(--spp-line-strong); }
+.spp .spp-save-group .spp-save-btn:hover:not(:disabled) { background: var(--spp-fill); }
+.spp .spp-save-group .spp-save-btn:active:not(:disabled) { transform: none; }
+.spp .spp-save-group .spp-save-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.spp .spp-save-group .spp-save-btn.is-saved { color: var(--text-muted); }
+.spp .spp-save-group .spp-save-btn.is-saved:hover:not(:disabled) { color: var(--foreground); }
+.spp .spp-save-btn .spb-spinner { width: 12px; height: 12px; }
+/* The Save popup is the Build dialog's size; its two choices stack full width so each reads on one line. */
+.spp-save-dialog .spp-save-grid { grid-template-columns: minmax(0, 1fr); grid-auto-rows: auto; }
+.spp-save-dialog .spp-build-opt { padding-block: 18px; }
+/* Full-width rows: no second line held for a short description, so the icon centres on the text. */
+.spp-save-dialog .spp-build-desc { min-height: 0; }
+.spp-remix-tag::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+
+/* ---------------------------------------------------------------- Controls */
+.spp-btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; height: 32px; padding: 0 12px; border-radius: var(--spp-r); border: 1px solid var(--spp-line-strong); background: transparent; font-size: 12.5px; font-weight: 500; white-space: nowrap; text-decoration: none; color: var(--foreground); transition: background-color .15s, border-color .15s, transform .15s var(--spp-ease); }
+.spp-btn:hover:not(:disabled) { background: var(--spp-fill); border-color: color-mix(in srgb, var(--foreground) 24%, transparent); }
+.spp-btn:active:not(:disabled) { transform: scale(.98); }
+/* The primary action: the site's Get Pro button (the brand's .btn-solid), so both read with one weight. */
+.spp-btn-primary { background: var(--accent); border-color: rgb(0 0 0 / .25); color: var(--accent-foreground, #000) !important; font-weight: 600;
+  box-shadow: 0 1px 0 rgb(255 255 255 / .15) inset, 0 10px 28px -12px color-mix(in srgb, var(--accent) 60%, transparent);
+  transition: transform .3s var(--spp-ease), box-shadow .3s var(--spp-ease), filter .3s var(--spp-ease); }
+@media (hover: hover) { .spp-btn-primary:hover:not(:disabled) { background: var(--accent); border-color: rgb(0 0 0 / .25); transform: translateY(-1px); filter: brightness(1.05); box-shadow: 0 1px 0 rgb(255 255 255 / .15) inset, 0 16px 36px -14px color-mix(in srgb, var(--accent) 75%, transparent); } }
+.spp-btn-primary:active:not(:disabled) { transform: translateY(0) scale(.985); }
+.spp-btn-sm { height: 28px; padding: 0 10px; font-size: 12px; }
+.spp-btn-lg { height: 40px; padding: 0 18px; font-size: 13.5px; }
+.spp-btn[data-copied] .spp-copy-idle, .spp-btn:not([data-copied]) .spp-copy-done, .spp-icon-btn[data-copied] .spp-copy-idle, .spp-icon-btn:not([data-copied]) .spp-copy-done { display: none; }
+.spp-copy-icon .spp-copy-idle, .spp-copy-icon .spp-copy-done { display: none !important; }
+.spp-icon-btn { display: inline-grid; place-items: center; width: 32px; height: 32px; padding: 0; border: 0; border-radius: var(--spp-r); background: transparent; color: var(--text-muted); transition: color .15s, background-color .15s; }
+.spp-icon-btn:hover:not(:disabled) { color: var(--foreground); background: var(--spp-fill); }
+.spp-icon-btn-sm { width: 26px; height: 26px; }
+.spp-seg { display: inline-flex; gap: 2px; padding: 2px; border-radius: var(--spp-r); background: var(--spp-fill); }
+.spp-seg > button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 28px; padding: 0 12px; border: 0; border-radius: 3px; background: transparent; color: var(--text-muted); font-size: 12px; font-weight: 500; white-space: nowrap; transition: color .15s, background-color .2s var(--spp-ease), box-shadow .2s; }
+.spp-seg > button:hover { color: var(--foreground); }
+.spp-seg > button[aria-checked="true"], .spp-seg > button[aria-selected="true"] { background: var(--background); color: var(--foreground); box-shadow: 0 1px 2px rgb(0 0 0 / .3), inset 0 0 0 1px var(--spp-line); }
+.spp-seg-fill { display: flex; width: 100%; }
+.spp-seg-fill > button { flex: 1; min-width: 0; padding: 0 6px; overflow: hidden; text-overflow: ellipsis; }
+.spp-chip { display: inline-flex; align-items: center; height: 26px; padding: 0 10px; border-radius: var(--spp-r); border: 1px solid var(--spp-line-strong); background: transparent; font-size: 12px; font-weight: 500; color: var(--text-muted); transition: color .15s, border-color .15s, background-color .15s; }
+.spp-chip:hover { color: var(--foreground); }
+.spp-chip[aria-pressed="true"] { color: var(--foreground); border-color: var(--foreground); background: var(--spp-fill); }
+.spp-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.spp-input { width: 100%; height: 32px; padding: 0 10px; border-radius: var(--spp-r); border: 1px solid var(--spp-line-strong); background: transparent; color: var(--foreground); font: inherit; font-size: 12.5px; transition: border-color .15s; }
+.spp-input:hover { border-color: color-mix(in srgb, var(--foreground) 24%, transparent); }
+.spp-input:focus { outline: none; border-color: var(--foreground); }
+.spp-textarea { height: auto; padding: 8px 10px; resize: vertical; line-height: 1.5; }
+.spp-input-num { width: 64px; flex: none; text-align: right; font-variant-numeric: tabular-nums; }
+.spp-select { width: 100%; height: 32px; padding: 0 28px 0 10px; border-radius: var(--spp-r); border: 1px solid var(--spp-line-strong); background: transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4 6l4 4 4-4' fill='none' stroke='%23888' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 8px center / 14px; color: var(--foreground); font: inherit; font-size: 12.5px; appearance: none; }
+.spp-select:focus { outline: none; border-color: var(--foreground); }
+.spp-select option, .spp-select optgroup { background: var(--background); color: var(--foreground); }
+.spp-select-sm { height: 28px; width: auto; max-width: 220px; font-size: 12px; }
+.spp-switch { position: relative; width: 36px; height: 20px; flex: none; padding: 0; border: 0; border-radius: 999px; background: var(--spp-fill-3); transition: background-color .2s; }
+.spp-switch > span { position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgb(0 0 0 / .35); transition: transform .25s var(--ease-spring, var(--spp-ease)); }
+.spp-switch[aria-checked="true"] { background: var(--foreground); }
+.spp-switch[aria-checked="true"] > span { transform: translateX(16px); background: var(--background); }
+.spp-number { display: flex; align-items: center; gap: 10px; }
+.spp-number input[type="range"] { flex: 1; min-width: 0; height: 16px; accent-color: var(--foreground); }
+.spp-swatches { display: flex; flex-wrap: wrap; gap: 7px; }
+.spp-swatch { width: 20px; height: 20px; padding: 0; border: 0; border-radius: 50%; background: var(--sw); box-shadow: inset 0 0 0 1px rgb(255 255 255 / .14); transition: transform .2s var(--ease-spring, var(--spp-ease)); }
+.spp-swatch:hover { transform: scale(1.1); }
+.spp-swatch[aria-checked="true"] { box-shadow: 0 0 0 2px var(--background), 0 0 0 3.5px var(--foreground); }
+.spp-icon-select { display: flex; align-items: center; gap: 8px; }
+.spp-icon-preview { width: 32px; height: 32px; flex: none; display: grid; place-items: center; border-radius: var(--spp-r); box-shadow: inset 0 0 0 1px var(--spp-line-strong); }
+.spp-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.spp-field[data-type="boolean"] { flex-direction: row; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+.spp-field[data-type="boolean"] .spp-field-hint { flex-basis: 100%; }
+.spp-field-label { display: flex; align-items: center; font-size: 12px; font-weight: 500; color: var(--foreground); }
+.spp-field-hint { font-size: 11.5px; line-height: 1.45; color: var(--spp-subtle); }
+.spp-field.is-locked > :not(label) { opacity: .45; pointer-events: none; }
+.spp-field.is-locked { cursor: pointer; }
+.spp-fields { display: flex; flex-direction: column; gap: 14px; }
+kbd { font-size: 10.5px; padding: 1px 5px; border-radius: 3px; box-shadow: inset 0 0 0 1px var(--spp-line-strong); color: var(--text-muted); }
+
+/* ---------------------------------------------------------------- Top bar */
+.spp-top { grid-column: 1 / -1; grid-row: 1; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 0 12px 0 10px; border-bottom: 1px solid var(--spp-line); }
+.spp-top-lead { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.spp-exit { display: inline-grid; place-items: center; width: 34px; height: 34px; border-radius: var(--spp-r); color: var(--foreground); transition: background-color .15s; }
+.spp-exit:hover { background: var(--spp-fill); }
+.spp-exit img, .spp-exit svg { width: 22px; height: 22px; }
+.spp-crumbs { display: flex; align-items: center; gap: 8px; min-width: 0; font-size: 13px; color: var(--text-muted); white-space: nowrap; }
+.spp-crumbs a, .spp-crumbs button { padding: 0; border: 0; background: none; color: var(--text-muted); text-decoration: none; transition: color .15s; }
+.spp-crumbs a:hover, .spp-crumbs button:hover { color: var(--foreground); }
+.spp-crumbs span { color: var(--spp-subtle); }
+.spp-crumbs strong { overflow: hidden; text-overflow: ellipsis; color: var(--foreground); font-weight: 600; }
+.spp-top-actions { display: flex; align-items: center; gap: 4px; flex: none; }
+.spp-top-sep { width: 1px; height: 20px; margin: 0 6px; background: var(--spp-line); }
+
+/* ---------------------------------------------------------------- Panels */
+.spp-panel { min-width: 0; min-height: 0; display: flex; flex-direction: column; background: var(--spp-panel); }
+.spp-left { grid-column: 1; grid-row: 2; border-right: 1px solid var(--spp-line); }
+.spp-right { grid-column: 3; grid-row: 2; border-left: 1px solid var(--spp-line); }
+.spp-center { grid-column: 2; grid-row: 2; min-width: 0; min-height: 0; display: flex; }
+.spp-panel-head { flex: none; display: flex; align-items: center; gap: 8px; padding: 10px 12px; }
+.spp-drawer-close { display: none; }
+.spp-section { display: flex; flex-direction: column; gap: 10px; }
+.spp-pane-loading { margin: 16px; height: 120px; border-radius: var(--spp-r); background: linear-gradient(100deg, var(--spp-fill) 30%, var(--spp-fill-2) 50%, var(--spp-fill) 70%) 0 0 / 250% 100%; animation: spb-shimmer 1.4s ease-in-out infinite; }
+
+/* ---------------------------------------------------------------- Explore */
+.spp-explore { display: flex; flex-direction: column; min-height: 0; flex: 1; }
+.spp-explore-head { padding-bottom: 6px; }
+.spp-search { flex: 1; display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 10px 0 11px; border-radius: var(--spp-r); background: var(--spp-fill); color: var(--text-muted); box-shadow: inset 0 0 0 1px transparent; transition: box-shadow .15s, background-color .15s; cursor: text; }
+.spp-search:hover { box-shadow: inset 0 0 0 1px var(--spp-line-strong); }
+/* Focus: one soft accent ring on the pill, nothing drawn by the input itself. */
+.spp-search:focus-within { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent, #ff0000) 55%, transparent), 0 0 0 3px color-mix(in srgb, var(--accent, #ff0000) 14%, transparent); color: var(--foreground); }
+.spp-search input { flex: 1; min-width: 0; height: 100%; margin: 0; padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; color: var(--foreground); font: inherit; font-size: 13px; outline: none; -webkit-appearance: none; appearance: none; }
+.spp-search input:focus, .spp-search input:focus-visible { outline: none; box-shadow: none; background: transparent; }
+.spp-search input::placeholder { color: var(--text-muted); opacity: 1; }
+.spp-search input:-webkit-autofill { -webkit-box-shadow: 0 0 0 40px var(--spp-fill) inset; -webkit-text-fill-color: var(--foreground); }
+.spp-search input::-webkit-search-cancel-button { filter: grayscale(1); }
+.spp-kinds { flex: none; display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; margin: 0 12px 4px; padding: 2px; border-radius: var(--spp-r); background: var(--spp-fill); }
+.spp-kinds > button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-width: 0; height: 46px; padding: 0 2px; border: 0; border-radius: 3px; background: transparent; color: var(--text-muted); font-size: 10.5px; font-weight: 500; transition: color .15s, background-color .2s; }
+.spp-kinds > button span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.spp-kinds > button:hover { color: var(--foreground); }
+.spp-kinds > button[aria-selected="true"] { background: var(--background); color: var(--foreground); box-shadow: 0 1px 2px rgb(0 0 0 / .3), inset 0 0 0 1px var(--spp-line); }
+.spp-explore-body { flex: 1; min-height: 0; overflow: auto; overscroll-behavior: contain; scrollbar-width: thin; padding: 8px 8px 24px; display: flex; flex-direction: column; gap: 18px; }
+.spp-explore-body .spp-section { gap: 4px; }
+.spp-explore-body .spp-label { padding: 0 8px 4px; }
+.spp-explore-blurb { padding: 2px 8px 0; color: var(--text-muted); font-size: 12px; line-height: 1.5; }
+.spp-explore-note { padding: 0 8px; }
+.spp-list { display: flex; flex-direction: column; gap: 1px; }
+.spp-item-row { position: relative; display: flex; align-items: stretch; }
+.spp-item { flex: 1; min-width: 0; display: flex; align-items: flex-start; gap: 10px; padding: 8px; border-radius: var(--spp-r); color: var(--foreground); text-decoration: none; transition: background-color .12s; }
+.spp-item:hover { background: var(--spp-fill); }
+.spp-item[aria-current="page"] { background: var(--spp-fill-2); }
+.spp-item[aria-current="page"] .spp-item-tile { background: var(--foreground); color: var(--background); box-shadow: none; }
+.spp-item[data-locked] .spp-item-title { color: var(--text-muted); }
+.spp-item-tile { flex: none; width: 28px; height: 28px; display: grid; place-items: center; border-radius: var(--spp-r); box-shadow: inset 0 0 0 1px var(--spp-line-strong); color: var(--text-muted); transition: background-color .15s, color .15s; }
+.spp-item:hover .spp-item-tile { color: var(--foreground); }
+.spp-item-text { min-width: 0; display: flex; flex-direction: column; gap: 1px; padding-top: 1px; }
+.spp-item-title { font-size: 13px; font-weight: 500; line-height: 1.35; }
+.spp-item-sub { font-size: 12px; line-height: 1.4; color: var(--text-muted); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.spp-fav { position: absolute; top: 6px; right: 4px; display: grid; place-items: center; width: 24px; height: 24px; padding: 0; border: 0; border-radius: 3px; background: var(--background); color: var(--spp-subtle); opacity: 0; transition: opacity .12s, color .12s; }
+.spp-item-row:hover .spp-fav, .spp-fav:focus-visible { opacity: 1; }
+.spp-fav:hover { color: var(--foreground); }
+.spp-fav[aria-pressed="true"] { opacity: 1; color: var(--foreground); }
+.spp-fav[aria-pressed="true"] svg { fill: currentColor; }
+.spp-item-row > .spp-icon-btn { align-self: center; opacity: 0; }
+.spp-item-row:hover > .spp-icon-btn { opacity: 1; }
+
+/* ---------------------------------------------------------------- Stage */
+.spp-stage { position: relative; flex: 1; min-width: 0; min-height: 0; display: flex; flex-direction: column; container-type: inline-size;
+  background: radial-gradient(circle, color-mix(in srgb, var(--foreground) 9%, transparent) 1px, transparent 1.3px) 0 0 / 22px 22px, var(--background); }
+.spp-stage-bar { position: relative; z-index: 2; flex: none; display: flex; align-items: center; justify-content: center; gap: 12px; padding: 12px 14px 0; }
+.spp-mode { background: color-mix(in srgb, var(--background) 70%, transparent); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: inset 0 0 0 1px var(--spp-line); }
+.spp-mode > button { min-height: 30px; padding: 0 14px; }
+.spp-stage[data-mode="inspect"] .spp-mode > button[aria-checked="true"] { background: var(--foreground); color: var(--background); }
+.spp-stage-tools { position: absolute; right: 14px; top: 12px; display: flex; gap: 2px; }
+.spp-stage-body { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; padding: 14px 20px 8px; }
+.spp-stage-foot { flex: none; min-height: 58px; display: flex; align-items: center; justify-content: center; padding: 0 16px 14px; }
+.spp-empty { color: var(--text-muted); font-size: 13px; text-align: center; max-width: 280px; }
+.spp-fit { position: relative; flex: 1; align-self: stretch; min-width: 0; min-height: 0; display: flex; align-items: center; justify-content: center; }
+.spp-device-slot { position: relative; flex: none; }
+.spp-device { position: absolute; left: 0; top: 0; width: 414px; height: 868px; padding: 12px; border-radius: 67px; transform-origin: 0 0;
+  background: #0b0b0c; box-shadow: inset 0 0 0 1.5px #2b2b2e, inset 0 0 0 5px #0b0b0c, inset 0 0 0 6px #1d1d20, 0 0 0 1px rgb(0 0 0 / .55), 0 60px 120px -48px rgb(0 0 0 / .8), 0 24px 40px -24px rgb(0 0 0 / .45);
+  transition: opacity .3s var(--spp-ease), box-shadow .3s; }
+html.light .spp-device { box-shadow: inset 0 0 0 1.5px #2b2b2e, inset 0 0 0 5px #0b0b0c, inset 0 0 0 6px #1d1d20, 0 0 0 1px rgb(0 0 0 / .08), 0 60px 110px -50px rgb(0 0 0 / .45), 0 20px 40px -24px rgb(0 0 0 / .25); }
+.spp-device[data-mode="inspect"] { box-shadow: inset 0 0 0 1.5px #2b2b2e, inset 0 0 0 5px #0b0b0c, inset 0 0 0 6px #1d1d20, 0 0 0 1px rgb(0 0 0 / .55), 0 0 0 4px color-mix(in srgb, var(--accent) 38%, transparent), 0 60px 120px -48px rgb(0 0 0 / .8); }
+/* Inspecting, every part is something to pick: a pointer over the whole phone. */
+.spp-device[data-mode="inspect"] .spb-phone, .spp-device[data-mode="inspect"] .spb-phone * { cursor: pointer !important; }
+.spp-device-skeleton { width: min(292px, 34vh); aspect-ratio: 414 / 868; border-radius: 48px; background: #0b0b0c; box-shadow: inset 0 0 0 1.5px #2b2b2e, 0 50px 100px -40px rgb(0 0 0 / .7); position: relative; overflow: hidden; }
+.spp-device-skeleton::after { content: ""; position: absolute; inset: 9px; border-radius: 40px; background: linear-gradient(100deg, #111 30%, #1a1a1a 50%, #111 70%) 0 0 / 250% 100%; animation: spb-shimmer 1.4s ease-in-out infinite; }
+
+/* Try line and flow steps under the device. */
+.spp-try { display: flex; align-items: center; gap: 10px; max-width: 460px; font-size: 12.5px; color: var(--text-muted); }
+.spp-try-k { flex: none; height: 20px; padding: 0 7px; display: inline-flex; align-items: center; border-radius: 3px; background: var(--foreground); color: var(--background); font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.spp-try-text { animation: spp-rise .45s var(--spp-ease) both; }
+.spp-stage-foot { min-width: 0; }
+.spp-flow { display: flex; flex-direction: column; align-items: center; gap: 8px; max-width: 100%; min-width: 0; }
+.spp-steps { display: flex; align-items: center; justify-content: safe center; max-width: 100%; overflow-x: auto; scrollbar-width: none; padding: 2px; }
+.spp-steps::-webkit-scrollbar { display: none; }
+.spp-step { display: flex; align-items: center; flex: none; }
+.spp-step-edge { display: flex; flex-direction: column; align-items: center; gap: 2px; width: 52px; margin: 0 2px; }
+.spp-step-line { width: 100%; height: 1px; background: var(--spp-line-strong); }
+.spp-step[data-state="done"] .spp-step-line, .spp-step[data-state="current"] .spp-step-line { background: var(--foreground); }
+.spp-step-how { font-size: 9.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--spp-subtle); }
+.spp-step-dot { display: flex; align-items: center; gap: 7px; height: 30px; padding: 0 10px 0 5px; border: 0; border-radius: 999px; background: color-mix(in srgb, var(--background) 70%, transparent); box-shadow: inset 0 0 0 1px var(--spp-line-strong); color: var(--text-muted); font-size: 12px; font-weight: 500; white-space: nowrap; transition: color .15s, background-color .2s, box-shadow .2s; }
+.spp-step-dot:hover { color: var(--foreground); }
+.spp-step-n { display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: var(--spp-fill-2); font-size: 10.5px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.spp-step[data-state="done"] .spp-step-dot { color: var(--foreground); }
+.spp-step[data-state="done"] .spp-step-n { background: var(--foreground); color: var(--background); }
+.spp-step[data-state="current"] .spp-step-dot { color: var(--foreground); background: var(--spp-fill-2); box-shadow: inset 0 0 0 1px var(--foreground); }
+.spp-step[data-state="current"] .spp-step-n { background: var(--accent); color: var(--accent-foreground, #000); }
+.spp-flow-nav { display: flex; align-items: center; gap: 8px; }
+.spp-flow-note { min-width: 180px; max-width: 360px; font-family: var(--spp-mono); font-size: 11.5px; text-align: center; color: var(--text-muted); }
+/* A narrow stage keeps every step on one line: the current step keeps its name, the others their number. */
+@container (max-width: 720px) {
+  .spp-step:not([data-state="current"]) .spp-step-title { display: none; }
+  .spp-step:not([data-state="current"]) .spp-step-dot { padding-right: 5px; }
+  .spp-step-edge { width: 22px; }
+  .spp-step-how { display: none; }
+}
+
+/* ---------------------------------------------------------------- Inspector */
+.spp-inspector { display: flex; flex-direction: column; min-height: 0; flex: 1; }
+.spp-inspector-body { flex: 1; min-height: 0; overflow: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+.spp-about, .spp-node { padding: 8px 18px 32px; display: flex; flex-direction: column; gap: 24px; }
+.spp-about-head { display: flex; flex-direction: column; gap: 10px; padding-top: 8px; }
+.spp-about-title { font-size: 24px; line-height: 1.15; font-weight: 600; letter-spacing: -.02em; }
+.spp-about-lede { color: var(--text-muted); font-size: 13.5px; line-height: 1.6; }
+.spp-try-list { counter-reset: t; display: flex; flex-direction: column; gap: 8px; }
+.spp-try-list li { counter-increment: t; display: flex; gap: 10px; font-size: 13px; line-height: 1.45; }
+.spp-try-list li::before { content: counter(t); flex: none; display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; box-shadow: inset 0 0 0 1px var(--spp-line-strong); font-size: 10.5px; font-weight: 700; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.spp-behaviours { display: flex; flex-direction: column; }
+.spp-behaviours li { display: grid; grid-template-columns: 76px 1fr; gap: 2px 12px; padding: 9px 0; border-top: 1px solid var(--spp-line); }
+.spp-behaviours li:first-child { border-top: 0; padding-top: 2px; }
+.spp-behaviours strong { grid-row: span 2; font-size: 12.5px; font-weight: 600; }
+.spp-behaviours span { font-size: 12.5px; line-height: 1.45; color: var(--text-muted); }
+.spp-behaviours code { font-size: 11px; color: var(--foreground); opacity: .8; }
+.spp-parts { display: flex; flex-direction: column; gap: 1px; }
+.spp-parts button { width: 100%; display: flex; align-items: center; gap: 10px; min-height: 36px; padding: 4px 8px; margin: 0 -8px; width: calc(100% + 16px); border: 0; border-radius: var(--spp-r); background: transparent; text-align: left; transition: background-color .12s; }
+.spp-parts button:hover { background: var(--spp-fill); }
+.spp-part-tile { flex: none; width: 26px; height: 26px; display: grid; place-items: center; border-radius: var(--spp-r); box-shadow: inset 0 0 0 1px var(--spp-line-strong); color: var(--text-muted); }
+.spp-part-name { font-size: 13px; font-weight: 500; flex: none; }
+.spp-part-sum { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: right; font-size: 12px; color: var(--spp-subtle); }
+.spp-parts button > .spp-sp-tag, .spp-parts button > .spp-native-tag { margin-left: auto; }
+.spp-looks { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.spp-look { display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 7px 2px 6px; border: 0; border-radius: var(--spp-r); background: transparent; color: var(--text-muted); font-size: 11px; font-weight: 500; transition: background-color .15s, color .15s; }
+.spp-look:hover { background: var(--spp-fill); color: var(--foreground); }
+.spp-look[aria-checked="true"] { background: var(--spp-fill-2); color: var(--foreground); }
+.spp-look-swatch { width: 30px; height: 30px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgb(255 255 255 / .12); transition: transform .25s var(--ease-spring, var(--spp-ease)); }
+.spp-look[aria-checked="true"] .spp-look-swatch { box-shadow: 0 0 0 2px var(--background), 0 0 0 3.5px var(--foreground); }
+.spp-look:hover .spp-look-swatch { transform: scale(1.06); }
+.spp-looks + .spp-fields { margin-top: 6px; }
+.spp-about-foot { flex-direction: row; flex-wrap: wrap; gap: 8px; padding-top: 4px; border-top: 1px solid var(--spp-line); padding-top: 16px; }
+.spp-save { display: flex; align-items: center; gap: 6px; width: 100%; }
+.spp-save .spp-input { height: 28px; }
+.spp-ask { display: flex; gap: 6px; }
+.spp-callout { padding: 10px 12px; border-radius: var(--spp-r); background: color-mix(in srgb, var(--accent) 10%, transparent); font-size: 12.5px; }
+
+/* A selected component */
+.spp-path { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; flex-wrap: wrap; gap: 4px; margin: -8px -18px 0; padding: 10px 44px 10px 18px; background: var(--spp-panel); border-bottom: 1px solid var(--spp-line); font-size: 12px; color: var(--text-muted); }
+.spp-path-item { display: inline-flex; align-items: center; gap: 4px; }
+.spp-path-item button { padding: 0; border: 0; background: none; color: var(--text-muted); transition: color .15s; }
+.spp-path-item button:hover { color: var(--foreground); }
+.spp-path-item strong { color: var(--foreground); font-weight: 600; }
+.spp-path-close { position: absolute; right: 12px; top: 7px; }
+.spp-node-head { display: flex; align-items: center; gap: 12px; }
+.spp-node-tile { flex: none; width: 40px; height: 40px; display: grid; place-items: center; border-radius: var(--spp-r); background: var(--foreground); color: var(--background); }
+.spp-node-title { display: flex; align-items: center; font-size: 19px; line-height: 1.2; font-weight: 600; letter-spacing: -.015em; }
+.spp-node-kind { margin-top: 2px; font-family: var(--spp-mono); font-size: 11.5px; color: var(--text-muted); }
+.spp-node-desc { margin-top: -12px; color: var(--text-muted); font-size: 13px; line-height: 1.55; }
+/* Anatomy: the component as a small tree, each part a filter for the properties below. */
+.spp-anatomy { font-family: var(--spp-mono); font-size: 12px; }
+.spp-anatomy button { padding: 3px 7px; border: 0; border-radius: 3px; background: transparent; color: var(--text-muted); font-family: inherit; font-size: inherit; transition: background-color .15s, color .15s; }
+.spp-anatomy button:hover { color: var(--foreground); background: var(--spp-fill); }
+.spp-anatomy button[aria-pressed="true"] { color: var(--background); background: var(--foreground); }
+.spp-anatomy-root { margin-left: -7px; font-weight: 600; }
+.spp-anatomy-root[aria-pressed="true"] { color: var(--foreground) !important; background: transparent !important; }
+.spp-anatomy ul { margin: 2px 0 0 4px; }
+.spp-anatomy li { position: relative; padding-left: 18px; }
+.spp-anatomy li::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; border-left: 1px solid var(--spp-line-strong); }
+.spp-anatomy li:last-child::before { bottom: 50%; }
+.spp-anatomy li::after { content: ""; position: absolute; left: 0; top: 50%; width: 12px; border-top: 1px solid var(--spp-line-strong); }
+.spp-props .spp-label { padding-bottom: 2px; }
+.spp-concepts { display: flex; flex-direction: column; gap: 12px; }
+.spp-concepts dt code { font-size: 12px; font-weight: 600; }
+.spp-concepts dd { margin-top: 3px; font-size: 12.5px; line-height: 1.5; color: var(--text-muted); }
+.spp-web { display: block; margin-top: 4px; font-size: 11.5px; color: var(--spp-subtle); }
+.spp-web code { font-size: 11px; color: var(--text-muted); }
+.spp-snippet { max-height: 280px; overflow: auto; padding: 12px 14px; border-radius: var(--spp-r); background: var(--spp-fill); font-size: 11.5px; line-height: 1.6; white-space: pre; scrollbar-width: thin; }
+.spp-node-links { display: flex; flex-wrap: wrap; gap: 6px 16px; }
+.spp-add { display: flex; align-items: center; gap: 6px; padding: 4px 4px 4px 12px; border-radius: var(--spp-r); box-shadow: inset 0 0 0 1px var(--spp-line-strong); }
+.spp-add code { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11.5px; }
+
+/* SwiftUI tab */
+.spp-code { display: flex; flex-direction: column; height: 100%; min-height: 0; }
+.spp-code-bar { flex: none; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 4px 12px 8px; }
+.spp-code-actions { display: flex; align-items: center; gap: 4px; }
+.spp-code-body { flex: 1; min-height: 0; overflow: auto; scrollbar-width: thin; border-top: 1px solid var(--spp-line); border-bottom: 1px solid var(--spp-line); }
+.spp-pre { margin: 0; padding: 10px 0 16px; font-size: 11.5px; line-height: 1.7; counter-reset: none; }
+.spp-line { display: block; padding-right: 14px; white-space: pre; transition: background-color .2s; }
+.spp-line.is-lit { background: color-mix(in srgb, var(--accent) 12%, transparent); box-shadow: inset 2px 0 0 var(--accent); }
+.spp-ln { display: inline-block; width: 38px; padding-right: 12px; text-align: right; color: var(--spp-subtle); user-select: none; }
+.tk-k { color: color-mix(in srgb, var(--foreground) 55%, #ff5b9a); font-weight: 600; }
+.tk-t { color: color-mix(in srgb, var(--foreground) 45%, #7cc4ff); }
+.tk-s { color: color-mix(in srgb, var(--foreground) 40%, #ff8f6b); }
+.tk-m { color: color-mix(in srgb, var(--foreground) 55%, #b39cff); }
+.tk-n { color: color-mix(in srgb, var(--foreground) 45%, #e8c872); }
+.tk-c { color: var(--spp-subtle); font-style: italic; }
+.spp-code-foot { flex: none; padding: 10px 14px 14px; }
+
+/* Map */
+.spp-map { padding: 6px 12px 32px; }
+.spp-map-app { display: flex; align-items: center; gap: 10px; padding: 8px 6px 10px; font-size: 13px; }
+.spp-map-app-tile { width: 26px; height: 26px; display: grid; place-items: center; border-radius: var(--spp-r); background: var(--foreground); color: var(--background); }
+.spp-map-meta { margin-left: auto; font-size: 11.5px; color: var(--spp-subtle); }
+.spp-tree { position: relative; margin-left: 18px; border-left: 1px solid var(--spp-line-strong); }
+.spp-tree ul { margin: 0; }
+.spp-tree-row { position: relative; width: 100%; display: flex; align-items: center; gap: 8px; min-height: 30px; padding: 0 8px; border: 0; border-radius: var(--spp-r); background: transparent; color: var(--foreground); text-align: left; font-size: 12.5px; transition: background-color .12s; }
+button.spp-tree-row:hover { background: var(--spp-fill); }
+.spp-tree-row.is-screen { padding-left: 4px; margin-top: 4px; }
+.spp-tree-row.is-toggle { cursor: pointer; }
+.spp-tree-row.is-screen::before { content: ""; position: absolute; left: -1px; top: 50%; width: 10px; border-top: 1px solid var(--spp-line-strong); }
+.spp-tree-row.is-current .spp-tree-name { font-weight: 600; }
+.spp-tree-row.is-current::after { content: ""; position: absolute; left: -4px; top: 50%; width: 7px; height: 7px; margin-top: -3.5px; border-radius: 50%; background: var(--accent); }
+.spp-tree-row.is-selected { background: var(--spp-fill-2); box-shadow: inset 2px 0 0 var(--accent); }
+.spp-tree-row.is-structure .spp-tree-label { color: var(--text-muted); font-weight: 400; }
+.spp-tree-caret { display: grid; place-items: center; width: 20px; height: 20px; margin-left: 6px; padding: 0; border: 0; background: none; color: var(--spp-subtle); }
+.spp-tree-name { display: flex; align-items: baseline; gap: 8px; min-width: 0; padding: 0; border: 0; background: none; color: inherit; font-size: 13px; font-weight: 500; text-align: left; }
+.spp-tree-type { font-family: var(--spp-mono); font-size: 11px; color: var(--spp-subtle); font-weight: 400; }
+.spp-tree-how { margin-left: auto; height: 18px; padding: 0 6px; display: inline-flex; align-items: center; border-radius: 3px; box-shadow: inset 0 0 0 1px var(--spp-line-strong); font-size: 9.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--text-muted); }
+.spp-tree-icon { flex: none; display: grid; place-items: center; color: var(--spp-subtle); }
+.spp-tree-label { flex: none; font-weight: 500; }
+.spp-tree-sum { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: right; font-size: 11.5px; color: var(--spp-subtle); }
+
+/* ---------------------------------------------------------------- Locked (Pro) */
+.spp-locked { display: flex; align-items: center; gap: 40px; max-width: 720px; padding: 20px; }
+.spp-locked-phone { flex: none; width: 220px; aspect-ratio: 414 / 868; border-radius: 40px; padding: 60px 18px 24px; background: #0b0b0c; box-shadow: inset 0 0 0 1.5px #2b2b2e, 0 40px 80px -40px rgb(0 0 0 / .7); display: flex; flex-direction: column; gap: 12px; }
+.spp-locked-bar { height: 10px; border-radius: 5px; background: #1e1e20; }
+.spp-locked-bar.is-title { height: 20px; border-radius: 6px; background: #262628; }
+.spp-locked-block { flex: 1; border-radius: 18px; background: linear-gradient(160deg, #232326, #161618); }
+.spp-locked-cta { height: 40px; border-radius: 20px; background: color-mix(in srgb, var(--accent) 55%, #1b1b1b); }
+.spp-locked-text { display: flex; flex-direction: column; align-items: flex-start; gap: 14px; }
+.spp-locked-text h2 { font-size: 26px; line-height: 1.15; font-weight: 600; letter-spacing: -.02em; }
+.spp-locked-text > p { color: var(--text-muted); font-size: 13.5px; line-height: 1.6; }
+.spp-locked-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.spp-locked-tags li { height: 24px; padding: 0 9px; display: inline-flex; align-items: center; border-radius: 3px; box-shadow: inset 0 0 0 1px var(--spp-line-strong); font-size: 11.5px; color: var(--text-muted); }
+
+/* ---------------------------------------------------------------- Build dialog */
+.spp-dialog { margin: auto; inset: 0; width: min(560px, calc(100vw - 32px)); max-height: calc(100vh - 48px); padding: 0; border: 1px solid var(--spp-line-strong); border-radius: 8px; background: var(--background); color: var(--foreground); box-shadow: 0 40px 120px -30px rgb(0 0 0 / .8); overflow: auto; }
+.spp-dialog::backdrop { background: rgb(0 0 0 / .55); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+.spp-dialog[open] { animation: spp-pop .28s var(--spp-ease) both; }
+/* Build: a wide two-column dialog. The colour side (the host's art) with what the app holds; the
+   actions beside it, Open in Xcode first, then a 2 × 2 grid, all in one window without scrolling. */
+.spp-build-dialog { width: min(980px, calc(100vw - 32px)); overflow: hidden; border: 0; border-radius: 16px; box-shadow: 0 0 0 1px var(--spp-line), 0 40px 120px -30px rgb(0 0 0 / .8); }
+.spp-build { display: grid; grid-template-columns: 370px minmax(0, 1fr); font-size: 13px; }
+/* The colour side: the host's art, bright and full bleed (no scrim), with only the mark on it. */
+.spp-build-art { position: relative; isolation: isolate; overflow: hidden; min-height: 320px; padding: 20px; background: #070708; }
+.spp-build-canvas { position: absolute; inset: 0; z-index: -1; }
+.spp-build-canvas > * { position: absolute; inset: 0; width: 100%; height: 100%; }
+.spp-build-fallback { background: radial-gradient(120% 90% at 100% 100%, #ff0000 0%, #ff7a3c 28%, #ff8fb8 52%, #4d8dff 74%, #070708 100%); }
+.spp-build-main { display: flex; flex-direction: column; gap: 20px; padding: 24px 24px 24px 28px; min-width: 0; }
+.spp-build-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.spp-build-head h2 { margin: 6px 0 0; font-size: 21px; line-height: 1.2; font-weight: 600; letter-spacing: -.02em; }
+.spp-build-meta { margin-top: 6px !important; font-size: 12.5px; line-height: 1.5; color: var(--text-muted); }
+.spp-build-lead { display: flex; align-items: center; gap: 14px; }
+.spp-build-lead .spp-btn { flex: none; }
+.spp-build-lead .spp-hint { margin: 0; }
+/* Cards share their edges (a 1px overlap), so every seam is one dashed line with one + on it, and
+   every row is the same height. An odd card out spans the row, so the grid always ends even. */
+.spp-build-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: 1fr; gap: 0; }
+.spp-build-grid > li { display: flex; margin: 0 -1px -1px 0; }
+.spp-build-grid > li:last-child:nth-child(odd) { grid-column: 1 / -1; }
+/* Run it on your Mac: the one primary action. Same card as the rest; only its icon takes the accent. */
+.spp-build-primary .spp-build-icon { background: var(--accent, #ff0000); color: #000; box-shadow: 0 8px 18px -8px color-mix(in srgb, var(--accent, #ff0000) 80%, transparent); }
+/* Each action is a dashed frame with + crosses on its corners, the landing's frame language. */
+.spp-build-opt { --spp-dash: color-mix(in srgb, var(--foreground) 20%, transparent); position: relative; width: 100%; display: flex; align-items: center; gap: 12px; padding: 16px; border: 0; border-radius: 0; background: transparent; color: var(--foreground); text-align: left; text-decoration: none; transition: background-color .12s, transform .12s ease-out; }
+.spp-build-opt::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background:
+    linear-gradient(90deg, transparent 3px, var(--spp-dash) 3px 7px, transparent 7px) top / 10px 1px space no-repeat,
+    linear-gradient(90deg, transparent 3px, var(--spp-dash) 3px 7px, transparent 7px) bottom / 10px 1px space no-repeat,
+    linear-gradient(180deg, transparent 3px, var(--spp-dash) 3px 7px, transparent 7px) left / 1px 10px no-repeat space,
+    linear-gradient(180deg, transparent 3px, var(--spp-dash) 3px 7px, transparent 7px) right / 1px 10px no-repeat space;
+  -webkit-mask: linear-gradient(#000 0 0) center / calc(100% - 20px) 100% no-repeat, linear-gradient(#000 0 0) center / 100% calc(100% - 20px) no-repeat;
+  mask: linear-gradient(#000 0 0) center / calc(100% - 20px) 100% no-repeat, linear-gradient(#000 0 0) center / 100% calc(100% - 20px) no-repeat;
+}
+.spp-tick { position: absolute; width: 9px; height: 9px; pointer-events: none; color: color-mix(in srgb, var(--foreground) 38%, transparent); }
+.spp-tick-tl { top: -4px; left: -4px; } .spp-tick-tr { top: -4px; right: -4px; } .spp-tick-bl { bottom: -4px; left: -4px; } .spp-tick-br { bottom: -4px; right: -4px; }
+.spp-build-opt:hover:not(:disabled) { background: var(--spp-fill); }
+.spp-build-opt:active:not(:disabled) { transform: scale(.98); }
+.spp-build-opt:disabled { opacity: .5; cursor: default; }
+/* The Pro card: the host's artwork (Free's dithered field) behind it, clipped to the card, the text above. */
+.spp-build-backdrop { position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none;
+  /* Kept to the corner, clear of the words: fades out well before it reaches the text. */
+  -webkit-mask-image: radial-gradient(48% 90% at 100% 100%, #000 20%, transparent 70%); mask-image: radial-gradient(48% 90% at 100% 100%, #000 20%, transparent 70%); }
+.spp-build-backdrop > * { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.spp-build-pro > .spp-build-icon, .spp-build-pro > .spp-build-text { position: relative; z-index: 1; }
+.spp-build-pro .spp-build-icon { background: var(--background, #fff); box-shadow: inset 0 0 0 1px var(--spp-line); }
+/* The Pro crown's tile: Pro's navbar badge (.pro-badge in Pro's globals.css). A 1px ring fading from
+   the palette's blue to its orange, a faint wash of the same two, the crown in a muted blend of both
+   with the foreground (so it reads in light and dark), and a touch more colour on hover. The host
+   supplies --pro-c3 (blue) and --pro-c2 (orange). */
+.spp-build-icon.spp-pro-mark {
+  --pb-a: var(--pro-c3); --pb-b: var(--pro-c2);
+  --pb-ink-a: color-mix(in srgb, var(--pb-a) 45%, var(--foreground)); --pb-ink-b: color-mix(in srgb, var(--pb-b) 45%, var(--foreground));
+  border: 1px solid transparent; box-shadow: none;
+  background:
+    linear-gradient(100deg, color-mix(in srgb, var(--pb-a) 7%, var(--background)), color-mix(in srgb, var(--pb-b) 7%, var(--background))) padding-box,
+    linear-gradient(100deg, color-mix(in srgb, var(--pb-a) 38%, transparent), color-mix(in srgb, var(--pb-b) 38%, transparent)) border-box;
+  transition: filter .3s;
+}
+.spp-build-opt:hover .spp-pro-mark { filter: saturate(1.4) brightness(1.03); }
+/* The same badge as a small tag beside a title ("Pro"): the gradient ring, the wash, the crown and
+   the word in the blended ink. */
+.spp-pro-tag {
+  --pb-a: var(--pro-c3); --pb-b: var(--pro-c2);
+  --pb-ink-a: color-mix(in srgb, var(--pb-a) 45%, var(--foreground)); --pb-ink-b: color-mix(in srgb, var(--pb-b) 45%, var(--foreground));
+  display: inline-flex; align-items: center; gap: 3px; height: 18px; padding: 0 6px; border-radius: 4px;
+  font-size: 10.5px; font-weight: 600; line-height: 1; letter-spacing: 0; text-transform: none; color: color-mix(in srgb, var(--pb-a) 30%, var(--foreground));
+  border: 1px solid transparent;
+  background:
+    linear-gradient(100deg, color-mix(in srgb, var(--pb-a) 7%, var(--background)), color-mix(in srgb, var(--pb-b) 7%, var(--background))) padding-box,
+    linear-gradient(100deg, color-mix(in srgb, var(--pb-a) 38%, transparent), color-mix(in srgb, var(--pb-b) 38%, transparent)) border-box;
+}
+.spp-build-icon { flex: none; width: 32px; height: 32px; display: grid; place-items: center; border-radius: 8px; background: var(--spp-fill); color: var(--foreground); }
+.spp-build-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.spp-build-title { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.spp-build-desc { font-size: 12px; line-height: 1.4; min-height: 2.8em; color: var(--text-muted); }
+@media (max-width: 760px) {
+  .spp-build { grid-template-columns: 1fr; }
+  .spp-build-art { min-height: 96px; }
+  .spp-build-grid { grid-template-columns: 1fr; }
+  .spp-build-dialog { overflow: auto; }
+}
+
+/* ---------------------------------------------------------------- Notice, mobile bar, scrim */
+.spp-notice { position: fixed; z-index: 60; left: 50%; bottom: 24px; transform: translateX(-50%); max-width: min(420px, calc(100vw - 32px)); padding: 9px 14px; border-radius: 6px; background: var(--foreground); color: var(--background); font-size: 12.5px; font-weight: 500; box-shadow: 0 20px 40px -12px rgb(0 0 0 / .5); animation: spp-rise .35s var(--spp-ease) both; }
+.spp-mobilebar, .spp-scrim { display: none; }
+
+/* ---------------------------------------------------------------- The phone */
+.spb-phone {
+  --ios-accent: #0A84FF;
+  width: 390px; height: 844px;
+  border-radius: 55px; overflow: hidden; position: relative; display: flex; flex-direction: column;
+  font-family: var(--spb-font, -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, "Helvetica Neue", sans-serif);
+  -webkit-font-smoothing: antialiased; cursor: default; user-select: none; -webkit-user-select: none;
+  contain: layout paint; background: #000;
+}
+.spb-phone[data-scheme="dark"], .spb-phone-screen[data-scheme="dark"], .spp-sheet[data-scheme="dark"] {
+  --ios-bg: #000; --ios-label: #fff; --ios-label2: rgb(235 235 245 / .6); --ios-label3: rgb(235 235 245 / .3);
+  --ios-fill: rgb(118 118 128 / .24); --ios-fill2: rgb(120 120 128 / .32); --ios-fill4: rgb(118 118 128 / .18);
+  --ios-sep: rgb(84 84 88 / .65); --ios-seg: #636366; --ios-accent: #0A84FF; --ios-bar: rgb(22 22 24 / .72); --ios-sheet: #1c1c1e;
+  --h-text: #F4F3EF; --h-muted: #A6A49F; --h-ground: #121212; --h-surface: #1C1C1C; --h-raised: #262626; --h-field: #262626; --h-empty: #2E2E2E; --h-bone: #2F2F2F;
+  --spb-ground: #000; --spb-glyph-knock: #000;
+  color: var(--ios-label); color-scheme: dark;
+}
+.spb-phone[data-scheme="light"], .spb-phone-screen[data-scheme="light"], .spp-sheet[data-scheme="light"], .spb-node[data-scheme="light"] {
+  --ios-bg: #fff; --ios-label: #000; --ios-label2: rgb(60 60 67 / .6); --ios-label3: rgb(60 60 67 / .3);
+  --ios-fill: rgb(118 118 128 / .12); --ios-fill2: rgb(120 120 128 / .16); --ios-fill4: rgb(116 116 128 / .08);
+  --ios-sep: rgb(60 60 67 / .29); --ios-seg: #fff; --ios-accent: #007AFF; --ios-bar: rgb(249 249 249 / .78); --ios-sheet: #fff;
+  --h-text: #141414; --h-muted: #5C5A56; --h-ground: #F3F2EE; --h-surface: #FFFFFF; --h-raised: #EAE8E2; --h-field: #E9E7E1; --h-empty: #E7E5DF; --h-bone: #E6E3DB;
+  --spb-ground: #fff; --spb-glyph-knock: #fff;
+  color: var(--ios-label); color-scheme: light;
+}
+.spb-phone input, .spb-phone textarea { user-select: text; -webkit-user-select: text; caret-color: var(--spb-accent, var(--ios-accent)); }
+.spb-statusbar { position: absolute; z-index: 30; top: 0; left: 0; right: 0; height: 54px; display: flex; align-items: center; justify-content: space-between; padding: 6px 34px 0 48px; font-weight: 600; font-size: 17px; pointer-events: none; color: var(--ios-label); transition: color .3s; }
+.spb-status-icons { display: flex; gap: 6px; align-items: center; }
+.spb-island { position: absolute; left: 50%; top: 11px; width: 124px; height: 36px; margin-left: -62px; border-radius: 20px; background: #000; }
+.spb-home { position: absolute; z-index: 30; bottom: 8px; left: 50%; width: 138px; height: 5px; margin-left: -69px; border-radius: 3px; background: var(--ios-label); opacity: .9; pointer-events: none; }
+.has-sheet > .spb-statusbar { color: #fff; }
+
+/* Screens: one per stack entry, stacked, the top one visible. */
+.spp-layer-root { position: absolute; inset: 0; display: flex; transition: transform .45s cubic-bezier(.32, .72, 0, 1), border-radius .45s cubic-bezier(.32, .72, 0, 1), filter .45s; transform-origin: 50% 100%; border-radius: 55px; overflow: hidden; }
+.spp-layer-root.is-receded { transform: scale(.915) translateY(8px); border-radius: 22px; filter: brightness(.72); }
+.spp-tab { position: absolute; inset: 0; display: flex; }
+.spp-tab[hidden] { display: none; }
+.spp-stack { position: absolute; inset: 0; overflow: hidden; }
+.spp-screen { position: absolute; inset: 0; display: flex; flex-direction: column; min-height: 0; background: var(--spb-backdrop, none), var(--spb-theme-bg, var(--ios-bg)); font-family: var(--spb-font, inherit); will-change: transform; }
+.spp-screen[data-role="under"] { transform: translateX(-30%); filter: brightness(.72); }
+.spp-screen[data-role="buried"] { visibility: hidden; transform: translateX(-30%); }
+.spp-screen[data-role="top"] { z-index: 2; box-shadow: -18px 0 40px rgb(0 0 0 / .28); }
+.spp-screen[data-role="leaving"] { z-index: 3; }
+.spp-screen[data-anim="in"] { animation: spp-push-in .5s cubic-bezier(.32, .72, 0, 1) both; }
+.spp-screen[data-anim="cover"] { animation: spp-push-under .5s cubic-bezier(.32, .72, 0, 1) both; }
+.spp-screen[data-anim="uncover"] { animation: spp-pop-under .42s cubic-bezier(.32, .72, 0, 1) both; }
+.spp-screen[data-anim="fade"] { animation: spp-replace .5s cubic-bezier(.32, .72, 0, 1) both; }
+.spp-screen[data-anim="out"] { animation: spp-pop-out .42s cubic-bezier(.32, .72, 0, 1) both; pointer-events: none; }
+.spp-screen[data-anim="gone"] { animation: spp-fade-out .28s cubic-bezier(.23, 1, .32, 1) both; pointer-events: none; }
+.spp-edge { position: absolute; z-index: 25; left: 0; top: 98px; bottom: 0; width: 22px; touch-action: none; cursor: grab; }
+.spb-screen-host { flex: 1; min-height: 0; display: flex; }
+/* min-width: 0, or a wide child (a rail of chips) lays the whole screen out wider than the phone. */
+.spb-screen { flex: 1; min-width: 0; min-height: 0; display: flex; flex-direction: column; padding-top: 54px; }
+.is-pushed .spb-screen { padding-top: 98px; }
+.is-in-sheet .spb-screen { padding-top: 22px; }
+.is-in-sheet.is-pushed .spb-screen { padding-top: 66px; }
+.is-in-sheet .spb-navback { top: 18px; }
+.spb-navback { position: absolute; z-index: 22; top: 54px; left: 6px; height: 44px; display: flex; align-items: center; gap: 3px; padding: 0 10px 0 4px; border: 0; background: none; color: var(--spb-accent, var(--ios-accent)); font-size: calc(17px * var(--spb-text, 1)); font-family: inherit; cursor: pointer; transition: opacity .15s; }
+.spb-navback:active { opacity: .45; }
+.spb-navback span { max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.spb-screen-scroll { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; padding-bottom: 34px; scrollbar-width: none; overscroll-behavior: contain; touch-action: pan-y; }
+.spb-screen-scroll::-webkit-scrollbar { display: none; }
+.has-tabs .spb-screen-scroll, .has-tabs .spb-screen-fixed { padding-bottom: 112px; }
+.spb-screen-fixed { flex: 1; min-height: 0; display: flex; flex-direction: column; padding-bottom: 34px; overflow: hidden; }
+.spb-navtitle { font-family: var(--spb-heading-font, inherit); padding: 8px 16px 2px; font-size: calc(34px * var(--spb-text, 1)); line-height: calc(41px * var(--spb-text, 1)); font-weight: min(900, calc(700 + var(--spb-weight, 0))); letter-spacing: .01em; color: var(--ios-label); }
+.spb-node { position: relative; }
+/* A column never squeezes its items (SwiftUI keeps their size and the content runs past the edge). */
+.spb-vflow > .spb-node { flex-shrink: 0; }
+.spb-node-loading { min-height: 44px; align-self: stretch; border-radius: 12px; background: var(--ios-fill); }
+.spb-node-missing { padding: 12px; border-radius: 12px; font: 12px var(--spp-mono, monospace); color: var(--ios-label2); box-shadow: inset 0 0 0 1px var(--ios-sep); }
+.spb-node-error { align-self: stretch; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding: 12px 14px; border-radius: 12px; font-size: 13px; color: var(--ios-label); box-shadow: inset 0 0 0 1px #FF453A; background: rgb(255 69 58 / .08); }
+.spb-node-error .spb-link { color: var(--ios-label); font-size: 13px; background: none; border: 0; padding: 0; text-decoration: underline; }
+
+/* Tab bar: iOS 26's floating capsule on glass. */
+.spp-tabbar { position: absolute; z-index: 20; left: 0; right: 0; bottom: 0; height: 96px; padding: 0 22px 30px; display: flex; align-items: flex-end; pointer-events: none; }
+.spp-tabbar-inner { pointer-events: auto; flex: 1; display: flex; align-items: center; justify-content: space-around; height: 62px; padding: 0 6px; border-radius: min(31px, var(--spb-pill, 999px)); background: var(--ios-bar); backdrop-filter: blur(24px) saturate(1.8); -webkit-backdrop-filter: blur(24px) saturate(1.8); box-shadow: inset 0 0 0 .5px rgb(255 255 255 / .16), 0 10px 30px rgb(0 0 0 / .25); }
+.spp-tabbar-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 0; border: 0; border-radius: 26px; background: transparent; color: var(--ios-label2); font-size: 10px; font-weight: 600; transition: color .2s, background-color .25s; }
+.spp-tabbar-item[aria-current="page"] { color: var(--spb-accent, var(--ios-accent)); background: var(--ios-fill4); }
+.spp-tabbar-item:active svg { scale: .88; }
+/* The Floating Dock as the tab bar: the piece's capsule, the current tab as an accent block. */
+.spp-dock { position: absolute; z-index: 20; left: 0; right: 0; bottom: 0; height: 96px; padding-bottom: 30px; display: flex; align-items: flex-end; justify-content: center; pointer-events: none; }
+.spp-dock-inner { pointer-events: auto; display: flex; gap: 6px; padding: 8px; border-radius: var(--spb-pill, 999px); background: var(--h-surface, #1c1c1c); box-shadow: 0 10px 30px rgb(0 0 0 / .35), inset 0 0 0 .5px rgb(255 255 255 / .08); }
+.spp-dock-item { height: 48px; min-width: 48px; padding: 0; border: 0; border-radius: min(24px, var(--spb-pill, 999px)); display: flex; align-items: center; justify-content: center; gap: 6px; background: transparent; color: var(--h-muted, var(--ios-label2)); font-size: 15px; font-weight: 600; cursor: pointer; transition: padding .45s cubic-bezier(.34,1.56,.64,1), background-color .35s ease, color .25s; }
+.spp-dock-item[aria-selected="true"] { padding: 0 16px; background: var(--spb-accent, #ffd976); color: var(--spb-accent-ink, #141414); }
+.spp-dock-item:active { transform: scale(.92); }
+.spp-dock-label { white-space: nowrap; animation: spp-dock-in .35s cubic-bezier(.22,1,.36,1) both; }
+@keyframes spp-dock-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .spp-dock-item, .spp-dock-label { transition: none; animation: none; } }
+.spp-tabbar-item svg { transition: scale .2s cubic-bezier(.34, 1.4, .64, 1); }
+
+/* Sheets */
+.spp-sheet-wrap { position: absolute; inset: 0; z-index: 26; }
+.spp-sheet-dim { position: absolute; inset: 0; padding: 0; border: 0; background: rgb(0 0 0 / .32); animation: spp-fade .4s ease both; cursor: default; }
+.spp-sheet { position: absolute; left: 0; right: 0; top: 58px; bottom: 0; display: flex; flex-direction: column; overflow: hidden; border-radius: 38px 38px 0 0; background: var(--ios-sheet); box-shadow: 0 -10px 40px rgb(0 0 0 / .3); transition: transform .5s cubic-bezier(.32, .72, 0, 1); }
+.spp-sheet .spp-screen { background: var(--spb-backdrop, none), var(--spb-theme-bg, var(--ios-sheet)); }
+.spp-sheet-wrap.is-entering .spp-sheet { animation: spp-sheet-in .55s cubic-bezier(.32, .72, 0, 1) both; }
+.spp-sheet-wrap.is-leaving { pointer-events: none; }
+.spp-sheet-wrap.is-leaving .spp-sheet { animation: spp-sheet-out .38s cubic-bezier(.32, .72, 0, 1) both; }
+.spp-sheet-wrap.is-leaving .spp-sheet-dim { animation: spp-fade-out .38s ease both; }
+.spp-sheet-grabber { position: absolute; z-index: 24; top: 0; left: 0; right: 0; height: 26px; display: flex; justify-content: center; padding-top: 6px; cursor: grab; touch-action: none; }
+.spp-sheet-grabber span { width: 36px; height: 5px; border-radius: 3px; background: var(--ios-label3); }
+.spp-sheet .spp-stack { top: 0; }
+
+/* Overlays: toasts, menus and sheets a component presents over the whole phone. */
+.spp-overlay { position: absolute; inset: 0; z-index: 28; pointer-events: none; }
+.spp-overlay > * { pointer-events: auto; }
+
+/* Haptics: a pulse where it happened, and the feedback's name. */
+.spp-pulses { position: absolute; inset: 0; z-index: 40; pointer-events: none; }
+.spp-pulse { position: absolute; width: 44px; height: 44px; margin: -22px 0 0 -22px; border-radius: 50%; box-shadow: 0 0 0 2px var(--spb-accent, var(--ios-accent)); animation: spp-pulse .6s cubic-bezier(.2, .7, .3, 1) both; }
+.spp-pulse.is-success { box-shadow: 0 0 0 2px #30d158; }
+.spp-pulse.is-warning, .spp-pulse.is-error { box-shadow: 0 0 0 2px #ff9f0a; }
+.spp-pulse.is-selection { width: 28px; height: 28px; margin: -14px 0 0 -14px; opacity: .8; }
+
+/* Inspect highlights, drawn in points over the phone. */
+.spp-highlights { position: absolute; inset: 0; z-index: 45; pointer-events: none; }
+.spp-hl { position: absolute; left: 0; top: 0; border-radius: 6px; transition: opacity .15s; will-change: transform, width, height; }
+/* Selected: a solid accent ring with a soft halo. Hover: a dashed accent outline and a faint fill, so
+   it reads on light and dark screens alike and never looks like the selection. */
+.spp-hl.is-selected { box-shadow: 0 0 0 2px var(--accent), 0 0 0 5px color-mix(in srgb, var(--accent) 20%, transparent); }
+.spp-hl.is-hover { outline: 1.5px dashed color-mix(in srgb, var(--accent) 88%, transparent); outline-offset: 0; background: color-mix(in srgb, var(--accent) 4%, transparent); transition: opacity .12s; }
+.spp-hl-label { position: absolute; left: -2px; bottom: calc(100% + 6px); height: 20px; padding: 0 7px; display: inline-flex; align-items: center; gap: 4px; border-radius: 5px;
+  background: var(--accent); color: #fff; font: 600 11px/1 -apple-system, system-ui, sans-serif; letter-spacing: .01em; white-space: nowrap;
+  box-shadow: 0 4px 12px -4px rgb(0 0 0 / .45); }
+.spp-hl.is-hover .spp-hl-label { background: #fff; color: #111; box-shadow: 0 0 0 1px rgb(0 0 0 / .12), 0 4px 12px -4px rgb(0 0 0 / .4); }
+/* The hover tag steps aside for the selection: below its component, or out of sight. */
+.spp-hl[data-tag="below"] .spp-hl-label { bottom: auto; top: calc(100% + 6px); }
+.spp-hl[data-tag="none"] .spp-hl-label { display: none; }
+
+/* Preview motion helpers used by renderers: small, on the compositor, off under Reduce Motion. */
+.spb-spinner { width: 18px; height: 18px; border-radius: 50%; border: 2px solid currentColor; border-right-color: transparent; display: inline-block; animation: spb-spin .8s linear infinite; }
+.spb-spin { animation: spb-spin 1s linear infinite; }
+.spb-shimmer { background-image: linear-gradient(100deg, transparent 30%, rgb(255 255 255 / .12) 50%, transparent 70%); background-size: 250% 100%; animation: spb-shimmer 1.6s ease-in-out infinite; }
+.spb-bob { animation: spb-bob 1.1s ease-in-out infinite; }
+.spb-sheen-text { background: linear-gradient(90deg, currentColor 40%, var(--h-text) 50%, currentColor 60%) 0 0 / 250% 100%; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; animation: spb-shimmer 2.2s linear infinite; }
+.spb-caret { display: inline-block; width: 2px; height: .8em; margin-left: 3px; background: var(--spb-accent, #ff0000); vertical-align: -0.05em; animation: spb-blink 1s steps(1) infinite; }
+.spb-tilt { transform: rotateX(4deg) rotateY(-6deg); transition: transform .4s var(--ease-out, ease); }
+.spb-tilt:hover { transform: none; }
+.spb-press { transition: transform .35s cubic-bezier(.34, 1.4, .64, 1), filter .2s; }
+.spb-press:active { transform: scale(.965); transition-duration: .08s; }
+
+@keyframes spb-spin { to { transform: rotate(360deg); } }
+@keyframes spb-shimmer { from { background-position: 150% 0; } to { background-position: -100% 0; } }
+@keyframes spb-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+@keyframes spb-blink { 50% { opacity: 0; } }
+@keyframes spp-push-in { from { transform: translateX(100%); } to { transform: none; } }
+@keyframes spp-push-under { from { transform: none; filter: none; } to { transform: translateX(-30%); filter: brightness(.72); } }
+@keyframes spp-pop-out { from { transform: none; } to { transform: translateX(100%); } }
+@keyframes spp-pop-under { from { transform: translateX(-30%); filter: brightness(.72); } to { transform: none; filter: none; } }
+@keyframes spp-replace { from { opacity: 0; transform: scale(1.04); } }
+@keyframes spp-sheet-in { from { transform: translateY(105%); } }
+@keyframes spp-sheet-out { to { transform: translateY(105%); } }
+@keyframes spp-fade { from { opacity: 0; } }
+@keyframes spp-fade-out { to { opacity: 0; } }
+@keyframes spp-rise { from { opacity: 0; transform: translateY(4px); } }
+@keyframes spp-pop { from { opacity: 0; transform: translateY(8px) scale(.985); } }
+/* A dialog that leaves as it came (data-closing, then close() on animationend), with its backdrop. */
+.spp-dialog[open]::backdrop { animation: spp-fade .28s ease both; }
+.spp-dialog[data-closing] { animation: spp-pop-away .2s cubic-bezier(.4, 0, 1, 1) both; pointer-events: none; }
+.spp-dialog[data-closing]::backdrop { animation: spp-fade .2s ease reverse both; }
+@keyframes spp-pop-away { to { opacity: 0; transform: translateY(6px) scale(.985); } }
+@keyframes spp-fade { from { opacity: 0; } }
+@keyframes spp-pulse { from { transform: scale(.5); opacity: 1; } to { transform: scale(1.6); opacity: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .spp *, .spp *::before, .spp *::after, .spp-dialog, .spp-dialog::backdrop, .spp-dialog * { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
+
+/* ---------------------------------------------------------------- Narrower screens */
+@media (max-width: 1320px) { .spp { --spp-left: 264px; --spp-right: 330px; } }
+
+/* Tablet: Explore becomes a drawer from the left. */
+@media (max-width: 1100px) {
+  .spp { grid-template-columns: minmax(0, 1fr) var(--spp-right); }
+  .spp-left { position: fixed; z-index: 50; left: 0; top: var(--spp-top); bottom: 0; width: min(320px, 86vw); transform: translateX(-102%); transition: transform .4s cubic-bezier(.32, .72, 0, 1); box-shadow: 20px 0 60px rgb(0 0 0 / .4); }
+  .spp[data-drawer="explore"] .spp-left { transform: none; }
+  .spp-center { grid-column: 1; }
+  .spp-right { grid-column: 2; }
+  .spp-scrim { position: fixed; inset: var(--spp-top) 0 0; z-index: 45; display: block; border: 0; padding: 0; background: rgb(0 0 0 / .45); opacity: 0; pointer-events: none; transition: opacity .3s; }
+  .spp[data-drawer] .spp-scrim { opacity: 1; pointer-events: auto; }
+  .spp-mobilebar { position: absolute; left: 14px; top: 12px; z-index: 5; display: flex; gap: 4px; grid-column: 1; grid-row: 2; align-self: start; justify-self: start; }
+  .spp-mobilebar button:last-child { display: none; }
+  .spp-mobilebar button { display: inline-flex; align-items: center; gap: 7px; height: 32px; padding: 0 12px; border: 0; border-radius: var(--spp-r); background: color-mix(in srgb, var(--background) 70%, transparent); backdrop-filter: blur(12px); box-shadow: inset 0 0 0 1px var(--spp-line); font-size: 12.5px; font-weight: 500; }
+  .spp-stage-bar { padding-left: 120px; }
+}
+
+/* Phone: the device leads. Explore and Inspect are sheets from a bottom bar. */
+@media (max-width: 760px) {
+  .spp { grid-template-columns: minmax(0, 1fr); grid-template-rows: var(--spp-top) minmax(0, 1fr) auto; }
+  .spp-top { padding: 0 8px 0 4px; }
+  .spp-crumbs > a, .spp-crumbs > span:first-of-type, .spp-crumbs > button { display: none; }
+  .spp-crumbs > span { display: none; }
+  .spp-top-actions > .spp-icon-btn, .spp-top-sep { display: none; }
+  .spp-center { grid-column: 1; grid-row: 2; }
+  .spp-stage-bar { padding: 10px 10px 0; }
+  .spp-stage-tools { right: 8px; top: 10px; }
+  .spp-stage-body { padding: 10px 12px 4px; }
+  .spp-stage-foot { min-height: 48px; padding-bottom: 8px; }
+  .spp-flow-nav { display: none; }
+  .spp-right, .spp-left { position: fixed; z-index: 50; left: 0; right: 0; bottom: 0; top: auto; width: auto; height: min(78vh, 640px); border: 0; border-top: 1px solid var(--spp-line-strong); border-radius: 14px 14px 0 0; transform: translateY(104%); transition: transform .45s cubic-bezier(.32, .72, 0, 1); box-shadow: 0 -20px 60px rgb(0 0 0 / .45); }
+  .spp[data-drawer="explore"] .spp-left, .spp[data-drawer="inspect"] .spp-right { transform: none; }
+  .spp-right .spp-panel-head::before, .spp-left .spp-panel-head::before { content: ""; position: absolute; left: 50%; top: 6px; width: 36px; height: 4px; margin-left: -18px; border-radius: 2px; background: var(--spp-line-strong); }
+  .spp-panel-head { position: relative; padding-top: 16px; }
+  .spp-drawer-close { display: inline-grid; }
+  .spp-scrim { inset: 0; }
+  .spp-mobilebar { position: static; grid-row: 3; grid-column: 1; justify-self: stretch; align-self: stretch; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 8px 12px calc(8px + env(safe-area-inset-bottom)); border-top: 1px solid var(--spp-line); background: var(--background); }
+  .spp-mobilebar button, .spp-mobilebar button:last-child { display: inline-flex; justify-content: center; height: 44px; background: var(--spp-fill); box-shadow: none; backdrop-filter: none; font-size: 13px; }
+  .spp-mobilebar button[aria-pressed="true"] { background: var(--foreground); color: var(--background); }
+  .spp-locked { flex-direction: column; gap: 20px; text-align: left; }
+  .spp-locked-phone { width: 150px; }
+  .spp-hl-label { font-size: 13px; height: 24px; }
+}
+
+/* ---------------------------------------------------------------- Docked layout
+   host.layout = "docked": the page reads like the docs, as inset panels. The top bar is a panel
+   (back, mark, breadcrumb; Interact / Inspect centered; restart, appearance, undo, redo, Build),
+   one panel on the left holds the host's sidebar and the inspector as tabs, and the stage sits
+   beside it; no right column. The host styles the panels' surface (the site's glass); this sets
+   the geometry. The bar keeps the site navbar's height (--nav-h), so switching pages doesn't jump. */
+.spp[data-layout="docked"] {
+  --spp-left: 340px;
+  grid-template-columns: var(--spp-left) minmax(0, 1fr);
+  grid-template-rows: var(--nav-h, 72px) minmax(0, 1fr);
+}
+.spp[data-layout="docked"] .spp-dockbar { position: relative; grid-column: 1 / -1; grid-row: 1; margin: 12px 12px 0; padding: 0 10px 0 8px; border: 0; border-radius: var(--spp-r); }
+.spp[data-layout="docked"] .spp-top-lead { gap: 8px; }
+.spp-back { display: inline-grid; place-items: center; width: 24px; height: 34px; flex: none; color: var(--text-muted); transition: color .15s; }
+/* The arrow itself nudges back on hover (globals.css .ai-nudge), like every other icon. */
+.spp-back:hover { color: var(--foreground); }
+.spp[data-layout="docked"] .spp-exit { margin-right: 2px; }
+.spp-dock-mode { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); }
+.spp[data-layout="docked"] .spp-left { grid-column: 1; grid-row: 2; margin: 12px 0 12px 12px; border: 0; border-radius: var(--spp-r); overflow: hidden; }
+.spp[data-layout="docked"] .spp-center { grid-column: 2; grid-row: 2; }
+.spp[data-layout="docked"] .spp-stage-body { padding-top: 22px; }
+@media (max-width: 1320px) { .spp[data-layout="docked"] { --spp-left: 316px; } }
+/* The breadcrumb gives way to the centered switch before they can meet. */
+@media (max-width: 1240px) { .spp[data-layout="docked"] .spp-crumbs > span:not(:last-child) { display: none; } }
+@media (max-width: 1100px) {
+  .spp[data-layout="docked"] { grid-template-columns: minmax(0, 1fr); }
+  .spp[data-layout="docked"] .spp-center { grid-column: 1; }
+  .spp[data-layout="docked"] .spp-left { top: calc(var(--nav-h, 72px) + 8px); left: 8px; bottom: 8px; margin: 0; width: min(360px, 88vw); }
+  .spp[data-layout="docked"] .spp-scrim { inset: var(--nav-h, 72px) 0 0; }
+  .spp[data-layout="docked"] .spp-mobilebar { grid-row: 2; }
+  .spp[data-layout="docked"] .spp-mobilebar button:last-child { display: inline-flex; }
+  .spp[data-layout="docked"] .spp-stage-body { padding-top: 60px; }
+  .spp[data-layout="docked"] .spp-drawer-close { display: inline-grid; }
+}
+@media (max-width: 760px) {
+  .spp[data-layout="docked"] { grid-template-rows: calc(var(--nav-h, 72px) - 8px) minmax(0, 1fr) auto; }
+  .spp[data-layout="docked"] .spp-dockbar { margin: 8px 8px 0; padding: 0 6px; }
+  .spp[data-layout="docked"] .spp-crumbs, .spp[data-layout="docked"] .spp-remix-tag, .spp[data-layout="docked"] .spp-dock-extra, .spp[data-layout="docked"] .spp-top-actions :is([aria-label="Undo"], [aria-label="Redo"], .spp-top-sep) { display: none; }
+  .spp-dock-mode { position: static; transform: none; }
+  .spp-dock-mode > button { padding: 0 10px; }
+  .spp-dock-mode > button > span { display: none; }
+  .spp[data-layout="docked"] .spp-center { grid-row: 2; }
+  .spp[data-layout="docked"] .spp-mobilebar { grid-row: 3; }
+  .spp[data-layout="docked"] .spp-stage-body { padding-top: 12px; }
+  .spp[data-layout="docked"] .spp-left { top: auto; left: 0; right: 0; bottom: 0; width: auto; border-radius: 14px 14px 0 0; }
+  .spp[data-layout="docked"] .spp-scrim { inset: 0; }
+}
+
+/* ---------------------------------------------------------------- Compose (Screens, Style, strip)
+   Mixing screens from many apps into one: the Screens tab's library, the Style tab, the editable
+   strip of the app's screens under the phone, and the phone as a drop target. */
+.spp-seg[data-count="6"] > button { padding: 0 4px; font-size: 11.5px; }
+.spp-compose { display: flex; flex-direction: column; gap: 18px; padding: 14px 14px 24px; }
+.spp-compose-intro { display: flex; flex-direction: column; gap: 6px; }
+.spp-compose-lede { font-size: 12.5px; line-height: 1.55; color: var(--text-muted); }
+.spp-compose-count { font-size: 11.5px; color: var(--spp-subtle); font-variant-numeric: tabular-nums; }
+.spp-compose-count strong { color: var(--foreground); font-weight: 500; }
+.spp-compose-search { flex: none; }
+.spp-compose-empty { padding: 4px 2px; }
+.spp-compose-group { display: flex; flex-direction: column; gap: 10px; padding-top: 14px; border-top: 1px solid var(--spp-line); }
+.spp-compose-source { display: flex; align-items: center; gap: 10px; }
+.spp-compose-icon { width: 24px; height: 24px; flex: none; border-radius: 6px; background: var(--spp-fill); }
+.spp-compose-source-text { min-width: 0; display: flex; flex-direction: column; }
+.spp-compose-source-title { display: flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; }
+.spp-compose-source-sub { font-size: 11px; color: var(--spp-subtle); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.spp-compose-here { height: 16px; padding: 0 5px; display: inline-flex; align-items: center; border-radius: 3px; background: var(--spp-fill-2); font-size: 9.5px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--text-muted); }
+.spp-compose-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.spp-compose-card { display: flex; flex-direction: column; gap: 8px; padding: 6px 6px 8px; border-radius: var(--spp-r); background: var(--spp-fill); box-shadow: inset 0 0 0 1px transparent; cursor: grab; transition: background-color .15s, box-shadow .15s, opacity .2s; }
+.spp-compose-card:hover { background: var(--spp-fill-2); box-shadow: inset 0 0 0 1px var(--spp-line-strong); }
+.spp-compose-card:active { cursor: grabbing; }
+.spp-compose-card[data-busy] { opacity: .5; pointer-events: none; }
+.spp-compose-art { display: grid; place-items: center; aspect-ratio: 4 / 5; overflow: hidden; border-radius: 3px; background: var(--spp-fill-2); }
+.spp-compose-art img { width: 100%; height: 100%; object-fit: cover; object-position: top; pointer-events: none; }
+.spp-compose-art-n { font-size: 18px; font-weight: 700; color: var(--spp-subtle); font-variant-numeric: tabular-nums; }
+.spp-compose-title { padding: 0 2px; font-size: 12px; line-height: 1.3; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.spp-compose-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+.spp-compose-actions .spp-btn { height: 26px; padding: 0 6px; gap: 4px; font-size: 11.5px; border-color: var(--spp-line); background: color-mix(in srgb, var(--background) 40%, transparent); }
+.spp-compose-actions .spp-btn:hover:not(:disabled) { border-color: var(--spp-line-strong); background: var(--background); }
+.spp-style { gap: 20px; }
+.spp-style-reset { align-self: flex-start; }
+
+/* The strip: the app's screens as a bar in the site navbar's style. It's the same glass panel as
+   the top bar (the host styles the surface), with muted labels, each led by the navbar's dot glyph;
+   the screen showing is foreground with an accent glyph and a short accent rule on the bar's
+   bottom edge, like the navbar's current page. How each screen is reached lives in its tooltip. */
+.spp-strip { position: relative; display: flex; justify-content: center; max-width: 100%; min-width: 0; }
+/* Picking the screen a library screen replaces: every screen dashed, the one under the pointer in
+   the accent; the strip's other controls step aside until it's done (Escape or Cancel backs out). */
+.spp-strip[data-picking] .spp-rail-pick { margin: 0 2px; height: calc(100% - 12px); border-radius: var(--spp-r); outline: 1.5px dashed var(--spp-line-strong); outline-offset: -1.5px; color: var(--foreground); cursor: pointer; transition: color .15s, background-color .15s, outline-color .15s; }
+.spp-strip[data-picking] .spp-rail-pick:hover, .spp-strip[data-picking] .spp-rail-pick:focus-visible { outline-color: var(--accent); color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, transparent); }
+.spp-strip[data-picking] .spp-rail-pick:hover .spp-rail-glyph { color: var(--accent); }
+.spp-strip[data-picking] .spp-rail-pick::after { display: none; }
+.spp-strip[data-picking] :is(.spp-rail-x, .spp-rail-tab, .spp-rail-add) { display: none; }
+.spp-strip[data-picking] .spp-rail-chip { cursor: pointer; }
+.spp-strip-hint { position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%); display: inline-flex; align-items: center; gap: 10px; margin: 0; height: 30px; padding: 0 6px 0 12px; border-radius: var(--spp-r); background: var(--foreground); color: var(--background); font-size: 12px; white-space: nowrap; animation: spp-thumb-in .2s var(--spp-ease) both; }
+.spp-strip-hint strong { font-weight: 600; }
+.spp-strip-hint-x { height: 22px; padding: 0 8px; border: 0; border-radius: 3px; background: color-mix(in srgb, var(--background) 16%, transparent); color: inherit; font-size: 11.5px; font-weight: 500; cursor: pointer; }
+.spp-strip-hint-x:hover { background: color-mix(in srgb, var(--background) 26%, transparent); }
+.spp-rail { display: flex; align-items: center; gap: 2px; max-width: 100%; height: 48px; padding: 0 6px; border-radius: var(--spp-r); background: color-mix(in srgb, var(--background) 70%, transparent); box-shadow: inset 0 0 0 1px var(--spp-line); backdrop-filter: blur(6px) saturate(180%); -webkit-backdrop-filter: blur(6px) saturate(180%); }
+.spp-rail-list { display: flex; align-items: center; align-self: stretch; min-width: 0; overflow-x: auto; scrollbar-width: none; padding: 0 4px; margin: 0; list-style: none; -webkit-mask-image: linear-gradient(90deg, transparent, #000 8px, #000 calc(100% - 8px), transparent); mask-image: linear-gradient(90deg, transparent, #000 8px, #000 calc(100% - 8px), transparent); }
+.spp-rail-list::-webkit-scrollbar { display: none; }
+.spp-rail-item { position: relative; display: flex; align-items: center; align-self: stretch; flex: none; }
+.spp-rail-chip { position: relative; display: flex; align-items: center; align-self: stretch; }
+.spp-rail-chip[draggable="true"] { cursor: grab; }
+.spp-rail-pick { position: relative; display: flex; align-items: center; gap: 8px; height: 100%; padding: 0 12px; border: 0; background: transparent; color: var(--text-muted); font-size: 12.5px; font-weight: 500; white-space: nowrap; transition: color .3s; }
+.spp-rail-pick:hover { color: var(--foreground); }
+.spp-rail-pick:hover .spp-rail-glyph { color: var(--accent); }
+.spp-rail-glyph { transition: color .3s; }
+.spp-rail-item[data-state="current"] .spp-rail-pick { color: var(--foreground); }
+.spp-rail-item[data-state="current"] .spp-rail-glyph { color: var(--accent); }
+.spp-rail-item[data-state="current"] .spp-rail-pick::after { content: ""; position: absolute; left: 12px; right: 12px; bottom: 0; height: 1px; background: var(--accent); }
+.spp-rail-x { display: grid; place-items: center; width: 0; height: 20px; padding: 0; border: 0; border-radius: 3px; background: transparent; color: var(--spp-subtle); overflow: hidden; opacity: 0; transition: width .18s var(--spp-ease), opacity .15s, margin .18s var(--spp-ease), color .15s; }
+.spp-rail-chip:hover .spp-rail-x, .spp-rail-chip:focus-within .spp-rail-x { width: 16px; margin: 0 6px 0 -8px; opacity: 1; }
+.spp-rail-x:hover { color: var(--foreground); }
+@media (hover: none) { .spp-rail-x { width: 16px; margin: 0 6px 0 -8px; opacity: .7; } }
+.spp-rail-tab { display: grid; place-items: center; width: 0; height: 20px; padding: 0; border: 0; border-radius: 3px; background: transparent; color: var(--spp-subtle); overflow: hidden; opacity: 0; transition: width .18s var(--spp-ease), opacity .15s, margin .18s var(--spp-ease), color .15s; }
+.spp-rail-chip:hover .spp-rail-tab, .spp-rail-chip:focus-within .spp-rail-tab, .spp-rail-tab[aria-pressed="true"] { width: 16px; margin: 0 6px 0 -8px; opacity: 1; }
+.spp-rail-tab[aria-pressed="true"] { color: var(--accent); }
+.spp-rail-tab:hover { color: var(--foreground); }
+.spp-rail-tab[aria-pressed="true"]:hover { color: var(--accent); opacity: .7; }
+.spp-rail-chip:hover .spp-rail-tab + .spp-rail-x, .spp-rail-chip:focus-within .spp-rail-tab + .spp-rail-x, .spp-rail-tab[aria-pressed="true"] + .spp-rail-x { margin-left: -4px; }
+.spp-rail-chip[data-held] .spp-rail-tab { display: none; }
+@media (hover: none) { .spp-rail-tab { width: 16px; margin: 0 6px 0 -8px; opacity: .7; } }
+.spp-rail-chip[data-drop="replace"] .spp-rail-pick { color: var(--foreground); background: color-mix(in srgb, var(--accent) 12%, transparent); box-shadow: inset 0 0 0 1.5px var(--accent); }
+.spp-rail-chip[data-held] { opacity: .3; }
+.spp-rail-chip[data-held] .spp-rail-x { display: none; }
+.spp-rail-chip[data-drop="before"]::before, .spp-rail-chip[data-drop="after"]::after { content: ""; position: absolute; top: 14px; bottom: 14px; width: 2px; border-radius: 1px; background: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent); }
+.spp-rail-chip[data-drop="before"]::before { left: -1px; }
+.spp-rail-chip[data-drop="after"]::after { right: -1px; }
+.spp-rail-arrow, .spp-rail-add { flex: none; display: grid; place-items: center; width: 32px; height: 32px; padding: 0; border: 0; border-radius: var(--spp-r); background: transparent; color: var(--text-muted); transition: color .15s, background-color .15s, box-shadow .15s; }
+.spp-rail-arrow:hover:not(:disabled), .spp-rail-add:hover { color: var(--foreground); background: var(--spp-fill); }
+.spp-rail-arrow:disabled { opacity: .3; }
+.spp-rail-add[data-drop] { box-shadow: inset 0 0 0 1.5px var(--accent); color: var(--foreground); }
+@media (max-width: 760px) { .spp-rail-title { max-width: 96px; overflow: hidden; text-overflow: ellipsis; } .spp-rail-pick { padding: 0 9px; } }
+
+/* The drag image: a solid chip, lifted, instead of the browser's see-through snapshot. It lives
+   off-screen for the instant the drag starts (see setGhost in Compose.tsx). */
+.spp-drag-ghost { position: fixed; top: -200px; left: -400px; z-index: 9999; display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 14px 0 10px; border-radius: var(--spp-r); background: var(--foreground); color: var(--background); font: 600 12.5px/1 var(--font-sans, system-ui), system-ui, sans-serif; white-space: nowrap; box-shadow: 0 10px 24px -8px rgb(0 0 0 / .45), 0 2px 6px rgb(0 0 0 / .2); pointer-events: none; }
+.spp-drag-ghost-mark { display: grid; place-items: center; width: 18px; height: 18px; border-radius: 3px; background: var(--accent); color: var(--accent-foreground, #fff); font-size: 12px; font-weight: 700; line-height: 1; }
+.spp-drag-ghost-sub { margin-left: 2px; font-weight: 500; opacity: .55; }
+
+/* The phone as a drop target: a library screen over it offers to replace the screen showing. */
+.spp-phone-drop { position: relative; flex: 1; align-self: stretch; min-width: 0; min-height: 0; display: flex; }
+.spp-phone-drop > .spp-fit { flex: 1; }
+.spp-phone-drop-hint { position: absolute; inset: 0; z-index: 3; display: grid; place-items: center; padding: 20px; pointer-events: none; }
+.spp-phone-drop-hint > span { max-width: 280px; padding: 10px 14px; border-radius: var(--spp-r); background: var(--foreground); color: var(--background); font-size: 12.5px; line-height: 1.45; text-align: center; box-shadow: 0 18px 40px -12px rgb(0 0 0 / .5); }
+.spp-phone-drop[data-over]::after { content: ""; position: absolute; inset: 6px; z-index: 2; border: 2px dashed var(--accent); border-radius: var(--spp-r); pointer-events: none; }
+
+/* Until the Playground has painted, its drawers don't animate (no slide on taking over the shell). */
+.spp:not([data-settled]) .spp-left, .spp:not([data-settled]) .spp-right { transition: none !important; }
+
+/* The docked panel: underline tabs like the site's navbar instead of a pill, and looks as compact
+   rows (swatch + name) instead of a grid of circles with wrapping names. */
+.spp[data-layout="docked"] .spp-left .spp-panel-head { padding: 4px 10px 0; border-bottom: 1px solid var(--spp-line); }
+.spp[data-layout="docked"] .spp-left .spp-panel-head > .spp-seg { gap: 0; padding: 0; background: none; }
+.spp[data-layout="docked"] .spp-left .spp-panel-head > .spp-seg > button { position: relative; min-height: 38px; padding: 0 2px; border-radius: 0; background: none; box-shadow: none; font-size: 12px; }
+/* Tabs share the width by what they hold, so a tab with a badge (Remix, Pro) keeps its words whole. */
+.spp[data-layout="docked"] .spp-left .spp-panel-head > .spp-seg > button { flex: 1 1 auto; }
+/* A tab that folds away (a locked app's Style, PanelTab.hidden): it narrows to nothing and fades
+   while the others widen to fill the bar, and opens back out the same way. Equal shares (basis 0)
+   so the width can be animated through flex-grow alone. */
+.spp-seg-fill > button { transition: color .15s, background-color .2s var(--spp-ease), box-shadow .2s, flex-grow .4s var(--spp-ease), padding .4s var(--spp-ease), opacity .25s ease; }
+.spp-seg-fill > button[data-hidden] { flex-grow: 0; padding-inline: 0; opacity: 0; pointer-events: none; }
+.spp[data-layout="docked"] .spp-left .spp-panel-head > .spp-seg > button { flex: 1 1 0px; }
+.spp[data-layout="docked"] .spp-left .spp-panel-head > .spp-seg > button[data-hidden] { flex-grow: 0; padding-inline: 0; opacity: 0; }
+@media (prefers-reduced-motion: reduce) { .spp-seg-fill > button { transition: color .15s, background-color .2s, box-shadow .2s; } }
+/* A Pro tag on a tab: the same badge, a size down so it sits in the tab's line. */
+.spp-seg > button > .spp-pro-tag { gap: 2px; height: 16px; margin-left: 0; padding: 0 4px; border-radius: 3px; font-size: 9.5px; }
+.spp[data-layout="docked"] .spp-left .spp-panel-head > .spp-seg > button[aria-selected="true"] { color: var(--foreground); }
+.spp[data-layout="docked"] .spp-left .spp-panel-head > .spp-seg > button[aria-selected="true"]::after { content: ""; position: absolute; left: 6px; right: 6px; bottom: -1px; height: 2px; border-radius: 1px; background: var(--accent); }
+.spp[data-layout="docked"] .spp-looks { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+/* A look tile: its palette as bars on its own ground, the name under it. */
+.spp[data-layout="docked"] .spp-look { flex-direction: column; align-items: stretch; gap: 7px; min-width: 0; padding: 6px 6px 8px; background: var(--spp-fill); box-shadow: inset 0 0 0 1px transparent; font-size: 11.5px; text-align: left; }
+.spp[data-layout="docked"] .spp-look > span:last-child { min-width: 0; padding: 0 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.spp[data-layout="docked"] .spp-look[aria-checked="true"] { background: var(--spp-fill-2); box-shadow: inset 0 0 0 1.5px var(--foreground); }
+/* Style presets: each drawn as a tiny screen in its own style (ground, type, accent button, colours). */
+.spp-preset { display: flex; align-items: center; justify-content: space-between; gap: 8px; align-self: stretch; height: 56px; padding: 0 12px; box-shadow: inset 0 0 0 1px rgb(0 0 0 / .08); transition: transform .25s var(--ease-spring, var(--spp-ease)); }
+.spp-look:hover .spp-preset { transform: translateY(-1px); }
+.spp-preset-type { font-size: 24px; line-height: 1; letter-spacing: -.01em; }
+.spp-preset-side { display: flex; flex-direction: column; align-items: flex-end; gap: 7px; }
+.spp-preset-dots { display: flex; }
+.spp-preset-dots > span { width: 12px; height: 12px; margin-left: -3px; border-radius: 50%; box-shadow: 0 0 0 1.5px var(--preset-bg); }
+.spp-preset-button { width: 34px; height: 12px; }
+.spp-look-strip { display: flex; align-self: stretch; height: 22px; overflow: hidden; border-radius: 3px; box-shadow: inset 0 0 0 1px rgb(0 0 0 / .06); transition: transform .25s var(--ease-spring, var(--spp-ease)); }
+.spp-look-strip > span { flex: 1; min-width: 0; }
+.spp-look:hover .spp-look-strip { transform: translateY(-1px); }
+
+/* Notices (Screen added, Screen replaced…) in the docked layout: bottom right of the stage, clear of
+   the screen strip (it sits above the strip's height, since the strip can reach the right edge on
+   narrower windows) and the phone; on phones, just under the top bar. */
+.spp[data-layout="docked"] .spp-notice { left: auto; right: 24px; bottom: 84px; transform: none; display: flex; align-items: center; gap: 9px; padding: 10px 14px 10px 12px; border-radius: var(--spp-r); animation: spp-notice-in .35s var(--spp-ease) both; }
+.spp[data-layout="docked"] .spp-notice::before { content: ""; flex: none; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+@keyframes spp-notice-in { from { opacity: 0; transform: translateY(8px); } }
+@media (max-width: 760px) { .spp[data-layout="docked"] .spp-notice { top: calc(var(--nav-h, 72px) + 4px); right: 12px; bottom: auto; animation-name: spp-notice-down; } }
+@keyframes spp-notice-down { from { opacity: 0; transform: translateY(-8px); } }
+
+/* ---------------------------------------------------------------- The simplified docked panel
+   Four tabs: Screens (default), Style, Map, Inspect. Screens = this screen, then "Replace with"
+   (Suggested apps open, every app as a row that opens), then the fine print. */
+.spp-screens-tab { display: flex; flex-direction: column; min-height: 100%; }
+/* The host's Remix tab: its content grows, so its fine print sits at the bottom. */
+.spp-screens-tab > .spp-remix-tab { flex: 1; display: flex; flex-direction: column; padding-bottom: 18px; }
+.spp-screens-tab > .spp-compose-library-in { display: flex; flex: 1; flex-direction: column; }
+.spp-screens-tab .spp-compose-library-in > .spp-compose { flex: 1; padding-top: 18px; }
+.spp-compose-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.spp-compose-section { display: flex; flex-direction: column; gap: 12px; }
+.spp-compose-section-title { font-size: 11.5px; font-weight: 600; color: var(--foreground); }
+.spp-compose-section .spp-compose-group { padding-top: 0; border-top: 0; }
+.spp-compose-section > .spp-compose-group + .spp-compose-group { padding-top: 14px; border-top: 1px solid var(--spp-line); }
+.spp-compose-source { display: flex; align-items: center; gap: 10px; width: 100%; padding: 0; border: 0; background: none; color: inherit; text-align: left; }
+button.spp-compose-source { padding: 8px 6px; margin: 0 -6px; width: calc(100% + 12px); border-radius: var(--spp-r); transition: background-color .15s; }
+button.spp-compose-source:hover { background: var(--spp-fill); }
+.spp-compose-source-text { flex: 1; }
+.spp-compose-source-count { font-size: 11px; color: var(--spp-subtle); font-variant-numeric: tabular-nums; }
+.spp-compose-chevron { display: grid; place-items: center; color: var(--spp-subtle); transition: transform .2s var(--spp-ease); }
+.spp-compose-chevron[data-open] { transform: rotate(90deg); }
+.spp-compose-rows { display: flex; flex-direction: column; }
+.spp-compose-rows > .spp-compose-collapsible { gap: 8px; padding: 2px 0; border-top: 0; }
+.spp-compose-rows > .spp-compose-collapsible + .spp-compose-collapsible { border-top: 1px solid var(--spp-line); }
+.spp-compose-rows > .spp-compose-collapsible > .spp-compose-grid { padding-bottom: 12px; }
+/* Replace is the main action; add is a small + beside it. */
+.spp-compose-actions { grid-template-columns: 1fr auto; }
+.spp-compose-actions .spp-compose-replace { background: var(--foreground); border-color: transparent; color: var(--background); font-weight: 600; }
+.spp-compose-actions .spp-compose-replace:hover:not(:disabled) { background: var(--foreground); filter: brightness(1.15); }
+.spp-compose-actions .spp-compose-add { width: 26px; padding: 0; }
+/* Inspect: Properties and SwiftUI as a small switch at the top. */
+.spp-subtabs { display: flex; gap: 2px; margin: 12px 14px 0; padding: 2px; border-radius: var(--spp-r); background: var(--spp-fill); }
+.spp-subtabs > button { flex: 1; min-height: 26px; border: 0; border-radius: 3px; background: none; color: var(--text-muted); font-size: 11.5px; font-weight: 500; transition: color .15s, background-color .15s; }
+.spp-subtabs > button[aria-selected="true"] { background: var(--background); color: var(--foreground); box-shadow: 0 1px 2px rgb(0 0 0 / .25), inset 0 0 0 1px var(--spp-line); }
+.spp-about[data-compact] { gap: 18px; padding-top: 14px; }
+.spp-about-hint { font-size: 12.5px; line-height: 1.55; color: var(--text-muted); }
+.spp-compose-open { flex: none; font-size: 11.5px; font-weight: 500; color: var(--text-muted); text-decoration: none; transition: color .15s; }
+.spp-compose-open:hover { color: var(--foreground); }
+/* A Pro app seen without Pro: a row that opens its page (which shows its screens and what unlocks
+   them), with a lock where the open chevron would be. */
+.spp-compose-section-note { margin-left: 6px; font-weight: 400; color: var(--spp-subtle); font-variant-numeric: tabular-nums; }
+a.spp-compose-locked { padding: 8px 6px; margin: 0 -6px; width: calc(100% + 12px); border-radius: var(--spp-r); text-decoration: none; transition: background-color .15s; }
+a.spp-compose-locked:hover { background: var(--spp-fill); }
+a.spp-compose-locked > svg { flex: none; color: var(--spp-subtle); }
+.spp-compose-rows > a.spp-compose-locked + a.spp-compose-locked { border-top: 1px solid var(--spp-line); border-radius: 0; }
+
+/* The look's letter width and spacing (Style: Width, Spacing), inherited by every text in the phone.
+   Swift sets `.fontWidth` and `.tracking` at the app root. */
+.spb-phone { font-stretch: var(--spb-stretch, 100%); letter-spacing: var(--spb-tracking, normal); }
+/* Style's Weight reaches text that sets none of its own (it inherits this). */
+.spb-phone .spb-screen-host { font-weight: min(900, max(100, calc(400 + var(--spb-weight, 0)))); }
+
+/* Screen cards: the real screen, drawn small and still, in the app's current style. The phone is
+   laid out at full size and scaled to the card; motion inside is settled at its end state. */
+.spp-compose-art { position: relative; aspect-ratio: 9 / 15; }
+.spp-thumb { position: absolute; inset: 0; overflow: hidden; border-radius: 3px; pointer-events: none; }
+.spp-thumb-phone { position: absolute; left: 0; top: 0; transform-origin: 0 0; border-radius: 0; contain: strict; }
+.spp-thumb * { animation-duration: 1ms !important; animation-delay: 0s !important; animation-iteration-count: 1 !important; transition: none !important; }
+.spp-compose-art[data-live] { box-shadow: inset 0 0 0 1px var(--spp-line); }
+/* A card's screen fades in once it's fully drawn, like the inspiration card; until then the card
+   holds its size as a quiet grey block, so nothing moves. */
+.spp-thumb-in { animation: spp-thumb-in .32s var(--spp-ease) both; }
+@keyframes spp-thumb-in { from { opacity: 0; } }
+/* The Screens tab's library arrives after the page's first paint: it fades in rather than popping. */
+.spp-compose-library-in { animation: spp-thumb-in .32s var(--spp-ease) both; }
+@media (prefers-reduced-motion: reduce) { .spp-thumb-in, .spp-compose-library-in { animation: none; } }
+/* Replace and Add, even. */
+.spp-compose-actions { grid-template-columns: 1fr 1fr; }
+.spp-compose-actions .spp-compose-add { width: auto; padding: 0 6px; }
+
+/* Style tab. */
+.spp-style-top { display: flex; flex-direction: column; gap: 10px; }
+.spp-style-actions { display: flex; gap: 6px; }
+.spp-style .spp-section { gap: 14px; padding-top: 16px; border-top: 1px solid var(--spp-line); }
+/* Accent swatches: the look's own and the wide palette on one 12-column grid, so every swatch is the same size. */
+.spp-style .spp-swatches { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 6px; margin-bottom: 6px; }
+.spp-style .spp-swatch { width: 100%; height: auto; aspect-ratio: 1; }
+.spp-style .spp-swatch { box-shadow: inset 0 0 0 1px rgb(0 0 0 / .08), inset 0 1px 0 rgb(255 255 255 / .25); }
+.spp-style .spp-swatch[aria-checked="true"] { box-shadow: 0 0 0 2px var(--background), 0 0 0 3.5px var(--foreground); transform: none; }
+.spp-type-tiles, .spp-corner-tiles { display: grid; gap: 6px; }
+.spp-type-tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.spp-corner-tiles { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.spp-type-tile, .spp-corner-tile { display: flex; flex-direction: column; align-items: center; gap: 5px; min-width: 0; padding: 8px 2px 7px; border: 0; border-radius: var(--spp-r); background: var(--spp-fill); color: var(--text-muted); font-size: 10.5px; font-weight: 500; box-shadow: inset 0 0 0 1px transparent; transition: color .15s, background-color .15s, box-shadow .15s; }
+.spp-type-tile:hover, .spp-corner-tile:hover { color: var(--foreground); background: var(--spp-fill-2); }
+.spp-type-tile[aria-checked="true"], .spp-corner-tile[aria-checked="true"] { color: var(--foreground); background: var(--spp-fill-2); box-shadow: inset 0 0 0 1px var(--foreground); }
+.spp-type-sample { font-size: 20px; line-height: 1; font-weight: 500; color: var(--foreground); }
+.spp-corner-sample { width: 20px; height: 20px; border-top: 2px solid currentColor; border-left: 2px solid currentColor; }
+.spp-corner-tile > span:last-child, .spp-type-tile > span:last-child { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.spp-style .spp-seg-fill > button { font-size: 11.5px; padding: 0 4px; }
+
+/* A library screen that's already in the app: a small tag beside its name (never over its picture),
+   quiet for "In app", in the accent for "Showing", the one on the phone. Drawn like the Pro tag. */
+.spp-compose-card { position: relative; }
+.spp-compose-name { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.spp-compose-name .spp-compose-title { flex: 1 1 auto; min-width: 0; }
+.spp-compose-badge { flex: none; height: 16px; padding: 0 5px; display: inline-flex; align-items: center; border-radius: 3px; background: var(--spp-fill-2); color: var(--text-muted); font-size: 9.5px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; pointer-events: none; }
+.spp-compose-badge[data-kind="showing"] { background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--accent); }
+
+/* ---------------------------------------------------------------- Canvas: one or all, and the inspiration */
+.spp-stage-body { position: relative; }
+.spp-canvas-switch { position: absolute; z-index: 4; left: 16px; top: 14px; background: color-mix(in srgb, var(--background) 72%, transparent); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: inset 0 0 0 1px var(--spp-line); }
+.spp-canvas-switch > button { min-height: 30px; font-variant-numeric: tabular-nums; }
+
+.spp-ref { position: absolute; z-index: 4; right: 16px; top: 14px; margin: 0; width: 168px; padding: 6px; border-radius: 14px;
+  background: color-mix(in srgb, var(--background) 82%, transparent); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  box-shadow: inset 0 0 0 1px var(--spp-line), 0 22px 44px -26px rgb(0 0 0 / .55); transition: width .3s var(--spp-ease); animation: spp-ref-in .32s var(--spp-ease) both; }
+.spp-ref[data-large] { width: 264px; }
+@keyframes spp-ref-in { from { opacity: 0; transform: translateY(-4px) scale(.97); } }
+.spp-ref-shot { display: block; width: 100%; padding: 0; border: 0; border-radius: 9px; overflow: hidden; background: var(--spp-fill); cursor: zoom-in; }
+.spp-ref[data-large] .spp-ref-shot { cursor: zoom-out; }
+.spp-ref-shot img { display: block; width: 100%; height: auto; max-height: min(64vh, 572px); object-fit: contain; }
+.spp-ref figcaption { display: flex; flex-direction: column; gap: 1px; padding: 8px 4px 3px; min-width: 0; }
+.spp-ref-eyebrow { font-size: 10px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: var(--spp-subtle); }
+.spp-ref-app { font-size: 12.5px; font-weight: 500; color: var(--foreground); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.spp-ref-hide { position: absolute; top: 11px; right: 11px; background: color-mix(in srgb, var(--background) 80%, transparent); opacity: 0; transition: opacity .15s; }
+.spp-ref:hover .spp-ref-hide, .spp-ref-hide:focus-visible { opacity: 1; }
+@media (hover: none) { .spp-ref-hide { opacity: 1; } }
+/* Tucked away: a mini of the same picture, no caption, a click opens the card again. */
+.spp-ref[data-mini] { width: 58px; padding: 4px; border-radius: 11px; }
+.spp-ref[data-mini] .spp-ref-shot { border-radius: 7px; cursor: pointer; transition: transform .2s var(--spp-ease); }
+.spp-ref[data-mini] .spp-ref-shot:hover { transform: scale(1.04); }
+.spp-ref[data-mini] figcaption { display: none; }
+@container (max-width: 860px) { .spp-ref:not([data-mini]) { width: 120px; } .spp-ref[data-large] { width: 200px; } .spp-ref figcaption { display: none; } }
+@container (max-width: 600px) { .spp-ref { display: none; } }
+
+.spp[data-layout] .spp-stage-body[data-canvas="all"], .spp .spp-stage-body[data-canvas="all"] { padding: 0; align-items: stretch; justify-content: stretch; }
+.spp-wall { position: relative; flex: 1; min-width: 0; overflow: hidden; touch-action: none; cursor: grab; user-select: none; -webkit-user-select: none; }
+.spp-wall[data-panning] { cursor: grabbing; }
+.spp-wall[data-panning] .spp-wall-phone, .spp-wall[data-panning] .spp-wall-phone * { cursor: grabbing !important; }
+.spp .spp-wall-list { position: absolute; left: 0; top: 0; display: flex; align-items: flex-start; gap: var(--gap); margin: 0; padding: 0; list-style: none; transform-origin: 0 0; }
+/* Picked in the Map: the canvas glides to it rather than jumping (a hand pan or pinch stays instant). */
+.spp .spp-wall[data-glide] .spp-wall-list { transition: transform .45s var(--spp-ease); }
+@media (prefers-reduced-motion: reduce) { .spp .spp-wall[data-glide] .spp-wall-list { transition: none; } }
+.spp-wall-item { flex: none; width: 414px; display: flex; flex-direction: column; gap: calc(12px / var(--z)); animation: spp-wall-in .36s var(--spp-ease) both; }
+.spp-wall-item:nth-child(2) { animation-delay: 30ms; } .spp-wall-item:nth-child(3) { animation-delay: 60ms; } .spp-wall-item:nth-child(4) { animation-delay: 90ms; }
+.spp-wall-item:nth-child(5) { animation-delay: 120ms; } .spp-wall-item:nth-child(6) { animation-delay: 150ms; } .spp-wall-item:nth-child(7) { animation-delay: 180ms; } .spp-wall-item:nth-child(n+8) { animation-delay: 210ms; }
+@keyframes spp-wall-in { from { opacity: 0; transform: translateY(12px) scale(.98); } }
+.spp-wall-phone { position: relative; display: block; width: 414px; height: 868px; border-radius: 67px; cursor: pointer; outline: none; }
+/* On the canvas every part is picked with a click: a pointer over the phone (a drag still shows grabbing). */
+.spp-wall-phone * { cursor: pointer !important; }
+.spp-wall-highlights { z-index: 3; }
+.spp-wall-phone::after { content: ""; position: absolute; inset: calc(-6px / var(--z)); border-radius: calc(67px + 6px / var(--z)); box-shadow: 0 0 0 calc(1.5px / var(--z)) var(--spp-line); opacity: 0; pointer-events: none; transition: opacity .2s, box-shadow .2s; }
+.spp-wall-phone:focus-visible::after { opacity: 1; }
+.spp-wall-item[data-current] .spp-wall-phone::after { opacity: 1; box-shadow: 0 0 0 calc(1.5px / var(--z)) var(--accent); }
+.spp-wall-device { display: block; }
+/* The label keeps its size on screen at any zoom. */
+.spp-wall-label { cursor: pointer; display: flex; align-items: center; gap: calc(8px / var(--z)); min-width: 0; height: calc(22px / var(--z)); padding: 0 calc(4px / var(--z)); font-size: calc(12.5px / var(--z)); color: var(--text-muted); }
+.spp-wall-n { flex: none; min-width: calc(18px / var(--z)); height: calc(18px / var(--z)); display: grid; place-items: center; border-radius: calc(4px / var(--z)); background: var(--spp-fill); font-size: calc(10.5px / var(--z)); font-weight: 600; font-variant-numeric: tabular-nums; color: var(--text-muted); }
+.spp-wall-item[data-current] .spp-wall-n { background: var(--accent); color: #fff; }
+.spp-wall-title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--foreground); font-weight: 500; }
+.spp-wall-tab { flex: none; display: grid; color: var(--accent); }
+.spp-wall-tab svg { width: calc(12px / var(--z)); height: calc(12px / var(--z)); }
+.spp-wall-open { flex: none; display: none; align-items: center; gap: calc(4px / var(--z)); height: calc(20px / var(--z)); margin-left: auto; padding: 0 calc(7px / var(--z)); border: 0; border-radius: calc(999px / var(--z)); background: var(--spp-fill); color: var(--foreground); font-size: calc(11px / var(--z)); font-weight: 500; cursor: pointer; }
+.spp-wall-open svg { width: calc(11px / var(--z)); height: calc(11px / var(--z)); }
+.spp-wall-open:hover { background: var(--foreground); color: var(--background); }
+.spp-wall-item:hover .spp-wall-open, .spp-wall-item[data-current] .spp-wall-open, .spp-wall-open:focus-visible { display: inline-flex; }
+.spp-wall-item:hover .spp-wall-from, .spp-wall-item[data-current] .spp-wall-from { display: none; }
+@media (hover: none) { .spp-wall-open { display: inline-flex; } .spp-wall-from { display: none; } }
+.spp-wall-from { flex: none; margin-left: auto; max-width: 45%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: calc(11px / var(--z)); color: var(--spp-subtle); }
+.spp-zoom { position: absolute; z-index: 4; right: 16px; bottom: 14px; display: flex; align-items: center; gap: 2px; padding: 3px; border-radius: 999px; cursor: default;
+  background: color-mix(in srgb, var(--background) 78%, transparent); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: inset 0 0 0 1px var(--spp-line); }
+.spp-zoom .spp-icon-btn { border-radius: 999px; }
+.spp-zoom-pct { min-width: 48px; height: 26px; padding: 0 6px; border: 0; border-radius: 999px; background: transparent; color: var(--foreground); font-size: 12px; font-weight: 500; font-variant-numeric: tabular-nums; }
+.spp-zoom-pct:hover { background: var(--spp-fill); }
+.spp-zoom-sep { width: 1px; height: 14px; margin: 0 3px; background: var(--spp-line); }
+@media (prefers-reduced-motion: reduce) { .spp-wall-item, .spp-ref { animation: none; } }
+/* Narrow stages: the phone fills the width, so the view switch gets a row of its own above it. */
+@container (max-width: 700px) {
+  .spp[data-layout] .spp-stage-body[data-canvas="one"]:has(> .spp-canvas-switch), .spp .spp-stage-body[data-canvas="one"]:has(> .spp-canvas-switch) { padding-top: 56px; }
+  .spp-canvas-switch { top: 10px; }
+}
+
+/* The inspiration card waits for its picture: hidden (no animation) until the image has loaded, then
+   the whole card fades in at its final size, so the caption never shows first and nothing moves. */
+.spp-ref:not([data-ready]) { opacity: 0; animation: none; pointer-events: none; }
+.spp-ref[data-ready] { animation: spp-ref-in .32s var(--spp-ease) both; }
+
+/* Build sheet art (BuildArt): the app's own screens side by side on a dark stage, over the host's
+   backdrop (both sites pass the animated Pro halftone). The phones are still (motion settled, no input). */
+.spp-buildart { position: absolute; inset: 0; overflow: hidden; background: #070708; }
+.spp-buildart-backdrop { position: absolute; inset: 0; }
+.spp-buildart-backdrop > * { position: absolute; inset: 0; width: 100%; height: 100%; }
+/* The fan's box clears the logo; BuildArt scales it (--fit) so every phone stays inside. */
+.spp-buildart-fan { position: absolute; inset: 64px 20px 20px; display: flex; align-items: center; justify-content: center; transform: scale(var(--fit, 1)); }
+.spp-buildart-phone { position: absolute; overflow: hidden; border-radius: 18px; box-shadow: 0 0 0 5px #0b0b0c, 0 0 0 6px rgb(255 255 255 / .12), 0 30px 60px -20px rgb(0 0 0 / .8); transition: transform .6s var(--spp-ease); }
+.spp-buildart-phone .spb-phone { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+.spp-buildart-phone * { animation-duration: 1ms !important; animation-delay: 0s !important; animation-iteration-count: 1 !important; transition: none !important; }
+.spp-buildart-phone[data-side="center"] { z-index: 2; }
+.spp-buildart-phone[data-side="left"] { z-index: 1; transform: translateX(-84%) scale(.88); opacity: .9; }
+.spp-buildart-phone[data-side="right"] { z-index: 1; transform: translateX(84%) scale(.88); opacity: .9; }
+/* Narrow: the stage is a short band, so it shows only the lit dot grid, no phones. */
+@media (max-width: 760px) { .spp-buildart-fan { display: none; } }
+
+/* ---------------------------------------------------------------- Style: Shuffle, fonts, cards */
+/* Slim and open: the name with history arrows, a dashed Shuffle frame, small keep toggles, the code. */
+.spp-shuffle { display: flex; flex-direction: column; gap: 10px; }
+.spp-shuffle-head { display: flex; align-items: center; gap: 2px; min-width: 0; }
+.spp-shuffle-name { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.spp-shuffle-eyebrow { font-size: 10px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--spp-subtle); }
+.spp-shuffle-name strong { font-size: 15px; line-height: 1.2; font-weight: 600; letter-spacing: -.01em; color: var(--foreground); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; animation: spp-name-in .35s var(--spp-ease) both; }
+@keyframes spp-name-in { from { opacity: 0; transform: translateY(4px); } }
+/* An open artboard: a fine 4px dash that stops short of each corner, a cross on each corner; both
+   turn accent on hover (the site's dashed frames, drawn here so every host gets them). */
+.spp-frame { --dash: color-mix(in srgb, var(--foreground) 22%, transparent); position: relative; display: flex; align-items: center; justify-content: center; gap: 8px; height: 44px; padding: 0 12px; border: 0; background: transparent; color: var(--text-muted); font-size: 12.5px; font-weight: 500; cursor: pointer; transition: color .15s, background-color .15s; }
+.spp-frame::before { content: ""; position: absolute; inset: 0; pointer-events: none;
+  background:
+    linear-gradient(90deg, transparent 3px, var(--dash) 3px 7px, transparent 7px) top / 10px 1px space no-repeat,
+    linear-gradient(90deg, transparent 3px, var(--dash) 3px 7px, transparent 7px) bottom / 10px 1px space no-repeat,
+    linear-gradient(180deg, transparent 3px, var(--dash) 3px 7px, transparent 7px) left / 1px 10px no-repeat space,
+    linear-gradient(180deg, transparent 3px, var(--dash) 3px 7px, transparent 7px) right / 1px 10px no-repeat space;
+  -webkit-mask: linear-gradient(#000 0 0) center / calc(100% - 20px) 100% no-repeat, linear-gradient(#000 0 0) center / 100% calc(100% - 20px) no-repeat;
+  mask: linear-gradient(#000 0 0) center / calc(100% - 20px) 100% no-repeat, linear-gradient(#000 0 0) center / 100% calc(100% - 20px) no-repeat; }
+.spp-frame-tick { position: absolute; width: 9px; height: 9px; pointer-events: none; color: color-mix(in srgb, var(--foreground) 35%, transparent);
+  background: linear-gradient(currentColor 0 0) center / 1px 100% no-repeat, linear-gradient(currentColor 0 0) center / 100% 1px no-repeat; transition: color .15s; }
+.spp-frame-tick[data-at="tl"] { top: -4px; left: -4px; }
+.spp-frame-tick[data-at="tr"] { top: -4px; right: -4px; }
+.spp-frame-tick[data-at="bl"] { bottom: -4px; left: -4px; }
+.spp-frame-tick[data-at="br"] { bottom: -4px; right: -4px; }
+.spp-frame:hover, .spp-frame:focus-visible { --dash: color-mix(in srgb, var(--accent) 60%, transparent); color: var(--accent); background: color-mix(in srgb, var(--accent) 5%, transparent); }
+.spp-frame:hover .spp-frame-tick, .spp-frame:focus-visible .spp-frame-tick { color: var(--accent); }
+.spp-shuffle-go { margin: 4px 4px 2px; isolation: isolate; }
+.spp-shuffle-go:active { transform: scale(.99); }
+.spp-shuffle-go svg { transition: scale .4s var(--ease-spring, var(--spp-ease)); }
+.spp-shuffle-go:hover svg { scale: 1.1; }
+/* On hover a slow wash of the Pro sweep (signal, ember, blush, azure) drifts behind the label, and
+   each corner cross takes one of its colours. */
+.spp-shuffle-go { --sp-signal: #FF0000; --sp-ember: #FF7A3C; --sp-blush: #FF8FB8; --sp-azure: #4D8DFF; }
+.spp-shuffle-wash { position: absolute; inset: 0; z-index: -1; pointer-events: none; opacity: 0; transition: opacity .35s var(--spp-ease);
+  background: linear-gradient(100deg, var(--sp-signal), var(--sp-ember), var(--sp-blush), var(--sp-azure), var(--sp-blush), var(--sp-ember), var(--sp-signal)) 0 0 / 300% 100%;
+  animation: spp-sweep-drift 7s ease-in-out infinite alternate; animation-play-state: paused; }
+.spp-shuffle-go:hover .spp-shuffle-wash, .spp-shuffle-go:focus-visible .spp-shuffle-wash { opacity: .2; animation-play-state: running; }
+html.light .spp-shuffle-go:hover .spp-shuffle-wash, html.light .spp-shuffle-go:focus-visible .spp-shuffle-wash { opacity: .14; }
+.spp-shuffle-go:hover, .spp-shuffle-go:focus-visible { background: transparent; }
+.spp-shuffle-go .spp-frame-tick { transition: color .35s var(--spp-ease); }
+.spp-shuffle-go:hover .spp-frame-tick[data-at="tl"] { color: var(--sp-signal); }
+.spp-shuffle-go:hover .spp-frame-tick[data-at="tr"] { color: var(--sp-ember); }
+.spp-shuffle-go:hover .spp-frame-tick[data-at="bl"] { color: var(--sp-blush); }
+.spp-shuffle-go:hover .spp-frame-tick[data-at="br"] { color: var(--sp-azure); }
+@keyframes spp-sweep-drift { to { background-position: 100% 0; } }
+
+/* Below it: two labelled rows, what to keep and the style's code. */
+.spp-shuffle-section { display: flex; flex-direction: column; gap: 6px; margin-top: 2px; }
+.spp-shuffle-label { font-size: 10px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--spp-subtle); }
+.spp-shuffle-locks { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 2px; padding: 2px; border-radius: calc(var(--spp-r) + 2px); background: var(--spp-fill); }
+.spp-lock-chip { display: inline-flex; align-items: center; justify-content: center; gap: 5px; min-width: 0; height: 28px; padding: 0 6px; border: 0; border-radius: var(--spp-r); background: transparent; color: var(--text-muted); font-size: 11.5px; font-weight: 500; white-space: nowrap; transition: color .15s, background-color .15s, box-shadow .15s; }
+.spp-lock-chip svg { flex: none; opacity: .7; }
+.spp-lock-chip:hover { color: var(--foreground); }
+.spp-lock-chip[aria-pressed="true"] { color: var(--foreground); background: var(--background); box-shadow: 0 0 0 .5px var(--spp-line-strong), 0 1px 2px rgb(0 0 0 / .08); }
+.spp-lock-chip[aria-pressed="true"] svg { opacity: 1; color: var(--accent); }
+.spp-shuffle-code { display: flex; align-items: center; gap: 2px; height: 32px; min-width: 0; padding: 0 3px 0 10px; border-radius: calc(var(--spp-r) + 2px); background: var(--spp-fill); }
+.spp-shuffle-code code { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: inherit; font-size: 12.5px; font-weight: 500; line-height: 1; font-variant-numeric: tabular-nums; color: var(--foreground); }
+.spp-code-form { display: flex; align-items: center; gap: 2px; flex: 1; min-width: 0; height: 100%; }
+.spp-code-input { flex: 1; min-width: 0; height: 100%; padding: 0; border: 0; outline: 0; background: transparent; color: var(--foreground); font-family: inherit; font-size: 12.5px; font-weight: 500; font-variant-numeric: tabular-nums; }
+.spp-code-input::placeholder { color: var(--spp-subtle); }
+.spp .spp-code-input:focus, .spp .spp-code-input:focus-visible { outline: none; box-shadow: none; }
+/* Pasting, the field itself takes the focus: a hairline, no ring around the input inside it. */
+.spp-shuffle-code:focus-within { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--foreground) 28%, transparent); }
+
+.spp-style-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.spp-style-lock { color: var(--spp-subtle); }
+.spp-style-lock[aria-pressed="true"] { color: var(--foreground); background: var(--spp-fill-2); }
+.spp-field-value { margin-left: auto; font-weight: 400; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.spp-field-hint { font-size: 11px; color: var(--spp-subtle); }
+
+.spp-font-cats { display: flex; flex-wrap: wrap; gap: 4px; }
+.spp-font-cats > button { height: 24px; padding: 0 9px; border: 0; border-radius: 999px; background: transparent; color: var(--text-muted); font-size: 11.5px; font-weight: 500; box-shadow: inset 0 0 0 1px var(--spp-line); transition: color .15s, background-color .15s; }
+.spp-font-cats > button:hover { color: var(--foreground); }
+.spp-font-cats > button[aria-selected="true"] { background: var(--spp-fill-2); color: var(--foreground); box-shadow: inset 0 0 0 1px var(--foreground); }
+.spp-font-tiles .spp-type-tile { animation: spp-tile-in .22s var(--spp-ease) both; }
+@keyframes spp-tile-in { from { opacity: 0; transform: translateY(3px); } }
+
+.spp-card-tiles { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+.spp-card-tile { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 0; padding: 10px 2px 7px; border: 0; border-radius: var(--spp-r); background: var(--spp-fill); color: var(--text-muted); font-size: 11px; font-weight: 500; transition: color .15s, background-color .15s; }
+.spp-card-tile:hover { color: var(--foreground); background: var(--spp-fill-2); }
+.spp-card-tile[aria-checked="true"] { color: var(--foreground); background: var(--spp-fill-2); box-shadow: inset 0 0 0 1px var(--foreground); }
+.spp-card-tile > span:last-child { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.spp-card-sample { width: 30px; height: 22px; border-radius: 5px; background: color-mix(in srgb, var(--foreground) 12%, transparent); }
+[data-card="raised"] > .spp-card-sample { background: var(--background); box-shadow: 0 4px 10px -3px rgb(0 0 0 / .35); }
+[data-card="outlined"] > .spp-card-sample { background: var(--background); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--foreground) 30%, transparent); }
+[data-card="glass"] > .spp-card-sample { background: linear-gradient(135deg, color-mix(in srgb, var(--foreground) 22%, transparent), color-mix(in srgb, var(--foreground) 6%, transparent)); box-shadow: inset 0 0 0 .5px color-mix(in srgb, var(--foreground) 30%, transparent); }
+[data-card="bold"] > .spp-card-sample { background: var(--background); box-shadow: inset 0 0 0 1.5px var(--foreground), 3px 3px 0 var(--foreground); }
+
+.spp-swatch-any { position: relative; overflow: hidden; cursor: pointer; background: var(--sw, conic-gradient(from 0deg, #ff3b30, #ffcc00, #34c759, #00c7be, #007aff, #af52de, #ff2d55, #ff3b30)); }
+.spp-swatch-any input { position: absolute; inset: 0; width: 100%; height: 100%; padding: 0; border: 0; opacity: 0; cursor: pointer; }
+@media (prefers-reduced-motion: reduce) { .spp-shuffle-name strong, .spp-font-tiles .spp-type-tile, .spp-shuffle-wash { animation: none; } }
+
+/* ---------------------------------------------------------------- Style: the quiet rows below Presets */
+.spp-style .spp-section.spp-style-rows { gap: 8px; }
+.spp-style-rows > .spp-label { margin-bottom: 2px; }
+.spp-style-row { display: grid; grid-template-columns: 62px minmax(0, 1fr); align-items: center; gap: 8px; min-height: 28px; }
+.spp-style-row-label { font-size: 12px; color: var(--text-muted); white-space: nowrap; }
+.spp-seg-sm { padding: 2px; }
+.spp-seg-sm > button { min-height: 24px; padding: 0 4px; font-size: 11px; }
+.spp-seg-sm > button > span { font-size: 12px; }
+.spp-seg-sm .spp-corner-sample { display: block; width: 11px; height: 11px; border: 0; border-top: 1.5px solid currentColor; border-left: 1.5px solid currentColor; background: none; }
+.spp-seg-sm .spp-card-sample { display: block; width: 18px; height: 12px; border-radius: 3px; }
+.spp-font-select { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.spp-font-aa { flex: none; width: 22px; font-size: 15px; line-height: 1; text-align: center; color: var(--foreground); }
+.spp-font-select .spp-select { flex: 1; min-width: 0; max-width: none; height: 28px; border-color: transparent; background-color: var(--spp-fill); font-size: 12px; }
+.spp-font-select .spp-select:hover { background-color: var(--spp-fill-2); }
+.spp-style-more { padding-top: 12px; border-top: 1px solid var(--spp-line); }
+.spp-style-more > summary { display: flex; align-items: center; gap: 6px; list-style: none; cursor: pointer; font-size: 12px; font-weight: 500; color: var(--foreground); }
+.spp-style-more > summary::-webkit-details-marker { display: none; }
+.spp-style-more > summary svg { color: var(--spp-subtle); transition: rotate .2s var(--spp-ease); }
+/* `rotate`, not `transform`, so it adds to the icon's hover move (globals.css .ai-*) instead of fighting it. */
+.spp-style-more[open] > summary svg { rotate: 90deg; }
+.spp-style-more > summary > span { margin-left: auto; font-size: 11px; font-weight: 400; color: var(--spp-subtle); }
+.spp-style-more > .spp-style-rows { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+
+/* ---------------------------------------------------------------- Map: drilled into an item */
+/* One Map tab: the tree, and whatever you pick in it, with a back bar to step out again. */
+.spp-drill { display: flex; flex-direction: column; gap: 8px; min-width: 0; animation: spp-drill-in .2s var(--spp-ease) both; }
+@keyframes spp-drill-in { from { opacity: 0; transform: translateX(8px); } }
+.spp-drill-bar { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-width: 0; padding: 10px 12px 0 8px; }
+.spp-drill-bar .spp-subtabs { flex: none; width: 164px; margin: 0; }
+.spp-drill-back { display: inline-flex; align-items: center; gap: 4px; height: 26px; padding: 0 8px 0 4px; border: 0; border-radius: var(--spp-r); background: transparent; color: var(--text-muted); font-size: 12px; font-weight: 500; transition: color .15s, background-color .15s; }
+.spp-drill-back:hover { color: var(--foreground); background: var(--spp-fill); }
+.spp-drill .spp-path-close { display: none; }
+.spp-map-foot { flex-direction: row; flex-wrap: nowrap; align-items: center; gap: 6px; margin: -16px 18px 24px; padding-top: 14px; border-top: 1px solid var(--spp-line); }
+@media (prefers-reduced-motion: reduce) { .spp-drill { animation: none; } }
+.spp-map-foot > .spp-btn-primary { margin-left: auto; }
+.spp-map-foot > .spp-save { flex: 1; min-width: 0; }
+.spp-btn-icon { width: 28px; padding: 0; }
+
+/* ---------------------------------------------------------------- Style: every card matches */
+/* A card-shaped component (its definition's `card`) takes the app's card edge whenever Style's Cards
+   isn't flat, so a bold, raised, outlined or glass style reaches every card on every screen, from
+   whichever app it came. The Swift does the same with .themeCard(cornerRadius:). */
+.spb-card-piece { box-shadow: var(--spb-card-edge) !important; -webkit-backdrop-filter: var(--spb-card-blur, none); backdrop-filter: var(--spb-card-blur, none); }
+
+/* ---------------------------------------------------------------- Properties, like the Style tab
+   A compact header, sections split by hairlines, short settings on one line (name left, control
+   right), soft filled inputs instead of outlined boxes, and part and variant pickers as quiet chips. */
+.spp-node { gap: 0; }
+.spp-node > .spp-section { gap: 12px; padding: 16px 0; border-top: 1px solid var(--spp-line); }
+.spp-node-head { gap: 10px; padding: 14px 0 0; }
+.spp-node-tile { width: 28px; height: 28px; border-radius: var(--spp-r); background: var(--spp-fill-2); color: var(--foreground); }
+.spp-node-id { min-width: 0; }
+.spp-node-title { font-size: 14.5px; line-height: 1.25; letter-spacing: -.01em; }
+.spp-node-kind { margin-top: 1px; font-family: inherit; font-size: 11.5px; color: var(--spp-subtle); }
+.spp-node-desc { margin: 8px 0 16px; font-size: 12.5px; line-height: 1.5; color: var(--text-muted); }
+.spp-part-filter { display: flex; flex-wrap: wrap; gap: 4px; }
+.spp-part-filter > button { height: 26px; padding: 0 10px; border: 0; border-radius: var(--spp-r); background: var(--spp-fill); color: var(--text-muted); font-size: 12px; font-weight: 500; transition: color .15s, background-color .15s, box-shadow .15s; }
+.spp-part-filter > button:hover { color: var(--foreground); background: var(--spp-fill-2); }
+.spp-part-filter > button[aria-pressed="true"] { color: var(--foreground); background: var(--spp-fill-2); box-shadow: inset 0 0 0 1px var(--foreground); }
+.spp-node .spp-fields { gap: 12px; }
+.spp-node .spp-field { gap: 6px; }
+.spp-node .spp-field-label { font-size: 12px; font-weight: 400; color: var(--text-muted); }
+.spp-node .spp-field-hint { margin: 0; font-size: 11px; line-height: 1.45; color: var(--spp-subtle); }
+/* One line for short settings: a toggle, a choice, a number, a symbol, where a tap goes. */
+.spp-node .spp-field:is([data-type="boolean"], [data-type="select"], [data-type="number"], [data-type="spacing"], [data-type="icon"], [data-type="link"]) { display: grid; grid-template-columns: minmax(84px, 38%) minmax(0, 1fr); align-items: center; column-gap: 10px; row-gap: 4px; }
+.spp-node .spp-field:is([data-type="boolean"], [data-type="select"], [data-type="number"], [data-type="spacing"], [data-type="icon"], [data-type="link"]) .spp-field-hint { grid-column: 1 / -1; }
+.spp-node .spp-field[data-type="boolean"] .spp-switch { justify-self: end; }
+.spp-node :is(.spp-input, .spp-select) { height: 30px; border-color: transparent; background-color: var(--spp-fill); font-size: 12.5px; transition: background-color .15s, box-shadow .15s; }
+.spp-node :is(.spp-input, .spp-select):hover { background-color: var(--spp-fill-2); }
+.spp-node :is(.spp-input, .spp-select):focus { outline: none; border-color: transparent; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 60%, transparent); }
+.spp-node .spp-textarea { height: auto; min-height: 56px; padding: 8px 10px; resize: vertical; line-height: 1.45; }
+.spp-node .spp-number { gap: 8px; }
+.spp-node .spp-input-num { width: 56px; flex: none; text-align: right; }
+.spp-node .spp-seg-fill > button { min-height: 26px; font-size: 11.5px; }
+.spp-node .spp-parts button, .spp-node .spp-behaviours li { font-size: 12px; }
+
+/* Style → Entrance: each screen fades or rises in as it arrives (the value comes from themeVars). */
+.spb-phone .spb-screen-host { animation: var(--spb-entrance, none); }
+@keyframes spb-enter-fade { from { opacity: 0; } }
+@keyframes spb-enter-rise { from { opacity: 0; transform: translateY(14px); } }
+@media (prefers-reduced-motion: reduce) { .spb-phone .spb-screen-host { animation: none; } }
+
+
+/* Style → Tab bar: the dock in glass (Liquid Glass in the app; a frosted material here). */
+.spp-dock[data-glass] .spp-dock-inner { background: color-mix(in srgb, var(--h-surface, #1c1c1c) 55%, transparent); -webkit-backdrop-filter: blur(20px) saturate(1.6); backdrop-filter: blur(20px) saturate(1.6); box-shadow: 0 10px 30px rgb(0 0 0 / .22), inset 0 0 0 .5px rgb(255 255 255 / .28); }
+
+/* ---------- Still screens (ProjectStills): a saved remix's screens, outside the Playground ---------- */
+.spp-stills { display: flex; gap: 12px; margin: 0; padding: 2px 2px 6px; list-style: none; overflow-x: auto; scrollbar-width: thin; }
+.spp-still { display: flex; flex: none; flex-direction: column; align-items: center; gap: 6px; }
+.spp-still-phone { position: relative; overflow: hidden; background: #000; box-shadow: 0 0 0 1px rgb(0 0 0 / .08), 0 10px 24px -14px rgb(0 0 0 / .45); }
+.spp-still-name { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; color: var(--text-muted, #8a8a8a); }
+
+/* ---------------------------------------------------------------- What's open (stageBadge)
+   The host's badge for the open entry, centered at the top of the stage between the canvas switch
+   and the inspiration card. The stage keeps room for it, so the phone (or the locked screens) sit
+   below it. On a narrow stage the canvas switch moves under it. */
+.spp[data-layout] .spp-stage-body[data-badge]:not([data-canvas="all"]), .spp .spp-stage-body[data-badge]:not([data-canvas="all"]) { padding-top: 62px; }
+.spp-stage-badge { position: absolute; z-index: 4; top: 14px; left: 50%; transform: translateX(-50%); display: flex; justify-content: center; max-width: calc(100% - 400px); min-width: 0; animation: spp-badge-in .3s var(--spp-ease) both; }
+@keyframes spp-badge-in { from { opacity: 0; transform: translate(-50%, -3px); } }
+@container (max-width: 860px) { .spp-stage-badge { max-width: calc(100% - 300px); } }
+@container (max-width: 600px) {
+  .spp-stage-badge { max-width: calc(100% - 32px); }
+  .spp[data-layout] .spp-stage-body[data-badge]:not([data-canvas="all"]), .spp .spp-stage-body[data-badge]:not([data-canvas="all"]) { padding-top: 104px; }
+  .spp-stage-body[data-badge] .spp-canvas-switch { top: 56px; left: 50%; transform: translateX(-50%); }
+}
+@media (prefers-reduced-motion: reduce) { .spp-stage-badge { animation: none; } }

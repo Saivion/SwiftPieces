@@ -1,0 +1,1066 @@
+{
+  "fetchedAt": "2026-09-28",
+  "country": "us",
+  "apps": {
+    "lungy": {
+      "trackId": 1545223887,
+      "name": "Lungy: Breathing & Anxiety",
+      "developer": "Pi-A Creative Systems Ltd.",
+      "category": "Health & Fitness",
+      "rating": 4.8,
+      "ratingCount": 168,
+      "price": "Free",
+      "icon": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/9d/1e/7d/9d1e7d25-83f9-8407-c843-dad7c181323b/AppIcon-0-0-1x_U007emarketing-0-11-0-85-220.png/512x512bb.jpg",
+      "screenshots": [
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/63/57/25/635725c0-f90e-0ee3-9c09-1adb273def50/LungyHero_01.jpg/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/b8/e6/9d/b8e69d7a-7a9d-9ef9-4fdb-c7ff398caf94/APPSTORE_-_ENGLISH_150.jpg/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/45/03/3f/45033f4f-ef75-dc9e-2e93-95f82eee1846/APPSTORE_-_ENGLISH_124.jpg/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/a9/60/35/a96035ac-377d-51ee-aa6e-989e97a52e3e/APPSTORE_-_ENGLISH_127.jpg/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/89/18/54/891854c3-a227-e2eb-85df-0d22c5563aa1/APPSTORE_-_ENGLISH_114.jpg/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/b6/4d/7a/b64d7ab1-32cf-5fe2-00bf-4f118da5a74a/appstore_heartRate.jpg/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/11/c3/f9/11c3f9fd-bb2e-63eb-5102-87504e705cbf/APP_IPHONE_65_4.jpg/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/65/be/f0/65bef07f-3a41-41b7-f78f-b04bb4d1567e/APP_IPHONE_65_6.jpg/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        }
+      ],
+      "url": "https://apps.apple.com/us/app/lungy-breathing-anxiety/id1545223887",
+      "released": "2022-11-29"
+    },
+    "timepage": {
+      "trackId": 989178902,
+      "name": "Timepage: Calendar Planner",
+      "developer": "Bonobo Pte Ltd",
+      "category": "Productivity",
+      "rating": 4.6,
+      "ratingCount": 15366,
+      "price": "Free",
+      "icon": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/e6/54/42/e65442c8-b6d6-85b3-724c-221afad88e8b/Timepage_Icon-0-0-1x_U007epad-0-1-0-0-sRGB-0-85-220.png/512x512bb.jpg",
+      "screenshots": [
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/e5/3d/5a/e53d5ac6-5741-190d-8428-230225613b01/f5656c05-b251-4dd7-b19c-38735d450dda_iPhone55_1.png/392x696bb.png",
+          "width": 200,
+          "height": 356
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/8f/04/45/8f044551-2a0b-2706-bbe5-28ac33ad1109/93cd64d4-cd3e-4ec9-b722-2d919c378f55_iPhone55_2.png/392x696bb.png",
+          "width": 200,
+          "height": 356
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/be/87/e9/be87e9d8-040b-43bc-a3bc-91af0a5213e3/c2de43c9-cb39-46a9-9666-cfe6d952be29_iPhone55_3.png/392x696bb.png",
+          "width": 200,
+          "height": 356
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/c4/51/21/c451215b-1c65-20bf-5778-01a54dfb3183/c6bf4386-9be4-4186-a977-fd29c21f1283_iPhone55_4.png/392x696bb.png",
+          "width": 200,
+          "height": 356
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/92/23/05/92230536-12dc-0056-e08a-83556a7e3ceb/1964bd60-1d1e-441c-800c-dd58fcc38566_iPhone55_5.png/392x696bb.png",
+          "width": 200,
+          "height": 356
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/94/ac/e2/94ace2ae-37ef-213d-88fa-0623eecfc38e/57324d65-e37d-47dd-ac04-0d544977e11a_iPhone55_6.png/392x696bb.png",
+          "width": 200,
+          "height": 356
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/ee/14/ed/ee14eddf-eb43-6fac-746e-e095f884f3d1/520e1366-2773-435e-aa25-131f21a0b260_iPhone55_7.png/392x696bb.png",
+          "width": 200,
+          "height": 356
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/99/ff/5a/99ff5afe-64d0-cbe8-b2bd-fe8fafc19894/398d247f-4318-4ad8-a591-ebf0a176c9f8_iPhone55_8.png/392x696bb.png",
+          "width": 200,
+          "height": 356
+        }
+      ],
+      "url": "https://apps.apple.com/us/app/timepage-calendar-planner/id989178902",
+      "released": "2015-05-28"
+    },
+    "storygraph": {
+      "trackId": 1570489264,
+      "name": "StoryGraph: Reading Tracker",
+      "developer": "The StoryGraph Limited",
+      "category": "Book",
+      "rating": 4.5,
+      "ratingCount": 3579,
+      "price": "Free",
+      "icon": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/12/fd/f1/12fdf131-d027-34d1-6901-8022a7bff15f/AppIcon-0-0-1x_U007emarketing-0-11-0-85-220.png/512x512bb.jpg",
+      "screenshots": [
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/2e/6b/61/2e6b61eb-ab7f-f7f0-6080-d82268db034f/iphone1.jpg/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/58/55/b5/5855b535-cddb-7a69-6635-6455fbad6411/iphone2.jpg/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/8c/ab/3c/8cab3cb3-2db2-052d-365a-b208acab68bf/iphone3.jpg/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/ca/a4/86/caa486fd-47bb-8d70-aa77-1fc9cb0dfdd8/iphone4.jpg/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/82/7a/35/827a3565-2eee-7d8e-abc7-e7b3cc17fbbc/iphone5.jpg/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/14/60/82/14608218-e82b-61f4-7778-146ac486d9b7/iphone6.jpg/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/53/1c/3b/531c3be1-7001-3aa2-8b27-25605a5b3713/iphone7.jpg/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/ac/73/0f/ac730f15-13ca-77e9-ebfb-b0776c8bf502/iphone8.jpg/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        }
+      ],
+      "url": "https://apps.apple.com/us/app/storygraph-reading-tracker/id1570489264",
+      "released": "2021-06-22"
+    },
+    "gentler-streak": {
+      "trackId": 1576857102,
+      "name": "Gentler Streak Workout Tracker",
+      "developer": "Gentler Stories d.o.o.",
+      "category": "Health & Fitness",
+      "rating": 4.7,
+      "ratingCount": 8820,
+      "price": "Free",
+      "icon": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/2d/70/df/2d70df10-d072-3b99-ed25-f2ab86c2a085/AppIcon-0-0-1x_U007epad-0-0-0-1-0-0-sRGB-0-85-220.png/512x512bb.jpg",
+      "screenshots": [
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/fc/43/dc/fc43dc40-f5df-a46d-3799-521f962107df/Valera_English_iPhone1.png/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/f7/d1/3f/f7d13f37-7120-0f03-881c-8fe0b8494472/Valera_English_iPhone2.png/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/c8/03/00/c80300ac-bd26-aba8-2d35-0e2d56bb8972/Valera_English_iPhone3.png/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/4d/d0/7c/4dd07c7b-9b01-e5ac-a29e-ece618aebf74/Valera_English_iPhone10.png/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/5c/db/eb/5cdbeb12-8cb6-1819-a85e-d5319dbc78c4/Valera_English_iPhone4.png/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/93/45/7f/93457f93-0177-5e24-3d03-29a24631244a/Valera_English_iPhone5.png/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/1a/a9/de/1aa9de5e-ffe7-2d49-17e3-50232d1c6331/Valera_English_iPhone6.png/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/da/9b/da/da9bda15-7df7-b905-8e8a-2bac80a405f8/Valera_English_iPhone7.png/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        }
+      ],
+      "url": "https://apps.apple.com/us/app/gentler-streak-workout-tracker/id1576857102",
+      "released": "2021-09-01"
+    },
+    "mela": {
+      "trackId": 1548466041,
+      "name": "Mela - Recipe Manager",
+      "developer": "Silvio Rizzi",
+      "category": "Food & Drink",
+      "rating": 4.6,
+      "ratingCount": 873,
+      "price": "Free",
+      "icon": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/06/71/0b/06710b62-6fa7-e08d-9f2c-cd3585856707/AppIcon-0-0-1x_U007epad-0-1-0-85-220.png/512x512bb.jpg",
+      "screenshots": [
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource126/v4/a0/77/97/a07797cd-5962-8e5b-f1aa-2a4104aeb413/6f5eac3a-5bb5-4b75-bec1-e75fc3070b1c_1242x2208bb-0.png/392x696bb.png",
+          "width": 200,
+          "height": 356
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource126/v4/de/71/0d/de710dac-ad66-dcf3-4f6e-b4c0b40a6168/b29d081f-9f32-47f2-b69e-4d752ca8cbf7_1242x2208bb-1.png/392x696bb.png",
+          "width": 200,
+          "height": 356
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource116/v4/1c/ed/fd/1cedfdad-62b6-9403-89a2-9b1bb968ae81/995f3184-919e-4d4d-a556-5c163a995359_1242x2208bb-2.png/392x696bb.png",
+          "width": 200,
+          "height": 356
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource126/v4/99/1c/51/991c51c1-a074-dcdf-6b9d-8e1f8e623c6d/22086d55-e5e9-4d8c-9fc2-b1d83ef49ec1_1242x2208bb-3.png/392x696bb.png",
+          "width": 200,
+          "height": 356
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource116/v4/dc/8c/6f/dc8c6f5f-1d7c-cb96-c6b4-1f83a7507aaf/d04cd35f-f912-44ba-a87c-25c9701df32a_1242x2208bb-4.png/392x696bb.png",
+          "width": 200,
+          "height": 356
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource126/v4/b6/b7/8b/b6b78b4c-f1df-25e4-5ac3-37f9932a8d15/493e687a-b1c8-431c-86f7-f1d20c27402a_1242x2208bb-5.png/392x696bb.png",
+          "width": 200,
+          "height": 356
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource116/v4/c2/c2/a8/c2c2a8c4-ca4d-9241-e718-0cf84de7977f/21acf240-b48b-4389-ab5e-34f44b3d053a_7.png/392x696bb.png",
+          "width": 200,
+          "height": 356
+        }
+      ],
+      "url": "https://apps.apple.com/us/app/mela-recipe-manager/id1548466041",
+      "released": "2021-08-15"
+    },
+    "sunlitt": {
+      "trackId": 1628751457,
+      "name": "Sunlitt: Sun Tracker & Seeker",
+      "developer": "Flipping Hues Srls",
+      "category": "Weather",
+      "rating": 4.7,
+      "ratingCount": 780,
+      "price": "Free",
+      "icon": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/a5/2e/49/a52e499f-d76b-9c46-4576-d92a7ef08597/AppIcon-0-0-1x_U007epad-0-0-0-1-0-0-sRGB-85-220.png/512x512bb.jpg",
+      "screenshots": [
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/4d/f6/3e/4df63e1d-a9e6-0009-7beb-17b9e7be9603/D36492F6-906F-4EA2-871E-4C3EB79C8F80-01.png/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/ec/73/cb/ec73cbc7-5cd5-9d57-df39-1f63899018b7/0AD5EFDE-B317-4D9C-9A52-5DB6CAF12C54-02.png/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/60/79/0a/60790a5b-7e8a-f45c-1111-4ceb4d011d0c/CEA0B71C-5D36-49E7-ACD2-D99067C71405-03.png/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/9e/54/3e/9e543e66-ee8f-f125-c70a-a3e10016bae6/3C170EC1-7C0C-4FD9-A6CC-F559A9725263-04.png/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/21/05/8b/21058b42-1ad4-b719-6b37-398419b788d0/8B95C9DD-E8A2-4BD5-AD35-DCB659F15ED6-05.png/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/ec/8f/2f/ec8f2f4e-4312-f9ee-6a57-6e4d27116326/A6DA4539-F512-4070-897F-D15B9A501106-06.png/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/a5/9b/ea/a59bea0a-71c7-6a2d-241b-32dd1fbd369d/B2C6066A-5F12-4130-B02C-6DC04D407E61-07.png/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/d9/4a/8a/d94a8aa8-645d-5614-48ad-222fe464bda5/7FD8F97E-6750-46FD-A5B4-1B9AFAE47D3E-08.png/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        }
+      ],
+      "url": "https://apps.apple.com/us/app/sunlitt-sun-tracker-seeker/id1628751457",
+      "released": "2022-06-12"
+    },
+    "how-we-feel": {
+      "trackId": 1562706384,
+      "name": "How We Feel",
+      "developer": "The How We Feel Project, Inc.",
+      "category": "Health & Fitness",
+      "rating": 4.9,
+      "ratingCount": 29809,
+      "price": "Free",
+      "icon": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/27/cc/75/27cc75bc-5747-185f-bb30-acae8fd03b09/AppIcon-0-0-1x_U007emarketing-0-11-0-85-220.png/512x512bb.jpg",
+      "screenshots": [
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/b1/71/46/b1714685-ca5c-f1f3-9eba-9635d201701e/b0bad75c-812d-4171-900c-978c52387b04_HWF-5-5in-Screen-2.png/392x696bb.png",
+          "width": 200,
+          "height": 356
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/ba/88/fe/ba88fe44-1cdd-bc9a-6e4d-6d8a8b5677d2/a4e1ddec-20f8-40c1-8fa4-22df1a6f11e8_HWF-5-5in-Screen-3-v9.png/392x696bb.png",
+          "width": 200,
+          "height": 356
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/a8/ff/68/a8ff68a7-2538-cff2-13ce-5cc103dbe379/9eee85f9-1e9d-4489-8236-f4f5eaeed566_HWF-5-5in-Screen-4-v9.png/392x696bb.png",
+          "width": 200,
+          "height": 356
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/c9/21/05/c9210590-f6d8-19e9-bf0a-2cb66fc57e5d/2b76b19c-27c0-4326-bb53-9739b9de428c_HWF-5-5in-Screen-5-v9.png/392x696bb.png",
+          "width": 200,
+          "height": 356
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/4e/7a/fd/4e7afd23-f50f-ba7f-004c-f34b946f64b2/83df0427-3ac6-4e55-a37d-fa67d9cb78f7_HWF-5-5in-Screen-6-v9.png/392x696bb.png",
+          "width": 200,
+          "height": 356
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/eb/d4/e3/ebd4e338-cca3-ec40-433d-2dae269c0e22/157a23ed-7081-4663-8e5a-af65ac58a58c_HWF-5-5in-Screen-7-v9.png/392x696bb.png",
+          "width": 200,
+          "height": 356
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/bf/88/47/bf8847d7-e070-8afa-1f1d-fe3e83ed8c09/898c7211-e4eb-4ef1-a5c5-7c9f3161e819_HWF-5-5in-Screen-8-v9.png/392x696bb.png",
+          "width": 200,
+          "height": 356
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/43/19/bb/4319bb54-542f-80a7-ac7a-cc1e6c96037a/7241a7f7-5ec4-4087-b0c2-6a1011272153_HWF-5-5in-Screen-9-v9.png/392x696bb.png",
+          "width": 200,
+          "height": 356
+        }
+      ],
+      "url": "https://apps.apple.com/us/app/how-we-feel/id1562706384",
+      "released": "2022-04-18"
+    },
+    "daylio": {
+      "trackId": 1194023242,
+      "name": "Daylio Journal - Mood Tracker",
+      "developer": "Relaxio s.r.o.",
+      "category": "Lifestyle",
+      "rating": 4.8,
+      "ratingCount": 61769,
+      "price": "Free",
+      "icon": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/fa/a3/b8/faa3b830-b85a-c634-a3eb-1e921f5b9984/AppIcon-green-new-0-0-1x_U007epad-0-1-0-0-sRGB-85-220.png/512x512bb.jpg",
+      "screenshots": [
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/53/b5/f8/53b5f820-c0cc-371d-4c7e-0e51bfd712a2/en_ios_65_01.jpg/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/bd/24/9a/bd249ac0-732e-831e-f614-eb2bbae7880c/en_ios_65_02.jpg/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/32/03/11/320311a6-6173-6101-2456-d3f4eaf0120d/en_ios_65_03.jpg/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/6f/ea/1b/6fea1b7f-9d61-2d70-3462-00037038a49d/en_ios_65_4.jpg/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/f8/c5/6a/f8c56aec-c39c-39e5-e72f-110999fd747c/en_ios_65_05.jpg/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/ed/85/68/ed856893-cc2e-b3c9-07fb-c5519d20e880/en_ios_65_06.jpg/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/ac/19/7c/ac197c29-b83f-0c38-a988-87dd8e434f6c/en_ios_65_07.jpg/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/6d/75/0e/6d750e48-8b91-65d5-a43a-526e61a5a063/en_ios_65_08.jpg/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        }
+      ],
+      "url": "https://apps.apple.com/us/app/daylio-journal-mood-tracker/id1194023242",
+      "released": "2017-01-25"
+    },
+    "flighty": {
+      "trackId": 1358823008,
+      "name": "Flighty – Live Flight Tracker",
+      "developer": "Flighty LLC",
+      "category": "Travel",
+      "rating": 4.8,
+      "ratingCount": 154059,
+      "price": "Free",
+      "icon": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/5d/df/76/5ddf7674-99c6-d215-e52a-1a46e2696c7d/AppIcon-0-0-1x_U007epad-0-1-0-sRGB-85-220.png/512x512bb.jpg",
+      "screenshots": [
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/b6/4c/91/b64c9185-863d-7057-a81b-6d518f4be436/Title_6.png/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/19/a1/c0/19a1c0c5-7aad-7d97-50a6-2a6e583ddadf/Title_2.png/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/89/4f/ea/894feaaf-cf38-e842-31a6-6949ce9365ef/Live_Activities.png/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/35/eb/4c/35eb4c72-c0ea-b820-0c93-53d1c4cd5efb/Where_U0027s_My_Plane.png/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/e6/9a/67/e69a67ad-3ab6-1168-f736-6777aac693b2/ATC_Notices.png/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/2a/a8/be/2aa8be20-f24e-7654-37d9-86785e09dfa5/Flighty_Friends.png/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/50/f1/e9/50f1e94d-9d17-9702-6c29-9d5d35476d51/Flight_Alerts.png/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/46/ec/81/46ec812e-6bde-e83d-6bb3-8caccfa92688/All_Airlines.png/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        }
+      ],
+      "url": "https://apps.apple.com/us/app/flighty-live-flight-tracker/id1358823008",
+      "released": "2019-08-19"
+    },
+    "pocket-casts": {
+      "trackId": 414834813,
+      "name": "Pocket Casts: Podcast Player",
+      "developer": "Automattic, Inc.",
+      "category": "News",
+      "rating": 4.5,
+      "ratingCount": 15904,
+      "price": "Free",
+      "icon": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/e9/0b/28/e90b2829-27c3-49d9-9f1c-f60dbf4c480e/AppIcon-0-0-1x_U007epad-0-1-0-0-85-220.png/512x512bb.jpg",
+      "screenshots": [
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/ff/10/72/ff1072c7-e8de-8d06-e3b0-d95aa1553c50/1.png/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/10/cd/e1/10cde1f4-7cd8-6907-0da2-7f302df139b2/2.png/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/66/c7/59/66c7591c-995f-bc96-9c06-6914dcda51b9/3.png/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/f3/e2/b4/f3e2b495-bf4c-c295-9fc5-a167ca8517e6/4.png/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/88/6e/1f/886e1ffb-8b7f-b4c9-3d66-18344659474c/5.png/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/a8/24/3f/a8243f66-680d-13cf-80eb-3376cbc79ada/6.png/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/28/98/5e/28985e8a-8595-3932-f718-9c2d3d9ff936/7.png/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        }
+      ],
+      "url": "https://apps.apple.com/us/app/pocket-casts-podcast-player/id414834813",
+      "released": "2011-01-26"
+    },
+    "pennies": {
+      "trackId": 916741290,
+      "name": "Pennies: Budget & Bill Tracker",
+      "developer": "The App Shop, Inc.",
+      "category": "Finance",
+      "rating": 4.6,
+      "ratingCount": 1814,
+      "price": "Free",
+      "icon": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/2c/eb/21/2ceb21b0-0260-d237-6d0c-042d63fe9555/AppIcon-0-0-1x_U007emarketing-0-10-0-85-220.png/512x512bb.jpg",
+      "screenshots": [
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/49/0d/df/490ddf5f-34b6-fe08-130b-4091e634e56a/Pennies_1_EN-US-6.7.jpg/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/76/6d/e3/766de3ae-e957-9043-734e-6081d502232e/Pennies_2_EN-US-6.7.jpg/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/6f/88/b3/6f88b366-869e-6641-f97a-30a24a435747/Pennies_3_EN-US-6.7.jpg/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/2c/2a/3f/2c2a3f44-79a1-67e4-92eb-698e0fead14b/Pennies_4_EN-US-6.7.jpg/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/af/c2/2f/afc22f2d-8c5b-06ba-2a70-e3fb23c48107/Pennies_5_EN-US-6.7.jpg/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/9e/ae/1d/9eae1db8-c748-9064-5eb4-d959a63f7b04/Pennies_6_EN-US-6.7.jpg/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/72/47/57/7247571d-9254-ecca-6a95-7e7657ecd3db/Pennies_7_EN-US-6.7.jpg/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/f7/f6/df/f7f6df91-4224-6ecc-53ea-3f610a4a8551/Pennies_8_EN-US-6.7.jpg/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        }
+      ],
+      "url": "https://apps.apple.com/us/app/pennies-budget-bill-tracker/id916741290",
+      "released": "2014-10-09"
+    },
+    "planta": {
+      "trackId": 1410126781,
+      "name": "Planta: Plant & Garden Care",
+      "developer": "Planta AB",
+      "category": "Lifestyle",
+      "rating": 4.8,
+      "ratingCount": 113906,
+      "price": "Free",
+      "icon": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/6a/69/68/6a6968db-5869-b7b3-6f30-7362ada933d1/AppIcon-Prod-0-0-1x_U007epad-0-1-85-220.png/512x512bb.jpg",
+      "screenshots": [
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/06/40/69/06406996-6ad4-9a60-0896-a6eb78e98cee/21a249f3-1bba-4ab6-ac5b-11c024f95e6b_Planta_PPO_Social_proof_iOS_5.5_Mobile_1242x2208px_view1.jpg/392x696bb.jpg",
+          "width": 200,
+          "height": 356
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/3d/a9/cb/3da9cbd0-7d4e-850b-25a8-ec5c23b082bf/89ccdf54-1ee6-4acf-a87e-c61e1823ba9d_1242x2208bb-2.png/392x696bb.png",
+          "width": 200,
+          "height": 356
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/0e/d3/e3/0ed3e385-1c91-e040-8cb8-8bb2f0ca6842/3dcc53e3-5a9e-45be-9217-d412c927a8f6_1242x2208bb-3.png/392x696bb.png",
+          "width": 200,
+          "height": 356
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/0a/61/78/0a61789b-cf03-aabd-9b8b-15aa075b4e06/fa0a68d1-4e58-450c-bbb4-764c498c93c9_1242x2208bb-4.png/392x696bb.png",
+          "width": 200,
+          "height": 356
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/3a/1d/fc/3a1dfcce-be2c-e6c6-a51a-3d841e3dc292/4479a65d-e88d-4797-8564-b3f3e4cf6ab9_EN_Planta_lightmeter_5.5inch.png/392x696bb.png",
+          "width": 200,
+          "height": 356
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/61/37/5d/61375d3f-d9bb-4c9b-2cd9-065c0ab8cd4d/7a3a01dc-bdb0-41da-b34d-d5c280d5b54f_EN_Planta_Community_5.5inch.png/392x696bb.png",
+          "width": 200,
+          "height": 356
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/54/1c/65/541c65dc-2886-c79f-0def-1f08b4738797/95dba583-94fe-4d88-9e7c-70c70619e05e_EN_Planta_drplanta_5.5inch.png/392x696bb.png",
+          "width": 200,
+          "height": 356
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/1e/47/13/1e471314-5880-2916-241b-71374bd2f981/335031c4-7687-4017-b4cc-ad6fc3b25811_Screen_8.png/392x696bb.png",
+          "width": 200,
+          "height": 356
+        }
+      ],
+      "url": "https://apps.apple.com/us/app/planta-plant-garden-care/id1410126781",
+      "released": "2018-11-07"
+    },
+    "vocabulary": {
+      "trackId": 1084540807,
+      "name": "Vocabulary - Learn words daily",
+      "developer": "Monkey Taps",
+      "category": "Education",
+      "rating": 4.8,
+      "ratingCount": 218409,
+      "price": "Free",
+      "icon": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/2b/cc/73/2bcc737d-5d13-bb55-fb73-33b80f6c5ceb/0_voc-0-0-1x_U007epad-0-0-0-1-0-0-85-220.png/512x512bb.jpg",
+      "screenshots": [
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/fb/db/af/fbdbaf91-5eae-2da2-84c2-21e2c8d9df1b/iPh_65_01.jpg/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/13/a1/26/13a12606-df7b-61b1-5239-6281b44291fb/iPh_65_02.jpg/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/05/ef/17/05ef1723-c736-5c75-c900-c693d1662170/iPh_65_03.jpg/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/90/a4/a1/90a4a1e8-c066-5fa6-5b5d-8bc1eb8b8351/iPh_65_04.jpg/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/57/ef/a8/57efa8a3-0cc0-e5cc-6f8e-74f6451cd087/iPh_65_05.jpg/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/c4/eb/b0/c4ebb063-16d7-8191-d943-af313c7e7a25/iPh_65_06.jpg/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/65/9f/7f/659f7f7b-c704-58f1-f9fa-188740ff26b8/iPh_65_07.jpg/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/99/a1/57/99a157fc-fe87-a073-77c5-acc13c9cb6e1/iPh_65_08.jpg/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        }
+      ],
+      "url": "https://apps.apple.com/us/app/vocabulary-learn-words-daily/id1084540807",
+      "released": "2016-02-19"
+    },
+    "stoic": {
+      "trackId": 1312926037,
+      "name": "stoic. journal & mental health",
+      "developer": "Stoic app inc.",
+      "category": "Health & Fitness",
+      "rating": 4.8,
+      "ratingCount": 35764,
+      "price": "Free",
+      "icon": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/1c/62/a4/1c62a433-afaa-852a-adc9-21443c4fe59d/app-icon-0-0-1x_U007epad-0-1-0-85-220.png/512x512bb.jpg",
+      "screenshots": [
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/7c/2e/76/7c2e7630-a704-583f-0363-ea1a6da1181f/1-iphone-small-en.jpg/392x696bb.jpg",
+          "width": 200,
+          "height": 356
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/b6/f0/f8/b6f0f819-7f75-dcf7-3c48-3483b824c7c1/2-iphone-small-en.jpg/392x696bb.jpg",
+          "width": 200,
+          "height": 356
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/44/5f/b8/445fb8e0-c47b-9164-07f1-027a28fbb321/3-iphone-small-en.jpg/392x696bb.jpg",
+          "width": 200,
+          "height": 356
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/92/33/23/923323b0-f20e-e5d8-9c98-f4b276ce4fb4/4-iphone-small-en.jpg/392x696bb.jpg",
+          "width": 200,
+          "height": 356
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/1e/cf/84/1ecf8497-58a9-ba65-38ab-d092d7e3e391/6-iphone-small-en.jpg/392x696bb.jpg",
+          "width": 200,
+          "height": 356
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/43/61/fa/4361fa99-e98b-919e-e75f-dda3df02f465/5-iphone-small-en.jpg/392x696bb.jpg",
+          "width": 200,
+          "height": 356
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/89/72/13/89721390-a1bf-b3f6-c618-6629a0613fa4/7-iphone-small-en.jpg/392x696bb.jpg",
+          "width": 200,
+          "height": 356
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/fd/b9/d9/fdb9d905-cec4-b851-7283-da630a6352e3/8-iphone-small-en.jpg/392x696bb.jpg",
+          "width": 200,
+          "height": 356
+        }
+      ],
+      "url": "https://apps.apple.com/us/app/stoic-journal-mental-health/id1312926037",
+      "released": "2017-11-15"
+    },
+    "habitify": {
+      "trackId": 1111447047,
+      "name": "Habitify: Habit Tracker",
+      "developer": "Unstatic Ltd Co",
+      "category": "Health & Fitness",
+      "rating": 4.6,
+      "ratingCount": 7137,
+      "price": "Free",
+      "icon": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/b1/d8/b6/b1d8b6ff-ff05-ac49-dd02-00890ff1689d/AppIcon-0-0-1x_U007epad-0-1-0-85-220.jpeg/512x512bb.jpg",
+      "screenshots": [
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/f9/ac/4b/f9ac4be8-de3f-6a61-6efa-14185aa8d6a1/English_V3-6.jpg/320x480bb.jpg",
+          "width": 200,
+          "height": 434
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/21/4c/29/214c29e1-c50d-6db6-2125-d11767164c21/English_V3-7.jpg/320x480bb.jpg",
+          "width": 200,
+          "height": 434
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/e1/90/b7/e190b7b0-0178-a4b9-1a4e-35b01373666e/English_V3.jpg/320x480bb.jpg",
+          "width": 200,
+          "height": 434
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/47/27/08/47270864-608f-da58-30bb-acbdb087d01d/English_V3-1.jpg/320x480bb.jpg",
+          "width": 200,
+          "height": 434
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/f3/63/bb/f363bbc3-3bc7-ded8-15ff-a2416df009d9/English_V3-4.jpg/320x480bb.jpg",
+          "width": 200,
+          "height": 434
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/3d/8e/27/3d8e2789-1667-6a8a-eccb-701c358741b7/English_V3-2.jpg/320x480bb.jpg",
+          "width": 200,
+          "height": 434
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/e8/62/24/e86224d2-0fa6-19ca-6b5e-4a9db2649fa2/English_V3-3.jpg/320x480bb.jpg",
+          "width": 200,
+          "height": 434
+        }
+      ],
+      "url": "https://apps.apple.com/us/app/habitify-habit-tracker/id1111447047",
+      "released": "2016-09-02"
+    },
+    "tricount": {
+      "trackId": 349866256,
+      "name": "tricount: Split & Settle Bills",
+      "developer": "Tricount SA",
+      "category": "Finance",
+      "rating": 4.9,
+      "ratingCount": 7187,
+      "price": "Free",
+      "icon": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/99/eb/6b/99eb6b59-988c-89d5-772b-1534f0a3faa3/AppIcon-0-0-1x_U007emarketing-0-5-0-85-220.png/512x512bb.jpg",
+      "screenshots": [
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/17/da/f8/17daf874-ce5e-8cab-283f-fe6d516f05b5/tricount_app_store_iphone_store_screen_1.png/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/d3/b7/29/d3b7292e-f7d9-8085-99ce-d3e774579168/tricount_app_store_iphone_store_screen_2.png/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/02/5c/bf/025cbf11-4dee-7a50-3054-550d2fe228a9/tricount_app_store_iphone_store_screen_3.jpg/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/37/c1/41/37c1414c-9983-d269-4b81-714f8b283a36/tricount_app_store_iphone_store_screen_4.jpg/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/95/45/8f/95458f58-b829-6e2a-e095-a29c97796b7d/tricount_app_store_iphone_store_screen_5.jpg/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/59/6f/df/596fdf77-4464-8b9d-2047-e6bc0c6e0fae/tricount_app_store_iphone_store_screen_6.jpg/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/21/ce/ca/21ceca7c-6de8-3064-b9d3-e8e646474c5b/tricount_app_store_iphone_store_screen_7.jpg/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/8d/60/e7/8d60e72c-5709-bfc9-39e5-d00b34f8714b/tricount_app_store_iphone_store_screen_8.jpg/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        }
+      ],
+      "url": "https://apps.apple.com/us/app/tricount-split-settle-bills/id349866256",
+      "released": "2010-02-01"
+    },
+    "waterllama": {
+      "trackId": 1454778585,
+      "name": "Water tracker Waterllama",
+      "developer": "Llama Luna Apps Inc",
+      "category": "Health & Fitness",
+      "rating": 4.9,
+      "ratingCount": 161794,
+      "price": "Free",
+      "icon": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/b0/42/f6/b042f681-3552-d5a5-46a5-fd8a4ea84176/AppIcon-Main-0-0-1x_U007epad-0-0-0-1-0-0-sRGB-85-220.png/512x512bb.jpg",
+      "screenshots": [
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/2b/fd/2c/2bfd2c54-97d0-74f4-00d4-18e60d3b665c/094f4379-ff77-490a-80d4-f89ce9d37a85_1---water-tracker---water-reminder---drink.png/392x696bb.png",
+          "width": 200,
+          "height": 356
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/2b/59/dd/2b59dd10-784b-9d6a-af18-a845a2d8d0a3/180cb97f-35b4-4623-a4a8-e5d94ebbcda3_2---drink-water-tracker---drink-water-reminder---drink-tracker.png/392x696bb.png",
+          "width": 200,
+          "height": 356
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/30/48/86/30488638-f1ce-98f5-3986-7e23ba3c1128/11c7ef47-7734-478b-ab82-9123e8f0dd80_3_-_waterminder_-_plant_nanny_-_water_reminder_free.png/392x696bb.png",
+          "width": 200,
+          "height": 356
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/89/2d/42/892d420e-2493-e977-951e-25c4aa057a99/4befecc9-3f5b-408b-b198-4b628cffcbac_6_-_water_fasting_app_-_water_drinking_app.png/392x696bb.png",
+          "width": 200,
+          "height": 356
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/90/fa/1f/90fa1f65-615f-6ab3-924d-a98eecc11703/05fa10bf-a703-46e6-8705-021599905935_4_-_my_water_-_mywater_-_water_drinking_reminder.png/392x696bb.png",
+          "width": 200,
+          "height": 356
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/f1/cc/be/f1ccbe5b-88e8-1e94-cac0-38d643670411/38cc3189-6870-495a-8155-f73b1bd1bfd4_5_-_health_tracker_-_water_app_-_drinking_water.png/392x696bb.png",
+          "width": 200,
+          "height": 356
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/a8/2e/08/a82e0886-a098-bdea-f088-b3aa6c6d9b1c/tns.clwnocei.png/392x696bb.png",
+          "width": 200,
+          "height": 356
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/c6/36/a4/c636a43d-af9e-84f0-fee1-7024cc4c6232/d46d8700-3195-478b-9c80-4b0627a2934f_8_-_water_intake_-_water_tracker_apple_watch_-_hydrate.png/392x696bb.png",
+          "width": 200,
+          "height": 356
+        }
+      ],
+      "url": "https://apps.apple.com/us/app/water-tracker-waterllama/id1454778585",
+      "released": "2019-03-30"
+    },
+    "tripsy": {
+      "trackId": 1429967544,
+      "name": "Tripsy: Travel Planner",
+      "developer": "Tripsy LLC",
+      "category": "Travel",
+      "rating": 4.7,
+      "ratingCount": 5585,
+      "price": "Free",
+      "icon": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/de/cc/87/decc875c-0d5d-6792-23e8-89a814e1f2e9/App_Icon_Original-0-0-1x_U007epad-0-0-0-1-0-0-sRGB-85-220.png/512x512bb.jpg",
+      "screenshots": [
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/e7/f0/f2/e7f0f287-78db-582a-1bd6-c6132c05521a/iPhone_6.5_Travel_Planner.jpg/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/61/fd/f9/61fdf99d-8ad9-a4eb-80e6-99be2ec9d5f5/iPhone_6.5_New_York.jpg/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/70/97/49/7097491e-94be-37b6-bb9d-da03c102909c/iPhone_6.5_Trip_Organizer.jpg/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/0f/eb/25/0feb25b5-2059-73b2-51ef-c9e317084d86/iPhone_6.5_Activity_Lists.jpg/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/3a/e7/3f/3ae73f2c-7f7b-6f42-b04d-0ff157837538/iPhone_6.5_Flight_Detail.jpg/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/e1/d9/9c/e1d99c55-7ec8-d0a5-4c73-9b3a1e9ca9d0/iPhone_6.5_Flight_Alerts.jpg/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/28/e8/a4/28e8a4dd-39d5-b93e-4c0d-2d6a6dc0ceab/iPhone_6.5_Expenses.jpg/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/8e/ab/63/8eab63ef-a42c-db66-2144-5d7837ebdc8d/iPhone_6.5_Trip_Guests.jpg/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        }
+      ],
+      "url": "https://apps.apple.com/us/app/tripsy-travel-planner/id1429967544",
+      "released": "2018-10-26"
+    },
+    "sofa": {
+      "trackId": 1276554886,
+      "name": "Sofa: Downtime Organizer",
+      "developer": "Astrio, LLC",
+      "category": "Productivity",
+      "rating": 4.7,
+      "ratingCount": 3081,
+      "price": "Free",
+      "icon": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/20/d4/33/20d4333e-979c-f2a6-6896-37d1b050ebbb/AppIcon-0-0-1x_U007epad-0-0-0-1-0-0-85-220.png/512x512bb.jpg",
+      "screenshots": [
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/af/01/1e/af011ef6-aec6-e1ee-32eb-5cb787268eaa/Sofa_App_Store_Screenshot_1.png/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/9f/18/b6/9f18b6fc-87fc-3079-6505-096c3522c0bc/Sofa_App_Store_Screenshot_2.png/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/19/9a/f8/199af82c-7637-4f1b-2b47-4b8a81018a6a/Sofa_App_Store_Screenshot_3.png/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/69/8a/3d/698a3dfe-2a12-3fb3-fef4-a1f8037cbe82/Sofa_App_Store_Screenshot_4.png/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/01/d1/5f/01d15f5a-7dff-45f3-48e5-b785e8b1082d/Sofa_App_Store_Screenshot_5.png/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/18/8d/69/188d69fd-68fd-baf4-b32d-f119ed26976b/Sofa_App_Store_Screenshot_6.png/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/10/88/3c/10883c59-1341-cf2d-dfde-7a592ba9509f/Sofa_App_Store_Screenshot_7.png/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/b0/90/f7/b090f71e-df9d-7a7a-914e-6220d829b80a/Sofa_App_Store_Screenshot_8.png/320x480bb.jpg",
+          "width": 200,
+          "height": 433
+        }
+      ],
+      "url": "https://apps.apple.com/us/app/sofa-downtime-organizer/id1276554886",
+      "released": "2017-12-13"
+    },
+    "tiimo": {
+      "trackId": 1480220328,
+      "name": "Tiimo: To-Do List Planner",
+      "developer": "tiimo ApS",
+      "category": "Productivity",
+      "rating": 4.6,
+      "ratingCount": 20231,
+      "price": "Free",
+      "icon": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/c8/61/63/c8616333-bf4d-4c2f-9e29-651acd755ae9/AppIcon-0-0-1x_U007epad-0-1-0-P3-85-220.png/512x512bb.jpg",
+      "screenshots": [
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/0a/42/fb/0a42fb17-a478-fe50-7af2-7d551a47e2e9/iPhone_6_U00279_01.jpg/320x480bb.jpg",
+          "width": 200,
+          "height": 435
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/c7/96/d6/c796d6b4-7ba1-bd85-0590-4458ce6d697f/iPhone_6_U00279_02.jpg/320x480bb.jpg",
+          "width": 200,
+          "height": 435
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/05/2b/21/052b215b-8c14-1368-7da8-1d66207b33fc/iPhone_6_U00279_03.jpg/320x480bb.jpg",
+          "width": 200,
+          "height": 435
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/9b/3f/f5/9b3ff5c3-74f9-4497-b283-9fa9551fe818/iPhone_6_U00279_04.jpg/320x480bb.jpg",
+          "width": 200,
+          "height": 435
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/d1/cc/c9/d1ccc96b-b6cb-c7d9-9b7a-fe8a7af8e230/iPhone_6_U00279_05.jpg/320x480bb.jpg",
+          "width": 200,
+          "height": 435
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/a8/01/72/a80172e0-2237-edd1-2c8a-a0381889ee79/iPhone_6_U00279_06.jpg/320x480bb.jpg",
+          "width": 200,
+          "height": 435
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/9d/9a/9f/9d9a9fc9-9f45-b33c-063e-26d563dae114/iPhone_6_U00279_07.jpg/320x480bb.jpg",
+          "width": 200,
+          "height": 435
+        }
+      ],
+      "url": "https://apps.apple.com/us/app/tiimo-to-do-list-planner/id1480220328",
+      "released": "2019-10-28"
+    }
+  }
+}

@@ -1,0 +1,200 @@
+// Book Row: a book the way reading trackers list it. A typographic cover, the title bold, the
+// author, length and year, then genre words (primary ink) and mood words (secondary ink). In a list
+// it ends with a shelf dropdown (to read, currently reading, read, did not finish) that opens in
+// place; in a feed it sits in a card under who did what and when, with a rating and a like. It rises
+// in on appear, the cover swings open, and the like count rolls.
+import type { SwiftPieceDefinition } from "../../core/schema.js";
+import { call, num } from "../../core/swift.js";
+import { number, opts, select, text } from "../shared.js";
+import { BOOK_COVER_SWIFT, coverArgs } from "./book-cover.js";
+import { items, swiftHex, swiftStrs } from "./data-kit.js";
+
+const s = (p: Record<string, unknown>, k: string) => String(p[k] ?? "");
+const n = (p: Record<string, unknown>, k: string) => Number(p[k] ?? 0);
+
+export const SHELVES = ["to read", "currently reading", "read", "did not finish"];
+/** The old coloured tag inks, kept for anything that imports them; tags now read in label colours. */
+export const GENRE_INK = "#4D8DFF";
+export const MOOD_INK = "#FF7A3C";
+
+const SWIFT = [
+  "private struct BookRow: View {",
+  "    let title: String",
+  "    var author = \"\"",
+  "    var meta = \"\"",
+  "    var genres: [String] = []",
+  "    var moods: [String] = []",
+  "    let cover: BookCover",
+  "    var feed = false",
+  "    var who = \"\"",
+  "    var did = \"\"",
+  "    var when = \"\"",
+  "    var rating: Double = 0",
+  "    var likes = 0",
+  "    var genreInk: Color = .primary",
+  "    var moodInk: Color = .secondary",
+  "    var outlined = true",
+  "    @State var shelf = \"to read\"",
+  "    @State private var liked = false",
+  "    @State private var shown = false",
+  "    @Environment(\\.accessibilityReduceMotion) private var reduceMotion",
+  "    private let shelves = [\"to read\", \"currently reading\", \"read\", \"did not finish\"]",
+  "",
+  "    var body: some View {",
+  "        VStack(alignment: .leading, spacing: 12) {",
+  "            if feed {",
+  "                Text(when).font(.caption).foregroundStyle(.secondary).frame(maxWidth: .infinity, alignment: .trailing)",
+  "                HStack(alignment: .top, spacing: 10) {",
+  "                    Text(String(who.prefix(1)).uppercased())",
+  "                        .font(.subheadline.weight(.bold))",
+  "                        .frame(width: 34, height: 34)",
+  "                        .background(.fill.secondary, in: .circle)",
+  "                    Text(\"**\\(who)** \\(did)\").font(.subheadline)",
+  "                }",
+  "            }",
+  "            HStack(alignment: .top, spacing: 14) {",
+  "                cover",
+  "                VStack(alignment: .leading, spacing: 6) {",
+  "                    Text(title).font(.headline)",
+  "                    Text(author).font(.subheadline)",
+  "                    if !meta.isEmpty {",
+  "                        Label(meta, systemImage: \"book\").font(.footnote).foregroundStyle(.secondary)",
+  "                    }",
+  "                    Text(tags).font(.subheadline).lineLimit(2)",
+  "                    if rating > 0 {",
+  "                        Label(String(format: \"%.1f\", rating), systemImage: \"star.fill\")",
+  "                            .font(.footnote.weight(.semibold))",
+  "                            .foregroundStyle(.secondary)",
+  "                    }",
+  "                    if feed {",
+  "                        Button {",
+  "                            withAnimation(.bouncy) { liked.toggle() }",
+  "                        } label: {",
+  "                            Label(likes + (liked ? 1 : 0) > 0 ? \"× \\(likes + (liked ? 1 : 0))\" : \"\", systemImage: liked ? \"heart.fill\" : \"heart\")",
+  "                                .foregroundStyle(liked ? Color.accentColor : Color.primary)",
+  "                                .frame(minHeight: 44)",
+  "                                .contentShape(Rectangle())",
+  "                                .contentTransition(.numericText())",
+  "                                .symbolEffect(.bounce, value: liked)",
+  "                        }",
+  "                        .buttonStyle(BookRowPressStyle())",
+  "                        .sensoryFeedback(.impact(weight: .light), trigger: liked)",
+  "                    } else {",
+  "                        Menu {",
+  "                            Picker(\"Shelf\", selection: $shelf) {",
+  "                                ForEach(shelves, id: \\.self) { Text($0) }",
+  "                            }",
+  "                        } label: {",
+  "                            HStack(spacing: 6) {",
+  "                                Text(shelf)",
+  "                                Image(systemName: \"chevron.down\").font(.caption.weight(.bold))",
+  "                            }",
+  "                            .font(.subheadline.weight(.semibold))",
+  "                            .foregroundStyle(Color.accentColor)",
+  "                            .padding(.horizontal, 16)",
+  "                            .frame(height: 36)",
+  "                            .background(Color.accentColor.opacity(0.14), in: .capsule)",
+  "                        }",
+  "                        .sensoryFeedback(.selection, trigger: shelf)",
+  "                    }",
+  "                }",
+  "            }",
+  "        }",
+  "        .padding(feed && outlined ? 16 : 0)",
+  "        .overlay {",
+  "            if feed && outlined { RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(.quaternary) }",
+  "        }",
+  "        .opacity(shown ? 1 : 0)",
+  "        .scaleEffect(shown || reduceMotion ? 1 : 0.95)",
+  "        .onAppear { withAnimation(.easeOut(duration: 0.28)) { shown = true } }",
+  "    }",
+  "",
+  "    private var tags: AttributedString {",
+  "        var out = AttributedString()",
+  "        for (i, g) in genres.enumerated() { var a = AttributedString((i > 0 ? \" · \" : \"\") + g); a.foregroundColor = genreInk; a.font = .subheadline.weight(.medium); out += a }",
+  "        for (i, m) in moods.enumerated() { var a = AttributedString((i > 0 || !genres.isEmpty ? \" · \" : \"\") + m); a.foregroundColor = moodInk; out += a }",
+  "        return out",
+  "    }",
+  "}",
+  "",
+  "private struct BookRowPressStyle: ButtonStyle {",
+  "    func makeBody(configuration: Configuration) -> some View {",
+  "        configuration.label",
+  "            .scaleEffect(configuration.isPressed ? 0.97 : 1)",
+  "            .animation(.easeOut(duration: 0.12), value: configuration.isPressed)",
+  "    }",
+  "}",
+];
+
+export const bookRow: SwiftPieceDefinition = {
+  id: "book-row",
+  name: "Book Row",
+  category: "pieces",
+  description: "A book with a typographic cover, author and length, genre and mood words in two colours, and a shelf dropdown; or, in a feed card, who read it, a rating and a like.",
+  availability: "free",
+  preview: { component: "book-row", chunk: "app-pieces" },
+  // A feed card drops its outline in a list, which draws the surface.
+  list: { bare: { frame: "none" } },
+  icon: "book",
+  concepts: ["state", "button"],
+  anatomy: [
+    { part: "Book", props: ["title", "author", "meta"] },
+    { part: "Tags", props: ["genres", "moods"] },
+    { part: "Shelf", props: ["shelf"] },
+    { part: "Feed", props: ["style", "who", "did", "when", "rating", "likes"] },
+    { part: "Cover", props: ["coverWidth"] },
+  ],
+  interactions: ["tap", "select", "menu", "toggle", "haptic"],
+  variants: [
+    { id: "list", label: "In a list", props: { style: "list" } },
+    { id: "feed", label: "In a feed", props: { style: "feed", who: "maya", did: "finished and rated:", when: "yesterday", rating: 4.5, likes: 0 } },
+  ],
+  states: [
+    { id: "reading", label: "Currently reading", props: { shelf: "currently reading" } },
+    { id: "read", label: "Read", props: { shelf: "read" } },
+  ],
+  properties: [
+    text("title", "Title", "Salt and Iron: A Memoir"),
+    text("author", "Author", "Dana Okafor"),
+    text("meta", "Length and year", "256 pages · 2025"),
+    text("genres", "Genres", "nonfiction, memoir, history"),
+    text("moods", "Moods", "emotional, reflective, medium-paced"),
+    select("shelf", "Shelf", "to read", opts(...SHELVES.map((x) => [x, x[0].toUpperCase() + x.slice(1)] as [string, string]))),
+    select("style", "Style", "list", opts(["list", "List"], ["feed", "Feed card"])),
+    text("who", "Who", "maya", { when: { prop: "style", equals: ["feed"] } }),
+    text("did", "Did", "finished and rated:", { when: { prop: "style", equals: ["feed"] } }),
+    text("when", "When", "yesterday", { when: { prop: "style", equals: ["feed"] } }),
+    number("rating", "Rating", 0, 0, 5, 0.25, { hint: "0 hides it." }),
+    number("likes", "Likes", 0, 0, 999, 1, { when: { prop: "style", equals: ["feed"] } }),
+    number("coverWidth", "Cover width", 88, 56, 140),
+    select("frame", "Feed card frame", "outline", opts(["outline", "Outlined"], ["none", "None (set it in your own card)"]), { when: { prop: "style", equals: ["feed"] } }),
+  ],
+  swift: {
+    imports: [],
+    emit(p, ctx) {
+      ctx.declare("BookCover", BOOK_COVER_SWIFT);
+      ctx.declare("BookRow", SWIFT);
+      const feed = s(p, "style") === "feed";
+      const genres = items(s(p, "genres"));
+      const moods = items(s(p, "moods"));
+      return {
+        lines: call("BookRow", [
+          ["title", ctx.str(s(p, "title"))],
+          s(p, "author") && ["author", ctx.str(s(p, "author"))],
+          s(p, "meta") && ["meta", ctx.str(s(p, "meta"))],
+          genres.length > 0 && ["genres", swiftStrs(genres, ctx.str)],
+          moods.length > 0 && ["moods", swiftStrs(moods, ctx.str)],
+          ["cover", coverArgs(s(p, "title"), s(p, "author"), Math.round(n(p, "coverWidth") || 88), (h) => swiftHex(h), ctx.str)],
+          feed && ["feed", "true"],
+          feed && ["who", ctx.str(s(p, "who"))],
+          feed && ["did", ctx.str(s(p, "did"))],
+          feed && ["when", ctx.str(s(p, "when"))],
+          n(p, "rating") > 0 && ["rating", num(n(p, "rating"))],
+          feed && n(p, "likes") > 0 && ["likes", String(Math.round(n(p, "likes")))],
+          feed && s(p, "frame") === "none" && ["outlined", "false"],
+          !feed && s(p, "shelf") !== "to read" && ["shelf", ctx.str(s(p, "shelf"))],
+        ]),
+      };
+    },
+  },
+};

@@ -1,7 +1,8 @@
 import { Container } from "@/components/ui/container";
 import { Eyebrow } from "@/components/ui/badge";
 import { Button, Arrow } from "@/components/ui/button";
-import { Command } from "@/components/ui/code";
+import Link from "next/link";
+import { NewBadge } from "@/components/ui/new-badge";
 import { AnimatedText } from "@/components/ui/animated-text";
 import { Reveal } from "@/components/effects/reveal";
 // The halftone 3D Swift mark, retired for the flowing lines (hero-lines.tsx). Kept for now.
@@ -31,8 +32,12 @@ export function Hero() {
             <Reveal priority delay={0.35}><p className={cn("mt-6 max-w-xl", sectionBody)}>The motion, haptics and accessibility the best apps get right, as production SwiftUI components. Install with one command and make them yours.</p></Reveal>       
             <Reveal priority delay={0.45} className="mt-9 flex flex-wrap items-center gap-3">
               <Button href="/components">Browse the library <Arrow /></Button>
-              {/* Same h-11 as the md Button, with its 10px corner and hairline so the pair reads as one row. */}
-              <Command text="npx swiftpieces init" className="rounded-[4px]! border border-[var(--card-border)]" />
+              {/* The quiet second way in, in the underline style of the page's other text links. */}
+              <Link href="/apps" className="group inline-flex h-11 items-center gap-2 px-3 text-sm font-semibold text-foreground">
+                <span className="u-link">Try the new Playground</span>
+                <NewBadge>Beta</NewBadge>
+                <Arrow />
+              </Link>
             </Reveal>
           </div>
         </div>

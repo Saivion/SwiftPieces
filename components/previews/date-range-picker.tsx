@@ -14,7 +14,7 @@ const spring = "cubic-bezier(0.34, 1.4, 0.64, 1)";
 const ease = "cubic-bezier(0.22, 1, 0.36, 1)";
 
 /** The Swift `Style.standard` values on the dark appearance. */
-const card = "#1c1c1c", control = "#262626", band = "#4a4029", endpointFill = blocks.butter, disabled = "#5e5c58";
+const card = ground.surface, control = ground.field, band = ground.band, endpointFill = blocks.butter, disabled = ground.subtle;
 
 function useReducedMotion() {
   const [reduced, setReduced] = useState(false);

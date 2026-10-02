@@ -1,8 +1,9 @@
 {
   "title": "Data",
-  "description": "Scrubbable charts, rings, live stats and odometers.",
+  "description": "Scrubbable charts, rings, streak heatmaps, live stats and odometers.",
   "defaultOpen": false,
   "pages": [
+    "activity-heatmap",
     "live-stat",
     "odometer",
     "ring-breakdown",

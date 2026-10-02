@@ -1,7 +1,7 @@
 import { Container } from "@/components/ui/container";
 import { Button, Arrow } from "@/components/ui/button";
 import { Reveal } from "@/components/effects/reveal";
-import { DitherStage } from "@/components/visual/dither-stage";
+import { ACCENT_DITHER, DitherStage } from "@/components/visual/dither-stage";
 import { getRegistryIndex } from "@/lib/registry";
 import { pro } from "@/lib/site";
 import { sectionTitle, sectionBody, CornerTicks } from "@/components/sections/feature-row";
@@ -13,16 +13,11 @@ import { cn } from "@/lib/cn";
  * Pro's library cards stand on, so all the colour sits on one side.
  * On small screens the colour field drops below the copy as a band.
  */
-/**
- * Pro's dither palette led by the accent: an orange-to-red wash, a pink ribbon and a blue bloom.
- * The pale honeydew stop is left out, so it stays as colourful as Pro's cards but reads deeper.
- */
-const ACCENT_DITHER = ["#ff7a3c", "#ff0000", "#ff8fb8", "#4d8dff"] as const;
-
 export function GetStarted() {
   const items = getRegistryIndex();
   return (
-    <section className="relative py-24 sm:py-32">
+    // Half a gap above like every band (feature-row.tsx), a full one below: it closes the page.
+    <section className="relative pt-12 pb-24 sm:pt-16 sm:pb-32">
       <Container>
         <Reveal>
           {/* The dashed artboard frame and corner ticks of the landing visuals above: the left half is

@@ -1,9 +1,11 @@
 {
   "title": "Lists",
-  "description": "Rows and carousels with swipe, depth and completion physics.",
+  "description": "Rows, grids and carousels with swipe, drag-to-select, follow-the-latest and completion physics.",
   "defaultOpen": false,
   "pages": [
     "depth-carousel",
+    "drag-select-grid",
+    "follow-scroll",
     "paged-list",
     "status-timeline",
     "swipe-action-row",

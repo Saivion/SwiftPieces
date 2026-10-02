@@ -20,7 +20,8 @@
   --radius-sm: 8px;
   --radius: 14px;
   --radius-lg: 20px;
-  --radius-pill: 999px;
+  /* "Pill" is historical: everything shares the 4px radius, nothing is fully rounded. */
+  --radius-pill: 4px;
   --card-border: rgba(255, 255, 255, 0.08);
   --card-border-hover: rgba(255, 255, 255, 0.16);
   --container: 1520px;
