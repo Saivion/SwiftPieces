@@ -9,7 +9,8 @@
 // get Pro limits, saves to their account and AI remix. All of that goes to the Pro site's API
 // through lib/pro-bridge (a Bearer token, no cookies), which decides on the server what anyone may do.
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { FREE_LIMITS, PRO_LIMITS, createCatalog, createRegistry, freeDefinitions, type CatalogEntry, type Project } from "@swiftpieces/builder";
+import posthog from "posthog-js";
+import { FREE_LIMITS, PRO_LIMITS, createCatalog, createRegistry, freeDefinitions, type BuilderEventName, type CatalogEntry, type Project } from "@swiftpieces/builder";
 import { patternsCatalogSource } from "@swiftpieces/builder/catalog";
 import { Playground, beaconTracker, type PlaygroundHost, BuildArt } from "@swiftpieces/builder/react";
 import type { SourceResolver } from "@swiftpieces/builder/export";
@@ -26,7 +27,51 @@ import { AppBadge, AppSidebarFooter, AppsSidebar, sidebarItems } from "./app-sid
 import { LockedApp } from "./locked-app";
 
 const registry = createRegistry(freeDefinitions);
-const track = beaconTracker("/api/events");
+const beaconTrack = beaconTracker("/api/events");
+const posthogEvents = new Set<BuilderEventName>([
+  "flow_started",
+  "flow_completed",
+  "component_inspected",
+  "component_remixed",
+  "screen_composed",
+  "code_copied",
+  "component_opened",
+  "project_downloaded",
+  "xcode_opened",
+  "remix_shared",
+  "remix_saved",
+  "pro_upgrade_clicked",
+  "search_used",
+]);
+
+const track = (event: BuilderEventName, properties?: Record<string, string | number>) => {
+  beaconTrack(event, properties);
+  if (posthogEvents.has(event) && process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN && process.env.NEXT_PUBLIC_POSTHOG_HOST) {
+    posthog.capture(event, properties);
+  }
+};
+
+const playgroundLog = {
+  info: (body: string, attributes: Record<string, number | string>) => {
+    if (process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN && process.env.NEXT_PUBLIC_POSTHOG_HOST) posthog.logger.info(body, attributes);
+  },
+  warn: (body: string, attributes: Record<string, number | string>) => {
+    if (process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN && process.env.NEXT_PUBLIC_POSTHOG_HOST) posthog.logger.warn(body, attributes);
+  },
+};
+
+function captureAiGeneration({ traceId, sessionId, status, latency, failed }: { traceId: string; sessionId: string; status?: number; latency: number; failed: boolean }) {
+  if (!process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN || !process.env.NEXT_PUBLIC_POSTHOG_HOST) return;
+  posthog.capture("$ai_generation", {
+    $ai_trace_id: traceId,
+    $ai_session_id: sessionId,
+    $ai_span_name: "remix_with_ai",
+    $ai_http_status: status,
+    $ai_latency: latency,
+    $ai_is_error: failed,
+  });
+}
+
 /** The app library: the free apps' builds from this bundle, the Pro apps' from the Pro API (Pro accounts only). */
 const catalog = createCatalog(patternsCatalogSource, proAppsSource(patternsCatalogSource.entries.filter((e) => e.availability === "pro")));
 
@@ -79,6 +124,8 @@ export default function PlaygroundApp({ page, project, onReady }: Props) {
   }, []);
   // The saved project each remix updates (by catalog entry), so saving again doesn't make a copy.
   const saved = useRef(new Map<string, string>());
+  // The page visit is the closest conversation scope available in this anonymous browser client.
+  const [aiSessionId] = useState(() => `playground-${crypto.randomUUID()}`);
   const remember = useCallback((key: unknown, id: string) => {
     if (typeof key === "string") saved.current.set(key, id);
   }, []);
@@ -187,8 +234,33 @@ export default function PlaygroundApp({ page, project, onReady }: Props) {
       ...(pro
         ? {
             remixWithAI: async (prompt: string, screen: unknown) => {
-              const res = await proFetch("/api/builder/generate", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ prompt, current: screen }) });
-              return (await json<{ root: unknown }>(res)).root;
+              const traceId = crypto.randomUUID();
+              const startedAt = performance.now();
+              playgroundLog.info("playground ai remix requested", { operation: "ai_remix" });
+              try {
+                const res = await proFetch("/api/builder/generate", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ prompt, current: screen }) });
+                const root = (await json<{ root: unknown }>(res)).root;
+                const latency = (performance.now() - startedAt) / 1000;
+                captureAiGeneration({
+                  traceId,
+                  sessionId: aiSessionId,
+                  status: res.status,
+                  latency,
+                  failed: false,
+                });
+                playgroundLog.info("playground ai remix completed", { operation: "ai_remix", status_code: res.status, latency_ms: Math.round(latency * 1000) });
+                return root;
+              } catch (error) {
+                const latency = (performance.now() - startedAt) / 1000;
+                captureAiGeneration({
+                  traceId,
+                  sessionId: aiSessionId,
+                  latency,
+                  failed: true,
+                });
+                playgroundLog.warn("playground ai remix failed", { operation: "ai_remix", latency_ms: Math.round(latency * 1000) });
+                throw error;
+              }
             },
           }
         : {}),
@@ -212,7 +284,7 @@ export default function PlaygroundApp({ page, project, onReady }: Props) {
         ...(pro ? {} : { handoff: { label: "Take it further with Pro", desc: `Unlock all ${proCatalog.remixing.apps} apps and every future app, keep up to ${proCatalog.remixing.saves} remixes and remix with AI, with every screen, template and the Build Kit.`, url: () => `${site.proUrl}/pro`, icon: "crown" as const, backdrop: <CornerDither /> } }),
       },
     }),
-    [session, pro, signedIn, current, onEntry, signInHere, remember],
+    [session, pro, signedIn, current, onEntry, signInHere, remember, aiSessionId],
   );
   useEffect(() => {
     if (cloud !== undefined) onReady?.();
