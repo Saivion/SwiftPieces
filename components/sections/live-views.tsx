@@ -1,9 +1,23 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Odometer } from "@/components/ui/odometer";
 
 /** How often the total refreshes while the tab is in front. */
 const POLL_MS = 15_000;
+
+/**
+ * Cloudflare Web Analytics records one page load in ten and counts it as ten, so the total only
+ * ever moves in tens, a batch every few minutes. Shown as is, the number sits still, then jumps ten.
+ * Instead each batch is walked up one view at a time over this long: a tick every 30 seconds for a
+ * batch of ten. It only ever walks toward a total Cloudflare has reported, so it never shows a view
+ * that hasn't happened; it just shows the latest ones a few minutes late.
+ */
+const SPREAD_MS = 5 * 60_000;
+/** The fastest and slowest a walk steps. A batch that lands mid-walk speeds the rest of it up. */
+const STEP_MIN_MS = 2_000;
+const STEP_MAX_MS = 30_000;
+/** A gap this wide (the tab came back after an hour in the background) is shown at once instead. */
+const SNAP = 60;
 
 /**
  * One page load counts once, no matter how many times this mounts.
@@ -26,13 +40,36 @@ let counted = false;
  * Polling pauses while the tab is hidden, since nobody is reading the number in a background tab.
  */
 export function LiveViews({ className }: { className?: string }) {
+  // The latest total from the API, and the number on screen, which walks up to it (SPREAD_MS).
+  const [target, setTarget] = useState<number | null>(null);
   const [views, setViews] = useState<number | null>(null);
+  const pace = useRef(STEP_MAX_MS);
+  const paced = useRef<number | null>(null);
+
+  // A new total: the first one, or one far ahead, shows at once; otherwise the walk is paced to
+  // spread the gap over SPREAD_MS.
+  useEffect(() => {
+    if (target === null || target === paced.current) return;
+    paced.current = target;
+    if (views === null || target - views > SNAP || target < views) setViews(target);
+    else if (target > views) pace.current = Math.min(STEP_MAX_MS, Math.max(STEP_MIN_MS, SPREAD_MS / (target - views)));
+  }, [target, views]);
+
+  // The walk: one view at a time toward the total.
+  useEffect(() => {
+    if (target === null || views === null || views >= target) return;
+    const id = setTimeout(() => setViews((v) => (v === null ? v : Math.min(target, v + 1))), pace.current);
+    return () => clearTimeout(id);
+  }, [target, views]);
+
   useEffect(() => {
     let live = true;
     let timer: ReturnType<typeof setTimeout> | undefined;
 
+    // The total only ever moves up (lib/views.ts keeps it from going backwards). A response without
+    // a number keeps the last one on screen rather than hiding the line.
     const apply = (value: unknown) => {
-      if (live) setViews(typeof value === "number" ? value : null);
+      if (live && typeof value === "number") setTarget((t) => (t === null || value > t ? value : t));
     };
 
     const call = async (method: "GET" | "POST") => {
