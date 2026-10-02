@@ -75,7 +75,7 @@ npm run registry:build   # .swift -> registry JSON, docs pages, llms.txt
 npm run dev
 ```
 
-Node 22 is what CI uses. Pieces live in `registry/swift/<category>/`; after changing one, or `registry.json`, rerun `npm run registry:build` to regenerate the registry output.
+Use Node 22.22 or newer: `.nvmrc` pins Node 22, the line CI and Cloudflare's builds use. Pieces live in `registry/swift/<category>/`; after changing one, or `registry.json`, rerun `npm run registry:build` to regenerate the registry output.
 
 | Path | Purpose |
 | --- | --- |

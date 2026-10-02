@@ -12,7 +12,7 @@ Swift Pieces Pro (blocks, screens, templates, Build Kit) is closed source and li
 
 ## Setup
 
-You need Node 22 (what CI uses) and, for Swift work, Xcode with an iOS simulator SDK installed.
+You need Node 22.22 or newer (`.nvmrc` has the line CI uses) and, for Swift work, Xcode with an iOS simulator SDK installed.
 
 ```bash
 git clone https://github.com/Saivion/SwiftPieces.git
