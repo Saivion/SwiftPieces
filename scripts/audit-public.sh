@@ -66,6 +66,18 @@ if [ -d .open-next/assets ]; then
   fi
 fi
 
+# Worker size: Cloudflare refuses a Worker over 64 MiB uncompressed, on every plan. lib/source.ts is
+# the docs' compiled MDX (about 20 MB with every piece's highlighted source), and each server entry
+# that imports it bundles its own copy, so only the docs pages may: search and the sitemap read
+# registry/__registry__/docs.json. Three copies is what broke the 2026-10-02 deploy.
+importers=$(grep -rlE "from ['\"]@/lib/source['\"]" app components lib 2>/dev/null | grep -v "^app/docs/")
+if [ -n "$importers" ]; then note FAIL "lib/source.ts imported outside app/docs (each importer adds a ~20 MB copy):"; echo "$importers" | sed 's/^/           /'; fail=1; else note ok "only the docs pages import the compiled MDX"; fi
+handler=.open-next/server-functions/default/handler.mjs
+if [ -f "$handler" ]; then
+  mib=$(( $(wc -c < "$handler") / 1048576 ))
+  if [ "$mib" -ge 56 ]; then note FAIL "server bundle is ${mib} MiB uncompressed (Cloudflare's limit is 64 MiB for the whole Worker)"; fail=1; else note ok "server bundle ${mib} MiB uncompressed (Cloudflare's limit: 64)"; fi
+fi
+
 # Cache interception answers segment prefetches with the whole page, so the client re-prefetches
 # in a loop. Keep it off.
 if grep -qE "enableCacheInterception:\s*true" open-next.config.ts; then

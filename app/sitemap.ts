@@ -1,6 +1,8 @@
 import type { MetadataRoute } from "next";
 import { site } from "@/lib/site";
-import { source } from "@/lib/source";
+// The docs pages' URLs come from the prebuilt index, never lib/source.ts: that module is the compiled
+// MDX (about 20 MB), and importing it here would put a second copy in the Worker (scripts/build-registry.ts).
+import docs from "@/registry/__registry__/docs.json";
 import { hubs, hubPath } from "@/lib/hubs";
 import { appPath, apps } from "@/lib/apps";
 import { playgroundPath } from "@/lib/playground";
@@ -26,6 +28,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     // The changelog (inside the docs, but not an MDX page) and one page per update.
     { url: `${site.url}${changelogPath()}`, lastModified: now, priority: 0.5 },
     ...changelog.map((e) => ({ url: `${site.url}${changelogPath(e.slug)}`, lastModified: now, priority: 0.4 })),
-    ...source.getPages().map((page) => ({ url: `${site.url}${page.url}`, lastModified: now, priority: page.slugs[0] === "guides" ? 0.8 : 0.6 })),
+    ...docs.map((page) => ({ url: `${site.url}${page.url}`, lastModified: now, priority: page.url.startsWith("/docs/guides") ? 0.8 : 0.6 })),
   ];
 }
