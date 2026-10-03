@@ -20,7 +20,7 @@ export default function PrivacyPage() {
       <p>swiftpieces.com has no accounts and sets no cookies. Accounts, purchases and license handling happen on pro.swiftpieces.com under its own privacy policy.</p>
 
       <h2>Analytics</h2>
-      <p>We measure page views, clicks and Playground usage, such as which step of a recreation people reach, with PostHog, so we can see what people use and improve it. It sets no cookies and keeps nothing in your browser. PostHog uses your IP address to estimate your country and to tell visits apart with a hash that changes every day, and records general details such as your browser and device type. Playground events never include anything you build or type. If your browser sends Do Not Track or Global Privacy Control, nothing is recorded.</p>
+      <p>We measure page views, clicks and Playground usage, such as which step of a recreation people reach, with PostHog, so we can see what people use and improve it. It sets no cookies and keeps nothing in your browser. PostHog turns your IP address into a hash that changes every day, so it can tell visits apart without keeping the address, and records general details such as your browser and device type. Playground events never include anything you build or type. If your browser sends Do Not Track or Global Privacy Control, nothing is recorded.</p>
 
       <h2>The Playground</h2>
       <p>Your remixes are saved in your own browser&apos;s storage and never reach our servers. Clearing your browser data removes them.</p>

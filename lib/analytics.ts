@@ -10,9 +10,9 @@ import { site } from "@/lib/site";
  * key, touch or scroll goes uncounted, which suits a count meant as a floor anyway.
  *
  * No cookies: cookieless mode keeps nothing in the browser, and PostHog tells visits apart with a
- * daily-rotating hash on its own servers. The project needs cookieless mode switched on (PostHog →
- * Settings → Web analytics), or PostHog ignores these events. Do Not Track and Global Privacy Control
- * are honored: nothing is sent.
+ * daily-rotating hash on its own servers. The project needs Cookieless tracking switched on in its
+ * PostHog settings, or PostHog ignores these events. They carry no country: PostHog hashes the IP
+ * address before GeoIP runs. Do Not Track and Global Privacy Control are honored: nothing is sent.
  *
  * Only swiftpieces.com reports. Local dev, preview deploys and forks never start PostHog, so their
  * page views stay out of the numbers, and a fork without the variables has nothing to configure.
