@@ -1,6 +1,6 @@
 "use client";
 // The Free Playground's host: the app library's recreations, one at a time, with free limits and
-// registry, this site's analytics beacon, sources for downloads from /r, and "Open in Xcode" from
+// registry, this site's analytics (PostHog), sources for downloads from /r, and "Open in Xcode" from
 // app/api/xcode. The Apps tab lists every app (the three free ones first) and opens one in place:
 // the address and the page title follow, the page doesn't reload. A Pro app shows its screens
 // blurred to anyone without Pro (locked-app.tsx), and for a Pro account its screens come from the
@@ -9,15 +9,15 @@
 // get Pro limits, saves to their account and AI remix. All of that goes to the Pro site's API
 // through lib/pro-bridge (a Bearer token, no cookies), which decides on the server what anyone may do.
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import posthog from "posthog-js";
-import { FREE_LIMITS, PRO_LIMITS, createCatalog, createRegistry, freeDefinitions, type BuilderEventName, type CatalogEntry, type Project } from "@swiftpieces/builder";
+import { FREE_LIMITS, PRO_LIMITS, createCatalog, createRegistry, freeDefinitions, sanitizeEvents, type CatalogEntry, type Project } from "@swiftpieces/builder";
 import { patternsCatalogSource } from "@swiftpieces/builder/catalog";
-import { Playground, beaconTracker, type PlaygroundHost, BuildArt } from "@swiftpieces/builder/react";
+import { Playground, type PlaygroundHost, BuildArt } from "@swiftpieces/builder/react";
 import type { SourceResolver } from "@swiftpieces/builder/export";
 import { LogoMark } from "@/components/ui/logo";
 import { CornerDither } from "@/components/visual/corner-dither";
 import { apps, cdn, shotFor, type LibraryEntry } from "@/lib/apps";
 import { SCREEN_TAGS } from "@/lib/apps/screen-tags";
+import { capture, log } from "@/lib/analytics";
 import { appForEntry, playgroundPath, playgroundTitle } from "@/lib/playground";
 import { proAppsSource } from "@/lib/pro-apps";
 import { proFetch, proSignInUrl, proSignUpUrl, useProSession } from "@/lib/pro-bridge";
@@ -27,42 +27,17 @@ import { AppBadge, AppSidebarFooter, AppsSidebar, sidebarItems } from "./app-sid
 import { LockedApp } from "./locked-app";
 
 const registry = createRegistry(freeDefinitions);
-const beaconTrack = beaconTracker("/api/events");
-const posthogEvents = new Set<BuilderEventName>([
-  "flow_started",
-  "flow_completed",
-  "component_inspected",
-  "component_remixed",
-  "screen_composed",
-  "code_copied",
-  "component_opened",
-  "project_downloaded",
-  "xcode_opened",
-  "remix_shared",
-  "remix_saved",
-  "pro_upgrade_clicked",
-  "search_used",
-]);
-
-const track = (event: BuilderEventName, properties?: Record<string, string | number>) => {
-  beaconTrack(event, properties);
-  if (posthogEvents.has(event) && process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN && process.env.NEXT_PUBLIC_POSTHOG_HOST) {
-    posthog.capture(event, properties);
-  }
+/**
+ * The Playground's product events, to PostHog (lib/analytics.ts). The builder's allow-list keeps them
+ * to event names and short enum-like values: no project content, no text people typed, no ids.
+ */
+const track: NonNullable<PlaygroundHost["track"]> = (event, props) => {
+  for (const e of sanitizeEvents([{ name: event, props }])) capture(e.name, e.props);
 };
 
-const playgroundLog = {
-  info: (body: string, attributes: Record<string, number | string>) => {
-    if (process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN && process.env.NEXT_PUBLIC_POSTHOG_HOST) posthog.logger.info(body, attributes);
-  },
-  warn: (body: string, attributes: Record<string, number | string>) => {
-    if (process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN && process.env.NEXT_PUBLIC_POSTHOG_HOST) posthog.logger.warn(body, attributes);
-  },
-};
-
+/** One AI remix, for PostHog's LLM analytics: how long it took and whether it failed. Never the prompt. */
 function captureAiGeneration({ traceId, sessionId, status, latency, failed }: { traceId: string; sessionId: string; status?: number; latency: number; failed: boolean }) {
-  if (!process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN || !process.env.NEXT_PUBLIC_POSTHOG_HOST) return;
-  posthog.capture("$ai_generation", {
+  capture("$ai_generation", {
     $ai_trace_id: traceId,
     $ai_session_id: sessionId,
     $ai_span_name: "remix_with_ai",
@@ -236,7 +211,7 @@ export default function PlaygroundApp({ page, project, onReady }: Props) {
             remixWithAI: async (prompt: string, screen: unknown) => {
               const traceId = crypto.randomUUID();
               const startedAt = performance.now();
-              playgroundLog.info("playground ai remix requested", { operation: "ai_remix" });
+              log.info("playground ai remix requested", { operation: "ai_remix" });
               try {
                 const res = await proFetch("/api/builder/generate", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ prompt, current: screen }) });
                 const root = (await json<{ root: unknown }>(res)).root;
@@ -248,7 +223,7 @@ export default function PlaygroundApp({ page, project, onReady }: Props) {
                   latency,
                   failed: false,
                 });
-                playgroundLog.info("playground ai remix completed", { operation: "ai_remix", status_code: res.status, latency_ms: Math.round(latency * 1000) });
+                log.info("playground ai remix completed", { operation: "ai_remix", status_code: res.status, latency_ms: Math.round(latency * 1000) });
                 return root;
               } catch (error) {
                 const latency = (performance.now() - startedAt) / 1000;
@@ -258,7 +233,7 @@ export default function PlaygroundApp({ page, project, onReady }: Props) {
                   latency,
                   failed: true,
                 });
-                playgroundLog.warn("playground ai remix failed", { operation: "ai_remix", latency_ms: Math.round(latency * 1000) });
+                log.warn("playground ai remix failed", { operation: "ai_remix", latency_ms: Math.round(latency * 1000) });
                 throw error;
               }
             },

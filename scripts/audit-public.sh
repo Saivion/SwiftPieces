@@ -22,11 +22,13 @@ if [ -d registry/swift/blocks ] || [ -d registry/swift/screens ] || [ -d registr
 # 3. Env: only NEXT_PUBLIC_ placeholders, and no secret-looking values anywhere tracked.
 if git ls-files 2>/dev/null | grep -E '(^|/)\.env($|\.)|(^|/)\.dev\.vars$' | grep -q .; then note FAIL "an env file is tracked by git"; fail=1; else note ok "no env files tracked by git"; fi
 for f in .env .env.local .env.production .dev.vars; do grep -qxF "$f" .gitignore || { note FAIL "$f missing from .gitignore"; fail=1; }; done
+# phx_ is a PostHog personal API key (lib/views.ts reads one from a Worker secret); the phc_ project
+# token is public by design and is not matched.
 # git grep, not grep -r: only tracked files can ever be published, and a working tree holds
 # build output that is not. The loose re_ pattern matches identifiers inside Xcode's build index
 # and wrangler's dev bundle, both gitignored, so scanning the tree failed this gate every time it
 # ran locally. A gate that always fails is a gate nobody reads.
-if git grep -lE "(sk|pk)_(live|test)_[A-Za-z0-9]{12,}|am_sk_[A-Za-z0-9]{8,}|re_[A-Za-z0-9]{16,}|AKIA[0-9A-Z]{16}" -- . ':!*.example*' 2>/dev/null | grep -q .; then note FAIL "secret-looking values in tracked files"; fail=1; else note ok "no secret-looking values in tracked files"; fi
+if git grep -lE "(sk|pk)_(live|test)_[A-Za-z0-9]{12,}|am_sk_[A-Za-z0-9]{8,}|re_[A-Za-z0-9]{16,}|AKIA[0-9A-Z]{16}|phx_[A-Za-z0-9]{20,}" -- . ':!*.example*' 2>/dev/null | grep -q .; then note FAIL "secret-looking values in tracked files"; fail=1; else note ok "no secret-looking values in tracked files"; fi
 
 # 4. No premium Swift in public/ or built assets (every free piece is MIT + Commons Clause, so we only check nothing outside registry/ ships Swift).
 if grep -rl "import SwiftUI" public .open-next/assets 2>/dev/null | grep -q .; then note FAIL "Swift source under public/ or built assets"; fail=1; else note ok "no Swift source in public assets"; fi

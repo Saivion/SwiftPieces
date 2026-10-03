@@ -18,9 +18,9 @@ const SECURITY_HEADERS = [
 /**
  * Content Security Policy. Pages here are static, so a per-request script nonce isn't possible and
  * inline scripts (Next's, Fumadocs') stay allowed; everything else is locked to the hosts the site
- * actually uses: scripts only from this origin and Cloudflare's analytics, no plugins, no <base>
+ * actually uses: scripts only from this origin and PostHog's, no plugins, no <base>
  * hijacking, no framing, forms only to this site, and network calls only to Pro (the session and,
- * later, saves) and analytics. It matters because Free is same-site with Pro.
+ * later, saves) and PostHog. It matters because Free is same-site with Pro.
  *
  * Report-only while it is tested locally: violations show in the console and nothing is blocked.
  * Switch the header name to Content-Security-Policy once a full pass shows none.
@@ -29,18 +29,20 @@ const PRO_ORIGIN = new URL(process.env.NEXT_PUBLIC_PRO_EMBED_URL ?? process.env.
 const MEDIA_ORIGIN = new URL(process.env.NEXT_PUBLIC_MEDIA_URL ?? "https://media.swiftpieces.com").origin;
 const POSTHOG_HOST = process.env.NEXT_PUBLIC_POSTHOG_HOST;
 const POSTHOG_ORIGIN = POSTHOG_HOST ? new URL(POSTHOG_HOST).origin : null;
+// PostHog's hosts: events go to us.i.posthog.com, its scripts and remote config come from
+// us-assets.i.posthog.com, so both directives take the wildcard.
 const POSTHOG_SCRIPT_ORIGIN = POSTHOG_ORIGIN
   ? `https://*.${new URL(POSTHOG_ORIGIN).hostname.split(".").slice(-2).join(".")}`
   : null;
 const dev = process.env.NODE_ENV === "development";
 const CSP = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${dev ? " 'unsafe-eval'" : ""} https://static.cloudflareinsights.com${POSTHOG_SCRIPT_ORIGIN ? ` ${POSTHOG_SCRIPT_ORIGIN}` : ""}`,
+  `script-src 'self' 'unsafe-inline'${dev ? " 'unsafe-eval'" : ""}${POSTHOG_SCRIPT_ORIGIN ? ` ${POSTHOG_SCRIPT_ORIGIN}` : ""}`,
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' data: https://fonts.gstatic.com",
   `img-src 'self' data: blob: https://is1-ssl.mzstatic.com ${MEDIA_ORIGIN}`,
   `media-src 'self' blob: ${MEDIA_ORIGIN}`,
-  `connect-src 'self' ${PRO_ORIGIN} https://cloudflareinsights.com${POSTHOG_ORIGIN ? ` ${POSTHOG_ORIGIN}` : ""}${dev ? " ws: http://localhost:* http://127.0.0.1:*" : ""}`,
+  `connect-src 'self' ${PRO_ORIGIN}${POSTHOG_SCRIPT_ORIGIN ? ` ${POSTHOG_SCRIPT_ORIGIN}` : ""}${dev ? " ws: http://localhost:* http://127.0.0.1:*" : ""}`,
   ...(POSTHOG_ORIGIN ? ["worker-src 'self' blob:"] : []),
   // The Pro site's hidden token page (lib/pro-bridge.ts) is the only frame this site loads. While it
   // loads, Clerk may pass it through its own host (the Frontend API) to refresh the session.
@@ -53,17 +55,10 @@ const CSP = [
 ].join("; ");
 SECURITY_HEADERS.push({ key: "Content-Security-Policy-Report-Only", value: CSP });
 
-// Cloudflare Workers Builds sets WORKERS_CI_BRANCH. Only production builds (main) carry the Web
-// Analytics token, so preview URLs for other branches never count toward the real numbers. Local
-// builds (no WORKERS_CI_BRANCH) use whatever .env.production holds.
-const branch = process.env.WORKERS_CI_BRANCH;
-const beaconToken = branch && branch !== "main" ? "" : (process.env.NEXT_PUBLIC_CF_BEACON_TOKEN ?? "");
-
 /** Every category slug, for the redirects below. */
 const CATEGORY_SLUGS = Object.values(categories).map((c) => c.slug).join("|");
 
 const config: NextConfig = {
-  env: { SP_BEACON_TOKEN: beaconToken },
   reactStrictMode: true,
   poweredByHeader: false,
   async headers() {
