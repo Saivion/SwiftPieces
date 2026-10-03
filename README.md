@@ -134,7 +134,7 @@ Build variables are read while building, not by the running Worker. PostHog only
 | `POSTHOG_PERSONAL_API_KEY` | Worker secret | A personal API key with **Query: Read**, for the hero's count. A real credential: never commit it. |
 | `POSTHOG_PROJECT_ID` | Worker secret | The project's number (PostHog → Settings → Project). |
 
-Set the two secrets with `npx wrangler secret put <NAME>`. The site sets no cookies, so the PostHog project needs **cookieless mode** switched on (Settings → Web analytics); without it, PostHog ignores the site's events.
+Set the two secrets with `npx wrangler secret put <NAME>`. The site sets no cookies, so the PostHog project needs **Cookieless tracking** switched on in its settings; without it, PostHog ignores the site's events. Those events carry no country: PostHog hashes the IP address before GeoIP runs.
 
 The count is Cloudflare Web Analytics' last total, from before the switch, plus PostHog's page views on swiftpieces.com since. It is read at most every two minutes and kept in KV, so polling never reaches PostHog.
 
