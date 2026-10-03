@@ -1,27 +1,12 @@
-import posthog from "posthog-js";
+import { startAnalytics } from "@/lib/analytics";
 
-const projectToken = process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN;
-const host = process.env.NEXT_PUBLIC_POSTHOG_HOST;
+// PostHog starts on the visitor's first interaction rather than at page load (lib/analytics.ts), the
+// way the first screen holds its loops until then: nothing third-party runs before first paint.
+const FIRST = ["pointerdown", "pointermove", "keydown", "touchstart", "scroll"] as const;
 
-if (!projectToken || !host) {
-  if (process.env.NODE_ENV === "development") {
-    const missingVariable = projectToken
-      ? "NEXT_PUBLIC_POSTHOG_HOST"
-      : "NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN";
-
-    throw new Error(
-      `${missingVariable} variable required by PostHog is missing or un-configured, this causes events to be silently missed. This error stops appearing once ${missingVariable} is configured`,
-    );
-  }
-} else {
-  posthog.init(projectToken, {
-    api_host: host,
-    defaults: "2026-01-30",
-    capture_exceptions: true,
-    logs: {
-      serviceName: "swiftpieces-web",
-      environment: process.env.NODE_ENV,
-    },
-    debug: process.env.NODE_ENV === "development",
-  });
+function start() {
+  FIRST.forEach((e) => window.removeEventListener(e, start));
+  void startAnalytics();
 }
+
+FIRST.forEach((e) => window.addEventListener(e, start, { passive: true }));

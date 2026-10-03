@@ -6,30 +6,21 @@ import { Odometer } from "@/components/ui/odometer";
 const POLL_MS = 15_000;
 
 /**
- * Cloudflare Web Analytics records one page load in ten and counts it as ten, so the total only
- * ever moves in tens, a batch every few minutes. Shown as is, the number sits still, then jumps ten.
- * Instead each batch is walked up one view at a time over this long: a tick every 30 seconds for a
- * batch of ten. It only ever walks toward a total Cloudflare has reported, so it never shows a view
- * that hasn't happened; it just shows the latest ones a few minutes late.
+ * The total is re-read from PostHog every two minutes (lib/views.ts), so new views arrive a few at a
+ * time. Shown as is, the number sits still, then jumps. Instead each batch is walked up one view at a
+ * time over the two minutes until the next one. It only ever walks toward a total PostHog has
+ * reported, so it never shows a view that hasn't happened; it just shows the latest ones a little late.
  */
-const SPREAD_MS = 5 * 60_000;
+const SPREAD_MS = 2 * 60_000;
 /** The fastest and slowest a walk steps. A batch that lands mid-walk speeds the rest of it up. */
 const STEP_MIN_MS = 2_000;
-const STEP_MAX_MS = 30_000;
+const STEP_MAX_MS = 60_000;
 /** A gap this wide (the tab came back after an hour in the background) is shown at once instead. */
 const SNAP = 60;
 
 /**
- * One page load counts once, no matter how many times this mounts.
- *
- * React Strict Mode runs effects twice in development, and a client navigation back to the home
- * page mounts this again. Neither is a new page view, so the POST is fired once per document.
- */
-let counted = false;
-
-/**
- * The all-time page views across the whole site, from Cloudflare Web Analytics (lib/views.ts). The
- * POST on load also reports this view to Analytics Engine, which is only for per-piece reporting.
+ * The all-time page views across the whole site, from PostHog (lib/views.ts). It only reads: PostHog
+ * counts the views themselves (lib/analytics.ts), so watching the number never inflates it.
  *
  * It rides inside the hero's eyebrow pill, after the tagline: "Explored 1,284 times".
  *
@@ -72,11 +63,9 @@ export function LiveViews({ className }: { className?: string }) {
       if (live && typeof value === "number") setTarget((t) => (t === null || value > t ? value : t));
     };
 
-    const call = async (method: "GET" | "POST") => {
+    const call = async () => {
       try {
-        // The path rides along on the count so reporting can group views by page and by piece.
-        const url = method === "POST" ? `/api/views?path=${encodeURIComponent(location.pathname)}` : "/api/views";
-        const res = await fetch(url, { method, cache: "no-store" });
+        const res = await fetch("/api/views", { cache: "no-store" });
         // A 429 or 5xx carries no count. Treat it like a dropped poll and keep the last number,
         // rather than reading `views` off an error body and hiding the line.
         if (!res.ok) return;
@@ -91,24 +80,21 @@ export function LiveViews({ className }: { className?: string }) {
       clearTimeout(timer);
       if (document.visibilityState !== "visible") return;
       timer = setTimeout(async () => {
-        await call("GET");
+        await call();
         schedule();
       }, POLL_MS);
     };
 
     const onVisibility = () => {
       if (document.visibilityState === "visible") {
-        void call("GET");
+        void call();
         schedule();
       } else {
         clearTimeout(timer);
       }
     };
 
-    // The first call of the document counts; every later one only reads.
-    const first = counted ? "GET" : "POST";
-    counted = true;
-    void call(first);
+    void call();
     schedule();
     document.addEventListener("visibilitychange", onVisibility);
     return () => {

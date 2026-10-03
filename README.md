@@ -121,37 +121,35 @@ GitHub Actions is here for **safety only**, because this repo is public and take
 | Deploy command | `npx opennextjs-cloudflare deploy` |
 | Non-production branch deploy command | `npx opennextjs-cloudflare upload` |
 | Builds for non-production branches | on |
-| Build variables | `NODE_VERSION` = `22`, `NEXT_PUBLIC_CF_BEACON_TOKEN` = the Web Analytics token (optional) |
+| Build variables | `NODE_VERSION` = `22`, `NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN` and `NEXT_PUBLIC_POSTHOG_HOST` (optional) |
 
-Build variables are read while building, not by the running Worker. The analytics token is only baked into `main` builds, so preview URLs never count toward the numbers.
+Build variables are read while building, not by the running Worker. PostHog only starts on swiftpieces.com itself, so preview URLs and local builds never count toward the numbers.
 
-**Analytics (swiftpieces.com only).** The official deploy counts page views with Cloudflare Web Analytics and shows the all-time visit count under the hero. Forks and local builds leave these unset, so no beacon loads and the visit line never renders. There are no secrets to configure to run this project.
+**Analytics (swiftpieces.com only).** The official deploy measures page views, visits and Playground usage with PostHog, and shows the all-time page views in the hero ("Explored N times"). PostHog never starts anywhere else, so forks, previews and local builds send nothing, and there is nothing to configure to run this project.
 
 | Variable | Where | What |
 | --- | --- | --- |
-| `NEXT_PUBLIC_CF_BEACON_TOKEN` | `.env.production` | The Web Analytics beacon token. Public by design; inlined at build. |
-| `CF_ACCOUNT_ID` | Worker secret | The Cloudflare account that owns the Web Analytics site. |
-| `CF_ANALYTICS_API_TOKEN` | Worker secret | An API token with **Account Analytics: Read**. A real credential: never commit it. |
-| `SP_VISITS_MIN` | `wrangler.jsonc` var | Hide the line below this many visits. Set to `0` here; the code default is `100` for forks. |
+| `NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN` | Build variable, `.env.local` | The project token (`phc_…`). Public by design; inlined at build. |
+| `NEXT_PUBLIC_POSTHOG_HOST` | Build variable, `.env.local` | `https://us.i.posthog.com`, or the EU host. |
+| `POSTHOG_PERSONAL_API_KEY` | Worker secret | A personal API key with **Query: Read**, for the hero's count. A real credential: never commit it. |
+| `POSTHOG_PROJECT_ID` | Worker secret | The project's number (PostHog → Settings → Project). |
 
-Set the two secrets with `npx wrangler secret put <NAME>`. The count totals every Web Analytics site on the account, so there is no site tag to get wrong, and it is cached for an hour, so Cloudflare's API is called at most once an hour rather than per page view.
+Set the two secrets with `npx wrangler secret put <NAME>`. The site sets no cookies, so the PostHog project needs **cookieless mode** switched on (Settings → Web analytics); without it, PostHog ignores the site's events.
 
-**If the line does not appear.** Every reason it can stay hidden logs itself, and `observability` is on, so one command tells you which it is:
+The count is Cloudflare Web Analytics' last total, from before the switch, plus PostHog's page views on swiftpieces.com since. It is read at most every two minutes and kept in KV, so polling never reaches PostHog.
+
+**If the number stays still.** Every failure logs itself, and `observability` is on, so one command tells you which it is:
 
 ```bash
-npx wrangler tail swiftpieces --format pretty | grep "\[visits\]"
+npx wrangler tail swiftpieces --format pretty | grep "\[views\]"
 ```
 
 | Line | Meaning |
 | --- | --- |
-| `not configured, missing …` | The token or account id is not reaching the Worker. |
-| `API returned 403 …` | The token is missing **Account Analytics: Read**. |
-| `GraphQL errors: …` | The query was rejected; the message says why. |
-| `no rows: …` | The account has no Web Analytics data at all. |
-| `hidden: 42 is under the … floor of 100` | Everything works; the site is just quiet. Lower `SP_VISITS_MIN`. |
-| `1234 visits all time` | Working. |
-
-Cloudflare keeps six months of Web Analytics history, so the all-time count is a true total until the site turns six months old.
+| `not configured: …` | A secret or the host variable is not reaching the Worker. Until then the hero shows the last total and holds still. |
+| `posthog 401 …` or `posthog 403 …` | The personal API key is wrong, or lacks **Query: Read**. |
+| `posthog 404 …` | `POSTHOG_PROJECT_ID` is not the key's project. |
+| `posthog failed: …` | PostHog did not answer in time. The next read retries. |
 
 </details>
 

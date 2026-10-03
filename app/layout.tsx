@@ -4,7 +4,6 @@ import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { Figtree } from "next/font/google";
 import { RootProvider } from "fumadocs-ui/provider/next";
-import { Analytics } from "@/components/analytics";
 import { site } from "@/lib/site";
 
 const figtree = Figtree({ subsets: ["latin"], weight: ["400", "500", "600", "700", "800"], variable: "--font-figtree", display: "swap" });
@@ -50,7 +49,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         >
           {children}
         </RootProvider>
-        <Analytics />
       </body>
     </html>
   );
