@@ -2,8 +2,11 @@
 import { useEffect, useRef, useState } from "react";
 import { Odometer } from "@/components/ui/odometer";
 
-/** How often the total refreshes while the tab is in front. */
-const POLL_MS = 15_000;
+/**
+ * How often the total refreshes while the tab is in front. The server re-reads PostHog every two
+ * minutes (lib/views.ts), so asking more often than once a minute only costs Worker requests.
+ */
+const POLL_MS = 60_000;
 
 /**
  * The total is re-read from PostHog every two minutes (lib/views.ts), so new views arrive a few at a

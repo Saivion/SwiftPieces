@@ -1,4 +1,4 @@
-import { formatCount } from "@/lib/github";
+import { formatCount } from "@/lib/format-count";
 import { site } from "@/lib/site";
 import { cn } from "@/lib/cn";
 

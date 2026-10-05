@@ -143,6 +143,9 @@ export default async function Layout({ children }: { children: ReactNode }) {
       tabs={false}
       sidebar={{
         collapsible: false,
+        // Off: with ~90 rows, prefetch-on-view sent dozens of Worker requests per docs visit. Rows are
+        // prefetched on hover instead (components/docs/sidebar-preview.tsx).
+        prefetch: false,
         banner: (
           <div key="sidebar-banner">
             <SidebarFilter meta={`${getRegistryIndex().length} components`} />

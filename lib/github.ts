@@ -17,12 +17,12 @@ function kv(): KVNamespace | undefined {
 }
 
 /** One call to GitHub. Only 200s enter Next's data cache, so a failure is retried on the next render. */
-async function fetchStars(): Promise<number | null> {
+async function fetchStars(revalidate: number | false): Promise<number | null> {
   const repo = site.github.replace("https://github.com/", "");
   try {
     const res = await fetch(`https://api.github.com/repos/${repo}`, {
       headers: { Accept: "application/vnd.github+json", "User-Agent": "swiftpieces.com" },
-      next: { revalidate: 300 },
+      next: { revalidate },
       signal: AbortSignal.timeout(2500),
     });
     if (!res.ok) return null;
@@ -40,26 +40,32 @@ async function fetchStars(): Promise<number | null> {
  * across Cloudflare egress IPs, so it does rate-limit or time out now and then. Returning null on
  * those renders used to bake the bare "Star" pill into the cached page for the whole window. Now a
  * failed refresh falls back to the last good count, and only a success moves the number.
+ *
+ * `revalidate` sets how long the answer is cached. A page that reads it with a number becomes an ISR
+ * page on that cycle, so the shared navbar reads it with `false` (fixed at build) and the live count
+ * comes from /api/stars instead (components/layout/github-star-live.tsx).
  */
-export async function getStarCount(): Promise<number | null> {
-  const fresh = await fetchStars();
+export async function getStarCount(revalidate: number | false = 300): Promise<number | null> {
+  const fresh = await fetchStars(revalidate);
   const store = kv();
   if (fresh !== null) {
     if (fresh !== lastKnown) {
+      // A new isolate starts with nothing in memory, so it checks what KV holds before writing.
+      // Otherwise every cold start rewrites the same number, and isolates starting together collide
+      // on KV's one-write-per-second-per-key limit.
+      const stored = lastKnown ?? (await readStored(store));
       lastKnown = fresh;
-      await store?.put(STARS_KEY, String(fresh)).catch(() => {});
+      if (fresh !== stored) await store?.put(STARS_KEY, String(fresh)).catch(() => {});
     }
     return fresh;
   }
-  if (lastKnown !== null) return lastKnown;
-  const stored = Number(await store?.get(STARS_KEY).catch(() => null));
-  if (Number.isFinite(stored) && stored > 0) lastKnown = stored;
+  if (lastKnown === null) lastKnown = await readStored(store);
   return lastKnown;
 }
 
-/** 1234 -> "1.2K", 47210 -> "47.2K", 1200000 -> "1.2M". */
-export function formatCount(n: number): string {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1).replace(/\.0$/, "")}M`;
-  if (n >= 1_000) return `${(n / 1_000).toFixed(1).replace(/\.0$/, "")}K`;
-  return String(n);
+async function readStored(store: KVNamespace | undefined): Promise<number | null> {
+  const stored = Number(await store?.get(STARS_KEY).catch(() => null));
+  return Number.isFinite(stored) && stored > 0 ? stored : null;
 }
+
+export { formatCount } from "@/lib/format-count";
