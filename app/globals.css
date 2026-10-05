@@ -686,7 +686,7 @@ html.light .changelog-tint { background: linear-gradient(135deg, color-mix(in sr
 /* Drawn once when it appears (a copied tick), or as it scrolls in (a checklist). */
 .ai-draw-in { animation: ai-draw .5s var(--ai-ease) calc(var(--i, 0) * 70ms) both; }
 @supports (animation-timeline: view()) {
-  .ai-check { stroke-dasharray: 1; animation: ai-draw 1s linear both; animation-timeline: view(); animation-range: entry 40% cover 30%; }
+  .ai-check { stroke-dasharray: 1; animation: ai-draw 1s linear both; animation-timeline: view(); animation-range: entry 0% entry 100%; }
 }
 /* Shown once when a notice opens: the lock clicks shut, the mark drops in. */
 .ai-latch { animation: ai-latch .55s var(--ai-ease) .25s both; }
