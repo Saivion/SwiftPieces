@@ -15,9 +15,9 @@ const b = (p: Props, k: string) => p[k] === true;
 export type CoverStyle = { bg: string; ink: string; accent: string; motif: "ring" | "sun" | "stripes" | "dots" | "block" | "none"; type: "heavy" | "serif" | "rounded" | "condensed"; place: "top" | "center" | "bottom" };
 
 export const COVER_PALETTES: Record<string, { label: string; styles: CoverStyle[] }> = {
-  // The Swift Pieces sweep and house blocks, set in the system face: the default.
+  // The SwiftPieces sweep and house blocks, set in the system face: the default.
   pieces: {
-    label: "Swift Pieces",
+    label: "SwiftPieces",
     styles: [
       { bg: "#FF0000", ink: "#FFFFFF", accent: "#FF8FB8", motif: "ring", type: "heavy", place: "center" },
       { bg: "#1C1C1F", ink: "#FFFFFF", accent: "#FF0000", motif: "sun", type: "heavy", place: "top" },

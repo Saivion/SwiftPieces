@@ -32,7 +32,7 @@ export async function SponsorHero() {
         {/* Same title and subtitle styles as the homepage and /pro heroes (feature-row.tsx). */}
         <AnimatedText as="h1" text="Keep the pieces free." accent="free." className={cn("mt-8 max-w-4xl", heroTitle)} />
         <Reveal priority delay={0.35}>
-          <p className={cn("mx-auto mt-6 max-w-xl", sectionBody)}>Swift Pieces is built and maintained by one developer. Sponsorship pays for new free pieces, updates for every iOS release, and the docs, CLI and MCP server that go with them. Companies get their logo in front of the iOS developers who use it.</p>
+          <p className={cn("mx-auto mt-6 max-w-xl", sectionBody)}>SwiftPieces is built and maintained by one developer. Sponsorship pays for new free pieces, updates for every iOS release, and the docs, CLI and MCP server that go with them. Companies get their logo in front of the iOS developers who use it.</p>
         </Reveal>
         <Reveal priority delay={0.45} className="mt-9 flex flex-col items-center gap-4 sm:flex-row">
           <Button href={sponsorLinks.github}>Sponsor on GitHub <Arrow /></Button>
@@ -199,7 +199,7 @@ export function SponsorWall({ sponsors }: { sponsors: Sponsor[] }) {
       <Container>
         <SectionCopy
           tags={[{ label: "Sponsors", icon: <Glyph.gift /> }]}
-          title={sponsors.length ? "Thank you to the sponsors keeping it free" : "Be the first to sponsor Swift Pieces"}
+          title={sponsors.length ? "Thank you to the sponsors keeping it free" : "Be the first to sponsor SwiftPieces"}
           body={sponsors.length ? "Every name here pays for work that stays free for everyone." : "Every seat below is open. The first sponsors are listed first, and stay at the top of their tier."}
         />
 
@@ -291,7 +291,7 @@ export function SponsorUse() {
 
 export const sponsorFaqs = [
   { q: "How do I pay?", a: "Through GitHub Sponsors, monthly, cancel any time. GitHub charges no fee on sponsorships from personal accounts, so all of it reaches the project. Companies that need an invoice, a yearly plan or a different payment method can email instead." },
-  { q: "Does sponsoring give me Swift Pieces Pro?", a: "Gold includes one Pro license for your team. The other tiers support the free library and do not include Pro, which is a separate one-time purchase on pro.swiftpieces.com." },
+  { q: "Does sponsoring give me SwiftPieces Pro?", a: "Gold includes one Pro license for your team. The other tiers support the free library and do not include Pro, which is a separate one-time purchase on pro.swiftpieces.com." },
   { q: "When does my logo appear?", a: "Within a day of your sponsorship starting. GitHub sponsors are listed automatically; invoiced sponsors are added by hand. Send a square logo and the link you want if your GitHub avatar is not the right mark." },
   { q: "Why is Gold limited to three?", a: "So a homepage logo stays worth paying for. When all three seats are taken, new Gold sponsors join a waitlist and are offered the next open seat." },
   { q: "Can I sponsor privately?", a: "Yes. Choose private sponsorship on GitHub and you will not be listed anywhere. The perks tied to your logo need a public sponsorship." },

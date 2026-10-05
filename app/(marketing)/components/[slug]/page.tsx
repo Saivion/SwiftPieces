@@ -49,7 +49,7 @@ function structuredData(hub: Hub, url: string) {
           itemListElement: items.map((item, i) => ({ "@type": "ListItem", position: i + 1, name: item.title, url: new URL(piecePath(item), site.url).href })),
         },
       },
-      breadcrumbJsonLd([["Swift Pieces", "/"], ["Components", "/components"], [hub.name, hubPath(hub.slug)]]),
+      breadcrumbJsonLd([["SwiftPieces", "/"], ["Components", "/components"], [hub.name, hubPath(hub.slug)]]),
       faqJsonLd(hub.faqs),
     ],
   };

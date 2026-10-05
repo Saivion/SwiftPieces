@@ -7,7 +7,7 @@ import { proCountsLabel } from "@/lib/pro-catalog";
 // Pro overview on the free site, modeled on reactbits.dev/pro. It never shows a price: every CTA
 // leads to pro.swiftpieces.com, where pricing and the plan live.
 export const metadata: Metadata = {
-  title: "Swift Pieces Pro",
+  title: "SwiftPieces Pro",
   description: `${proCountsLabel} for SwiftUI, production-ready and delivered as source. See the plan and pricing on pro.swiftpieces.com.`,
   alternates: { canonical: pro.pricing },
 };

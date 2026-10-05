@@ -102,7 +102,7 @@ const SECTIONS: Record<string, [string, string]> = {
  */
 function structuredData(path: string, title: string, description: string | undefined, slugs: string[], item: RegistryIndexEntry | null) {
   const url = new URL(path, site.url).href;
-  const trail: [string, string][] = [["Swift Pieces", "/"]];
+  const trail: [string, string][] = [["SwiftPieces", "/"]];
   if (item) {
     const hub = getHub(categories[item.category].slug);
     trail.push(["Components", "/components"], [hub?.name ?? categories[item.category].title, categoryHubPath(item.category)], [item.title, path]);

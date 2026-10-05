@@ -1,5 +1,5 @@
 // Bubble Field: a honeycomb of word bubbles you pan around, four colour quadrants (energy up/down,
-// pleasant/unpleasant) in the Swift Pieces sweep, bubbles swelling as they near the middle. Tinted
+// pleasant/unpleasant) in the SwiftPieces sweep, bubbles swelling as they near the middle. Tinted
 // glass bubbles by default, or solid ones. Tap one to pick it.
 import type { Props, SwiftPieceDefinition } from "../../core/schema.js";
 import { INDENT, call, num } from "../../core/swift.js";
@@ -205,7 +205,7 @@ export const bubbleField: SwiftPieceDefinition = {
     text("lowUnpleasant", "Low energy, unpleasant", "Flat, Heavy, Worn out, Foggy, Blue, Left out, Stuck, Hollow, Weary, Low"),
     text("lowPleasant", "Low energy, pleasant", "Settled, Toasty, Soft, Unhurried, Easy, Warm, Rested, Grounded, Thankful, Still"),
     select("style", "Bubbles", "tinted", opts(["tinted", "Tinted glass"], ["solid", "Solid colour"])),
-    select("palette", "Colours", "sweep", opts(["sweep", "Swift Pieces sweep"], ["corners", "Four corners (red, gold, blue, green)"]), { group: "color" }),
+    select("palette", "Colours", "sweep", opts(["sweep", "SwiftPieces sweep"], ["corners", "Four corners (red, gold, blue, green)"]), { group: "color" }),
     number("columns", "Columns", 6, 2, 10, 2),
     number("diameter", "Bubble size", 108, 64, 150),
     number("height", "Height", 700, 280, 900, 10, { group: "layout" }),

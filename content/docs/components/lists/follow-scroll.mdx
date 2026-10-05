@@ -109,7 +109,7 @@ public struct FollowScrollStyle: Sendable {
 ///   - isFollowing: Optional. Reflects whether the view is pinned to the latest item, for a "Live" badge or a toolbar button. Set it to `true` to jump to the latest; the scroll position decides when it goes back to `false`.
 ///   - alwaysFollow: New items for which this returns `true` scroll to the bottom even when the reader has scrolled up. Use it for the reader's own sent messages.
 ///   - newItemLabel: The pill's text and the VoiceOver announcement for a count of new items. The default is a localized "3 new"; add plural variants for it in your String Catalog, or pass your own such as `"\(count) new messages"`.
-///   - style: Colors, row spacing, padding, the follow threshold and whether the compact jump button shows. Defaults to the Swift Pieces house palette, adapting to light and dark.
+///   - style: Colors, row spacing, padding, the follow threshold and whether the compact jump button shows. Defaults to the SwiftPieces house palette, adapting to light and dark.
 ///   - row: Builds the row for one item.
 ///   - onReachTop: Optional. Called when the reader nears the top, to load older items; prepend them to `items` before returning. It is not called again until it returns, and a call that adds nothing is not repeated until the reader scrolls away from the top and back. Cancelled if the view goes away.
 ///   - empty: Optional. Shown centered while `items` is empty (for example a `ContentUnavailableView`).

@@ -1,5 +1,5 @@
 "use client";
-// Web renderers for the free Swift Pieces built on gestures and motion. Each one behaves like the
+// Web renderers for the free SwiftPieces built on gestures and motion. Each one behaves like the
 // piece on iPhone: cards follow the finger and commit or spring home, dials and tracks scrub with a
 // tick per step, stacks fan and flip. Painted with the house palette the Swift `Style` defaults
 // use, so a piece looks the same here as in the simulator. Loaded as its own chunk.

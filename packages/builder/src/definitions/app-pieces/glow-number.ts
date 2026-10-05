@@ -1,6 +1,6 @@
 // Glow Number: one big figure in the middle of a soft glowing orb, with a symbol above it and a
 // comparison under it ("Ahead of your usual day"). The figure counts up when it appears and
-// again when tapped (a light tap). In light appearance the Swift Pieces halos turn pale-centred.
+// again when tapped (a light tap). In light appearance the SwiftPieces halos turn pale-centred.
 import type { SwiftPieceDefinition } from "../../core/schema.js";
 import { call, num } from "../../core/swift.js";
 import { icon, number, opts, select, text } from "../shared.js";
@@ -9,10 +9,10 @@ import { swiftHex } from "./data-kit.js";
 const s = (p: Record<string, unknown>, k: string) => String(p[k] ?? "");
 const n = (p: Record<string, unknown>, k: string) => Number(p[k] ?? 0);
 
-/** Orb palettes: centre, middle, rim (as hex), and the ink the figure is drawn in. The Swift Pieces
+/** Orb palettes: centre, middle, rim (as hex), and the ink the figure is drawn in. The SwiftPieces
  *  halos also carry a light-appearance pair (a pale centre so the figure reads in dark ink). */
 export const ORBS: Record<string, { stops: [string, string, string]; ink: string; light?: { stops: [string, string, string]; ink: string } }> = {
-  // Swift Pieces halos: a dark centre that glows out to a sweep colour at the rim, white figure.
+  // SwiftPieces halos: a dark centre that glows out to a sweep colour at the rim, white figure.
   signal: { stops: ["#16080A", "#7A1208", "#FF3A1A"], ink: "#FFFFFF", light: { stops: ["#FFF6F3", "#FFC2B5", "#FF4A2A"], ink: "#141414" } },
   azure: { stops: ["#080B16", "#1B3778", "#4D8DFF"], ink: "#FFFFFF", light: { stops: ["#F4F7FF", "#BCD3FF", "#4D8DFF"], ink: "#141414" } },
   blush: { stops: ["#150A10", "#6E2446", "#FF8FB8"], ink: "#FFFFFF", light: { stops: ["#FFF6F9", "#FFD0E1", "#FF8FB8"], ink: "#141414" } },

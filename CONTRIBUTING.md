@@ -1,8 +1,8 @@
-# Contributing to Swift Pieces
+# Contributing to SwiftPieces
 
 Thanks for helping. This repository is the **free, open-source** library. It accepts new components, fixes, docs and previews.
 
-Swift Pieces Pro (blocks, screens, templates, Build Kit) is closed source and lives in a private repository. Please don't open PRs that add Pro-style content here; `npm run audit:public` will fail them, and so will CI.
+SwiftPieces Pro (blocks, screens, templates, Build Kit) is closed source and lives in a private repository. Please don't open PRs that add Pro-style content here; `npm run audit:public` will fail them, and so will CI.
 
 ## Before you start
 

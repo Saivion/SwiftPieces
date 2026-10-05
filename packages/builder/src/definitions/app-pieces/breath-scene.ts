@@ -1,7 +1,7 @@
 // Breath Scene: a full-bleed breathing guide. A scene (rings, soft orbs, a bloom of petals, stacked
 // pillows, a rising tide, drifting leaves, a wave over a ridge, swaying branches) swells as you breathe in and settles as you breathe out, with the
-// phase named, an optional fill bar and a coach's note beside the Swift Pieces mascot. Tap to start or
-// pause, drag to turn. The default palettes are the Swift Pieces sweep on the near-black ground.
+// phase named, an optional fill bar and a coach's note beside the SwiftPieces mascot. Tap to start or
+// pause, drag to turn. The default palettes are the SwiftPieces sweep on the near-black ground.
 import type { Props, SwiftPieceDefinition } from "../../core/schema.js";
 import { INDENT, call, indent, modifiers, num, str } from "../../core/swift.js";
 import { bool, link, number, opts, select, tappable, text } from "../shared.js";
@@ -27,7 +27,7 @@ export const BREATH_PALETTES: Record<string, { ground: string; ink: string; glow
 };
 
 /**
- * The Swift Pieces palettes follow the appearance: in dark they sit on the grouped surface
+ * The SwiftPieces palettes follow the appearance: in dark they sit on the grouped surface
  * (secondarySystemBackground), in light on its light twin with dark labels. The coloured grounds
  * (violet, mint, cobalt, coral, mono) are scenes of their own and stay put.
  */

@@ -1,6 +1,6 @@
 // "Copy prompt for your agent": one message a developer pastes into Claude Code, Cursor or Xcode's
 // assistant to keep building this app in the same design. It names the look in concrete values,
-// the screens and the Swift Pieces the app uses, and where to get more pieces, so the agent extends
+// the screens and the SwiftPieces the app uses, and where to get more pieces, so the agent extends
 // the app instead of inventing a new style.
 import type { GeneratedProject } from "./generate.js";
 import { resolveTheme } from "./looks.js";
@@ -33,8 +33,8 @@ export function agentPrompt(project: Project, generated: GeneratedProject, opts:
   }
   lines.push(
     "",
-    pieces.length ? `It uses Swift Pieces components: ${pieces.join(", ")} (source in SwiftPieces/).` : "It doesn't use Swift Pieces components yet.",
-    "For new interactive UI, first look for a Swift Pieces component: the MCP server at https://swiftpieces.com/api/mcp (search_pieces, install_piece), or `npx swiftpieces add <Name>`. The catalog is https://swiftpieces.com/llms.txt.",
+    pieces.length ? `It uses SwiftPieces components: ${pieces.join(", ")} (source in SwiftPieces/).` : "It doesn't use SwiftPieces components yet.",
+    "For new interactive UI, first look for a SwiftPieces component: the MCP server at https://swiftpieces.com/api/mcp (search_pieces, install_piece), or `npx swiftpieces add <Name>`. The catalog is https://swiftpieces.com/llms.txt.",
     "",
     "Next, help me: ",
   );

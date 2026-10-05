@@ -35,7 +35,7 @@ import UIKit
 ///   - aspects: The aspect chips under the photo, in order. Defaults to circle, square, 4:5, 16:9 and the photo's own shape. One aspect, or none, hides the chips for a fixed frame. An aspect that isn't listed is added at the front.
 ///   - maxOutputDimension: The longest side of the rendered crop, in pixels. Defaults to 4096. Larger crops are scaled down to it; smaller ones keep the original's pixels and are never scaled up.
 ///   - messages: The cropper's copy. Defaults are localizable through your String Catalog; replace any line, for example `choose` with "Use photo".
-///   - style: Colors, the photo's well and the frame inset. Defaults to the Swift Pieces house palette, adapting to light and dark, with red for Choose, the selected aspect and the limit flash.
+///   - style: Colors, the photo's well and the frame inset. Defaults to the SwiftPieces house palette, adapting to light and dark, with red for Choose, the selected aspect and the limit flash.
 ///   - onCancel: Shows a Cancel button (and Escape on a hardware keyboard) that calls this. `nil` hides it.
 ///   - onCrop: Called on the main actor with the rendered ``Crop`` when Choose is tapped (or Return is pressed). Choose keeps spinning until this returns, so you can await an upload here.
 public struct PhotoCropper: View {

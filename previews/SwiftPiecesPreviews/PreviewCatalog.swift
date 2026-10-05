@@ -2673,7 +2673,7 @@ private struct PictureHeadlineScene: View {
 
 // MARK: - SignaturePad
 
-/// The pad alone: it rests with its hint, then "Swift Pieces" is signed through the binding with real handwriting
+/// The pad alone: it rests with its hint, then "SwiftPieces" is signed through the binding with real handwriting
 /// timing (so the ink thins on quick sweeps and runs full in slow turns), Undo fades the flourish, it is
 /// drawn again, and Clear wipes the pad.
 private struct SignaturePadScene: View {
@@ -2725,7 +2725,7 @@ private struct SignaturePadScene: View {
     }
 }
 
-/// Synthesized handwriting for the scene: pass-through points (Catmull-Rom) of "Swift Pieces", its dots, t cross
+/// Synthesized handwriting for the scene: pass-through points (Catmull-Rom) of "SwiftPieces", its dots, t cross
 /// and a flourish, with a speed profile after the two-thirds power law (slow in tight turns, fast on sweeps),
 /// sampled at 120 Hz like touch input.
 private enum SignaturePadScript {

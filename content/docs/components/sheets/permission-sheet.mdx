@@ -20,7 +20,7 @@ Explains a permission, runs the real request, and reacts to the result.
 - A denial crossfades the title and message through a blur, hides the benefit rows, turns the tile sand with a gear, plays `.warning`, and turns the button into a solid "Open Settings" via `UIApplication.openSettingsURLString`.
 - `Style` sets the surface, labels, tiles, benefit tile colors, action color and tile radius.
 - Under Reduce Motion rows appear immediately, the copy swap skips the blur and the bounce is skipped.
-- For a full multi-step onboarding flow, see the Onboarding screen in Swift Pieces Pro.
+- For a full multi-step onboarding flow, see the Onboarding screen in SwiftPieces Pro.
 
 ## Usage
 
@@ -39,7 +39,7 @@ PermissionSheetExample()
 | `allowTitle` | Primary button title. |
 | `deniedTitle` | Headline shown after the request returns `false`. |
 | `deniedMessage` | Copy shown after a denial, above the "Open Settings" button. |
-| `style` | Colors and tile shape. Defaults to the Swift Pieces house palette, adapting to light and dark. |
+| `style` | Colors and tile shape. Defaults to the SwiftPieces house palette, adapting to light and dark. |
 | `request` | Async permission request; return `true` when granted. The button spins until it returns. |
 | `onGranted` | Called about a second after a grant, once the tile has turned into a check. Dismiss the sheet here. |
 | `onSkip` | Secondary handler. Omit to hide the "Not now" button. |
@@ -62,7 +62,7 @@ import SwiftUI
 ///   - allowTitle: Primary button title.
 ///   - deniedTitle: Headline shown after the request returns `false`.
 ///   - deniedMessage: Copy shown after a denial, above the "Open Settings" button.
-///   - style: Colors and tile shape. Defaults to the Swift Pieces house palette, adapting to light and dark.
+///   - style: Colors and tile shape. Defaults to the SwiftPieces house palette, adapting to light and dark.
 ///   - request: Async permission request; return `true` when granted. The button spins until it returns.
 ///   - onGranted: Called about a second after a grant, once the tile has turned into a check. Dismiss the sheet here.
 ///   - onSkip: Secondary handler. Omit to hide the "Not now" button.

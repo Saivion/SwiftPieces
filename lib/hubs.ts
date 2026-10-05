@@ -19,7 +19,7 @@ export type Hub = {
   name: string;
   /** One line for directory rows. Category hubs default to the category description. */
   blurb?: string;
-  /** Tab and search result title, before the " — Swift Pieces" suffix. Keep under ~45 characters. */
+  /** Tab and search result title, before the " — SwiftPieces" suffix. Keep under ~45 characters. */
   title: string;
   /** The page's one h1. */
   h1: string;

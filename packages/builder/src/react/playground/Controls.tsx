@@ -115,7 +115,7 @@ export function Field({ p, value, onChange, locked, onLocked, screens, ownScreen
     <div className={`spp-field${locked ? " is-locked" : ""}`} data-type={p.type} onClickCapture={locked && onLocked ? (e) => { e.preventDefault(); onLocked(); } : undefined}>
       <label id={`${id}-label`} htmlFor={id} className="spp-field-label">
         {p.label}
-        {locked ? <span className="spp-pro-tag" title="Swift Pieces Pro">Pro</span> : null}
+        {locked ? <span className="spp-pro-tag" title="SwiftPieces Pro">Pro</span> : null}
       </label>
       {control}
       {p.hint ? <p id={hintId} className="spp-field-hint">{p.hint}</p> : null}

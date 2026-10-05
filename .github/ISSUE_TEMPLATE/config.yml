@@ -3,7 +3,7 @@ contact_links:
   - name: Question or idea
     url: https://github.com/Saivion/SwiftPieces/discussions
     about: Ask about usage, or float an idea before it becomes a proposal.
-  - name: Swift Pieces Pro
+  - name: SwiftPieces Pro
     url: https://pro.swiftpieces.com
     about: Screens, templates and the Build Kit are closed source. Support for Pro is handled there.
   - name: Security vulnerability

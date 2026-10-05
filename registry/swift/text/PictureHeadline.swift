@@ -79,7 +79,7 @@ public struct PictureHeadline: View {
         case bloom
     }
 
-    /// Visual tuning. `standard` matches the Swift Pieces house look.
+    /// Visual tuning. `standard` matches the SwiftPieces house look.
     public struct Style: Sendable {
         /// Picture height as a fraction of the line height.
         public var pictureHeight: CGFloat
@@ -422,7 +422,7 @@ public struct PictureHeadline: View {
 
 // MARK: - Crop marks
 
-/// Four hairline crosses just outside a frame's corners, the marks the Swift Pieces site draws on its
+/// Four hairline crosses just outside a frame's corners, the marks the SwiftPieces site draws on its
 /// dashed artboards. In the text colour, faint.
 private struct CropMarks: View {
     let size: CGSize

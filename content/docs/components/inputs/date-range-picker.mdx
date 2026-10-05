@@ -28,7 +28,7 @@ Day-granular start/end range picker with a paged month grid. The selection is al
 - Dynamic Type: day cells grow with `@ScaledMetric` from 44pt up to 76pt tall; day numbers scale to accessibility sizes and shrink to fit rather than clip. The summary stacks when it no longer fits on one line.
 - Reduce Motion: no sweep, springs or rolling title. The swipe no longer slides the grid; both the swipe and the chevrons crossfade to the next month.
 - `Style` sets the ground, day text, muted text, band, endpoint blocks, ink on blocks, the today dot, disabled days, the month buttons, the notice chip and the corner radius. `.disabled(true)` dims the picker and stops taps and paging.
-- For booking a time slot inside a day, see the slot picker in Swift Pieces Pro.
+- For booking a time slot inside a day, see the slot picker in SwiftPieces Pro.
 
 ## Usage
 
@@ -46,7 +46,7 @@ DateRangePickerExample()
 | `maximumLength` | Longest allowed range, counted in `counting` units. While a start is pending, days that cannot close the range are dimmed. |
 | `counting` | `.days` counts both ends (Mar 4 to Mar 9 is 6 days, and a single day is allowed). `.nights` counts nights (5 nights, and the end must be after the start). |
 | `showsSummary` | Show the header line with the formatted range and its length chip. |
-| `style` | Colors and corner radius. Defaults to the Swift Pieces house palette (butter endpoint blocks with dark ink on a soft butter band), adapting to light and dark. |
+| `style` | Colors and corner radius. Defaults to the SwiftPieces house palette (butter endpoint blocks with dark ink on a soft butter band), adapting to light and dark. |
 
 ## Source
 
@@ -71,7 +71,7 @@ import SwiftUI
 ///   - maximumLength: Longest allowed range, counted in `counting` units. While a start is pending, days that cannot close the range are dimmed.
 ///   - counting: `.days` counts both ends (Mar 4 to Mar 9 is 6 days, and a single day is allowed). `.nights` counts nights (5 nights, and the end must be after the start).
 ///   - showsSummary: Show the header line with the formatted range and its length chip.
-///   - style: Colors and corner radius. Defaults to the Swift Pieces house palette (butter endpoint blocks with dark ink on a soft butter band), adapting to light and dark.
+///   - style: Colors and corner radius. Defaults to the SwiftPieces house palette (butter endpoint blocks with dark ink on a soft butter band), adapting to light and dark.
 public struct DateRangePicker: View {
     /// How range length is counted, for `maximumLength` and the summary chip.
     public enum Counting: Sendable {

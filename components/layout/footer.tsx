@@ -3,6 +3,7 @@ import { Container } from "@/components/ui/container";
 import { Logo } from "@/components/ui/logo";
 import { pro, site } from "@/lib/site";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
+import { FooterWordmark } from "@/components/layout/footer-wordmark";
 
 const columns: { title: string; links: { label: string; href: string }[] }[] = [
   { title: "Free", links: [{ label: "Components", href: "/components" }, { label: "Animations", href: "/components/animations" }, { label: "Liquid Glass", href: "/components/glass" }, { label: "Buttons", href: "/components/controls" }, { label: "Cards", href: "/components/cards" }, { label: "Inputs and forms", href: "/components/inputs" }, { label: "AI chat", href: "/components/ai" }] },
@@ -52,27 +53,11 @@ export function Footer() {
         </div>
 
         <div className="mt-10 flex flex-col gap-3 text-[11.5px] text-subtle md:flex-row md:items-center md:justify-between">
-          <p>© {new Date().getFullYear()} Swift Pieces. Free pieces are MIT + Commons Clause.</p>
+          <p>© {new Date().getFullYear()} SwiftPieces. Free pieces are MIT + Commons Clause.</p>
           <p className="ai-host inline-flex items-center gap-1.5">Curated with<svg aria-label="love" viewBox="0 0 16 16" className="ai ai-beat size-3 overflow-visible text-accent" fill="currentColor"><path d="M8 14s-5.5-3.3-5.5-7.2A3 3 0 0 1 8 5.1a3 3 0 0 1 5.5 1.7C13.5 10.7 8 14 8 14z" /></svg>by <a href="https://x.com/saivion" target="_blank" rel="noreferrer" className="u-link text-foreground">Saivion</a></p>
         </div>
-        <FooterWordmark text="SWIFTPIECES" size={158} crop={0.86} />
+        <FooterWordmark />
       </Container>
     </footer>
-  );
-}
-
-/**
- * The footer's closing wordmark, set like a poster: the word fills the full content width exactly
- * (SVG `textLength`), in solid foreground, and runs off the bottom of the page so the letters are cut
- * along their base. The viewBox is shorter than the capitals, which is what crops them.
- */
-function FooterWordmark({ text, size, crop }: { text: string; size: number; crop: number }) {
-  // Baseline sits a little below Figtree's cap height (0.7em) so round letters' overshoot and the
-  // tops of every capital stay fully inside the box; only the base is cropped.
-  const cap = Math.round(size * 0.76);
-  return (
-    <svg aria-hidden viewBox={`0 0 1000 ${Math.round(cap * crop)}`} overflow="hidden" className="mt-12 block w-full select-none text-foreground" preserveAspectRatio="xMidYMin meet">
-      <text x="0" y={cap} textLength="1000" lengthAdjust="spacing" fill="currentColor" style={{ fontSize: size, fontWeight: 800, fontFamily: "var(--font-sans)" }}>{text}</text>
-    </svg>
   );
 }

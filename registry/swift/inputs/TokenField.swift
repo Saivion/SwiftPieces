@@ -18,7 +18,7 @@ import SwiftUI
 ///   - maxTokens: Upper limit. When reached the input stops accepting text and shows a quiet count such as "5/5"; backspace still removes.
 ///   - allowsDuplicates: When `false`, an entry that matches an existing token case-insensitively is not added; the existing chip is highlighted instead and the first spelling is kept.
 ///   - separators: Keys and characters that commit the typed text. `.standard` is return, comma and pasted line breaks. Full-width commas and semicolons count as their ASCII forms.
-///   - style: Colors and field metrics. Defaults to the Swift Pieces house palette, adapting to light and dark.
+///   - style: Colors and field metrics. Defaults to the SwiftPieces house palette, adapting to light and dark.
 ///   - validate: Accepts or rejects a trimmed entry (for example an email check). A rejected entry stays in the input, the field shakes and an error haptic plays.
 public struct TokenField: View {
     /// What commits the typed text into a token.

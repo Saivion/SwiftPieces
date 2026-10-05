@@ -181,7 +181,7 @@ export function UI({ name, size = 16, label, strokeWidth = 1.75 }: { name: keyof
   return <Icon aria-hidden={label ? undefined : true} aria-label={label} role={label ? "img" : undefined} size={size} strokeWidth={strokeWidth} className={`ai ai-${motion}`} style={{ flexShrink: 0, display: "block", overflow: "visible", ...vars }} />;
 }
 
-/** One icon per library entry: native components by id, Swift Pieces pieces by what they do. */
+/** One icon per library entry: native components by id, SwiftPieces pieces by what they do. */
 const KIND: Record<string, LucideIcon> = {
   text: Type, symbol: Star, card: SquareStack, row: List, button: RectangleHorizontal, "apple-sign-in": Apple, input: TextCursorInput,
   toggle: ToggleRight, segmented: SlidersHorizontal, vstack: Rows3, hstack: Columns3, spacer: MoveVertical, divider: Minus,

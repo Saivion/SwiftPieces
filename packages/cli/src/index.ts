@@ -6,7 +6,7 @@ import { list } from "./commands/list.js";
 import { login, logout, whoami } from "./commands/auth.js";
 
 const program = new Command();
-program.name("swiftpieces").description("Add Swift Pieces to your Xcode project. https://swiftpieces.com").version("0.3.3");
+program.name("swiftpieces").description("Add SwiftPieces to your Xcode project. https://swiftpieces.com").version("0.3.3");
 
 program
   .command("init")
@@ -33,13 +33,13 @@ program
   .description("List available pieces")
   .option("--category <name>", "filter by category")
   .option("--pro", "list the Pro registry instead of Free")
-  .option("--kit", "list the Swift Pieces Pro Build Kit")
+  .option("--kit", "list the SwiftPieces Pro Build Kit")
   .option("--json", "print JSON")
   .action((o) => list(o));
 
 program.command("login").description("Store your Pro license key in ~/.swiftpieces/auth.json").argument("[key]").action((k) => login(k));
 program.command("logout").description("Remove the stored license key").action(() => logout());
-program.command("whoami").description("Check whether the stored license key has Swift Pieces Pro").action(() => whoami());
+program.command("whoami").description("Check whether the stored license key has SwiftPieces Pro").action(() => whoami());
 
 program.parseAsync().catch((e) => {
   console.error(e instanceof Error ? e.message : e);

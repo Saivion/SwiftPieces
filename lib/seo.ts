@@ -10,7 +10,7 @@ import { site } from "@/lib/site";
  *   rebuilt here in full rather than inherited);
  * - a description short enough not to be cut off in results (see `snippet`).
  *
- * `title` is the page's own title; the root layout's template adds " — Swift Pieces" to the tab
+ * `title` is the page's own title; the root layout's template adds " — SwiftPieces" to the tab
  * title, and the social title is composed the same way here.
  */
 
@@ -19,7 +19,7 @@ import { site } from "@/lib/site";
  * is re-rendered (scripts/og/render.sh), as README.md does for the banner, so X, Slack and the rest
  * fetch the new card instead of the one they cached under the old URL.
  */
-export const DEFAULT_OG_IMAGE = { url: `${site.url}/opengraph-image.png?v=9`, width: 1200, height: 630, alt: `${site.name}` };
+export const DEFAULT_OG_IMAGE = { url: `${site.url}/opengraph-image.png?v=10`, width: 1200, height: 630, alt: `${site.name}` };
 
 /** Longest meta description before search results start cutting it off. */
 const DESCRIPTION_MAX = 155;
@@ -61,7 +61,7 @@ export function pageMetadata({
   image?: string;
   /** "article" for guides and piece pages, "website" (the default) for everything else. */
   type?: "website" | "article";
-  /** Use `title` as the whole title (the home page), without the " — Swift Pieces" suffix. */
+  /** Use `title` as the whole title (the home page), without the " — SwiftPieces" suffix. */
   absoluteTitle?: boolean;
 }): Metadata {
   const url = new URL(path, site.url).href;

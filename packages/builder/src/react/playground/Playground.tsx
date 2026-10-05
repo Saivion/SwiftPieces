@@ -25,6 +25,7 @@ import { PhoneDrop, ScreenStrip, ScreensTab, StylePanel } from "./Compose.js";
 const DOCKED_TOOLS = [{ id: "map" as const, label: "Map" }];
 import { createPersistence } from "./persist.js";
 import { createPlayStore, usePlay } from "./store.js";
+import { slideInto } from "./layout-drag.js";
 import { SaveButton } from "./Save.js";
 
 // Heavier, rarely first: the Build sheet (code, zip, Xcode) and the Pro gate load on demand.
@@ -211,6 +212,18 @@ export function Playground({ host, initial = {} }: { host: PlaygroundHost; initi
         if (e.shiftKey) store.redo();
         else store.undo();
         return;
+      }
+      // Layout, on the selected component in Inspect: delete, duplicate, move.
+      const sel = store.getState().mode === "inspect" ? store.getState().selected : null;
+      if (sel) {
+        if ((e.key === "Backspace" || e.key === "Delete") && !mod && !e.altKey) return (e.preventDefault(), store.removeNode(sel.nodeId));
+        if (mod && e.key.toLowerCase() === "d") return (e.preventDefault(), store.duplicateNode(sel.nodeId));
+        if (e.altKey && (e.key === "ArrowUp" || e.key === "ArrowDown")) {
+          e.preventDefault();
+          const root = store.getState().project?.screens.find((x) => x.id === sel.screenId)?.root;
+          const ids = (root ? parentOf(root, sel.nodeId)?.children ?? [] : []).map((c) => c.id);
+          return slideInto(document.querySelector<HTMLElement>(".spb-phone"), ids, () => store.moveNode(sel.nodeId, e.key === "ArrowUp" ? -1 : 1));
+        }
       }
       if (mod || e.altKey) return;
       const s = store.getState();

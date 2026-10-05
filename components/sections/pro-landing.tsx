@@ -49,10 +49,10 @@ export function ProHero() {
     <section className="relative overflow-hidden pt-20 pb-10 md:pt-28">
       {/* Full-height dot field with a long, soft fade so the dots dissolve well before the gallery instead of stopping on a line. */}
       <Container className="flex flex-col items-center text-center">
-        <Reveal priority><Eyebrow>Swift Pieces Pro · Production-ready SwiftUI</Eyebrow></Reveal>
+        <Reveal priority><Eyebrow>SwiftPieces Pro · Production-ready SwiftUI</Eyebrow></Reveal>
         <AnimatedText as="h1" text="The pieces to build the whole app." accent="whole" className={cn("mt-8 max-w-4xl", heroTitle)} />
         <Reveal priority delay={0.35}>
-          <p className={cn("mx-auto mt-6 max-w-xl", sectionBody)}>Free is a curated taste of Swift Pieces. Pro is the complete library: production-ready SwiftUI screens, complete app templates, the Build Kit for your coding agent and Pro remixing in the Playground. Start from a finished screen or a whole Xcode project. Copy the source. Make it yours.</p>
+          <p className={cn("mx-auto mt-6 max-w-xl", sectionBody)}>Free is a curated taste of SwiftPieces. Pro is the complete library: production-ready SwiftUI screens, complete app templates, the Build Kit for your coding agent and Pro remixing in the Playground. Start from a finished screen or a whole Xcode project. Copy the source. Make it yours.</p>
         </Reveal>
         <Reveal priority delay={0.45} className="mt-9 flex flex-wrap items-center justify-center gap-x-7 gap-y-4">
           <Button href={buy}>Start building <Arrow /></Button>
@@ -217,8 +217,8 @@ export function Compare() {
           body="Free gives you standout pieces for a single moment. Pro gives you the screens and complete apps around them. Both are plain SwiftUI source in your project, so mixing them is the normal case."
         />
         <Reveal className="mt-12 grid gap-3 lg:grid-cols-2 lg:gap-y-0">
-          <PlanCard tag="Free library" title="A curated taste of Swift Pieces." body={`${freeCount} animated pieces, Liquid Glass effects and Metal shaders. Genuinely good, and free to ship wherever a screen feels flat.`} points={["MIT + Commons Clause, forever", "Single-file pieces", "Install by CLI, MCP or copy-paste"]} cta="See what Pro adds" />
-          <PlanCard tag="Swift Pieces Pro" title="The pieces to build the whole app." body="Production-ready SwiftUI screens, complete app templates, and a Build Kit that teaches your coding agent the same design. Install by copy, CLI or MCP." points={[proCountsLabel, remixingPoint, "Full SwiftUI source that lives in your project", "Lifetime access, everything added later included"]} cta="Get Swift Pieces Pro" pro />
+          <PlanCard tag="Free library" title="A curated taste of SwiftPieces." body={`${freeCount} animated pieces, Liquid Glass effects and Metal shaders. Genuinely good, and free to ship wherever a screen feels flat.`} points={["MIT + Commons Clause, forever", "Single-file pieces", "Install by CLI, MCP or copy-paste"]} cta="See what Pro adds" />
+          <PlanCard tag="SwiftPieces Pro" title="The pieces to build the whole app." body="Production-ready SwiftUI screens, complete app templates, and a Build Kit that teaches your coding agent the same design. Install by copy, CLI or MCP." points={[proCountsLabel, remixingPoint, "Full SwiftUI source that lives in your project", "Lifetime access, everything added later included"]} cta="Get SwiftPieces Pro" pro />
         </Reveal>
       </Container>
     </section>
@@ -244,7 +244,7 @@ export function TryFirst() {
             <RevealItem key={c.title} className="h-full">
               {/* Same dithered ground as Pro's library cards, with the device rising out of the bottom edge. */}
               <div className="card group flex h-full flex-col overflow-hidden">
-                <a href={c.href} className="relative isolate block h-[260px] overflow-hidden" aria-label={`${c.title} in Swift Pieces Pro`}>
+                <a href={c.href} className="relative isolate block h-[260px] overflow-hidden" aria-label={`${c.title} in SwiftPieces Pro`}>
                   <DitherStage seed={c.seed} className="-z-10 transition-transform duration-700 ease-out group-hover:scale-[1.03]" />
                   {c.kind === "template" ? (
                     // A template is a whole app, so it shows three of its screens, stacked the way Pro's
@@ -299,7 +299,7 @@ export const proFaqs = [
   { q: "Does Pro change anything about the free library?", a: "No. The free pieces stay MIT + Commons Clause and maintained on GitHub. Pro is the complete library that builds on them, and it is what pays for the free work." },
   { q: "How does installation work?", a: "Screens install the same way as the free pieces: the CLI or the MCP server writes Swift files into your project, or you copy them by hand. Templates are complete Xcode projects you download from their page, with a guide from download to a running, renamed app. Nothing is linked at runtime." },
   { q: "Can I ship Pro pieces in client and App Store apps?", a: "Yes. A per-developer license covers unlimited personal and commercial apps, including client work. Reselling or redistributing the pieces as a competing library, or sharing your key, is what it excludes." },
-  { q: "Is there a subscription or are there tiers?", a: "Neither. Swift Pieces Pro is one plan with lifetime access to everything, including every piece added later. Files already in your projects are yours regardless. The plan and pricing are on pro.swiftpieces.com." },
+  { q: "Is there a subscription or are there tiers?", a: "Neither. SwiftPieces Pro is one plan with lifetime access to everything, including every piece added later. Files already in your projects are yours regardless. The plan and pricing are on pro.swiftpieces.com." },
   { q: "Does it work with my coding agent?", a: "Yes. Connect Claude Code, Cursor or Xcode to the Pro MCP server with your license key, and your agent searches the library and installs the real screen instead of inventing a lookalike." },
   { q: "What are the requirements?", a: "An iOS 17 deployment target as the floor, with Xcode 16 for pieces and screens and Xcode 26 to open the app templates. Liquid Glass pieces use the real material on iOS 26 and fall back gracefully below it. Apple frameworks only, nothing third-party." },
 ];

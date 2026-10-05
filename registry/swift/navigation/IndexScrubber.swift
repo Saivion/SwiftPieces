@@ -22,7 +22,7 @@ import UIKit
 ///   - selection: The section last jumped to. Written on every jump; write it yourself (for example from your own scroll tracking) so VoiceOver starts adjusting from the section on screen.
 ///   - index: What the rail lists. `.sections` shows exactly `titles`; `.alphabet` shows the current locale's index letters (A to Z and # in English) and matches each section to a letter by its first character; `.custom` takes your own entries.
 ///   - missing: What happens to index entries that have no section: `.dimmed` keeps them in place in a quieter color (the finger lands on the nearest section after them), `.hidden` leaves them out.
-///   - style: Colors for the letters, the track behind the rail while scrubbing and the letter block. Defaults to the Swift Pieces house palette, adapting to light and dark.
+///   - style: Colors for the letters, the track behind the rail while scrubbing and the letter block. Defaults to the SwiftPieces house palette, adapting to light and dark.
 ///   - onSelect: Called with the section title to jump to: once on touch down, then each time the finger reaches a new section, and on VoiceOver or keyboard moves. Scroll without animation here, the way the system index does.
 public struct IndexScrubber: View {
     /// The entries the rail lists.

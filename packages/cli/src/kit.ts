@@ -48,8 +48,8 @@ export async function fetchKitItem(proRegistry: string, id: string, licenseKey?:
   if (licenseKey) headers["x-license-key"] = licenseKey;
   const res = await request(`${proRegistry.replace(/\/$/, "")}/kit/${encodeURIComponent(id)}.json`, { headers });
   if (res.status === 404) throw new RegistryError(`No Build Kit item "${id}". Run \`npx swiftpieces list --kit\`.`, 404);
-  if (res.status === 401) throw new RegistryError(`"${id}" is part of the Swift Pieces Pro Build Kit. Run \`npx swiftpieces login <key>\` with your license key, or get Pro at https://pro.swiftpieces.com/pro`, 401);
-  if (res.status === 403) throw new RegistryError(`"${id}" is part of Swift Pieces Pro, and this license's account doesn't own it. Get it at https://pro.swiftpieces.com/pro`, 403);
+  if (res.status === 401) throw new RegistryError(`"${id}" is part of the SwiftPieces Pro Build Kit. Run \`npx swiftpieces login <key>\` with your license key, or get Pro at https://pro.swiftpieces.com/pro`, 401);
+  if (res.status === 403) throw new RegistryError(`"${id}" is part of SwiftPieces Pro, and this license's account doesn't own it. Get it at https://pro.swiftpieces.com/pro`, 403);
   if (!res.ok) throw new RegistryError(`Build Kit returned ${res.status} for "${id}"`, res.status);
   const item = (await res.json()) as KitItem;
   if (!item.files?.some((f) => f.content !== undefined)) throw new RegistryError(`The Build Kit did not return "${id}". Check \`npx swiftpieces whoami\`.`, 403);

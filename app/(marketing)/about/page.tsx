@@ -5,7 +5,7 @@ import { pro } from "@/lib/site";
 
 export const metadata = pageMetadata({
   title: "About",
-  description: "Why Swift Pieces exists, what earns a place in the free SwiftUI component library, how every piece is built and verified, and how it is funded.",
+  description: "Why SwiftPieces exists, what earns a place in the free SwiftUI component library, how every piece is built and verified, and how it is funded.",
   path: "/about",
 });
 
@@ -16,8 +16,8 @@ export const metadata = pageMetadata({
  */
 export default function AboutPage() {
   return (
-    <ProsePage label="About" title="The central place for Swift pieces." lead="Swift Pieces exists because iOS developers rebuild the same effects every year, and the good ones never end up in one place.">
-      <p>Swift Pieces is a free SwiftUI component library for iOS: designed, animated components such as a swipeable card stack, Liquid Glass menus, a floating tab bar and interactive charts, each one a single Swift file. Browse them <Link href="/components">all at once</Link> or by collection, from <Link href="/components/animations">animations</Link> to <Link href="/components/controls">buttons</Link> and <Link href="/components/inputs">form inputs</Link>.</p>
+    <ProsePage label="About" title="The central place for Swift pieces." lead="SwiftPieces exists because iOS developers rebuild the same effects every year, and the good ones never end up in one place.">
+      <p>SwiftPieces is a free SwiftUI component library for iOS: designed, animated components such as a swipeable card stack, Liquid Glass menus, a floating tab bar and interactive charts, each one a single Swift file. Browse them <Link href="/components">all at once</Link> or by collection, from <Link href="/components/animations">animations</Link> to <Link href="/components/controls">buttons</Link> and <Link href="/components/inputs">form inputs</Link>.</p>
       <p>The library is built around three ideas: native, not a port; Liquid Glass first; and agent-native delivery. Every piece is idiomatic SwiftUI you own, verified against the SDK, and installable by you or by your coding agent.</p>
 
       <h2>What earns a place</h2>
@@ -39,7 +39,7 @@ export default function AboutPage() {
       <p>Copy a piece&apos;s source into your app, add it with the <Link href="/docs/cli">swiftpieces CLI</Link>, or ask your coding agent through the <Link href="/docs/mcp">MCP server</Link>. The <Link href="/docs/installation">installation guide</Link> covers each one.</p>
 
       <h2>Who builds it and how it is funded</h2>
-      <p>Swift Pieces is curated by Saivion. The free library is the product, available under <Link href="/license">MIT + Commons Clause</Link>: use the pieces in any app, including client work. <a href={pro.home}>Swift Pieces Pro</a>, with production-ready screens and complete app templates, funds the maintenance and the new pieces.</p>
+      <p>SwiftPieces is curated by Saivion. The free library is the product, available under <Link href="/license">MIT + Commons Clause</Link>: use the pieces in any app, including client work. <a href={pro.home}>SwiftPieces Pro</a>, with production-ready screens and complete app templates, funds the maintenance and the new pieces.</p>
     </ProsePage>
   );
 }

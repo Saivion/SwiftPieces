@@ -12,7 +12,7 @@ const n = (p: Props, k: string) => Number(p[k] ?? 0);
 
 /** Flat block colours, bright enough to carry dark text. */
 export const BLOCK_COLORS: Record<string, string> = {
-  // The Swift Pieces house blocks and sweep.
+  // The SwiftPieces house blocks and sweep.
   sky: "#9CC2FF", sage: "#A9DCB7", blush: "#FF8FB8", butter: "#FFD976", lilac: "#CDB8FF", sand: "#E9D5B3", ember: "#FF7A3C", azure: "#4D8DFF",
   // Older names, kept so saved builds still read.
   mint: "#84E8A6", coral: "#E9695A", peach: "#FFB38A", slate: "#AFC0CF",

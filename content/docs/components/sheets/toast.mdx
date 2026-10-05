@@ -22,7 +22,7 @@ Presents one transient toast on the top or bottom edge.
 - Placement reads the safe area of the view it is applied to: at the top it clears the Dynamic Island, at the bottom it rises with the keyboard. Apply the modifier to a view that does not ignore safe areas.
 - Colors live in `Toast.Appearance` (passed as `appearance:`), because `Toast.Style` already names the kind. The card is opaque, so it reads the same with Reduce Transparency.
 - The message and detail are posted as a VoiceOver announcement on appear; the action button is a real button with its own label.
-- For stacked, queued alerts with a notifications feed, see the Notifications screen (toast stack) in Swift Pieces Pro.
+- For stacked, queued alerts with a notifications feed, see the Notifications screen (toast stack) in SwiftPieces Pro.
 
 ## Usage
 
@@ -42,7 +42,7 @@ ToastExample()
 | `duration` | Seconds before it dismisses on its own. The countdown pauses while the toast is touched. |
 | `position` | `.top` or `.bottom` edge to slide in from. |
 | `action` | Optional trailing button (for example Undo). Tapping it flashes a check, runs the handler, then dismisses. |
-| `appearance` | Colors and corner radius. Defaults to the Swift Pieces house palette, adapting to light and dark. |
+| `appearance` | Colors and corner radius. Defaults to the SwiftPieces house palette, adapting to light and dark. |
 
 ## Source
 
@@ -63,7 +63,7 @@ import SwiftUI
 ///   - duration: Seconds before it dismisses on its own. The countdown pauses while the toast is touched.
 ///   - position: `.top` or `.bottom` edge to slide in from.
 ///   - action: Optional trailing button (for example Undo). Tapping it flashes a check, runs the handler, then dismisses.
-///   - appearance: Colors and corner radius. Defaults to the Swift Pieces house palette, adapting to light and dark.
+///   - appearance: Colors and corner radius. Defaults to the SwiftPieces house palette, adapting to light and dark.
 public extension View {
     func toast(isPresented: Binding<Bool>, message: String, detail: String? = nil, systemImage: String? = nil, style: Toast.Style = .info, duration: Double = 3, position: Toast.Position = .top, action: Toast.Action? = nil, appearance: Toast.Appearance = .standard) -> some View {
         modifier(Toast(isPresented: isPresented, message: message, detail: detail, systemImage: systemImage, style: style, duration: duration, position: position, action: action, appearance: appearance))

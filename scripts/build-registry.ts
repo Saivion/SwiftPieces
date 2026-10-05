@@ -51,7 +51,7 @@ const headerSchema = z.object({
   infoPlist: z.record(z.string(), z.string()).default({}),
   shaders: z.array(z.string()).default([]),
   assets: z.array(z.string()).default([]),
-  /** The Swift Pieces Pro screen this piece grows into (a Pro registry id), shown as the upgrade path on its page. */
+  /** The SwiftPieces Pro screen this piece grows into (a Pro registry id), shown as the upgrade path on its page. */
   pro: z.string().regex(/^[a-z0-9-]+$/).optional(),
   /** Day the piece shipped, as "YYYY-MM-DD" (quoted, so YAML keeps it a string). Drives the "New" badge. */
   added: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
@@ -272,11 +272,11 @@ function writeDocs(items: RegistryItem[]) {
   mkdirSync(root, { recursive: true });
 
   const cats = (Object.keys(categories) as Category[]).filter((c) => items.some((i) => i.category === c));
-  writeFileSync(join(root, "index.mdx"), `---\ntitle: "All SwiftUI components"\ndescription: "Every free Swift Pieces component for iOS with a live preview. Filter by category, then open a piece for its notes, parameters, source and install command."\nindex: true\n---\n\n{/* GENERATED FILE. Edit scripts/build-registry.ts. */}\n`);
+  writeFileSync(join(root, "index.mdx"), `---\ntitle: "All SwiftUI components"\ndescription: "Every free SwiftPieces component for iOS with a live preview. Filter by category, then open a piece for its notes, parameters, source and install command."\nindex: true\n---\n\n{/* GENERATED FILE. Edit scripts/build-registry.ts. */}\n`);
   // Explore Pro: Pro's screens and templates as cards that open on pro.swiftpieces.com. The cards
   // come from lib/pro-cards.json and public/pro-cards/, refreshed by scripts/pro-cards/capture.ts.
-  writeFileSync(join(root, "screens.mdx"), `---\ntitle: "Screens"\ndescription: "Production-ready SwiftUI screens from Swift Pieces Pro. Each one is a complete, themed screen you drop into your app and wire to your data."\npro: "screen"\n---\n\n{/* GENERATED FILE. Edit scripts/build-registry.ts. */}\n`);
-  writeFileSync(join(root, "templates.mdx"), `---\ntitle: "Templates"\ndescription: "Complete Xcode app templates from Swift Pieces Pro, wired end to end. Open the project, swap the brand and the copy, ship."\npro: "template"\n---\n\n{/* GENERATED FILE. Edit scripts/build-registry.ts. */}\n`);
+  writeFileSync(join(root, "screens.mdx"), `---\ntitle: "Screens"\ndescription: "Production-ready SwiftUI screens from SwiftPieces Pro. Each one is a complete, themed screen you drop into your app and wire to your data."\npro: "screen"\n---\n\n{/* GENERATED FILE. Edit scripts/build-registry.ts. */}\n`);
+  writeFileSync(join(root, "templates.mdx"), `---\ntitle: "Templates"\ndescription: "Complete Xcode app templates from SwiftPieces Pro, wired end to end. Open the project, swap the brand and the copy, ship."\npro: "template"\n---\n\n{/* GENERATED FILE. Edit scripts/build-registry.ts. */}\n`);
   writeFileSync(join(root, "meta.json"), JSON.stringify({
     title: "Components",
     root: true,
@@ -302,7 +302,7 @@ function writeDocs(items: RegistryItem[]) {
       writeFileSync(join(dir, `${item.slug}.mdx`), `---\n${fm}\n---\n\n{/* GENERATED FILE. Edit registry/swift/${item.category}/${item.name}.swift or ${item.name}.mdx instead. */}\n\n${docs.summary}\n\n${prose}\n\n${usage}\n${paramsTable}\n## Source\n\n<Tabs items={[${tabNames}]}>\n${sourceTabs}\n</Tabs>\n`);
     }
   }
-  writeFileSync(join(DOCS_DIR, "meta.json"), JSON.stringify({ title: "Swift Pieces", pages: ["introduction", "installation", "cli", "mcp", "liquid-glass", "guides", "components"] }, null, 2));
+  writeFileSync(join(DOCS_DIR, "meta.json"), JSON.stringify({ title: "SwiftPieces", pages: ["introduction", "installation", "cli", "mcp", "liquid-glass", "guides", "components"] }, null, 2));
 }
 
 /**
@@ -403,9 +403,9 @@ function writeLlms(items: RegistryItem[]) {
   const guides = readGuides();
   const catCount = new Set(items.map((i) => i.category)).size;
   const lines = [
-    "# Swift Pieces",
+    "# SwiftPieces",
     "",
-    `> Swift Pieces (swiftpieces.com) is a free library of ${items.length} SwiftUI components for iOS in ${catCount} categories: animated, gesture-driven interactions such as a swipeable card stack, Liquid Glass (iOS 26) menus, a floating tab bar, interactive charts, form inputs and AI chat surfaces. Each piece is one self-contained Swift file (plus a .metal file where a shader is involved) on Apple frameworks only, from iOS 17. Install by copy-paste, \`npx swiftpieces add <Name>\`, or the Swift Pieces MCP server.`,
+    `> SwiftPieces (swiftpieces.com) is a free library of ${items.length} SwiftUI components for iOS in ${catCount} categories: animated, gesture-driven interactions such as a swipeable card stack, Liquid Glass (iOS 26) menus, a floating tab bar, interactive charts, form inputs and AI chat surfaces. Each piece is one self-contained Swift file (plus a .metal file where a shader is involved) on Apple frameworks only, from iOS 17. Install by copy-paste, \`npx swiftpieces add <Name>\`, or the SwiftPieces MCP server.`,
     "",
     "Key facts:",
     "",
@@ -438,7 +438,7 @@ function writeLlms(items: RegistryItem[]) {
   for (const h of hubs) lines.push(`- [${h.h1}](${SITE_URL}${hubPath(h.slug)}): ${h.description} (${hubItems(h, items).length} pieces)`);
   lines.push(
     "",
-    "## Swift Pieces Pro",
+    "## SwiftPieces Pro",
     "",
     `A separate paid library for building whole apps: ${proCountsLabel} (production-ready SwiftUI screens, complete Xcode projects, and agent skills that build the rest in the same design) at ${PRO_URL}/library, plus Pro remixing in the Playground at ${SITE_URL}/apps (all ${proCatalog.remixing.apps} apps in the App Library, remix any app with AI, keep up to ${proCatalog.remixing.saves} remixes). One plan with lifetime access; plan and pricing: ${PRO_URL}/pro. Pro MCP endpoint: ${PRO_URL}/api/mcp (license key required): search_library, get_item, list_kit, get_kit_item, apply_design_skill, apply_recipe.`,
     "",
@@ -464,7 +464,7 @@ function writeLlms(items: RegistryItem[]) {
  */
 function writeLlmsFull(items: RegistryItem[], guides: ReturnType<typeof readGuides>) {
   const out = [
-    "# Swift Pieces: full text",
+    "# SwiftPieces: full text",
     "",
     `> ${items.length} free SwiftUI components for iOS, one Swift file each, MIT + Commons Clause. Index: ${SITE_URL}/llms.txt. Source for any piece: ${SITE_URL}/r/<Name>.json or its docs page.`,
     "",
@@ -502,7 +502,7 @@ function writeSchema() {
   const schema = z.toJSONSchema(registryItemSchema, { target: "draft-7" });
   writeFileSync(
     join(ROOT, "public/schema/registry-item.json"),
-    JSON.stringify({ $id: `${SITE_URL}/schema/registry-item.json`, title: "Swift Pieces registry item", ...schema }, null, 2),
+    JSON.stringify({ $id: `${SITE_URL}/schema/registry-item.json`, title: "SwiftPieces registry item", ...schema }, null, 2),
   );
 }
 

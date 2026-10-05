@@ -21,7 +21,7 @@ Hero header placed at the top of scroll content, paired with `.stretchHeaderBar(
 - The `subtitle` row (stats, avatar, tabs) pins under the bar once the hero has scrolled past it and draws above the content that follows. Give it its own padding.
 - Progress comes from `onScrollGeometryChange` on iOS 18 (fed through the modifier) and from the header's own position in the `.scrollView` coordinate space on iOS 17. A soft haptic marks a deep pull.
 - Reduce Motion drops the title parallax and the hero lag but keeps the stretch and the collapse. The hero reads as one header element and is hidden from VoiceOver once collapsed, when the inline title takes over.
-- A full settings screen built around a header like this ships in Swift Pieces Pro (`settings-screen`).
+- A full settings screen built around a header like this ships in SwiftPieces Pro (`settings-screen`).
 
 ## Usage
 

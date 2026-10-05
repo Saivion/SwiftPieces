@@ -41,7 +41,7 @@ export default function ComponentsPage() {
           itemListElement: items.map((item, i) => ({ "@type": "ListItem", position: i + 1, name: item.title, url: new URL(piecePath(item), site.url).href })),
         },
       },
-      breadcrumbJsonLd([["Swift Pieces", "/"], ["Components", "/components"]]),
+      breadcrumbJsonLd([["SwiftPieces", "/"], ["Components", "/components"]]),
     ],
   };
   return (

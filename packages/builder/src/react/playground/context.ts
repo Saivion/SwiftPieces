@@ -14,7 +14,7 @@ export type EventProps = Record<string, string | number>;
  * analytics vendor directly; Free and Pro plug theirs in here and share every line of the runtime.
  */
 export type PlaygroundHost = {
-  /** "Swift Pieces" or "Swift Pieces Pro". */
+  /** "SwiftPieces" or "SwiftPieces Pro". */
   product: string;
   limits: BuilderLimits;
   registry: ComponentRegistry;

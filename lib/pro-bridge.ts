@@ -24,7 +24,7 @@ function tokenPage(): Promise<Window> {
   ready = new Promise<Window>((resolve, reject) => {
     frame = document.createElement("iframe");
     frame.src = `${proOrigin}/embed/session`;
-    frame.title = "Swift Pieces Pro session";
+    frame.title = "SwiftPieces Pro session";
     frame.setAttribute("aria-hidden", "true");
     frame.tabIndex = -1;
     frame.style.cssText = "position:absolute;width:0;height:0;border:0;visibility:hidden";

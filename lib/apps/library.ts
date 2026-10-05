@@ -1,4 +1,4 @@
-// The app library: which App Store apps it covers and the Swift Pieces pattern paired with each.
+// The app library: which App Store apps it covers and the SwiftPieces pattern paired with each.
 // Hand-kept and reviewed. The App Store facts for each app (name, developer, icon, screenshots,
 // rating) come from Apple's public lookup API, saved by scripts/fetch-app-store.mts into
 // app-store.json and committed after review. Removing an app is deleting its line here.

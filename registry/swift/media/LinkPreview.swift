@@ -22,7 +22,7 @@ import UniformTypeIdentifiers
 ///   - layout: `.compact` is a row with a square thumbnail on the leading side, for chat bubbles and lists. `.large` puts a wide image on top, for feeds and composers. Both take the width they are offered.
 ///   - metadata: Metadata to show as is, with no request: for previews, tests, or links your server has already unfurled. `nil` fetches.
 ///   - timeout: Seconds before a fetch gives up and the card falls back to the address.
-///   - style: Colors and corner radius. Defaults to the Swift Pieces house palette, adapting to light and dark.
+///   - style: Colors and corner radius. Defaults to the SwiftPieces house palette, adapting to light and dark.
 public struct LinkPreview: View {
     /// How the card arranges the image and the text.
     public enum Layout: Sendable, Hashable {

@@ -8,7 +8,8 @@ import { firstNodeOf } from "../../core/inspect.js";
 import type { ComponentRegistry } from "../../core/registry.js";
 import type { BuilderLimits, Project, PropValue, Props, Screen, ScreenNode, Theme } from "../../core/schema.js";
 import { groundEntry } from "../../core/palette.js";
-import { cloneWithNewIds, findNode, pathTo, replaceProps, updateProp } from "../../core/tree.js";
+import { cloneWithNewIds, countNodes, duplicateNode, findNode, insertNode, moveInto, moveSibling, newId, parentOf, pathTo, removeNode, replaceProps, updateProp } from "../../core/tree.js";
+import { defaultProps } from "../../core/registry.js";
 import { parseLink } from "../../core/generate.js";
 import { pruneLinks, toTypeName, validateProject, withFreshScreenIds } from "../../core/validate.js";
 import { buildFingerprint, type Persistence, type SavedRemix } from "./persist.js";
@@ -313,6 +314,21 @@ export function createPlayStore(initial: Partial<PlayState>, deps: Deps) {
   const baseFingerprint = () => (state.base ? buildFingerprint(state.base) : "");
 
   const screenOf = (nodeId: string): Screen | undefined => state.project?.screens.find((s) => findNode(s.root, nodeId));
+  /** The first node of a component in a tree, depth first. */
+  const firstOfKind = (root: ScreenNode, component: string): ScreenNode | null => {
+    if (root.component === component) return root;
+    for (const c of root.children ?? []) {
+      const hit = firstOfKind(c, component);
+      if (hit) return hit;
+    }
+    return null;
+  };
+  /** Whether `adding` more components fit the tier's per-screen cap; says so when they don't. */
+  const roomFor = (screen: Screen, adding: number): boolean => {
+    if (countNodes(screen.root) + adding <= deps.limits.maxNodesPerScreen) return true;
+    notify(deps.limits.tier === "free" ? `A screen holds up to ${deps.limits.maxNodesPerScreen} components on Free. Pro raises it.` : `A screen holds up to ${deps.limits.maxNodesPerScreen} components.`);
+    return false;
+  };
 
   function mapScreen(screenId: string, fn: (root: ScreenNode) => ScreenNode, key?: string) {
     const p = state.project;
@@ -722,6 +738,101 @@ export function createPlayStore(initial: Partial<PlayState>, deps: Deps) {
       if (!screen) return;
       mapScreen(screen.id, (root) => replaceProps(root, nodeId, props));
       api.remixedEvent(nodeId, via);
+    },
+    // ------------------------------------------------------------ Layout
+    // Taking things out, adding them and moving them around inside a screen. Each is one undo step,
+    // and the preview, the SwiftUI and Build follow, exactly like a property edit.
+    /** Takes a component out of its screen (never the screen itself). */
+    removeNode(nodeId: string) {
+      const screen = screenOf(nodeId);
+      if (!screen || screen.root.id === nodeId) return;
+      const parent = parentOf(screen.root, nodeId);
+      mapScreen(screen.id, (root) => removeNode(root, nodeId));
+      set({ selected: parent && parent.id !== screen.root.id ? { screenId: screen.id, nodeId: parent.id } : null, hover: null });
+    },
+    /** Moves a component one place up (-1) or down (+1) among its siblings. */
+    moveNode(nodeId: string, delta: -1 | 1) {
+      const screen = screenOf(nodeId);
+      if (!screen) return;
+      mapScreen(screen.id, (root) => moveSibling(root, nodeId, delta));
+    },
+    /**
+     * Moves a component to `index` among `parentId`'s children, counted without it (a drag's drop).
+     * Dropping it where it already is changes nothing, so it leaves no undo step.
+     */
+    moveNodeTo(nodeId: string, parentId: string, index: number) {
+      const screen = screenOf(nodeId);
+      const node = screen && findNode(screen.root, nodeId);
+      const parent = screen && findNode(screen.root, parentId);
+      const pdef = parent && deps.registry.get(parent.component);
+      if (!screen || !node || !parent || !pdef?.container || screen.root.id === nodeId) return;
+      if (pdef.container.accepts?.length && !pdef.container.accepts.includes(node.component)) return;
+      const now = parentOf(screen.root, nodeId);
+      if (now?.id === parentId && (now.children ?? []).findIndex((c) => c.id === nodeId) === index) return;
+      mapScreen(screen.id, (root) => moveInto(root, nodeId, parentId, index));
+    },
+    /** Copies a component (and everything in it) right after itself, and selects the copy. */
+    duplicateNode(nodeId: string) {
+      const screen = screenOf(nodeId);
+      const node = screen && findNode(screen.root, nodeId);
+      if (!screen || !node || screen.root.id === nodeId) return;
+      if (!roomFor(screen, countNodes(node))) return;
+      let copy: string | null = null;
+      mapScreen(screen.id, (root) => {
+        const out = duplicateNode(root, nodeId);
+        copy = out.id;
+        return out.root;
+      });
+      if (copy) set({ selected: { screenId: screen.id, nodeId: copy } });
+    },
+    /**
+     * Adds a fresh component (its default props) inside `parentId`, at `index` (the end when
+     * omitted), and selects it. Refuses what the parent doesn't accept or the tier can't use.
+     */
+    insertComponent(parentId: string, componentId: string, index?: number) {
+      const screen = screenOf(parentId);
+      const parent = screen && findNode(screen.root, parentId);
+      const pdef = parent && deps.registry.get(parent.component);
+      const def = deps.registry.get(componentId);
+      if (!screen || !pdef?.container || !def || def.hidden) return;
+      if (pdef.container.accepts?.length && !pdef.container.accepts.includes(componentId)) return;
+      if (!deps.registry.usable(def, deps.limits)) {
+        notify(`${def.name} comes with SwiftPieces Pro.`);
+        return;
+      }
+      // One the app already has comes in as the app has it (its content, its settings), so a
+      // reworked screen keeps the foundation its siblings share. Anything new starts from defaults.
+      const existing = state.project!.screens.map((sc) => firstOfKind(sc.root, componentId)).find(Boolean);
+      const node: ScreenNode = existing ? cloneWithNewIds(existing) : { id: newId(), component: def.id, props: defaultProps(def), ...(def.container ? { children: [] } : {}) };
+      if (!roomFor(screen, countNodes(node))) return;
+      mapScreen(screen.id, (root) => insertNode(root, parentId, node, index));
+      set({ selected: { screenId: screen.id, nodeId: node.id } });
+      api.remixedEvent(node.id, "insert");
+    },
+    /**
+     * Turns a component into another one in the same place: the new one starts from its defaults
+     * and keeps whatever props the two share (a title, a value), so content carries over.
+     */
+    swapComponent(nodeId: string, componentId: string) {
+      const screen = screenOf(nodeId);
+      const node = screen && findNode(screen.root, nodeId);
+      const parent = screen && parentOf(screen.root, nodeId);
+      const pdef = parent && deps.registry.get(parent.component);
+      const def = deps.registry.get(componentId);
+      if (!screen || !node || !parent || !def || def.hidden || node.component === componentId) return;
+      if (pdef?.container?.accepts?.length && !pdef.container.accepts.includes(componentId)) return;
+      if (!deps.registry.usable(def, deps.limits)) {
+        notify(`${def.name} comes with SwiftPieces Pro.`);
+        return;
+      }
+      const base = defaultProps(def);
+      const props = { ...base };
+      for (const [k, v] of Object.entries(node.props)) if (k in base && typeof base[k] === typeof v) props[k] = v;
+      const next: ScreenNode = { id: newId(), component: def.id, props, ...(def.container ? { children: node.children ?? [] } : {}) };
+      const at = (parent.children ?? []).findIndex((c) => c.id === nodeId);
+      mapScreen(screen.id, (root) => insertNode(removeNode(root, nodeId), parent.id, next, at));
+      set({ selected: { screenId: screen.id, nodeId: next.id }, hover: null });
+      api.remixedEvent(next.id, "swap");
     },
     /** One analytics event per component per open: remixing is a step, not a stream of edits. */
     remixedEvent(nodeId: string, property: string) {

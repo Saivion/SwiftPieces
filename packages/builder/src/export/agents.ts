@@ -15,7 +15,7 @@ export function agentGuide(project: Project, generated: GeneratedProject, theme:
   return [
     `# ${app}: notes for coding agents`,
     "",
-    `This SwiftUI app was started in the Swift Pieces playground (https://swiftpieces.com/playground). Keep new screens consistent with what is already here.`,
+    `This SwiftUI app was started in the SwiftPieces playground (https://swiftpieces.com/playground). Keep new screens consistent with what is already here.`,
     "",
     "## Project",
     "",
@@ -42,14 +42,14 @@ export function agentGuide(project: Project, generated: GeneratedProject, theme:
           "",
         ]
       : []),
-    "## Swift Pieces",
+    "## SwiftPieces",
     "",
     pieces.length
       ? `- Installed: ${pieces.map((p) => `\`${p}\``).join(", ")}, in \`${app}/SwiftPieces/\`. They are plain source: read a file's doc comments for its parameters before using it.`
-      : `- No Swift Pieces are installed yet.`,
-    "- Add more with `npx swiftpieces add <Name>` from the folder holding the .xcodeproj, or through the Swift Pieces MCP server: https://swiftpieces.com/api/mcp (tools: search_pieces, get_piece, install_piece). Prefer an existing piece to writing a new animated control from scratch.",
+      : `- No SwiftPieces are installed yet.`,
+    "- Add more with `npx swiftpieces add <Name>` from the folder holding the .xcodeproj, or through the SwiftPieces MCP server: https://swiftpieces.com/api/mcp (tools: search_pieces, get_piece, install_piece). Prefer an existing piece to writing a new animated control from scratch.",
     "- Catalog for agents: https://swiftpieces.com/llms.txt",
-    "- Full screens and complete app templates in the same style: Swift Pieces Pro, https://pro.swiftpieces.com",
+    "- Full screens and complete app templates in the same style: SwiftPieces Pro, https://pro.swiftpieces.com",
     "",
     "## Rules",
     "",

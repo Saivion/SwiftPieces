@@ -1,7 +1,7 @@
 // Tint Panel: a stack on a strong colour field (a navy evening, a berry day, a teal forecast),
 // the way calendar and wellness apps give each kind of screen its own ground. Holds any views.
 // With zero radius and a tall minimum height it becomes the screen's ground. The ink and night
-// grounds are the Swift Pieces card surface and screen ground and follow light and dark; the other
+// grounds are the SwiftPieces card surface and screen ground and follow light and dark; the other
 // colours are dark fields that keep their text white. An optional glow washes a sweep colour in.
 import type { SwiftPieceDefinition } from "../../core/schema.js";
 import { call, modifiers, num } from "../../core/swift.js";
@@ -46,7 +46,7 @@ const ENTRANCE = [
   "}",
 ];
 
-/** The theme grounds (ink, night): the Swift Pieces surface or ground in light and dark, with an optional glow. */
+/** The theme grounds (ink, night): the SwiftPieces surface or ground in light and dark, with an optional glow. */
 const GROUND = [
   "private struct TintPanelGround: View {",
   "    var surface = false",

@@ -24,7 +24,7 @@ import UIKit
 ///   - minimumCellWidth: The narrowest a cell may be. The column count is the most that fit at this width, so it adapts to rotation, iPad and split view.
 ///   - aspectRatio: Cell width divided by height. `1` is square; `0.75` suits portrait posters or documents.
 ///   - longPressToSelect: When `true`, holding a cell outside selection mode turns selection mode on, selects that cell and keeps painting as the finger moves. Pass `false` if your cells have their own context menu.
-///   - style: Spacing, corner radius, the selected inset, badge colors and auto-scroll tuning. Defaults to the Swift Pieces house palette.
+///   - style: Spacing, corner radius, the selected inset, badge colors and auto-scroll tuning. Defaults to the SwiftPieces house palette.
 ///   - cell: Builds a cell's content from the item and whether it is selected. It fills the cell and is clipped to the cell's rounded shape; the grid draws the badge and inset.
 public struct DragSelectGrid<Item: Identifiable, Cell: View>: View {
     /// Look and feel. `.standard` is the house palette. The same type as `DragSelectGridStyle`, so `.init(spacing: 2)` works at the call site.

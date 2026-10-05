@@ -4,7 +4,7 @@
     "title": "CLI",
     "description": "npx swiftpieces init, add, list, login and whoami. One CLI, two registries.",
     "breadcrumbs": [
-      "Swift Pieces"
+      "SwiftPieces"
     ],
     "structuredData": {
       "contents": [
@@ -57,7 +57,7 @@
     "title": "Installation",
     "description": "Copy-paste, the swiftpieces CLI, or Swift Package Manager for shared shader libraries.",
     "breadcrumbs": [
-      "Swift Pieces"
+      "SwiftPieces"
     ],
     "structuredData": {
       "contents": [
@@ -161,14 +161,14 @@
   {
     "url": "/docs/introduction",
     "title": "Introduction",
-    "description": "Swift Pieces is the central place for animated SwiftUI pieces. Copy one file, run one command, or let your agent install it.",
+    "description": "SwiftPieces is the central place for animated SwiftUI pieces. Copy one file, run one command, or let your agent install it.",
     "breadcrumbs": [
-      "Swift Pieces"
+      "SwiftPieces"
     ],
     "structuredData": {
       "contents": [
         {
-          "content": "Swift Pieces is a free library (MIT + Commons Clause) of animated SwiftUI components built around iOS 26 Liquid Glass and Metal shaders, and a curated taste of what Swift Pieces Pro offers in full: production-ready SwiftUI screens and complete app templates. Read why Swift Pieces exists and how it is funded."
+          "content": "SwiftPieces is a free library (MIT + Commons Clause) of animated SwiftUI components built around iOS 26 Liquid Glass and Metal shaders, and a curated taste of what SwiftPieces Pro offers in full: production-ready SwiftUI screens and complete app templates. Read why SwiftPieces exists and how it is funded."
         },
         {
           "heading": "what-earns-a-place",
@@ -224,7 +224,7 @@
     "title": "SwiftUI Liquid Glass guide (iOS 26)",
     "description": "How to use Liquid Glass in SwiftUI with glassEffect, GlassEffectContainer and glassEffectID, and how to fall back to Material below iOS 26.",
     "breadcrumbs": [
-      "Swift Pieces"
+      "SwiftPieces"
     ],
     "structuredData": {
       "contents": [
@@ -365,12 +365,12 @@
     "title": "MCP and agents",
     "description": "Connect Claude Code, Cursor or any MCP client to the free library, so your agent installs the real piece instead of inventing a lookalike.",
     "breadcrumbs": [
-      "Swift Pieces"
+      "SwiftPieces"
     ],
     "structuredData": {
       "contents": [
         {
-          "content": "The Swift Pieces MCP server is public and needs no account. Your agent can search the free library, read a piece's source and install it into your project."
+          "content": "The SwiftPieces MCP server is public and needs no account. Your agent can search the free library, read a piece's source and install it into your project."
         },
         {
           "content": "**URL:** `https://swiftpieces.com/api/mcp`"
@@ -469,7 +469,7 @@
         },
         {
           "heading": "rules-every-agent-should-follow-with-liquid-glass",
-          "content": "Have Swift Pieces Pro? Its screens, templates and Build Kit use a separate server with your license key. Set up the Pro server →"
+          "content": "Have SwiftPieces Pro? Its screens, templates and Build Kit use a separate server with your license key. Set up the Pro server →"
         }
       ],
       "headings": [
@@ -499,9 +499,9 @@
   {
     "url": "/docs/components",
     "title": "All SwiftUI components",
-    "description": "Every free Swift Pieces component for iOS with a live preview. Filter by category, then open a piece for its notes, parameters, source and install command.",
+    "description": "Every free SwiftPieces component for iOS with a live preview. Filter by category, then open a piece for its notes, parameters, source and install command.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Components"
     ],
     "structuredData": {
@@ -512,9 +512,9 @@
   {
     "url": "/docs/components/screens",
     "title": "Screens",
-    "description": "Production-ready SwiftUI screens from Swift Pieces Pro. Each one is a complete, themed screen you drop into your app and wire to your data.",
+    "description": "Production-ready SwiftUI screens from SwiftPieces Pro. Each one is a complete, themed screen you drop into your app and wire to your data.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Components",
       "Explore Pro"
     ],
@@ -526,9 +526,9 @@
   {
     "url": "/docs/components/templates",
     "title": "Templates",
-    "description": "Complete Xcode app templates from Swift Pieces Pro, wired end to end. Open the project, swap the brand and the copy, ship.",
+    "description": "Complete Xcode app templates from SwiftPieces Pro, wired end to end. Open the project, swap the brand and the copy, ship.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Components",
       "Explore Pro"
     ],
@@ -542,13 +542,13 @@
     "title": "SwiftUI guides",
     "description": "Practical SwiftUI guides with working code: animations, custom buttons, cards, haptic feedback and loading states for iOS 17 and later.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Guides"
     ],
     "structuredData": {
       "contents": [
         {
-          "content": "Each guide teaches one part of iOS interface work in SwiftUI with code you can paste and run, then points to the Swift Pieces component that already does the full version. Every snippet targets iOS 17 and uses only Apple frameworks."
+          "content": "Each guide teaches one part of iOS interface work in SwiftUI with code you can paste and run, then points to the SwiftPieces component that already does the full version. Every snippet targets iOS 17 and uses only Apple frameworks."
         },
         {
           "content": "<Card title=\"SwiftUI animations\" href=\"/docs/guides/swiftui-animations\" description=\"Implicit and explicit animation, springs, transitions, phase and keyframe animators, scroll and gesture-driven motion.\" />"
@@ -587,7 +587,7 @@
     "title": "SwiftUI Animations: A Practical Guide with Examples",
     "description": "SwiftUI animations explained with working examples: implicit and explicit animation, spring animation, transitions, keyframe animators, and gestures.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Guides"
     ],
     "structuredData": {
@@ -780,7 +780,7 @@
         },
         {
           "heading": "respect-reduce-motion",
-          "content": "What to reduce: travel across the screen, parallax, 3D rotation, zooming, looping motion. What to keep: opacity changes, color changes, and small scale feedback on press. Every Swift Pieces component reads this setting. Elastic Button, for example, keeps its scale and darken under Reduce Motion but drops the lean and stretch toward the finger."
+          "content": "What to reduce: travel across the screen, parallax, 3D rotation, zooming, looping motion. What to keep: opacity changes, color changes, and small scale feedback on press. Every SwiftPieces component reads this setting. Elastic Button, for example, keeps its scale and darken under Reduce Motion but drops the lean and stretch toward the finger."
         },
         {
           "heading": "performance-notes",
@@ -808,7 +808,7 @@
         },
         {
           "heading": "where-to-go-next",
-          "content": "The animations hub collects every Swift Pieces component built around motion, from gesture-driven cards to scroll effects. Buttons are where most small motion lives, so the SwiftUI buttons guide continues with press styles and loading states, and SwiftUI haptics covers pairing motion with feel."
+          "content": "The animations hub collects every SwiftPieces component built around motion, from gesture-driven cards to scroll effects. Buttons are where most small motion lives, so the SwiftUI buttons guide continues with press styles and loading states, and SwiftUI haptics covers pairing motion with feel."
         },
         {
           "heading": "install-a-piece",
@@ -896,7 +896,7 @@
     "title": "SwiftUI Buttons: Custom Styles, Animation, Loading",
     "description": "SwiftUI buttons from the basics to custom ButtonStyle, press animation, haptics, async loading states, hold to confirm, and accessible hit targets.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Guides"
     ],
     "structuredData": {
@@ -1077,7 +1077,7 @@
         },
         {
           "heading": "menus-that-grow-from-a-button",
-          "content": "The controls hub collects every button-like piece in Swift Pieces, and the SwiftUI animations guide covers the springs and transitions used throughout this page."
+          "content": "The controls hub collects every button-like piece in SwiftPieces, and the SwiftUI animations guide covers the springs and transitions used throughout this page."
         },
         {
           "heading": "install-a-piece",
@@ -1145,7 +1145,7 @@
     "title": "SwiftUI Cards: Card Views, Swipe Stacks and Flip Cards",
     "description": "Build SwiftUI cards that feel native: continuous corners, layered shadows, press states, a swipeable card stack, a 3D flip card, tilt and scroll parallax.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Guides"
     ],
     "structuredData": {
@@ -1338,7 +1338,7 @@
     "title": "SwiftUI Haptics: sensoryFeedback and Haptic Feedback",
     "description": "A practical guide to SwiftUI haptics: sensoryFeedback triggers, conditions and feedback kinds, drag threshold ticks, UIKit generators, and restraint.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Guides"
     ],
     "structuredData": {
@@ -1635,7 +1635,7 @@
     "title": "SwiftUI Skeleton Loading, Shimmer and Loading States",
     "description": "SwiftUI skeleton loading with redacted placeholders, a shimmer modifier, ProgressView styles, success and failure morphs, paging footers and Reduce Motion.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Guides"
     ],
     "structuredData": {
@@ -1816,7 +1816,7 @@
     "title": "Assistant Orb",
     "description": "A dark glass ball with a Siri-style voice wave inside, locked to the thinking state; four thin sine membranes travel through the equator of a refracting shell, drawn by a Metal color shader. The sphere never moves, only the wave, and a palette change crossfades its colours.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Components",
       "Categories · 14",
       "AI"
@@ -1896,7 +1896,7 @@
     "title": "Code Block",
     "description": "A code slab for chat replies and docs that stays dark in both appearances: a butter language label and optional filename, block-colored Swift syntax, collapse past N lines with a fade and a spring expand, wrap toggle, text selection, a streaming mode that fades lines in behind a cursor, and a copy pill that turns into a sage Copied block.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Components",
       "Categories · 14",
       "AI"
@@ -1936,7 +1936,7 @@
         },
         {
           "heading": "notes",
-          "content": "Need code inside fully rendered streaming markdown? That is the Streaming Markdown screen in Swift Pieces Pro."
+          "content": "Need code inside fully rendered streaming markdown? That is the Streaming Markdown screen in SwiftPieces Pro."
         },
         {
           "heading": "parameters",
@@ -2044,7 +2044,7 @@
     "title": "Prompt Chips",
     "description": "A snapping horizontal row of prompt suggestions above a composer, each chip keyed by a solid color block glyph. The chosen chip morphs into a composer-width block with matchedGeometryEffect while the rest slide out, then the row hands the text back and collapses.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Components",
       "Categories · 14",
       "AI"
@@ -2080,7 +2080,7 @@
         },
         {
           "heading": "notes",
-          "content": "Need a full composer with attachments, recording and model picker? That is the Prompt Composer screen in Swift Pieces Pro."
+          "content": "Need a full composer with attachments, recording and model picker? That is the Prompt Composer screen in SwiftPieces Pro."
         },
         {
           "heading": "parameters",
@@ -2172,7 +2172,7 @@
     "title": "Streaming Reply",
     "description": "The AI reply surface. A small header carries the assistant mark and a live phase label, text arrives token by token with a per-word fade and a color block cursor, inline code sits on butter blocks, user prompts are solid color blocks, and a long press lifts the message to reveal copy and regenerate.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Components",
       "Categories · 14",
       "AI"
@@ -2216,7 +2216,7 @@
         },
         {
           "heading": "notes",
-          "content": "Need full incremental markdown with lists, tables, source cards and a follow-up bar? That is the Streaming Markdown screen in Swift Pieces Pro."
+          "content": "Need full incremental markdown with lists, tables, source cards and a follow-up bar? That is the Streaming Markdown screen in SwiftPieces Pro."
         },
         {
           "heading": "parameters",
@@ -2308,7 +2308,7 @@
     "title": "Thinking State",
     "description": "The \"assistant is working\" placeholder, laid out like the reply it becomes: a breathing mark with an elapsed-seconds label over three presentations on one clock: block-colored rising dots, a sheen over reply-shaped bars, or a label whose glyphs carry the sheen. Plus a modifier that sweeps any view.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Components",
       "Categories · 14",
       "AI"
@@ -2348,7 +2348,7 @@
         },
         {
           "heading": "notes",
-          "content": "Need a live timeline of tool calls with durations and results? That is the Tool Execution Card screen in Swift Pieces Pro."
+          "content": "Need a live timeline of tool calls with durations and results? That is the Tool Execution Card screen in SwiftPieces Pro."
         },
         {
           "heading": "parameters",
@@ -2424,7 +2424,7 @@
     "title": "Thought Orb",
     "description": "A small dark glass ball with a Siri-style voice wave inside, locked to the thinking state and drawn by a Metal color shader; palettes for searching, reading and writing crossfade the colour with the kind of work, and a Pill wraps it with a label and indeterminate dots into the status control.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Components",
       "Categories · 14",
       "AI"
@@ -2508,7 +2508,7 @@
     "title": "Silk",
     "description": "A slowly folding silk surface lit by a movable light and shaded from a real gradient normal in a Metal shader, in house block fabrics and an adaptive standard style, with optional device-tilt lighting.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Components",
       "Categories · 14",
       "Backgrounds"
@@ -2620,7 +2620,7 @@
     "title": "Touch Grid",
     "description": "A Canvas dot grid that swells and warms into a house block color under the finger, springs back on release, and sends one dissipating ripple out from a tap.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Components",
       "Categories · 14",
       "Backgrounds"
@@ -2752,7 +2752,7 @@
     "title": "Flip Card",
     "description": "A two-sided card you flip by tap or by dragging sideways. The drag scrubs the rotation, release commits or snaps back by velocity, the card lifts toward you mid-turn with a layered shadow that slides off the raised edge, and each face shades as it turns edge-on.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Components",
       "Categories · 14",
       "Cards"
@@ -2872,7 +2872,7 @@
     "title": "Motion Card",
     "description": "A solid color card that tilts with the device's attitude through an exponential filter, with a fixed-light sheen and a layered shadow that slide as it turns. Press settles it flat and scales it down with a light impact, and Core Motion stops whenever the scene is not active.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Components",
       "Categories · 14",
       "Cards"
@@ -3004,7 +3004,7 @@
     "title": "Parallax Card",
     "description": "An image card whose picture drifts slower than the scroll while a solid caption block drifts slower still, so the card reads in layers. Press lifts it with a deeper shadow and nudges the trailing glyph, and the caption is composed from eyebrow, title, metadata, and trailing glyph slots.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Components",
       "Categories · 14",
       "Cards"
@@ -3168,7 +3168,7 @@
     "title": "Swipe Deck",
     "description": "A gesture-driven card stack: the top card follows the finger and swings from its base, a solid outcome badge fades in for the direction you are heading and locks at the threshold, the cards beneath rise as it leaves, and release past the threshold or a flick throws it left, right, or up.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Components",
       "Categories · 14",
       "Cards"
@@ -3304,7 +3304,7 @@
     "title": "Commit Button",
     "description": "An async action button driven by one idle/loading/success/error/disabled phase: a signal capsule collapses to a spinning ring, closes it and blooms into a sage success block with a drawn check, or re-expands as a butter error block that shakes and doubles as retry.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Components",
       "Categories · 14",
       "Controls"
@@ -3336,7 +3336,7 @@
         },
         {
           "heading": "notes",
-          "content": "Need a slide-to-act confirmation with an amount and recipient? Swift Pieces Pro has the Send Money screen (`swipe-to-confirm`)."
+          "content": "Need a slide-to-act confirmation with an amount and recipient? SwiftPieces Pro has the Send Money screen (`swipe-to-confirm`)."
         },
         {
           "heading": "parameters",
@@ -3444,7 +3444,7 @@
     "title": "Elastic Button",
     "description": "A ButtonStyle that squashes toward the touch point, stretches with rubber-band resistance when dragged, deepens after a hold and snaps back with a spring. Optional solid surfaces (signal, block, raised) press into their own soft shadow and darken under the finger.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Components",
       "Categories · 14",
       "Controls"
@@ -3540,7 +3540,7 @@
     "title": "Fan Stack",
     "description": "Overlapping block-color avatars that fan apart on tap or hold with staggered springs, dissolve the +N pill into the hidden faces, and let a drag scrub across them: the avatar under the finger lifts, shows a name tag and ticks a haptic, and releasing selects it.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Components",
       "Categories · 14",
       "Controls"
@@ -3672,7 +3672,7 @@
     "title": "Hold To Confirm",
     "description": "A press-and-hold capsule for destructive or important actions: a solid fill sweeps from the leading puck while held, passes three milestone dots with rising haptics, inverts the label under it, rewinds with a spring on early release and settles into a sage confirmed block.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Components",
       "Categories · 14",
       "Controls"
@@ -3708,7 +3708,7 @@
         },
         {
           "heading": "notes",
-          "content": "Want slide to act instead of hold? Swift Pieces Pro has the Send Money screen (`swipe-to-confirm`)."
+          "content": "Want slide to act instead of hold? SwiftPieces Pro has the Send Money screen (`swipe-to-confirm`)."
         },
         {
           "heading": "parameters",
@@ -3808,7 +3808,7 @@
     "title": "Timer Dial",
     "description": "A countdown ring you set by dragging its knob around like the Timer dial, with a tick per step and a heavier detent every 5s. A solid block ring over a minute-tick scale, light display numerals, a breathing signal warning zone, a sage finish, and a determinate progress mode.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Components",
       "Categories · 14",
       "Controls"
@@ -3844,7 +3844,7 @@
         },
         {
           "heading": "notes",
-          "content": "Need a whole focus session with task binding and breaks? Swift Pieces Pro has the Focus screen (`focus-timer`)."
+          "content": "Need a whole focus session with task binding and breaks? SwiftPieces Pro has the Focus screen (`focus-timer`)."
         },
         {
           "heading": "parameters",
@@ -3968,7 +3968,7 @@
     "title": "Activity Heatmap",
     "description": "A streak calendar for habit, fitness, study and journaling apps: weeks of days drawn in one Canvas as rounded cells in solid steps from a pale red mix up to pure red, laid out by the locale's first weekday with month labels on their week columns, a light streak numeral that stays alive until midnight beside the longest run and active days, a scrub that lifts the day under your finger with a callout and a haptic tick per day, sideways scrolling that opens on today when the weeks outgrow the width, and VoiceOver that steps day by day or plays the weeks as an audio graph.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Components",
       "Categories · 14",
       "Data"
@@ -4108,7 +4108,7 @@
         },
         {
           "heading": "parameters",
-          "content": "Colors and cell metrics. Defaults to the Swift Pieces house palette with a red accent, adapting to light and dark."
+          "content": "Colors and cell metrics. Defaults to the SwiftPieces house palette with a red accent, adapting to light and dark."
         },
         {
           "heading": "parameters",
@@ -4144,7 +4144,7 @@
     "title": "Live Stat",
     "description": "A metric tile with a light display-scale value that rolls with a spring and dims its decimals, a solid delta block, a sparkline you hold and scrub to retarget the value live, a press that expands the line into a taller chart with low and high, and a solid color block variant.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Components",
       "Categories · 14",
       "Data"
@@ -4180,7 +4180,7 @@
         },
         {
           "heading": "notes",
-          "content": "A full dashboard screen ships in Swift Pieces Pro (`dashboard-screen`)."
+          "content": "A full dashboard screen ships in SwiftPieces Pro (`dashboard-screen`)."
         },
         {
           "heading": "parameters",
@@ -4280,7 +4280,7 @@
     "title": "Odometer",
     "description": "A number whose digits roll on individual slots like a mechanical counter, carrying from the low digits up so unchanged digits never move, with softened slot edges while rolling, dimmed decimals, a separate sign, a solid delta block, and a dashed loading state.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Components",
       "Categories · 14",
       "Data"
@@ -4316,7 +4316,7 @@
         },
         {
           "heading": "notes",
-          "content": "A full dashboard screen ships in Swift Pieces Pro (`dashboard-screen`)."
+          "content": "A full dashboard screen ships in SwiftPieces Pro (`dashboard-screen`)."
         },
         {
           "heading": "parameters",
@@ -4400,7 +4400,7 @@
     "title": "Ring Breakdown",
     "description": "A composition ring of solid color blocks with rounded seams that you scrub by dragging around it, with a haptic at each slice boundary, a radial lift for the selected slice while the rest step back to the surface, a light display-scale center figure, and legend rows that turn into the slice's block.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Components",
       "Categories · 14",
       "Data"
@@ -4436,7 +4436,7 @@
         },
         {
           "heading": "notes",
-          "content": "A full budget screen built on a spending ring ships in Swift Pieces Pro (`spending-ring`)."
+          "content": "A full budget screen built on a spending ring ships in SwiftPieces Pro (`spending-ring`)."
         },
         {
           "heading": "parameters",
@@ -4528,7 +4528,7 @@
     "title": "Scrub Chart",
     "description": "A line or bar chart component with a light display-scale readout and dimmed decimals, a solid delta block, a flag that rides the scrub rule, hold-and-drag range selection with delta and percent, and a block range picker that morphs the line between datasets.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Components",
       "Categories · 14",
       "Data"
@@ -4564,7 +4564,7 @@
         },
         {
           "heading": "notes",
-          "content": "A full dashboard screen ships in Swift Pieces Pro (`dashboard-screen`)."
+          "content": "A full dashboard screen ships in SwiftPieces Pro (`dashboard-screen`)."
         },
         {
           "heading": "parameters",
@@ -4648,7 +4648,7 @@
     "title": "Outcome Screen",
     "description": "A success, failure or empty outcome view sharing one choreography, where a ring draws, floods into a solid color block, the mark strokes in dark ink, one pulse lands with a haptic, and a heavy headline and a single signal action rise, with async retry and a details block for failures.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Components",
       "Categories · 14",
       "Feedback"
@@ -4808,7 +4808,7 @@
     "title": "Rating Scrub",
     "description": "A star rating you tap or scrub, with soft rounded stars that fill as solid blocks colored by the score, the star under your finger lifting, a staggered spring settle, and a light numeral with a label chip that morph as you go.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Components",
       "Categories · 14",
       "Feedback"
@@ -4936,7 +4936,7 @@
     "title": "Reaction Toggle",
     "description": "A like or save toggle that presses in, floods its capsule with a solid color block from the symbol outward, bounces the symbol, sends out one fading halo, and can roll a count or float a confirmation pill.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Components",
       "Categories · 14",
       "Feedback"
@@ -5068,7 +5068,7 @@
     "title": "Skeleton Loader",
     "description": "Solid placeholder bones and a self-masking modifier that turns any layout, color blocks included, into one quiet shape sweeping a soft diagonal highlight on a shared clock, then hands off as content unblurs and rises row by row.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Components",
       "Categories · 14",
       "Feedback"
@@ -5164,7 +5164,7 @@
     "title": "Status Morph",
     "description": "One continuous stroke that spins as a loading arc, closes into a ring, floods into a solid block and draws a check in dark ink on success, or a cross with a nudge on failure, with an optional morphing caption.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Components",
       "Categories · 14",
       "Feedback"
@@ -5292,7 +5292,7 @@
     "title": "Glass Action Menu",
     "description": "A floating signal trigger that long-presses open into a staggered line or arc of color-block actions you can slide across and release to fire; the trigger confirms with a check, tap toggles, a scrim dismisses, and the glass morphs on iOS 26.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Components",
       "Categories · 14",
       "Glass"
@@ -5420,7 +5420,7 @@
     "title": "Glass Segments",
     "description": "A segmented control whose glass indicator you can grab and drag: it lifts under the finger, rubber-bands past the ends, stretches with velocity and settles with a spring, while the label ink flips exactly under its edge; tap still works.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Components",
       "Categories · 14",
       "Glass"
@@ -5488,7 +5488,7 @@
     "title": "Glass Surface",
     "description": "The Glass family foundation: Liquid Glass in a capsule, rect, circle or concentric shape on iOS 26, with a layered Material fallback that keeps the press response, solid tint, specular edge and a designed disabled state everywhere else.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Components",
       "Categories · 14",
       "Glass"
@@ -5592,7 +5592,7 @@
     "title": "Address Field",
     "description": "An address field for checkout, delivery and sign-up that lists type-ahead suggestions under a soft 56pt block with the matched text in bold, picks one with a tap or the hardware keyboard, shows a spinner on the chosen row while it resolves into a structured address with street, city, state, postal code, country and coordinate, then settles into the field with the locality on a second line and a sage check, keeping the typed text usable with a \"Use as typed\" row and an inline retry when a lookup fails.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Components",
       "Categories · 14",
       "Inputs"
@@ -5732,7 +5732,7 @@
         },
         {
           "heading": "parameters",
-          "content": "Colors and field metrics. Defaults to the Swift Pieces house palette, adapting to light and dark."
+          "content": "Colors and field metrics. Defaults to the SwiftPieces house palette, adapting to light and dark."
         }
       ],
       "headings": [
@@ -5760,7 +5760,7 @@
     "title": "Amount Field",
     "description": "A currency amount entry that formats live in the user's locale as each digit lands (grouping, decimal separator, symbol before or after, the currency's own fraction digits), with a large auto-fitting figure whose digits roll in, a blinking caret right after the digits, robust paste of amounts like \"$1,234.56\" or \"1 234,56 €\", and a limit that refuses the keystroke with a damped shake, an error haptic and a message line, all backed by a `Decimal` binding.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Components",
       "Categories · 14",
       "Inputs"
@@ -5888,7 +5888,7 @@
         },
         {
           "heading": "parameters",
-          "content": "Colors and metrics. Defaults to the Swift Pieces house palette, adapting to light and dark."
+          "content": "Colors and metrics. Defaults to the SwiftPieces house palette, adapting to light and dark."
         }
       ],
       "headings": [
@@ -5916,7 +5916,7 @@
     "title": "Date Range Picker",
     "description": "A start-to-end date range picker on a paged month grid built from the environment calendar and locale, where the first tap drops a solid butter start block, the second closes the range and a soft band sweeps day by day between the two blocks, wrapping across week rows with rounded caps, while sold-out days are struck through, a maximum length dims unreachable days, months page by swipe or chevrons with a rolling title, and a summary reads out the dates and nights.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Components",
       "Categories · 14",
       "Inputs"
@@ -5980,7 +5980,7 @@
         },
         {
           "heading": "notes",
-          "content": "For booking a time slot inside a day, see the slot picker in Swift Pieces Pro."
+          "content": "For booking a time slot inside a day, see the slot picker in SwiftPieces Pro."
         },
         {
           "heading": "parameters",
@@ -6044,7 +6044,7 @@
         },
         {
           "heading": "parameters",
-          "content": "Colors and corner radius. Defaults to the Swift Pieces house palette (butter endpoint blocks with dark ink on a soft butter band), adapting to light and dark."
+          "content": "Colors and corner radius. Defaults to the SwiftPieces house palette (butter endpoint blocks with dark ink on a soft butter band), adapting to light and dark."
         }
       ],
       "headings": [
@@ -6072,7 +6072,7 @@
     "title": "Expanding Track",
     "description": "A thumbless slider drawn as a solid color bar that swells from 8pt to a 32pt block under the finger, shows detent dots and an inverting readout while dragging, squishes past either end, and can carry an uppercase label with a big light numeral; a second init selects a range with two sinking handles.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Components",
       "Categories · 14",
       "Inputs"
@@ -6180,7 +6180,7 @@
         },
         {
           "heading": "parameters",
-          "content": "Colors and track metrics. Defaults to the Swift Pieces house palette, adapting to light and dark."
+          "content": "Colors and track metrics. Defaults to the SwiftPieces house palette, adapting to light and dark."
         },
         {
           "heading": "parameters",
@@ -6216,7 +6216,7 @@
     "title": "Filter Rail",
     "description": "A scrolling rail of filter chips with optional counts where one solid indicator glides between single-select picks, multi-select picks light up as color blocks with dark ink and gather at the leading edge behind a counting Clear chip, the chosen chip scrolls into view, and edges fade only when content overflows.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Components",
       "Categories · 14",
       "Inputs"
@@ -6252,7 +6252,7 @@
         },
         {
           "heading": "notes",
-          "content": "For a searchable list of commands instead of a rail, see the Command Palette screen in Swift Pieces Pro."
+          "content": "For a searchable list of commands instead of a rail, see the Command Palette screen in SwiftPieces Pro."
         },
         {
           "heading": "parameters",
@@ -6300,7 +6300,7 @@
         },
         {
           "heading": "parameters",
-          "content": "Colors and chip height. Defaults to the Swift Pieces house palette, adapting to light and dark."
+          "content": "Colors and chip height. Defaults to the SwiftPieces house palette, adapting to light and dark."
         }
       ],
       "headings": [
@@ -6328,7 +6328,7 @@
     "title": "Form Field",
     "description": "A text field on a soft 56pt block whose label rests inside as a placeholder and glides up into a caption on focus or once filled, with an optional leading icon, a clear button, help text, a grapheme-accurate character limit with a counter that turns into a tangerine chip and bumps when extra input is refused, and validation that waits until you leave the field before drawing an error ring, sliding in the message with an error haptic and a VoiceOver announcement, then shows a sage check once fixed.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Components",
       "Categories · 14",
       "Inputs"
@@ -6516,7 +6516,7 @@
         },
         {
           "heading": "parameters",
-          "content": "Colors and field metrics. Defaults to the Swift Pieces house palette, adapting to light and dark."
+          "content": "Colors and field metrics. Defaults to the SwiftPieces house palette, adapting to light and dark."
         }
       ],
       "headings": [
@@ -6544,7 +6544,7 @@
     "title": "Location Picker",
     "description": "A map picker for delivery, rides, events and listings: drag the map under a fixed red pin that lifts while the map moves and drops with a small bounce when it settles, the address under it is looked up after a short pause with stale answers cancelled and recent ones cached, a floating card shows the street and locality (a dropped pin with coordinates where there is no address, Retry when the lookup fails), the locate button asks for location only when tapped and flies to you, and Confirm hands back the coordinate with its address.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Components",
       "Categories · 14",
       "Inputs"
@@ -6680,7 +6680,7 @@
         },
         {
           "heading": "parameters",
-          "content": "Colors, the card's corner radius and the map's look. Defaults to the Swift Pieces house palette, adapting to light and dark, with the red pin and Confirm."
+          "content": "Colors, the card's corner radius and the map's look. Defaults to the SwiftPieces house palette, adapting to light and dark, with the red pin and Confirm."
         },
         {
           "heading": "parameters",
@@ -6716,7 +6716,7 @@
     "title": "Range Slider",
     "description": "A dual-thumb slider for a range of values, with two round thumbs on a quiet track and the selected span drawn as a solid color block between them; drag either thumb or touch the track to pull the nearest one over, values snap to a step without floating drift, the thumbs never cross and keep a minimum gap, a grabbed thumb grows and its readout chip fills with the block color, the two readouts merge into one chip instead of colliding, and every step ticks a selection haptic with a firmer impact at a bound or the gap.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Components",
       "Categories · 14",
       "Inputs"
@@ -6776,7 +6776,7 @@
         },
         {
           "heading": "notes",
-          "content": "For a full filter sheet built around it, see the filter sheet in Swift Pieces Pro."
+          "content": "For a full filter sheet built around it, see the filter sheet in SwiftPieces Pro."
         },
         {
           "heading": "parameters",
@@ -6848,7 +6848,7 @@
         },
         {
           "heading": "parameters",
-          "content": "Colors and metrics. Defaults to the Swift Pieces house palette (a tangerine block on a quiet track), adapting to light and dark."
+          "content": "Colors and metrics. Defaults to the SwiftPieces house palette (a tangerine block on a quiet track), adapting to light and dark."
         },
         {
           "heading": "parameters",
@@ -6884,7 +6884,7 @@
     "title": "Scrub Stepper",
     "description": "A capsule stepper with round minus and plus buttons around a solid numeral block; tap, hold to repeat with acceleration, or scrub sideways across the block for velocity-scaled steps while a ruler slides under the finger, and the capsule rubber-bands at the bounds.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Components",
       "Categories · 14",
       "Inputs"
@@ -6960,7 +6960,7 @@
         },
         {
           "heading": "parameters",
-          "content": "Colors and size. Defaults to the Swift Pieces house palette (a butter numeral block with dark ink), adapting to light and dark."
+          "content": "Colors and size. Defaults to the SwiftPieces house palette (a butter numeral block with dark ink), adapting to light and dark."
         }
       ],
       "headings": [
@@ -6988,7 +6988,7 @@
     "title": "Secure Entry",
     "description": "A password field on a soft 56pt block with a focus ring and a round reveal toggle that keeps focus, a strength bar that grows through four color blocks with a matching label chip, requirement chips that turn into solid blocks with drawn checks and collapse when complete, a success check, and a damped shake with an error chip.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Components",
       "Categories · 14",
       "Inputs"
@@ -7028,7 +7028,7 @@
         },
         {
           "heading": "notes",
-          "content": "For one-time codes after sign-in, see the Verify screen (code entry) in Swift Pieces Pro."
+          "content": "For one-time codes after sign-in, see the Verify screen (code entry) in SwiftPieces Pro."
         },
         {
           "heading": "parameters",
@@ -7084,7 +7084,7 @@
         },
         {
           "heading": "parameters",
-          "content": "Colors and field metrics. Defaults to the Swift Pieces house palette, adapting to light and dark."
+          "content": "Colors and field metrics. Defaults to the SwiftPieces house palette, adapting to light and dark."
         }
       ],
       "headings": [
@@ -7112,7 +7112,7 @@
     "title": "Signature Pad",
     "description": "A signature field that lays smooth, velocity-weighted ink into a Canvas as the finger moves, thinning on quick flicks and pooling on slow turns, over a baseline whose Sign here hint fades on the first stroke, with Undo, Clear and Undo after Clear, a Type instead mode that sets the typed name in a script face on the same line, strokes that rescale with the pad on rotation, and export to a transparent PNG or a vector PDF.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Components",
       "Categories · 14",
       "Inputs"
@@ -7216,7 +7216,7 @@
         },
         {
           "heading": "parameters",
-          "content": "Colors, ink weight, corner radius and pad height. Defaults to the Swift Pieces house palette, adapting to light and dark."
+          "content": "Colors, ink weight, corner radius and pad height. Defaults to the SwiftPieces house palette, adapting to light and dark."
         }
       ],
       "headings": [
@@ -7244,7 +7244,7 @@
     "title": "Token Field",
     "description": "A tag and recipient field where committed entries become solid color chips with dark ink that wrap across lines while the text field takes the rest of the last line, return, comma or a paste of a whole list commits trimmed tokens with duplicate, limit and validation checks, backspace on an empty field highlights the last chip and a second press removes it, and an inline suggestion list filters as you type.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Components",
       "Categories · 14",
       "Inputs"
@@ -7364,7 +7364,7 @@
         },
         {
           "heading": "parameters",
-          "content": "Colors and field metrics. Defaults to the Swift Pieces house palette, adapting to light and dark."
+          "content": "Colors and field metrics. Defaults to the SwiftPieces house palette, adapting to light and dark."
         },
         {
           "heading": "parameters",
@@ -7400,7 +7400,7 @@
     "title": "Depth Carousel",
     "description": "Paged cards that recede in depth as they leave center and hand each page a phase value for inner parallax. Neighbors come forward on tap, and a page counter sits beside a scrubbable pill indicator computed in absolute page coordinates so it never jumps.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Components",
       "Categories · 14",
       "Lists"
@@ -7440,7 +7440,7 @@
         },
         {
           "heading": "notes",
-          "content": "Want blur-and-tone depth, pinch peek-zoom and a full album screen? That is the Depth Gallery screen in Swift Pieces Pro."
+          "content": "Want blur-and-tone depth, pinch peek-zoom and a full album screen? That is the Depth Gallery screen in SwiftPieces Pro."
         },
         {
           "heading": "parameters",
@@ -7532,7 +7532,7 @@
     "title": "Drag Select Grid",
     "description": "A multi-select photo and file grid where one drag paints a whole reading-order range the way the system photo library does, a sideways drag or a short hold starts painting while vertical swipes still scroll, dragging back unpaints, starting on a selected item deselects, the grid auto-scrolls faster the deeper the finger sits in the top or bottom edge, and selected cells inset under a check badge with a haptic tick per item.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Components",
       "Categories · 14",
       "Lists"
@@ -7656,7 +7656,7 @@
         },
         {
           "heading": "parameters",
-          "content": "Spacing, corner radius, the selected inset, badge colors and auto-scroll tuning. Defaults to the Swift Pieces house palette."
+          "content": "Spacing, corner radius, the selected inset, badge colors and auto-scroll tuning. Defaults to the SwiftPieces house palette."
         },
         {
           "heading": "parameters",
@@ -7692,7 +7692,7 @@
     "title": "Follow Scroll",
     "description": "A chat, log and live-feed scroll container that opens on the newest item and stays pinned to it while the reader is at the bottom, but never yanks them away once they scroll up to read; items that arrive below are counted into a floating Liquid Glass pill that jumps back to the latest, older items loaded at the top keep the visible row exactly where it was, and keyboard, rotation, growing rows and removals all hold the reader's place.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Components",
       "Categories · 14",
       "Lists"
@@ -7796,7 +7796,7 @@
     "title": "Paged List",
     "description": "An async/await infinite-scroll list that prefetches the next page a few rows before the end, never runs two loads at once, drops duplicate ids across pages, ignores stale responses after a refresh or cancel, shows pulsing skeleton rows, a footer spinner, an inline \"Couldn't load more\" chip with a solid Retry block that keeps loaded rows, a quiet \"You're all caught up\" footer, and pull to refresh that replaces rows only on success.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Components",
       "Categories · 14",
       "Lists"
@@ -7880,7 +7880,7 @@
     "title": "Status Timeline",
     "description": "A vertical status timeline where the live step becomes a solid color block, connectors draw in as steps complete, nodes morph from number to check, the current node breathes, and any step expands to show its detail.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Components",
       "Categories · 14",
       "Lists"
@@ -7980,7 +7980,7 @@
     "title": "Swipe Action Row",
     "description": "Wraps any row in a soft card with swipe actions drawn as solid color blocks. Tiles grow in as the row opens, the drag rubber-bands, a full swipe arms with a haptic and lets the edge block take the whole bar, and a shared binding keeps one row open at a time.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Components",
       "Categories · 14",
       "Lists"
@@ -8020,7 +8020,7 @@
         },
         {
           "heading": "notes",
-          "content": "Need grouped activity with categorize, split and expanding detail? That is the Transaction Row screen in Swift Pieces Pro."
+          "content": "Need grouped activity with categorize, split and expanding detail? That is the Transaction Row screen in SwiftPieces Pro."
         },
         {
           "heading": "parameters",
@@ -8112,7 +8112,7 @@
     "title": "Task Row",
     "description": "A task card whose check draws itself while the card flashes into a solid color block, a priority label block, a swipe-right that completes with a strike-through then compacts the row, swipe-left snooze and delete blocks, and a long-press lift that reports reorder moves.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Components",
       "Categories · 14",
       "Lists"
@@ -8152,7 +8152,7 @@
         },
         {
           "heading": "notes",
-          "content": "Need grouped-by-day activity with split and expanding detail? That is the Transaction Row screen in Swift Pieces Pro."
+          "content": "Need grouped-by-day activity with split and expanding detail? That is the Transaction Row screen in SwiftPieces Pro."
         },
         {
           "heading": "parameters",
@@ -8268,7 +8268,7 @@
     "title": "Attachment Tray",
     "description": "A horizontal attachment strip for composers, support forms and listings: an add tile opens the photo picker with the remaining limit, each pick lands as its own tile that loads with a live progress ring, downsamples off the main thread into a crisp thumbnail and settles in with a spring, failures turn into a retry tile, the remove badge cancels an in-flight load, duplicates and over-limit picks are caught, and the caller owns every attachment for upload.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Components",
       "Categories · 14",
       "Media"
@@ -8392,7 +8392,7 @@
         },
         {
           "heading": "parameters",
-          "content": "Colors and tile metrics. Defaults to the Swift Pieces house palette, adapting to light and dark."
+          "content": "Colors and tile metrics. Defaults to the SwiftPieces house palette, adapting to light and dark."
         },
         {
           "heading": "parameters",
@@ -8428,7 +8428,7 @@
     "title": "Link Preview",
     "description": "A rich card for any URL that holds its final size while a skeleton sweeps, then settles the page's image, title and host into place, fetched once with LinkPresentation, shared by every card showing the same link and cached so scrolling never refetches, falling back to a quiet card with the address when a page cannot be read, opening on tap and offering Copy Link and Share on long press.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Components",
       "Categories · 14",
       "Media"
@@ -8540,7 +8540,7 @@
         },
         {
           "heading": "parameters",
-          "content": "Colors and corner radius. Defaults to the Swift Pieces house palette, adapting to light and dark."
+          "content": "Colors and corner radius. Defaults to the SwiftPieces house palette, adapting to light and dark."
         }
       ],
       "headings": [
@@ -8568,7 +8568,7 @@
     "title": "Photo Cropper",
     "description": "A crop step for profile photos, posts and listings that keeps the picked photo covering a frame of the chosen aspect at every zoom and offset, pinches around the fingers while it pans, rubber-bands past its limits and springs back with a red flash on the frame and a rigid tick at a zoom limit, morphs between circle, square, 4:5, 16:9 and the photo's own shape without losing the subject, turns a quarter at a time, fades in a rule-of-thirds grid under the finger, and renders the crop off the main thread at the original's full resolution together with its pixel rect and rotation for cropping again on a server.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Components",
       "Categories · 14",
       "Media"
@@ -8704,7 +8704,7 @@
         },
         {
           "heading": "parameters",
-          "content": "Colors, the photo's well and the frame inset. Defaults to the Swift Pieces house palette, adapting to light and dark, with red for Choose, the selected aspect and the limit flash."
+          "content": "Colors, the photo's well and the frame inset. Defaults to the SwiftPieces house palette, adapting to light and dark, with red for Choose, the selected aspect and the limit flash."
         },
         {
           "heading": "parameters",
@@ -8748,7 +8748,7 @@
     "title": "Photo Viewer",
     "description": "A full-screen photo surface with anchor-correct pinch zoom, momentum panning that decelerates into the bounds, double-tap zoom about the tap, paging between images, and pinch-out or drag-down to dismiss with a fading scrim. A close button and a page counter that turns into a live zoom readout float above, and a single tap hides them.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Components",
       "Categories · 14",
       "Media"
@@ -8884,7 +8884,7 @@
     "title": "Story Strip",
     "description": "A Stories-style segment strip with a built-in clock that advances segments on a duration, a long-press hold that freezes the strip and shows a paused badge, tap zones for back and forward that answer with a chevron, and a manual progress mode when you own the timing.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Components",
       "Categories · 14",
       "Media"
@@ -9032,7 +9032,7 @@
     "title": "Drag to Dismiss",
     "description": "A modifier that lets a photo, card, or sheet follow a two-axis drag, rounds and shrinks it with progress over a styled scrim, reports its phase so the UI can say \"release to close\", then springs back or flies off along the drag vector past a distance or velocity threshold.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Components",
       "Categories · 14",
       "Motion"
@@ -9164,7 +9164,7 @@
     "title": "Floating Dock",
     "description": "A floating dock on a solid surface where the selected item becomes a color block with its label, a drag across the dock lifts each item under the finger with a name bubble and commits on release, badges count in a signal pill, and the whole dock tucks away on scroll.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Components",
       "Categories · 14",
       "Navigation"
@@ -9200,7 +9200,7 @@
         },
         {
           "heading": "notes",
-          "content": "A floating tab bar with a lens that tracks and stretches toward the finger ships in Swift Pieces Pro (`lens-tab-bar`)."
+          "content": "A floating tab bar with a lens that tracks and stretches toward the finger ships in SwiftPieces Pro (`lens-tab-bar`)."
         },
         {
           "heading": "parameters",
@@ -9276,7 +9276,7 @@
     "title": "Index Scrubber",
     "description": "An A to Z section index for long lists in any scroll view: touch or drag the trailing rail to jump to the section under your finger with a selection tick per new section, a large letter block that follows the finger and rolls in the direction of travel, letters without a section dimmed or hidden, a dotted collapse when the rail is too short for every title, one adjustable VoiceOver element and type-to-jump on a hardware keyboard.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Components",
       "Categories · 14",
       "Navigation"
@@ -9392,7 +9392,7 @@
         },
         {
           "heading": "parameters",
-          "content": "Colors for the letters, the track behind the rail while scrubbing and the letter block. Defaults to the Swift Pieces house palette, adapting to light and dark."
+          "content": "Colors for the letters, the track behind the rail while scrubbing and the letter block. Defaults to the SwiftPieces house palette, adapting to light and dark."
         },
         {
           "heading": "parameters",
@@ -9428,7 +9428,7 @@
     "title": "Stretch Header",
     "description": "A hero header for your own ScrollView and NavigationStack: a heavy display title and uppercase eyebrow over a solid block hero that stretches on overscroll, a title that shrinks toward the real navigation bar, a stat row that pins under the bar, and a solid bar that fades in.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Components",
       "Categories · 14",
       "Navigation"
@@ -9464,7 +9464,7 @@
         },
         {
           "heading": "notes",
-          "content": "A full settings screen built around a header like this ships in Swift Pieces Pro (`settings-screen`)."
+          "content": "A full settings screen built around a header like this ships in SwiftPieces Pro (`settings-screen`)."
         },
         {
           "heading": "parameters",
@@ -9556,7 +9556,7 @@
     "title": "Tracking Tabs",
     "description": "Tabs over a paging ScrollView whose solid block indicator follows the pages through fractional scroll progress, with ink titles that fade in as the block passes, optional counts, a pressed state, and a selection tick on settle.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Components",
       "Categories · 14",
       "Navigation"
@@ -9592,7 +9592,7 @@
         },
         {
           "heading": "notes",
-          "content": "A floating tab bar with a lens that stretches toward the finger ships in Swift Pieces Pro (`lens-tab-bar`)."
+          "content": "A floating tab bar with a lens that stretches toward the finger ships in SwiftPieces Pro (`lens-tab-bar`)."
         },
         {
           "heading": "parameters",
@@ -9668,7 +9668,7 @@
     "title": "Confirm Sheet",
     "description": "A confirmation card that presents as a height-fitted bottom sheet or, inline, as a floating card you can drag away, with a solid icon tile that bounces on present, a heavy headline, a loading primary action that lands on a success check before dismissing, and a warning haptic for destructive choices.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Components",
       "Categories · 14",
       "Sheets"
@@ -9704,7 +9704,7 @@
         },
         {
           "heading": "notes",
-          "content": "For a floating booking card with detents, see the Stay screen (glass sheet) in Swift Pieces Pro."
+          "content": "For a floating booking card with detents, see the Stay screen (glass sheet) in SwiftPieces Pro."
         },
         {
           "heading": "parameters",
@@ -9784,7 +9784,7 @@
         },
         {
           "heading": "parameters",
-          "content": "Colors and corner radius. Defaults to the Swift Pieces house palette, adapting to light and dark."
+          "content": "Colors and corner radius. Defaults to the SwiftPieces house palette, adapting to light and dark."
         },
         {
           "heading": "parameters",
@@ -9820,7 +9820,7 @@
     "title": "Permission Sheet",
     "description": "A pre-permission sheet with a solid icon tile that bounces on present and turns into a check when granted, a heavy left-aligned headline, benefit rows on their own color tiles that stagger in, a signal-colored request button that spins while the system asks, and a denied result that swaps the copy and routes the button to Settings.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Components",
       "Categories · 14",
       "Sheets"
@@ -9852,7 +9852,7 @@
         },
         {
           "heading": "notes",
-          "content": "For a full multi-step onboarding flow, see the Onboarding screen in Swift Pieces Pro."
+          "content": "For a full multi-step onboarding flow, see the Onboarding screen in SwiftPieces Pro."
         },
         {
           "heading": "parameters",
@@ -9924,7 +9924,7 @@
         },
         {
           "heading": "parameters",
-          "content": "Colors and tile shape. Defaults to the Swift Pieces house palette, adapting to light and dark."
+          "content": "Colors and tile shape. Defaults to the SwiftPieces house palette, adapting to light and dark."
         },
         {
           "heading": "parameters",
@@ -9976,7 +9976,7 @@
     "title": "Spotlight Tour",
     "description": "A first-run feature tour for any screen: mark controls with .spotlightAnchor and .spotlightTour dims everything else through a cutout that springs from stop to stop as a red ring draws around it, sets a callout with step progress, Skip and a red Next below or above the target inside the safe area, lets taps through to the real control (which can also advance the tour), skips stops that aren't on screen, follows its target through scrolling, rotation and the keyboard, can show itself only once, and keeps VoiceOver, hardware keyboards and Reduce Motion in step.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Components",
       "Categories · 14",
       "Sheets"
@@ -10104,7 +10104,7 @@
         },
         {
           "heading": "parameters",
-          "content": "Colors and metrics. Defaults to the Swift Pieces house palette, adapting to light and dark, with the red ring, current step and Next capsule."
+          "content": "Colors and metrics. Defaults to the SwiftPieces house palette, adapting to light and dark, with the red ring, current step and Next capsule."
         },
         {
           "heading": "parameters",
@@ -10140,7 +10140,7 @@
     "title": "Toast",
     "description": "A single toast card with a solid color tile for its kind, a bold message with an optional detail line, a signal-colored action such as Undo, and a thin timer that pauses while touched; placed inside the safe area so it clears the Dynamic Island and rides above the keyboard.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Components",
       "Categories · 14",
       "Sheets"
@@ -10180,7 +10180,7 @@
         },
         {
           "heading": "notes",
-          "content": "For stacked, queued alerts with a notifications feed, see the Notifications screen (toast stack) in Swift Pieces Pro."
+          "content": "For stacked, queued alerts with a notifications feed, see the Notifications screen (toast stack) in SwiftPieces Pro."
         },
         {
           "heading": "parameters",
@@ -10260,7 +10260,7 @@
         },
         {
           "heading": "parameters",
-          "content": "Colors and corner radius. Defaults to the Swift Pieces house palette, adapting to light and dark."
+          "content": "Colors and corner radius. Defaults to the SwiftPieces house palette, adapting to light and dark."
         }
       ],
       "headings": [
@@ -10288,7 +10288,7 @@
     "title": "Expandable Text",
     "description": "A paragraph clamped to a line limit that measures whether it is really truncated, and only then fades the end of its last line into a trailing \"more\" link; tapping grows the block smoothly to its full height with no reflow, a \"less\" link collapses it, links stay tappable, and VoiceOver always reads the whole text.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Components",
       "Categories · 14",
       "Text"
@@ -10448,7 +10448,7 @@
     "title": "Glass Text",
     "description": "Liquid Glass rendered on the actual glyph outlines of a string, one or several lines, with a specular Material fallback below iOS 26, a solid fill under Reduce Transparency and Dynamic Type scaling.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Components",
       "Categories · 14",
       "Text"
@@ -10564,7 +10564,7 @@
     "title": "Picture Headline",
     "description": "A headline with living pictures stuck between its words like a hand-placed collage. Each word rises into place and each picture opens from a dot into a tilted sticker with a white rim, landing with a spring, a light tick and a flash of crop marks, then keeps drifting. Press a sticker to lift it. Use the built-in house-palette scenes (the sun is our red mascot), your own images or SF Symbols; it wraps like text at any width and Dynamic Type size.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Components",
       "Categories · 14",
       "Text"
@@ -10580,7 +10580,7 @@
         },
         {
           "heading": "notes",
-          "content": "Pictures land as stickers: a white rim, a soft shadow and a small resting tilt that alternates along the headline (`Style.tilt`, 4 degrees at most), so a line reads as placed by hand. As each one lands, four hairline crop marks flash at its corners, the crosses Swift Pieces draws on its artboards. `Style.tilt = 0` lays them flat, `Style.rim = 0` drops the rim and `Style.cropMarks = false` skips the marks."
+          "content": "Pictures land as stickers: a white rim, a soft shadow and a small resting tilt that alternates along the headline (`Style.tilt`, 4 degrees at most), so a line reads as placed by hand. As each one lands, four hairline crop marks flash at its corners, the crosses SwiftPieces draws on its artboards. `Style.tilt = 0` lays them flat, `Style.rim = 0` drops the rim and `Style.cropMarks = false` skips the marks."
         },
         {
           "heading": "notes",
@@ -10600,7 +10600,7 @@
         },
         {
           "heading": "notes",
-          "content": "Three kinds of picture: `.art(_:)` draws one of five built-in scenes in the house palette (`.sun` is the red Swift Pieces mascot, bobbing and blinking over the sand; `.waves`, `.moon`, `.hills` and `.bloom`), so a headline looks finished before you have artwork; `.image(_:)` fills the frame with your own `Image`; `.symbol(_:fill:ink:)` sets an SF Symbol on a solid block."
+          "content": "Three kinds of picture: `.art(_:)` draws one of five built-in scenes in the house palette (`.sun` is the red SwiftPieces mascot, bobbing and blinking over the sand; `.waves`, `.moon`, `.hills` and `.bloom`), so a headline looks finished before you have artwork; `.image(_:)` fills the frame with your own `Image`; `.symbol(_:fill:ink:)` sets an SF Symbol on a solid block."
         },
         {
           "heading": "notes",
@@ -10724,7 +10724,7 @@
     "title": "Text Reveal",
     "description": "Reveals a headline by characters, words or lines, rising from a baseline mask with a stagger sized to land in under a second, then wipes solid highlight blocks behind the phrases that matter.",
     "breadcrumbs": [
-      "Swift Pieces",
+      "SwiftPieces",
       "Components",
       "Categories · 14",
       "Text"

@@ -26,7 +26,7 @@ export function appPlaygroundMetadata(a: LibraryEntry): Metadata {
   return {
     ...pageMetadata({
       title: playgroundTitle(a),
-      description: `${a.pattern.description} An original Swift Pieces remix: use it in the browser beside the App Store screens that inspired it, remix it, and open it in Xcode.${isProApp(a) ? " Part of Swift Pieces Pro." : ""}`,
+      description: `${a.pattern.description} An original SwiftPieces remix: use it in the browser beside the App Store screens that inspired it, remix it, and open it in Xcode.${isProApp(a) ? " Part of SwiftPieces Pro." : ""}`,
       path: playgroundPath(a),
     }),
     keywords: a.pattern.keywords,
@@ -51,7 +51,7 @@ export function AppPlaygroundPage({ app: a, project, stepTitles }: { app: Librar
               about: { "@type": "SoftwareSourceCode", programmingLanguage: "Swift", runtimePlatform: "iOS", name: a.pattern.title, description: a.pattern.summary },
               keywords: a.pattern.keywords?.join(", "),
             },
-            breadcrumbJsonLd([["Swift Pieces", "/"], ["Apps", APPS_PATH], [a.name, appPath(a)], [a.pattern.title, path]]),
+            breadcrumbJsonLd([["SwiftPieces", "/"], ["Apps", APPS_PATH], [a.name, appPath(a)], [a.pattern.title, path]]),
           ],
         }}
       />

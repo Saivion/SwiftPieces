@@ -1,4 +1,4 @@
-// Screen Header: the header every Swift Pieces Pro screen opens with, in place of the system
+// Screen Header: the header every SwiftPieces Pro screen opens with, in place of the system
 // navigation bar's large title. A small eyebrow ("For you · Thursday"), a title in two weights
 // ("Recipes based on / your pantry", "Budget / September"), and up to two round icon buttons or
 // the mascot on the trailing edge. Every button leads somewhere (push, sheet, back or root) and

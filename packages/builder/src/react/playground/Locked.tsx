@@ -40,7 +40,7 @@ export function Locked() {
           </ul>
         ) : null}
         <a className="spp-btn spp-btn-primary spp-btn-lg" href={href} onClick={() => track("pro_upgrade_clicked", { from: "locked_entry", kind: entry.kind, slug: entry.slug })}>
-          Open in Swift Pieces Pro
+          Open in SwiftPieces Pro
           <UI name="external" size={14} />
         </a>
         <p className="spp-hint">Everything else here stays free: every free screen, flow and component, remixing, and the SwiftUI.</p>

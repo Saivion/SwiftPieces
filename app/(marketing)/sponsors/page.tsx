@@ -7,10 +7,10 @@ import { pageMetadata } from "@/lib/seo";
 // Sponsorship funds the free, open-source library only; Pro is a product and is never sponsored.
 // Same page rhythm as /pro, shorter: the ask, the tiers, who already sponsors, where it goes.
 export const metadata: Metadata = pageMetadata({
-  title: "Sponsor Swift Pieces",
+  title: "Sponsor SwiftPieces",
   description: "Sponsor the open-source SwiftUI library. Monthly tiers for individuals and companies, with your logo on the homepage, the docs and the README.",
   path: "/sponsors",
-  // The title already names the site, so no " — Swift Pieces" suffix.
+  // The title already names the site, so no " — SwiftPieces" suffix.
   absoluteTitle: true,
 });
 

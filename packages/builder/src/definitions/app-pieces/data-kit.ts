@@ -8,7 +8,7 @@ import { own } from "../../core/own.js";
 
 /** Named tints for app pieces, as hex. Swift gets the same values as `Color(red:green:blue:)`. */
 export const TINTS: Record<string, string> = {
-  // The Swift Pieces sweep (the Pro card halftone): what the app library recreations paint with.
+  // The SwiftPieces sweep (the Pro card halftone): what the app library recreations paint with.
   signal: "#FF0000",
   ember: "#FF7A3C",
   blush: "#FF8FB8",

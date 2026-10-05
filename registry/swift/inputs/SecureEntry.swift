@@ -17,7 +17,7 @@ import SwiftUI
 ///   - error: Validation message. Setting it non-nil shakes the field, fires an error haptic, and slides an error chip in below.
 ///   - showsStrength: Show the strength bar and its label chip once text is non-empty.
 ///   - showsRequirements: Show the 8+ / number / symbol / mixed-case chips while focused or filled; they collapse once all four pass and a check appears in the field.
-///   - style: Colors and field metrics. Defaults to the Swift Pieces house palette, adapting to light and dark.
+///   - style: Colors and field metrics. Defaults to the SwiftPieces house palette, adapting to light and dark.
 public struct SecureEntry: View {
     /// Colors and metrics. `.standard` is the house palette.
     public struct Style: Sendable {

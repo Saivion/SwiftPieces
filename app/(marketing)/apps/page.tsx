@@ -49,7 +49,7 @@ export default function AppsPage() {
             {
               "@type": "CollectionPage",
               url: `${site.url}${APPS_PATH}`,
-              name: "Swift Pieces App Library",
+              name: "SwiftPieces App Library",
               isPartOf: { "@id": WEBSITE_ID },
               mainEntity: {
                 "@type": "ItemList",
@@ -57,7 +57,7 @@ export default function AppsPage() {
                 itemListElement: apps.map((a, i) => ({ "@type": "ListItem", position: i + 1, name: `${a.pattern.title}, a remix inspired by ${a.name}`, url: `${site.url}${appPath(a)}` })),
               },
             },
-            breadcrumbJsonLd([["Swift Pieces", "/"], ["Apps", APPS_PATH]]),
+            breadcrumbJsonLd([["SwiftPieces", "/"], ["Apps", APPS_PATH]]),
           ],
         }}
       />
@@ -72,7 +72,7 @@ export default function AppsPage() {
                   <NewBadge className="mb-1">Beta</NewBadge>
                   <h1 className="p-title text-balance">App Library</h1>
                   <p className="p-body mt-5 max-w-xl text-pretty">
-                    Apps from the App Store as inspiration, and the screens each one does well, remixed from scratch in SwiftUI in the Swift Pieces style. Try them in the browser, see what makes them work, then make them your own. Remix {free.length} of them free, or all {apps.length} with Pro.
+                    Apps from the App Store as inspiration, and the screens each one does well, remixed from scratch in SwiftUI in the SwiftPieces style. Try them in the browser, see what makes them work, then make them your own. Remix {free.length} of them free, or all {apps.length} with Pro.
                   </p>
                   <div className="mt-9 flex flex-wrap items-center gap-x-7 gap-y-4">
                     <Button href="#apps">
@@ -90,7 +90,7 @@ export default function AppsPage() {
           <ScreenDirectory />
           <RemixNotice className="mt-16" />
           <p className="mt-10 max-w-2xl text-[12px] leading-relaxed text-muted">
-            App names, icons and screenshots come from the App Store and belong to their developers, who aren&apos;t affiliated with or endorsing Swift Pieces. They&apos;re shown for reference only. Every remix is an original Swift Pieces design in our own colours, type and artwork, and what you build from it is yours to clear.{" "}
+            App names, icons and screenshots come from the App Store and belong to their developers, who aren&apos;t affiliated with or endorsing SwiftPieces. They&apos;re shown for reference only. Every remix is an original SwiftPieces design in our own colours, type and artwork, and what you build from it is yours to clear.{" "}
             <a href="/terms#third-party-apps" className="text-foreground underline underline-offset-2">Terms</a> ·{" "}
             <a href="/terms#removal" className="text-foreground underline underline-offset-2">Ask for an app to be removed</a>
           </p>

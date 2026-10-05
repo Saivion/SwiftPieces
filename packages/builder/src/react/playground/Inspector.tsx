@@ -268,7 +268,7 @@ function About({ onBuild, compact = false }: { onBuild?: () => void; compact?: b
                 >
                   <span className="spp-part-tile"><KindIcon id={def.id} symbol={def.icon} size={14} /></span>
                   <span className="spp-part-name">{def.name}</span>
-                  {def.source ? <span className="spp-sp-tag" title="A Swift Pieces component">SP</span> : <span className="spp-native-tag">SwiftUI</span>}
+                  {def.source ? <span className="spp-sp-tag" title="A SwiftPieces component">SP</span> : <span className="spp-native-tag">SwiftUI</span>}
                 </button>
               </li>
             ))}
@@ -453,7 +453,7 @@ const NodeInspector = memo(function NodeInspector({ project, screen, node }: { p
   const entry = store.getState().entry;
   const onLocked = () => {
     track("pro_gate_viewed", { from: "property", component: def.id });
-    store.notify("Motion and fine-tuning controls come with Swift Pieces Pro.");
+    store.notify("Motion and fine-tuning controls come with SwiftPieces Pro.");
   };
   const add = def.source ? `npx swiftpieces add ${def.source.name}` : null;
 
@@ -482,10 +482,11 @@ const NodeInspector = memo(function NodeInspector({ project, screen, node }: { p
             {isRoot ? "Screen" : def.name}
             {def.availability === "pro" ? <span className="spp-pro-tag">Pro</span> : null}
           </h2>
-          <p className="spp-node-kind">{def.source ? "Swift Pieces component" : "Native SwiftUI"}</p>
+          <p className="spp-node-kind">{def.source ? "SwiftPieces component" : "Native SwiftUI"}</p>
         </div>
       </header>
       <p className="spp-node-desc">{isRoot ? "The screen itself: its background, title, spacing, and how it sits when presented." : def.description}</p>
+
 
       {!isRoot ? (
         <section className="spp-section">

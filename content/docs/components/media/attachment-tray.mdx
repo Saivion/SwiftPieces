@@ -47,7 +47,7 @@ AttachmentTrayExample()
 | `attachments` | Bound attachments, in display order. The tray appends picks, writes load progress, thumbnails and payloads back by id, and removes an attachment when its remove badge is tapped. Loads for attachments you remove are cancelled and their results ignored. |
 | `limit` | Most attachments the tray lets people pick (at least 1). The picker only allows the remaining count; at the limit the add tile shows "6/6" and disables. Extra picks and picks already in the tray are not added. |
 | `matching` | What the picker offers, such as `.images`, `.videos` or `.any(of: [.images, .videos])`. Videos load as a file copied to the temporary directory with a poster frame thumbnail and a duration badge. |
-| `style` | Colors and tile metrics. Defaults to the Swift Pieces house palette, adapting to light and dark. |
+| `style` | Colors and tile metrics. Defaults to the SwiftPieces house palette, adapting to light and dark. |
 | `onSelect` | Called when a loaded tile is tapped, for example to open it full screen. When `nil`, loaded tiles have no tap action. |
 
 ## Source
@@ -74,7 +74,7 @@ import os
 ///   - attachments: Bound attachments, in display order. The tray appends picks, writes load progress, thumbnails and payloads back by id, and removes an attachment when its remove badge is tapped. Loads for attachments you remove are cancelled and their results ignored.
 ///   - limit: Most attachments the tray lets people pick (at least 1). The picker only allows the remaining count; at the limit the add tile shows "6/6" and disables. Extra picks and picks already in the tray are not added.
 ///   - matching: What the picker offers, such as `.images`, `.videos` or `.any(of: [.images, .videos])`. Videos load as a file copied to the temporary directory with a poster frame thumbnail and a duration badge.
-///   - style: Colors and tile metrics. Defaults to the Swift Pieces house palette, adapting to light and dark.
+///   - style: Colors and tile metrics. Defaults to the SwiftPieces house palette, adapting to light and dark.
 ///   - onSelect: Called when a loaded tile is tapped, for example to open it full screen. When `nil`, loaded tiles have no tap action.
 public struct AttachmentTray: View {
 

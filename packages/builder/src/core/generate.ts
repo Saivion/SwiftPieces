@@ -322,7 +322,7 @@ function themeFile(theme: ResolvedTheme): string {
     importLine(SWIFTUI),
     importLine("UIKit"),
     "",
-    `/// The app's look, made in the Swift Pieces playground (${theme.look.name}). Change a value here`,
+    `/// The app's look, made in the SwiftPieces playground (${theme.look.name}). Change a value here`,
     "/// and every screen follows. The accent is also the app's AccentColor asset.",
     "enum Theme {",
     ...pair("accent", "Buttons, links, selection and tinted controls.", theme.accent),

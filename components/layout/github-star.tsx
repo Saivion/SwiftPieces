@@ -9,7 +9,7 @@ export function GitHubStar({ stars, className }: { stars: number | null; classNa
       href={site.github}
       target="_blank"
       rel="noreferrer"
-      aria-label={stars === null ? "Star Swift Pieces on GitHub" : `${stars} stars on GitHub`}
+      aria-label={stars === null ? "Star SwiftPieces on GitHub" : `${stars} stars on GitHub`}
       className={cn("group inline-flex h-9 items-center gap-2 rounded-[4px] bg-foreground px-3 text-[12.5px] font-semibold text-background transition-colors hover:bg-[var(--button-2-hover)]", className)}
     >
       {/* On hover the GitHub mark swaps for a gold star that pops in with two twinkling sparkles (CSS only, globals.css). */}

@@ -1,7 +1,7 @@
 {
   "name": "swiftpieces",
   "version": "0.3.3",
-  "description": "Add Swift Pieces (SwiftUI components, Liquid Glass effects, Metal shaders) to your Xcode project.",
+  "description": "Add SwiftPieces (SwiftUI components, Liquid Glass effects, Metal shaders) to your Xcode project.",
   "license": "SEE LICENSE IN LICENSE",
   "type": "module",
   "bin": { "swiftpieces": "./dist/index.js" },

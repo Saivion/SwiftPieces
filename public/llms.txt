@@ -1,6 +1,6 @@
-# Swift Pieces
+# SwiftPieces
 
-> Swift Pieces (swiftpieces.com) is a free library of 67 SwiftUI components for iOS in 14 categories: animated, gesture-driven interactions such as a swipeable card stack, Liquid Glass (iOS 26) menus, a floating tab bar, interactive charts, form inputs and AI chat surfaces. Each piece is one self-contained Swift file (plus a .metal file where a shader is involved) on Apple frameworks only, from iOS 17. Install by copy-paste, `npx swiftpieces add <Name>`, or the Swift Pieces MCP server.
+> SwiftPieces (swiftpieces.com) is a free library of 67 SwiftUI components for iOS in 14 categories: animated, gesture-driven interactions such as a swipeable card stack, Liquid Glass (iOS 26) menus, a floating tab bar, interactive charts, form inputs and AI chat surfaces. Each piece is one self-contained Swift file (plus a .metal file where a shader is involved) on Apple frameworks only, from iOS 17. Install by copy-paste, `npx swiftpieces add <Name>`, or the SwiftPieces MCP server.
 
 Key facts:
 
@@ -50,7 +50,7 @@ Rules for Liquid Glass: gate with `#available(iOS 26, *)` and a Material fallbac
 - [SwiftUI animations](https://swiftpieces.com/components/animations): Free animated SwiftUI components for iOS: card stacks, 3D flips, text reveals, rolling numbers, loading morphs and spring buttons. One Swift file each. (16 pieces)
 - [SwiftUI components with haptic feedback](https://swiftpieces.com/components/haptics): Free SwiftUI components with haptic feedback built in: buttons, sliders, dials, ratings, sheets and gestures that tick, tap and confirm with sensoryFeedback. (20 pieces)
 
-## Swift Pieces Pro
+## SwiftPieces Pro
 
 A separate paid library for building whole apps: 54 screens, 12 app templates and a 24-item Build Kit (production-ready SwiftUI screens, complete Xcode projects, and agent skills that build the rest in the same design) at https://pro.swiftpieces.com/library, plus Pro remixing in the Playground at https://swiftpieces.com/apps (all 20 apps in the App Library, remix any app with AI, keep up to 100 remixes). One plan with lifetime access; plan and pricing: https://pro.swiftpieces.com/pro. Pro MCP endpoint: https://pro.swiftpieces.com/api/mcp (license key required): search_library, get_item, list_kit, get_kit_item, apply_design_skill, apply_recipe.
 

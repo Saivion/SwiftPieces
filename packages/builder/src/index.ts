@@ -1,4 +1,4 @@
-// @swiftpieces/builder — the shared core of the Swift Pieces Playground (swiftpieces.com/playground,
+// @swiftpieces/builder — the shared core of the SwiftPieces Playground (swiftpieces.com/playground,
 // and unlocked for Pro owners at pro.swiftpieces.com/builder). Pure TypeScript, safe on the server
 // and in the browser: schema, registry, catalog, validation, tree operations, SwiftUI generation,
 // interactions and the Web → SwiftUI glossary. The React UI lives in "@swiftpieces/builder/react" and the zip/Xcode export in
@@ -38,7 +38,7 @@ import { appPieceDefinitions } from "./definitions/app-pieces/index.js";
 
 export { nativeDefinitions, motionPieces, surfacePieces, mediaPieces, utilityPieces, appPieceDefinitions };
 
-/** Every Swift Pieces component the Playground runs (native SwiftUI definitions excluded). */
+/** Every SwiftPieces component the Playground runs (native SwiftUI definitions excluded). */
 export const freePieceDefinitions = [...freePieces, ...motionPieces, ...surfacePieces, ...mediaPieces, ...utilityPieces];
 
 /**

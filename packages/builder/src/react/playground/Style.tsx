@@ -25,11 +25,11 @@ const ACCENTS = [
 /** Swatches in the accent row: one row of twelve (the last one is the custom picker). */
 const ACCENT_SLOTS = 12;
 /**
- * The presets: Swift Pieces (the default), then three finished styles that each set everything at
+ * The presets: SwiftPieces (the default), then three finished styles that each set everything at
  * once (colour, type, weight, shape and feel), so one tap shows how far a style can go.
  */
 const PRESETS: Array<{ id: string; label: string; colors: string[]; theme: () => Theme }> = [
-  { id: "pieces", label: "Swift Pieces", colors: [], theme: () => themeFromLook("pieces") },
+  { id: "pieces", label: "SwiftPieces", colors: [], theme: () => themeFromLook("pieces") },
   {
     id: "citrus", label: "Citrus Pop", colors: ["#FF9500", "#FFD60A", "#FF8FB8", "#8EE3B2", "#8CC4FF"],
     theme: () => ({ ...themeFromLook("candy"), name: "Citrus Pop", accentHex: "#FF9500", appearance: "light", font: "rounded", weight: "bold", corners: "round", density: "roomy", cards: "raised", symbols: "fill", motion: "bouncy", backdrop: "glow", neutrals: "warm", hierarchy: "dramatic", buttons: "solid", entrance: "rise" }),
@@ -308,9 +308,9 @@ export const StylePanel = memo(function StylePanel() {
         <div className="spp-looks" role="radiogroup" aria-label="Preset">
           {PRESETS.map((pr) => {
             const look = lookById(pr.id === "pieces" ? "pieces" : pr.theme().look);
-            // Swift Pieces shows its own palette; the others show the colours they set.
+            // SwiftPieces shows its own palette; the others show the colours they set.
             const colors = pr.colors.length ? pr.colors : [...new Set([look.dark.accent, ...look.dark.tiles].map((x) => x.toLowerCase()))].filter((x) => !isNeutral(x));
-            // Swift Pieces is on when the style is exactly the house look (light or dark either way).
+            // SwiftPieces is on when the style is exactly the house look (light or dark either way).
             const house = themeFromLook("pieces");
             const on = pr.id === "pieces" ? !theme || encodeStyle({ ...theme, appearance: house.appearance }) === encodeStyle(house) : theme?.name === pr.label;
             return (

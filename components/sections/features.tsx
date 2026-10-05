@@ -10,7 +10,7 @@ import { PieceCarousel } from "@/components/sections/piece-carousel";
 import { AgentDemo } from "@/components/sections/agent-demo";
 
 /**
- * Everything between the ticker and the questions: three rows, each one thing Swift Pieces does,
+ * Everything between the ticker and the questions: three rows, each one thing SwiftPieces does,
  * each shown rather than described. The visuals use the real web previews, the CLI's real
  * output and the MCP server's real tool names, so nothing on the page is a mock of a feature
  * that does not exist.

@@ -12,7 +12,7 @@ export const changelog: ChangelogEntry[] = [
     title: "Apps and the Playground",
     summary: "Try an app before you build it. Twenty app remixes run live in a browser Playground you can restyle, mix and open in Xcode, alongside 12 new pieces, redesigned docs and light mode.",
     points: [
-      "Apps: 20 remixes inspired by independent App Store apps. Each app page puts its App Store screenshots next to our own take on the screens, built only from Swift Pieces with our own names, copy and colours.",
+      "Apps: 20 remixes inspired by independent App Store apps. Each app page puts its App Store screenshots next to our own take on the screens, built only from SwiftPieces with our own names, copy and colours.",
       "The Playground: every remix runs on an interactive iPhone in the browser. Tap, swipe and scrub with the real motion, then Inspect any part to see its properties and the SwiftUI it becomes.",
       "Inspiration on every screen: the App Store screenshot it started from (reference only) and a short note on what makes the screen work.",
       "Remix across apps: add or replace screens from any app, up to 10, and reorder them. Style keeps them one app, with the same colour, fonts, corners, cards, spacing, size and weight on every screen.",

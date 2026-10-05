@@ -23,7 +23,7 @@ public struct SkeletonLoader: View {
         case text(lines: Int)
     }
 
-    /// Colors and timing for bones and redacted content. Defaults follow the Swift Pieces house palette.
+    /// Colors and timing for bones and redacted content. Defaults follow the SwiftPieces house palette.
     public struct Style: Sendable {
         /// Solid bone color.
         public var fill: Color

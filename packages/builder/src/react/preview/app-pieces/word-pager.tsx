@@ -9,7 +9,7 @@ import { reducedMotion } from "../primitives.js";
 import "./data-kit.js";
 import { BOUNCE, SPRING, useDrag, useRuntime } from "../runtime.js";
 
-/** The older photographic backdrops carry a faint ring texture; the Swift Pieces ones are clean gradients. */
+/** The older photographic backdrops carry a faint ring texture; the SwiftPieces ones are clean gradients. */
 const TEXTURED = new Set(["canyon", "sea", "dusk", "night"]);
 
 export const WordPager: Renderer = (r) => {

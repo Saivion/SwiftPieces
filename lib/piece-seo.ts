@@ -94,7 +94,7 @@ export function piecePhrase(item: Pick<RegistryIndexEntry, "name" | "title">): s
 
 /**
  * The piece page's <title>: "Swipe Deck: SwiftUI Swipeable Card Stack". The layout template adds
- * " — Swift Pieces" when the whole thing still fits a result title; otherwise it is left off.
+ * " — SwiftPieces" when the whole thing still fits a result title; otherwise it is left off.
  */
 export function pieceTitle(item: Pick<RegistryIndexEntry, "name" | "title">): { title: string; absolute: boolean } {
   const phrase = piecePhrase(item);

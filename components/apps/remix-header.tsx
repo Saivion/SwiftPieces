@@ -59,7 +59,7 @@ export function RemixHeader({ pairs, intro, pro }: { pairs: HeaderPair[]; intro:
               </span>
               {/* Our remix opens in the Playground at this very screen. */}
               <Link href={p.remix.href} tabIndex={i === active ? undefined : -1} className="group rounded-[12px] no-underline" aria-label={`Open ${p.remix.title}, our remix inspired by ${p.name}, in the Playground${p.remix.pro ? " (Pro)" : ""}`}>
-                <Side caption="Swift Pieces remix" detail={p.remix.pro ? `Pro · ${p.remix.title}` : p.remix.title} ours>
+                <Side caption="SwiftPieces remix" detail={p.remix.pro ? `Pro · ${p.remix.title}` : p.remix.title} ours>
                   <span className="relative block transition-transform duration-300 ease-out group-hover:-translate-y-1">
                     <img
                       src={p.remix.src}

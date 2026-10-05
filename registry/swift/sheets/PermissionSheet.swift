@@ -19,7 +19,7 @@ import SwiftUI
 ///   - allowTitle: Primary button title.
 ///   - deniedTitle: Headline shown after the request returns `false`.
 ///   - deniedMessage: Copy shown after a denial, above the "Open Settings" button.
-///   - style: Colors and tile shape. Defaults to the Swift Pieces house palette, adapting to light and dark.
+///   - style: Colors and tile shape. Defaults to the SwiftPieces house palette, adapting to light and dark.
 ///   - request: Async permission request; return `true` when granted. The button spins until it returns.
 ///   - onGranted: Called about a second after a grant, once the tile has turned into a check. Dismiss the sheet here.
 ///   - onSkip: Secondary handler. Omit to hide the "Not now" button.

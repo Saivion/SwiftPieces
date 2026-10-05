@@ -20,7 +20,7 @@ import SwiftUI
 ///   - tint: Overrides the block color used when on. Defaults to `style.fill`.
 ///   - style: Colors and shape. `.standard` is a tangerine block with dark ink on a quiet capsule; set `isContained` to `false` for a bare symbol.
 public struct ReactionToggle: View {
-    /// Colors and shape for the toggle. Defaults follow the Swift Pieces house palette and adapt to light and dark.
+    /// Colors and shape for the toggle. Defaults follow the SwiftPieces house palette and adapt to light and dark.
     public struct Style: Sendable {
         /// Block color that floods the capsule (or fills the symbol when bare) when on.
         public var fill: Color

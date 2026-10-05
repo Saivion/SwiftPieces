@@ -46,7 +46,7 @@ SpotlightTourExample()
 | `showOnceKey` | A `UserDefaults` key. When set, the tour presents itself (by setting `isPresented`) the first time the view appears, once the screen has settled, and records under this key when it is finished or skipped, so it never presents itself again. Setting `isPresented` yourself always presents it. Reset with `SpotlightTour.resetShowOnce(_:)`. |
 | `advancesOnTargetTap` | Tapping the highlighted control also moves the tour on, as well as running the control's own action. Defaults to `true`. |
 | `messages` | The built-in copy: Next, Done, Skip and the step count. Defaults are localizable through your String Catalog. |
-| `style` | Colors and metrics. Defaults to the Swift Pieces house palette, adapting to light and dark, with the red ring, current step and Next capsule. |
+| `style` | Colors and metrics. Defaults to the SwiftPieces house palette, adapting to light and dark, with the red ring, current step and Next capsule. |
 | `onFinish` | Called when the tour ends with Done (`.completed`) or Skip (`.skipped`), for analytics or to save that it was seen. Not called when you set `isPresented` to `false` yourself. |
 
 ## Source
@@ -72,7 +72,7 @@ import SwiftUI
 ///   - showOnceKey: A `UserDefaults` key. When set, the tour presents itself (by setting `isPresented`) the first time the view appears, once the screen has settled, and records under this key when it is finished or skipped, so it never presents itself again. Setting `isPresented` yourself always presents it. Reset with `SpotlightTour.resetShowOnce(_:)`.
 ///   - advancesOnTargetTap: Tapping the highlighted control also moves the tour on, as well as running the control's own action. Defaults to `true`.
 ///   - messages: The built-in copy: Next, Done, Skip and the step count. Defaults are localizable through your String Catalog.
-///   - style: Colors and metrics. Defaults to the Swift Pieces house palette, adapting to light and dark, with the red ring, current step and Next capsule.
+///   - style: Colors and metrics. Defaults to the SwiftPieces house palette, adapting to light and dark, with the red ring, current step and Next capsule.
 ///   - onFinish: Called when the tour ends with Done (`.completed`) or Skip (`.skipped`), for analytics or to save that it was seen. Not called when you set `isPresented` to `false` yourself.
 public extension View {
     /// Marks this view as a stop a spotlight tour can point at.

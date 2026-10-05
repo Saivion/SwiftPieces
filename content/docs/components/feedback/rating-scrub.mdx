@@ -60,7 +60,7 @@ import SwiftUI
 ///   - tint: Overrides the fill color for every score. Defaults to `style.levels`, one block per score.
 ///   - style: Fill colors per score, the empty star color and text colors. `.standard` runs tangerine, sand, butter, sage, sky.
 public struct RatingScrub: View {
-    /// Colors for the rating. Defaults follow the Swift Pieces house palette and adapt to light and dark.
+    /// Colors for the rating. Defaults follow the SwiftPieces house palette and adapt to light and dark.
     public struct Style: Sendable {
         /// Block colors from the lowest to the highest score. The filled stars and label chip use the one for the rounded-up rating.
         public var levels: [Color]

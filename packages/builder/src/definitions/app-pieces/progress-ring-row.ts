@@ -9,7 +9,7 @@ import { INDENT, num, str } from "../../core/swift.js";
 import { color, icon, link, number, opts, select, text } from "../shared.js";
 import { construct, linkAction, rgb } from "./emit-link-action.js";
 
-/** Swift Pieces colours for the ring. When one is picked it takes over from `tint`. */
+/** SwiftPieces colours for the ring. When one is picked it takes over from `tint`. */
 export const RING_SWATCHES: Record<string, string> = {
   signal: "#FF0000", ember: "#FF7A3C", blush: "#FF8FB8", azure: "#4D8DFF", sky: "#9CC2FF", butter: "#FFD976", sage: "#A9DCB7", lilac: "#CDB8FF",
 };
@@ -186,7 +186,7 @@ export const progressRingRow: SwiftPieceDefinition = {
     number("step", "Step", 1, 0.5, 1000, 0.5, { hint: "What a tap adds, or a timer adds each second." }),
     text("actionTitle", "Action title", "", { maxLength: 16, hint: "Leave empty for the default." }),
     color("tint", "Tint", "blue"),
-    select("swatch", "Swift Pieces colour", "none", opts(["none", "Use tint"], ...Object.keys(RING_SWATCHES).map((k): [string, string] => [k, k[0].toUpperCase() + k.slice(1)])), { hint: "Picks a Swift Pieces colour for the ring, over the tint." }),
+    select("swatch", "SwiftPieces colour", "none", opts(["none", "Use tint"], ...Object.keys(RING_SWATCHES).map((k): [string, string] => [k, k[0].toUpperCase() + k.slice(1)])), { hint: "Picks a SwiftPieces colour for the ring, over the tint." }),
     link("link", "Tapping the row opens"),
   ],
   variants: [

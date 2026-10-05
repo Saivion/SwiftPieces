@@ -19,7 +19,7 @@ export function ProSection({ heading = true }: { heading?: boolean }) {
     <section className="relative border-t border-[var(--line)] py-20 md:py-28" id="pro">
       {heading ? (
         <Container>
-          <SectionHeader label="Swift Pieces Pro" title="Then the whole app." action={{ label: "Explore Pro", href: pro.library }} />
+          <SectionHeader label="SwiftPieces Pro" title="Then the whole app." action={{ label: "Explore Pro", href: pro.library }} />
         </Container>
       ) : null}
       <Container>

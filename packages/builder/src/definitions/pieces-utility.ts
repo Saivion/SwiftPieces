@@ -1,4 +1,4 @@
-// Free Swift Pieces that solve everyday app problems: a section index scrubber, drag-to-select, an
+// Free SwiftPieces that solve everyday app problems: a section index scrubber, drag-to-select, an
 // attachment tray, a feed that follows new content, address autocomplete, a signature pad, link previews,
 // a photo cropper, a map location picker, a spotlight tour and an activity heatmap, plus a picture
 // headline (text with living pictures between its words). One file per piece in ./utility, each exporting its definition.

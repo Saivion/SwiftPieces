@@ -1,5 +1,5 @@
 // Plan Row: one planned thing in a day, on its own soft card: a round badge with a symbol (tinted
-// in the Swift Pieces way, or pastel), the title, when it happens, and a check circle. Checking it
+// in the SwiftPieces way, or pastel), the title, when it happens, and a check circle. Checking it
 // off fills the circle, strikes the title through and fades the row, with a success tap. The theme
 // card follows light and dark; the card presses in when it opens something.
 import type { SwiftPieceDefinition } from "../../core/schema.js";
@@ -145,7 +145,7 @@ export const planRow: SwiftPieceDefinition = {
     icon("symbol", "Symbol", "cup.and.saucer"),
     tint("badge", "Badge colour", "ember"),
     select("badgeStyle", "Badge style", "tinted", opts(["tinted", "Tinted"], ["pastel", "Pastel"]), { hint: "Tinted: the colour at low strength behind a symbol in that colour. Pastel: a soft solid disc." }),
-    select("surface", "Card", "dark", opts(["dark", "Theme (light and dark)"], ["light", "White"]), { hint: "Theme sits on the Swift Pieces card surface in light and dark and checks off in signal red." }),
+    select("surface", "Card", "dark", opts(["dark", "Theme (light and dark)"], ["light", "White"]), { hint: "Theme sits on the SwiftPieces card surface in light and dark and checks off in signal red." }),
     bool("calendarIcon", "Calendar icon", false),
     bool("checkable", "Check circle", true),
     bool("done", "Done", false, { when: { prop: "checkable", equals: [true] } }),

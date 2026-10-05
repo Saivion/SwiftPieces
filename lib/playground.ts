@@ -17,7 +17,7 @@ export const playgroundCatalog = createCatalog(patternsCatalogSource);
 /** An app's Playground, optionally opened at one of its App Store screenshots (`?shot=`). */
 export const playgroundPath = runPath;
 
-/** An app's Playground page title (the site's template adds " — Swift Pieces"). */
+/** An app's Playground page title (the site's template adds " — SwiftPieces"). */
 export const playgroundTitle = (a: LibraryEntry) => `${a.pattern.title}: a SwiftUI Remix to Try and Build (Inspired by ${a.name})`;
 
 /** The app an entry recreates, if any. */
