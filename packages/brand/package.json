@@ -1,6 +1,6 @@
 {
   "name": "@swiftpieces/brand",
-  "version": "0.2.9",
+  "version": "0.2.10",
   "description": "SwiftPieces brand layer: design tokens, Tailwind v4 theme, and a few shared presentational primitives. No business logic.",
   "license": "SEE LICENSE IN LICENSE",
   "type": "module",
