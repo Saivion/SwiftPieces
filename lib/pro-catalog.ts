@@ -8,7 +8,7 @@ export const proCatalog = {
   screens: 54,
   templates: 12,
   /** The Build Kit: skills a buyer's coding agent follows (Pro lib/kit.ts kitCounts()). */
-  buildKit: { total: 24, setup: 1, styles: 8, briefs: 8, recipes: 5, tools: 2 },
+  buildKit: { total: 31, setup: 1, styles: 14, briefs: 9, recipes: 5, tools: 2 },
   /**
    * What Pro adds in the Playground (this site's /apps and /playground): every app in the App
    * Library, three free and the rest Pro's (lib/apps, Pro lib/remixing.ts PLAYGROUND_APPS), and
@@ -42,7 +42,7 @@ export function namesWithMore(names: readonly string[], take = names.length): st
   return names.length > take ? `${picked.join(", ")} and more` : `${picked.slice(0, -1).join(", ")} and ${picked.at(-1)}`;
 }
 
-/** "54 screens, 12 app templates and a 24-item Build Kit". */
+/** "54 screens, 12 app templates and a 31-item Build Kit". */
 /** The Explore Pro docs pages (/docs/components/<page>), in sidebar order: docs pages, not registry categories. */
 export const exploreProPages = ["screens", "templates"] as const;
 
