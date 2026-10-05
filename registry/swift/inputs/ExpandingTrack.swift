@@ -18,7 +18,7 @@ import SwiftUI
 ///   - minimumDistance: Smallest gap the range handles keep between them (range init only).
 ///   - symbol: Optional leading SF Symbol that plays a variable-color pulse each time the value rises past a tick.
 ///   - title: Optional label. Shows an uppercase caption with the value as a big light numeral above the track (decimals dimmed), and becomes the VoiceOver label.
-///   - style: Colors and track metrics. Defaults to the Swift Pieces house palette, adapting to light and dark.
+///   - style: Colors and track metrics. Defaults to the SwiftPieces house palette, adapting to light and dark.
 ///   - format: Formats the readout and the VoiceOver value. Defaults to up to two decimals.
 public struct ExpandingTrack: View {
     /// Colors and metrics for the track. `.standard` is the house palette: a tangerine bar with dark ink on a quiet trough.

@@ -19,8 +19,8 @@ export async function login(key: string | undefined) {
   const label = who.hint ? `license ${who.hint}` : "license";
   console.log(
     who.access === "pro"
-      ? `Signed in with ${label}. You have Swift Pieces Pro. Key saved to ${file}.`
-      : `Key saved to ${file}, but this ${label} does not include Swift Pieces Pro. Get it at https://pro.swiftpieces.com/pro`,
+      ? `Signed in with ${label}. You have SwiftPieces Pro. Key saved to ${file}.`
+      : `Key saved to ${file}, but this ${label} does not include SwiftPieces Pro. Get it at https://pro.swiftpieces.com/pro`,
   );
 }
 
@@ -42,5 +42,5 @@ export async function whoami() {
     return;
   }
   const label = who.hint ? `License ${who.hint}` : "License";
-  console.log(who.access === "pro" ? `${label} · Swift Pieces Pro: yes` : `${label} · Swift Pieces Pro: no. Get it at https://pro.swiftpieces.com/pro`);
+  console.log(who.access === "pro" ? `${label} · SwiftPieces Pro: yes` : `${label} · SwiftPieces Pro: no. Get it at https://pro.swiftpieces.com/pro`);
 }

@@ -1,4 +1,4 @@
-// Free Swift Pieces with gestures and motion: things you throw, flip, drag, scrub and fan. Each
+// Free SwiftPieces with gestures and motion: things you throw, flip, drag, scrub and fan. Each
 // emitter calls the piece's public initializer exactly as its Swift source declares it (labels,
 // order, only the arguments that differ from the defaults). Pieces that take items and a content
 // closure get sample data and a small card view written the way you would write it by hand.

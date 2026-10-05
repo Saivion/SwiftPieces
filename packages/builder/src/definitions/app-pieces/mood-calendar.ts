@@ -11,7 +11,7 @@ import { swiftSignal } from "../../core/palette.js";
 const s = (p: Props, k: string) => String(p[k] ?? "");
 const n = (p: Props, k: string) => Number(p[k] ?? 0);
 
-/** Feelings palette, the Swift Pieces sweep: high energy unpleasant (signal), high pleasant (ember),
+/** Feelings palette, the SwiftPieces sweep: high energy unpleasant (signal), high pleasant (ember),
  * low unpleasant (azure), low pleasant (blush). */
 export const FEELING_COLORS = ["#FF0000", "#FF7A3C", "#4D8DFF", "#FF8FB8"];
 /** The four-corner palette (the bubble field's `corners`): red, gold, blue and green. */

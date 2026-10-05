@@ -1,6 +1,6 @@
 // Route Map: a drawn map of North America with flight routes arcing between airports and a plane
 // on each flight in the air. Drag across it to move the followed plane along its route; tap a
-// plane to follow that one. The default Graphite style is the Swift Pieces look: near-black land on
+// plane to follow that one. The default Graphite style is the SwiftPieces look: near-black land on
 // a darker sea, a faint lat/long grid, the followed route in signal red and the others in azure.
 // Night globe, atlas and satellite styles remain, with an optional weather radar layer, initials
 // pins for people on board, a speed and height badge, and rounded corners when it sits inset.
@@ -109,7 +109,7 @@ export function pinFill(st: MapStyle, initials: string, i: number): string {
 }
 
 export const MAP_STYLES: Record<string, MapStyle> = {
-  // The Swift Pieces look: graphite land (pale paper in light), the followed route in signal red,
+  // The SwiftPieces look: graphite land (pale paper in light), the followed route in signal red,
   // the others a quiet grey; radar from the sweep, people's pins from the house blocks.
   graphite: { label: "Graphite", ocean: ["#0A0A0C", "#070708"], land: "#1C1C20", tones: ["#19191D", "#222226", "#1F1F23"], route: "#FF0000", alt: "#8E8E93", space: null, grid: true, coast: true, radar: ["#4D8DFF", "#FF8FB8", "#FF7A3C"], pins: ["#9CC2FF", "#FFD976", "#A9DCB7", "#CDB8FF", "#E9D5B3"], pinInk: "#141414", light: { ocean: ["#E4E7EC", "#DDE1E7"], land: "#F7F6F2", tones: ["#EFEEE9", "#FBFAF7", "#ECEBE5"] } },
   globe: { label: "Night globe", ocean: ["#12365c", "#0a1f38"], land: "#3a5a34", tones: ["#2c4a2b", "#6b6a45", "#4d6b3c"], route: "#3d8bff", space: "#05070d" },

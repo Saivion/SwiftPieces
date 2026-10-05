@@ -24,7 +24,7 @@ export function sparkFor(seed: string, inRange: boolean): number[] {
 
 const ITEMS = "Resting pulse | heart.fill | 56 | bpm | in; Variability | bolt | 61 | ms | in; Breathing | leaf | 14.2 | br/min | out; Oxygen | drop | 98 | % | in";
 
-/** In-range and out-of-range colours. `sweep` (the default) is the Swift Pieces azure and signal red. */
+/** In-range and out-of-range colours. `sweep` (the default) is the SwiftPieces azure and signal red. */
 export const METRIC_TONES: Record<string, { label: string; good: string; bad: string }> = {
   sweep: { label: "Signal sweep", good: "#4D8DFF", bad: "#FF0000" },
   status: { label: "Green and red", good: "#30C85E", bad: "#EF4B4B" },

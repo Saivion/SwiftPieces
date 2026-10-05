@@ -20,7 +20,7 @@ import SwiftUI
 ///   - duration: Seconds before it dismisses on its own. The countdown pauses while the toast is touched.
 ///   - position: `.top` or `.bottom` edge to slide in from.
 ///   - action: Optional trailing button (for example Undo). Tapping it flashes a check, runs the handler, then dismisses.
-///   - appearance: Colors and corner radius. Defaults to the Swift Pieces house palette, adapting to light and dark.
+///   - appearance: Colors and corner radius. Defaults to the SwiftPieces house palette, adapting to light and dark.
 public extension View {
     func toast(isPresented: Binding<Bool>, message: String, detail: String? = nil, systemImage: String? = nil, style: Toast.Style = .info, duration: Double = 3, position: Toast.Position = .top, action: Toast.Action? = nil, appearance: Toast.Appearance = .standard) -> some View {
         modifier(Toast(isPresented: isPresented, message: message, detail: detail, systemImage: systemImage, style: style, duration: duration, position: position, action: action, appearance: appearance))

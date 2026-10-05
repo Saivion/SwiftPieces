@@ -40,7 +40,7 @@ export default async function ChangelogEntryPage({ params }: Props) {
       tableOfContent={{ enabled: true, component: <DocsAsideColumn><DocsAside sponsors={await getSponsorsFrom("silver")} /></DocsAsideColumn> }}
       footer={{ items: { previous: neighbour(newer, "Newer update"), next: neighbour(older, "Older update") } }}
     >
-      <JsonLd data={{ "@context": "https://schema.org", "@graph": [breadcrumbJsonLd([["Swift Pieces", "/"], ["Changelog", changelogPath()], [entry.title, changelogPath(entry.slug)]])] }} />
+      <JsonLd data={{ "@context": "https://schema.org", "@graph": [breadcrumbJsonLd([["SwiftPieces", "/"], ["Changelog", changelogPath()], [entry.title, changelogPath(entry.slug)]])] }} />
       <Link href={changelogPath()} className="group inline-flex w-fit items-center gap-1.5 text-[13px] text-muted transition-colors hover:text-foreground">
         <svg aria-hidden viewBox="0 0 16 16" className="size-3.5 transition-transform duration-300 group-hover:-translate-x-0.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M13 8H3M7 4L3 8l4 4" /></svg>
         Changelog

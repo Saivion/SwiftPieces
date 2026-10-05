@@ -12,7 +12,7 @@ const s = (p: Props, k: string) => String(p[k] ?? "");
 const n = (p: Props, k: string) => Number(p[k] ?? 0);
 
 /** Colours for things people usually log, by name; anything else takes the next of `CYCLE`. */
-// The Swift Pieces palette: the signal sweep plus the house blocks.
+// The SwiftPieces palette: the signal sweep plus the house blocks.
 const NAMED: Record<string, string> = {
   water: "#4D8DFF", "green tea": "#A9DCB7", tea: "#FFD976", coffee: "#FF7A3C", juice: "#FFD976", soda: "#FF0000",
   milk: "#F4F3EF", smoothie: "#FF8FB8", energy: "#9CC2FF", sparkling: "#9CC2FF", savings: "#A9DCB7", rent: "#CDB8FF",
@@ -55,7 +55,7 @@ export function layerBands(value: unknown, items: LayerItem[]): { items: LayerIt
 
 /** Outlines in a 100 × 100 box, absolute M/L/C/Q/Z only, so the same numbers draw on the web and in Swift. */
 export const SILHOUETTES: Record<string, { label: string; d: string }> = {
-  // The Swift Pieces mascot's blob (definitions/app-pieces/mascot.ts), so a tracker can fill the mascot.
+  // The SwiftPieces mascot's blob (definitions/app-pieces/mascot.ts), so a tracker can fill the mascot.
   blob: { label: "Mascot", d: "M 50 6 C 70 6 88 18 92 38 C 97 60 86 86 62 93 C 38 100 10 88 7 62 C 3 34 22 6 50 6 Z" },
   orb: { label: "Orb", d: "M 50 4 C 75.4 4 96 24.6 96 50 C 96 75.4 75.4 96 50 96 C 24.6 96 4 75.4 4 50 C 4 24.6 24.6 4 50 4 Z" },
   glass: { label: "Glass", d: "M 18 6 L 82 6 L 74 90 C 73.5 95 70 98 65 98 L 35 98 C 30 98 26.5 95 26 90 Z" },

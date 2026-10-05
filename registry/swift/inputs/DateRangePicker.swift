@@ -25,7 +25,7 @@ import SwiftUI
 ///   - maximumLength: Longest allowed range, counted in `counting` units. While a start is pending, days that cannot close the range are dimmed.
 ///   - counting: `.days` counts both ends (Mar 4 to Mar 9 is 6 days, and a single day is allowed). `.nights` counts nights (5 nights, and the end must be after the start).
 ///   - showsSummary: Show the header line with the formatted range and its length chip.
-///   - style: Colors and corner radius. Defaults to the Swift Pieces house palette (butter endpoint blocks with dark ink on a soft butter band), adapting to light and dark.
+///   - style: Colors and corner radius. Defaults to the SwiftPieces house palette (butter endpoint blocks with dark ink on a soft butter band), adapting to light and dark.
 public struct DateRangePicker: View {
     /// How range length is counted, for `maximumLength` and the summary chip.
     public enum Counting: Sendable {

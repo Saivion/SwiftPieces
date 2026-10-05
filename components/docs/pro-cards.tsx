@@ -51,7 +51,7 @@ export function ProCardGrid({ type }: { type: ProCardType }) {
                 {/* eslint-disable-next-line @next/next/no-img-element -- static stills; next/image would re-encode them per width for no gain */}
                 <img
                   src={`/pro-cards/${card.id}.webp`}
-                  alt={`${card.title}, a Swift Pieces Pro ${label.toLowerCase()}`}
+                  alt={`${card.title}, a SwiftPieces Pro ${label.toLowerCase()}`}
                   loading={i < (wide ? 2 : 3) ? "eager" : "lazy"}
                   decoding="async"
                   className={cn("block w-full object-cover", wide ? "aspect-[16/10]" : "aspect-square")}

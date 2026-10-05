@@ -37,7 +37,7 @@ import SwiftUI
 ///   - showsLocationButton: Shows the locate button in the top trailing corner. It asks for When In Use permission on its first tap, never before.
 ///   - geocoder: Where addresses come from. `.mapKit` (the default) uses `MKReverseGeocodingRequest` on iOS 26 and the system geocoder before it. Pass your own for a backend, previews or tests.
 ///   - messages: The card's copy. Defaults are localizable through your String Catalog; replace any line, for example `confirm` with "Deliver here".
-///   - style: Colors, the card's corner radius and the map's look. Defaults to the Swift Pieces house palette, adapting to light and dark, with the red pin and Confirm.
+///   - style: Colors, the card's corner radius and the map's look. Defaults to the SwiftPieces house palette, adapting to light and dark, with the red pin and Confirm.
 ///   - onConfirm: Called with the place when Confirm is tapped. Tapped while the address is still on its way, Confirm waits for it (up to four seconds) and then hands over what it has. `nil` hides the button, for pickers inside your own form.
 public struct LocationPicker: View {
     // MARK: Public types

@@ -93,7 +93,7 @@ export async function buildGitRepo(files: GitFile[], opts: { message: string; au
   }
   const objects: GitObject[] = [];
   const tree = await writeTree(root, objects);
-  const who = `${opts.author ?? "Swift Pieces"} <${opts.email ?? "noreply@swiftpieces.com"}> ${Math.floor(opts.time ?? 0)} +0000`;
+  const who = `${opts.author ?? "SwiftPieces"} <${opts.email ?? "noreply@swiftpieces.com"}> ${Math.floor(opts.time ?? 0)} +0000`;
   const commit = await object("commit", enc.encode(`tree ${tree.id}\nauthor ${who}\ncommitter ${who}\n\n${opts.message.trim()}\n`));
   objects.push(commit);
   return { head: commit.id, objects };

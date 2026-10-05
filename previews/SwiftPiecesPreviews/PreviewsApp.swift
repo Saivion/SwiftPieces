@@ -30,7 +30,7 @@ struct PreviewHost: View {
                         PreviewCatalog.scene(for: name).navigationTitle(name)
                     }
                 }
-                .navigationTitle("Swift Pieces")
+                .navigationTitle("SwiftPieces")
             }
         }
     }

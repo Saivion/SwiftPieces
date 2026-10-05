@@ -8,7 +8,7 @@ export function cliCommand(item: Pick<RegistryIndexEntry, "name">): string {
 }
 
 export function mcpPrompt(item: Pick<RegistryIndexEntry, "title">): string {
-  return `Add the Swift Pieces "${item.title}" piece to my app`;
+  return `Add the SwiftPieces "${item.title}" piece to my app`;
 }
 
 /** Canonical docs path: /docs/components/<category>/<slug>. Every link to a piece must use this. */

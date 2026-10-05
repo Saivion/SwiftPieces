@@ -1,7 +1,7 @@
 {
   "name": "@swiftpieces/builder",
   "version": "0.1.0",
-  "description": "The Swift Pieces Playground core: component, screen and catalog schema, the interactive runtime, validation, SwiftUI generation, Xcode export and the Playground UI.",
+  "description": "The SwiftPieces Playground core: component, screen and catalog schema, the interactive runtime, validation, SwiftUI generation, Xcode export and the Playground UI.",
   "license": "SEE LICENSE IN LICENSE",
   "type": "module",
   "sideEffects": [

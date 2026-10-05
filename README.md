@@ -1,6 +1,6 @@
 <div align="center">
   <a href="https://swiftpieces.com">
-    <img src="app/opengraph-image.png?v=9" alt="Swift Pieces" width="100%" />
+    <img src="app/opengraph-image.png?v=10" alt="SwiftPieces" width="100%" />
   </a>
 </div>
 
@@ -20,7 +20,7 @@
 
 <br />
 
-Swift Pieces is a library of designed SwiftUI interactions: swipe decks, glass menus, floating docks, scrubbable charts. Not primitives, and not a dependency. Each piece is a single `.swift` file with a `#Preview`, built on Apple frameworks only, that you copy into your project and own outright. Motion, haptics and states are already done.
+SwiftPieces is a library of designed SwiftUI interactions: swipe decks, glass menus, floating docks, scrubbable charts. Not primitives, and not a dependency. Each piece is a single `.swift` file with a `#Preview`, built on Apple frameworks only, that you copy into your project and own outright. Motion, haptics and states are already done.
 
 ## Quick start
 
@@ -52,13 +52,13 @@ Or open the file on [swiftpieces.com/components](https://swiftpieces.com/compone
 
 ## Sponsors
 
-Swift Pieces is maintained by one developer and funded by its sponsors. Sponsorship pays for new free pieces, fixes for every iOS release, and the docs, CLI and MCP server.
+SwiftPieces is maintained by one developer and funded by its sponsors. Sponsorship pays for new free pieces, fixes for every iOS release, and the docs, CLI and MCP server.
 
 **[Become a sponsor](https://swiftpieces.com/sponsors)** from $5 a month. Company tiers put your logo on swiftpieces.com, the docs and this README.
 
 <!-- sponsors: Gold and Bronze-and-up logos are added here by hand; the live list is on swiftpieces.com/sponsors -->
 
-## Swift Pieces Pro
+## SwiftPieces Pro
 
 The free library is the pieces. **[Pro](https://pro.swiftpieces.com)** is the layer above them: production-ready screens, complete app templates, and the Build Kit, a set of agent skills that build the rest of your app in the same design language. One purchase, lifetime access.
 

@@ -1,4 +1,4 @@
-# Swift Pieces: full text
+# SwiftPieces: full text
 
 > 67 free SwiftUI components for iOS, one Swift file each, MIT + Commons Clause. Index: https://swiftpieces.com/llms.txt. Source for any piece: https://swiftpieces.com/r/<Name>.json or its docs page.
 
@@ -48,7 +48,7 @@ Code block with a tiny Swift scanner. Keywords, types, strings and numbers take 
 - With `isStreaming`, appended lines fade in over 0.25s and a tangerine cap-height capsule trails the last line. Copy writes to `UIPasteboard`, turns the pill into a sage Copied block for 1.6s, and fires a success haptic.
 - `Style` (`CodeBlock.Style`): `slab`, `raised`, `text`, `muted`, `gutter`, `ink`, `label`, `keyword`, `string`, `type`, `number`, `copied`, `cornerRadius`. `accent:` still overrides the string and copied colors.
 - Text selection is enabled on the code column; `.footnote` monospaced scales with Dynamic Type.
-- Need code inside fully rendered streaming markdown? That is the Streaming Markdown screen in Swift Pieces Pro.
+- Need code inside fully rendered streaming markdown? That is the Streaming Markdown screen in SwiftPieces Pro.
 
 ### Parameters
 
@@ -81,7 +81,7 @@ Prompt suggestions in a horizontally snapping row, sized for thumb reach directl
 - Press feel is 0.96 with a fast ease in, a bouncy spring out, and one soft impact per press; choosing adds a selection haptic.
 - `Style` (`PromptChips.Style`): `blocks`, `surface`, `text`, `ink`, `cornerRadius`.
 - Under Reduce Motion there is no morph: the row crossfades and collapses in 0.2s.
-- Need a full composer with attachments, recording and model picker? That is the Prompt Composer screen in Swift Pieces Pro.
+- Need a full composer with attachments, recording and model picker? That is the Prompt Composer screen in SwiftPieces Pro.
 
 ### Parameters
 
@@ -114,7 +114,7 @@ A chat message that streams. Assistant replies sit on the ground under a mark an
 - Long press (0.35s) lifts the message onto a card with a rigid impact and shows a solid ink capsule with Copy and Regenerate. Copy writes to `UIPasteboard`, morphs to Copied with a success haptic, then sets the message down. Tap the message to put it down.
 - `Style` (`StreamingReply.Style`): `userBlock`, `cursor`, `code`, `dots`, `signal`, `ink`, `text`, `muted`, `surface`, `mark`, `markInk`, `actionFill`, `actionInk`, `assistantName`, `showsHeader`. `tint:` still overrides the user block and cursor.
 - Under Reduce Motion tokens appear without fading, the cursor and mark hold still, and the lift is a 0.15s ease.
-- Need full incremental markdown with lists, tables, source cards and a follow-up bar? That is the Streaming Markdown screen in Swift Pieces Pro.
+- Need full incremental markdown with lists, tables, source cards and a follow-up bar? That is the Streaming Markdown screen in SwiftPieces Pro.
 
 ### Parameters
 
@@ -146,7 +146,7 @@ Placeholder for a reply that has not started. Every presentation mirrors the `St
 - `.thinkingState(_:tint:)` masks a bright sweep to the view's own alpha, so it follows capsules, glyphs and text with no clipping setup, and fades out when `isActive` turns false. It reads best on solid blocks.
 - `Style` (`ThinkingState.Style`): `dots`, `bar`, `sheen`, `mark`, `markInk`, `ink`, `text`, `muted`, `assistantName`, `showsHeader`.
 - Under Reduce Motion the clock holds still: the band sits mid-view, the dots rest and the mark keeps a steady size; only the elapsed seconds update.
-- Need a live timeline of tool calls with durations and results? That is the Tool Execution Card screen in Swift Pieces Pro.
+- Need a live timeline of tool calls with durations and results? That is the Tool Execution Card screen in SwiftPieces Pro.
 
 ### Parameters
 
@@ -394,7 +394,7 @@ Async action button whose whole lifecycle is one bound `phase`.
 - Tapping in the error state fires the action again, so the message doubles as a retry (VoiceOver hears "Double tap to try again"). The button ignores taps while loading or succeeding without dimming.
 - `tint` and `errorTint` still work: they override the style fills and switch that state's ink to white. For full control pass a `Style` with your own fills, ink, height and font.
 - Reduce Motion crossfades the label, shortens the collapse and skips the shake offset; the haptics stay.
-- Need a slide-to-act confirmation with an amount and recipient? Swift Pieces Pro has the Send Money screen (`swipe-to-confirm`).
+- Need a slide-to-act confirmation with an amount and recipient? SwiftPieces Pro has the Send Money screen (`swipe-to-confirm`).
 
 ### Parameters
 
@@ -484,7 +484,7 @@ Hold to confirm. The label inverts as the fill passes under it; letting go or dr
 - `Style.standard` sweeps signal for destructive actions; `Style.butter` is a calmer confirm. `tint` still works and overrides the fill with white ink. Disabled (`.disabled(true)`) desaturates the control and blocks the gesture.
 - Phases: `idle`, `holding`, `committed`, `cancelled`, `disabled`. VoiceOver reads a button with the hint "Touch and hold to confirm"; its activate action performs the action directly.
 - Reduce Motion halves `duration`, drops the press scale and the dot pop, and crossfades the label; the fill still sweeps.
-- Want slide to act instead of hold? Swift Pieces Pro has the Send Money screen (`swipe-to-confirm`).
+- Want slide to act instead of hold? SwiftPieces Pro has the Send Money screen (`swipe-to-confirm`).
 
 ### Parameters
 
@@ -516,7 +516,7 @@ Settable countdown ring, or a determinate progress ring with the same look.
 - At or below `warningAt` the signal ring fades in over the base ring, the digits turn signal, the dial breathes ±1.2% once per second with a soft impact per second. Finishing springs a full sage ring in, hides the knob and plays `.success`.
 - `TimerDial(progress:)` is the determinate mode: the same ring and knob with a percent readout (dimmed %) and no clock or dial. Turn `showsTicks` off and lower `digitSize` for small rings.
 - Digits scale with Dynamic Type relative to `.largeTitle` and never outgrow the ring. Reduce Motion drops the breathing, the per-second haptic, the numeric roll and the finish spring, and ticks the ring once per second.
-- Need a whole focus session with task binding and breaks? Swift Pieces Pro has the Focus screen (`focus-timer`).
+- Need a whole focus session with task binding and breaks? SwiftPieces Pro has the Focus screen (`focus-timer`).
 
 ### Parameters
 
@@ -569,7 +569,7 @@ A calendar heatmap of daily activity with the current streak, a scrub callout an
 - `showsSummary`: Shows the current streak, the longest streak and the number of active days above the grid.
 - `selection`: The selected day, as the start of that day. Tapping a day selects it and tapping it again clears it; with a binding, a scrub moves it live and release keeps it. Without a binding, a scrub shows the callout only while the finger is down. Setting it from outside selects that day and scrolls it into view.
 - `messages`: Built-in copy. Defaults are localizable through your String Catalog; replace any line, for example `title` with "Workouts".
-- `style`: Colors and cell metrics. Defaults to the Swift Pieces house palette with a red accent, adapting to light and dark.
+- `style`: Colors and cell metrics. Defaults to the SwiftPieces house palette with a red accent, adapting to light and dark.
 - `valueLabel`: How a day's value reads in the callout and to VoiceOver, for example minutes formatted as a `Measurement`. Defaults to the plain number. Days with no activity read `messages.noActivity`.
 
 ## Live Stat (`LiveStat`)
@@ -591,7 +591,7 @@ KPI tile with a rolling value, delta chip, and a scrubbable sparkline that expan
 - The delta is a solid block with ink: sage for up, tangerine for down. Under Increase Contrast it gains a 1 pt outline.
 - `Style`: `.standard` is a white or charcoal tile; `.block(_:)` fills the tile with a color block and turns the value, line, and dot to ink, with the delta as an ink pill. `tint` overrides the sparkline color.
 - Reduce Motion skips the press scale, the count-up, and the draw-on. VoiceOver reads label and value, double-tap expands, and swipe up or down scrubs history.
-- A full dashboard screen ships in Swift Pieces Pro (`dashboard-screen`).
+- A full dashboard screen ships in SwiftPieces Pro (`dashboard-screen`).
 
 ### Parameters
 
@@ -623,7 +623,7 @@ Slot-machine number with a single spring-driven `Animatable` value behind every 
 - `Style` sets `up`, `down`, `ink`, `muted`, `dimsFraction`, and `tintsWhileRolling` (tints the digits until the roll settles; best on dark grounds).
 - `isLoading` swaps every digit for a dash; the first real value rolls up from zero. Reduce Motion replaces the roll with a short ease.
 - VoiceOver reads the final formatted value only, never the intermediate frames. Apply `.font` to the `Odometer` (light weights suit it); slot sizes are measured from that font.
-- A full dashboard screen ships in Swift Pieces Pro (`dashboard-screen`).
+- A full dashboard screen ships in SwiftPieces Pro (`dashboard-screen`).
 
 ### Parameters
 
@@ -653,7 +653,7 @@ Ring chart with scrub-to-select, a lifted slice, and a built-in legend.
 - `tint` overrides the first slice; `color` on a slice overrides any slice. `Style` sets `blocks`, `rest`, `ink`, `text`, `muted`, `gap`, and `cornerRadius`. The default thickness is 34 pt.
 - The ring is one VoiceOver element: it reads the selected slice or the total, and swiping up or down moves the selection. Legend rows are 48 pt buttons with their value. Reduce Motion drops the lift and the sweep-in but keeps the state change.
 - Labels are the identity, so keep them unique. `selection` lets a parent drive or observe the selected slice.
-- A full budget screen built on a spending ring ships in Swift Pieces Pro (`spending-ring`).
+- A full budget screen built on a spending ring ships in SwiftPieces Pro (`spending-ring`).
 
 ### Parameters
 
@@ -684,7 +684,7 @@ Time-series chart with scrubbing, range selection, and a morphing range picker.
 - At rest: no y-axis, one dashed baseline at the first value, monospaced min and max markers, the latest point as a butter dot, and three uppercase date labels whose format follows the span of the range. The picker is a butter block on a solid track, 44 pt tall.
 - `tint` sets the line (the house text color by default). `Style` sets `accent`, `up`, `down`, `ink`, `muted`, `band`, `ground` (the card the chart sits on), and `numeralSize`. `format` takes any `FormatStyle` from `Double` to `String`; deltas reuse it with a sign. `range` lets you own the picker index. An empty series shows "No data yet".
 - VoiceOver gets one element with the latest value and change; swipe up or down steps the scrub point.
-- A full dashboard screen ships in Swift Pieces Pro (`dashboard-screen`).
+- A full dashboard screen ships in SwiftPieces Pro (`dashboard-screen`).
 
 ### Parameters
 
@@ -970,7 +970,7 @@ Address entry with type-ahead suggestions that resolve to a structured, verified
 - `source`: Where suggestions and addresses come from. `nil` (the default) uses MapKit. Pass your own for a geocoding backend, previews or tests.
 - `countries`: ISO 3166 country codes that are accepted, such as `["US", "CA"]`. Suggestions clearly in another country are left out, and a picked address outside the list shows an inline error instead of being set. Empty accepts every country.
 - `allowsUnverified`: When `true`, a "Use as typed" row appears when there are no matches or a lookup fails, and picking it sets an address with `isVerified == false` holding only the typed text.
-- `style`: Colors and field metrics. Defaults to the Swift Pieces house palette, adapting to light and dark.
+- `style`: Colors and field metrics. Defaults to the SwiftPieces house palette, adapting to light and dark.
 
 ## Amount Field (`AmountField`)
 
@@ -1006,7 +1006,7 @@ Currency amount entry with live locale formatting, a `Decimal` value and a limit
 - `allowsDecimal`: Allow the decimal key. When `false`, amounts are whole units and the number pad has no decimal key.
 - `size`: `.hero` is a large centered figure for a payments screen; `.compact` is a 56pt form-row block.
 - `isFocused`: Optional binding to read or drive keyboard focus, for example to raise the keyboard on appear.
-- `style`: Colors and metrics. Defaults to the Swift Pieces house palette, adapting to light and dark.
+- `style`: Colors and metrics. Defaults to the SwiftPieces house palette, adapting to light and dark.
 
 ## Date Range Picker (`DateRangePicker`)
 
@@ -1034,7 +1034,7 @@ Day-granular start/end range picker with a paged month grid. The selection is al
 - Dynamic Type: day cells grow with `@ScaledMetric` from 44pt up to 76pt tall; day numbers scale to accessibility sizes and shrink to fit rather than clip. The summary stacks when it no longer fits on one line.
 - Reduce Motion: no sweep, springs or rolling title. The swipe no longer slides the grid; both the swipe and the chevrons crossfade to the next month.
 - `Style` sets the ground, day text, muted text, band, endpoint blocks, ink on blocks, the today dot, disabled days, the month buttons, the notice chip and the corner radius. `.disabled(true)` dims the picker and stops taps and paging.
-- For booking a time slot inside a day, see the slot picker in Swift Pieces Pro.
+- For booking a time slot inside a day, see the slot picker in SwiftPieces Pro.
 
 ### Parameters
 
@@ -1044,7 +1044,7 @@ Day-granular start/end range picker with a paged month grid. The selection is al
 - `maximumLength`: Longest allowed range, counted in `counting` units. While a start is pending, days that cannot close the range are dimmed.
 - `counting`: `.days` counts both ends (Mar 4 to Mar 9 is 6 days, and a single day is allowed). `.nights` counts nights (5 nights, and the end must be after the start).
 - `showsSummary`: Show the header line with the formatted range and its length chip.
-- `style`: Colors and corner radius. Defaults to the Swift Pieces house palette (butter endpoint blocks with dark ink on a soft butter band), adapting to light and dark.
+- `style`: Colors and corner radius. Defaults to the SwiftPieces house palette (butter endpoint blocks with dark ink on a soft butter band), adapting to light and dark.
 
 ## Expanding Track (`ExpandingTrack`)
 
@@ -1076,7 +1076,7 @@ Thumbless slider that swells into a solid block on touch. Bind a `Double` for a 
 - `minimumDistance`: Smallest gap the range handles keep between them (range init only).
 - `symbol`: Optional leading SF Symbol that plays a variable-color pulse each time the value rises past a tick.
 - `title`: Optional label. Shows an uppercase caption with the value as a big light numeral above the track (decimals dimmed), and becomes the VoiceOver label.
-- `style`: Colors and track metrics. Defaults to the Swift Pieces house palette, adapting to light and dark.
+- `style`: Colors and track metrics. Defaults to the SwiftPieces house palette, adapting to light and dark.
 - `format`: Formats the readout and the VoiceOver value. Defaults to up to two decimals.
 
 ## Filter Rail (`FilterRail`)
@@ -1098,7 +1098,7 @@ Horizontal chip rail bound to a `Set` of selected titles.
 - Selection changes set `scrollPosition(id:)`, so the chosen chip centers itself (single) or the rail returns to its leading edge (multi).
 - Edge fades are computed from the content frame in a named coordinate space, so they show only on the side that actually has chips hidden.
 - Chips press to 0.96 with a fast press-in and springy release; `.disabled(true)` dims the whole rail. A selection haptic fires on every change to the bound set.
-- For a searchable list of commands instead of a rail, see the Command Palette screen in Swift Pieces Pro.
+- For a searchable list of commands instead of a rail, see the Command Palette screen in SwiftPieces Pro.
 
 ### Parameters
 
@@ -1106,7 +1106,7 @@ Horizontal chip rail bound to a `Set` of selected titles.
 - `selection`: Selected titles. Single-select keeps exactly one once anything is chosen.
 - `allowsMultiple`: Allow several chips at once. Selected chips move to the leading edge and a Clear chip appears.
 - `counts`: Optional result count per title, shown after the chip title and read by VoiceOver.
-- `style`: Colors and chip height. Defaults to the Swift Pieces house palette, adapting to light and dark.
+- `style`: Colors and chip height. Defaults to the SwiftPieces house palette, adapting to light and dark.
 
 ## Form Field (`FormField`)
 
@@ -1151,7 +1151,7 @@ Text field with a floating label, help and error text, a character limit and a c
 - `keyboardType`: Keyboard. `.emailAddress` and `.URL` also turn off autocapitalization and autocorrection.
 - `submitLabel`: The Return key label, e.g. `.next` or `.done`.
 - `onSubmit`: Called when Return is pressed in a one-line field. Move focus to the next field here.
-- `style`: Colors and field metrics. Defaults to the Swift Pieces house palette, adapting to light and dark.
+- `style`: Colors and field metrics. Defaults to the SwiftPieces house palette, adapting to light and dark.
 
 ## Location Picker (`LocationPicker`)
 
@@ -1191,7 +1191,7 @@ A map you drag under a fixed pin to choose an exact spot, with the address of wh
 - `showsLocationButton`: Shows the locate button in the top trailing corner. It asks for When In Use permission on its first tap, never before.
 - `geocoder`: Where addresses come from. `.mapKit` (the default) uses `MKReverseGeocodingRequest` on iOS 26 and the system geocoder before it. Pass your own for a backend, previews or tests.
 - `messages`: The card's copy. Defaults are localizable through your String Catalog; replace any line, for example `confirm` with "Deliver here".
-- `style`: Colors, the card's corner radius and the map's look. Defaults to the Swift Pieces house palette, adapting to light and dark, with the red pin and Confirm.
+- `style`: Colors, the card's corner radius and the map's look. Defaults to the SwiftPieces house palette, adapting to light and dark, with the red pin and Confirm.
 - `onConfirm`: Called with the place when Confirm is tapped. Tapped while the address is still on its way, Confirm waits for it (up to four seconds) and then hands over what it has. `nil` hides the button, for pickers inside your own form.
 
 ## Range Slider (`RangeSlider`)
@@ -1219,7 +1219,7 @@ Dual-thumb slider that binds a `ClosedRange` of any floating-point type. The sim
 - `Style` sets the track, the fill block, thumb face and border, ink, labels, chips, track height and thumb size. `.disabled(true)` desaturates, dims and blocks input.
 - Reduce Motion: no spring, no thumb growth (the border still thickens), and the thumbs follow the finger without smoothing.
 - The drag starts on touch-down so the track responds to taps; inside a vertical `ScrollView` or sheet, a drag that begins on the slider moves the slider rather than scrolling.
-- For a full filter sheet built around it, see the filter sheet in Swift Pieces Pro.
+- For a full filter sheet built around it, see the filter sheet in SwiftPieces Pro.
 
 ### Parameters
 
@@ -1230,7 +1230,7 @@ Dual-thumb slider that binds a `ClosedRange` of any floating-point type. The sim
 - `readout`: Where the values print: `.thumbs` (chips above each thumb that merge into one when they would touch), `.header` (a "lower – upper" line above the track), or `.hidden`.
 - `lowerLabel`: VoiceOver label of the lower thumb. Defaults to "Minimum".
 - `upperLabel`: VoiceOver label of the upper thumb. Defaults to "Maximum".
-- `style`: Colors and metrics. Defaults to the Swift Pieces house palette (a tangerine block on a quiet track), adapting to light and dark.
+- `style`: Colors and metrics. Defaults to the SwiftPieces house palette (a tangerine block on a quiet track), adapting to light and dark.
 - `format`: Turns a value into the text shown in the readouts and spoken by VoiceOver. A `FormatStyle` (such as `.currency(code:)` or `.percent`) or a closure. Defaults to a plain number with as many decimals as `step` has (up to two without a step).
 
 ## Scrub Stepper (`ScrubStepper`)
@@ -1259,7 +1259,7 @@ Minus/plus stepper with hold-to-repeat and a horizontal scrub gesture.
 - `value`: Bound integer value.
 - `range`: Allowed values. Pushing past a bound nudges the capsule 6pt and fires a rigid impact instead of moving.
 - `step`: Amount added or removed per tap, repeat tick, or scrub unit.
-- `style`: Colors and size. Defaults to the Swift Pieces house palette (a butter numeral block with dark ink), adapting to light and dark.
+- `style`: Colors and size. Defaults to the SwiftPieces house palette (a butter numeral block with dark ink), adapting to light and dark.
 
 ## Secure Entry (`SecureEntry`)
 
@@ -1281,7 +1281,7 @@ Password field with strength meter, live requirements, and inline error.
 - Requirement chips appear while focused or filled. A met requirement becomes a sage block whose check draws in after the fill lands, with a `.selection` haptic. When all four pass, the chips collapse, a check appears in the field and a `.success` haptic plays.
 - `Style` sets every color plus field height and radius. `.disabled(true)` dims the field.
 - Reduce Motion: no shake, and every transition becomes an opacity fade.
-- For one-time codes after sign-in, see the Verify screen (code entry) in Swift Pieces Pro.
+- For one-time codes after sign-in, see the Verify screen (code entry) in SwiftPieces Pro.
 
 ### Parameters
 
@@ -1290,7 +1290,7 @@ Password field with strength meter, live requirements, and inline error.
 - `error`: Validation message. Setting it non-nil shakes the field, fires an error haptic, and slides an error chip in below.
 - `showsStrength`: Show the strength bar and its label chip once text is non-empty.
 - `showsRequirements`: Show the 8+ / number / symbol / mixed-case chips while focused or filled; they collapse once all four pass and a check appears in the field.
-- `style`: Colors and field metrics. Defaults to the Swift Pieces house palette, adapting to light and dark.
+- `style`: Colors and field metrics. Defaults to the SwiftPieces house palette, adapting to light and dark.
 
 ## Signature Pad (`SignaturePad`)
 
@@ -1325,7 +1325,7 @@ Signature capture that feels like ink, bound to a `SignaturePad.Signature` value
 - `signature`: The bound signature. Drawn strokes, or a typed name when the person chose Type instead. `isEmpty` stays `true` until there is a typed name or enough ink to count (a stray dot or speck does not), so it is the right check for enabling a submit button. Setting it from outside redraws the pad; a stroke removed from outside inside `withAnimation` fades out.
 - `prompt`: The hint under the baseline, shown until the first stroke. Defaults to "Sign here".
 - `allowsTyping`: Offers Type instead, which sets the typed name in a script face on the same baseline. This is the accessible path for people who cannot draw a signature (VoiceOver, motor impairments), so turn it off only when your flow offers another way to sign.
-- `style`: Colors, ink weight, corner radius and pad height. Defaults to the Swift Pieces house palette, adapting to light and dark.
+- `style`: Colors, ink weight, corner radius and pad height. Defaults to the SwiftPieces house palette, adapting to light and dark.
 
 ## Token Field (`TokenField`)
 
@@ -1361,7 +1361,7 @@ Wrapping token entry bound to an array of strings: tags, skills, recipients.
 - `maxTokens`: Upper limit. When reached the input stops accepting text and shows a quiet count such as "5/5"; backspace still removes.
 - `allowsDuplicates`: When `false`, an entry that matches an existing token case-insensitively is not added; the existing chip is highlighted instead and the first spelling is kept.
 - `separators`: Keys and characters that commit the typed text. `.standard` is return, comma and pasted line breaks. Full-width commas and semicolons count as their ASCII forms.
-- `style`: Colors and field metrics. Defaults to the Swift Pieces house palette, adapting to light and dark.
+- `style`: Colors and field metrics. Defaults to the SwiftPieces house palette, adapting to light and dark.
 - `validate`: Accepts or rejects a trimmed entry (for example an email check). A rejected entry stays in the input, the field shakes and an error haptic plays.
 
 ## Depth Carousel (`DepthCarousel`)
@@ -1384,7 +1384,7 @@ Centered paging carousel with depth recession, per-page parallax phase, and a pr
 - `Style` (`DepthCarousel.Style`, also `DepthCarouselStyle`): `recede`, `dim`, `shadowOpacity`, `indicatorActive`, `indicatorInactive`, `showsCounter`.
 - VoiceOver treats the carousel as one container that reads "Page x of y" and supports swipe up/down to change pages; the indicator is hidden from it.
 - `scrollClipDisabled()` lets neighbor pages peek past the carousel's own bounds, so give it full width.
-- Want blur-and-tone depth, pinch peek-zoom and a full album screen? That is the Depth Gallery screen in Swift Pieces Pro.
+- Want blur-and-tone depth, pinch peek-zoom and a full album screen? That is the Depth Gallery screen in SwiftPieces Pro.
 
 ### Parameters
 
@@ -1431,7 +1431,7 @@ A scrolling grid of `Identifiable` items with drag-to-select: photos, files, att
 - `minimumCellWidth`: The narrowest a cell may be. The column count is the most that fit at this width, so it adapts to rotation, iPad and split view.
 - `aspectRatio`: Cell width divided by height. `1` is square; `0.75` suits portrait posters or documents.
 - `longPressToSelect`: When `true`, holding a cell outside selection mode turns selection mode on, selects that cell and keeps painting as the finger moves. Pass `false` if your cells have their own context menu.
-- `style`: Spacing, corner radius, the selected inset, badge colors and auto-scroll tuning. Defaults to the Swift Pieces house palette.
+- `style`: Spacing, corner radius, the selected inset, badge colors and auto-scroll tuning. Defaults to the SwiftPieces house palette.
 - `cell`: Builds a cell's content from the item and whether it is selected. It fills the cell and is clipped to the cell's rounded shape; the grid draws the badge and inset.
 
 ## Follow Scroll (`FollowScroll`)
@@ -1540,7 +1540,7 @@ Row with swipe-to-reveal actions that works in a plain `VStack` or `ScrollView`,
 - Swiping toward an edge with no actions rubber-bands to a 40pt limit and springs back.
 - `Style` (`SwipeActionRow.Style`, also `SwipeActionRowStyle`): `surface`, `tileInk`, `cornerRadius`, `tileWidth`, `tileGap`. `background:` still overrides the card fill; set `cornerRadius` and `tileGap` to 0 for classic full-bleed list rows.
 - Reduce Motion keeps every state change but replaces the springs and the tile grow-in with short fades. All actions are exposed as VoiceOver custom actions on the row.
-- Need grouped activity with categorize, split and expanding detail? That is the Transaction Row screen in Swift Pieces Pro.
+- Need grouped activity with categorize, split and expanding detail? That is the Transaction Row screen in SwiftPieces Pro.
 
 ### Parameters
 
@@ -1572,7 +1572,7 @@ Interactive task row for to-do lists, driven by a bound `Status`.
 - `.disabled(true)` dims the row to 50% and turns off the swipe and lift.
 - `Style` (`TaskRow.Style`): `surface`, `text`, `muted`, `ink`, `complete`, `snooze`, `delete`, `high`, `medium`, `low`, `cornerRadius`. `tint:` still overrides the complete color.
 - Stack rows with 8pt spacing on the ground. VoiceOver reads the row as one button with status, due date and priority, and exposes Complete/Reopen, Snooze, Delete and Move up/down as custom actions.
-- Need grouped-by-day activity with split and expanding detail? That is the Transaction Row screen in Swift Pieces Pro.
+- Need grouped-by-day activity with split and expanding detail? That is the Transaction Row screen in SwiftPieces Pro.
 
 ### Parameters
 
@@ -1624,7 +1624,7 @@ A strip of photo and video attachments with an add tile, per-item loading, retry
 - `attachments`: Bound attachments, in display order. The tray appends picks, writes load progress, thumbnails and payloads back by id, and removes an attachment when its remove badge is tapped. Loads for attachments you remove are cancelled and their results ignored.
 - `limit`: Most attachments the tray lets people pick (at least 1). The picker only allows the remaining count; at the limit the add tile shows "6/6" and disables. Extra picks and picks already in the tray are not added.
 - `matching`: What the picker offers, such as `.images`, `.videos` or `.any(of: [.images, .videos])`. Videos load as a file copied to the temporary directory with a poster frame thumbnail and a duration badge.
-- `style`: Colors and tile metrics. Defaults to the Swift Pieces house palette, adapting to light and dark.
+- `style`: Colors and tile metrics. Defaults to the SwiftPieces house palette, adapting to light and dark.
 - `onSelect`: Called when a loaded tile is tapped, for example to open it full screen. When `nil`, loaded tiles have no tap action.
 
 ## Link Preview (`LinkPreview`)
@@ -1661,7 +1661,7 @@ A rich preview card for a URL: the page's image, title and host, fetched once an
 - `layout`: `.compact` is a row with a square thumbnail on the leading side, for chat bubbles and lists. `.large` puts a wide image on top, for feeds and composers. Both take the width they are offered.
 - `metadata`: Metadata to show as is, with no request: for previews, tests, or links your server has already unfurled. `nil` fetches.
 - `timeout`: Seconds before a fetch gives up and the card falls back to the address.
-- `style`: Colors and corner radius. Defaults to the Swift Pieces house palette, adapting to light and dark.
+- `style`: Colors and corner radius. Defaults to the SwiftPieces house palette, adapting to light and dark.
 
 ## Photo Cropper (`PhotoCropper`)
 
@@ -1701,7 +1701,7 @@ A crop step for a picked photo: the photo under a frame of the chosen aspect, wi
 - `aspects`: The aspect chips under the photo, in order. Defaults to circle, square, 4:5, 16:9 and the photo's own shape. One aspect, or none, hides the chips for a fixed frame. An aspect that isn't listed is added at the front.
 - `maxOutputDimension`: The longest side of the rendered crop, in pixels. Defaults to 4096. Larger crops are scaled down to it; smaller ones keep the original's pixels and are never scaled up.
 - `messages`: The cropper's copy. Defaults are localizable through your String Catalog; replace any line, for example `choose` with "Use photo".
-- `style`: Colors, the photo's well and the frame inset. Defaults to the Swift Pieces house palette, adapting to light and dark, with red for Choose, the selected aspect and the limit flash.
+- `style`: Colors, the photo's well and the frame inset. Defaults to the SwiftPieces house palette, adapting to light and dark, with red for Choose, the selected aspect and the limit flash.
 - `onCancel`: Shows a Cancel button (and Escape on a hardware keyboard) that calls this. `nil` hides it.
 - `onCrop`: Called on the main actor with the rendered ``Crop`` when Choose is tapped (or Return is pressed). Choose keeps spinning until this returns, so you can await an upload here.
 
@@ -1823,7 +1823,7 @@ Floating bottom dock of 4–5 icon items with a solid block selection and a scru
 - `Style` sets `surface`, `indicator`, `selectedInk`, `inactive`, `badge`, and `usesGlass` (Liquid Glass on iOS 26, a material before it). Reduce Transparency always uses the solid surface.
 - `scrollProgress` slides the dock 120 pt down and fades it; drive it from your scroll direction (0 while scrolling up, 1 while scrolling down) and it springs either way. Above 0.5 it is also hidden from VoiceOver.
 - VoiceOver sees a tab bar container whose items are buttons with selected state and badge value; double-tap selects. Reduce Motion removes the lift and scale.
-- A floating tab bar with a lens that tracks and stretches toward the finger ships in Swift Pieces Pro (`lens-tab-bar`).
+- A floating tab bar with a lens that tracks and stretches toward the finger ships in SwiftPieces Pro (`lens-tab-bar`).
 
 ### Parameters
 
@@ -1868,7 +1868,7 @@ A section index rail for long sectioned lists (contacts, glossaries, countries, 
 - `selection`: The section last jumped to. Written on every jump; write it yourself (for example from your own scroll tracking) so VoiceOver starts adjusting from the section on screen.
 - `index`: What the rail lists. `.sections` shows exactly `titles`; `.alphabet` shows the current locale's index letters (A to Z and # in English) and matches each section to a letter by its first character; `.custom` takes your own entries.
 - `missing`: What happens to index entries that have no section: `.dimmed` keeps them in place in a quieter color (the finger lands on the nearest section after them), `.hidden` leaves them out.
-- `style`: Colors for the letters, the track behind the rail while scrubbing and the letter block. Defaults to the Swift Pieces house palette, adapting to light and dark.
+- `style`: Colors for the letters, the track behind the rail while scrubbing and the letter block. Defaults to the SwiftPieces house palette, adapting to light and dark.
 - `onSelect`: Called with the section title to jump to: once on touch down, then each time the finger reaches a new section, and on VoiceOver or keyboard moves. Scroll without animation here, the way the system index does.
 
 ## Stretch Header (`StretchHeader`)
@@ -1890,7 +1890,7 @@ Hero header placed at the top of scroll content, paired with `.stretchHeaderBar(
 - The `subtitle` row (stats, avatar, tabs) pins under the bar once the hero has scrolled past it and draws above the content that follows. Give it its own padding.
 - Progress comes from `onScrollGeometryChange` on iOS 18 (fed through the modifier) and from the header's own position in the `.scrollView` coordinate space on iOS 17. A soft haptic marks a deep pull.
 - Reduce Motion drops the title parallax and the hero lag but keeps the stretch and the collapse. The hero reads as one header element and is hidden from VoiceOver once collapsed, when the inline title takes over.
-- A full settings screen built around a header like this ships in Swift Pieces Pro (`settings-screen`).
+- A full settings screen built around a header like this ships in SwiftPieces Pro (`settings-screen`).
 
 ### Parameters
 
@@ -1921,7 +1921,7 @@ Tab bar with a scroll-linked block indicator driving horizontally paged content.
 - States: resting, swiping (block between titles), pressed (the tapped title scales to 94%), settled with a `.selection` haptic.
 - `Style` sets `track`, `indicator`, `title`, and `selectedTitle`; `.standard` is the house surface track with a butter block and ink.
 - Titles are buttons with selected traits and their count as the value; 44 pt tall. Reduce Motion shortens the tap animation and removes the press scale.
-- A floating tab bar with a lens that stretches toward the finger ships in Swift Pieces Pro (`lens-tab-bar`).
+- A floating tab bar with a lens that stretches toward the finger ships in SwiftPieces Pro (`lens-tab-bar`).
 
 ### Parameters
 
@@ -1950,7 +1950,7 @@ Presents a confirmation card as a bottom sheet, or inline as an overlay in the c
 - Destructive cards use a tangerine tile and the signal-colored primary button, and play `.warning` when they appear. Other cards use a sky tile and a solid label-colored button. The tile symbol bounces on every presentation.
 - `Style` sets every color and the card radius (34pt by default).
 - Under Reduce Motion the card crossfades instead of sliding, the bounce is skipped and the success beat is shorter.
-- For a floating booking card with detents, see the Stay screen (glass sheet) in Swift Pieces Pro.
+- For a floating booking card with detents, see the Stay screen (glass sheet) in SwiftPieces Pro.
 
 ### Parameters
 
@@ -1962,7 +1962,7 @@ Presents a confirmation card as a bottom sheet, or inline as an overlay in the c
 - `confirmTitle`: Primary button title.
 - `cancelTitle`: Quiet secondary button title.
 - `isDestructive`: Uses the destructive tile and the signal-colored primary button, and plays a `.warning` haptic on present.
-- `style`: Colors and corner radius. Defaults to the Swift Pieces house palette, adapting to light and dark.
+- `style`: Colors and corner radius. Defaults to the SwiftPieces house palette, adapting to light and dark.
 - `confirm`: Async handler for the primary button; the button shows a spinner until it returns, the tile turns into a check, then the card dismisses.
 
 ## Permission Sheet (`PermissionSheet`)
@@ -1983,7 +1983,7 @@ Explains a permission, runs the real request, and reacts to the result.
 - A denial crossfades the title and message through a blur, hides the benefit rows, turns the tile sand with a gear, plays `.warning`, and turns the button into a solid "Open Settings" via `UIApplication.openSettingsURLString`.
 - `Style` sets the surface, labels, tiles, benefit tile colors, action color and tile radius.
 - Under Reduce Motion rows appear immediately, the copy swap skips the blur and the bounce is skipped.
-- For a full multi-step onboarding flow, see the Onboarding screen in Swift Pieces Pro.
+- For a full multi-step onboarding flow, see the Onboarding screen in SwiftPieces Pro.
 
 ### Parameters
 
@@ -1994,7 +1994,7 @@ Explains a permission, runs the real request, and reacts to the result.
 - `allowTitle`: Primary button title.
 - `deniedTitle`: Headline shown after the request returns `false`.
 - `deniedMessage`: Copy shown after a denial, above the "Open Settings" button.
-- `style`: Colors and tile shape. Defaults to the Swift Pieces house palette, adapting to light and dark.
+- `style`: Colors and tile shape. Defaults to the SwiftPieces house palette, adapting to light and dark.
 - `request`: Async permission request; return `true` when granted. The button spins until it returns.
 - `onGranted`: Called about a second after a grant, once the tile has turned into a check. Dismiss the sheet here.
 - `onSkip`: Secondary handler. Omit to hide the "Not now" button.
@@ -2035,7 +2035,7 @@ Walks people through the controls on a screen, one stop at a time: everything bu
 - `showOnceKey`: A `UserDefaults` key. When set, the tour presents itself (by setting `isPresented`) the first time the view appears, once the screen has settled, and records under this key when it is finished or skipped, so it never presents itself again. Setting `isPresented` yourself always presents it. Reset with `SpotlightTour.resetShowOnce(_:)`.
 - `advancesOnTargetTap`: Tapping the highlighted control also moves the tour on, as well as running the control's own action. Defaults to `true`.
 - `messages`: The built-in copy: Next, Done, Skip and the step count. Defaults are localizable through your String Catalog.
-- `style`: Colors and metrics. Defaults to the Swift Pieces house palette, adapting to light and dark, with the red ring, current step and Next capsule.
+- `style`: Colors and metrics. Defaults to the SwiftPieces house palette, adapting to light and dark, with the red ring, current step and Next capsule.
 - `onFinish`: Called when the tour ends with Done (`.completed`) or Skip (`.skipped`), for analytics or to save that it was seen. Not called when you set `isPresented` to `false` yourself.
 
 ## Toast (`Toast`)
@@ -2058,7 +2058,7 @@ Presents one transient toast on the top or bottom edge.
 - Placement reads the safe area of the view it is applied to: at the top it clears the Dynamic Island, at the bottom it rises with the keyboard. Apply the modifier to a view that does not ignore safe areas.
 - Colors live in `Toast.Appearance` (passed as `appearance:`), because `Toast.Style` already names the kind. The card is opaque, so it reads the same with Reduce Transparency.
 - The message and detail are posted as a VoiceOver announcement on appear; the action button is a real button with its own label.
-- For stacked, queued alerts with a notifications feed, see the Notifications screen (toast stack) in Swift Pieces Pro.
+- For stacked, queued alerts with a notifications feed, see the Notifications screen (toast stack) in SwiftPieces Pro.
 
 ### Parameters
 
@@ -2070,7 +2070,7 @@ Presents one transient toast on the top or bottom edge.
 - `duration`: Seconds before it dismisses on its own. The countdown pauses while the toast is touched.
 - `position`: `.top` or `.bottom` edge to slide in from.
 - `action`: Optional trailing button (for example Undo). Tapping it flashes a check, runs the handler, then dismisses.
-- `appearance`: Colors and corner radius. Defaults to the Swift Pieces house palette, adapting to light and dark.
+- `appearance`: Colors and corner radius. Defaults to the SwiftPieces house palette, adapting to light and dark.
 
 ## Expandable Text (`ExpandableText`)
 
@@ -2154,12 +2154,12 @@ A headline with pictures stuck between its words like stickers, revealed in read
 ### Notes
 
 - Write the headline as a list: string literals are words and pictures go where you put them, for example `["Slow", .art(.sun), "mornings, long", .art(.waves), "walks."]`. A string can hold several words; each word rises on its own.
-- Pictures land as stickers: a white rim, a soft shadow and a small resting tilt that alternates along the headline (`Style.tilt`, 4 degrees at most), so a line reads as placed by hand. As each one lands, four hairline crop marks flash at its corners, the crosses Swift Pieces draws on its artboards. `Style.tilt = 0` lays them flat, `Style.rim = 0` drops the rim and `Style.cropMarks = false` skips the marks.
+- Pictures land as stickers: a white rim, a soft shadow and a small resting tilt that alternates along the headline (`Style.tilt`, 4 degrees at most), so a line reads as placed by hand. As each one lands, four hairline crop marks flash at its corners, the crosses SwiftPieces draws on its artboards. `Style.tilt = 0` lays them flat, `Style.rim = 0` drops the rim and `Style.cropMarks = false` skips the marks.
 - Press and hold a sticker to lift it: it straightens, scales up and casts a deeper shadow above its neighbours, with a light tick, then springs back to its tilt when you let go. The press uses `onLongPressGesture(onPressingChanged:)` with a small tolerance, so scrolling over the headline still scrolls. `Style.lifts = false` turns it off.
 - Pictures are sized from the font: `Style.pictureHeight` is a fraction of the line height (0.82 by default) and each picture's `width` is in picture heights (2.4 is a wide frame, 1 a square). Set the font with `.font(...)` as usual and the pictures follow it, Dynamic Type included.
 - Words and pictures wrap like text with a private `Layout`, so the headline breaks across rows at any width and a picture never splits from the row it lands on. `alignment` sets each row's alignment.
 - The reveal runs in reading order. Each word slides up from behind its own baseline and each picture opens from a dot as tall as the frame into the full sticker on a spring, turning from flat to its tilt as it lands, its contents settling from a slight zoom. The stagger is sized from the number of items, so a short and a long headline both land in about `duration` (1.2 seconds by default). `delay` holds the start; change `trigger` to replay.
-- Three kinds of picture: `.art(_:)` draws one of five built-in scenes in the house palette (`.sun` is the red Swift Pieces mascot, bobbing and blinking over the sand; `.waves`, `.moon`, `.hills` and `.bloom`), so a headline looks finished before you have artwork; `.image(_:)` fills the frame with your own `Image`; `.symbol(_:fill:ink:)` sets an SF Symbol on a solid block.
+- Three kinds of picture: `.art(_:)` draws one of five built-in scenes in the house palette (`.sun` is the red SwiftPieces mascot, bobbing and blinking over the sand; `.waves`, `.moon`, `.hills` and `.bloom`), so a headline looks finished before you have artwork; `.image(_:)` fills the frame with your own `Image`; `.symbol(_:fill:ink:)` sets an SF Symbol on a solid block.
 - After landing, pictures keep moving: scenes drift (the sun bobs, the sea slides, stars twinkle), images pan slowly and symbols bob. Set `Style.drift = false` for still pictures. Drawing uses `Canvas` driven by a `TimelineView` at up to 30 frames a second.
 - `revealOnScroll` waits until the headline scrolls into view with `onScrollVisibilityChange` on iOS 18; on iOS 17 it reveals on appear.
 - Haptics: a light tick as each picture lands, in time with the spring, and another when you lift one. Pass `haptics: false` to stay silent.
@@ -2622,7 +2622,7 @@ struct ReduceMotionExample: View {
 }
 ```
 
-What to reduce: travel across the screen, parallax, 3D rotation, zooming, looping motion. What to keep: opacity changes, color changes, and small scale feedback on press. Every Swift Pieces component reads this setting. [Elastic Button](/docs/components/controls/elastic-button), for example, keeps its scale and darken under Reduce Motion but drops the lean and stretch toward the finger.
+What to reduce: travel across the screen, parallax, 3D rotation, zooming, looping motion. What to keep: opacity changes, color changes, and small scale feedback on press. Every SwiftPieces component reads this setting. [Elastic Button](/docs/components/controls/elastic-button), for example, keeps its scale and darken under Reduce Motion but drops the lean and stretch toward the finger.
 
 ### Performance notes
 
@@ -2635,7 +2635,7 @@ What to reduce: travel across the screen, parallax, 3D rotation, zooming, loopin
 
 ### Where to go next
 
-The [animations hub](/components/animations) collects every Swift Pieces component built around motion, from gesture-driven cards to scroll effects. Buttons are where most small motion lives, so the [SwiftUI buttons guide](/docs/guides/swiftui-buttons) continues with press styles and loading states, and [SwiftUI haptics](/docs/guides/swiftui-haptics) covers pairing motion with feel.
+The [animations hub](/components/animations) collects every SwiftPieces component built around motion, from gesture-driven cards to scroll effects. Buttons are where most small motion lives, so the [SwiftUI buttons guide](/docs/guides/swiftui-buttons) continues with press styles and loading states, and [SwiftUI haptics](/docs/guides/swiftui-haptics) covers pairing motion with feel.
 
 ### Install a piece
 
@@ -3038,7 +3038,7 @@ struct CloseButton: View {
 
 When one button needs to expose several actions, reach for `Menu` first. For a floating action button that fans out, [Glass Action Menu](/docs/components/glass/glass-action-menu) long-presses open into a line or arc of actions you can slide across and release to fire, and its glass morphs on iOS 26.
 
-The [controls hub](/components/controls) collects every button-like piece in Swift Pieces, and the [SwiftUI animations guide](/docs/guides/swiftui-animations) covers the springs and transitions used throughout this page.
+The [controls hub](/components/controls) collects every button-like piece in SwiftPieces, and the [SwiftUI animations guide](/docs/guides/swiftui-animations) covers the springs and transitions used throughout this page.
 
 ### Install a piece
 

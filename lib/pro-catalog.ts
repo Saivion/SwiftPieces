@@ -1,4 +1,4 @@
-// What Swift Pieces Pro contains, for marketing copy on the free site. Free never reads the Pro
+// What SwiftPieces Pro contains, for marketing copy on the free site. Free never reads the Pro
 // registry (Rev 3 §3.2), so this is the one hand-maintained copy: when Pro's library changes,
 // update these numbers and names here and every page follows.
 // Source of truth: SwiftPiecesPro `typeCounts()` (registry/__registry__/public.json) and `kitCounts()` (lib/kit.ts).

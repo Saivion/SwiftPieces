@@ -23,7 +23,7 @@ import SwiftUI
 ///   - readout: Where the values print: `.thumbs` (chips above each thumb that merge into one when they would touch), `.header` (a "lower – upper" line above the track), or `.hidden`.
 ///   - lowerLabel: VoiceOver label of the lower thumb. Defaults to "Minimum".
 ///   - upperLabel: VoiceOver label of the upper thumb. Defaults to "Maximum".
-///   - style: Colors and metrics. Defaults to the Swift Pieces house palette (a tangerine block on a quiet track), adapting to light and dark.
+///   - style: Colors and metrics. Defaults to the SwiftPieces house palette (a tangerine block on a quiet track), adapting to light and dark.
 ///   - format: Turns a value into the text shown in the readouts and spoken by VoiceOver. A `FormatStyle` (such as `.currency(code:)` or `.percent`) or a closure. Defaults to a plain number with as many decimals as `step` has (up to two without a step).
 public struct RangeSlider<V: BinaryFloatingPoint>: View where V.Stride: BinaryFloatingPoint {
     /// Colors and metrics. `.standard` is the house palette.

@@ -26,7 +26,7 @@ export default function PrivacyPage() {
       <p>Your remixes are saved in your own browser&apos;s storage and never reach our servers. Clearing your browser data removes them.</p>
       <p>&quot;Open in Xcode&quot; puts your project inside the link Xcode opens. Our server reads it to build the Xcode project and doesn&apos;t keep it.</p>
 
-      <h2>Swift Pieces Pro</h2>
+      <h2>SwiftPieces Pro</h2>
       <p>If you&apos;re signed in to pro.swiftpieces.com, the Playground asks it whether you own Pro, so it can offer Pro features. Your browser sends your Pro session to pro.swiftpieces.com for that check; swiftpieces.com never sees or stores it.</p>
 
       <h2>App Store content</h2>

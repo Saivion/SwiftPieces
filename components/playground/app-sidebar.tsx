@@ -129,7 +129,7 @@ export function AppSidebarFooter({ app: a }: { app: LibraryEntry }) {
   return (
     <div className="flex flex-col gap-3 border-t border-[var(--docs-line)] px-3.5 pt-3.5 pb-5">
       <p className="text-[11px] leading-relaxed text-subtle">
-        An original Swift Pieces remix inspired by {a.name}. Screenshots © {a.store.developer}, for reference only; not affiliated.{" "}
+        An original SwiftPieces remix inspired by {a.name}. Screenshots © {a.store.developer}, for reference only; not affiliated.{" "}
         <a href="/terms#recreations" className="text-muted underline underline-offset-2">Terms</a>
       </p>
     </div>

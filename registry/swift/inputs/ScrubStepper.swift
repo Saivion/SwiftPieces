@@ -15,7 +15,7 @@ import SwiftUI
 ///   - value: Bound integer value.
 ///   - range: Allowed values. Pushing past a bound nudges the capsule 6pt and fires a rigid impact instead of moving.
 ///   - step: Amount added or removed per tap, repeat tick, or scrub unit.
-///   - style: Colors and size. Defaults to the Swift Pieces house palette (a butter numeral block with dark ink), adapting to light and dark.
+///   - style: Colors and size. Defaults to the SwiftPieces house palette (a butter numeral block with dark ink), adapting to light and dark.
 public struct ScrubStepper: View {
     /// Colors and metrics. `.standard` is the house palette.
     public struct Style: Sendable {

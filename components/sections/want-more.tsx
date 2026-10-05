@@ -82,7 +82,7 @@ function ProTile({ card, copy }: { card: Card; copy: boolean }) {
       {/* eslint-disable-next-line @next/next/no-img-element -- static stills of Pro's library cards; next/image would re-encode them per width for no gain */}
       <img
         src={`/pro-cards/${card.id}.webp`}
-        alt={copy ? "" : `${card.title}, a Swift Pieces Pro ${wide ? "app template" : "screen"}`}
+        alt={copy ? "" : `${card.title}, a SwiftPieces Pro ${wide ? "app template" : "screen"}`}
         loading="lazy"
         decoding="async"
         className="size-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"

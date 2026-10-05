@@ -1,4 +1,4 @@
-// Free Swift Pieces that present, open or switch: a toast, a confirmation sheet and a permission
+// Free SwiftPieces that present, open or switch: a toast, a confirmation sheet and a permission
 // sheet (each a trigger button that presents the real piece), a floating glass action menu, and
 // two ways to switch between options (tracking tabs over paged content, glass segments). Emitters
 // call each piece's public API exactly as its Swift source declares it, writing only arguments that

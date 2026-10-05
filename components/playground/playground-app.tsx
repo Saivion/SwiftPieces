@@ -137,7 +137,7 @@ export default function PlaygroundApp({ page, project, onReady }: Props) {
 
   const host = useMemo<PlaygroundHost>(
     () => ({
-      product: "Swift Pieces",
+      product: "SwiftPieces",
       // What the Playground offers follows the plan; what costs or keeps anything is the server's call.
       limits: pro ? PRO_LIMITS : FREE_LIMITS,
       session: session === "checking" ? null : { signedIn: session !== "signed-out", pro },
@@ -148,7 +148,7 @@ export default function PlaygroundApp({ page, project, onReady }: Props) {
       track,
       storageKey: "sp:play",
       back: { href: `/apps/${current.slug}`, label: current.name },
-      brand: { href: "/", name: "Swift Pieces", mark: <LogoMark /> },
+      brand: { href: "/", name: "SwiftPieces", mark: <LogoMark /> },
       // The Build sheet shows the app itself, its screens in its own style, over Pro's animated halftone.
       art: <BuildArt backdrop={<CornerDither />} />,
       crumbs: [{ label: "Apps", href: "/apps" }, { label: current.name, href: `/apps/${current.slug}` }, { label: current.pattern.title }],

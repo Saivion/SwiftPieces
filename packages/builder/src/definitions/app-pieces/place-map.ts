@@ -1,6 +1,6 @@
 // Place Map: a drawn city map (two rivers, a park, a street grid, district names) with numbered or
 // symbol pins for saved places and optional distance rings around the first one. Drag to pan it,
-// tap a pin to call out its name, tap the locate button to spring back. Graphite (the Swift Pieces
+// tap a pin to call out its name, tap the locate button to spring back. Graphite (the SwiftPieces
 // look, following the colour scheme: near-black or pale paper, the stay in signal red and the other
 // places on house blocks), day or night. A pan rubber-bands at the edges and a flick springs to
 // where it was heading. The SwiftUI

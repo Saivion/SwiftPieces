@@ -19,7 +19,7 @@ export function toggleItems(p: Props): Array<{ label: string; icon: string }> {
   return labels.map((label, i) => ({ label, icon: iconIds.has(glyphs[i] ?? "") ? glyphs[i] : "tag" }));
 }
 
-/** The Swift Pieces sweep tints a toggle row can take instead of a system colour. */
+/** The SwiftPieces sweep tints a toggle row can take instead of a system colour. */
 export const SWEEP_TINTS = ["signal", "ember", "blush", "azure"];
 /** The sweep hex for `palette`, or null when the row uses its `tint` colour. */
 export const sweepHex = (p: Props): string | null => (SWEEP_TINTS.includes(s(p, "palette")) ? TINTS[s(p, "palette")] : null);

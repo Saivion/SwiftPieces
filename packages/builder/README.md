@@ -68,7 +68,7 @@ import { Playground, beaconTracker } from "@swiftpieces/builder/react";
 
 <Playground
   host={{
-    product: "Swift Pieces",
+    product: "SwiftPieces",
     limits: FREE_LIMITS,
     registry: createRegistry(freeDefinitions),
     catalog: createCatalog(freeCatalogSource),

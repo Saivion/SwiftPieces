@@ -9,7 +9,7 @@ import { proCountsLabel } from "@/lib/pro-catalog";
 
 export const metadata: Metadata = {
   title: "Screens & App Templates",
-  description: `Swift Pieces Pro has ${proCountsLabel}: production-ready SwiftUI screens and complete Xcode projects.`,
+  description: `SwiftPieces Pro has ${proCountsLabel}: production-ready SwiftUI screens and complete Xcode projects.`,
   alternates: { canonical: pro.library },
 };
 
@@ -19,7 +19,7 @@ export default function BlocksPage() {
     <>
       <section className="relative pt-16 md:pt-24">
         <Container>
-          <SectionHeader label="These live in Pro" size="h1" title="The pieces to build the whole app." description={`The free library is a curated taste of Swift Pieces. The complete library, ${proCountsLabel}, is Swift Pieces Pro on pro.swiftpieces.com.`} />
+          <SectionHeader label="These live in Pro" size="h1" title="The pieces to build the whole app." description={`The free library is a curated taste of SwiftPieces. The complete library, ${proCountsLabel}, is SwiftPieces Pro on pro.swiftpieces.com.`} />
           <div className="mt-8 flex flex-wrap gap-3">
             <Button href={pro.library} className="group">Browse the Pro library <Arrow /></Button>
             <Button href="/components" variant="ghost">Free components</Button>

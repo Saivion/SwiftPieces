@@ -4,7 +4,7 @@ import { cn } from "@/lib/cn";
 /** What the App Library's screens are, in three short points: reference, our own look, yours to remix. */
 export const REMIX_POINTS = [
   { title: "Inspiration, not copies", body: "App Store screenshots are shown for reference. Every screen we run is an original remix." },
-  { title: "The Swift Pieces look", body: "Our colours, type and red mascot, with our own copy and data. No logos, their characters or brand colours." },
+  { title: "The SwiftPieces look", body: "Our colours, type and red mascot, with our own copy and data. No logos, their characters or brand colours." },
   { title: "Yours to remix", body: "Change anything in the Playground. What you publish is yours to make your own." },
 ] as const;
 

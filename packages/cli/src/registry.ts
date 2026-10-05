@@ -62,13 +62,13 @@ export async function fetchItem(registries: { free: string; pro: string }, name:
   const pro = await get(`${registries.pro.replace(/\/$/, "")}/${enc}.json`, licenseKey);
   if (pro.status === 404) throw new RegistryError(`No piece named "${name}" in the free or Pro registry. Run \`npx swiftpieces list\`.`, 404);
   if (pro.status === 401) throw new RegistryError(`"${name}" is a Pro piece. Run \`npx swiftpieces login\` with your license key, or get one at https://pro.swiftpieces.com/pro`, 401);
-  if (pro.status === 403) throw new RegistryError(`"${name}" is part of Swift Pieces Pro, and this license's account doesn't own Swift Pieces Pro. Get it at https://pro.swiftpieces.com/pro`, 403);
+  if (pro.status === 403) throw new RegistryError(`"${name}" is part of SwiftPieces Pro, and this license's account doesn't own SwiftPieces Pro. Get it at https://pro.swiftpieces.com/pro`, 403);
   if (!pro.ok) throw new RegistryError(`Pro registry returned ${pro.status} for "${name}"`, pro.status);
   const item = (await pro.json()) as RegistryItem;
   if (!item.files?.some((f) => f.content !== undefined)) {
     throw new RegistryError(
       licenseKey
-        ? `"${name}" is part of Swift Pieces Pro, and this license does not include Pro access. Get it at https://pro.swiftpieces.com/pro`
+        ? `"${name}" is part of SwiftPieces Pro, and this license does not include Pro access. Get it at https://pro.swiftpieces.com/pro`
         : `"${name}" is a Pro piece. Run \`npx swiftpieces login <key>\` with your license key, or get one at https://pro.swiftpieces.com/pro`,
       licenseKey ? 403 : 401,
     );

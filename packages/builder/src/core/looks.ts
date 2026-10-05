@@ -1,5 +1,5 @@
 // Looks: the playground's starting styles. Each is named after, and copied by hand from, one of
-// Swift Pieces Pro's scheme families (SwiftPiecesPro/lib/brand/schemes.ts), so a look picked here
+// SwiftPieces Pro's scheme families (SwiftPiecesPro/lib/brand/schemes.ts), so a look picked here
 // is the same look the Pro screens and templates render in. Free never imports Pro code, so when a
 // Pro family changes, update its values here too (the same arrangement as lib/pro-catalog.ts).
 //
@@ -25,7 +25,7 @@ type LookColors = { accent: string; bg: string; surface: string; text: string; t
 export const looks: Look[] = [
   // The library's own look, from the Pro card: near-black ground, white ink, the signal red and the
   // red → orange → pink → blue sweep of the site's halftone. Every app library recreation uses it.
-  { id: "pieces", name: "Swift Pieces", description: "Pro black with the signal sweep.", signature: "dark", font: "default", corners: "standard",
+  { id: "pieces", name: "SwiftPieces", description: "Pro black with the signal sweep.", signature: "dark", font: "default", corners: "standard",
     light: { accent: "#FF0000", bg: "#F3F2EE", surface: "#FFFFFF", text: "#141414", tiles: ["#FF0000", "#FF7A3C", "#FF8FB8", "#4D8DFF", "#9CC2FF", "#FFD976"] },
     dark: { accent: "#FF0000", bg: "#070708", surface: "#141416", text: "#FFFFFF", tiles: ["#FF0000", "#FF7A3C", "#FF8FB8", "#4D8DFF", "#9CC2FF", "#FFD976"] } },
   { id: "studio", name: "Studio", description: "Charcoal and pastel blocks.", signature: "dark", font: "default", corners: "soft",
@@ -58,6 +58,10 @@ export const looks: Look[] = [
   { id: "sol", name: "Sol", description: "Sand, marigold and terracotta.", signature: "light", font: "default", corners: "soft",
     light: { accent: "#b5451f", bg: "#f2e4ce", surface: "#fdf3e2", text: "#1e1411", tiles: ["#f0b43c", "#dd7043", "#9aad5a", "#5fa9a3", "#f0dfc0"] },
     dark: { accent: "#f0903f", bg: "#1e1411", surface: "#2a1d17", text: "#f7e9d4", tiles: ["#f5bc4c", "#e8825a", "#aabf6a", "#74bdb5", "#f2dfbe"] } },
+  // Added after the first style codes, which store a look by its place in this list: new looks go last.
+  { id: "prism", name: "Prism", description: "Cool white and vivid, glowing color.", signature: "light", font: "default", corners: "soft",
+    light: { accent: "#e5153e", bg: "#f3f3f6", surface: "#ffffff", text: "#0d0c12", tiles: ["#ff3d9a", "#ff7a1a", "#d7f53b", "#00b3c7", "#2a5cff", "#7a3cff", "#d4148c"] },
+    dark: { accent: "#ff4d6d", bg: "#0a0910", surface: "#16151c", text: "#f7f6fb", tiles: ["#ff5aae", "#ff8a3d", "#ddf85a", "#22c7da", "#5c8bff", "#9a6bff", "#f0389f"] } },
 ];
 
 const byId = new Map(looks.map((l) => [l.id, l]));

@@ -13,7 +13,9 @@ import { SchemeContext, ThemeContext, schemeFor, themeVars, type Scheme } from "
 import { NodeBoundary, preloadFor } from "../preview/NodeView.js";
 import { createChoiceBus, RuntimeContext, SPRING, useDrag, type HapticKind, type Runtime } from "../preview/runtime.js";
 import { usePlayground } from "./context.js";
-import { maskBars, placeHoverTag, placeOutline } from "./outline.js";
+import { findVisible, maskBars, placeHoverTag, placeOutline } from "./outline.js";
+import { SelectionBar } from "./SelectionBar.js";
+import { startLayoutDrag } from "./layout-drag.js";
 import { currentScreenId, tabRoots, usePlay, type Nav } from "./store.js";
 import { useStyleFonts } from "./style-fonts.js";
 
@@ -72,6 +74,7 @@ export const Device = memo(function Device() {
   const phoneRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(0);
   const scaleRef = useRef(1);
+  const slotRef = useRef<HTMLDivElement>(null);
   const [pulses, setPulses] = useState<Pulse[]>([]);
 
   // Fit the phone to the stage, in whole-pixel-friendly steps.
@@ -141,14 +144,28 @@ export const Device = memo(function Device() {
           if ((e.target as HTMLElement).closest(".spp-device-chrome")) return;
           e.stopPropagation();
           e.preventDefault();
-          store.pick(nodeAt(e.target), { deep: e.metaKey || e.ctrlKey });
+          const leaf = nodeAt(e.target);
+          const deep = e.metaKey || e.ctrlKey;
+          // A press inside the selection waits to see: dragged, it moves the selection; clicked, it
+          // goes one level in, as it always did. Anywhere else it selects at once, and can drag that.
+          const before = store.getState().selected;
+          const selEl = before && phoneRef.current ? findVisible(phoneRef.current, before.nodeId) : null;
+          const inside = Boolean(selEl && !selEl.classList.contains("spb-screen") && selEl.contains(e.target as Node));
+          if (!inside) store.pick(leaf, { deep });
+          const now = store.getState().selected;
+          if (!now || !phoneRef.current || !slotRef.current) return;
+          startLayoutDrag({ store, registry: host.registry, phone: phoneRef.current, slot: slotRef.current, nodeId: now.nodeId, event: e.nativeEvent, onClick: inside ? () => store.pick(leaf, { deep }) : undefined });
         },
         onClickCapture: (e: React.MouseEvent) => {
           if ((e.target as HTMLElement).closest(".spp-device-chrome")) return;
           e.stopPropagation();
           e.preventDefault();
         },
-        onPointerMove: (e: ReactPointerEvent) => store.hover(nodeAt(e.target)),
+        onPointerMove: (e: ReactPointerEvent) => {
+          // While a component is being dragged, the line is the only thing drawn over the phone.
+          if ("sppDragging" in document.documentElement.dataset) return;
+          store.hover(nodeAt(e.target));
+        },
         onPointerLeave: () => store.hover(null),
       }
     : {
@@ -175,7 +192,7 @@ export const Device = memo(function Device() {
 
   return (
     <div ref={fitRef} className="spp-fit">
-      <div className="spp-device-slot" style={size}>
+      <div ref={slotRef} className="spp-device-slot" style={size}>
         <div className="spp-device" style={{ transform: `scale(${scale})`, opacity: scale ? 1 : 0 }} data-mode={mode}>
           <div
             ref={phoneRef}
@@ -202,6 +219,7 @@ export const Device = memo(function Device() {
             <Highlight phoneRef={phoneRef} scaleRef={scaleRef} />
           </div>
         </div>
+        <SelectionBar phoneRef={phoneRef} slotRef={slotRef} />
       </div>
     </div>
   );
@@ -524,7 +542,6 @@ function Highlight({ phoneRef, scaleRef }: { phoneRef: React.RefObject<HTMLDivEl
   const layer = useRef<HTMLDivElement>(null);
   const selBox = useRef<HTMLDivElement>(null);
   const hovBox = useRef<HTMLDivElement>(null);
-  const selLabel = useMemo(() => labelFor(project, selected, host.registry), [project, selected, host.registry]);
   const hovLabel = useMemo(() => labelFor(project, hover, host.registry), [project, hover, host.registry]);
 
   useEffect(() => {
@@ -554,9 +571,8 @@ function Highlight({ phoneRef, scaleRef }: { phoneRef: React.RefObject<HTMLDivEl
       <div ref={hovBox} className="spp-hl is-hover" style={{ opacity: 0 }}>
         {hovLabel ? <span className="spp-hl-label">{hovLabel}</span> : null}
       </div>
-      <div ref={selBox} className="spp-hl is-selected" style={{ opacity: 0 }}>
-        {selLabel ? <span className="spp-hl-label">{selLabel}</span> : null}
-      </div>
+      {/* The selection's name tag is the layout bar (SelectionBar), drawn outside the phone. */}
+      <div ref={selBox} className="spp-hl is-selected" style={{ opacity: 0 }} />
     </div>
   );
 }
@@ -570,14 +586,3 @@ function labelFor(project: Project | null, id: string | null, registry: { get(id
   return null;
 }
 
-/** The node's element on the visible screen (the top of the front sheet or stack), if any. */
-function findVisible(phone: HTMLElement, id: string): HTMLElement | null {
-  const screens = phone.querySelectorAll<HTMLElement>('.spp-screen[data-role="top"]');
-  // Frontmost last: a sheet's top screen comes after the root stack's.
-  for (let i = screens.length - 1; i >= 0; i--) {
-    if (screens[i].closest(".spp-tab[hidden]")) continue;
-    const el = screens[i].querySelector<HTMLElement>(`[data-node-id="${CSS.escape(id)}"]`);
-    if (el) return el;
-  }
-  return null;
-}

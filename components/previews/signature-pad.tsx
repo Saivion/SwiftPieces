@@ -4,7 +4,7 @@ import { blocks, font, ground, ink, signal } from "./palette";
 
 /*
  * Signature Pad: a pad with a cross, a baseline and a "Sign here" hint, and Type instead, Undo and Clear under it.
- * The loop signs "Swift Pieces" with real handwriting timing (slow in turns, fast on sweeps), so the ink thins on quick
+ * The loop signs "SwiftPieces" with real handwriting timing (slow in turns, fast on sweeps), so the ink thins on quick
  * strokes and runs full on slow ones, exactly as the Swift piece weights it. Then Undo fades the flourish, it is
  * drawn again, and Clear wipes the pad. Sizes are authored in px against the 560 px docs stage and converted to `cqw`.
  */
@@ -28,7 +28,7 @@ function useReducedMotion() {
 
 type Pt = { x: number; y: number; t: number };
 
-/** Pass-through points of the signature in a 360 x 150 box: "Swift Pieces" with a forward slant, the dots, t cross
+/** Pass-through points of the signature in a 360 x 150 box: "SwiftPieces" with a forward slant, the dots, t cross
  *  and P bowl as their own strokes, then the flourish (always last: Undo takes it back). */
 const STROKES: Array<Array<[number, number]>> = [
   [

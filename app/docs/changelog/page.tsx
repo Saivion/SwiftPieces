@@ -7,7 +7,7 @@ import { getSponsorsFrom } from "@/lib/sponsors";
 import { changelog, changelogPath } from "@/lib/changelog";
 import { breadcrumbJsonLd, pageMetadata } from "@/lib/seo";
 
-const description = "What's new in the free Swift Pieces library: every piece, fix and API change, newest first.";
+const description = "What's new in the free SwiftPieces library: every piece, fix and API change, newest first.";
 
 export const metadata = pageMetadata({ title: "Changelog", description, path: changelogPath() });
 
@@ -20,7 +20,7 @@ export default async function ChangelogPage() {
   const [latest, ...earlier] = changelog;
   return (
     <DocsPage full tableOfContent={{ enabled: true, component: <DocsAsideColumn><DocsAside sponsors={await getSponsorsFrom("silver")} /></DocsAsideColumn> }}>
-      <JsonLd data={{ "@context": "https://schema.org", "@graph": [breadcrumbJsonLd([["Swift Pieces", "/"], ["Changelog", changelogPath()]])] }} />
+      <JsonLd data={{ "@context": "https://schema.org", "@graph": [breadcrumbJsonLd([["SwiftPieces", "/"], ["Changelog", changelogPath()]])] }} />
       <DocsTitle>Changelog</DocsTitle>
       <DocsDescription>Every piece, fix and API change in the free library, newest first.</DocsDescription>
       <div className="not-prose mb-10 flex flex-col gap-14">

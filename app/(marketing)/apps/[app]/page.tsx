@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   const name = a.name;
   return pageMetadata({
     title: `${name} Screens, Remixed in SwiftUI: ${a.pattern.title}`,
-    description: `${name}'s App Store screenshots for reference, and an original Swift Pieces remix in SwiftUI: ${a.pattern.summary}`,
+    description: `${name}'s App Store screenshots for reference, and an original SwiftPieces remix in SwiftUI: ${a.pattern.summary}`,
     path: appPath(a),
   });
 }
@@ -39,7 +39,7 @@ export default async function AppPage({ params }: { params: Promise<Params> }) {
           "@context": "https://schema.org",
           "@graph": [
             { "@type": "WebPage", url: `${site.url}${appPath(a)}`, name: `${name} screens`, isPartOf: { "@id": WEBSITE_ID } },
-            breadcrumbJsonLd([["Swift Pieces", "/"], ["Apps", APPS_PATH], [name, appPath(a)]]),
+            breadcrumbJsonLd([["SwiftPieces", "/"], ["Apps", APPS_PATH], [name, appPath(a)]]),
           ],
         }}
       />
@@ -57,7 +57,7 @@ export default async function AppPage({ params }: { params: Promise<Params> }) {
             <AppDetail app={a} />
           </div>
           <p className="mt-3 max-w-4xl text-[11px] leading-relaxed text-subtle">
-            Screenshots and name © {a.store.developer}, shown for reference only; {a.store.developer} isn&apos;t affiliated with or endorsing Swift Pieces. {a.pattern.title} is an original Swift Pieces remix inspired by these screens, in our own colours, type and copy. {isProApp(a) ? "Remix it with Pro" : "Remix it freely"}; what you publish is yours to make your own.{" "}
+            Screenshots and name © {a.store.developer}, shown for reference only; {a.store.developer} isn&apos;t affiliated with or endorsing SwiftPieces. {a.pattern.title} is an original SwiftPieces remix inspired by these screens, in our own colours, type and copy. {isProApp(a) ? "Remix it with Pro" : "Remix it freely"}; what you publish is yours to make your own.{" "}
             <a href="/terms#recreations" className="underline underline-offset-2 hover:text-foreground">Terms</a> ·{" "}
             <a href="/terms#removal" className="underline underline-offset-2 hover:text-foreground">Ask for removal</a>
           </p>

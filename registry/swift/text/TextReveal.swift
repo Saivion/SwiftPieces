@@ -28,7 +28,7 @@ public struct TextReveal: View {
     public enum Unit { case characters, words, lines }
     public enum Preset { case rise, blur, soften }
 
-    /// Visual tuning. `standard` uses the Swift Pieces house palette.
+    /// Visual tuning. `standard` uses the SwiftPieces house palette.
     public struct Style: Sendable {
         /// Fill of the highlight block.
         public var highlight: Color

@@ -5,14 +5,14 @@ import { pageMetadata } from "@/lib/seo";
 export const metadata = {
   ...pageMetadata({
     title: "Showcase",
-    description: "Apps shipping with pieces from the Swift Pieces library, and how to submit yours.",
+    description: "Apps shipping with pieces from the SwiftPieces library, and how to submit yours.",
     path: "/showcase",
   }),
   robots: { index: false, follow: true },
 };
 export default function ShowcasePage() {
   return (
-    <ProsePage label="Showcase" title="Built with Swift Pieces." lead="Apps shipping with pieces from the library. Submissions open after launch.">
+    <ProsePage label="Showcase" title="Built with SwiftPieces." lead="Apps shipping with pieces from the library. Submissions open after launch.">
       <p>Send a link, a screenshot and the pieces you used to <a href="mailto:saivion@swiftpieces.com">saivion@swiftpieces.com</a>. We feature a handful each month.</p>
     </ProsePage>
   );

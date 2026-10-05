@@ -16,11 +16,11 @@ Guide: ${site.url}/docs/liquid-glass`;
 export const POST = createMcpHandler({
   name: "swiftpieces",
   version: "0.1.0",
-  instructions: `Search and install free Swift Pieces (MIT + Commons Clause). For Swift Pieces Pro screens and app templates use the Pro server at ${pro.mcp} with a license key.`,
+  instructions: `Search and install free SwiftPieces (MIT + Commons Clause). For SwiftPieces Pro screens and app templates use the Pro server at ${pro.mcp} with a license key.`,
   tools: [
     {
       name: "search_pieces",
-      description: "Search the free Swift Pieces registry by keyword, optionally filtered by category or minimum iOS version.",
+      description: "Search the free SwiftPieces registry by keyword, optionally filtered by category or minimum iOS version.",
       inputSchema: { type: "object", properties: { query: { type: "string" }, category: { type: "string", enum: [...categoryIds] }, maxIOS: { type: "string", description: "Only pieces whose minIOSVersion is at most this, e.g. 17.0" } } },
       handler: ({ query, category, maxIOS }) => {
         const q = String(query ?? "").toLowerCase();
@@ -55,7 +55,7 @@ export const POST = createMcpHandler({
     },
     {
       name: "list_categories",
-      description: "List free categories with counts, and links to the Swift Pieces Pro library (screens and app templates).",
+      description: "List free categories with counts, and links to the SwiftPieces Pro library (screens and app templates).",
       inputSchema: { type: "object", properties: {} },
       handler: () => {
         const counts: Record<string, number> = {};

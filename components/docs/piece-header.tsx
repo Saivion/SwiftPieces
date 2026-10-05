@@ -80,7 +80,7 @@ export function PieceHeader({ item }: { item: RegistryIndexEntry }) {
         {item.pro && proScreens[item.pro] ? (
           <a href={proScreenUrl(item.pro)} className="group mt-5 flex items-center justify-between gap-4 rounded-[var(--radius-sm)] bg-surface-2 p-4 transition-colors hover:bg-surface-3">
             <span className="min-w-0">
-              <span className="t-meta block text-[10px] text-subtle">In a full screen · Swift Pieces Pro</span>
+              <span className="t-meta block text-[10px] text-subtle">In a full screen · SwiftPieces Pro</span>
               <span className="mt-1.5 block text-[13px] font-semibold text-foreground">{proScreens[item.pro].title}</span>
               <span className="mt-1 block text-[12px] leading-snug text-muted">{proScreens[item.pro].summary}</span>
             </span>

@@ -144,7 +144,7 @@ export const moods: Mood[] = [
   },
   {
     id: "playful", name: "Playful", nouns: ["Party", "Pop", "Candy", "Recess", "Confetti", "Parade"],
-    looks: ["candy", "studio", "sol", "graphic"], ownAccent: 0.18, accent: { l: [0.62, 0.78], c: [0.16, 0.26] },
+    looks: ["candy", "studio", "sol", "graphic", "prism"], ownAccent: 0.18, accent: { l: [0.62, 0.78], c: [0.16, 0.26] },
     appearance: W(["light", 3], ["dark", 1]), ground: W(["look", 2], ["tinted", 3]), backdrop: W(["none", 2], ["glow", 2], ["mesh", 2], ["grid", 1]),
     heading: ["rounded", "arial-rounded", "chalkboard", "marker-felt", "noteworthy", "futura"], body: ["rounded", "avenir-next", "arial-rounded", "chalkboard"], sameFont: 0.35,
     width: W(["standard", 4], ["expanded", 1]), tracking: W(["normal", 1]), textSize: W(["default", 2], ["large", 2]), weight: W(["medium", 2], ["bold", 2]),
@@ -176,7 +176,7 @@ export const moods: Mood[] = [
   },
   {
     id: "tech", name: "Tech", nouns: ["Terminal", "Signal", "Kernel", "Circuit", "Pulse", "Vector"],
-    looks: ["neon", "pieces", "frost"], ownAccent: 0.21, accent: { l: [0.7, 0.88], c: [0.16, 0.26], hues: [[125, 145], [185, 210], [280, 305], [340, 360]] },
+    looks: ["neon", "pieces", "frost", "prism"], ownAccent: 0.21, accent: { l: [0.7, 0.88], c: [0.16, 0.26], hues: [[125, 145], [185, 210], [280, 305], [340, 360]] },
     appearance: W(["dark", 5], ["system", 1]), ground: W(["look", 3], ["plain", 1], ["tinted", 1]), backdrop: W(["grid", 3], ["glow", 2], ["mesh", 1], ["none", 1]),
     heading: ["mono", "menlo", "din", "default", "din-condensed"], body: ["default", "din", "mono", "helvetica"], sameFont: 0.3,
     width: W(["standard", 3], ["expanded", 2], ["condensed", 1]), tracking: W(["normal", 2], ["wide", 1]), textSize: W(["default", 3]), weight: W(["regular", 2], ["medium", 2], ["bold", 1]),

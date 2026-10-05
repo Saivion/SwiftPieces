@@ -20,7 +20,7 @@ import SwiftUI
 ///   - confirmTitle: Primary button title.
 ///   - cancelTitle: Quiet secondary button title.
 ///   - isDestructive: Uses the destructive tile and the signal-colored primary button, and plays a `.warning` haptic on present.
-///   - style: Colors and corner radius. Defaults to the Swift Pieces house palette, adapting to light and dark.
+///   - style: Colors and corner radius. Defaults to the SwiftPieces house palette, adapting to light and dark.
 ///   - confirm: Async handler for the primary button; the button shows a spinner until it returns, the tile turns into a check, then the card dismisses.
 public extension View {
     func confirmSheet(isPresented: Binding<Bool>, inline: Bool = false, systemImage: String, title: String, message: String, confirmTitle: String = "Confirm", cancelTitle: String = "Cancel", isDestructive: Bool = false, style: ConfirmSheet.Style = .standard, confirm: @escaping () async -> Void) -> some View {

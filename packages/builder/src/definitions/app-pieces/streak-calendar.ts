@@ -11,7 +11,7 @@ const s = (p: Props, k: string) => String(p[k] ?? "");
 const n = (p: Props, k: string) => Number(p[k] ?? 0);
 
 export const STREAK_COLORS: Record<string, string> = {
-  // The Swift Pieces sweep and house blocks (the defaults).
+  // The SwiftPieces sweep and house blocks (the defaults).
   signal: "#FF0000", ember: "#FF7A3C", blush: "#FF8FB8", azure: "#4D8DFF", sky: "#9CC2FF", butter: "#FFD976", sage: "#A9DCB7", lilac: "#CDB8FF",
   // Older names, kept so saved builds still read.
   purple: "#5B5FC7", crimson: "#E0284A", cyan: "#12B9DB", green: "#0EA678", orange: "#FF9F1C", pink: "#F0609E", navy: "#1F2A3D",

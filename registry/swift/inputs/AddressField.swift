@@ -34,7 +34,7 @@ import SwiftUI
 ///   - source: Where suggestions and addresses come from. `nil` (the default) uses MapKit. Pass your own for a geocoding backend, previews or tests.
 ///   - countries: ISO 3166 country codes that are accepted, such as `["US", "CA"]`. Suggestions clearly in another country are left out, and a picked address outside the list shows an inline error instead of being set. Empty accepts every country.
 ///   - allowsUnverified: When `true`, a "Use as typed" row appears when there are no matches or a lookup fails, and picking it sets an address with `isVerified == false` holding only the typed text.
-///   - style: Colors and field metrics. Defaults to the Swift Pieces house palette, adapting to light and dark.
+///   - style: Colors and field metrics. Defaults to the SwiftPieces house palette, adapting to light and dark.
 public struct AddressField: View {
     /// A resolved address. Parts that a lookup did not return are `nil`.
     public struct Address: Hashable, Sendable, Codable {

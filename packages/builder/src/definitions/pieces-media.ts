@@ -1,4 +1,4 @@
-// Free Swift Pieces for media, data, text and AI: a story strip, a scrubbable chart, a streaming
+// Free SwiftPieces for media, data, text and AI: a story strip, a scrubbable chart, a streaming
 // reply, a token field, a paged list, a stretch header and a date range picker. Each emitter calls
 // the piece's public API exactly as its Swift source declares it and writes the sample data and
 // state that make it run on its own, so the generated screen behaves like the preview.

@@ -16,7 +16,7 @@ import SwiftUI
 ///   - selection: Selected titles. Single-select keeps exactly one once anything is chosen.
 ///   - allowsMultiple: Allow several chips at once. Selected chips move to the leading edge and a Clear chip appears.
 ///   - counts: Optional result count per title, shown after the chip title and read by VoiceOver.
-///   - style: Colors and chip height. Defaults to the Swift Pieces house palette, adapting to light and dark.
+///   - style: Colors and chip height. Defaults to the SwiftPieces house palette, adapting to light and dark.
 public struct FilterRail: View {
     /// Colors and metrics. `.standard` is the house palette.
     public struct Style: Sendable {

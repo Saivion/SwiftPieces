@@ -1,6 +1,6 @@
 // Mood Faces: a mood picked by tapping one of five drawn faces, from a frown to a grin (or five discs
 // filled to their level). Plain discs for a quiet journal, or a colour per mood for a diary that
-// charts them later, in the Swift Pieces sweep from a cool low to a warm high.
+// charts them later, in the SwiftPieces sweep from a cool low to a warm high.
 import type { Props, SwiftPieceDefinition } from "../../core/schema.js";
 import { call, num } from "../../core/swift.js";
 import { bool, link, number, opts, select, text } from "../shared.js";

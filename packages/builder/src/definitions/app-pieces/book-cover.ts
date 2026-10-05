@@ -6,7 +6,7 @@
 
 export type CoverStyle = { ground: string; ink: string; accent: string; serif: boolean };
 
-/** The Swift Pieces sweep and house blocks, all in the system face. */
+/** The SwiftPieces sweep and house blocks, all in the system face. */
 const COVERS: CoverStyle[] = [
   { ground: "#FF0000", ink: "#FFFFFF", accent: "#141416", serif: false },
   { ground: "#1C1C1F", ink: "#FFFFFF", accent: "#FF0000", serif: false },

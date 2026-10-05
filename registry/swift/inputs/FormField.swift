@@ -30,7 +30,7 @@ import SwiftUI
 ///   - keyboardType: Keyboard. `.emailAddress` and `.URL` also turn off autocapitalization and autocorrection.
 ///   - submitLabel: The Return key label, e.g. `.next` or `.done`.
 ///   - onSubmit: Called when Return is pressed in a one-line field. Move focus to the next field here.
-///   - style: Colors and field metrics. Defaults to the Swift Pieces house palette, adapting to light and dark.
+///   - style: Colors and field metrics. Defaults to the SwiftPieces house palette, adapting to light and dark.
 public struct FormField: View {
     /// When a field starts showing the result of `validate`.
     public enum ValidationTiming: Sendable, Hashable {

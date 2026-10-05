@@ -25,7 +25,7 @@ export function ProCard({
             header stays dark in both themes. */}
         <span className="inline-flex items-center gap-2 text-[14px] font-semibold tracking-[-0.02em] text-[#fff]">
           <LogoMark className="size-5" />
-          Swift Pieces
+          SwiftPieces
           <span className="rounded-[3px] bg-[rgb(255_255_255/0.12)] px-1.5 py-0.5 text-[10px] font-semibold tracking-wider text-[#fff] uppercase">Pro</span>
         </span>
       </div>

@@ -44,7 +44,7 @@ AmountFieldExample()
 | `allowsDecimal` | Allow the decimal key. When `false`, amounts are whole units and the number pad has no decimal key. |
 | `size` | `.hero` is a large centered figure for a payments screen; `.compact` is a 56pt form-row block. |
 | `isFocused` | Optional binding to read or drive keyboard focus, for example to raise the keyboard on appear. |
-| `style` | Colors and metrics. Defaults to the Swift Pieces house palette, adapting to light and dark. |
+| `style` | Colors and metrics. Defaults to the SwiftPieces house palette, adapting to light and dark. |
 
 ## Source
 
@@ -68,13 +68,13 @@ import SwiftUI
 ///   - allowsDecimal: Allow the decimal key. When `false`, amounts are whole units and the number pad has no decimal key.
 ///   - size: `.hero` is a large centered figure for a payments screen; `.compact` is a 56pt form-row block.
 ///   - isFocused: Optional binding to read or drive keyboard focus, for example to raise the keyboard on appear.
-///   - style: Colors and metrics. Defaults to the Swift Pieces house palette, adapting to light and dark.
+///   - style: Colors and metrics. Defaults to the SwiftPieces house palette, adapting to light and dark.
 public struct AmountField: View {
     /// How prominent the field is.
     public enum Size: Sendable {
         /// A large centered figure that shrinks to fit its width, for a dedicated amount screen.
         case hero
-        /// A form-row block with the caption above, like other Swift Pieces inputs.
+        /// A form-row block with the caption above, like other SwiftPieces inputs.
         case compact
     }
 

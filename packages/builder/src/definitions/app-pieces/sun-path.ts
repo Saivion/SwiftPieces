@@ -4,7 +4,7 @@
 // shadow swings and stretches, the time and the readouts (shadow ratio, azimuth, altitude) follow.
 // Scenes: a plain field, a city map (every roof and tree casts its shadow with the sun), a contour
 // map (each step of the hill shades the one below it, away from the sun), and a sky view facing the
-// sea. A place bar at the bottom opens the day's events. Two palettes: the Swift Pieces sweep (the
+// sea. A place bar at the bottom opens the day's events. Two palettes: the SwiftPieces sweep (the
 // arc in signal → ember → blush → azure, a column lit from the sun's side, the time large
 // at the top and the place on a card; dark ground in the dark scheme, pale ground and dark ink in the
 // light one) and daylight (bright scenes, pill chrome). Scene and chrome settle in once from 0.95.
@@ -645,7 +645,7 @@ const VIEW = [
   "private struct SunPath: View {",
   "    /// 0 field, 1 city map, 2 terrain map, 3 sky",
   "    var scene = 0",
-  "    /// The Swift Pieces sweep palette (dark ground, signal → ember → blush → azure), or daylight.",
+  "    /// The SwiftPieces sweep palette (dark ground, signal → ember → blush → azure), or daylight.",
   "    var sweep = true",
   "    var sunrise: Double = 433",
   "    var sunset: Double = 1179",
@@ -730,7 +730,7 @@ const VIEW = [
   "",
   ...SCENES_SWIFT.split("\n"),
   "",
-  "    // MARK: Chrome, Swift Pieces: the time big at the top, a card for the place at the bottom",
+  "    // MARK: Chrome, SwiftPieces: the time big at the top, a card for the place at the bottom",
   "",
   "    private var sweepChrome: some View {",
   "        let alt = altitude, az = 90 + 180 * t",
@@ -974,7 +974,7 @@ export const sunPath: SwiftPieceDefinition = {
     number("height", "Height", 0, 0, 900, 10, { group: "layout", hint: "0 fills the screen; a height leaves room for things below it." }),
     select("frame", "Frame", "bleed", opts(["bleed", "Edge to edge"], ["card", "Rounded card"]), { group: "layout", hint: "A rounded card sits inside the screen's margins, under a header." }),
     number("radius", "Corner radius", 28, 0, 40, 1, { group: "layout", hint: "The card's corners; match the app's card radius.", when: { prop: "frame", equals: ["card"] } }),
-    select("palette", "Palette", "sweep", opts(["sweep", "Swift Pieces sweep"], ["daylight", "Daylight"]), { group: "color" }),
+    select("palette", "Palette", "sweep", opts(["sweep", "SwiftPieces sweep"], ["daylight", "Daylight"]), { group: "color" }),
     text("sunrise", "Sunrise", "7:24 AM", { maxLength: 10 }),
     text("sunset", "Sunset", "7:21 PM", { maxLength: 10 }),
     text("now", "Now", "4:10 PM", { maxLength: 10, group: "state", hint: "Where the sun starts, and where Now brings it back." }),

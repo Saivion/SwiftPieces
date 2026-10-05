@@ -30,7 +30,7 @@ import UIKit
 ///   - signature: The bound signature. Drawn strokes, or a typed name when the person chose Type instead. `isEmpty` stays `true` until there is a typed name or enough ink to count (a stray dot or speck does not), so it is the right check for enabling a submit button. Setting it from outside redraws the pad; a stroke removed from outside inside `withAnimation` fades out.
 ///   - prompt: The hint under the baseline, shown until the first stroke. Defaults to "Sign here".
 ///   - allowsTyping: Offers Type instead, which sets the typed name in a script face on the same baseline. This is the accessible path for people who cannot draw a signature (VoiceOver, motor impairments), so turn it off only when your flow offers another way to sign.
-///   - style: Colors, ink weight, corner radius and pad height. Defaults to the Swift Pieces house palette, adapting to light and dark.
+///   - style: Colors, ink weight, corner radius and pad height. Defaults to the SwiftPieces house palette, adapting to light and dark.
 public struct SignaturePad: View {
     /// A captured signature: drawn strokes, or a typed name. A plain value, `Codable` so a draft can be saved and restored.
     public struct Signature: Equatable, Sendable, Codable {

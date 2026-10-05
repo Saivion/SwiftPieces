@@ -12,7 +12,7 @@ const n = (p: Record<string, unknown>, k: string) => Number(p[k] ?? 0);
 
 export const STAGES = ["awake", "rem", "core", "deep"] as const;
 export const STAGE_NAMES: Record<string, string> = { awake: "Awake", rem: "REM", core: "Core", deep: "Deep" };
-/** Stage colours per palette. `sweep` is the Swift Pieces sweep (the default); `night` the classic blues. */
+/** Stage colours per palette. `sweep` is the SwiftPieces sweep (the default); `night` the classic blues. */
 export const STAGE_PALETTES: Record<string, { label: string; colors: Record<string, string> }> = {
   sweep: { label: "Signal sweep", colors: { awake: "#FF7A3C", rem: "#FF8FB8", core: "#4D8DFF", deep: "#CDB8FF" } },
   night: { label: "Night", colors: { awake: "#F2764B", rem: "#7CCBFB", core: "#3F86F0", deep: "#3B3FB8" } },

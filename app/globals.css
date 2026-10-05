@@ -28,6 +28,8 @@
   --pv-text: #f4f3ef; --pv-muted: #a6a49f; --pv-subtle: #6f6d69;
   --pv-field: #262626; --pv-control: #3a3a3a; --pv-trough: #2a2a2a; --pv-band: #4a4029;
   --footer-word: #232326;   /* the giant SWIFTPIECES word in the footer */
+  --footer-slot: #101012;    /* the footer wordmark's outlined SWIFT: its faint fill */
+  --footer-dash: rgba(255, 255, 255, 0.3); /* ...and its dashed outline */
   --beta: #00a6fb;           /* Beta badge: bright cyan-blue, text in full, fill at low opacity */
   --new: #ff8fb8;            /* New badge: the same treatment in Pro pink */
   /* Near-square corners (the brand default is 8/14/20), to sit with the square dashed frames. */
@@ -495,6 +497,8 @@ html.light {
   --color-white: #0a0a0a;
   --color-black: #ffffff;
   --footer-word: #dddbd6;
+  --footer-slot: #ecebe8;
+  --footer-dash: rgba(0, 0, 0, 0.28);
   --beta: #00a6fb;
   --new: #e23a7e;            /* deeper pink, so the label holds up on a light ground */
   --raised: #ffffff;
@@ -526,6 +530,19 @@ html.light .btn-solid, html.light .btn-gloss { color: var(--accent-foreground); 
 /* Footer wordmark: solid, in --footer-word (dark / light values). The Pro halftone swell rises
    behind its base from both bottom corners (components/layout/footer.tsx). */
 .footer-word { color: var(--footer-word); }
+
+/* Footer wordmark (components/layout/footer-wordmark.tsx): SWIFT outlined in dashes, PIECES solid.
+   The cursor's run (swoop, hops, clicks, settle) is choreographed in the component with the Web
+   Animations API; here are only the looks and the states either side of it. Waiting: the slot is
+   empty and the cursor offstage. Done: every letter placed, cursor at rest. */
+.footer-mark-slot { fill: var(--footer-slot); stroke: var(--footer-dash); stroke-width: 1.5px; stroke-dasharray: 7 6; }
+/* A solid stroke as wide as the slot's dashes, so no dash peeks out around a placed letter. */
+.footer-mark-piece { fill: var(--foreground); stroke: var(--foreground); stroke-width: 2px; }
+.footer-mark-letter { transform-box: fill-box; transform-origin: 50% 100%; }
+.footer-mark-ripple { fill: none; stroke: var(--accent); stroke-width: 2.5px; opacity: 0; transform-box: fill-box; transform-origin: center; }
+.footer-mark-pointer { fill: var(--accent); stroke: var(--accent); stroke-width: 2.6px; stroke-linejoin: round; }
+.footer-mark-rim { fill: var(--background); stroke: var(--background); stroke-width: 7.5px; stroke-linejoin: round; filter: drop-shadow(0 3px 5px rgb(0 0 0 / 0.28)); }
+.footer-mark[data-phase="waiting"] .footer-mark-letter, .footer-mark[data-phase="waiting"] .footer-mark-cursor { opacity: 0; }
 
 /* ---------------------------------------------------------------- Docs sidebar
    A panel in the Playground's layout (packages/builder builder.css, .spb-panel: inset from the page,

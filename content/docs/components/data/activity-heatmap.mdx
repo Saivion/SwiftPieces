@@ -47,7 +47,7 @@ ActivityHeatmapExample()
 | `showsSummary` | Shows the current streak, the longest streak and the number of active days above the grid. |
 | `selection` | The selected day, as the start of that day. Tapping a day selects it and tapping it again clears it; with a binding, a scrub moves it live and release keeps it. Without a binding, a scrub shows the callout only while the finger is down. Setting it from outside selects that day and scrolls it into view. |
 | `messages` | Built-in copy. Defaults are localizable through your String Catalog; replace any line, for example `title` with "Workouts". |
-| `style` | Colors and cell metrics. Defaults to the Swift Pieces house palette with a red accent, adapting to light and dark. |
+| `style` | Colors and cell metrics. Defaults to the SwiftPieces house palette with a red accent, adapting to light and dark. |
 | `valueLabel` | How a day's value reads in the callout and to VoiceOver, for example minutes formatted as a `Measurement`. Defaults to the plain number. Days with no activity read `messages.noActivity`. |
 
 ## Source
@@ -78,7 +78,7 @@ import UIKit
 ///   - showsSummary: Shows the current streak, the longest streak and the number of active days above the grid.
 ///   - selection: The selected day, as the start of that day. Tapping a day selects it and tapping it again clears it; with a binding, a scrub moves it live and release keeps it. Without a binding, a scrub shows the callout only while the finger is down. Setting it from outside selects that day and scrolls it into view.
 ///   - messages: Built-in copy. Defaults are localizable through your String Catalog; replace any line, for example `title` with "Workouts".
-///   - style: Colors and cell metrics. Defaults to the Swift Pieces house palette with a red accent, adapting to light and dark.
+///   - style: Colors and cell metrics. Defaults to the SwiftPieces house palette with a red accent, adapting to light and dark.
 ///   - valueLabel: How a day's value reads in the callout and to VoiceOver, for example minutes formatted as a `Measurement`. Defaults to the plain number. Days with no activity read `messages.noActivity`.
 public struct ActivityHeatmap: View {
 

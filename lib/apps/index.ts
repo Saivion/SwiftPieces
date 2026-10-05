@@ -1,5 +1,5 @@
 // The app library, joined up: each app's App Store facts (the developer's, labeled as such) with
-// the Swift Pieces pattern that recreates one of its interactions (ours). Pure data, server-safe.
+// the SwiftPieces pattern that recreates one of its interactions (ours). Pure data, server-safe.
 import { createCatalog, isCatalogKind, type CatalogEntry } from "@swiftpieces/builder";
 import { patternsCatalogSource } from "@swiftpieces/builder/catalog";
 import store from "./app-store.json";

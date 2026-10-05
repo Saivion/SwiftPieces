@@ -30,5 +30,5 @@ export async function list(opts: { category?: string; json?: boolean; pro?: bool
     for (const i of list) console.log(`  ${i.name.padEnd(26)} iOS ${i.minIOSVersion.padEnd(5)} ${(i.type ?? "free").padEnd(9)} ${i.description}`);
   }
   console.log(`\n${filtered.length} pieces from ${registry}. Add one with: npx swiftpieces add <Name>`);
-  if (!opts.pro) console.log(`Swift Pieces Pro screens and app templates: npx swiftpieces list --pro · Build Kit: npx swiftpieces list --kit${readLicenseKey() ? "" : "  (npx swiftpieces login to install them)"}`);
+  if (!opts.pro) console.log(`SwiftPieces Pro screens and app templates: npx swiftpieces list --pro · Build Kit: npx swiftpieces list --kit${readLicenseKey() ? "" : "  (npx swiftpieces login to install them)"}`);
 }

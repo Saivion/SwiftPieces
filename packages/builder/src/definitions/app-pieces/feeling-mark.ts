@@ -16,7 +16,7 @@ const n = (p: Props, k: string) => Number(p[k] ?? 0);
 /** Dark ink, for a mark set on a pastel card that already carries the feeling's colour. */
 export const MARK_INK = "#141414";
 
-/** A mark's colour: its corner's, in the four-corner palette or the Swift Pieces sweep, or ink. */
+/** A mark's colour: its corner's, in the four-corner palette or the SwiftPieces sweep, or ink. */
 export function feelingMarkColor(p: Props): string {
   if (s(p, "palette") === "ink") return MARK_INK;
   const i = Math.max(0, (FEELING_MARKS as readonly string[]).indexOf(s(p, "feeling")));
@@ -79,7 +79,7 @@ export const feelingMark: SwiftPieceDefinition = {
   ],
   properties: [
     select("feeling", "Feeling", "sun", opts(["burst", "Burst: high energy, unpleasant"], ["sun", "Sun: high energy, pleasant"], ["drop", "Drop: low energy, unpleasant"], ["clover", "Clover: low energy, pleasant"])),
-    select("palette", "Colours", "corners", opts(["corners", "Four corners (red, gold, blue, green)"], ["sweep", "Swift Pieces sweep"], ["ink", "Ink (on a pastel card)"]), { group: "color" }),
+    select("palette", "Colours", "corners", opts(["corners", "Four corners (red, gold, blue, green)"], ["sweep", "SwiftPieces sweep"], ["ink", "Ink (on a pastel card)"]), { group: "color" }),
     number("size", "Size", 56, 16, 160),
   ],
   swift: {

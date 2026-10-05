@@ -1,8 +1,8 @@
 // Centralized origins. Never hardcode the Pro URL anywhere else (Rev 3 §3.4).
 export const site = {
-  name: "Swift Pieces",
+  name: "SwiftPieces",
   /** The home page title: the name, then the plain category, inside ~55 characters. */
-  title: "Swift Pieces: Free SwiftUI Component Library for iOS",
+  title: "SwiftPieces: Free SwiftUI Component Library for iOS",
   description:
     "A free SwiftUI component library for iOS. Production-ready pieces with motion, haptics and accessibility, added with one CLI command or your AI agent.",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://swiftpieces.com",

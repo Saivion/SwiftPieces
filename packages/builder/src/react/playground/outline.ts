@@ -183,3 +183,15 @@ export function placeHoverTag(box: HTMLElement | null, hover: Placed, selected: 
   if (hover && selected && hits(hover.top - tag)) where = hits(hover.top + hover.height) ? "none" : "below";
   if (box.dataset.tag !== where) box.dataset.tag = where;
 }
+
+/** The node's element on the visible screen (the top of the front sheet or stack), if any. */
+export function findVisible(phone: HTMLElement, id: string): HTMLElement | null {
+  const screens = phone.querySelectorAll<HTMLElement>('.spp-screen[data-role="top"]');
+  // Frontmost last: a sheet's top screen comes after the root stack's.
+  for (let i = screens.length - 1; i >= 0; i--) {
+    if (screens[i].closest(".spp-tab[hidden]")) continue;
+    const el = screens[i].querySelector<HTMLElement>(`[data-node-id="${CSS.escape(id)}"]`);
+    if (el) return el;
+  }
+  return null;
+}

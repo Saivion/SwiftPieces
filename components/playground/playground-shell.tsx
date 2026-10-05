@@ -27,7 +27,7 @@ export function PlaygroundShell({ page }: { page: ShellPage; project?: Project |
           <Link className="spp-back" href={back.href} aria-label={back.label}>
             <svg aria-hidden width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="ai ai-nudge" style={{ display: "block", overflow: "visible", ["--ai-x" as string]: "-2.5px" }}><path d="m12 19-7-7 7-7" /><path d="M19 12H5" /></svg>
           </Link>
-          <Link className="spp-exit" href="/" aria-label="Swift Pieces home">
+          <Link className="spp-exit" href="/" aria-label="SwiftPieces home">
             <LogoMark />
           </Link>
           <nav className="spp-crumbs" aria-label="Breadcrumb">
@@ -62,7 +62,7 @@ export function PlaygroundShell({ page }: { page: ShellPage; project?: Project |
             </div>
             {/* For readers without the app running: what to try and how it behaves. */}
             <section className="sr-only">
-              <h1>{`${entry.title}: a Swift Pieces remix in SwiftUI, inspired by ${app.name}`}</h1>
+              <h1>{`${entry.title}: a SwiftPieces remix in SwiftUI, inspired by ${app.name}`}</h1>
               <p>{entry.description}</p>
               {entry.try.length ? <ol>{entry.try.map((t) => <li key={t}>{t}</li>)}</ol> : null}
               <ul>

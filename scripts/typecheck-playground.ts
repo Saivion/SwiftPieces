@@ -7,7 +7,7 @@
 //   projects     every project saved as JSON in a folder: the Pro apps, exported from the Pro repo
 //                by its scripts/export-app-projects.ts, so their SwiftUI is checked the same way
 //
-// Each case is its own module: the generated files plus the Swift Pieces sources they use, straight
+// Each case is its own module: the generated files plus the SwiftPieces sources they use, straight
 // from registry/swift. Usage: tsx scripts/typecheck-playground.ts [definitions|catalog|patterns|styles|all] [filter]
 // (for styles, the filter is how many styled projects to compile; for projects, the folder).
 import { execFileSync } from "node:child_process";

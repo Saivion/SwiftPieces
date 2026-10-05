@@ -32,7 +32,7 @@ export function PieceInstall({ item }: { item: RegistryIndexEntry }) {
       <p className="mt-6 flex items-center gap-2 rounded-[var(--radius)] bg-surface px-4 py-3 text-[12.5px] text-muted">
         <span className="size-1.5 shrink-0 rounded-full bg-accent" />
         Building a whole app?{" "}
-        <a href={pro.library} className="u-link font-semibold text-foreground">See Swift Pieces Pro →</a>
+        <a href={pro.library} className="u-link font-semibold text-foreground">See SwiftPieces Pro →</a>
       </p>
     </section>
   );

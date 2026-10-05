@@ -26,7 +26,7 @@ const defined = (p: ScreenSpec["props"] = {}): Props => Object.fromEntries(Objec
  * look id (core/looks.ts) or a full theme; absent, it is plain iOS.
  */
 /**
- * A look as an app's theme. The Swift Pieces look (the app library remixes) follows the device's
+ * A look as an app's theme. The SwiftPieces look (the app library remixes) follows the device's
  * appearance instead of pinning its dark signature, so every remix works in light and dark: the
  * Playground's light/dark toggle shows both, and "Open in Xcode" follows the phone's setting.
  */

@@ -1,4 +1,4 @@
-// Mascot: the Swift Pieces mascot. The soft blob from the Candy templates (SPBlobShape) in signal
+// Mascot: the SwiftPieces mascot. The soft blob from the Candy templates (SPBlobShape) in signal
 // red, with the same two dot eyes and small smile (SPBlobFace). It stands in wherever a screen wants
 // a character, an avatar or a companion. It breathes and blinks while idle, squashes and grins with
 // a haptic when tapped, can fill up to a level (a day's progress), and carries an optional figure and
@@ -169,7 +169,7 @@ export const mascot: SwiftPieceDefinition = {
   id: "mascot",
   name: "Mascot",
   category: "pieces",
-  description: "The Swift Pieces mascot: a soft red blob with two dot eyes and a small smile. It breathes and blinks while idle, and squashes and grins with a haptic when you tap it. It can fill up to a level and show a figure and caption under it.",
+  description: "The SwiftPieces mascot: a soft red blob with two dot eyes and a small smile. It breathes and blinks while idle, and squashes and grins with a haptic when you tap it. It can fill up to a level and show a figure and caption under it.",
   availability: "free",
   preview: { component: "mascot", chunk: "app-pieces" },
   icon: "sparkles",
@@ -199,7 +199,7 @@ export const mascot: SwiftPieceDefinition = {
     select("expression", "Expression", "smile", opts(["smile", "Smile"], ["grin", "Grin"], ["calm", "Calm"], ["wow", "Surprised"], ["sleepy", "Sleepy"])),
     select("motion", "Idle motion", "calm", opts(["calm", "Breathe and blink"], ["lively", "Lively"], ["still", "Still"])),
     number("level", "Fill level", 100, 0, 100, 1, { hint: "How full the mascot is, in percent." }),
-    select("color", "Colour", "signal", opts(...Object.entries(MASCOT_COLORS).map(([k, v]): [string, string] => [k, v.label])), { hint: "Signal red is the Swift Pieces mascot." }),
+    select("color", "Colour", "signal", opts(...Object.entries(MASCOT_COLORS).map(([k, v]): [string, string] => [k, v.label])), { hint: "Signal red is the SwiftPieces mascot." }),
     text("label", "Figure", "", { hint: "A short figure under the mascot, such as a percentage." }),
     text("caption", "Caption", ""),
     select("width", "Width", "fill", opts(["fill", "Takes the row, centered"], ["hug", "Its own size"]), { hint: "Hug to sit beside other things in a row, like an avatar." }),

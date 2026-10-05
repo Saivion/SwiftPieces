@@ -79,7 +79,7 @@ export async function xcodeRepo(project: Project, registry: ComponentRegistry, r
   const rooted = files.map((f) => ({ path: f.path.startsWith(prefix) ? f.path.slice(prefix.length) : f.path, content: f.content }));
   const screens = project.screens.map((s) => s.name).join(", ");
   const repo = await buildGitRepo([...rooted, { path: ".gitignore", content: XCODE_GITIGNORE }], {
-    message: `${generated.appName}, made with the Swift Pieces playground\n\nScreens: ${screens}`,
+    message: `${generated.appName}, made with the SwiftPieces playground\n\nScreens: ${screens}`,
     time: project.updatedAt / 1000,
   });
   return { repo, generated, missing };
