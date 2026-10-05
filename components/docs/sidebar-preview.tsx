@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { PreviewFrame } from "@/components/previews/frame";
 import { PiecePreview } from "@/components/previews";
 
@@ -22,6 +22,7 @@ export function SidebarPreview({ items }: { items: Record<string, SidebarPreview
   const anchor = useRef<HTMLSpanElement>(null);
   const card = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
+  const router = useRouter();
   const [state, setState] = useState<{ href: string; entry: SidebarPreviewEntry; left: number; rowMid: number } | null>(null);
 
   useEffect(() => setState(null), [pathname]);
@@ -33,6 +34,8 @@ export function SidebarPreview({ items }: { items: Record<string, SidebarPreview
     const over = (e: PointerEvent) => {
       const a = (e.target as Element).closest?.("a[href]");
       const href = a?.getAttribute("href");
+      // The sidebar's rows don't prefetch on view (app/docs/layout.tsx); a hovered one does, so the click is still instant.
+      if (href?.startsWith("/")) router.prefetch(href);
       const entry = href ? items[href] : undefined;
       if (!a || !href || !entry) return setState(null);
       const row = a.getBoundingClientRect();
@@ -49,7 +52,7 @@ export function SidebarPreview({ items }: { items: Record<string, SidebarPreview
       aside.removeEventListener("pointerleave", leave);
       aside.removeEventListener("scroll", leave, true);
     };
-  }, [items]);
+  }, [items, router]);
 
   // Level with the row, kept inside the window.
   const [top, setTop] = useState(0);

@@ -6,10 +6,8 @@ import { GitHubStarLive } from "@/components/layout/github-star-live";
 import { freshCount } from "@/lib/registry";
 
 /**
- * The star count is rendered into the page, not streamed. It used to sit in a Suspense boundary
- * whose fallback was the bare "Star" pill, so uncached renders showed "Star" until GitHub answered.
- * `getStarCount` reads Next's data cache (refreshed every 5 minutes) and falls back to the last
- * good count, so it always has a number and only ever waits on GitHub when that cache is cold.
+ * The star pill paints the count from the page's build, so it never shows the bare "Star" while
+ * GitHub answers, then moves to the live count from /api/stars (components/layout/github-star-live.tsx).
  */
 export default function MarketingLayout({ children }: { children: ReactNode }) {
   const desktop = "hidden sm:inline-flex";

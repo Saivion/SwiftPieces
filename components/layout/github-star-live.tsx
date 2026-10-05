@@ -1,7 +1,11 @@
 import { getStarCount } from "@/lib/github";
-import { GitHubStar } from "@/components/layout/github-star";
+import { GitHubStarCount } from "@/components/layout/github-star-count";
 
-/** The GitHub pill with its live count, resolved on the server. See `getStarCount` for how it stays populated. */
+/**
+ * The GitHub pill with its live count. The page carries the count from its build so the pill is never
+ * empty, and the browser then fetches the current one from /api/stars (refreshed every 5 minutes).
+ * Reading it here with a cycle would make every page that shows the navbar re-render on that cycle.
+ */
 export async function GitHubStarLive({ className }: { className?: string }) {
-  return <GitHubStar stars={await getStarCount()} className={className} />;
+  return <GitHubStarCount initial={await getStarCount(false)} className={className} />;
 }
