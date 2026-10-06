@@ -19,7 +19,7 @@ export default function BlocksPage() {
     <>
       <section className="relative pt-16 md:pt-24">
         <Container>
-          <SectionHeader label="These live in Pro" size="h1" title="The pieces to build the whole app." description={`The free library is a curated taste of SwiftPieces. The complete library, ${proCountsLabel}, is SwiftPieces Pro on pro.swiftpieces.com.`} />
+          <SectionHeader label="These live in Pro" size="h1" title="Every flow a top 1% app needs." description={`The free library is a curated taste of SwiftPieces. The complete library, ${proCountsLabel}, is SwiftPieces Pro on pro.swiftpieces.com.`} />
           <div className="mt-8 flex flex-wrap gap-3">
             <Button href={pro.library} className="group">Browse the Pro library <Arrow /></Button>
             <Button href="/components" variant="ghost">Free components</Button>
