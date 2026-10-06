@@ -1,0 +1,66 @@
+name: Protected files
+
+# Pull requests from forks may not change the files that build, deploy or configure SwiftPieces
+# (CONTRIBUTING.md, "Files only the maintainer changes"). This check fails such a pull request so
+# the maintainer sees it before anything merges. The maintainer can still merge past it.
+#
+# pull_request_target runs this file as it is on main, so a pull request can't edit the check that
+# reviews it. That trigger is safe here only because the job never checks out or runs the pull
+# request's code: it reads the list of changed paths from the API with a read-only token. Keep it
+# that way. Never add actions/checkout of the pull request's head to this workflow.
+on:
+  pull_request_target:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  protected:
+    name: Protected files
+    # The maintainer's own branches are trusted. Only pull requests from forks are checked.
+    if: github.event.pull_request.head.repo.full_name != github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Compare changed paths with the protected list
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          # Keep in step with .github/CODEOWNERS and CONTRIBUTING.md.
+          protected=(
+            '(^|/)package(-lock)?\.json$' '(^|/)\.npmrc$'
+            '^\.github/' '^\.gitignore$' '^\.gitattributes$' '^\.nvmrc$' '(^|/)LICENSE$'
+            '^scripts/' '^wrangler\.' '^open-next\.config\.' '^next\.config\.' '^postcss\.config\.'
+            '(^|/)tsconfig[^/]*\.json$' '^cloudflare-env\.d\.ts$'
+            '^middleware\.ts$' '^instrumentation[^/]*\.ts$' '^public/(_headers|_redirects|_routes\.json)$'
+            '\.(xcodeproj|xcworkspace)/' '\.(xcscheme|xcconfig|entitlements)$' '(^|/)Package\.(swift|resolved)$'
+          )
+          pattern=$(IFS='|'; echo "${protected[*]}")
+
+          # A rename counts for its old path as well as its new one.
+          gh api --paginate "repos/$REPO/pulls/$PR/files?per_page=100" \
+            --jq '.[] | .filename, (.previous_filename // empty)' > changed.txt
+          hits=$(grep -E "$pattern" changed.txt | sort -u || true)
+
+          if [ -z "$hits" ]; then
+            echo "No maintainer-only files changed." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          # Paths go to the job summary only, never to the log as workflow commands.
+          {
+            echo "### This pull request changes maintainer-only files"
+            echo
+            echo "$hits" | sed 's/.*/- `&`/'
+            echo
+            echo "These decide what runs during an install, a build and a deploy, so pull requests from forks don't change them. If your change genuinely needs one, say why in the description and the maintainer will review it. Otherwise, take these files out of the pull request."
+            echo
+            echo "The full list: https://github.com/$REPO/blob/main/CONTRIBUTING.md#files-only-the-maintainer-changes"
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "::error title=Protected files::This pull request changes maintainer-only files. The job summary lists them."
+          exit 1

@@ -1,13 +1,14 @@
 /**
- * Records a looping preview per piece from the iOS Simulator and (optionally)
- * uploads to R2. Spec: pre-rendered MP4/WebM loops are the default preview path.
+ * Records a looping preview per piece from the iOS Simulator. Spec: pre-rendered
+ * MP4/WebM loops are the default preview path.
  *
  *   npm run previews:record -- [--pieces GlassCard,Silk] [--duration 6] [--device "iPhone 17 Pro"]
- *                              [--skip-build] [--local] [--upload]
+ *                              [--skip-build] [--local]
  *
  *   --local   copy outputs into public/previews/ and write a site-relative manifest
- *   --upload  push outputs to the swiftpieces-media R2 bucket with `wrangler r2 object put`
- *             (optional: the bucket is not bound to the Worker; create it before the first upload)
+ *
+ * Everything stays in this checkout. Nothing here uploads anywhere: no script in this repo writes to
+ * Cloudflare (CONTRIBUTING.md, "What your commands can reach").
  *
  * Without ffmpeg on PATH only H.264 MP4 + PNG poster are produced; with ffmpeg
  * a VP9 WebM and a downscaled MP4 are written as well.
@@ -21,7 +22,7 @@ const PREVIEWS = join(ROOT, "previews");
 const OUT = join(PREVIEWS, "out");
 const BUNDLE_ID = "com.swiftpieces.previews";
 
-type Args = { pieces?: string[]; duration: number; device: string; skipBuild: boolean; local: boolean; upload: boolean };
+type Args = { pieces?: string[]; duration: number; device: string; skipBuild: boolean; local: boolean };
 function parseArgs(): Args {
   const a = process.argv.slice(2);
   const get = (flag: string) => {
@@ -34,7 +35,6 @@ function parseArgs(): Args {
     device: get("--device") ?? "iPhone 17 Pro",
     skipBuild: a.includes("--skip-build"),
     local: a.includes("--local"),
-    upload: a.includes("--upload"),
   };
 }
 
@@ -112,12 +112,7 @@ async function main() {
   for (const name of names) {
     process.stdout.write(`Recording ${name}… `);
     const { slug, outputs } = await record(udid, name, args.duration);
-    if (args.upload) {
-      for (const f of Object.values(outputs)) {
-        sh("npx", ["wrangler", "r2", "object", "put", `swiftpieces-media/previews/${f}`, "--file", join(OUT, f), "--remote"], { quiet: true });
-      }
-      manifest[slug] = Object.fromEntries(Object.entries(outputs).map(([k, v]) => [k, `previews/${v}`]));
-    } else if (args.local) {
+    if (args.local) {
       const dest = join(ROOT, "public/previews");
       mkdirSync(dest, { recursive: true });
       for (const f of Object.values(outputs)) copyFileSync(join(OUT, f), join(dest, f));
@@ -126,11 +121,11 @@ async function main() {
     console.log("done");
   }
 
-  if (args.upload || args.local) {
+  if (args.local) {
     writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
     console.log(`Manifest written: ${manifestPath}. Run \`npm run registry:build\` to pick it up.`);
   } else {
-    console.log(`Outputs in ${OUT}. Re-run with --upload (R2) or --local (public/previews) to publish.`);
+    console.log(`Outputs in ${OUT}. Re-run with --local to copy them into public/previews.`);
   }
 }
 

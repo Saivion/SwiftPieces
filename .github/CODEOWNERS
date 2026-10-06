@@ -1,2 +1,44 @@
 # Every change needs the maintainer's approval before it reaches main.
 * @Saivion
+
+# Files that build, deploy or configure SwiftPieces. They stay the maintainer's alone even if more
+# reviewers are added above, because the last matching line wins. Pull requests from forks that
+# change them fail the Protected files check (.github/workflows/protected-files.yml); keep this
+# list, that workflow and CONTRIBUTING.md ("Files only the maintainer changes") in step.
+
+# Dependencies
+package.json @Saivion
+package-lock.json @Saivion
+.npmrc @Saivion
+
+# Repo setup
+/.github/ @Saivion
+/.gitignore @Saivion
+/.gitattributes @Saivion
+/.nvmrc @Saivion
+LICENSE @Saivion
+
+# Build and deploy
+/scripts/ @Saivion
+/wrangler.* @Saivion
+/open-next.config.* @Saivion
+/next.config.* @Saivion
+/postcss.config.* @Saivion
+tsconfig*.json @Saivion
+/cloudflare-env.d.ts @Saivion
+
+# Runtime config
+/middleware.ts @Saivion
+/instrumentation*.ts @Saivion
+/public/_headers @Saivion
+/public/_redirects @Saivion
+/public/_routes.json @Saivion
+
+# Xcode project files, which can run scripts during a build
+*.xcodeproj/ @Saivion
+*.xcworkspace/ @Saivion
+*.xcscheme @Saivion
+*.xcconfig @Saivion
+*.entitlements @Saivion
+Package.swift @Saivion
+Package.resolved @Saivion

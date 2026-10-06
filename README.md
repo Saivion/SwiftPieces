@@ -99,18 +99,30 @@ npm run audit:public     # nothing Pro-shaped, nothing secret
 ```
 
 <details>
-<summary><b>Deployment and analytics</b> (maintainers)</summary>
+<summary><b>Deployment, reviews and analytics</b> (maintainers)</summary>
 
 <br />
 
-swiftpieces.com deploys from GitHub with **Cloudflare Workers Builds**. Nothing is deployed from a laptop.
+swiftpieces.com deploys from GitHub with **Cloudflare Workers Builds**. Nothing is deployed from a laptop: `package.json` has no deploy, upload or publish script, and the deploy commands below live only in the Workers Builds settings.
 
 | Branch | What happens |
 | --- | --- |
 | `main` | Builds and deploys to production (swiftpieces.com). |
-| any other branch / PR | Builds a preview version with its own URL. Production is untouched. |
+| any other branch in this repo | Builds a preview version with its own URL. Production traffic is untouched. |
+| a fork's branch, opened as a PR | Not built. Cloudflare only sees branches in this repo. |
 
-GitHub Actions is here for **safety only**, because this repo is public and takes contributions. `ci.yml` checks every push and PR for leaked secrets, Pro-only code, a stale registry, type errors and bundle size. `swift.yml` type-checks every piece against the iOS SDK, and runs only when Swift, Metal or the preview app changes. Actions never deploys and holds no Cloudflare credentials; Cloudflare does the deploying.
+A preview version runs with the production Worker's bindings and secrets, so only maintainers push branches here. Contributors work from forks.
+
+GitHub Actions is here for **safety only**, because this repo is public and takes contributions. `ci.yml` checks every push and PR for leaked secrets, Pro-only code, a stale registry, type errors and bundle size. `swift.yml` type-checks every piece against the iOS SDK, and runs only when Swift, Metal or the preview app changes. `protected-files.yml` fails a PR from a fork that changes dependency, CI, build, deploy or Xcode project files (the list is in [CONTRIBUTING.md](CONTRIBUTING.md#files-only-the-maintainer-changes)). Actions never deploys and holds no Cloudflare credentials; Cloudflare does the deploying.
+
+**Reviewing a PR from a fork.** The fork's branch never exists in this repo, but every PR does, as `refs/pull/<number>/head`. Read it under **Files changed** on GitHub, or with `gh pr diff <number>`, and look at the **Protected files** check first. To run it, check it out into a worktree of its own:
+
+```bash
+git fetch origin pull/35/head:pr-35
+git worktree add ../SwiftPieces-pr-35 pr-35
+```
+
+A worktree holds only tracked files, so `.env.local` and `.dev.vars` aren't there for the PR's code to read. It doesn't hide your Cloudflare, npm or GitHub logins, so read the diff before running anything, and if a `package.json` or `package-lock.json` changed, read that before `npm install`. To push a fix to the contributor's branch, check it out with `gh pr checkout <number>` or GitHub Desktop's pull request list instead; both add the fork as a remote. When you're done: `git worktree remove ../SwiftPieces-pr-35 && git branch -D pr-35`.
 
 **Workers Builds settings** (Cloudflare dashboard → Workers → `swiftpieces` → Settings → Build):
 
