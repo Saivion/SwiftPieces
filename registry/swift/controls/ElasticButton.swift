@@ -3,7 +3,7 @@
 // description: A ButtonStyle that squashes toward the touch point, stretches with rubber-band resistance when dragged, deepens after a hold and snaps back with a spring. Optional solid surfaces (signal, block, raised) press into their own soft shadow and darken under the finger.
 // category: controls
 // minIOSVersion: "17.0"
-// version: "2.0.0"
+// version: "2.0.1"
 // tags: [button, style, spring, drag, haptics, depth]
 
 import SwiftUI
@@ -132,11 +132,12 @@ public struct ElasticButton: ButtonStyle {
             .animation(pressed ? .spring(duration: deep ? 0.35 : 0.16, bounce: 0) : .snappy(duration: 0.36, extraBounce: bounce), value: pressed)
             .animation(.spring(duration: 0.35, bounce: 0), value: deep)
             .animation(.interactiveSpring(duration: 0.15), value: translation)
-            .simultaneousGesture(tracker)
+            .modifier(TouchFollower(follow: follow, release: release))
             .onChange(of: configuration.isPressed) { _, isPressed in
                 down = isPressed
                 holdTask?.cancel()
                 if isPressed {
+                    cancelled = false
                     pressTicks += 1
                     holdTask = Task {
                         try? await Task.sleep(for: .milliseconds(350))
@@ -181,26 +182,25 @@ public struct ElasticButton: ButtonStyle {
         }
     }
 
-    /// Runs alongside the button's own press so we know where the finger is and how far it has moved.
-    private var tracker: some Gesture {
-        DragGesture(minimumDistance: 0)
-            .onChanged { value in
-                if touch == nil {
-                    touch = value.startLocation
-                    cancelled = false
-                }
-                translation = value.translation
-                if !cancelled, hypot(value.translation.width, value.translation.height) > 44 {
-                    cancelled = true
-                    cancelTicks += 1
-                    holdTask?.cancel()
-                    deep = false
-                }
-            }
-            .onEnded { _ in
-                touch = nil
-                translation = .zero
-            }
+    /// Follows the finger alongside the button's own press: where it landed and how far it has moved.
+    private func follow(from start: CGPoint, to location: CGPoint) {
+        if touch == nil {
+            touch = start
+            cancelled = false
+        }
+        translation = CGSize(width: location.x - start.x, height: location.y - start.y)
+        // Only a live press cancels, so scrolling past the button stays quiet.
+        if down, !cancelled, hypot(translation.width, translation.height) > 44 {
+            cancelled = true
+            cancelTicks += 1
+            holdTask?.cancel()
+            deep = false
+        }
+    }
+
+    private func release() {
+        touch = nil
+        translation = .zero
     }
 
     /// Partway between center and the touch point, so the squash leans toward the finger without tipping.
@@ -214,6 +214,62 @@ public struct ElasticButton: ButtonStyle {
     private func banded(_ t: CGSize) -> CGSize {
         func band(_ v: CGFloat) -> CGFloat { v / (1 + abs(v) / 40) }
         return CGSize(width: band(t.width), height: band(t.height))
+    }
+}
+
+/// Reports touches without taking part in the press. A SwiftUI drag inside a ButtonStyle stops the
+/// button's own press on iOS 26, so iOS 18 and later follow the finger with a UIKit recognizer instead.
+private struct TouchFollower: ViewModifier {
+    let follow: (CGPoint, CGPoint) -> Void
+    let release: () -> Void
+
+    func body(content: Content) -> some View {
+        if #available(iOS 18.0, *) {
+            content.gesture(TouchRecognizer(follow: follow, release: release))
+        } else {
+            content.simultaneousGesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { follow($0.startLocation, $0.location) }
+                    .onEnded { _ in release() }
+            )
+        }
+    }
+}
+
+@available(iOS 18.0, *)
+private struct TouchRecognizer: UIGestureRecognizerRepresentable {
+    let follow: (CGPoint, CGPoint) -> Void
+    let release: () -> Void
+
+    func makeCoordinator(converter: CoordinateSpaceConverter) -> Coordinator { Coordinator() }
+
+    func makeUIGestureRecognizer(context: Context) -> UILongPressGestureRecognizer {
+        let recognizer = UILongPressGestureRecognizer()
+        recognizer.minimumPressDuration = 0
+        recognizer.allowableMovement = .greatestFiniteMagnitude
+        recognizer.cancelsTouchesInView = false
+        recognizer.delaysTouchesEnded = false
+        recognizer.delegate = context.coordinator
+        return recognizer
+    }
+
+    func handleUIGestureRecognizerAction(_ recognizer: UILongPressGestureRecognizer, context: Context) {
+        let location = context.converter.localLocation
+        switch recognizer.state {
+        case .began:
+            context.coordinator.start = location
+            follow(location, location)
+        case .changed:
+            follow(context.coordinator.start, location)
+        default:
+            release()
+        }
+    }
+
+    final class Coordinator: NSObject, UIGestureRecognizerDelegate {
+        var start: CGPoint = .zero
+
+        func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith other: UIGestureRecognizer) -> Bool { true }
     }
 }
 

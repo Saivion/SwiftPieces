@@ -556,7 +556,7 @@
     "description": "A ButtonStyle that squashes toward the touch point, stretches with rubber-band resistance when dragged, deepens after a hold and snaps back with a spring. Optional solid surfaces (signal, block, raised) press into their own soft shadow and darken under the finger.",
     "category": "controls",
     "license": "MIT+Commons-Clause",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "minIOSVersion": "17.0",
     "swiftToolsVersion": "6.1",
     "tags": [
