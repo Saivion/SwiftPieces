@@ -100,6 +100,8 @@ A fix to TaskRow, for example, might read:
 
 Commit messages follow [Conventional Commits](https://www.conventionalcommits.org): `feat:`, `fix:`, `docs:`, `style:`, `refactor:`, `chore:`. The subject line says what changed, in the present tense.
 
+Pull requests are squash-merged, and every merge to `main` is published as a [release](https://github.com/Saivion/SwiftPieces/releases). The type sets the version: `feat` bumps the minor version, a `!` after any type (`fix!:`) bumps the major, and anything else bumps the patch.
+
 CI on a pull request from a fork waits for the maintainer to approve the run, so a new PR can show "waiting for approval" for a while. That's expected. Once it runs, it must be green before review:
 
 | Check | What it does |
