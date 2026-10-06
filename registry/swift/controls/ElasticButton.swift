@@ -3,7 +3,7 @@
 // description: A ButtonStyle that squashes toward the touch point, stretches with rubber-band resistance when dragged, deepens after a hold and snaps back with a spring. Optional solid surfaces (signal, block, raised) press into their own soft shadow and darken under the finger.
 // category: controls
 // minIOSVersion: "17.0"
-// version: "2.0.0"
+// version: "2.1.0"
 // tags: [button, style, spring, drag, haptics, depth]
 
 import SwiftUI
@@ -30,14 +30,23 @@ public struct ElasticButton: ButtonStyle {
         public var padding: CGFloat
         /// Draws a soft two-layer shadow that flattens while pressed.
         public var depth: Bool
+        /// Fill while disabled. `nil` uses the house raised color.
+        public var disabledFill: Color?
+        /// Label color while disabled. `nil` uses the house muted color on a surface, or dims the label to 45% without one.
+        public var disabledInk: Color?
+        /// A 1pt edge while disabled, for a disabled surface that sits on a ground of the same color. `nil` draws none.
+        public var disabledStroke: Color?
 
-        public init(fill: Color? = nil, ink: Color = HouseColor.text, radius: CGFloat? = nil, height: CGFloat = 56, padding: CGFloat = 24, depth: Bool = true) {
+        public init(fill: Color? = nil, ink: Color = HouseColor.text, radius: CGFloat? = nil, height: CGFloat = 56, padding: CGFloat = 24, depth: Bool = true, disabledFill: Color? = nil, disabledInk: Color? = nil, disabledStroke: Color? = nil) {
             self.fill = fill
             self.ink = ink
             self.radius = radius
             self.height = Swift.max(height, 44)
             self.padding = padding
             self.depth = depth
+            self.disabledFill = disabledFill
+            self.disabledInk = disabledInk
+            self.disabledStroke = disabledStroke
         }
 
         /// Motion only: no surface, the label keeps its own look.
@@ -128,7 +137,7 @@ public struct ElasticButton: ButtonStyle {
                 anchor: anchor
             )
             .offset(x: pull.width * 0.35, y: pull.height * 0.35)
-            .opacity(isEnabled ? 1 : (style.fill == nil ? 0.45 : 1))
+            .opacity(isEnabled || style.fill != nil || style.disabledInk != nil ? 1 : 0.45)
             .animation(pressed ? .spring(duration: deep ? 0.35 : 0.16, bounce: 0) : .snappy(duration: 0.36, extraBounce: bounce), value: pressed)
             .animation(.spring(duration: 0.35, bounce: 0), value: deep)
             .animation(.interactiveSpring(duration: 0.15), value: translation)
@@ -163,19 +172,26 @@ public struct ElasticButton: ButtonStyle {
             label
                 .font(.body.weight(.semibold))
                 .lineLimit(1)
-                .foregroundStyle(isEnabled ? style.ink : Style.HouseColor.muted)
+                .foregroundStyle(isEnabled ? style.ink : style.disabledInk ?? Style.HouseColor.muted)
                 .padding(.horizontal, style.padding)
                 .frame(minHeight: style.height)
                 .background {
                     ZStack {
-                        shape.fill(isEnabled ? fill : Style.HouseColor.raised)
+                        shape.fill(isEnabled ? fill : style.disabledFill ?? Style.HouseColor.raised)
                         // Press darkens the surface; the hold deepens it.
                         shape.fill(Style.HouseColor.ink.opacity(pressed ? (deep ? 0.16 : 0.09) : 0))
                     }
                     .shadow(color: .black.opacity(lift ? shadowStrength * (pressed ? 0.35 : 1) : 0), radius: pressed ? 3 : 14, y: pressed ? 1 : 8)
                     .shadow(color: .black.opacity(lift ? shadowStrength * 0.5 : 0), radius: 1, y: pressed ? 0 : 1)
                 }
+                .overlay {
+                    if !isEnabled, let stroke = style.disabledStroke {
+                        shape.stroke(stroke, lineWidth: 1).padding(0.5)
+                    }
+                }
                 .contentShape(shape)
+        } else if !isEnabled, let ink = style.disabledInk {
+            label.foregroundStyle(ink)
         } else {
             label
         }

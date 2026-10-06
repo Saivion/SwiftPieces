@@ -52,7 +52,7 @@ Rules for Liquid Glass: gate with `#available(iOS 26, *)` and a Material fallbac
 
 ## SwiftPieces Pro
 
-A separate paid library for building whole apps: 54 screens, 12 app templates and a 24-item Build Kit (production-ready SwiftUI screens, complete Xcode projects, and agent skills that build the rest in the same design) at https://pro.swiftpieces.com/library, plus Pro remixing in the Playground at https://swiftpieces.com/apps (all 20 apps in the App Library, remix any app with AI, keep up to 100 remixes). One plan with lifetime access; plan and pricing: https://pro.swiftpieces.com/pro. Pro MCP endpoint: https://pro.swiftpieces.com/api/mcp (license key required): search_library, get_item, list_kit, get_kit_item, apply_design_skill, apply_recipe.
+A separate paid library for building whole apps: 54 screens, 12 app templates and a 31-item Build Kit (production-ready SwiftUI screens, complete Xcode projects, and agent skills that build the rest in the same design) at https://pro.swiftpieces.com/library, plus Pro remixing in the Playground at https://swiftpieces.com/apps (all 20 apps in the App Library, remix any app with AI, keep up to 100 remixes). One plan with lifetime access; plan and pricing: https://pro.swiftpieces.com/pro. Pro MCP endpoint: https://pro.swiftpieces.com/api/mcp (license key required): search_library, get_item, list_kit, get_kit_item, apply_design_skill, apply_recipe.
 
 ## AI (https://swiftpieces.com/components/ai)
 
