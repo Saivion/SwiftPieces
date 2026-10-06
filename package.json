@@ -18,8 +18,6 @@
     "previews:record": "tsx scripts/record-previews.ts",
     "bundle:check": "bash scripts/check-bundle-size.sh",
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
-    "deploy": "opennextjs-cloudflare build && npm run audit:public && opennextjs-cloudflare deploy",
-    "upload": "opennextjs-cloudflare build && opennextjs-cloudflare upload",
     "cf:build": "npm run brand:build && npm run builder:build && opennextjs-cloudflare build && npm run audit:public",
     "brand:build": "npm run build --workspace packages/brand",
     "builder:build": "npm run build --workspace packages/builder",

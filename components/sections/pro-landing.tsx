@@ -50,7 +50,7 @@ export function ProHero() {
       {/* Full-height dot field with a long, soft fade so the dots dissolve well before the gallery instead of stopping on a line. */}
       <Container className="flex flex-col items-center text-center">
         <Reveal priority><Eyebrow>SwiftPieces Pro · Production-ready SwiftUI</Eyebrow></Reveal>
-        <AnimatedText as="h1" text="The pieces to build the whole app." accent="whole" className={cn("mt-8 max-w-4xl", heroTitle)} />
+        <AnimatedText as="h1" text="Every flow a top 1% app needs." accent="1%" className={cn("mt-8 max-w-4xl", heroTitle)} />
         <Reveal priority delay={0.35}>
           <p className={cn("mx-auto mt-6 max-w-xl", sectionBody)}>Free is a curated taste of SwiftPieces. Pro is the complete library: production-ready SwiftUI screens, complete app templates, the Build Kit for your coding agent and Pro remixing in the Playground. Start from a finished screen or a whole Xcode project. Copy the source. Make it yours.</p>
         </Reveal>
@@ -218,7 +218,7 @@ export function Compare() {
         />
         <Reveal className="mt-12 grid gap-3 lg:grid-cols-2 lg:gap-y-0">
           <PlanCard tag="Free library" title="A curated taste of SwiftPieces." body={`${freeCount} animated pieces, Liquid Glass effects and Metal shaders. Genuinely good, and free to ship wherever a screen feels flat.`} points={["MIT + Commons Clause, forever", "Single-file pieces", "Install by CLI, MCP or copy-paste"]} cta="See what Pro adds" />
-          <PlanCard tag="SwiftPieces Pro" title="The pieces to build the whole app." body="Production-ready SwiftUI screens, complete app templates, and a Build Kit that teaches your coding agent the same design. Install by copy, CLI or MCP." points={[proCountsLabel, remixingPoint, "Full SwiftUI source that lives in your project", "Lifetime access, everything added later included"]} cta="Get SwiftPieces Pro" pro />
+          <PlanCard tag="SwiftPieces Pro" title="Every flow a top 1% app needs." body="Complete SwiftUI app flows, templates and screens, and a Build Kit that teaches your coding agent the same design. Install by copy, CLI or MCP." points={[proCountsLabel, remixingPoint, "Full SwiftUI source that lives in your project", "Lifetime access, everything added later included"]} cta="Get SwiftPieces Pro" pro />
         </Reveal>
       </Container>
     </section>
