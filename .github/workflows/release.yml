@@ -1,0 +1,194 @@
+name: Release
+
+# Publishes a GitHub release for every merge to main. Pull requests are squash-merged, so a merge is
+# one commit: this tags it with the next version and lists what changed since the last release.
+# Nothing is built or deployed here; Cloudflare deploys main on its own.
+#
+# The version comes from the Conventional Commit types of what changed since the last release: each
+# merge's title or, when the title is generic ("Develop"), the commits the squash lists in its body.
+#   feat                                         minor   0.4.0 -> 0.5.0
+#   a ! after any type, or a BREAKING CHANGE     major   0.4.0 -> 1.0.0
+#   anything else                                patch   0.4.0 -> 0.4.1
+#
+# [skip release] in the merge commit's message leaves that merge unreleased, and the next release
+# lists its changes. Actions > Release > Run workflow releases main by hand and can force the bump.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: Version bump (auto reads the commit types)
+        type: choice
+        options: [auto, patch, minor, major]
+        default: auto
+
+# One release at a time, so two quick merges can't claim the same version. A run that arrives
+# mid-release waits; if several pile up, only the newest runs, and its release lists them all.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  # The first release's version, used only while the repo has no vX.Y.Z tag. The docs changelog
+  # numbered releases up to 0.3, so the tags carry on from there.
+  FIRST_VERSION: 0.4.0
+
+jobs:
+  release:
+    name: Release
+    if: github.ref == 'refs/heads/main' && !contains(github.event.head_commit.message, '[skip release]')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    # The only workflow that writes to the repo, and all it writes is a tag and a release, for code
+    # that is already on main. It reads which pull request each commit came from, to link it.
+    permissions:
+      contents: write
+      pull-requests: read
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # Every commit and tag, to find the last release and what changed since.
+          fetch-depth: 0
+          # Nothing is pushed with git; gh creates the tag through the API.
+          persist-credentials: false
+
+      - name: Work out the version and notes
+        id: version
+        env:
+          BUMP: ${{ inputs.bump || 'auto' }}
+          OWNER: ${{ github.repository_owner }}
+        run: |
+          set -euo pipefail
+
+          # A re-run on a commit that's already released does nothing.
+          released=$(git tag --points-at HEAD --list 'v*' | head -n 1)
+          if [ -n "$released" ]; then
+            echo "This commit is already released as $released." >> "$GITHUB_STEP_SUMMARY"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # The last release: the highest vX.Y.Z tag in this commit's history.
+          last=$(git tag --merged HEAD --list 'v*' --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1 || true)
+
+          if [ -z "$last" ]; then
+            tag=v$FIRST_VERSION
+            echo "The first tagged release of SwiftPieces. Everything that shipped before it is in the [changelog](https://swiftpieces.com/docs/changelog). From here on, every merge to \`main\` gets a release that lists what changed." > notes.md
+          else
+            # File each change since the last release under its type's heading, and let the types
+            # decide the bump.
+            dir=$(mktemp -d)
+            for section in features fixes improvements docs maintenance seen; do : > "$dir/$section"; done
+            type_re='^([A-Za-z]+)(\(([^)]*)\))?(!)?:[[:space:]]*(.*)$'
+            # A squash title ends with its pull request's number: "feat: thing (#31)".
+            pr_re='^(.*[^ ]) +\(#([0-9]+)\)$'
+            bump=patch
+
+            for sha in $(git rev-list --reverse --no-merges "$last..HEAD"); do
+              subject=$(git log -1 --format=%s "$sha")
+              body=$(git log -1 --format=%b "$sha")
+              title_pr=''
+              if [[ $subject =~ $pr_re ]]; then subject=${BASH_REMATCH[1]} title_pr=${BASH_REMATCH[2]}; fi
+              if grep -qE '^BREAKING[ -]CHANGE:' <<<"$body"; then bump=major; fi
+
+              # The squash title says what changed. When it's generic ("Develop"), use the commits
+              # the squash lists in its body ("* feat: ...") instead.
+              lines=$subject
+              if ! [[ $subject =~ $type_re ]] && grep -q '^\* ' <<<"$body"; then
+                lines=$(sed -n 's/^\* //p' <<<"$body")
+              fi
+
+              # Link the pull request, and credit its author unless that's the maintainer or a bot.
+              # When GitHub has no pull request for the commit (history that was rewritten, say), the
+              # number in its title still links one. A failed lookup prints its error to the log only.
+              if ! found=$(gh api "repos/$GH_REPO/commits/$sha/pulls" --jq '.[0] // empty | "\(.number) \(.user.login) \(.user.type)"'); then
+                found=''
+              fi
+              read -r pr author kind <<<"$found"
+              if ! [[ $pr =~ ^[0-9]+$ ]]; then pr=$title_pr author='' kind=''; fi
+              suffix=${pr:+ (#$pr)}
+              if [ -n "$author" ] && [ "$author" != "$OWNER" ] && [ "$kind" != Bot ]; then
+                suffix="$suffix by @$author"
+              fi
+
+              while IFS= read -r line; do
+                case $line in '' | 'Merge '*) continue ;; esac
+                if [[ $line =~ $pr_re ]]; then line=${BASH_REMATCH[1]}; fi
+                type='' scope='' breaking=''
+                # Strip a known type and file the line under it. Anything else stays word for word.
+                if [[ $line =~ $type_re ]]; then
+                  t=$(tr '[:upper:]' '[:lower:]' <<<"${BASH_REMATCH[1]}")
+                  case $t in
+                    feat | fix | perf | refactor | style | docs | chore | ci | build | test | revert)
+                      type=$t scope=${BASH_REMATCH[3]} breaking=${BASH_REMATCH[4]} line=${BASH_REMATCH[5]} ;;
+                  esac
+                fi
+                case $type in
+                  feat) section=features ;;
+                  fix) section=fixes ;;
+                  perf | refactor | style) section=improvements ;;
+                  docs) section=docs ;;
+                  *) section=maintenance ;;
+                esac
+                if [ -n "$breaking" ]; then
+                  bump=major
+                elif [ "$type" = feat ] && [ "$bump" = patch ]; then
+                  bump=minor
+                fi
+                # Capitalise a plain first word ("drag n drop" to "Drag n drop"). Names like iOS, npm
+                # and swiftpieces/brand keep their case.
+                word=${line%% *}
+                if [[ $word =~ ^[a-z]+$ ]] && [ "$word" != npm ] && [ "$word" != swiftpieces ]; then
+                  line="$(tr '[:lower:]' '[:upper:]' <<<"${line:0:1}")${line:1}"
+                fi
+                # A develop branch can list a commit that an earlier merge already listed.
+                if grep -qxF -- "$line" "$dir/seen"; then continue; fi
+                echo "$line" >> "$dir/seen"
+                printf -- '- %s%s%s%s\n' "${breaking:+**Breaking:** }" "${scope:+**$scope:** }" "$line" "$suffix" >> "$dir/$section"
+              done <<<"$lines"
+            done
+
+            if [ "$BUMP" != auto ]; then bump=$BUMP; fi
+            IFS=. read -r major minor patch <<<"${last#v}"
+            case $bump in
+              major) tag="v$((major + 1)).0.0" ;;
+              minor) tag="v$major.$((minor + 1)).0" ;;
+              *) tag="v$major.$minor.$((patch + 1))" ;;
+            esac
+
+            {
+              for pair in features:Features fixes:Fixes improvements:Improvements docs:Docs maintenance:Maintenance; do
+                file=$dir/${pair%%:*}
+                if [ -s "$file" ]; then
+                  printf '### %s\n\n' "${pair#*:}"
+                  cat "$file"
+                  echo
+                fi
+              done
+              echo "**Full changelog**: https://github.com/$GH_REPO/compare/$last...$tag"
+            } > notes.md
+          fi
+
+          # A tag of that name elsewhere (on a branch, or made by hand) would make gh release that
+          # commit instead.
+          if git rev-parse -q --verify "refs/tags/$tag" >/dev/null; then
+            echo "::error title=Release::Tag $tag already exists on another commit. Delete it, or release by hand."
+            exit 1
+          fi
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
+      - name: Publish the release
+        if: steps.version.outputs.skip != 'true'
+        env:
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          set -euo pipefail
+          url=$(gh release create "$TAG" --target "$GITHUB_SHA" --title "$TAG" --notes-file notes.md)
+          { echo "### Released [$TAG]($url)"; echo; cat notes.md; } >> "$GITHUB_STEP_SUMMARY"
