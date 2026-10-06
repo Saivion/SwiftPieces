@@ -1998,7 +1998,7 @@
     "description": "A task card whose check draws itself while the card flashes into a solid color block, a priority label block, a swipe-right that completes with a strike-through then compacts the row, swipe-left snooze and delete blocks, and a long-press lift that reports reorder moves.",
     "category": "lists",
     "license": "MIT+Commons-Clause",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "minIOSVersion": "17.0",
     "swiftToolsVersion": "6.1",
     "tags": [

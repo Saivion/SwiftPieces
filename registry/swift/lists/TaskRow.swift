@@ -3,7 +3,7 @@
 // description: A task card whose check draws itself while the card flashes into a solid color block, a priority label block, a swipe-right that completes with a strike-through then compacts the row, swipe-left snooze and delete blocks, and a long-press lift that reports reorder moves.
 // category: lists
 // minIOSVersion: "17.0"
-// version: "2.0.0"
+// version: "2.0.1"
 // pro: transaction-row
 // tags: [task, todo, swipe, reorder, productivity, blocks]
 
@@ -84,7 +84,7 @@ public struct TaskRow: View {
             .contentShape(.rect)
             .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { rowHeight = $0 }
             .gesture(swipe, including: isEnabled ? .all : .subviews)
-            .highPriorityGesture(liftGesture, including: onMove == nil || !isEnabled ? .none : .all)
+            .simultaneousGesture(liftGesture, including: onMove == nil || !isEnabled ? .none : .all)
             .animation(.spring(duration: 0.35, bounce: 0.2), value: lifted)
             .onChange(of: status, initial: true) { old, new in apply(new, from: old) }
             .sensoryFeedback(.impact(flexibility: .rigid), trigger: armed) { _, isArmed in isArmed }
