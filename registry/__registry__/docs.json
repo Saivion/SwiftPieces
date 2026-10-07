@@ -3404,6 +3404,14 @@
         },
         {
           "heading": "parameters",
+          "content": "`collapses`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Shrinks the capsule to its ring while it works (the default). `false` keeps it full width, the ring centred."
+        },
+        {
+          "heading": "parameters",
           "content": "`style`"
         },
         {

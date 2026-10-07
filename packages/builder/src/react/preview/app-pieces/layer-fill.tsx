@@ -3,10 +3,11 @@
 // drops a band in (0.45 s soft spring; bands ease up in 0.3 s on appear) and a rising haptic; the goal lands with a success
 // haptic and a small bounce; tapping the figure takes the last band back.
 import { useId, useRef, useState, type CSSProperties } from "react";
-import { SILHOUETTES, layerBands, layerItems, type LayerBand } from "../../../definitions/app-pieces/layer-fill.js";
+import { SILHOUETTES, accentPalette, layerBands, layerItems, type LayerBand } from "../../../definitions/app-pieces/layer-fill.js";
 import { Glyph } from "../../icons.js";
-import { fillStyle, n, s, useAxis, type Renderer, cr, fw, ts, accentize } from "../env.js";
+import { fillStyle, n, s, useAxis, useScheme, useTheme, type Renderer, cr, fw, ts, accentize } from "../env.js";
 import { reducedMotion } from "../primitives.js";
+import { accentDrivesPalette } from "../../../core/palette.js";
 import { SPRING, useRuntime } from "../runtime.js";
 import { useFirstAppearance } from "./first-appearance.js";
 
@@ -33,7 +34,13 @@ export const LayerFill: Renderer = (r) => {
   const shape = SILHOUETTES[s(p, "shape")] ?? SILHOUETTES.orb;
   const shelf = s(p, "items").trim() ? layerItems(p.items) : [];
   const seed = accentize(layerBands(p.layers, shelf.length ? shelf : layerItems("Water")));
-  const items = seed.items;
+  // A Style accent turns the bands and the shelf into a seeded palette around it (the Swift does the same); the house
+  // red, or an ink or grey accent, keeps the drink colours.
+  const theme = useTheme();
+  const scheme = useScheme();
+  const styled = theme && accentDrivesPalette(theme.accent.light, theme.accent.dark) ? theme.accent[scheme] : null;
+  const palette = styled ? accentPalette(styled, seed.items.length) : null;
+  const items = palette ? seed.items.map((it, i) => ({ ...it, color: palette[i] })) : seed.items;
   const seedKey = `${s(p, "items")}|${s(p, "layers")}`;
   const [bands, setBands] = useState<{ key: string; list: Band[] }>(() => ({ key: seedKey, list: seed.bands.map((b, i) => ({ ...b, key: i })) }));
   const list: Band[] = bands.key === seedKey ? bands.list : seed.bands.map((b, i) => ({ ...b, key: i }));
@@ -125,7 +132,7 @@ export const LayerFill: Renderer = (r) => {
       {shelf.length ? (
         <div style={{ display: "flex", alignSelf: "stretch", justifyContent: "space-between", gap: 6 }}>
           {shelf.map((it, i) => (
-            <ShelfButton key={it.name} name={it.name} color={it.color} onTap={(el) => add(i, el)} />
+            <ShelfButton key={it.name} name={it.name} color={items[i]?.color ?? it.color} onTap={(el) => add(i, el)} />
           ))}
         </div>
       ) : null}

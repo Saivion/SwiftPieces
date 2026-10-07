@@ -3,7 +3,8 @@
 // so the project export can include the source file. Only arguments that differ from the Swift
 // default are written, so the generated call reads like hand-written code. Their web renderers
 // (react/preview/pieces.tsx) behave like the Swift: holds fill, fields type, steppers scrub.
-import { house, houseBlocks, swiftRGB } from "../core/palette.js";
+import { house, houseBlocks, swiftRGB, swiftStyledAccent } from "../core/palette.js";
+import { accentPalette } from "./app-pieces/layer-fill.js";
 import type { EmitContext, Props, SwiftPieceDefinition } from "../core/schema.js";
 import { type Arg, INDENT, call, list, modifiers, num, str } from "../core/swift.js";
 import { bool, icon, link, linkStatement, number, opts, select, tappable, text, textStyleOptions } from "./shared.js";
@@ -159,7 +160,7 @@ export const commitButton: SwiftPieceDefinition = {
   concepts: ["state", "binding", "async", "closure", "piece"],
   anatomy: [
     { part: "Label", props: ["title", "successTitle"] },
-    { part: "Phase", props: ["phase", "errorMessage"] },
+    { part: "Phase", props: ["phase", "errorMessage", "collapses"] },
     { part: "After success", props: ["link"] },
   ],
   interactions: ["tap", "loading", "transition", "haptic"],
@@ -180,6 +181,7 @@ export const commitButton: SwiftPieceDefinition = {
     text("successTitle", "Success text", "Saved", { maxLength: 30 }),
     select("phase", "Starts as", "idle", opts(["idle", "Ready"], ["loading", "Loading"], ["success", "Success"], ["error", "Error"], ["disabled", "Disabled"]), { hint: "The initial phase. Tapping runs the action." }),
     text("errorMessage", "Error message", "Couldn't save", { when: { prop: "phase", equals: ["error"] }, maxLength: 40 }),
+    bool("collapses", "Shrink while loading", true, { hint: "Off keeps the button full width through loading and success, the spinner centred." }),
     link("link", "After success"),
   ],
   swift: {
@@ -194,7 +196,7 @@ export const commitButton: SwiftPieceDefinition = {
       const tint = kind === "tinted" ? "Theme.accent.opacity(0.16)" : kind === "outline" ? ".clear" : kind === "glass" ? "Theme.accent.opacity(0.14)" : "Theme.accent";
       const tintInk = kind === "solid" ? "Theme.accentInk" : "Theme.accent";
       const height = ctx.theme?.buttonHeight ?? 56;
-      const lines = call("CommitButton", [[null, str(s(p, "title"))], ["phase", `$${name}`], ctx.theme && ["tint", tint], ctx.theme && ["tintInk", tintInk], s(p, "successTitle").trim() !== "" && ["successTitle", str(s(p, "successTitle").trim())], height !== 56 && ["style", `.init(height: ${height})`]], action);
+      const lines = call("CommitButton", [[null, str(s(p, "title"))], ["phase", `$${name}`], ctx.theme && ["tint", tint], ctx.theme && ["tintInk", tintInk], s(p, "successTitle").trim() !== "" && ["successTitle", str(s(p, "successTitle").trim())], !b(p, "collapses") && ["collapses", "false"], height !== 56 && ["style", `.init(height: ${height})`]], action);
       return { lines: modifiers(lines, buttonFinish(ctx, kind)) };
     },
   },
@@ -682,7 +684,20 @@ export const ringBreakdown: SwiftPieceDefinition = {
     imports: [],
     emit(p) {
       const slices = parseSlices(s(p, "slices"));
-      const items = slices.map((x) => `.init(label: ${str(x.label)}, value: ${num(x.value)})`);
+      // A Style accent: the same seeded palette the preview draws, light and dark, one colour per slice.
+      const accent = swiftStyledAccent();
+      const lightPalette = accent ? accentPalette(accent.light, slices.length) : [];
+      const darkPalette = accent ? accentPalette(accent.dark, slices.length) : [];
+      const literal = (hex: string) => {
+        const v = hex.replace("#", "");
+        const c = (i: number) => Math.round((parseInt(v.slice(i, i + 2), 16) / 255) * 1000) / 1000;
+        return `Color(red: ${c(0)}, green: ${c(2)}, blue: ${c(4)})`;
+      };
+      const color = (i: number) => {
+        const [lc, dc] = [literal(lightPalette[i]), literal(darkPalette[i])];
+        return lc === dc ? lc : `Color(UIColor { $0.userInterfaceStyle == .dark ? UIColor(${dc}) : UIColor(${lc}) })`;
+      };
+      const items = slices.map((x, i) => `.init(label: ${str(x.label)}, value: ${num(x.value)}${accent ? `, color: ${color(i)}` : ""})`);
       return { lines: callWithArray("RingBreakdown", [], { label: "slices", items }, [b(p, "currency") && ["format", '.currency(code: "USD").precision(.fractionLength(0))'], !b(p, "legend") && ["showsLegend", "false"]]) };
     },
   },
@@ -1191,6 +1206,8 @@ export const motionCard: SwiftPieceDefinition = {
           n(p, "maxAngle") !== 10 && ["maxAngle", num(n(p, "maxAngle"))],
           n(p, "radius") !== 26 && ["cornerRadius", num(n(p, "radius"))],
           fill !== "signal" && ["style", `.init(fill: ${swiftRGB(house.blocks[fill] ?? house.signal)})`],
+          // With a Style, the card is its accent (piece sources keep the house red) with the ink that reads on it.
+          fill === "signal" && ctx.theme && ["style", ".init(fill: Theme.accent, foreground: Theme.accentInk)"],
         ], content),
       };
     },

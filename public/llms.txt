@@ -23,6 +23,11 @@ Rules for Liquid Glass: gate with `#available(iOS 26, *)` and a Material fallbac
 - [Free MCP endpoint](https://swiftpieces.com/api/mcp): search_pieces, get_piece, install_piece, list_categories, get_liquid_glass_guide
 - [Full text for LLMs](https://swiftpieces.com/llms-full.txt): every piece's notes and parameters, and every guide
 
+## Tools
+
+- [App Library](https://swiftpieces.com/apps): App Store apps remixed as original SwiftUI screens to try, take apart and remix in the browser Playground. Three are free; the rest come with Pro.
+- [Styles](https://swiftpieces.com/styles): make one style for every screen (accent, light and dark, iOS fonts, corners, cards, buttons, spacing, motion) on live SwiftUI components. A style travels as a short code (SP2-…) that the Playground's Style tab and its `?style=` links read, and exports as Theme.swift.
+
 ## Guides
 
 - [SwiftUI Animations: A Practical Guide with Examples](https://swiftpieces.com/docs/guides/swiftui-animations): SwiftUI animations explained with working examples: implicit and explicit animation, spring animation, transitions, keyframe animators, and gestures.

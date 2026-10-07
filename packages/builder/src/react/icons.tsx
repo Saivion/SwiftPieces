@@ -116,6 +116,13 @@ const SF: Record<string, LucideIcon> = {
 /** The preview's drawing of an SF Symbol. Nothing for "none" or an unknown name. */
 /** Symbols whose SF form is solid: drawn filled, the way their `.fill` name reads. */
 const SOLID = new Set(["heart.fill", "star.fill", "play.fill", "pause.fill", "forward.fill", "backward.fill", "person.crop.circle.fill"]);
+/**
+ * Symbols with no filled form in SF Symbols (arrows, chevrons, marks and other strokes):
+ * `.symbolVariant(.fill)` and hierarchical rendering leave them as they are in iOS, so Style's
+ * Filled and Two-tone must too. Filling their open paths painted a translucent shape under them
+ * (a triangle beneath every arrowhead).
+ */
+const OPEN = /^(arrow|chevron|plus$|minus$|xmark$|checkmark$|ellipsis$|line\.|slider\.|link$|paperclip$|textformat$|pencil$|wifi$|crop$|square\.and\.arrow)/;
 
 export function Glyph({ name, size = 20, style, strokeWidth = 1.9, className }: { name: string; size?: number; style?: CSSProperties; strokeWidth?: number; className?: string }) {
   const Icon = SF[name];
@@ -123,9 +130,10 @@ export function Glyph({ name, size = 20, style, strokeWidth = 1.9, className }: 
   // Solid symbols are drawn filled; the rest take Style's Symbols (a fill behind the outline for
   // filled and two-tone symbols, as `.symbolVariant(.fill)` and hierarchical rendering do in iOS).
   const solid = SOLID.has(name) && name !== "person.crop.circle.fill";
+  const open = OPEN.test(name);
   // Style's Icon size scales every symbol (--spb-icon-scale), as `.imageScale` does in the app.
   const scaled = `calc(${size}px * var(--spb-icon-scale, 1))`;
-  return <Icon aria-hidden className={className} size={size} strokeWidth={strokeWidth} fill={solid ? "currentColor" : "var(--spb-symbol-fill, none)"} fillOpacity={solid ? 1 : ("var(--spb-symbol-fill-opacity, 1)" as unknown as number)} style={{ flexShrink: 0, display: "block", width: scaled, height: scaled, ...style }} />;
+  return <Icon aria-hidden className={className} size={size} strokeWidth={strokeWidth} fill={solid ? "currentColor" : open ? "none" : "var(--spb-symbol-fill, none)"} fillOpacity={solid ? 1 : open ? 0 : ("var(--spb-symbol-fill-opacity, 1)" as unknown as number)} style={{ flexShrink: 0, display: "block", width: scaled, height: scaled, ...style }} />;
 }
 
 /**

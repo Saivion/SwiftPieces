@@ -4,7 +4,7 @@ description: "An async action button driven by one idle/loading/success/error/di
 piece: "CommitButton"
 category: "controls"
 minIOSVersion: "17.0"
-version: "2.0.0"
+version: "2.1.0"
 tags: ["button","loading","success","error","async","haptics"]
 registryDependencies: []
 ---
@@ -39,6 +39,7 @@ CommitButtonExample().preferredColorScheme(.light)
 | `errorTint` | Overrides the style's error fill, with white ink. `nil` uses `style.errorFill`. |
 | `successHold` | How long the success state stays before the label expands back. |
 | `successTitle` | Text shown beside the check on success, such as "Saved". `nil` keeps the success state a closed circle. |
+| `collapses` | Shrinks the capsule to its ring while it works (the default). `false` keeps it full width, the ring centred. |
 | `style` | Fills, ink, height and type. `.standard` is the house palette: signal, sage for success, butter for errors. |
 | `action` | Tap handler. Set `phase` to `.loading` inside it and to `.success` or `.error` when the work finishes. |
 
@@ -60,6 +61,7 @@ import SwiftUI
 ///   - errorTint: Overrides the style's error fill, with white ink. `nil` uses `style.errorFill`.
 ///   - successHold: How long the success state stays before the label expands back.
 ///   - successTitle: Text shown beside the check on success, such as "Saved". `nil` keeps the success state a closed circle.
+///   - collapses: Shrinks the capsule to its ring while it works (the default). `false` keeps it full width, the ring centred.
 ///   - style: Fills, ink, height and type. `.standard` is the house palette: signal, sage for success, butter for errors.
 ///   - action: Tap handler. Set `phase` to `.loading` inside it and to `.success` or `.error` when the work finishes.
 public struct CommitButton: View {
@@ -134,10 +136,11 @@ public struct CommitButton: View {
     private let errorTint: Color?
     private let successHold: Duration
     private let successTitle: String?
+    private let collapses: Bool
     private let style: Style
     private let action: () -> Void
 
-    public init(_ title: String, phase: Binding<Phase>, tint: Color? = nil, tintInk: Color? = nil, errorTint: Color? = nil, successHold: Duration = .milliseconds(900), successTitle: String? = nil, style: Style = .standard, action: @escaping () -> Void) {
+    public init(_ title: String, phase: Binding<Phase>, tint: Color? = nil, tintInk: Color? = nil, errorTint: Color? = nil, successHold: Duration = .milliseconds(900), successTitle: String? = nil, collapses: Bool = true, style: Style = .standard, action: @escaping () -> Void) {
         self.title = title
         self._phase = phase
         self.tint = tint
@@ -145,15 +148,20 @@ public struct CommitButton: View {
         self.errorTint = errorTint
         self.successHold = successHold
         self.successTitle = successTitle
+        self.collapses = collapses
         self.style = style
         self.action = action
         self._shownTitle = State(initialValue: title)
     }
 
-    /// Loading, and success until the check has drawn (or for good when there is no success title).
-    private var collapsed: Bool {
+    /// Loading, and success until the check has drawn (or for good when there is no success title):
+    /// the ring shows.
+    private var working: Bool {
         phase == .loading || (phase == .success && !(bloomed && successTitle != nil))
     }
+
+    /// Working, and set to shrink to the ring.
+    private var collapsed: Bool { collapses && working }
 
     private var fill: Color {
         switch phase {
@@ -180,7 +188,7 @@ public struct CommitButton: View {
             action()
         } label: {
             ZStack {
-                if collapsed {
+                if working {
                     ring.transition(.scale(scale: 0.6).combined(with: .opacity))
                 } else if phase == .success, let successTitle {
                     HStack(spacing: 10) {
@@ -220,7 +228,7 @@ public struct CommitButton: View {
             .animation(.smooth(duration: 0.3), value: ringClosed)
         }
         .buttonStyle(Squash())
-        .disabled(collapsed || phase == .success || phase == .disabled)
+        .disabled(working || phase == .success || phase == .disabled)
         .keyframeAnimator(initialValue: 0.0, trigger: shakes) { content, x in
             content.offset(x: shakeAllowed ? x : 0)
         } keyframes: { _ in

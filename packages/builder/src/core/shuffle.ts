@@ -257,19 +257,21 @@ export type ShuffleResult = { theme: Theme; mood: Mood; seed: number };
 
 /**
  * A new style from `seed`. Locked sections keep `current`'s values; the rest follow one mood's
- * rules (or, now and then, a wildcard mood that mixes any of them). Always a valid theme.
+ * rules (or, now and then, a wildcard mood that mixes any of them). `moodId` asks for one mood
+ * (`moods[i].id`), with no wildcards. Always a valid theme.
  */
-export function shuffleTheme(seed: number, current: Theme | undefined, locks: ReadonlySet<StyleSection> = new Set(), recent: readonly Theme[] = []): ShuffleResult {
+export function shuffleTheme(seed: number, current: Theme | undefined, locks: ReadonlySet<StyleSection> = new Set(), recent: readonly Theme[] = [], moodId?: string): ShuffleResult {
+  const only = moodId ? moods.find((m) => m.id === moodId) : undefined;
   // Random, but never a rerun: of a dozen candidates, the first that differs enough from every
   // recent style (another preset than the last, another accent hue than the last two, most parts
   // changed against the last eight) wins; failing that, the one furthest from all of them.
   const seen = [...(current ? [current] : []), ...recent].slice(-8);
-  if (!seen.length) return shuffleOnce(seed, current, locks);
+  if (!seen.length) return shuffleOnce(seed, current, locks, only);
   const r = rng(seed);
   let best: ShuffleResult | null = null;
   let bestScore = -1;
   for (let i = 0; i < 12; i++) {
-    const c = shuffleOnce(i === 0 ? seed : Math.floor(r() * 0xffffffff) >>> 0, current, locks);
+    const c = shuffleOnce(i === 0 ? seed : Math.floor(r() * 0xffffffff) >>> 0, current, locks, only);
     const last = seen[seen.length - 1];
     const lastTwo = seen.slice(-2);
     const nearest = Math.min(...seen.map((t) => styleDistance(c.theme, t, locks)));
@@ -310,12 +312,13 @@ function freshEnough(locks: ReadonlySet<StyleSection>): number {
   return Math.ceil(free * 0.55);
 }
 
-/** One draw from `seed`, before the check against recent styles. */
-function shuffleOnce(seed: number, current: Theme | undefined, locks: ReadonlySet<StyleSection>): ShuffleResult {
+/** One draw from `seed`, before the check against recent styles: in `only`'s mood when given. */
+function shuffleOnce(seed: number, current: Theme | undefined, locks: ReadonlySet<StyleSection>, only?: Mood): ShuffleResult {
   const r = rng(seed);
-  const mood = pick(r, moods);
-  // One in four pulls single parts from other moods too, for the surprising ones.
-  const wild = r() < 1 / 4;
+  const mood = only ?? pick(r, moods);
+  // One in four pulls single parts from other moods too, for the surprising ones (not when a mood
+  // was asked for: the style should read as that mood).
+  const wild = !only && r() < 1 / 4;
   const from = <K extends keyof Mood>(k: K): Mood[K] => (wild && r() < 0.35 ? pick(r, moods)[k] : mood[k]);
   const extra = <K extends keyof Extra>(k: K): Extra[K] => (wild && r() < 0.35 ? EXTRA[pick(r, moods).id][k] : EXTRA[mood.id][k]);
 
@@ -448,8 +451,9 @@ const V1_CHOICES = 12;
 const V2_FIRST = 20;
 
 /**
- * A short code for a style ("SP1-…"), made of the preset, accent, fonts and every choice as small
- * numbers. It recreates the style exactly (decodeStyle), so it can be shared or pasted back.
+ * A short code for a style ("SP2-…"; older "SP1-…" codes still decode), made of the preset,
+ * accent, fonts and every choice as small numbers. It recreates the style exactly (decodeStyle),
+ * so it can be shared or pasted back.
  */
 export function encodeStyle(t: Theme): string {
   const lookIdx = Math.max(0, looks.findIndex((l) => l.id === t.look));

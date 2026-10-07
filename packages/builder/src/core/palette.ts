@@ -206,19 +206,50 @@ export type HouseBlock = keyof typeof house.blocks;
 export const houseBlocks = ["tangerine", "sky", "butter", "sage", "lilac", "sand"];
 
 let signalAs: string | null = null;
+let styledAccent: { light: string; dark: string } | null = null;
 
 /**
  * While a themed app is written, the house signal red (#FF0000) in any component is written as the
  * app's accent, so a Style accent reaches every component in the exported SwiftUI, as in the preview.
  */
-export function withSwiftAccent<T>(accent: string | null, fn: () => T): T {
+export function withSwiftAccent<T>(accent: string | null, fn: () => T, styled: { light: string; dark: string } | null = null): T {
   const prev = signalAs;
+  const prevStyled = styledAccent;
   signalAs = accent;
+  styledAccent = accent ? styled : null;
   try {
     return fn();
   } finally {
     signalAs = prev;
+    styledAccent = prevStyled;
   }
+}
+
+/**
+ * Whether a Style's accent (its light and dark values) should drive a piece's own palette: it has to
+ * have moved off the house red, and carry colour. An ink or grey accent (a monochrome Style) would turn
+ * colour into greys, so pieces keep their designed colours under it.
+ */
+export function accentDrivesPalette(...hexes: string[]): boolean {
+  return hexes.length > 0 && hexes.every((hex) => {
+    const v = hex.replace("#", "");
+    if (/^ff0000$/i.test(v) || v.length !== 6) return false;
+    const [r, g, b] = [0, 2, 4].map((i) => parseInt(v.slice(i, i + 2), 16) / 255);
+    const max = Math.max(r, g, b), min = Math.min(r, g, b);
+    const light = (max + min) / 2;
+    const sat = max === min ? 0 : (max - min) / (1 - Math.abs(2 * light - 1));
+    return sat >= 0.12 && light > 0.08 && light < 0.95;
+  });
+}
+
+/**
+ * The Style accent's light and dark values while a themed app is written, when that accent drives
+ * pieces' own palettes (`accentDrivesPalette`), else null. Pieces whose colours should follow a Style
+ * (Layer Fill's bands) key off this; the default house look keeps their designed colours, as the
+ * preview does.
+ */
+export function swiftStyledAccent(): { light: string; dark: string } | null {
+  return styledAccent;
 }
 
 /** The Swift for a colour when it is the house red and the app has an accent to write instead; else null. */

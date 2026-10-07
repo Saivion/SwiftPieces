@@ -1,6 +1,6 @@
 // SwiftUI generation. Reads the same ScreenNode tree the preview renders, through the same
 // definitions, so the code always describes what is on screen. It never parses code back.
-import { colorEntry, withSwiftAccent } from "./palette.js";
+import { accentDrivesPalette, colorEntry, withSwiftAccent } from "./palette.js";
 import { rewriteCorners, rewriteFonts, themeBackgroundLines, themeCardLines, themeEntranceLines, themeFontLines, themeMotionLines, themeRootModifiers, themeShapeLines, usesThemeFonts } from "./theme-swift.js";
 import { defaultProps, type ComponentRegistry } from "./registry.js";
 import type { EmitContext, NavTarget, Project, Screen, ScreenNode, Theme } from "./schema.js";
@@ -77,7 +77,9 @@ const SWIFTUI = "SwiftUI";
  */
 export function generateScreen(screen: Screen, registry: ComponentRegistry, screens: Screen[] = [screen], theme?: Theme, tabs: string[] = []): GeneratedScreen {
   // A themed app writes the house signal red as its accent in every component (see swiftSignal).
-  const out = withSwiftAccent(theme ? "Theme.accent" : null, () => emitScreen(screen, registry, screens, theme, tabs));
+  const resolved = theme ? resolveTheme(theme) : null;
+  const styled = resolved && accentDrivesPalette(resolved.accent.light, resolved.accent.dark) ? { light: resolved.accent.light, dark: resolved.accent.dark } : null;
+  const out = withSwiftAccent(theme ? "Theme.accent" : null, () => emitScreen(screen, registry, screens, theme, tabs), styled);
   // The same for the red written straight into components' Swift (their helpers and constants).
   // A wrong answer's red is written as \`red: 1.0\` so it stays red, as in the preview.
   if (!theme) return out;
@@ -285,17 +287,7 @@ function appFile(appName: string, root: string, theme: ResolvedTheme | null, aft
   // The look applies once, at the root: every screen, sheet and pushed view inherits it.
   // Xcode's style: under a one-line view, modifiers indent; after a closing brace they align with it.
   const pad = !after && root === "ContentView" ? "                " : "            ";
-  const mods = theme
-    ? [
-        "tint(Theme.accent)",
-        ...themeRootModifiers(theme),
-        FONT_WEIGHT[theme.weight] ? `fontWeight(${FONT_WEIGHT[theme.weight]})` : null,
-        FONT_WIDTH[theme.width] ? `fontWidth(${FONT_WIDTH[theme.width]})` : null,
-        TRACKING[theme.tracking] ? `tracking(${TRACKING[theme.tracking]})` : null,
-        DYNAMIC_TYPE[theme.textSize] ? `dynamicTypeSize(${DYNAMIC_TYPE[theme.textSize]})` : null,
-        theme.appearance !== "system" ? `preferredColorScheme(.${theme.appearance})` : null,
-      ].filter((m): m is string => Boolean(m)).map((m) => `${pad}.${m}`)
-    : [];
+  const mods = theme ? rootModifiers(theme).map((m) => `${pad}.${m}`) : [];
   return [
     importLine(SWIFTUI),
     "",
@@ -315,14 +307,41 @@ function appFile(appName: string, root: string, theme: ResolvedTheme | null, aft
   ].join("\n");
 }
 
-/** Theme.swift: the look's colors as adaptive SwiftUI colors, read by the screens and the app root. */
-function themeFile(theme: ResolvedTheme): string {
+/** The modifiers a themed app's root carries, without their dot: every view below inherits them. */
+function rootModifiers(theme: ResolvedTheme): string[] {
+  return [
+    "tint(Theme.accent)",
+    ...themeRootModifiers(theme),
+    FONT_WEIGHT[theme.weight] ? `fontWeight(${FONT_WEIGHT[theme.weight]})` : null,
+    FONT_WIDTH[theme.width] ? `fontWidth(${FONT_WIDTH[theme.width]})` : null,
+    TRACKING[theme.tracking] ? `tracking(${TRACKING[theme.tracking]})` : null,
+    DYNAMIC_TYPE[theme.textSize] ? `dynamicTypeSize(${DYNAMIC_TYPE[theme.textSize]})` : null,
+    theme.appearance !== "system" ? `preferredColorScheme(.${theme.appearance})` : null,
+  ].filter((m): m is string => Boolean(m));
+}
+
+/**
+ * A style for an app of your own, not one from the Playground: Theme.swift exactly as the
+ * Playground's export writes it, and an App whose root wears the style (its modifiers, plus the
+ * init that styles navigation bars when there's a heading font). With both in an Xcode project,
+ * every view under ContentView follows the style. `appName` names the App struct (`<name>App`).
+ */
+export function styleSwift(theme: Theme, appName = "My"): { theme: string; app: string } {
+  const resolved = resolveTheme(theme);
+  return { theme: themeFile(resolved, "SwiftPieces Styles"), app: appFile(appName, "ContentView", resolved) };
+}
+
+/**
+ * Theme.swift: the look's colors as adaptive SwiftUI colors, read by the screens and the app root.
+ * `madeIn` names where the style was made, for the file's opening comment.
+ */
+function themeFile(theme: ResolvedTheme, madeIn = "the SwiftPieces playground"): string {
   const pair = (name: string, doc: string, p: { light: string; dark: string }) => [`    /// ${doc}`, `    static let ${name} = Color(light: ${swiftHex(p.light)}, dark: ${swiftHex(p.dark)})`];
   return [
     importLine(SWIFTUI),
     importLine("UIKit"),
     "",
-    `/// The app's look, made in the SwiftPieces playground (${theme.look.name}). Change a value here`,
+    `/// The app's look, made in ${madeIn} (${theme.look.name}). Change a value here`,
     "/// and every screen follows. The accent is also the app's AccentColor asset.",
     "enum Theme {",
     ...pair("accent", "Buttons, links, selection and tinted controls.", theme.accent),

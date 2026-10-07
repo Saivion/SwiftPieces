@@ -405,6 +405,7 @@ Async action button whose whole lifecycle is one bound `phase`.
 - `errorTint`: Overrides the style's error fill, with white ink. `nil` uses `style.errorFill`.
 - `successHold`: How long the success state stays before the label expands back.
 - `successTitle`: Text shown beside the check on success, such as "Saved". `nil` keeps the success state a closed circle.
+- `collapses`: Shrinks the capsule to its ring while it works (the default). `false` keeps it full width, the ring centred.
 - `style`: Fills, ink, height and type. `.standard` is the house palette: signal, sage for success, butter for errors.
 - `action`: Tap handler. Set `phase` to `.loading` inside it and to `.success` or `.error` when the work finishes.
 

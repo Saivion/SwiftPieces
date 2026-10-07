@@ -2,7 +2,7 @@
 // log (a drink, a serving, a deposit), with a shelf of quick-add buttons under it. Each tap drops a
 // new band in with a spring and a wave on its top edge; tapping the figure takes the last one back.
 // The SwiftUI is written inline: a Shape per silhouette, a wave Shape per band, one small view.
-import { swiftRGB } from "../../core/palette.js";
+import { swiftRGB, swiftStyledAccent } from "../../core/palette.js";
 import type { Props, SwiftPieceDefinition } from "../../core/schema.js";
 import { INDENT, indent, list, num, str } from "../../core/swift.js";
 import { number, opts, select, text } from "../shared.js";
@@ -18,6 +18,62 @@ const NAMED: Record<string, string> = {
   milk: "#F4F3EF", smoothie: "#FF8FB8", energy: "#9CC2FF", sparkling: "#9CC2FF", savings: "#A9DCB7", rent: "#CDB8FF",
 };
 const CYCLE = ["#4D8DFF", "#FF8FB8", "#FF7A3C", "#FFD976", "#FF0000", "#9CC2FF", "#A9DCB7", "#CDB8FF"];
+
+/**
+ * With a Style accent, the bands become a palette around it instead of the drink colours: the accent
+ * first, then neighbouring hues (within 60°) at lighter and deeper steps, picked by a generator seeded from
+ * the accent. Every shuffle (a new accent) gets a different mix that still belongs to its colour, and
+ * the preview and the Swift draw the same one.
+ */
+export function accentPalette(hex: string, count: number): string[] {
+  const [h, sat, light] = hexToHsl(hex);
+  let seed = parseInt(hex.replace("#", "").slice(0, 6), 16) || 1;
+  const rand = () => {
+    // mulberry32: small, fast, and the same numbers on every machine.
+    seed = (seed + 0x6d2b79f5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+  // Hue steps around the accent, near neighbours on both sides out to 60°, shuffled per accent, so
+  // the liquid stays in the accent's family instead of jumping across the wheel.
+  const offsets = [12, -12, 24, -24, 38, -38, 52, -52, 60, -60];
+  for (let i = offsets.length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1));
+    [offsets[i], offsets[j]] = [offsets[j], offsets[i]];
+  }
+  const out = [hex.toLowerCase()];
+  for (let i = 1; i < count; i++) {
+    const hue = (h + offsets[(i - 1) % offsets.length] + 360) % 360;
+    // Keep the accent's own intensity: a muted Style stays muted, a vivid one stays vivid.
+    const s2 = Math.min(0.92, Math.max(0.25, sat * (0.8 + rand() * 0.25)));
+    // Alternate lighter and deeper steps from the accent so neighbouring bands never blur together.
+    const l2 = i % 2 ? Math.min(0.88, light + 0.1 + rand() * 0.16) : Math.max(0.28, light - 0.08 - rand() * 0.14);
+    out.push(hslToHex(hue, s2, l2));
+  }
+  return out;
+}
+
+function hexToHsl(hex: string): [number, number, number] {
+  const v = hex.replace("#", "");
+  const [r, g, b] = [0, 2, 4].map((i) => parseInt(v.slice(i, i + 2), 16) / 255);
+  const max = Math.max(r, g, b), min = Math.min(r, g, b), l = (max + min) / 2;
+  if (max === min) return [0, 0, l];
+  const d = max - min;
+  const s = d / (1 - Math.abs(2 * l - 1));
+  const h = max === r ? ((g - b) / d + (g < b ? 6 : 0)) : max === g ? (b - r) / d + 2 : (r - g) / d + 4;
+  return [h * 60, s, l];
+}
+
+function hslToHex(h: number, s: number, l: number): string {
+  const a = s * Math.min(l, 1 - l);
+  const f = (n: number) => {
+    const k = (n + h / 30) % 12;
+    const c = l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1));
+    return Math.round(c * 255).toString(16).padStart(2, "0");
+  };
+  return `#${f(0)}${f(8)}${f(4)}`;
+}
 
 export type LayerItem = { name: string; color: string };
 export type LayerBand = { item: number; amount: number };
@@ -142,7 +198,16 @@ export const layerFill: SwiftPieceDefinition = {
         "}",
       ]);
       ctx.declare("layer-fill:view", LAYER_FILL_SWIFT);
-      const itemLines = items.map((it) => `.init(name: ${str(it.name)}, color: ${swiftRGB(it.color)}),`);
+      // A Style accent: the same seeded palette the preview draws, light and dark.
+      const accent = swiftStyledAccent();
+      const lightPalette = accent ? accentPalette(accent.light, items.length) : [];
+      const darkPalette = accent ? accentPalette(accent.dark, items.length) : [];
+      const color = (it: LayerItem, i: number) => {
+        if (!accent) return swiftRGB(it.color);
+        const [lc, dc] = [rgbLiteral(lightPalette[i]), rgbLiteral(darkPalette[i])];
+        return lc === dc ? lc : `Color(UIColor { $0.userInterfaceStyle == .dark ? UIColor(${dc}) : UIColor(${lc}) })`;
+      };
+      const itemLines = items.map((it, i) => `.init(name: ${str(it.name)}, color: ${color(it, i)}),`);
       const bandLines = bands.length ? `[${bands.map((b) => `.init(item: ${b.item}, amount: ${num(b.amount)})`).join(", ")}]` : "[]";
       const readout = ["large", "small", "hidden"].includes(s(p, "readout")) ? s(p, "readout") : "large";
       return {
@@ -165,6 +230,13 @@ export const layerFill: SwiftPieceDefinition = {
     },
   },
 };
+
+/** `Color(red:green:blue:)` for a palette hex, written literally (never swapped for the accent). */
+function rgbLiteral(hex: string): string {
+  const v = hex.replace("#", "");
+  const c = (i: number) => Math.round((parseInt(v.slice(i, i + 2), 16) / 255) * 1000) / 1000;
+  return `Color(red: ${c(0)}, green: ${c(2)}, blue: ${c(4)})`;
+}
 
 const I = INDENT;
 /** The view every Layer Fill uses: bands as wave shapes, a readout, a shelf. */

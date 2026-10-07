@@ -8,7 +8,7 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react"
  * stroke by stroke the first time the card scrolls into view.
  */
 
-export type SketchKind = "slider" | "cards" | "grid" | "terminal" | "sun" | "crown" | "phones" | "windows" | "spark" | "sponsor";
+export type SketchKind = "slider" | "cards" | "grid" | "terminal" | "sun" | "crown" | "phones" | "windows" | "spark" | "sponsor" | "palette";
 
 type Prim =
   | { t: "line"; a: [number, number]; b: [number, number] }
@@ -41,6 +41,8 @@ const ICONS: Record<SketchKind, Prim[]> = {
   spark: [L(60, 12, 60, 44), L(44, 28, 76, 28), L(49, 17, 71, 39), L(71, 17, 49, 39), L(30, 56, 90, 56), L(30, 66, 72, 66)],
   // Sponsors: a heart.
   sponsor: [{ t: "arc", cx: 49, cy: 32, r: 11, from: 150, to: 360 }, { t: "arc", cx: 71, cy: 32, r: 11, from: 180, to: 390 }, L(39, 38, 60, 62), L(81, 38, 60, 62)],
+  // A painter's palette: its outline open where the thumb goes, the thumb hole, and four paints.
+  palette: [{ t: "arc", cx: 60, cy: 40, r: 27, from: 60, to: 380 }, { t: "circle", cx: 70, cy: 55, r: 6 }, { t: "dot", cx: 46, cy: 32 }, { t: "dot", cx: 57, cy: 24 }, { t: "dot", cx: 70, cy: 27 }, { t: "dot", cx: 77, cy: 39 }],
 };
 
 /** Small deterministic PRNG, so a card's strokes wobble the same way on every render. */
