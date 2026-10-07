@@ -3,7 +3,7 @@
 // description: Paged cards that recede in depth as they leave center and hand each page a phase value for inner parallax. Neighbors come forward on tap, and a page counter sits beside a scrubbable pill indicator computed in absolute page coordinates so it never jumps.
 // category: lists
 // minIOSVersion: "17.0"
-// version: "2.0.0"
+// version: "2.0.1"
 // pro: depth-gallery
 // tags: [carousel, scroll, paging, depth, parallax, counter]
 
@@ -240,7 +240,7 @@ public struct DepthCarouselStyle: Sendable {
     public static let standard = DepthCarouselStyle()
 
     private static func adaptive(_ light: UInt32, _ dark: UInt32) -> Color {
-        Color(UIColor { traits in
+        Color(UIColor { @Sendable traits in
             let hex = traits.userInterfaceStyle == .dark ? dark : light
             return UIColor(red: CGFloat((hex >> 16) & 0xFF) / 255, green: CGFloat((hex >> 8) & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
         })
@@ -293,7 +293,7 @@ private struct DepthCarouselExample: View {
             .clipShape(.rect(cornerRadius: 34, style: .continuous))
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(UIColor { $0.userInterfaceStyle == .dark ? UIColor(red: 0.071, green: 0.071, blue: 0.071, alpha: 1) : UIColor(red: 0.953, green: 0.949, blue: 0.933, alpha: 1) }))
+        .background(Color(UIColor { @Sendable traits in traits.userInterfaceStyle == .dark ? UIColor(red: 0.071, green: 0.071, blue: 0.071, alpha: 1) : UIColor(red: 0.953, green: 0.949, blue: 0.933, alpha: 1) }))
     }
 }
 

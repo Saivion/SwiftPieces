@@ -54,6 +54,8 @@ The same goes for the tools underneath. Wrangler and OpenNext only act on a Clou
 npm run swift:typecheck && npm run registry:build && npm run typecheck
 ```
 
+A piece has to build and run in two kinds of app: one with Swift's default isolation, and one made with Xcode 26 or later, which makes the main actor the default. In the second, anything SwiftUI or UIKit calls off the main actor must opt out with `nonisolated`: layout value keys, helpers called from a shape's `path(in:)`, `VectorArithmetic` types and other pure math. A dynamic color is written `UIColor { @Sendable traits in … }`, because SwiftUI resolves colors on its render thread. `swift:typecheck` checks every piece both ways.
+
 `registry:build` regenerates `registry/__registry__`, `content/docs`, `public/llms.txt` and `public/schema`. **Commit what it generates.** CI fails if the generated output does not match the source, so a PR that edits a `.swift` file without rerunning the build will be rejected, and so will a hand edit to the generated files.
 
 ## Rules
@@ -71,7 +73,7 @@ Some files build, deploy or configure SwiftPieces rather than make up the librar
 
 - **Dependencies:** any `package.json`, `package-lock.json` or `.npmrc`
 - **Repo setup:** `.github/`, `.gitignore`, `.gitattributes`, `.nvmrc`, `LICENSE`
-- **Build and deploy:** `scripts/`, `wrangler.jsonc`, `open-next.config.ts`, `next.config.ts`, `postcss.config.mjs`, any `tsconfig*.json`, `cloudflare-env.d.ts`
+- **Build and deploy:** `scripts/`, `wrangler.jsonc`, `open-next.config.ts`, `next.config.ts`, `source.config.ts`, `postcss.config.mjs`, any `tsconfig*.json`, `cloudflare-env.d.ts`
 - **Runtime config:** `middleware.ts`, `instrumentation-client.ts`, `public/_headers`
 - **Xcode project files:** anything inside a `.xcodeproj` or `.xcworkspace`, plus `.xcscheme`, `.xcconfig` and `.entitlements` files and `Package.swift`
 
@@ -100,6 +102,8 @@ A fix to TaskRow, for example, might read:
 
 Commit messages follow [Conventional Commits](https://www.conventionalcommits.org): `feat:`, `fix:`, `docs:`, `style:`, `refactor:`, `chore:`. The subject line says what changed, in the present tense.
 
+Pull requests are squash-merged, and every merge to `main` is published as a [release](https://github.com/Saivion/SwiftPieces/releases). The type sets the version: `feat` bumps the minor version, a `!` after any type (`fix!:`) bumps the major, and anything else bumps the patch.
+
 CI on a pull request from a fork waits for the maintainer to approve the run, so a new PR can show "waiting for approval" for a while. That's expected. Once it runs, it must be green before review:
 
 | Check | What it does |
@@ -109,7 +113,7 @@ CI on a pull request from a fork waits for the maintainer to approve the run, so
 | TypeScript | `npm run typecheck` |
 | Bundle gate | the Worker must stay under 8 MB compressed |
 | Public-safety audit | nothing Pro-shaped, nothing secret |
-| Swift type-check | every piece against the iOS simulator SDK, when Swift or Metal changed |
+| Swift type-check | every piece against the iOS simulator SDK, with the default isolation and with the main actor as the default, when Swift or Metal changed |
 | Protected files | fails if a PR from a fork changes a [maintainer-only file](#files-only-the-maintainer-changes) |
 
 Pull requests from forks don't get a preview deployment, because Cloudflare only builds branches in this repository. That's why the test notes matter, and why a screen recording helps with anything visual.

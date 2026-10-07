@@ -3,6 +3,7 @@
 // description: A dark glass ball with a Siri-style voice wave inside, locked to the thinking state; four thin sine membranes travel through the equator of a refracting shell, drawn by a Metal color shader. The sphere never moves, only the wave, and a palette change crossfades its colours.
 // category: ai
 // minIOSVersion: "17.0"
+// version: "1.0.1"
 // tags: [ai, orb, shader, metal, thinking]
 // shaders: [AssistantOrb.metal]
 
@@ -66,7 +67,7 @@ public struct AssistantOrb: View {
     }
 
     /// The 24 colour components as one animatable vector, so a palette change crossfades.
-    private struct WaveColors: VectorArithmetic {
+    nonisolated private struct WaveColors: VectorArithmetic {
         var v: [Double]
 
         static var zero: Self { Self(v: Array(repeating: 0, count: 24)) }

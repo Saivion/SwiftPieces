@@ -2,7 +2,7 @@
 // title: Floating Dock
 // description: "A floating dock on a solid surface where the selected item becomes a color block with its label, a drag across the dock lifts each item under the finger with a name bubble and commits on release, badges count in a signal pill, and the whole dock tucks away on scroll."
 // category: navigation
-// version: "2.0.0"
+// version: "2.0.1"
 // pro: lens-tab-bar
 // minIOSVersion: "17.0"
 // tags: [tab bar, dock, navigation, gesture, badge]
@@ -66,7 +66,7 @@ public struct FloatingDock: View {
         )
 
         fileprivate static func adaptive(_ light: UInt32, _ dark: UInt32) -> Color {
-            Color(uiColor: UIColor { traits in
+            Color(uiColor: UIColor { @Sendable traits in
                 let hex = traits.userInterfaceStyle == .dark ? dark : light
                 return UIColor(red: CGFloat((hex >> 16) & 0xFF) / 255, green: CGFloat((hex >> 8) & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
             })

@@ -35,7 +35,7 @@ jobs:
           protected=(
             '(^|/)package(-lock)?\.json$' '(^|/)\.npmrc$'
             '^\.github/' '^\.gitignore$' '^\.gitattributes$' '^\.nvmrc$' '(^|/)LICENSE$'
-            '^scripts/' '^wrangler\.' '^open-next\.config\.' '^next\.config\.' '^postcss\.config\.'
+            '^scripts/' '^wrangler\.' '^open-next\.config\.' '^next\.config\.' '^source\.config\.' '^postcss\.config\.'
             '(^|/)tsconfig[^/]*\.json$' '^cloudflare-env\.d\.ts$'
             '^middleware\.ts$' '^instrumentation[^/]*\.ts$' '^public/(_headers|_redirects|_routes\.json)$'
             '\.(xcodeproj|xcworkspace)/' '\.(xcscheme|xcconfig|entitlements)$' '(^|/)Package\.(swift|resolved)$'

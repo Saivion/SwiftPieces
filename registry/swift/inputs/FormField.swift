@@ -3,7 +3,7 @@
 // description: A text field on a soft 56pt block whose label rests inside as a placeholder and glides up into a caption on focus or once filled, with an optional leading icon, a clear button, help text, a grapheme-accurate character limit with a counter that turns into a tangerine chip and bumps when extra input is refused, and validation that waits until you leave the field before drawing an error ring, sliding in the message with an error haptic and a VoiceOver announcement, then shows a sage check once fixed.
 // category: inputs
 // minIOSVersion: "17.0"
-// version: "1.0.0"
+// version: "1.0.1"
 // added: "2026-09-23"
 // tags: [textfield, form, floating-label, validation, character-limit, counter]
 
@@ -377,7 +377,7 @@ extension EnvironmentValues {
 
 /// A house-palette color that follows the interface style.
 private func adaptive(light: UInt32, dark: UInt32) -> Color {
-    Color(uiColor: UIColor { traits in
+    Color(uiColor: UIColor { @Sendable traits in
         let hex = traits.userInterfaceStyle == .dark ? dark : light
         return UIColor(red: CGFloat((hex >> 16) & 0xFF) / 255, green: CGFloat((hex >> 8) & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
     })

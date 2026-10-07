@@ -215,6 +215,22 @@ html.light .frame-row > *::before { --dash: rgb(0 0 0 / 0.2); }
 @media (min-width: 48rem) { #nd-docs-layout { --fd-sidebar-width: 272px; } }
 .prose :where(code):not(:where(pre *)) { font-weight: 500; }
 
+/* Highlighted code: a token's colours come from its class (lib/compact-code.ts), not an inline style.
+   Fumadocs paints `code span` with these variables and switches to --shiki-dark under .dark. */
+.shiki code {
+  .k { --shiki-light: #d73a49; --shiki-dark: #f97583; }
+  .c { --shiki-light: #005cc5; --shiki-dark: #79b8ff; }
+  .f { --shiki-light: #6f42c1; --shiki-dark: #b392f0; }
+  .s { --shiki-light: #032f62; --shiki-dark: #9ecbff; }
+  .m { --shiki-light: #6a737d; --shiki-dark: #6a737d; }
+  .v { --shiki-light: #e36209; --shiki-dark: #ffab70; }
+  .t { --shiki-light: #22863a; --shiki-dark: #85e89d; }
+  .i { --shiki-light: #b31d28; --shiki-dark: #fdaeb7; }
+  .r { --shiki-light: #032f62; --shiki-dark: #dbedff; }
+  .b { --shiki-light: #586069; --shiki-dark: #d1d5da; }
+  .u { --shiki-light: #f6f8fa; --shiki-dark: #2f363d; }
+}
+
 /* Docs sidebar: the site radius (4px) on rows, hover and selection; the switcher card and its popover keep 10px like the filter box.
    Fumadocs top-aligns the icon in switcher options (md:mb-auto); center it instead. */
 #nd-docs-layout aside :is(a, button).rounded-lg { border-radius: var(--radius); }

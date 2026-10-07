@@ -3,7 +3,7 @@
 // description: One continuous stroke that spins as a loading arc, closes into a ring, floods into a solid block and draws a check in dark ink on success, or a cross with a nudge on failure, with an optional morphing caption.
 // category: feedback
 // minIOSVersion: "17.0"
-// version: "2.0.0"
+// version: "2.0.1"
 // pro: tool-execution-card
 // tags: [status, loading, success, failure, trim, haptic, upload]
 
@@ -67,10 +67,10 @@ public struct StatusMorph: View {
 
         /// A color that resolves to `light` or `dark` hex by the current appearance.
         public static func adaptive(_ light: UInt32, _ dark: UInt32) -> Color {
-            Color(uiColor: UIColor { $0.userInterfaceStyle == .dark ? rgb(dark) : rgb(light) })
+            Color(uiColor: UIColor { @Sendable traits in traits.userInterfaceStyle == .dark ? rgb(dark) : rgb(light) })
         }
 
-        private static func rgb(_ hex: UInt32) -> UIColor {
+        nonisolated private static func rgb(_ hex: UInt32) -> UIColor {
             UIColor(red: CGFloat((hex >> 16) & 0xFF) / 255, green: CGFloat((hex >> 8) & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
         }
     }

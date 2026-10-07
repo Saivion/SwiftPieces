@@ -3,7 +3,7 @@
 // description: "A crop step for profile photos, posts and listings that keeps the picked photo covering a frame of the chosen aspect at every zoom and offset, pinches around the fingers while it pans, rubber-bands past its limits and springs back with a red flash on the frame and a rigid tick at a zoom limit, morphs between circle, square, 4:5, 16:9 and the photo's own shape without losing the subject, turns a quarter at a time, fades in a rule-of-thirds grid under the finger, and renders the crop off the main thread at the original's full resolution together with its pixel rect and rotation for cropping again on a server."
 // category: media
 // minIOSVersion: "17.0"
-// version: "1.0.0"
+// version: "1.0.1"
 // added: "2026-09-29"
 // tags: [crop, photo, avatar, pinch-zoom, rotate, aspect-ratio, image, editor]
 
@@ -84,7 +84,7 @@ public struct PhotoCropper: View {
         public func titled(_ title: String) -> Aspect { Aspect(kind: kind, title: title) }
 
         /// Width over height: the fixed ratio, `1` for the circle, `nil` for the photo's own shape.
-        public var ratio: CGFloat? {
+        nonisolated public var ratio: CGFloat? {
             switch kind {
             case .ratio(let width, let height): width > 0 && height > 0 ? CGFloat(width) / CGFloat(height) : 1
             case .circle: 1
@@ -1255,7 +1255,7 @@ private struct CropLayout {
     }
 }
 
-private enum CropMath {
+nonisolated private enum CropMath {
     /// A unit point of the upright photo, in the photo turned `turns` quarter turns to the left.
     static func rotate(_ point: CGPoint, turns: Int) -> CGPoint {
         switch turns & 3 {
@@ -1781,7 +1781,7 @@ private enum CropRenderer {
 
 /// A house-palette color that follows the interface style.
 private func adaptive(light: UInt32, dark: UInt32) -> Color {
-    Color(uiColor: UIColor { traits in
+    Color(uiColor: UIColor { @Sendable traits in
         let hex = traits.userInterfaceStyle == .dark ? dark : light
         return UIColor(red: CGFloat((hex >> 16) & 0xFF) / 255, green: CGFloat((hex >> 8) & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
     })

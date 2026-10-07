@@ -2265,7 +2265,7 @@ private struct PagedListScene: View {
     }
 }
 
-private struct PagedListSceneItem: Identifiable, Sendable {
+nonisolated private struct PagedListSceneItem: Identifiable, Sendable {
     let id: Int
     static let merchants = ["Juniper Coffee", "Riverside Books", "Northline Transit", "Maison Bakery", "Studio Nine", "Fieldhouse Gym", "Almanac Market", "Sprig Florist"]
     static let tiles: [UInt32] = [0xFFD976, 0x9CC2FF, 0xA9DCB7, 0xCDB8FF, 0xE9D5B3, 0xFF5B3A]
@@ -2477,7 +2477,7 @@ private struct AttachmentTrayScene: View {
 /// Flat drawn scenes standing in for photos (the same ones the web preview draws).
 private enum ATScenePhoto {
     static let ground = Color(uiColor: UIColor { $0.userInterfaceStyle == .dark ? UIColor(red: 0.071, green: 0.071, blue: 0.071, alpha: 1) : UIColor(red: 0.953, green: 0.949, blue: 0.933, alpha: 1) })
-    static let scenes: [(UInt32, UInt32, UInt32)] = [
+    nonisolated static let scenes: [(UInt32, UInt32, UInt32)] = [
         (0x9CC2FF, 0xFFD976, 0xA9DCB7), (0xE9D5B3, 0xFF0000, 0xCDB8FF), (0xA9DCB7, 0xF4F3EF, 0x9CC2FF), (0xCDB8FF, 0xFFD976, 0x9CC2FF), (0xFFD976, 0xF4F3EF, 0xE9D5B3),
     ]
 
@@ -2500,7 +2500,7 @@ private enum ATScenePhoto {
         }
     }
 
-    static func data(_ index: Int) -> Data {
+    nonisolated static func data(_ index: Int) -> Data {
         let (sky, sun, land) = scenes[index % scenes.count]
         let size = CGSize(width: 1200, height: 900)
         let format = UIGraphicsImageRendererFormat()
@@ -2598,7 +2598,9 @@ private struct AddressFieldScene: View {
         coordinate: CLLocationCoordinate2D(latitude: 44.61, longitude: -123.12)
     )
 
-    private static let source = AddressField.Source(
+    // Computed, so it also builds in an app that defaults to MainActor isolation, where a stored
+    // initializer whose closures read `resolved` cannot be both main actor-isolated and nonisolated.
+    private static var source: AddressField.Source { AddressField.Source(
         suggest: { query in
             try await Task.sleep(for: .milliseconds(350))
             let all = [
@@ -2613,7 +2615,7 @@ private struct AddressFieldScene: View {
             try await Task.sleep(for: .milliseconds(700))
             return AddressFieldScene.resolved
         }
-    )
+    ) }
 
     var body: some View {
         AddressField("Delivery address", text: $query, address: $address, source: Self.source)

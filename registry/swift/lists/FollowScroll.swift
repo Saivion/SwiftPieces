@@ -3,7 +3,7 @@
 // description: A chat, log and live-feed scroll container that opens on the newest item and stays pinned to it while the reader is at the bottom, but never yanks them away once they scroll up to read; items that arrive below are counted into a floating Liquid Glass pill that jumps back to the latest, older items loaded at the top keep the visible row exactly where it was, and keyboard, rotation, growing rows and removals all hold the reader's place.
 // category: lists
 // minIOSVersion: "17.0"
-// version: "1.0.0"
+// version: "1.0.1"
 // added: "2026-09-29"
 // tags: [chat, feed, log, scroll, auto-scroll, new-messages, pagination, liquid-glass]
 
@@ -508,7 +508,7 @@ private struct FollowScrollMetrics: Equatable, Sendable {
     }
 }
 
-private struct LegacyContainer: Equatable, Sendable {
+nonisolated private struct LegacyContainer: Equatable, Sendable {
     var height: CGFloat
     var top: CGFloat
     var bottom: CGFloat
@@ -628,7 +628,7 @@ private struct PillPress: ButtonStyle {
 
 /// A house-palette color that follows the interface style.
 private func adaptive(light: UInt32, dark: UInt32) -> Color {
-    Color(uiColor: UIColor { traits in
+    Color(uiColor: UIColor { @Sendable traits in
         let hex = traits.userInterfaceStyle == .dark ? dark : light
         return UIColor(red: CGFloat((hex >> 16) & 0xFF) / 255, green: CGFloat((hex >> 8) & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
     })

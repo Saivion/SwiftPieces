@@ -2,7 +2,7 @@
 // title: Scrub Chart
 // description: A line or bar chart component with a light display-scale readout and dimmed decimals, a solid delta block, a flag that rides the scrub rule, hold-and-drag range selection with delta and percent, and a block range picker that morphs the line between datasets.
 // category: data
-// version: "2.0.0"
+// version: "2.0.1"
 // pro: dashboard-screen
 // minIOSVersion: "17.0"
 // tags: [chart, line, bars, scrub, range, morph, numbers]
@@ -562,7 +562,7 @@ public struct ScrubChartStyle: Sendable {
     )
 
     fileprivate static func adaptive(_ light: UInt32, _ dark: UInt32) -> Color {
-        Color(uiColor: UIColor { traits in
+        Color(uiColor: UIColor { @Sendable traits in
             let hex = traits.userInterfaceStyle == .dark ? dark : light
             return UIColor(red: CGFloat((hex >> 16) & 0xFF) / 255, green: CGFloat((hex >> 8) & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
         })

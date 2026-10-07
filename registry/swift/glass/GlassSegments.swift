@@ -3,7 +3,7 @@
 // description: "A segmented control whose glass indicator you can grab and drag: it lifts under the finger, rubber-bands past the ends, stretches with velocity and settles with a spring, while the label ink flips exactly under its edge; tap still works."
 // category: glass
 // minIOSVersion: "17.0"
-// version: "2.0.0"
+// version: "2.0.1"
 // pro: lens-tab-bar
 // tags: [segmented, picker, glass, drag, haptics]
 
@@ -53,7 +53,7 @@ public struct GlassSegmentsStyle: Sendable {
 
     /// A color that follows the appearance, from two 0xRRGGBB values.
     public static func adaptive(light: UInt32, dark: UInt32) -> Color {
-        Color(UIColor { traits in
+        Color(UIColor { @Sendable traits in
             let hex = traits.userInterfaceStyle == .dark ? dark : light
             return UIColor(red: CGFloat(hex >> 16 & 0xFF) / 255, green: CGFloat(hex >> 8 & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
         })

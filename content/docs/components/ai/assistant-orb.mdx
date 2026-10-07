@@ -4,7 +4,7 @@ description: "A dark glass ball with a Siri-style voice wave inside, locked to t
 piece: "AssistantOrb"
 category: "ai"
 minIOSVersion: "17.0"
-version: "1.0.0"
+version: "1.0.1"
 tags: ["ai","orb","shader","metal","thinking"]
 registryDependencies: []
 ---
@@ -108,7 +108,7 @@ public struct AssistantOrb: View {
     }
 
     /// The 24 colour components as one animatable vector, so a palette change crossfades.
-    private struct WaveColors: VectorArithmetic {
+    nonisolated private struct WaveColors: VectorArithmetic {
         var v: [Double]
 
         static var zero: Self { Self(v: Array(repeating: 0, count: 24)) }

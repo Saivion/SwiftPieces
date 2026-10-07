@@ -3,7 +3,7 @@
 // description: A currency amount entry that formats live in the user's locale as each digit lands (grouping, decimal separator, symbol before or after, the currency's own fraction digits), with a large auto-fitting figure whose digits roll in, a blinking caret right after the digits, robust paste of amounts like "$1,234.56" or "1 234,56 €", and a limit that refuses the keystroke with a damped shake, an error haptic and a message line, all backed by a `Decimal` binding.
 // category: inputs
 // minIOSVersion: "17.0"
-// version: "1.0.0"
+// version: "1.0.1"
 // added: "2026-09-23"
 // tags: [currency, money, amount, decimal, locale, payments, form]
 
@@ -569,7 +569,7 @@ private struct AmountShake: GeometryEffect {
 
 /// A house-palette color that follows the interface style.
 private func adaptive(light: UInt32, dark: UInt32) -> Color {
-    Color(uiColor: UIColor { traits in
+    Color(uiColor: UIColor { @Sendable traits in
         let hex = traits.userInterfaceStyle == .dark ? dark : light
         return UIColor(red: CGFloat((hex >> 16) & 0xFF) / 255, green: CGFloat((hex >> 8) & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
     })
