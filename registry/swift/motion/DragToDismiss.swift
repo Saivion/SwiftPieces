@@ -4,7 +4,7 @@
 // category: motion
 // pro: depth-gallery
 // minIOSVersion: "17.0"
-// version: "2.0.0"
+// version: "2.0.1"
 // tags: [dismiss, drag, gesture, sheet, photos, modifier, haptics]
 
 import SwiftUI
@@ -207,7 +207,7 @@ private func dragColor(_ hex: UInt32) -> Color {
 /// A color that resolves to `light` or `dark` with the current appearance.
 private func dragColor(light: UInt32, dark: UInt32) -> Color {
     let l = dragUIColor(light), d = dragUIColor(dark)
-    return Color(uiColor: UIColor { $0.userInterfaceStyle == .dark ? d : l })
+    return Color(uiColor: UIColor { @Sendable traits in traits.userInterfaceStyle == .dark ? d : l })
 }
 
 private func dragUIColor(_ hex: UInt32) -> UIColor {

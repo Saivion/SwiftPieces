@@ -7804,7 +7804,7 @@
     "structuredData": {
       "contents": [
         {
-          "content": "One page from your API: the rows it returned and the cursor for the page after it (`nil` when this was the last page). `Cursor` can be a page number, an offset, or an opaque token from your backend."
+          "content": "An infinitely scrolling list driven by an async page loader, with every pagination state handled. The simplest call is one line: `PagedList(load: api.page) { item in Row(item) }`, or for page-number APIs `PagedList(pageSize: 20) { page in try await api.fetch(page: page) } row: { item in Row(item) }`. To restart with new parameters (a search query, a filter), give the list `.id(query)`."
         },
         {
           "heading": "notes",
@@ -7857,6 +7857,118 @@
         {
           "heading": "notes",
           "content": "Reduce Motion: the skeleton stops pulsing, the spinner becomes three fading dots, and chips crossfade instead of scaling in. A light haptic plays on Retry; routine loads are silent."
+        },
+        {
+          "heading": "parameters",
+          "content": "Parameter"
+        },
+        {
+          "heading": "parameters",
+          "content": "Description"
+        },
+        {
+          "heading": "parameters",
+          "content": "`load`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Loads one page. Receives `nil` for the first page, then each page's `next` cursor. Throwing shows an error state; cancellation is ignored."
+        },
+        {
+          "heading": "parameters",
+          "content": "`pageSize`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Page-number convenience only. A page with fewer items than this (or none) ends the list."
+        },
+        {
+          "heading": "parameters",
+          "content": "`firstPage`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Page-number convenience only. The number of the first page, usually 1 or 0."
+        },
+        {
+          "heading": "parameters",
+          "content": "`fetch`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Page-number convenience only. Returns the items for a page number."
+        },
+        {
+          "heading": "parameters",
+          "content": "`layout`"
+        },
+        {
+          "heading": "parameters",
+          "content": "`.list` (a plain `List`, the default) or `.plain` (a `LazyVStack` in a `ScrollView` for card layouts)."
+        },
+        {
+          "heading": "parameters",
+          "content": "`prefetchDistance`"
+        },
+        {
+          "heading": "parameters",
+          "content": "How many rows before the end the next page starts loading."
+        },
+        {
+          "heading": "parameters",
+          "content": "`endMessage`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Quiet footer shown after the last page. `nil` hides it."
+        },
+        {
+          "heading": "parameters",
+          "content": "`emptyMessage`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Text of the built-in empty state when the first page has no items."
+        },
+        {
+          "heading": "parameters",
+          "content": "`placeholder`"
+        },
+        {
+          "heading": "parameters",
+          "content": "A sample item rendered through your `row` with `.redacted(reason: .placeholder)` as the loading skeleton. `nil` uses generic skeleton rows."
+        },
+        {
+          "heading": "parameters",
+          "content": "`errorMessage`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Turns a thrown error into the text shown in the full error view. Defaults to `localizedDescription`."
+        },
+        {
+          "heading": "parameters",
+          "content": "`style`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Colors and metrics for the built-in skeleton, spinner, chips, empty and error views. Defaults to the house palette."
+        },
+        {
+          "heading": "parameters",
+          "content": "`row`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Builds the row for one item."
+        },
+        {
+          "heading": "parameters",
+          "content": "`empty`"
+        },
+        {
+          "heading": "parameters",
+          "content": "A custom empty state, shown when the first page has no items (for example a `ContentUnavailableView`)."
         }
       ],
       "headings": [
@@ -7867,6 +7979,10 @@
         {
           "id": "usage",
           "content": "Usage"
+        },
+        {
+          "id": "parameters",
+          "content": "Parameters"
         },
         {
           "id": "source",

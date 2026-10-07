@@ -3,7 +3,7 @@
 // description: "A code slab for chat replies and docs that stays dark in both appearances: a butter language label and optional filename, block-colored Swift syntax, collapse past N lines with a fade and a spring expand, wrap toggle, text selection, a streaming mode that fades lines in behind a cursor, and a copy pill that turns into a sage Copied block."
 // category: ai
 // minIOSVersion: "17.0"
-// version: "2.0.0"
+// version: "2.0.1"
 // pro: streaming-markdown
 // tags: [code, monospace, syntax, copy, streaming, ai]
 
@@ -224,7 +224,7 @@ public extension CodeBlock {
         public static let standard = Style()
 
         private static func adaptive(_ light: UInt32, _ dark: UInt32) -> Color {
-            Color(UIColor { traits in
+            Color(UIColor { @Sendable traits in
                 let hex = traits.userInterfaceStyle == .dark ? dark : light
                 return UIColor(red: CGFloat((hex >> 16) & 0xFF) / 255, green: CGFloat((hex >> 8) & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
             })
@@ -382,7 +382,7 @@ private struct CodeBlockExample: View {
             )
             .padding(20)
         }
-        .background(Color(UIColor { $0.userInterfaceStyle == .dark ? UIColor(red: 0.071, green: 0.071, blue: 0.071, alpha: 1) : UIColor(red: 0.953, green: 0.949, blue: 0.933, alpha: 1) }))
+        .background(Color(UIColor { @Sendable traits in traits.userInterfaceStyle == .dark ? UIColor(red: 0.071, green: 0.071, blue: 0.071, alpha: 1) : UIColor(red: 0.953, green: 0.949, blue: 0.933, alpha: 1) }))
     }
 }
 

@@ -3,6 +3,7 @@
 // description: A small dark glass ball with a Siri-style voice wave inside, locked to the thinking state and drawn by a Metal color shader; palettes for searching, reading and writing crossfade the colour with the kind of work, and a Pill wraps it with a label and indeterminate dots into the status control.
 // category: ai
 // minIOSVersion: "17.0"
+// version: "1.0.1"
 // tags: [ai, orb, shader, metal, thinking, status]
 // shaders: [ThoughtOrb.metal]
 
@@ -72,7 +73,7 @@ public struct ThoughtOrb: View {
     }
 
     /// The 24 colour components as one animatable vector, so a palette change crossfades.
-    private struct WaveColors: VectorArithmetic {
+    nonisolated private struct WaveColors: VectorArithmetic {
         var v: [Double]
 
         static var zero: Self { Self(v: Array(repeating: 0, count: 24)) }

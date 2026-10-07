@@ -2,7 +2,7 @@
 // title: Tracking Tabs
 // description: Tabs over a paging ScrollView whose solid block indicator follows the pages through fractional scroll progress, with ink titles that fade in as the block passes, optional counts, a pressed state, and a selection tick on settle.
 // category: navigation
-// version: "2.0.0"
+// version: "2.0.1"
 // pro: lens-tab-bar
 // minIOSVersion: "17.0"
 // tags: [tabs, pager, segmented, scroll, navigation, counts]
@@ -238,7 +238,7 @@ public struct TrackingTabsStyle: Sendable {
     )
 
     fileprivate static func adaptive(_ light: UInt32, _ dark: UInt32) -> Color {
-        Color(uiColor: UIColor { traits in
+        Color(uiColor: UIColor { @Sendable traits in
             let hex = traits.userInterfaceStyle == .dark ? dark : light
             return UIColor(red: CGFloat((hex >> 16) & 0xFF) / 255, green: CGFloat((hex >> 8) & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
         })

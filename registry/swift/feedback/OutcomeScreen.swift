@@ -3,7 +3,7 @@
 // description: A success, failure or empty outcome view sharing one choreography, where a ring draws, floods into a solid color block, the mark strokes in dark ink, one pulse lands with a haptic, and a heavy headline and a single signal action rise, with async retry and a details block for failures.
 // category: feedback
 // minIOSVersion: "17.0"
-// version: "2.0.0"
+// version: "2.0.1"
 // pro: glass-paywall-screen
 // tags: [success, error, empty, retry, completion, haptic]
 
@@ -91,10 +91,10 @@ public struct OutcomeScreen: View {
 
         /// A color that resolves to `light` or `dark` hex by the current appearance.
         public static func adaptive(_ light: UInt32, _ dark: UInt32) -> Color {
-            Color(uiColor: UIColor { $0.userInterfaceStyle == .dark ? rgb(dark) : rgb(light) })
+            Color(uiColor: UIColor { @Sendable traits in traits.userInterfaceStyle == .dark ? rgb(dark) : rgb(light) })
         }
 
-        private static func rgb(_ hex: UInt32) -> UIColor {
+        nonisolated private static func rgb(_ hex: UInt32) -> UIColor {
             UIColor(red: CGFloat((hex >> 16) & 0xFF) / 255, green: CGFloat((hex >> 8) & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
         }
     }

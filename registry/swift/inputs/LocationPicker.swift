@@ -3,7 +3,7 @@
 // description: "A map picker for delivery, rides, events and listings: drag the map under a fixed red pin that lifts while the map moves and drops with a small bounce when it settles, the address under it is looked up after a short pause with stale answers cancelled and recent ones cached, a floating card shows the street and locality (a dropped pin with coordinates where there is no address, Retry when the lookup fails), the locate button asks for location only when tapped and flies to you, and Confirm hands back the coordinate with its address."
 // category: inputs
 // minIOSVersion: "17.0"
-// version: "1.0.0"
+// version: "1.0.1"
 // added: "2026-09-29"
 // pro: detent-sheet
 // tags: [location, map, pin, mapkit, geocoding, delivery, address, corelocation]
@@ -1283,7 +1283,7 @@ private extension String {
 
 /// A house-palette color that follows the interface style.
 private func pickerColor(light: UInt32, dark: UInt32) -> Color {
-    Color(uiColor: UIColor { traits in
+    Color(uiColor: UIColor { @Sendable traits in
         let hex = traits.userInterfaceStyle == .dark ? dark : light
         return UIColor(red: CGFloat((hex >> 16) & 0xFF) / 255, green: CGFloat((hex >> 8) & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
     })

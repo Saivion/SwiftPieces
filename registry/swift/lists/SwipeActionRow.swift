@@ -3,7 +3,7 @@
 // description: Wraps any row in a soft card with swipe actions drawn as solid color blocks. Tiles grow in as the row opens, the drag rubber-bands, a full swipe arms with a haptic and lets the edge block take the whole bar, and a shared binding keeps one row open at a time.
 // category: lists
 // minIOSVersion: "17.0"
-// version: "2.0.0"
+// version: "2.0.1"
 // pro: transaction-row
 // tags: [list, swipe, gesture, actions, blocks]
 
@@ -246,7 +246,7 @@ public struct SwipeActionRowStyle: Sendable {
     public static let standard = SwipeActionRowStyle()
 
     private static func adaptive(_ light: UInt32, _ dark: UInt32) -> Color {
-        Color(UIColor { traits in
+        Color(UIColor { @Sendable traits in
             let hex = traits.userInterfaceStyle == .dark ? dark : light
             return UIColor(red: CGFloat((hex >> 16) & 0xFF) / 255, green: CGFloat((hex >> 8) & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
         })
@@ -315,8 +315,8 @@ private struct SwipeActionRowExample: View {
 }
 
 private enum ExampleInk {
-    static let ground = Color(UIColor { $0.userInterfaceStyle == .dark ? UIColor(red: 0.071, green: 0.071, blue: 0.071, alpha: 1) : UIColor(red: 0.953, green: 0.949, blue: 0.933, alpha: 1) })
-    static let muted = Color(UIColor { $0.userInterfaceStyle == .dark ? UIColor(red: 0.651, green: 0.643, blue: 0.624, alpha: 1) : UIColor(red: 0.361, green: 0.353, blue: 0.337, alpha: 1) })
+    static let ground = Color(UIColor { @Sendable traits in traits.userInterfaceStyle == .dark ? UIColor(red: 0.071, green: 0.071, blue: 0.071, alpha: 1) : UIColor(red: 0.953, green: 0.949, blue: 0.933, alpha: 1) })
+    static let muted = Color(UIColor { @Sendable traits in traits.userInterfaceStyle == .dark ? UIColor(red: 0.651, green: 0.643, blue: 0.624, alpha: 1) : UIColor(red: 0.361, green: 0.353, blue: 0.337, alpha: 1) })
 }
 
 #Preview("Light") {

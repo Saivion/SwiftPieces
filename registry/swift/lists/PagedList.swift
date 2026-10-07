@@ -3,7 +3,7 @@
 // description: An async/await infinite-scroll list that prefetches the next page a few rows before the end, never runs two loads at once, drops duplicate ids across pages, ignores stale responses after a refresh or cancel, shows pulsing skeleton rows, a footer spinner, an inline "Couldn't load more" chip with a solid Retry block that keeps loaded rows, a quiet "You're all caught up" footer, and pull to refresh that replaces rows only on success.
 // category: lists
 // minIOSVersion: "17.0"
-// version: "1.0.0"
+// version: "1.0.1"
 // added: "2026-09-23"
 // tags: [pagination, infinite-scroll, list, async, refresh, loading, empty-state]
 
@@ -13,7 +13,7 @@ import UIKit
 /// One page from your API: the rows it returned and the cursor for the page after it (`nil` when this was the last page).
 ///
 /// `Cursor` can be a page number, an offset, or an opaque token from your backend.
-public struct PagedListPage<Item: Sendable, Cursor: Sendable>: Sendable {
+nonisolated public struct PagedListPage<Item: Sendable, Cursor: Sendable>: Sendable {
     public var items: [Item]
     public var next: Cursor?
 
@@ -616,7 +616,7 @@ private struct Spinner: View {
 
 /// A house-palette color that follows the interface style.
 private func adaptive(light: UInt32, dark: UInt32) -> Color {
-    Color(uiColor: UIColor { traits in
+    Color(uiColor: UIColor { @Sendable traits in
         let hex = traits.userInterfaceStyle == .dark ? dark : light
         return UIColor(red: CGFloat((hex >> 16) & 0xFF) / 255, green: CGFloat((hex >> 8) & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
     })
@@ -624,7 +624,7 @@ private func adaptive(light: UInt32, dark: UInt32) -> Color {
 
 // MARK: - Example
 
-private struct Receipt: Identifiable, Sendable {
+nonisolated private struct Receipt: Identifiable, Sendable {
     let id: Int
     let merchant: String
     let detail: String

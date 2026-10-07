@@ -3,7 +3,7 @@
 // description: A Canvas dot grid that swells and warms into a house block color under the finger, springs back on release, and sends one dissipating ripple out from a tap.
 // category: backgrounds
 // minIOSVersion: "17.0"
-// version: "2.0.0"
+// version: "2.0.1"
 // tags: [background, grid, interactive, canvas, haptics, palette]
 
 import SwiftUI
@@ -219,7 +219,7 @@ private func touchGridColor(_ hex: UInt32) -> Color {
 /// A color that resolves to `light` or `dark` with the current appearance.
 private func touchGridColor(light: UInt32, dark: UInt32) -> Color {
     let l = touchGridUIColor(light), d = touchGridUIColor(dark)
-    return Color(uiColor: UIColor { $0.userInterfaceStyle == .dark ? d : l })
+    return Color(uiColor: UIColor { @Sendable traits in traits.userInterfaceStyle == .dark ? d : l })
 }
 
 private func touchGridUIColor(_ hex: UInt32) -> UIColor {

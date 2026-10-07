@@ -4,14 +4,14 @@ description: "An async/await infinite-scroll list that prefetches the next page 
 piece: "PagedList"
 category: "lists"
 minIOSVersion: "17.0"
-version: "1.0.0"
+version: "1.0.1"
 tags: ["pagination","infinite-scroll","list","async","refresh","loading","empty-state"]
 registryDependencies: []
 ---
 
 {/* GENERATED FILE. Edit registry/swift/lists/PagedList.swift or PagedList.mdx instead. */}
 
-One page from your API: the rows it returned and the cursor for the page after it (`nil` when this was the last page). `Cursor` can be a page number, an offset, or an opaque token from your backend.
+An infinitely scrolling list driven by an async page loader, with every pagination state handled. The simplest call is one line: `PagedList(load: api.page) { item in Row(item) }`, or for page-number APIs `PagedList(pageSize: 20) { page in try await api.fetch(page: page) } row: { item in Row(item) }`. To restart with new parameters (a search query, a filter), give the list `.id(query)`.
 
 ## Notes
 
@@ -35,6 +35,23 @@ One page from your API: the rows it returned and the cursor for the page after i
 PagedListExample()
 ```
 
+## Parameters
+
+| Parameter | Description |
+| --- | --- |
+| `load` | Loads one page. Receives `nil` for the first page, then each page's `next` cursor. Throwing shows an error state; cancellation is ignored. |
+| `pageSize` | Page-number convenience only. A page with fewer items than this (or none) ends the list. |
+| `firstPage` | Page-number convenience only. The number of the first page, usually 1 or 0. |
+| `fetch` | Page-number convenience only. Returns the items for a page number. |
+| `layout` | `.list` (a plain `List`, the default) or `.plain` (a `LazyVStack` in a `ScrollView` for card layouts). |
+| `prefetchDistance` | How many rows before the end the next page starts loading. |
+| `endMessage` | Quiet footer shown after the last page. `nil` hides it. |
+| `emptyMessage` | Text of the built-in empty state when the first page has no items. |
+| `placeholder` | A sample item rendered through your `row` with `.redacted(reason: .placeholder)` as the loading skeleton. `nil` uses generic skeleton rows. |
+| `errorMessage` | Turns a thrown error into the text shown in the full error view. Defaults to `localizedDescription`. |
+| `style` | Colors and metrics for the built-in skeleton, spinner, chips, empty and error views. Defaults to the house palette. |
+| `row` | Builds the row for one item. |
+| `empty` | A custom empty state, shown when the first page has no items (for example a `ContentUnavailableView`). |
 
 ## Source
 
@@ -48,7 +65,7 @@ import UIKit
 /// One page from your API: the rows it returned and the cursor for the page after it (`nil` when this was the last page).
 ///
 /// `Cursor` can be a page number, an offset, or an opaque token from your backend.
-public struct PagedListPage<Item: Sendable, Cursor: Sendable>: Sendable {
+nonisolated public struct PagedListPage<Item: Sendable, Cursor: Sendable>: Sendable {
     public var items: [Item]
     public var next: Cursor?
 
@@ -651,7 +668,7 @@ private struct Spinner: View {
 
 /// A house-palette color that follows the interface style.
 private func adaptive(light: UInt32, dark: UInt32) -> Color {
-    Color(uiColor: UIColor { traits in
+    Color(uiColor: UIColor { @Sendable traits in
         let hex = traits.userInterfaceStyle == .dark ? dark : light
         return UIColor(red: CGFloat((hex >> 16) & 0xFF) / 255, green: CGFloat((hex >> 8) & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
     })
@@ -659,7 +676,7 @@ private func adaptive(light: UInt32, dark: UInt32) -> Color {
 
 // MARK: - Example
 
-private struct Receipt: Identifiable, Sendable {
+nonisolated private struct Receipt: Identifiable, Sendable {
     let id: Int
     let merchant: String
     let detail: String

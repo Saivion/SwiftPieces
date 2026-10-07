@@ -2,7 +2,7 @@
 // title: Stretch Header
 // description: "A hero header for your own ScrollView and NavigationStack: a heavy display title and uppercase eyebrow over a solid block hero that stretches on overscroll, a title that shrinks toward the real navigation bar, a stat row that pins under the bar, and a solid bar that fades in."
 // category: navigation
-// version: "2.0.0"
+// version: "2.0.1"
 // pro: settings-screen
 // minIOSVersion: "17.0"
 // tags: [header, scroll, navigation, stretchy, parallax, hero]
@@ -144,7 +144,7 @@ public struct StretchHeaderStyle: Sendable {
     public static let ground = StretchHeaderStyle.adaptive(0xF3F2EE, 0x121212)
 
     fileprivate static func adaptive(_ light: UInt32, _ dark: UInt32) -> Color {
-        Color(uiColor: UIColor { traits in
+        Color(uiColor: UIColor { @Sendable traits in
             let hex = traits.userInterfaceStyle == .dark ? dark : light
             return UIColor(red: CGFloat((hex >> 16) & 0xFF) / 255, green: CGFloat((hex >> 8) & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
         })

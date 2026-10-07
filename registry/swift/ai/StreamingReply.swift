@@ -3,7 +3,7 @@
 // description: The AI reply surface. A small header carries the assistant mark and a live phase label, text arrives token by token with a per-word fade and a color block cursor, inline code sits on butter blocks, user prompts are solid color blocks, and a long press lifts the message to reveal copy and regenerate.
 // category: ai
 // minIOSVersion: "17.0"
-// version: "2.0.0"
+// version: "2.0.1"
 // pro: streaming-markdown
 // tags: [chat, streaming, markdown, ai, text-renderer, blocks]
 
@@ -346,7 +346,7 @@ public extension StreamingReply {
         public static let standard = Style()
 
         private static func adaptive(_ light: UInt32, _ dark: UInt32) -> Color {
-            Color(UIColor { traits in
+            Color(UIColor { @Sendable traits in
                 let hex = traits.userInterfaceStyle == .dark ? dark : light
                 return UIColor(red: CGFloat((hex >> 16) & 0xFF) / 255, green: CGFloat((hex >> 8) & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
             })
@@ -438,7 +438,7 @@ private struct StreamingReplyExample: View {
         }
         .padding(20)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(UIColor { $0.userInterfaceStyle == .dark ? UIColor(red: 0.071, green: 0.071, blue: 0.071, alpha: 1) : UIColor(red: 0.953, green: 0.949, blue: 0.933, alpha: 1) }))
+        .background(Color(UIColor { @Sendable traits in traits.userInterfaceStyle == .dark ? UIColor(red: 0.071, green: 0.071, blue: 0.071, alpha: 1) : UIColor(red: 0.953, green: 0.949, blue: 0.933, alpha: 1) }))
         .task(id: phase == .thinking) {
             guard phase == .thinking else { return }
             try? await Task.sleep(for: .seconds(1.2))

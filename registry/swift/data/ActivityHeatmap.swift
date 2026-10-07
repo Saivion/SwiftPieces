@@ -3,7 +3,7 @@
 // description: "A streak calendar for habit, fitness, study and journaling apps: weeks of days drawn in one Canvas as rounded cells in solid steps from a pale red mix up to pure red, laid out by the locale's first weekday with month labels on their week columns, a light streak numeral that stays alive until midnight beside the longest run and active days, a scrub that lifts the day under your finger with a callout and a haptic tick per day, sideways scrolling that opens on today when the weeks outgrow the width, and VoiceOver that steps day by day or plays the weeks as an audio graph."
 // category: data
 // minIOSVersion: "17.0"
-// version: "1.0.0"
+// version: "1.0.1"
 // added: "2026-09-29"
 // pro: lens-tab-bar
 // tags: [heatmap, streak, calendar, habits, activity, contributions, scrub, accessibility]
@@ -1073,12 +1073,12 @@ private final class HeatmapCache {
 
 // MARK: - Geometry
 
-private enum HeatmapSpace {
+nonisolated private enum HeatmapSpace {
     static let grid = "ActivityHeatmap.grid"
 }
 
 /// Cell size and positions for a width. The layout and the Canvas both use it, so they always agree.
-private struct HeatmapMetrics: Equatable, Sendable {
+nonisolated private struct HeatmapMetrics: Equatable, Sendable {
     var weeks: Int
     var cell: CGFloat
     var gap: CGFloat
@@ -1147,7 +1147,7 @@ private struct HeatmapMetrics: Equatable, Sendable {
 }
 
 /// Where the Canvas sits in the grid section, and the metrics it was drawn with.
-private struct HeatmapPlacement: Equatable, Sendable {
+nonisolated private struct HeatmapPlacement: Equatable, Sendable {
     var canvas: CGRect
     var metrics: HeatmapMetrics
     var originX: CGFloat
@@ -1163,7 +1163,7 @@ private struct HeatmapScrollTarget: Equatable {
     var tick = 0
 }
 
-private struct HeatmapRowKey: LayoutValueKey {
+nonisolated private struct HeatmapRowKey: LayoutValueKey {
     static let defaultValue = -1
 }
 
@@ -1508,7 +1508,7 @@ private enum HeatmapPalette {
     /// light ground, deep steps on dark, spaced further apart when Increase Contrast is on.
     static func mix(_ accent: Color, into ground: Color, step: Int) -> Color {
         let top = UIColor(accent), base = UIColor(ground)
-        return Color(uiColor: UIColor { traits in
+        return Color(uiColor: UIColor { @Sendable traits in
             let dark = traits.userInterfaceStyle == .dark
             let strong = traits.accessibilityContrast == .high
             let amounts: [CGFloat] = dark ? (strong ? [0.55, 0.7, 0.85] : [0.45, 0.62, 0.8]) : (strong ? [0.3, 0.5, 0.7] : [0.2, 0.4, 0.6])
@@ -1522,7 +1522,7 @@ private enum HeatmapPalette {
     }
 
     static func adaptive(light: UInt32, dark: UInt32) -> Color {
-        Color(uiColor: UIColor { traits in
+        Color(uiColor: UIColor { @Sendable traits in
             let hex = traits.userInterfaceStyle == .dark ? dark : light
             return UIColor(red: CGFloat((hex >> 16) & 0xFF) / 255, green: CGFloat((hex >> 8) & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
         })

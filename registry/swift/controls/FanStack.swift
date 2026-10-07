@@ -3,7 +3,7 @@
 // description: "Overlapping block-color avatars that fan apart on tap or hold with staggered springs, dissolve the +N pill into the hidden faces, and let a drag scrub across them: the avatar under the finger lifts, shows a name tag and ticks a haptic, and releasing selects it."
 // category: controls
 // minIOSVersion: "17.0"
-// version: "2.0.0"
+// version: "2.0.1"
 // tags: [avatar, group, fan, drag, haptics]
 
 import SwiftUI
@@ -52,13 +52,13 @@ public struct FanStack: View {
         public static let standard = Style()
 
         /// Builds house colors. Public so `Style` defaults can use it.
-        public enum House {
+        nonisolated public enum House {
             public static func hex(_ value: UInt32) -> Color {
                 Color(red: Double((value >> 16) & 0xFF) / 255, green: Double((value >> 8) & 0xFF) / 255, blue: Double(value & 0xFF) / 255)
             }
 
             public static func adaptive(light: UInt32, dark: UInt32) -> Color {
-                Color(uiColor: UIColor { traits in
+                Color(uiColor: UIColor { @Sendable traits in
                     let v = traits.userInterfaceStyle == .dark ? dark : light
                     return UIColor(red: CGFloat((v >> 16) & 0xFF) / 255, green: CGFloat((v >> 8) & 0xFF) / 255, blue: CGFloat(v & 0xFF) / 255, alpha: 1)
                 })

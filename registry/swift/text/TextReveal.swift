@@ -3,7 +3,7 @@
 // description: Reveals a headline by characters, words or lines, rising from a baseline mask with a stagger sized to land in under a second, then wipes solid highlight blocks behind the phrases that matter.
 // category: text
 // minIOSVersion: "17.0"
-// version: "2.0.0"
+// version: "2.0.1"
 // pro: onboarding-flow
 // tags: [text, reveal, stagger, entrance, highlight, scroll]
 
@@ -400,7 +400,7 @@ private enum TextRevealPalette {
     static let muted = adaptive(light: 0x5C5A56, dark: 0xA6A49F)
 
     private static func adaptive(light: UInt32, dark: UInt32) -> Color {
-        Color(UIColor { traits in
+        Color(UIColor { @Sendable traits in
             let hex = traits.userInterfaceStyle == .dark ? dark : light
             return UIColor(red: CGFloat(hex >> 16 & 0xFF) / 255, green: CGFloat(hex >> 8 & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
         })

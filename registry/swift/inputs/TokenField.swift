@@ -3,7 +3,7 @@
 // description: A tag and recipient field where committed entries become solid color chips with dark ink that wrap across lines while the text field takes the rest of the last line, return, comma or a paste of a whole list commits trimmed tokens with duplicate, limit and validation checks, backspace on an empty field highlights the last chip and a second press removes it, and an inline suggestion list filters as you type.
 // category: inputs
 // minIOSVersion: "17.0"
-// version: "1.0.0"
+// version: "1.0.1"
 // added: "2026-09-23"
 // tags: [tokens, tags, chips, recipients, flow-layout, autocomplete, form]
 
@@ -496,8 +496,9 @@ public struct TokenField: View {
 
 // MARK: - Flow layout
 
-/// Marks the subview that fills the rest of its line; the value is its minimum width.
-private struct FlowFill: LayoutValueKey {
+/// Marks the subview that fills the rest of its line; the value is its minimum width. `nonisolated` so
+/// `FlowLayout` (whose methods are nonisolated) can read it in apps that default to MainActor isolation.
+nonisolated private struct FlowFill: LayoutValueKey {
     static let defaultValue: CGFloat? = nil
 }
 
@@ -590,9 +591,11 @@ private struct Shake: GeometryEffect {
     }
 }
 
-/// A house-palette color that follows the interface style.
-private func adaptive(light: UInt32, dark: UInt32) -> Color {
-    Color(uiColor: UIColor { traits in
+/// A house-palette color that follows the interface style. The provider is `@Sendable` because SwiftUI
+/// resolves colors on its render thread; in an app that defaults to MainActor isolation, a provider that
+/// inherited the main actor would trap there.
+nonisolated private func adaptive(light: UInt32, dark: UInt32) -> Color {
+    Color(uiColor: UIColor { @Sendable traits in
         let hex = traits.userInterfaceStyle == .dark ? dark : light
         return UIColor(red: CGFloat((hex >> 16) & 0xFF) / 255, green: CGFloat((hex >> 8) & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
     })

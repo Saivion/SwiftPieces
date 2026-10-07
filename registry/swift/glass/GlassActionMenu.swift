@@ -3,7 +3,7 @@
 // description: A floating signal trigger that long-presses open into a staggered line or arc of color-block actions you can slide across and release to fire; the trigger confirms with a check, tap toggles, a scrim dismisses, and the glass morphs on iOS 26.
 // category: glass
 // minIOSVersion: "17.0"
-// version: "2.0.0"
+// version: "2.0.1"
 // pro: morph-nav
 // tags: [menu, glass, morph, fab, long-press, haptics]
 
@@ -64,10 +64,10 @@ public struct GlassActionMenu: View {
         public init(
             trigger: Color = Color(red: 1, green: 0, blue: 0),
             ink: Color = Color(red: 0.078, green: 0.078, blue: 0.078),
-            labelFill: Color = Color(UIColor { $0.userInterfaceStyle == .dark
+            labelFill: Color = Color(UIColor { @Sendable traits in traits.userInterfaceStyle == .dark
                 ? UIColor(red: 0.149, green: 0.149, blue: 0.149, alpha: 1)
                 : .white }),
-            labelInk: Color = Color(UIColor { $0.userInterfaceStyle == .dark
+            labelInk: Color = Color(UIColor { @Sendable traits in traits.userInterfaceStyle == .dark
                 ? UIColor(red: 0.957, green: 0.953, blue: 0.937, alpha: 1)
                 : UIColor(red: 0.078, green: 0.078, blue: 0.078, alpha: 1) }),
             triggerSize: CGFloat = 60,
@@ -419,7 +419,7 @@ private enum GlassActionMenuPalette {
     static let butter = Color(red: 1, green: 0.851, blue: 0.463)
     static let lilac = Color(red: 0.804, green: 0.722, blue: 1)
     static let sky = Color(red: 0.612, green: 0.761, blue: 1)
-    static let ground = Color(UIColor { $0.userInterfaceStyle == .dark
+    static let ground = Color(UIColor { @Sendable traits in traits.userInterfaceStyle == .dark
         ? UIColor(red: 0.071, green: 0.071, blue: 0.071, alpha: 1)
         : UIColor(red: 0.953, green: 0.949, blue: 0.933, alpha: 1) })
 }

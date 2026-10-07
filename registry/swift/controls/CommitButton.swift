@@ -3,7 +3,7 @@
 // description: "An async action button driven by one idle/loading/success/error/disabled phase: a signal capsule collapses to a spinning ring, closes it and blooms into a sage success block with a drawn check, or re-expands as a butter error block that shakes and doubles as retry."
 // category: controls
 // minIOSVersion: "17.0"
-// version: "2.0.0"
+// version: "2.0.1"
 // pro: swipe-to-confirm
 // tags: [button, loading, success, error, async, haptics]
 
@@ -67,7 +67,7 @@ public struct CommitButton: View {
             }
 
             public static func adaptive(light: UInt32, dark: UInt32) -> Color {
-                Color(uiColor: UIColor { traits in
+                Color(uiColor: UIColor { @Sendable traits in
                     let v = traits.userInterfaceStyle == .dark ? dark : light
                     return UIColor(red: CGFloat((v >> 16) & 0xFF) / 255, green: CGFloat((v >> 8) & 0xFF) / 255, blue: CGFloat(v & 0xFF) / 255, alpha: 1)
                 })

@@ -3,7 +3,7 @@
 // description: "A press-and-hold capsule for destructive or important actions: a solid fill sweeps from the leading puck while held, passes three milestone dots with rising haptics, inverts the label under it, rewinds with a spring on early release and settles into a sage confirmed block."
 // category: controls
 // minIOSVersion: "17.0"
-// version: "2.0.0"
+// version: "2.0.1"
 // pro: swipe-to-confirm
 // tags: [button, hold, confirm, destructive, haptics]
 
@@ -62,7 +62,7 @@ public struct HoldToConfirm: View {
             }
 
             public static func adaptive(light: UInt32, dark: UInt32) -> Color {
-                Color(uiColor: UIColor { traits in
+                Color(uiColor: UIColor { @Sendable traits in
                     let v = traits.userInterfaceStyle == .dark ? dark : light
                     return UIColor(red: CGFloat((v >> 16) & 0xFF) / 255, green: CGFloat((v >> 8) & 0xFF) / 255, blue: CGFloat(v & 0xFF) / 255, alpha: 1)
                 })
