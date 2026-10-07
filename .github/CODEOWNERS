@@ -23,6 +23,7 @@ LICENSE @Saivion
 /wrangler.* @Saivion
 /open-next.config.* @Saivion
 /next.config.* @Saivion
+/source.config.* @Saivion
 /postcss.config.* @Saivion
 tsconfig*.json @Saivion
 /cloudflare-env.d.ts @Saivion
