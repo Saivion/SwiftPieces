@@ -110,7 +110,8 @@ if (mode === "catalog" || mode === "patterns" || mode === "all") {
 // symbol setting and font, so everything Style writes into Theme.swift and the screens compiles.
 if (mode === "styles" || mode === "all") {
   const catalog = createCatalog(patternsCatalogSource);
-  const entries = catalog.entries.filter((e) => !e.href && e.availability === "free");
+  // SP_ONLY=<slug part> narrows the run to matching patterns (SP_ONLY=water for the Waterllama remix).
+  const entries = catalog.entries.filter((e) => !e.href && e.availability === "free" && (!process.env.SP_ONLY || e.slug.includes(process.env.SP_ONLY)));
   const cards = ["flat", "raised", "outlined", "glass", "bold"] as const;
   const backdrops = ["none", "glow", "gradient", "grid", "paper"] as const;
   const symbols = ["outline", "fill", "hierarchical"] as const;

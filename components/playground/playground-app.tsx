@@ -121,13 +121,21 @@ export default function PlaygroundApp({ page, project, onReady }: Props) {
   }, [cloudId, remember]);
   // ?shot= opens at one App Store screenshot (the app page links here with it); ?screen= at one
   // step of the remix (the App Library's Browse by screen); ?component= selects a component
-  // (component pages link here with it).
+  // (component pages link here with it); ?style= puts on a style made on /styles.
   const [asked] = useState(() => {
     const q = new URLSearchParams(window.location.search);
     const n = Number(q.get("shot"));
     const s = Number(q.get("screen"));
-    return { shot: q.has("shot") && Number.isInteger(n) ? n : null, screen: q.has("screen") && Number.isInteger(s) ? s : null, component: q.get("component") };
+    return { shot: q.has("shot") && Number.isInteger(n) ? n : null, screen: q.has("screen") && Number.isInteger(s) ? s : null, component: q.get("component"), style: q.get("style") };
   });
+  // The style lands once, as an edit of the remix (which autosaves), so the address lets go of it:
+  // a reload keeps whatever the visitor did after, instead of putting the style back on.
+  useEffect(() => {
+    if (!asked.style) return;
+    const url = new URL(window.location.href);
+    url.searchParams.delete("style");
+    window.history.replaceState(window.history.state, "", url.pathname + url.search + url.hash);
+  }, [asked.style]);
   const items = useMemo(() => sidebarItems(page.app, page.stepTitles), [page]);
   // Without ?shot= the app opens on its first screen: screens no screenshot answers carry `shot: null`
   // too, so matching null would open the first of those instead.
@@ -255,6 +263,9 @@ export default function PlaygroundApp({ page, project, onReady }: Props) {
         xcodeRepo: (blob, appName) => `${window.location.origin}/api/xcode/${blob}/${appName}.git`,
         signIn: (returnTo) => proSignInUrl(returnTo),
         signUp: (returnTo) => proSignUpUrl(returnTo),
+        // The Style tab's palette button: this style on /styles, with the app open now leading its
+        // "Open in the Playground", so a round trip comes back here.
+        styles: (code) => `/styles?style=${encodeURIComponent(code)}&app=${current.slug}`,
         // Everyone without Pro sees what it adds (no prices here). Owners already have it all here.
         ...(pro ? {} : { handoff: { label: "Take it further with Pro", desc: `Unlock all ${proCatalog.remixing.apps} apps and every future app, keep up to ${proCatalog.remixing.saves} remixes and remix with AI, with every screen, template and the Build Kit.`, url: () => `${site.proUrl}/pro`, icon: "crown" as const, backdrop: <CornerDither /> } }),
       },
@@ -266,5 +277,5 @@ export default function PlaygroundApp({ page, project, onReady }: Props) {
   }, [onReady, cloud]);
   if (cloud === undefined) return null;
   const entry = page.app.pattern;
-  return <Playground host={host} initial={{ kind: entry.kind, slug: entry.slug, project, component: asked.component, step: opened ? opened.step : null, ...(cloud ? { remix: cloud } : {}) }} />;
+  return <Playground host={host} initial={{ kind: entry.kind, slug: entry.slug, project, component: asked.component, step: opened ? opened.step : null, style: asked.style, ...(cloud ? { remix: cloud } : {}) }} />;
 }

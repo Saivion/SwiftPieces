@@ -8,26 +8,61 @@ import { Logo } from "@/components/ui/logo";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { NewBadge } from "@/components/ui/new-badge";
+import { ProBadge } from "@/components/ui/pro-badge";
 import { SectionIcon } from "@/components/docs/section-icons";
 import { ThemeButton, ThemeToggle } from "@/components/layout/theme-toggle";
 import { cn } from "@/lib/cn";
 import { pro } from "@/lib/site";
 
 type NavLink = { label: string; href: string; badge?: string };
+type MenuItem = NavLink & { desc: string; icon: Parameters<typeof SectionIcon>[0]["kind"]; /** The icon's colour, when it isn't the text's. */ tone?: string };
+type Menu = { label: string; href: string; items: MenuItem[]; /** Paths that light the menu up besides its items' own. */ also?: string[] };
 
-/** The Library dropdown, shaped like Pro's: the pieces, and the app library whose screens open in the Playground. */
-const library: (NavLink & { desc: string; icon: "components" | "screens" | "playground" })[] = [
-  { label: "Components", href: "/components", desc: "Single-file SwiftUI pieces with live previews", icon: "components" },
-  { label: "Apps", href: "/apps", desc: "Explore, recreate, and study apps", icon: "playground", badge: "Beta" },
+/**
+ * The bar is split by what you came to do. Library is what you take and install (free pieces, and
+ * Pro's screens and templates); Create is the tools you use in the browser, where new features land;
+ * Resources is how to learn it and who backs it. Pro stays a direct link. At most five items a menu.
+ */
+const menus: Menu[] = [
+  {
+    label: "Library",
+    href: "/components",
+    items: [
+      { label: "Components", href: "/components", desc: "Single-file SwiftUI pieces with live previews", icon: "components" },
+      { label: "Screens", href: pro.screens, desc: "Finished screens, themed by one design system", icon: "screens", badge: "Pro" },
+      { label: "Templates", href: pro.templates, desc: "Complete apps as Xcode projects", icon: "templates", badge: "Pro" },
+    ],
+  },
+  {
+    label: "Create",
+    href: "/apps",
+    also: ["/playground"],
+    items: [
+      { label: "Apps", href: "/apps", desc: "Remix real app screens in the Playground", icon: "playground", badge: "Beta" },
+      { label: "Styles", href: "/styles", desc: "Make one theme for every screen and app", icon: "style", badge: "New" },
+    ],
+  },
+  {
+    label: "Resources",
+    href: "/docs/introduction",
+    also: ["/docs"],
+    items: [
+      { label: "Docs", href: "/docs/introduction", desc: "Install, the CLI and every piece's API", icon: "docs" },
+      { label: "Guides", href: "/docs/guides", desc: "SwiftUI techniques, step by step", icon: "guides" },
+      { label: "MCP and agents", href: "/docs/mcp", desc: "Let your coding agent add pieces", icon: "mcp" },
+      { label: "Changelog", href: "/docs/changelog", desc: "Every new piece and fix", icon: "changelog" },
+      { label: "Sponsors", href: "/sponsors", desc: "The people who keep it free", icon: "sponsors", tone: "text-accent" },
+    ],
+  },
 ];
 
-const links: NavLink[] = [
-  { label: "Docs", href: "/docs/introduction" },
-  { label: "Pro", href: "/pro" },
-  { label: "Sponsors", href: "/sponsors" },
-];
+const links: NavLink[] = [{ label: "Pro", href: "/pro" }];
 
-
+/** A menu item's badge: Pro items wear Pro's own badge (crown, gradient ring), the rest New or Beta. */
+function Badge({ label }: { label?: string }) {
+  if (!label) return null;
+  return label === "Pro" ? <ProBadge size="sm" /> : <NewBadge>{label}</NewBadge>;
+}
 
 /**
  * `star` and `starMobile` arrive already rendered from the server layout, inside their own
@@ -46,8 +81,8 @@ export function Navbar({ star, starMobile, docked = false, fresh = 0 }: { star?:
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
-  // Set on pick, so the menu closes under the pointer; cleared the next time it is hovered or focused.
-  const [libraryHeld, setLibraryHeld] = useState(false);
+  // The menu just picked from, so it closes under the pointer; cleared the next time one is hovered or focused.
+  const [held, setHeld] = useState<string | null>(null);
   const { setOpenSearch } = useSearchContext();
 
   useEffect(() => {
@@ -63,14 +98,12 @@ export function Navbar({ star, starMobile, docked = false, fresh = 0 }: { star?:
     return () => { document.documentElement.style.overflow = ""; };
   }, [open]);
 
-  // Docs links straight to its first page, but the tab stays lit anywhere under /docs.
-  // An app's Playground (/playground/<app>) belongs to Apps, so Library and Apps stay lit there.
-  const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href.startsWith("/docs/") ? "/docs" : href) || (href === "/apps" && pathname.startsWith("/playground")));
+  const isActive = (href: string) => (href === "/" ? pathname === "/" : !href.startsWith("http") && pathname.startsWith(href));
   // Components carries a New badge while a wave of pieces is fresh (the docs sidebar shows the count).
-  const items = library.map((l) => (l.href === "/components" && fresh > 0 ? { ...l, badge: "New" } : l));
-  const libraryActive = items.some((l) => isActive(l.href));
-  const pickLibrary = () => {
-    setLibraryHeld(true);
+  const sections = menus.map((m) => ({ ...m, items: m.items.map((l) => (l.href === "/components" && fresh > 0 ? { ...l, badge: "New" } : l)) }));
+  const menuActive = (m: Menu) => m.items.some((l) => isActive(l.href)) || (m.also ?? []).some((p) => pathname.startsWith(p));
+  const pick = (label: string) => {
+    setHeld(label);
     const el = document.activeElement;
     if (el instanceof HTMLElement) el.blur();
   };
@@ -95,34 +128,39 @@ export function Navbar({ star, starMobile, docked = false, fresh = 0 }: { star?:
         >
           <Logo className="flex shrink-0 items-center" />
             <ul className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-0.5 lg:flex">
-              {/* Library: Components and Apps under one trigger, like Pro's navbar. */}
-              <li className="group relative" onMouseEnter={() => setLibraryHeld(false)} onFocus={() => setLibraryHeld(false)}>
-                <Link href="/components" aria-haspopup="true" className={cn("group/n relative flex h-9 items-center gap-2 px-3 text-[12.5px] font-medium transition-colors duration-300", libraryActive ? "text-foreground" : "text-muted hover:text-foreground")}>
-                  <NavGlyph className={cn("transition-colors", libraryActive ? "text-accent" : "group-hover/n:text-accent")} />
-                  Library
-                  <svg aria-hidden viewBox="0 0 16 16" className={cn("-ml-0.5 size-3 transition-transform duration-300", !libraryHeld && "group-hover:rotate-180 group-focus-within:rotate-180")} fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M4 6l4 4 4-4" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                  {libraryActive ? <span className="absolute inset-x-3 -bottom-px h-px bg-accent" /> : null}
-                </Link>
-                <div className={cn("absolute top-full left-1/2 -translate-x-1/2 pt-2 transition-all duration-300 ease-[var(--ease-out)]", libraryHeld ? "pointer-events-none invisible translate-y-1 opacity-0" : "invisible translate-y-1 opacity-0 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100")}>
-                  <div className="card w-[340px] p-1.5 shadow-[0_24px_64px_-24px_rgba(0,0,0,.9)]">
-                    {items.map((l) => (
-                      <Link key={l.href} href={l.href} onClick={pickLibrary} className={cn("flex items-start gap-3 rounded-[4px] px-3 py-2.5 transition-colors hover:bg-white/[.05]", isActive(l.href) && "bg-white/[.04]")}>
-                        <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-[6px] bg-white/[.06] text-foreground"><SectionIcon kind={l.icon} /></span>
-                        <span className="flex min-w-0 flex-1 flex-col">
-                          <span className="flex items-center justify-between gap-3 text-[13px] font-semibold text-foreground">{l.label}{l.badge ? <NewBadge>{l.badge}</NewBadge> : null}</span>
-                          <span className="text-[11.5px] text-muted">{l.desc}</span>
-                        </span>
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              </li>
+              {sections.map((m) => {
+                const active = menuActive(m);
+                const isHeld = held === m.label;
+                return (
+                  <li key={m.label} className="group relative" onMouseEnter={() => setHeld(null)} onFocus={() => setHeld(null)}>
+                    <Link href={m.href} aria-haspopup="true" className={cn("group/n relative flex h-9 items-center gap-2 px-3 text-[12.5px] font-medium transition-colors duration-300", active ? "text-foreground" : "text-muted hover:text-foreground")}>
+                      <NavGlyph className={cn("transition-colors", active ? "text-accent" : "group-hover/n:text-accent")} />
+                      {m.label}
+                      <svg aria-hidden viewBox="0 0 16 16" className={cn("-ml-0.5 size-3 transition-transform duration-300", !isHeld && "group-hover:rotate-180 group-focus-within:rotate-180")} fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M4 6l4 4 4-4" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                      {active ? <span className="absolute inset-x-3 -bottom-px h-px bg-accent" /> : null}
+                    </Link>
+                    <div className={cn("absolute top-full left-1/2 -translate-x-1/2 pt-2 transition-all duration-300 ease-[var(--ease-out)]", isHeld ? "pointer-events-none invisible translate-y-1 opacity-0" : "invisible translate-y-1 opacity-0 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100")}>
+                      <div className="card w-[340px] p-1.5 shadow-[0_24px_64px_-24px_rgba(0,0,0,.9)]">
+                        {m.items.map((l) => (
+                          <Link key={l.href} href={l.href} onClick={() => pick(m.label)} className={cn("flex items-start gap-3 rounded-[4px] px-3 py-2.5 transition-colors hover:bg-white/[.05]", isActive(l.href) && "bg-white/[.04]")}>
+                            <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-[6px] bg-white/[.06] text-foreground"><SectionIcon kind={l.icon} tone={l.tone} /></span>
+                            <span className="flex min-w-0 flex-1 flex-col">
+                              <span className="flex items-center justify-between gap-3 text-[13px] font-semibold text-foreground">{l.label}<Badge label={l.badge} /></span>
+                              <span className="text-[11.5px] text-muted">{l.desc}</span>
+                            </span>
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  </li>
+                );
+              })}
               {links.map((l) => (
                 <li key={l.href}>
                   <Link href={l.href} className={cn("group/n relative flex h-9 items-center gap-2 px-3 text-[12.5px] font-medium transition-colors duration-300", isActive(l.href) ? "text-foreground" : "text-muted hover:text-foreground")}>
                     <NavGlyph className={cn("transition-colors", isActive(l.href) ? "text-accent" : "group-hover/n:text-accent")} />
                     {l.label}
-                    {l.badge ? <NewBadge>{l.badge}</NewBadge> : null}
+                    <Badge label={l.badge} />
                     {isActive(l.href) ? <span className="absolute inset-x-3 -bottom-px h-px bg-accent" /> : null}
                   </Link>
                 </li>
@@ -135,7 +173,8 @@ export function Navbar({ star, starMobile, docked = false, fresh = 0 }: { star?:
             <button
               type="button"
               onClick={() => setOpenSearch(true)}
-              className={cn(NAV_ICON, "hidden md:flex xl:w-auto xl:px-2.5")}
+              // Hidden on the condensed (scrolled) bar, which is too tight for it; ⌘K still opens search.
+              className={cn(NAV_ICON, "hidden xl:w-auto xl:px-2.5", condensed ? "md:hidden" : "md:flex")}
               aria-label="Search"
               title="Search (⌘K)"
             >
@@ -163,19 +202,36 @@ export function Navbar({ star, starMobile, docked = false, fresh = 0 }: { star?:
 
       {/* Mobile sheet: sibling of the header, never a descendant of a backdrop-filter element. */}
       <div className={cn("fixed inset-x-0 top-14 bottom-0 z-40 bg-background transition-opacity duration-300 lg:hidden", open ? "opacity-100" : "pointer-events-none opacity-0")} aria-hidden={!open} inert={!open}>
-        <Container className="flex h-full flex-col justify-between py-6">
-          <ul className="flex flex-col">
-            {/* The phone sheet has no hover, so the Library items sit in the list directly. */}
-            {[{ label: "Home", href: "/" } as NavLink, ...items, ...links].map((l, i) => (
-              <li key={l.href} className="hair-b">
-                <Link href={l.href} className={cn("flex items-center justify-between py-3.5 text-[14px] font-medium transition-transform duration-500", open ? "translate-y-0" : "translate-y-3")} style={{ transitionDelay: `${i * 40}ms` }}>
-                  <span className="flex items-center gap-2">{l.label}{l.badge ? <NewBadge>{l.badge}</NewBadge> : null}</span>
-                  {isActive(l.href) ? <span className="size-2 rounded-full bg-accent" /> : null}
-                </Link>
-              </li>
+        <Container className="flex h-full flex-col gap-8 overflow-y-auto overscroll-contain py-6">
+          {/* The phone sheet has no hover, so each menu is a headed group of its items. */}
+          <div className="flex flex-col gap-6">
+            {sections.map((m, gi) => (
+              <div key={m.label}>
+                <p className="mb-1 text-[11px] font-semibold tracking-[0.08em] text-subtle uppercase">{m.label}</p>
+                <ul className="flex flex-col">
+                  {m.items.map((l, i) => (
+                    <li key={l.href} className="hair-b">
+                      <Link href={l.href} className={cn("flex items-center justify-between py-3 text-[14px] font-medium transition-transform duration-500", open ? "translate-y-0" : "translate-y-3")} style={{ transitionDelay: `${(gi * 3 + i) * 30}ms` }}>
+                        <span className="flex items-center gap-2">{l.label}<Badge label={l.badge} /></span>
+                        {isActive(l.href) ? <span className="size-2 rounded-full bg-accent" /> : null}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             ))}
-          </ul>
-          <div className="flex flex-col gap-3">
+            <ul className="flex flex-col">
+              {links.map((l) => (
+                <li key={l.href} className="hair-b">
+                  <Link href={l.href} className="flex items-center justify-between py-3 text-[14px] font-medium">
+                    {l.label}
+                    {isActive(l.href) ? <span className="size-2 rounded-full bg-accent" /> : null}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="mt-auto flex flex-col gap-3">
             <div className="flex items-center justify-between pb-2 text-[13px] font-medium text-muted">Theme<ThemeToggle /></div>
             {starMobile}
             <Button href={pro.buy} size="lg">Get Pro</Button>

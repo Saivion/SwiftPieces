@@ -185,11 +185,15 @@ const SLICES = [["Housing", 1450], ["Food", 620], ["Transport", 310], ["Leisure"
 const SLICE_COLORS = [blocks.tangerine, blocks.sky, blocks.butter, blocks.sage, blocks.lilac];
 const TOTAL = SLICES.reduce((s, [, v]) => s + v, 0);
 
-/** An annular sector with rounded ends, in a 0...200 box. */
-function sector(a0: number, a1: number, r0: number, r1: number) {
+/**
+ * An annular sector in a 0...200 box, pulled in by `inset` points along each edge at both radii, so
+ * the seam between slices is the same width from the hole to the rim (as the Swift piece draws it).
+ */
+function sector(a0: number, a1: number, r0: number, r1: number, inset = 0) {
   const pt2 = (a: number, r: number) => `${(100 + Math.cos(a) * r).toFixed(2)} ${(100 + Math.sin(a) * r).toFixed(2)}`;
-  const large = a1 - a0 > Math.PI ? 1 : 0;
-  return `M${pt2(a0, r1)} A${r1} ${r1} 0 ${large} 1 ${pt2(a1, r1)} L${pt2(a1, r0)} A${r0} ${r0} 0 ${large} 0 ${pt2(a0, r0)} Z`;
+  const o0 = a0 + inset / r1, o1 = Math.max(o0, a1 - inset / r1), i0 = a0 + inset / r0, i1 = Math.max(i0, a1 - inset / r0);
+  const large = (x: number, y: number) => (y - x > Math.PI ? 1 : 0);
+  return `M${pt2(o0, r1)} A${r1} ${r1} 0 ${large(o0, o1)} 1 ${pt2(o1, r1)} L${pt2(i1, r0)} A${r0} ${r0} 0 ${large(i0, i1)} 0 ${pt2(i0, r0)} Z`;
 }
 
 /** Rests, then walks the selection: the slice lifts, the rest step back to the surface, the center counts, the legend row becomes the block. */
@@ -199,22 +203,23 @@ export function RingBreakdownPreview() {
   useTimeline(7600, [[0, () => setPhase(1)], [1800, () => setPhase(2)], [2900, () => setPhase(3)], [4000, () => setPhase(4)], [5100, () => setPhase(5)], [6300, () => setPhase(6)], [7500, () => setPhase(0)]]);
   const sel: number | null = [null, null, 0, 1, 2, 3, null][phase];
   const [shown] = useTween([sel === null ? TOTAL : SLICES[sel][1]], 450);
-  const R1 = 94, R0 = 60, GAP = 0.05;
+  // SEAM: the gap between slices in points; each edge also pulls in by the 6-point stroke's half-width.
+  const R1 = 94, R0 = 60, SEAM = 4;
   let cum = -Math.PI / 2;
   return (
     <Stage>
       <div className="flex items-center" style={{ gap: pt(22), width: pt(360) }}>
         <div className="relative shrink-0" style={{ width: pt(168), height: pt(168) }}>
           <svg viewBox="0 0 200 200" className="size-full overflow-visible" aria-hidden>
-            <defs><mask id="rb-sweep"><circle data-motion cx="100" cy="100" r="50" fill="none" stroke="#fff" strokeWidth="100" pathLength={100} strokeDasharray="100 100" transform="rotate(-90 100 100)" style={{ strokeDashoffset: phase === 0 ? 100 : 0, transition: phase === 0 ? "none" : "stroke-dashoffset .9s ease-in-out" }} /></mask></defs>
+            <defs><mask id="rb-sweep"><circle data-motion cx="100" cy="100" r="50" fill="none" stroke="#fff" strokeWidth="100" pathLength={100} strokeDasharray="100 100" transform="rotate(-90 100 100)" style={{ strokeDashoffset: phase === 0 ? 100 : 0, transition: phase === 0 ? "none" : "stroke-dashoffset .9s ease-in-out" }} />{/* Once a sweep has opened, the mask fills in whole, so its start and end never meet as a hairline at the top. */}<rect width="200" height="200" fill="#fff" style={{ opacity: phase === 0 ? 0 : 1, transition: phase === 0 ? "none" : "opacity 0s linear .95s" }} /></mask></defs>
             <g mask="url(#rb-sweep)">
               {SLICES.map(([label, v], i) => {
-                const span = (v / TOTAL) * Math.PI * 2, a0 = cum + GAP / 2, a1 = cum + span - GAP / 2, mid = cum + span / 2;
+                const span = (v / TOTAL) * Math.PI * 2, a0 = cum, a1 = cum + span, mid = cum + span / 2;
                 cum += span;
                 const hot = sel === i, lift = hot ? 7 : 0;
                 const fill = sel === null || hot ? SLICE_COLORS[i] : REST;
                 return (
-                  <path key={label} data-motion d={sector(a0, a1, R0 + 3, R1 - 3)} fill={fill} stroke={fill} strokeWidth={6} strokeLinejoin="round"
+                  <path key={label} data-motion d={sector(a0, a1, R0 + 3, R1 - 3, SEAM / 2 + 3)} fill={fill} stroke={fill} strokeWidth={6} strokeLinejoin="round"
                     style={{ transform: `translate(${(Math.cos(mid) * lift).toFixed(1)}px, ${(Math.sin(mid) * lift).toFixed(1)}px)`, filter: hot ? "drop-shadow(0 6px 10px rgba(0,0,0,.4))" : "none", transition: `transform .4s ${spring}, fill .3s, stroke .3s` }} />
                 );
               })}

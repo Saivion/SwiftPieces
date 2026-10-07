@@ -57,6 +57,11 @@ export type PlaygroundHost = {
     signIn?: (returnTo: string) => string;
     /** Create an account, with a return URL (the Save popup offers it beside sign-in). */
     signUp?: (returnTo: string) => string;
+    /**
+     * The host's page for making a style (Free: /styles), opened on the style the Style tab shows,
+     * given as its code. Absent: the Style tab has no button for it.
+     */
+    styles?: (code: string) => string;
   };
   /** The top bar's back button (docked layout): where it goes and what it says it goes back to. */
   back?: { href: string; label: string };

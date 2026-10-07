@@ -9,7 +9,7 @@ import type { Project } from "../../core/schema.js";
 import { NodeBoundary } from "../preview/NodeView.js";
 import { SchemeContext, ThemeContext, schemeFor, themeVars, type Scheme } from "../preview/env.js";
 import { RuntimeContext, createChoiceBus, type Runtime } from "../preview/runtime.js";
-import { PHONE_H, PHONE_W, screenTitle } from "./Device.js";
+import { PHONE_H, PHONE_W, screenTitle } from "../preview/phone.js";
 import { useStyleFonts } from "./style-fonts.js";
 
 /**

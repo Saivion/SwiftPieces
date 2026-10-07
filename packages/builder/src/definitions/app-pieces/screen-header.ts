@@ -98,7 +98,10 @@ export const screenHeader: SwiftPieceDefinition = {
         `${INDENT}${titleLine}`,
         `${INDENT}${INDENT}.font(.system(size: ${size}, weight: ${style === "muted" || emph ? ".regular" : ".bold"}))`,
         `${INDENT}${INDENT}.tracking(-0.4)`,
-        `${INDENT}${INDENT}.fixedSize(horizontal: false, vertical: true)`,
+        // A word wider than the room beside the buttons (a wide display font, a large text size)
+        // shrinks to fit rather than running under them or breaking mid-word, as the preview does.
+        `${INDENT}${INDENT}.lineLimit(${emph && gap !== " " ? 2 : 3})`,
+        `${INDENT}${INDENT}.minimumScaleFactor(0.6)`,
         ...(centered && sub ? [`${INDENT}Text(${str(sub)})`, `${INDENT}${INDENT}.font(.subheadline)`, `${INDENT}${INDENT}.foregroundStyle(.secondary)`] : []),
         "}",
         ...(centered ? [`${INDENT}.multilineTextAlignment(.center)`] : []),
@@ -137,7 +140,14 @@ export const screenHeader: SwiftPieceDefinition = {
           })()
         : [];
       if (centered) {
-        // Centred on the screen, its buttons in the top trailing corner (clear of the title).
+        // Centred on the screen. One round button sits in the top trailing corner, with its width
+        // reserved on both sides so the title stays centred and clear of it. Wider trailing content
+        // (two buttons, a text button) gets its own row above the title instead: centred text in the
+        // space beside it would run under the buttons at larger fonts and sizes.
+        const wide = trailing === "two" || trailing === "text";
+        if (right.length && wide) {
+          return { lines: call("VStack", [["spacing", "8"]], [...call("HStack", [], ["Spacer()", ...right]), ...left, `${INDENT}.frame(maxWidth: .infinity)`]) };
+        }
         const body = [...left, `${INDENT}.frame(maxWidth: .infinity)`, ...(right.length ? [`${INDENT}.padding(.horizontal, 52)`] : [])];
         return { lines: right.length ? call("ZStack", [["alignment", ".topTrailing"]], [...body, ...right]) : body };
       }

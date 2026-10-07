@@ -13,12 +13,12 @@ import { changelog, changelogPath } from "@/lib/changelog";
 // here: /pro and /blocks canonicalize to pro.swiftpieces.com, and /showcase, /privacy and /terms are
 // noindex, so listing them would send search engines mixed signals. The category and topic hubs
 // (/components/cards) are the pages meant to rank for broad queries, so they sit just under home.
-const pages = ["", "/components", "/apps", "/sponsors", "/about", "/license"];
+const pages = ["", "/components", "/apps", "/styles", "/sponsors", "/about", "/license"];
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
   return [
-    ...pages.map((p) => ({ url: `${site.url}${p}`, lastModified: now, priority: p === "" ? 1 : p === "/components" ? 0.9 : p === "/apps" ? 0.8 : 0.5 })),
+    ...pages.map((p) => ({ url: `${site.url}${p}`, lastModified: now, priority: p === "" ? 1 : p === "/components" ? 0.9 : p === "/apps" || p === "/styles" ? 0.8 : 0.5 })),
     ...hubs.map((h) => ({ url: `${site.url}${hubPath(h.slug)}`, lastModified: now, priority: 0.8 })),
     // The app library: each app, and its recreation open in the Playground.
     ...apps.flatMap((a) => [

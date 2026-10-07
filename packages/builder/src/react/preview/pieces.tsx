@@ -4,11 +4,13 @@
 // contains a piece. Each one behaves like its Swift source: the resting state matches what the
 // export starts in, and taps, holds, scrubs and typing run the same motion and haptics the app does.
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ChangeEvent, type CSSProperties, type HTMLAttributes, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
-import { house, houseBlocks } from "../../core/palette.js";
+import { accentDrivesPalette, house, houseBlocks } from "../../core/palette.js";
+import { accentPalette } from "../../definitions/app-pieces/layer-fill.js";
+import { inkOn as readableInk } from "../../core/looks.js";
 import { list } from "../../core/swift.js";
 import { dockSymbol, parseSlices } from "../../definitions/pieces.js";
 import { Glyph } from "../icons.js";
-import { Frame, b, buttonLook, fillStyle, font, houseVar, n, s, useAxis, useTheme, type Renderer, type RenderProps, cr, fw, ts, ACCENT, inkOn } from "./env.js";
+import { Frame, b, buttonLook, fillStyle, font, houseVar, n, s, useAxis, useTheme, type Renderer, type RenderProps, cr, fw, ts, ACCENT, inkOn, useScheme } from "./env.js";
 import { injectStyle, reducedMotion, usePress } from "./primitives.js";
 import { BOUNCE, SPRING, useDrag, useLive, useRuntime, useTap, type HapticKind } from "./runtime.js";
 
@@ -144,7 +146,9 @@ const CommitButton: Renderer = (r) => {
     const a = ref.current.animate?.([-10, 9, -6, 5, -2, 0].map((x) => ({ transform: `translateX(${x}px)` })), { duration: 360, easing: "ease-in-out" });
     return () => a?.cancel();
   }, [phase]);
-  const collapsed = phase === "loading";
+  // It shrinks to its spinner while it works, unless it's set to keep its width.
+  const working = phase === "loading";
+  const collapsed = working && b(r.p, "collapses");
   const look = buttonLook(theme?.buttons);
   const map: Record<string, { bg: string; ink: string; label: ReactNode }> = {
     idle: { bg: look.fill, ink: look.ink, label: s(r.p, "title") },
@@ -160,7 +164,7 @@ const CommitButton: Renderer = (r) => {
         ref={ref}
         {...press.bind}
         role="button"
-        aria-busy={collapsed || undefined}
+        aria-busy={working || undefined}
         onClick={(e) => run(e.currentTarget)}
         className="spb-anim"
         style={{
@@ -669,8 +673,11 @@ const TaskRow: Renderer = (r) => {
           {done ? <span key="c" className="spb-pop" style={{ display: "grid" }}><Glyph name="checkmark" size={16} strokeWidth={2.6} /></span> : null}
         </span>
         <span style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 2 }}>
-          {/* The strike-through draws across, rather than appearing. */}
-          <span className="spb-anim" style={{ ...semibold, alignSelf: "flex-start", backgroundImage: "linear-gradient(currentColor, currentColor)", backgroundRepeat: "no-repeat", backgroundPosition: "0 55%", backgroundSize: `${done ? 100 : 0}% 1.5px`, transition: `background-size .35s ${SPRING}` }}>{s(r.p, "title")}</span>
+          {/* The strike-through draws across, rather than appearing: on each line of a title that
+              wraps (the inner span's line boxes each take their own copy of the line). */}
+          <span style={{ ...semibold, alignSelf: "flex-start" }}>
+            <span className="spb-anim" style={{ backgroundImage: "linear-gradient(currentColor, currentColor)", backgroundRepeat: "no-repeat", backgroundPosition: "0 55%", backgroundSize: `${done ? 100 : 0}% 1.5px`, WebkitBoxDecorationBreak: "clone", boxDecorationBreak: "clone", transition: `background-size .35s ${SPRING}` }}>{s(r.p, "title")}</span>
+          </span>
           {s(r.p, "due").trim() ? <span style={{ ...font("footnote"), color: done ? INK : houseVar("muted"), opacity: done ? 0.7 : 1 }}>{status === "snoozed" ? "Snoozed · " : ""}{s(r.p, "due")}</span> : null}
         </span>
         {pr && !done ? <span style={{ ...font("caption", 700), padding: "4px 8px", borderRadius: cr(8), background: pr.bg, color: INK }}>{pr.label}</span> : null}
@@ -813,26 +820,80 @@ const Odometer: Renderer = (r) => {
   );
 };
 
+/**
+ * An annular sector from angle a0 to a1 (radians, 0 at 3 o'clock) between radii r0 and r1, in a
+ * 200-point box, pulled in by `inset` points along each edge at both radii (as the Swift RingSlice
+ * does), so the seam between two slices is the same width from the hole to the rim.
+ */
+function ringSector(a0: number, a1: number, r0: number, r1: number, inset = 0) {
+  const at = (a: number, rad: number) => `${(100 + Math.cos(a) * rad).toFixed(2)} ${(100 + Math.sin(a) * rad).toFixed(2)}`;
+  const o0 = a0 + inset / r1;
+  const o1 = Math.max(o0, a1 - inset / r1);
+  const i0 = a0 + inset / r0;
+  const i1 = Math.max(i0, a1 - inset / r0);
+  const large = (x: number, y: number) => (y - x > Math.PI ? 1 : 0);
+  return `M${at(o0, r1)} A${r1} ${r1} 0 ${large(o0, o1)} 1 ${at(o1, r1)} L${at(i1, r0)} A${r0} ${r0} 0 ${large(i0, i1)} 0 ${at(i0, r0)} Z`;
+}
+
+/**
+ * As the Swift RingBreakdown draws it: solid blocks with rounded seams that sweep in clockwise from
+ * the top as the ring appears; drag around it (or tap a legend row) and the slice under the finger
+ * lifts out with a shadow while the rest step back to the surface, the light centre figure rolls to
+ * its value over a percent chip in its colour, and its legend row turns into its block. The ring
+ * fills the width it's given (up to 320 points).
+ */
 const RingBreakdown: Renderer = (r) => {
   const slices = parseSlices(s(r.p, "slices"));
   const total = slices.reduce((a, x) => a + x.value, 0) || 1;
   const currency = b(r.p, "currency");
+  const scheme = useScheme();
   const [selected, setSelected] = useState<number | null>(null);
+  const [swept, setSwept] = useState(false);
+  const [box, setBox] = useState(240);
+  const wrap = useRef<HTMLDivElement>(null);
   const haptic = useHaptic();
-  const R = 70;
-  const C = 2 * Math.PI * R;
-  let acc = 0;
-  const colors = houseBlocks.map((k) => B[k]);
+  // A Style accent turns the blocks into a seeded palette around it, as Layer Fill's bands do (the
+  // Swift does the same); the house red, or an ink or grey accent, keeps the house blocks.
+  const styleTheme = useTheme();
+  const styled = styleTheme && accentDrivesPalette(styleTheme.accent.light, styleTheme.accent.dark) ? styleTheme.accent[scheme] : null;
+  const colors = styled ? accentPalette(styled, Math.max(1, slices.length)) : houseBlocks.map((k) => B[k]);
+  // The ink on a slice's block: dark on the pastels, the ink Style picks on its accent.
+  const blockInk = (i: number) => (colors[i % colors.length] === ACCENT ? ACCENT_INK : styled ? readableInk(colors[i % colors.length]) : INK);
+  const rest = scheme === "dark" ? "#2E2E2E" : "#E9E7E1";
+  useLayoutEffect(() => {
+    const el = wrap.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => setBox(Math.max(120, Math.min(320, el.clientWidth))));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  // The sweep: one frame closed, then the mask opens around the ring.
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    if (reducedMotion()) {
+      setSwept(true);
+      setOpen(true);
+      return;
+    }
+    const id = requestAnimationFrame(() => requestAnimationFrame(() => setSwept(true)));
+    // Once the sweep has opened, the mask comes off (its start and end meet at the top).
+    const t = window.setTimeout(() => setOpen(true), 1000);
+    return () => {
+      cancelAnimationFrame(id);
+      window.clearTimeout(t);
+    };
+  }, []);
   const pick = (i: number | null, el: Element | null) => {
     if (i !== selected && i !== null) haptic("selection", el);
     setSelected(i);
   };
-  // Where a point on the ring falls: the slice under that angle, or none inside the hole.
-  const sliceAt = (x: number, y: number): number | null => {
-    const dx = x - 100;
-    const dy = y - 100;
-    const dist = Math.hypot(dx, dy);
-    if (dist < 44) return null;
+  // Where a pointer falls on the ring, read from the ring's box on screen (so any scale the ring is
+  // drawn at holds): the slice under that angle, or none in the hole.
+  const sliceAt = (ev: { clientX: number; clientY: number }, el: Element): number | null => {
+    const rect = el.getBoundingClientRect();
+    const dx = ((ev.clientX - rect.left) / rect.width) * 200 - 100;
+    const dy = ((ev.clientY - rect.top) / rect.height) * 200 - 100;
+    if (Math.hypot(dx, dy) < 50) return null;
     const a = (Math.atan2(dy, dx) + Math.PI / 2 + Math.PI * 2) % (Math.PI * 2);
     const at = (a / (Math.PI * 2)) * total;
     let sum = 0;
@@ -842,57 +903,93 @@ const RingBreakdown: Renderer = (r) => {
     }
     return slices.length - 1;
   };
-  const scrubbed = useRef(false);
-  const drag = useDrag({
-    slop: 0,
-    onStart: ({ x, y, el }) => {
-      scrubbed.current = false;
-      const i = sliceAt(x, y);
-      // A tap on the selected slice, or in the hole, clears the selection.
-      pick(i === selected ? null : i, el);
-    },
-    onMove: ({ x, y, el, dx, dy }) => {
-      if (Math.hypot(dx, dy) < 4) return;
-      scrubbed.current = true;
-      const i = sliceAt(x, y);
-      if (i !== null) pick(i, el);
-    },
-  });
+  // A tap picks the slice under it (on the selected one, or in the hole, it clears); dragging around
+  // the ring moves the selection from slice to slice.
+  const down = (e: ReactPointerEvent<HTMLDivElement>) => {
+    if (e.button !== 0) return;
+    const el = e.currentTarget;
+    const first = sliceAt(e, el);
+    pick(first === selected ? null : first, el);
+    const x0 = e.clientX;
+    const y0 = e.clientY;
+    const move = (ev: PointerEvent) => {
+      if (Math.hypot(ev.clientX - x0, ev.clientY - y0) < 4) return;
+      const i = sliceAt(ev, el);
+      if (i !== null) setSelected((cur) => {
+        if (cur !== i) haptic("selection", el);
+        return i;
+      });
+    };
+    const up = () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+      window.removeEventListener("pointercancel", up);
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+    window.addEventListener("pointercancel", up);
+  };
   const sel = selected !== null && selected < slices.length ? slices[selected] : null;
+  const shown = useTween(sel ? sel.value : total, 450);
   const money = (v: number) => fmt(v, currency).replace(/\.\d+$/, "");
+  const R1 = 94;
+  const R0 = 60;
+  // The seam between slices, in the ring's points (its 6-point stroke rounds every corner).
+  const SEAM = 4;
+  let cum = -Math.PI / 2;
+  const mask = `spb-rb-${r.node.id}`;
   return (
-    <Root r={r} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16, color: houseVar("text") }}>
-      <div onPointerDown={drag} style={{ position: "relative", width: 200, height: 200, cursor: "pointer", touchAction: "none", userSelect: "none" }}>
-        <svg viewBox="0 0 200 200" width="200" height="200" style={{ transform: "rotate(-90deg)", overflow: "visible" }}>
-          {slices.map((x, i) => {
-            const len = (x.value / total) * C;
-            const on = selected === i;
-            const el = (
-              <circle
-                key={i} cx="100" cy="100" r={R} fill="none" stroke={colors[i % colors.length]} strokeWidth={on ? 42 : 34}
-                strokeDasharray={`${Math.max(0, len - 4)} ${C}`} strokeDashoffset={-acc}
-                className="spb-anim"
-                style={{ opacity: selected === null || on ? 1 : 0.35, transition: `stroke-width .35s ${BOUNCE}, opacity .25s` }}
-              />
-            );
-            acc += len;
-            return el;
-          })}
-        </svg>
-        <span style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>
-          {sel ? <span key={`l${selected}`} className="spb-rise" style={{ ...font("footnote", 600), color: houseVar("muted") }}>{sel.label}</span> : null}
-          <span key={`v${selected}`} className={sel ? "spb-rise" : undefined} style={{ fontSize: ts(24), fontWeight: fw(300) }}>{money(sel ? sel.value : total)}</span>
-        </span>
+    <Root r={r} style={{ display: "flex", flexDirection: "column", alignItems: "stretch", gap: 16, color: houseVar("text") }}>
+      <div ref={wrap} style={{ display: "flex", justifyContent: "center" }}>
+        <div onPointerDown={down} style={{ position: "relative", width: box, height: box, cursor: "pointer", touchAction: "none", userSelect: "none" }}>
+          <svg viewBox="0 0 200 200" width={box} height={box} style={{ overflow: "visible" }} aria-hidden>
+            <defs>
+              <mask id={mask}>
+                <circle cx="100" cy="100" r="50" fill="none" stroke="#fff" strokeWidth="100" pathLength={100} strokeDasharray="100 100" transform="rotate(-90 100 100)" style={{ strokeDashoffset: swept ? 0 : 100, transition: swept ? "stroke-dashoffset .9s ease-in-out" : "none" }} />
+              </mask>
+            </defs>
+            <g mask={open ? undefined : `url(#${mask})`}>
+              {slices.map((x, i) => {
+                const span = (x.value / total) * Math.PI * 2;
+                const a0 = cum;
+                const a1 = cum + span;
+                const mid = cum + span / 2;
+                cum += span;
+                const hot = selected === i;
+                const lift = hot && !reducedMotion() ? 7 : 0;
+                const fill = selected === null || hot ? colors[i % colors.length] : rest;
+                return (
+                  <path
+                    key={i} d={ringSector(a0, a1, R0 + 3, R1 - 3, SEAM / 2 + 3)} fill={fill} stroke={fill} strokeWidth={6} strokeLinejoin="round"
+                    className="spb-anim"
+                    style={{ transform: `translate(${(Math.cos(mid) * lift).toFixed(1)}px, ${(Math.sin(mid) * lift).toFixed(1)}px)`, filter: hot ? "drop-shadow(0 6px 10px rgba(0,0,0,.25))" : "none", transition: `transform .4s ${SPRING}, fill .3s, stroke .3s` }}
+                  />
+                );
+              })}
+            </g>
+          </svg>
+          <span style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 4, pointerEvents: "none" }}>
+            <span style={{ fontSize: ts(12), fontWeight: fw(600), letterSpacing: "0.1em", textTransform: "uppercase", color: houseVar("muted") }}>{sel ? sel.label : "Total"}</span>
+            <span style={{ fontSize: ts(Math.round(34 * (box / 240))), fontWeight: fw(300), letterSpacing: -0.8, lineHeight: 1.05, fontVariantNumeric: "tabular-nums" }}>{money(shown)}</span>
+            <span className="spb-anim" style={{ ...font("footnote", 700), minHeight: 24, display: "inline-flex", alignItems: "center", padding: "0 10px", borderRadius: cr(999), background: sel ? colors[selected! % colors.length] : "transparent", color: sel ? blockInk(selected!) : INK, fontVariantNumeric: "tabular-nums", opacity: sel ? 1 : 0, transform: `scale(${sel ? 1 : 0.8})`, transition: `opacity .2s, transform .3s ${SPRING}` }}>
+              {sel ? `${Math.round((sel.value / total) * 100)}%` : "0%"}
+            </span>
+          </span>
+        </div>
       </div>
       {b(r.p, "legend") ? (
-        <div style={{ alignSelf: "stretch", display: "flex", flexDirection: "column", gap: 8 }}>
-          {slices.map((x, i) => (
-            <div key={i} onClick={(e) => pick(selected === i ? null : i, e.currentTarget)} style={{ display: "flex", alignItems: "center", gap: 10, ...font("subheadline"), cursor: "pointer", opacity: selected === null || selected === i ? 1 : 0.5, transition: "opacity .25s" }}>
-              <span style={{ width: 12, height: 12, borderRadius: cr(3), background: colors[i % colors.length] }} />
-              <span style={{ flex: 1, fontWeight: fw(selected === i ? 600 : undefined) }}>{x.label}</span>
-              <span style={{ color: houseVar("muted") }}>{money(x.value)}</span>
-            </div>
-          ))}
+        <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          {slices.map((x, i) => {
+            const hot = selected === i;
+            return (
+              <div key={i} onClick={(e) => pick(hot ? null : i, e.currentTarget)} className="spb-anim" style={{ display: "flex", alignItems: "center", gap: 12, minHeight: 48, padding: "0 14px", borderRadius: cr(18), cursor: "pointer", background: hot ? colors[i % colors.length] : "transparent", color: hot ? blockInk(i) : houseVar("text"), opacity: selected === null || hot ? 1 : 0.62, transition: "background-color .3s, opacity .3s, color .3s" }}>
+                <span style={{ width: 14, height: 14, borderRadius: cr(5), flex: "none", background: hot ? blockInk(i) : colors[i % colors.length] }} />
+                <span style={{ flex: 1, ...font("body", hot ? 700 : 500) }}>{x.label}</span>
+                <span style={{ ...font("body", 500), fontVariantNumeric: "tabular-nums" }}>{money(x.value)}</span>
+                <span style={{ ...font("subheadline"), fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace", width: 44, textAlign: "right", color: hot ? blockInk(i) : houseVar("muted"), opacity: hot ? 0.7 : 1 }}>{Math.round((x.value / total) * 100)}%</span>
+              </div>
+            );
+          })}
         </div>
       ) : null}
     </Root>
@@ -1316,7 +1413,10 @@ const FloatingDock: Renderer = (r) => {
 };
 
 const MotionCard: Renderer = (r) => {
-  const fill = s(r.p, "fill") === "signal" ? ACCENT : B[s(r.p, "fill")] ?? ACCENT;
+  const block = B[s(r.p, "fill")];
+  const fill = s(r.p, "fill") === "signal" || !block ? ACCENT : block;
+  // Dark ink on the pastel blocks; on the accent, the ink Style picks to read on it (dark on the house red).
+  const ink = fill === ACCENT ? ACCENT_INK : INK;
   const max = n(r.p, "maxAngle");
   const cardRef = useRef<HTMLDivElement>(null);
   const sheenRef = useRef<HTMLSpanElement>(null);
@@ -1380,7 +1480,7 @@ const MotionCard: Renderer = (r) => {
             display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 8,
             boxShadow: "0 18px 40px -18px rgba(0,0,0,.45)", transform: reducedMotion() ? "none" : rest, transition: `transform .6s ${BOUNCE}`,
             // The card's own ink, which plain Text inside it inherits (as `foregroundStyle` does in SwiftUI).
-            ["--ios-label" as string]: INK, ["--ios-label2" as string]: "rgba(20,20,20,.62)", ["--ios-label3" as string]: "rgba(20,20,20,.35)", ["--ios-accent" as string]: INK,
+            ["--ios-label" as string]: ink, ["--ios-label2" as string]: `color-mix(in srgb, ${ink} 62%, transparent)`, ["--ios-label3" as string]: `color-mix(in srgb, ${ink} 35%, transparent)`, ["--ios-accent" as string]: ink,
           }}
         >
           <span ref={sheenRef} aria-hidden style={{ position: "absolute", inset: 0, borderRadius: cr("inherit"), pointerEvents: "none", opacity: 0, transition: "opacity .3s" }} />

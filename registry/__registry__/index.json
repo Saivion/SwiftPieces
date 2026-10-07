@@ -515,7 +515,7 @@
     "description": "An async action button driven by one idle/loading/success/error/disabled phase: a signal capsule collapses to a spinning ring, closes it and blooms into a sage success block with a drawn check, or re-expands as a butter error block that shakes and doubles as retry.",
     "category": "controls",
     "license": "MIT+Commons-Clause",
-    "version": "2.0.1",
+    "version": "2.1.0",
     "minIOSVersion": "17.0",
     "swiftToolsVersion": "6.1",
     "tags": [

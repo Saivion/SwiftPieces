@@ -1,7 +1,7 @@
 "use client";
 // Screen Header in the preview: eyebrow, the two-weight title, and round icon buttons that follow
 // their links with a light haptic and a springy dip, as the Swift's HeaderIconButtonStyle does.
-import { useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Glyph } from "../../icons.js";
 import { n, s, type Renderer, type Scheme, cr, fw, ts, useTheme } from "../env.js";
 import { glassSurface } from "../glass.js";
@@ -69,7 +69,8 @@ function Avatar({ initials, link }: { initials: string; link: unknown }) {
 
 export const ScreenHeader: Renderer = (r) => {
   // Style → Headers: bold sets the whole title in one bold weight; centered centres it.
-  const headers = useTheme()?.headers ?? "split";
+  const theme = useTheme();
+  const headers = theme?.headers ?? "split";
   if (headers === "bold") r = { ...r, p: { ...r.p, emphasisStyle: "bold", leadWeight: "bold" } };
   const centered = headers === "centered";
   const size = n(r.p, "size") || 32;
@@ -83,16 +84,59 @@ export const ScreenHeader: Renderer = (r) => {
   const words = s(r.p, "buttonText").trim() || "Create";
   // Liquid Glass buttons (the Buttons option), as the Swift's GlassButtonStyle draws them.
   const glass = s(r.p, "buttons") === "glass" ? r.scheme : null;
+  const centeredWide = centered && (trailing === "two" || trailing === "text");
+  // A word wider than the room beside the buttons shrinks the title to fit (down to 60%), as the
+  // Swift's minimumScaleFactor does, instead of running under them. Measured after every render,
+  // so a new font or text size from Style re-fits it.
+  // It starts again at full size whenever the words or the Style change, and only shrinks while a
+  // word actually overflows (a block's scrollWidth never reports less than its own width).
+  const titleRef = useRef<HTMLSpanElement>(null);
+  // A web font that finishes loading after the first measure changes the width, so measure again.
+  const [fontsLoaded, setFontsLoaded] = useState(0);
+  useEffect(() => {
+    const fonts = typeof document !== "undefined" ? document.fonts : undefined;
+    if (!fonts) return;
+    const bump = () => setFontsLoaded((x) => x + 1);
+    fonts.addEventListener("loadingdone", bump);
+    return () => fonts.removeEventListener("loadingdone", bump);
+  }, []);
+  const fitKey = `${lead}|${emph}|${size}|${fontsLoaded}|${JSON.stringify(theme ?? null)}`;
+  const [fitState, setFitState] = useState({ key: fitKey, fit: 1 });
+  const fit = fitState.key === fitKey ? fitState.fit : 1;
+  useLayoutEffect(() => {
+    const el = titleRef.current;
+    if (!el || el.clientWidth <= 0 || el.scrollWidth <= el.clientWidth + 1 || fit <= 0.6) {
+      if (fitState.key !== fitKey) setFitState({ key: fitKey, fit });
+      return;
+    }
+    setFitState({ key: fitKey, fit: Math.max(0.6, Math.floor(fit * (el.clientWidth / el.scrollWidth) * 100) / 100) });
+  });
+  const trailingView = (
+    <>
+      {trailing === "icon" ? <IconButton icon={s(r.p, "icon") || "plus"} link={r.p.link} glass={glass} /> : null}
+      {trailing === "two" ? (
+        <>
+          <IconButton icon={s(r.p, "icon") || "plus"} link={r.p.link} glass={glass} />
+          <IconButton icon={s(r.p, "icon2") || "ellipsis"} link={r.p.link2} glass={glass} />
+        </>
+      ) : null}
+      {trailing === "avatar" ? <Avatar initials={s(r.p, "initials").trim().slice(0, 3) || "AK"} link={r.p.link} /> : null}
+      {trailing === "text" ? <TextButton text={words} icon={s(r.p, "icon")} link={r.p.link} glass={glass} /> : null}
+    </>
+  );
   const emphStyle =
     style === "accent" ? { fontWeight: fw(700), color: "var(--spb-accent, var(--ios-accent))" }
     : style === "muted" ? { fontWeight: fw(400), color: LABEL2 }
     : { fontWeight: fw(700) };
   return (
     <WideRoot r={r} style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+    {/* Centred with wide trailing content (two buttons, a text button): the buttons take their own
+        row above the title, as the Swift does, so the centred text never runs under them. */}
+    {centeredWide ? <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginBottom: 2 }}>{trailingView}</div> : null}
     <div style={{ display: "flex", alignItems: "flex-start", gap: 12, position: "relative" }}>
-      <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 6, ...(centered ? { alignItems: "center", textAlign: "center", padding: trailing !== "none" ? "0 52px" : undefined } : {}) }}>
+      <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 6, ...(centered ? { alignItems: "center", textAlign: "center", padding: trailing !== "none" && !centeredWide ? "0 52px" : undefined } : {}) }}>
         {eyebrow ? <span style={{ fontSize: ts(15), lineHeight: "20px", fontWeight: fw(500), color: LABEL2 }}>{eyebrow}</span> : null}
-        <span style={{ fontFamily: "var(--spb-heading-font, inherit)", fontSize: ts(size), lineHeight: 1.12, letterSpacing: -0.4, fontWeight: fw(emph ? 400 : style === "muted" ? 400 : 700), color: LABEL }}>
+        <span ref={titleRef} style={{ display: "block", maxWidth: "100%", fontFamily: "var(--spb-heading-font, inherit)", fontSize: fit < 1 ? `calc(${ts(size)} * ${fit})` : ts(size), lineHeight: 1.12, letterSpacing: -0.4, fontWeight: fw(emph ? 400 : style === "muted" ? 400 : 700), color: LABEL }}>
           {emph && s(r.p, "leadWeight") === "bold" ? <span style={{ fontWeight: fw(700) }}>{lead}</span> : lead}
           {emph ? (
             <>
@@ -103,19 +147,7 @@ export const ScreenHeader: Renderer = (r) => {
         </span>
         {centered && subtitle ? <span style={{ fontSize: ts(15), lineHeight: "20px", color: LABEL2 }}>{subtitle}</span> : null}
       </div>
-      {centered && trailing !== "none" ? (
-        <span style={{ position: "absolute", top: 0, right: 0, display: "flex", gap: 10 }}>
-          {trailing === "icon" ? <IconButton icon={s(r.p, "icon") || "plus"} link={r.p.link} glass={glass} /> : null}
-          {trailing === "two" ? (
-            <>
-              <IconButton icon={s(r.p, "icon") || "plus"} link={r.p.link} glass={glass} />
-              <IconButton icon={s(r.p, "icon2") || "ellipsis"} link={r.p.link2} glass={glass} />
-            </>
-          ) : null}
-          {trailing === "avatar" ? <Avatar initials={s(r.p, "initials").trim().slice(0, 3) || "AK"} link={r.p.link} /> : null}
-          {trailing === "text" ? <TextButton text={words} icon={s(r.p, "icon")} link={r.p.link} glass={glass} /> : null}
-        </span>
-      ) : null}
+      {centered && trailing !== "none" && !centeredWide ? <span style={{ position: "absolute", top: 0, right: 0, display: "flex", gap: 10 }}>{trailingView}</span> : null}
       {!centered && trailing === "icon" ? <IconButton icon={s(r.p, "icon") || "plus"} link={r.p.link} glass={glass} /> : null}
       {!centered && trailing === "two" ? (
         <span style={{ display: "flex", gap: 10 }}>

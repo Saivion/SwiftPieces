@@ -1313,6 +1313,13 @@ html.light .spp-shuffle-go:hover .spp-shuffle-wash, html.light .spp-shuffle-go:f
 .spp-still-phone { position: relative; overflow: hidden; background: #000; box-shadow: 0 0 0 1px rgb(0 0 0 / .08), 0 10px 24px -14px rgb(0 0 0 / .45); }
 .spp-still-name { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; color: var(--text-muted, #8a8a8a); }
 
+/* ---------- A style on its own (StylePreview): components on the style's ground, or one screen in a phone ---------- */
+.spb-style-fragment { width: 100%; height: auto; border-radius: inherit; background: transparent; }
+.spb-style-fragment > .spp-screen { position: relative; inset: auto; flex: 1; will-change: auto; }
+.spb-style-fragment .spb-screen-host { flex-direction: column; padding: var(--spb-fragment-pad, 16px); }
+.spb-style-fragment[data-bare] > .spp-screen { background: none; }
+.spb-style-phone { position: relative; flex: none; }
+
 /* ---------------------------------------------------------------- What's open (stageBadge)
    The host's badge for the open entry, centered at the top of the stage between the canvas switch
    and the inspiration card. The stage keeps room for it, so the phone (or the locked screens) sit

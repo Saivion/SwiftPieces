@@ -8,6 +8,7 @@ import { CATALOG_KINDS, catalogPath, entryKey, isCatalogKind, type CatalogEntry 
 import { firstNodeOf } from "../../core/inspect.js";
 import type { Project } from "../../core/schema.js";
 import { decodeProject } from "../../core/share.js";
+import { decodeStyle } from "../../core/shuffle.js";
 import { parentOf } from "../../core/tree.js";
 import { UI } from "../icons.js";
 import { PlaygroundContext, usePlayground, type PlaygroundContextValue, type PlaygroundHost } from "./context.js";
@@ -47,6 +48,12 @@ export type PlaygroundInitial = {
    * another Playground. Untrusted: it is validated before it is shown. Its `entry` names where it opens.
    */
   remix?: unknown;
+  /**
+   * A style code (`encodeStyle`, "SP2-…") to wear once the entry is ready: the host's Styles page
+   * opens an app with the style just made there. Untrusted: a code that doesn't decode is ignored,
+   * with a notice. It lands as one undoable change, like any other Style edit.
+   */
+  style?: string | null;
 };
 
 const titleFor = (e: CatalogEntry, host: PlaygroundHost) => {
@@ -145,6 +152,20 @@ export function Playground({ host, initial = {} }: { host: PlaygroundHost; initi
         });
       }
     }
+    if (initial.style) {
+      // A style handed over by code (the host's Styles page): once the entry is ready, every screen
+      // wears it, as one undoable change over whatever this browser had (an autosaved remix too).
+      const style = decodeStyle(initial.style);
+      const wear = () => (style ? (store.setTheme(style), store.notify("Your style is on every screen.")) : store.notify("That style code couldn't be read."));
+      if (store.getState().status === "ready") wear();
+      else {
+        const off = store.subscribe(() => {
+          if (store.getState().status !== "ready") return;
+          off();
+          wear();
+        });
+      }
+    }
     if (initial.component) {
       // A component page's "Try it" link: once the entry is ready (it may still be loading), bring the
       // screen that holds the component to the front and select it; or open the entry that shows it best.
@@ -170,7 +191,7 @@ export function Playground({ host, initial = {} }: { host: PlaygroundHost; initi
       }
     }
     track("playground_opened", { kind: entry?.kind ?? "none", slug: entry?.slug ?? "", tier: host.limits.tier, via: shared ? "share" : savedId ? "saved" : "url" });
-  }, [store, persist, track, host, initial.component, initial.remix, initial.step, navigate]);
+  }, [store, persist, track, host, initial.component, initial.remix, initial.step, initial.style, navigate]);
 
   // Back and forward move between entries, like pages: the entry whose page is the address.
   useEffect(() => {

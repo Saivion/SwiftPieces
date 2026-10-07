@@ -3,19 +3,21 @@
 // and this file is how it knows the look, the pieces already installed, and the rules that keep
 // generated SwiftUI correct (no invented Liquid Glass modifiers, iOS 17 baseline).
 import type { GeneratedProject } from "../core/generate.js";
+import { addCommand, agentSiteUrl } from "../core/site-url.js";
 import type { ResolvedTheme } from "../core/looks.js";
 import type { Project } from "../core/schema.js";
 import { LIST_WORDS } from "../core/prompt.js";
 
 const CORNERS: Record<string, string> = { tight: "tight, about 5–8pt", standard: "standard, 12–20pt", soft: "soft, 20–28pt and capsule buttons" };
 
-export function agentGuide(project: Project, generated: GeneratedProject, theme: ResolvedTheme | null): string {
+export function agentGuide(project: Project, generated: GeneratedProject, theme: ResolvedTheme | null, siteUrl = agentSiteUrl()): string {
+  const site = siteUrl;
   const app = generated.appName;
   const pieces = generated.pieces.map((p) => p.name);
   return [
     `# ${app}: notes for coding agents`,
     "",
-    `This SwiftUI app was started in the SwiftPieces playground (https://swiftpieces.com/playground). Keep new screens consistent with what is already here.`,
+    `This SwiftUI app was started in the SwiftPieces playground (${site}/playground). Keep new screens consistent with what is already here.`,
     "",
     "## Project",
     "",
@@ -47,8 +49,8 @@ export function agentGuide(project: Project, generated: GeneratedProject, theme:
     pieces.length
       ? `- Installed: ${pieces.map((p) => `\`${p}\``).join(", ")}, in \`${app}/SwiftPieces/\`. They are plain source: read a file's doc comments for its parameters before using it.`
       : `- No SwiftPieces are installed yet.`,
-    "- Add more with `npx swiftpieces add <Name>` from the folder holding the .xcodeproj, or through the SwiftPieces MCP server: https://swiftpieces.com/api/mcp (tools: search_pieces, get_piece, install_piece). Prefer an existing piece to writing a new animated control from scratch.",
-    "- Catalog for agents: https://swiftpieces.com/llms.txt",
+    `- Add more with \`${addCommand(site)}\` from the folder holding the .xcodeproj, or through the SwiftPieces MCP server: ${site}/api/mcp (tools: search_pieces, get_piece, install_piece). Prefer an existing piece to writing a new animated control from scratch.`,
+    `- Catalog for agents: ${site}/llms.txt`,
     "- Full screens and complete app templates in the same style: SwiftPieces Pro, https://pro.swiftpieces.com",
     "",
     "## Rules",

@@ -7,6 +7,25 @@ import type { ChangelogEntry } from "@/components/changelog/changelog-grid";
  */
 export const changelog: ChangelogEntry[] = [
   {
+    slug: "styles",
+    date: "Oct 7, 2026",
+    title: "Styles",
+    summary: "Make one style for every screen you build. Pick its color, type, shape and motion on live SwiftUI components and real app screens, then take it to the Playground or your own app with one code.",
+    points: [
+      "Styles, a new page: shape a style on live components and three app screens side by side, from 12 looks, 31 iOS fonts and 9 moods to shuffle in. Lock the parts you like and shuffle the rest, in light and dark.",
+      "One code carries a style everywhere: it opens any free app in the Playground wearing it, comes back to Styles from the Playground, and copies as a prompt for your coding agent with the Theme.swift it needs.",
+      "Styles reach further into the screens: Waterllama's liquid now pours in a palette drawn from your style's color, a new mix with every shuffle, and the same in the SwiftUI you take to Xcode.",
+      "Cleaner layouts under any style: centered headers move their buttons to their own row, and a title too wide for a bold display font shrinks to fit instead of running under the buttons.",
+      "Edit a screen's layout in the Playground: move, swap, duplicate, delete or add a component from the bar on the canvas, or drag one to reorder it.",
+      "New navigation: Library holds what you install, Create the tools you use in the browser (Apps and Styles), and Resources the docs, guides, MCP, this changelog and our sponsors.",
+      "Every piece builds in new Xcode 26 projects, which run code on the main actor by default.",
+      "Faster docs: highlighted code ships at about half the size, so pages load quicker.",
+      "The name is now written as one word: SwiftPieces.",
+    ],
+    visual: "palette",
+    tint: "purple",
+  },
+  {
     slug: "apps-and-playground",
     date: "Sep 29, 2026",
     title: "Apps and the Playground",

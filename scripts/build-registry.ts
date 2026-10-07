@@ -428,6 +428,11 @@ function writeLlms(items: RegistryItem[]) {
     `- [Free MCP endpoint](${SITE_URL}/api/mcp): search_pieces, get_piece, install_piece, list_categories, get_liquid_glass_guide`,
     `- [Full text for LLMs](${SITE_URL}/llms-full.txt): every piece's notes and parameters, and every guide`,
     "",
+    "## Tools",
+    "",
+    `- [App Library](${SITE_URL}/apps): App Store apps remixed as original SwiftUI screens to try, take apart and remix in the browser Playground. Three are free; the rest come with Pro.`,
+    `- [Styles](${SITE_URL}/styles): make one style for every screen (accent, light and dark, iOS fonts, corners, cards, buttons, spacing, motion) on live SwiftUI components. A style travels as a short code (SP2-…) that the Playground's Style tab and its \`?style=\` links read, and exports as Theme.swift.`,
+    "",
   ];
   if (guides.length) {
     lines.push("## Guides", "");

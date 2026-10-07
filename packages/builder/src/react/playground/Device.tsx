@@ -4,7 +4,7 @@
 // shows haptics where they happen. In Inspect mode the same screen becomes something to take apart:
 // the pointer highlights components, a click selects one, and nothing underneath reacts.
 import { memo, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from "react";
-import { BatteryFull, ChevronLeft, Signal, Wifi } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import { resolveTheme, type ResolvedTheme } from "../../core/looks.js";
 import type { Project, Screen } from "../../core/schema.js";
 import { findNode } from "../../core/tree.js";
@@ -18,13 +18,11 @@ import { SelectionBar } from "./SelectionBar.js";
 import { startLayoutDrag } from "./layout-drag.js";
 import { currentScreenId, tabRoots, usePlay, type Nav } from "./store.js";
 import { useStyleFonts } from "./style-fonts.js";
+import { BEZEL, PHONE_H, PHONE_W, StatusBar, screenTitle } from "../preview/phone.js";
 
-export const PHONE_W = 390;
-export const PHONE_H = 844;
-/** Bezel around the screen, in points. */
-export const BEZEL = 12;
-
-export const screenTitle = (s: Screen) => String(s.root.props.title ?? "").trim() || s.tab?.title || s.name.replace(/View$/, "").replace(/([a-z0-9])([A-Z])/g, "$1 $2");
+// The phone's size, bezel and status bar live in preview/phone.tsx (stills and style previews draw
+// the same phone without the store); re-exported for everything that reads them from here.
+export { BEZEL, PHONE_H, PHONE_W, StatusBar, screenTitle };
 
 /**
  * The back button's label, as UIKit picks it: the previous screen's title when it fits beside this
@@ -38,20 +36,6 @@ function backTitle(back: Screen, current: Screen): string {
   // Half the bar beside the centred title, less the chevron, its padding and a gap.
   const room = (PHONE_W - title.length * 9.4) / 2 - 46;
   return label.length * 8.6 <= room ? label : "Back";
-}
-
-export function StatusBar() {
-  return (
-    <div className="spb-statusbar" aria-hidden>
-      <span>9:41</span>
-      <span className="spb-island" />
-      <span className="spb-status-icons">
-        <Signal size={17} strokeWidth={2.4} />
-        <Wifi size={17} strokeWidth={2.4} />
-        <BatteryFull size={25} strokeWidth={1.8} />
-      </span>
-    </div>
-  );
 }
 
 type Pulse = { id: number; x: number; y: number; kind: HapticKind };

@@ -9,6 +9,15 @@ export { usePlayground } from "./playground/context.js";
 export { BuildArt } from "./playground/BuildArt.js";
 // A saved remix's screens as still phones, outside the Playground (an account's saved list).
 export { ProjectStills } from "./playground/Stills.js";
+// A style on its own, outside the Playground (a Styles page): live components, or a screen in a phone.
+export { StylePreview, type StylePreviewProps } from "./preview/StylePreview.js";
+// The CSS variables a style sets on a screen (accent, ground, corners, type, cards, backdrop, motion),
+// for a host surface that should wear the style's ground and backdrop, and the light or dark a
+// screen shows in.
+export { themeVars, schemeFor, type Scheme } from "./preview/env.js";
+export { PHONE_W, PHONE_H, BEZEL } from "./preview/phone.js";
+// Style's web fonts: a stylesheet once per URL, and a theme's body and heading stand-ins.
+export { loadFontsHref, useStyleFonts } from "./playground/style-fonts.js";
 export { usePlay, currentScreenId } from "./playground/store.js";
 export { registerRenderers, type RendererGroup } from "./preview/NodeView.js";
 export { registerFill } from "./preview/fills.js";

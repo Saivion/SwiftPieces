@@ -19,6 +19,7 @@ export * from "./core/share.js";
 export * from "./core/looks.js";
 export * from "./core/fonts.js";
 export * from "./core/shuffle.js";
+export * from "./core/style-options.js";
 export { styleSwiftSource, rewriteFonts, rewriteCorners } from "./core/theme-swift.js";
 export * from "./core/prompt.js";
 export { str, num, call, modifiers, indent, list, identifier, INDENT, type Arg } from "./core/swift.js";
