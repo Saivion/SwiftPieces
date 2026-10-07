@@ -3,7 +3,7 @@
 // description: A ButtonStyle that squashes toward the touch point, stretches with rubber-band resistance when dragged, deepens after a hold and snaps back with a spring. Optional solid surfaces (signal, block, raised) press into their own soft shadow and darken under the finger.
 // category: controls
 // minIOSVersion: "17.0"
-// version: "2.0.0"
+// version: "2.0.1"
 // tags: [button, style, spring, drag, haptics, depth]
 
 import SwiftUI
@@ -80,7 +80,7 @@ public struct ElasticButton: ButtonStyle {
             }
 
             static func adaptive(light: UInt32, dark: UInt32) -> Color {
-                Color(uiColor: UIColor { traits in
+                Color(uiColor: UIColor { @Sendable traits in
                     let v = traits.userInterfaceStyle == .dark ? dark : light
                     return UIColor(red: CGFloat((v >> 16) & 0xFF) / 255, green: CGFloat((v >> 8) & 0xFF) / 255, blue: CGFloat(v & 0xFF) / 255, alpha: 1)
                 })

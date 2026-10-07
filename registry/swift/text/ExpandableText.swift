@@ -3,7 +3,7 @@
 // description: A paragraph clamped to a line limit that measures whether it is really truncated, and only then fades the end of its last line into a trailing "more" link; tapping grows the block smoothly to its full height with no reflow, a "less" link collapses it, links stay tappable, and VoiceOver always reads the whole text.
 // category: text
 // minIOSVersion: "17.0"
-// version: "1.0.0"
+// version: "1.0.1"
 // added: "2026-09-23"
 // tags: [text, read-more, truncation, expand, collapse, line-limit, review]
 
@@ -327,7 +327,7 @@ private struct HeightReader: ViewModifier {
 
 /// A house-palette color that follows the interface style.
 private func adaptive(light: UInt32, dark: UInt32) -> Color {
-    Color(uiColor: UIColor { traits in
+    Color(uiColor: UIColor { @Sendable traits in
         let hex = traits.userInterfaceStyle == .dark ? dark : light
         return UIColor(red: CGFloat((hex >> 16) & 0xFF) / 255, green: CGFloat((hex >> 8) & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
     })

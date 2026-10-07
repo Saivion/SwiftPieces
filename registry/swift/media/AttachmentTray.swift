@@ -3,7 +3,7 @@
 // description: "A horizontal attachment strip for composers, support forms and listings: an add tile opens the photo picker with the remaining limit, each pick lands as its own tile that loads with a live progress ring, downsamples off the main thread into a crisp thumbnail and settles in with a spring, failures turn into a retry tile, the remove badge cancels an in-flight load, duplicates and over-limit picks are caught, and the caller owns every attachment for upload."
 // category: media
 // minIOSVersion: "17.0"
-// version: "1.0.0"
+// version: "1.0.1"
 // added: "2026-09-29"
 // tags: [attachments, photos, photos-picker, upload, thumbnails, imageio, composer, media]
 
@@ -931,7 +931,7 @@ private enum Pipeline {
 
 /// A house-palette color that follows the interface style.
 private func adaptive(light: UInt32, dark: UInt32) -> Color {
-    Color(uiColor: UIColor { traits in
+    Color(uiColor: UIColor { @Sendable traits in
         let hex = traits.userInterfaceStyle == .dark ? dark : light
         return UIColor(red: CGFloat((hex >> 16) & 0xFF) / 255, green: CGFloat((hex >> 8) & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
     })

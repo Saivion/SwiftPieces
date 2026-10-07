@@ -3,7 +3,7 @@
 // description: A rich card for any URL that holds its final size while a skeleton sweeps, then settles the page's image, title and host into place, fetched once with LinkPresentation, shared by every card showing the same link and cached so scrolling never refetches, falling back to a quiet card with the address when a page cannot be read, opening on tap and offering Copy Link and Share on long press.
 // category: media
 // minIOSVersion: "17.0"
-// version: "1.0.0"
+// version: "1.0.1"
 // added: "2026-09-29"
 // tags: [link, url, preview, unfurl, metadata, linkpresentation, cache, chat]
 
@@ -579,7 +579,7 @@ private final class LinkPreviewLoader {
     /// this box lets the cancellation handler hop back to the main actor to call `cancel()`.
     private struct ProviderBox: @unchecked Sendable { let provider: LPMetadataProvider }
     /// The fetched `LPLinkMetadata` crosses from the provider's completion queue to the main actor once and is only read there.
-    private struct MetadataBox: @unchecked Sendable { let metadata: LPLinkMetadata }
+    nonisolated private struct MetadataBox: @unchecked Sendable { let metadata: LPLinkMetadata }
 
     private static func fetch(_ url: URL, timeout: TimeInterval) async throws -> (LinkPreview.Metadata, Int) {
         let provider = LPMetadataProvider()
@@ -718,7 +718,7 @@ private final class LinkPreviewLoader {
 
 /// A house-palette color that follows the interface style.
 private func adaptive(light: UInt32, dark: UInt32) -> Color {
-    Color(uiColor: UIColor { traits in
+    Color(uiColor: UIColor { @Sendable traits in
         let hex = traits.userInterfaceStyle == .dark ? dark : light
         return UIColor(red: CGFloat((hex >> 16) & 0xFF) / 255, green: CGFloat((hex >> 8) & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
     })

@@ -3,7 +3,7 @@
 // description: A snapping horizontal row of prompt suggestions above a composer, each chip keyed by a solid color block glyph. The chosen chip morphs into a composer-width block with matchedGeometryEffect while the rest slide out, then the row hands the text back and collapses.
 // category: ai
 // minIOSVersion: "17.0"
-// version: "2.0.0"
+// version: "2.0.1"
 // pro: prompt-composer
 // tags: [chips, suggestions, prompt, scroll, morph, ai, blocks]
 
@@ -190,7 +190,7 @@ public extension PromptChips {
         public static let standard = Style()
 
         private static func adaptive(_ light: UInt32, _ dark: UInt32) -> Color {
-            Color(UIColor { traits in
+            Color(UIColor { @Sendable traits in
                 let hex = traits.userInterfaceStyle == .dark ? dark : light
                 return UIColor(red: CGFloat((hex >> 16) & 0xFF) / 255, green: CGFloat((hex >> 8) & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
             })
@@ -230,7 +230,7 @@ private struct PromptChipsExample: View {
         }
         .id(cycle)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(UIColor { $0.userInterfaceStyle == .dark ? UIColor(red: 0.071, green: 0.071, blue: 0.071, alpha: 1) : UIColor(red: 0.953, green: 0.949, blue: 0.933, alpha: 1) }))
+        .background(Color(UIColor { @Sendable traits in traits.userInterfaceStyle == .dark ? UIColor(red: 0.071, green: 0.071, blue: 0.071, alpha: 1) : UIColor(red: 0.953, green: 0.949, blue: 0.933, alpha: 1) }))
     }
 }
 

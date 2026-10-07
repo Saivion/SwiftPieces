@@ -4,7 +4,7 @@
 // category: backgrounds
 // pro: onboarding-stack
 // minIOSVersion: "17.0"
-// version: "2.0.0"
+// version: "2.0.1"
 // tags: [background, shader, silk, motion, loop, palette]
 // shaders: [Silk.metal]
 
@@ -162,7 +162,7 @@ private func silkColor(_ hex: UInt32) -> Color {
 /// A color that resolves to `light` or `dark` with the current appearance.
 private func silkColor(light: UInt32, dark: UInt32) -> Color {
     let l = silkUIColor(light), d = silkUIColor(dark)
-    return Color(uiColor: UIColor { $0.userInterfaceStyle == .dark ? d : l })
+    return Color(uiColor: UIColor { @Sendable traits in traits.userInterfaceStyle == .dark ? d : l })
 }
 
 private func silkUIColor(_ hex: UInt32) -> UIColor {

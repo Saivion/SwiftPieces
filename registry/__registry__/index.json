@@ -8,7 +8,7 @@
     "description": "A dark glass ball with a Siri-style voice wave inside, locked to the thinking state; four thin sine membranes travel through the equator of a refracting shell, drawn by a Metal color shader. The sphere never moves, only the wave, and a palette change crossfades its colours.",
     "category": "ai",
     "license": "MIT+Commons-Clause",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "minIOSVersion": "17.0",
     "swiftToolsVersion": "6.1",
     "tags": [
@@ -53,7 +53,7 @@
     "description": "A code slab for chat replies and docs that stays dark in both appearances: a butter language label and optional filename, block-colored Swift syntax, collapse past N lines with a fade and a spring expand, wrap toggle, text selection, a streaming mode that fades lines in behind a cursor, and a copy pill that turns into a sage Copied block.",
     "category": "ai",
     "license": "MIT+Commons-Clause",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "minIOSVersion": "17.0",
     "swiftToolsVersion": "6.1",
     "tags": [
@@ -94,7 +94,7 @@
     "description": "A snapping horizontal row of prompt suggestions above a composer, each chip keyed by a solid color block glyph. The chosen chip morphs into a composer-width block with matchedGeometryEffect while the rest slide out, then the row hands the text back and collapses.",
     "category": "ai",
     "license": "MIT+Commons-Clause",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "minIOSVersion": "17.0",
     "swiftToolsVersion": "6.1",
     "tags": [
@@ -136,7 +136,7 @@
     "description": "The AI reply surface. A small header carries the assistant mark and a live phase label, text arrives token by token with a per-word fade and a color block cursor, inline code sits on butter blocks, user prompts are solid color blocks, and a long press lifts the message to reveal copy and regenerate.",
     "category": "ai",
     "license": "MIT+Commons-Clause",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "minIOSVersion": "17.0",
     "swiftToolsVersion": "6.1",
     "tags": [
@@ -177,7 +177,7 @@
     "description": "The \"assistant is working\" placeholder, laid out like the reply it becomes: a breathing mark with an elapsed-seconds label over three presentations on one clock: block-colored rising dots, a sheen over reply-shaped bars, or a label whose glyphs carry the sheen. Plus a modifier that sweeps any view.",
     "category": "ai",
     "license": "MIT+Commons-Clause",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "minIOSVersion": "17.0",
     "swiftToolsVersion": "6.1",
     "tags": [
@@ -218,7 +218,7 @@
     "description": "A small dark glass ball with a Siri-style voice wave inside, locked to the thinking state and drawn by a Metal color shader; palettes for searching, reading and writing crossfade the colour with the kind of work, and a Pill wraps it with a label and indeterminate dots into the status control.",
     "category": "ai",
     "license": "MIT+Commons-Clause",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "minIOSVersion": "17.0",
     "swiftToolsVersion": "6.1",
     "tags": [
@@ -264,7 +264,7 @@
     "description": "A slowly folding silk surface lit by a movable light and shaded from a real gradient normal in a Metal shader, in house block fabrics and an adaptive standard style, with optional device-tilt lighting.",
     "category": "backgrounds",
     "license": "MIT+Commons-Clause",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "minIOSVersion": "17.0",
     "swiftToolsVersion": "6.1",
     "tags": [
@@ -311,7 +311,7 @@
     "description": "A Canvas dot grid that swells and warms into a house block color under the finger, springs back on release, and sends one dissipating ripple out from a tap.",
     "category": "backgrounds",
     "license": "MIT+Commons-Clause",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "minIOSVersion": "17.0",
     "swiftToolsVersion": "6.1",
     "tags": [
@@ -351,7 +351,7 @@
     "description": "A two-sided card you flip by tap or by dragging sideways. The drag scrubs the rotation, release commits or snaps back by velocity, the card lifts toward you mid-turn with a layered shadow that slides off the raised edge, and each face shades as it turns edge-on.",
     "category": "cards",
     "license": "MIT+Commons-Clause",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "minIOSVersion": "17.0",
     "swiftToolsVersion": "6.1",
     "tags": [
@@ -515,7 +515,7 @@
     "description": "An async action button driven by one idle/loading/success/error/disabled phase: a signal capsule collapses to a spinning ring, closes it and blooms into a sage success block with a drawn check, or re-expands as a butter error block that shakes and doubles as retry.",
     "category": "controls",
     "license": "MIT+Commons-Clause",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "minIOSVersion": "17.0",
     "swiftToolsVersion": "6.1",
     "tags": [
@@ -556,7 +556,7 @@
     "description": "A ButtonStyle that squashes toward the touch point, stretches with rubber-band resistance when dragged, deepens after a hold and snaps back with a spring. Optional solid surfaces (signal, block, raised) press into their own soft shadow and darken under the finger.",
     "category": "controls",
     "license": "MIT+Commons-Clause",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "minIOSVersion": "17.0",
     "swiftToolsVersion": "6.1",
     "tags": [
@@ -596,7 +596,7 @@
     "description": "Overlapping block-color avatars that fan apart on tap or hold with staggered springs, dissolve the +N pill into the hidden faces, and let a drag scrub across them: the avatar under the finger lifts, shows a name tag and ticks a haptic, and releasing selects it.",
     "category": "controls",
     "license": "MIT+Commons-Clause",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "minIOSVersion": "17.0",
     "swiftToolsVersion": "6.1",
     "tags": [
@@ -635,7 +635,7 @@
     "description": "A press-and-hold capsule for destructive or important actions: a solid fill sweeps from the leading puck while held, passes three milestone dots with rising haptics, inverts the label under it, rewinds with a spring on early release and settles into a sage confirmed block.",
     "category": "controls",
     "license": "MIT+Commons-Clause",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "minIOSVersion": "17.0",
     "swiftToolsVersion": "6.1",
     "tags": [
@@ -675,7 +675,7 @@
     "description": "A countdown ring you set by dragging its knob around like the Timer dial, with a tick per step and a heavier detent every 5s. A solid block ring over a minute-tick scale, light display numerals, a breathing signal warning zone, a sage finish, and a determinate progress mode.",
     "category": "controls",
     "license": "MIT+Commons-Clause",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "minIOSVersion": "17.0",
     "swiftToolsVersion": "6.1",
     "tags": [
@@ -716,7 +716,7 @@
     "description": "A streak calendar for habit, fitness, study and journaling apps: weeks of days drawn in one Canvas as rounded cells in solid steps from a pale red mix up to pure red, laid out by the locale's first weekday with month labels on their week columns, a light streak numeral that stays alive until midnight beside the longest run and active days, a scrub that lifts the day under your finger with a callout and a haptic tick per day, sideways scrolling that opens on today when the weeks outgrow the width, and VoiceOver that steps day by day or plays the weeks as an audio graph.",
     "category": "data",
     "license": "MIT+Commons-Clause",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "minIOSVersion": "17.0",
     "swiftToolsVersion": "6.1",
     "tags": [
@@ -760,7 +760,7 @@
     "description": "A metric tile with a light display-scale value that rolls with a spring and dims its decimals, a solid delta block, a sparkline you hold and scrub to retarget the value live, a press that expands the line into a taller chart with low and high, and a solid color block variant.",
     "category": "data",
     "license": "MIT+Commons-Clause",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "minIOSVersion": "17.0",
     "swiftToolsVersion": "6.1",
     "tags": [
@@ -801,7 +801,7 @@
     "description": "A number whose digits roll on individual slots like a mechanical counter, carrying from the low digits up so unchanged digits never move, with softened slot edges while rolling, dimmed decimals, a separate sign, a solid delta block, and a dashed loading state.",
     "category": "data",
     "license": "MIT+Commons-Clause",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "minIOSVersion": "17.0",
     "swiftToolsVersion": "6.1",
     "tags": [
@@ -842,7 +842,7 @@
     "description": "A composition ring of solid color blocks with rounded seams that you scrub by dragging around it, with a haptic at each slice boundary, a radial lift for the selected slice while the rest step back to the surface, a light display-scale center figure, and legend rows that turn into the slice's block.",
     "category": "data",
     "license": "MIT+Commons-Clause",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "minIOSVersion": "17.0",
     "swiftToolsVersion": "6.1",
     "tags": [
@@ -884,7 +884,7 @@
     "description": "A line or bar chart component with a light display-scale readout and dimmed decimals, a solid delta block, a flag that rides the scrub rule, hold-and-drag range selection with delta and percent, and a block range picker that morphs the line between datasets.",
     "category": "data",
     "license": "MIT+Commons-Clause",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "minIOSVersion": "17.0",
     "swiftToolsVersion": "6.1",
     "tags": [
@@ -926,7 +926,7 @@
     "description": "A success, failure or empty outcome view sharing one choreography, where a ring draws, floods into a solid color block, the mark strokes in dark ink, one pulse lands with a haptic, and a heavy headline and a single signal action rise, with async retry and a details block for failures.",
     "category": "feedback",
     "license": "MIT+Commons-Clause",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "minIOSVersion": "17.0",
     "swiftToolsVersion": "6.1",
     "tags": [
@@ -967,7 +967,7 @@
     "description": "A star rating you tap or scrub, with soft rounded stars that fill as solid blocks colored by the score, the star under your finger lifting, a staggered spring settle, and a light numeral with a label chip that morph as you go.",
     "category": "feedback",
     "license": "MIT+Commons-Clause",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "minIOSVersion": "17.0",
     "swiftToolsVersion": "6.1",
     "tags": [
@@ -1007,7 +1007,7 @@
     "description": "A like or save toggle that presses in, floods its capsule with a solid color block from the symbol outward, bounces the symbol, sends out one fading halo, and can roll a count or float a confirmation pill.",
     "category": "feedback",
     "license": "MIT+Commons-Clause",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "minIOSVersion": "17.0",
     "swiftToolsVersion": "6.1",
     "tags": [
@@ -1047,7 +1047,7 @@
     "description": "Solid placeholder bones and a self-masking modifier that turns any layout, color blocks included, into one quiet shape sweeping a soft diagonal highlight on a shared clock, then hands off as content unblurs and rises row by row.",
     "category": "feedback",
     "license": "MIT+Commons-Clause",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "minIOSVersion": "17.0",
     "swiftToolsVersion": "6.1",
     "tags": [
@@ -1088,7 +1088,7 @@
     "description": "One continuous stroke that spins as a loading arc, closes into a ring, floods into a solid block and draws a check in dark ink on success, or a cross with a nudge on failure, with an optional morphing caption.",
     "category": "feedback",
     "license": "MIT+Commons-Clause",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "minIOSVersion": "17.0",
     "swiftToolsVersion": "6.1",
     "tags": [
@@ -1130,7 +1130,7 @@
     "description": "A floating signal trigger that long-presses open into a staggered line or arc of color-block actions you can slide across and release to fire; the trigger confirms with a check, tap toggles, a scrim dismisses, and the glass morphs on iOS 26.",
     "category": "glass",
     "license": "MIT+Commons-Clause",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "minIOSVersion": "17.0",
     "swiftToolsVersion": "6.1",
     "tags": [
@@ -1171,7 +1171,7 @@
     "description": "A segmented control whose glass indicator you can grab and drag: it lifts under the finger, rubber-bands past the ends, stretches with velocity and settles with a spring, while the label ink flips exactly under its edge; tap still works.",
     "category": "glass",
     "license": "MIT+Commons-Clause",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "minIOSVersion": "17.0",
     "swiftToolsVersion": "6.1",
     "tags": [
@@ -1251,7 +1251,7 @@
     "description": "An address field for checkout, delivery and sign-up that lists type-ahead suggestions under a soft 56pt block with the matched text in bold, picks one with a tap or the hardware keyboard, shows a spinner on the chosen row while it resolves into a structured address with street, city, state, postal code, country and coordinate, then settles into the field with the locality on a second line and a sage check, keeping the typed text usable with a \"Use as typed\" row and an inline retry when a lookup fails.",
     "category": "inputs",
     "license": "MIT+Commons-Clause",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "minIOSVersion": "17.0",
     "swiftToolsVersion": "6.1",
     "tags": [
@@ -1293,7 +1293,7 @@
     "description": "A currency amount entry that formats live in the user's locale as each digit lands (grouping, decimal separator, symbol before or after, the currency's own fraction digits), with a large auto-fitting figure whose digits roll in, a blinking caret right after the digits, robust paste of amounts like \"$1,234.56\" or \"1 234,56 €\", and a limit that refuses the keystroke with a damped shake, an error haptic and a message line, all backed by a `Decimal` binding.",
     "category": "inputs",
     "license": "MIT+Commons-Clause",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "minIOSVersion": "17.0",
     "swiftToolsVersion": "6.1",
     "tags": [
@@ -1335,7 +1335,7 @@
     "description": "A start-to-end date range picker on a paged month grid built from the environment calendar and locale, where the first tap drops a solid butter start block, the second closes the range and a soft band sweeps day by day between the two blocks, wrapping across week rows with rounded caps, while sold-out days are struck through, a maximum length dims unreachable days, months page by swipe or chevrons with a rolling title, and a summary reads out the dates and nights.",
     "category": "inputs",
     "license": "MIT+Commons-Clause",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "minIOSVersion": "17.0",
     "swiftToolsVersion": "6.1",
     "tags": [
@@ -1376,7 +1376,7 @@
     "description": "A thumbless slider drawn as a solid color bar that swells from 8pt to a 32pt block under the finger, shows detent dots and an inverting readout while dragging, squishes past either end, and can carry an uppercase label with a big light numeral; a second init selects a range with two sinking handles.",
     "category": "inputs",
     "license": "MIT+Commons-Clause",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "minIOSVersion": "17.0",
     "swiftToolsVersion": "6.1",
     "tags": [
@@ -1415,7 +1415,7 @@
     "description": "A scrolling rail of filter chips with optional counts where one solid indicator glides between single-select picks, multi-select picks light up as color blocks with dark ink and gather at the leading edge behind a counting Clear chip, the chosen chip scrolls into view, and edges fade only when content overflows.",
     "category": "inputs",
     "license": "MIT+Commons-Clause",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "minIOSVersion": "17.0",
     "swiftToolsVersion": "6.1",
     "tags": [
@@ -1455,7 +1455,7 @@
     "description": "A text field on a soft 56pt block whose label rests inside as a placeholder and glides up into a caption on focus or once filled, with an optional leading icon, a clear button, help text, a grapheme-accurate character limit with a counter that turns into a tangerine chip and bumps when extra input is refused, and validation that waits until you leave the field before drawing an error ring, sliding in the message with an error haptic and a VoiceOver announcement, then shows a sage check once fixed.",
     "category": "inputs",
     "license": "MIT+Commons-Clause",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "minIOSVersion": "17.0",
     "swiftToolsVersion": "6.1",
     "tags": [
@@ -1496,7 +1496,7 @@
     "description": "A map picker for delivery, rides, events and listings: drag the map under a fixed red pin that lifts while the map moves and drops with a small bounce when it settles, the address under it is looked up after a short pause with stale answers cancelled and recent ones cached, a floating card shows the street and locality (a dropped pin with coordinates where there is no address, Retry when the lookup fails), the locate button asks for location only when tapped and flies to you, and Confirm hands back the coordinate with its address.",
     "category": "inputs",
     "license": "MIT+Commons-Clause",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "minIOSVersion": "17.0",
     "swiftToolsVersion": "6.1",
     "tags": [
@@ -1542,7 +1542,7 @@
     "description": "A dual-thumb slider for a range of values, with two round thumbs on a quiet track and the selected span drawn as a solid color block between them; drag either thumb or touch the track to pull the nearest one over, values snap to a step without floating drift, the thumbs never cross and keep a minimum gap, a grabbed thumb grows and its readout chip fills with the block color, the two readouts merge into one chip instead of colliding, and every step ticks a selection haptic with a firmer impact at a bound or the gap.",
     "category": "inputs",
     "license": "MIT+Commons-Clause",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "minIOSVersion": "17.0",
     "swiftToolsVersion": "6.1",
     "tags": [
@@ -1584,7 +1584,7 @@
     "description": "A capsule stepper with round minus and plus buttons around a solid numeral block; tap, hold to repeat with acceleration, or scrub sideways across the block for velocity-scaled steps while a ruler slides under the finger, and the capsule rubber-bands at the bounds.",
     "category": "inputs",
     "license": "MIT+Commons-Clause",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "minIOSVersion": "17.0",
     "swiftToolsVersion": "6.1",
     "tags": [
@@ -1624,7 +1624,7 @@
     "description": "A password field on a soft 56pt block with a focus ring and a round reveal toggle that keeps focus, a strength bar that grows through four color blocks with a matching label chip, requirement chips that turn into solid blocks with drawn checks and collapse when complete, a success check, and a damped shake with an error chip.",
     "category": "inputs",
     "license": "MIT+Commons-Clause",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "minIOSVersion": "17.0",
     "swiftToolsVersion": "6.1",
     "tags": [
@@ -1664,7 +1664,7 @@
     "description": "A signature field that lays smooth, velocity-weighted ink into a Canvas as the finger moves, thinning on quick flicks and pooling on slow turns, over a baseline whose Sign here hint fades on the first stroke, with Undo, Clear and Undo after Clear, a Type instead mode that sets the typed name in a script face on the same line, strokes that rescale with the pad on rotation, and export to a transparent PNG or a vector PDF.",
     "category": "inputs",
     "license": "MIT+Commons-Clause",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "minIOSVersion": "17.0",
     "swiftToolsVersion": "6.1",
     "tags": [
@@ -1707,7 +1707,7 @@
     "description": "A tag and recipient field where committed entries become solid color chips with dark ink that wrap across lines while the text field takes the rest of the last line, return, comma or a paste of a whole list commits trimmed tokens with duplicate, limit and validation checks, backspace on an empty field highlights the last chip and a second press removes it, and an inline suggestion list filters as you type.",
     "category": "inputs",
     "license": "MIT+Commons-Clause",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "minIOSVersion": "17.0",
     "swiftToolsVersion": "6.1",
     "tags": [
@@ -1749,7 +1749,7 @@
     "description": "Paged cards that recede in depth as they leave center and hand each page a phase value for inner parallax. Neighbors come forward on tap, and a page counter sits beside a scrubbable pill indicator computed in absolute page coordinates so it never jumps.",
     "category": "lists",
     "license": "MIT+Commons-Clause",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "minIOSVersion": "17.0",
     "swiftToolsVersion": "6.1",
     "tags": [
@@ -1833,7 +1833,7 @@
     "description": "A chat, log and live-feed scroll container that opens on the newest item and stays pinned to it while the reader is at the bottom, but never yanks them away once they scroll up to read; items that arrive below are counted into a floating Liquid Glass pill that jumps back to the latest, older items loaded at the top keep the visible row exactly where it was, and keyboard, rotation, growing rows and removals all hold the reader's place.",
     "category": "lists",
     "license": "MIT+Commons-Clause",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "minIOSVersion": "17.0",
     "swiftToolsVersion": "6.1",
     "tags": [
@@ -1876,7 +1876,7 @@
     "description": "An async/await infinite-scroll list that prefetches the next page a few rows before the end, never runs two loads at once, drops duplicate ids across pages, ignores stale responses after a refresh or cancel, shows pulsing skeleton rows, a footer spinner, an inline \"Couldn't load more\" chip with a solid Retry block that keeps loaded rows, a quiet \"You're all caught up\" footer, and pull to refresh that replaces rows only on success.",
     "category": "lists",
     "license": "MIT+Commons-Clause",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "minIOSVersion": "17.0",
     "swiftToolsVersion": "6.1",
     "tags": [
@@ -1918,7 +1918,7 @@
     "description": "A vertical status timeline where the live step becomes a solid color block, connectors draw in as steps complete, nodes morph from number to check, the current node breathes, and any step expands to show its detail.",
     "category": "lists",
     "license": "MIT+Commons-Clause",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "minIOSVersion": "17.0",
     "swiftToolsVersion": "6.1",
     "tags": [
@@ -1958,7 +1958,7 @@
     "description": "Wraps any row in a soft card with swipe actions drawn as solid color blocks. Tiles grow in as the row opens, the drag rubber-bands, a full swipe arms with a haptic and lets the edge block take the whole bar, and a shared binding keeps one row open at a time.",
     "category": "lists",
     "license": "MIT+Commons-Clause",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "minIOSVersion": "17.0",
     "swiftToolsVersion": "6.1",
     "tags": [
@@ -1998,7 +1998,7 @@
     "description": "A task card whose check draws itself while the card flashes into a solid color block, a priority label block, a swipe-right that completes with a strike-through then compacts the row, swipe-left snooze and delete blocks, and a long-press lift that reports reorder moves.",
     "category": "lists",
     "license": "MIT+Commons-Clause",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "minIOSVersion": "17.0",
     "swiftToolsVersion": "6.1",
     "tags": [
@@ -2039,7 +2039,7 @@
     "description": "A horizontal attachment strip for composers, support forms and listings: an add tile opens the photo picker with the remaining limit, each pick lands as its own tile that loads with a live progress ring, downsamples off the main thread into a crisp thumbnail and settles in with a spring, failures turn into a retry tile, the remove badge cancels an in-flight load, duplicates and over-limit picks are caught, and the caller owns every attachment for upload.",
     "category": "media",
     "license": "MIT+Commons-Clause",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "minIOSVersion": "17.0",
     "swiftToolsVersion": "6.1",
     "tags": [
@@ -2082,7 +2082,7 @@
     "description": "A rich card for any URL that holds its final size while a skeleton sweeps, then settles the page's image, title and host into place, fetched once with LinkPresentation, shared by every card showing the same link and cached so scrolling never refetches, falling back to a quiet card with the address when a page cannot be read, opening on tap and offering Copy Link and Share on long press.",
     "category": "media",
     "license": "MIT+Commons-Clause",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "minIOSVersion": "17.0",
     "swiftToolsVersion": "6.1",
     "tags": [
@@ -2125,7 +2125,7 @@
     "description": "A crop step for profile photos, posts and listings that keeps the picked photo covering a frame of the chosen aspect at every zoom and offset, pinches around the fingers while it pans, rubber-bands past its limits and springs back with a red flash on the frame and a rigid tick at a zoom limit, morphs between circle, square, 4:5, 16:9 and the photo's own shape without losing the subject, turns a quarter at a time, fades in a rule-of-thirds grid under the finger, and renders the crop off the main thread at the original's full resolution together with its pixel rect and rotation for cropping again on a server.",
     "category": "media",
     "license": "MIT+Commons-Clause",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "minIOSVersion": "17.0",
     "swiftToolsVersion": "6.1",
     "tags": [
@@ -2251,7 +2251,7 @@
     "description": "A modifier that lets a photo, card, or sheet follow a two-axis drag, rounds and shrinks it with progress over a styled scrim, reports its phase so the UI can say \"release to close\", then springs back or flies off along the drag vector past a distance or velocity threshold.",
     "category": "motion",
     "license": "MIT+Commons-Clause",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "minIOSVersion": "17.0",
     "swiftToolsVersion": "6.1",
     "tags": [
@@ -2293,7 +2293,7 @@
     "description": "A floating dock on a solid surface where the selected item becomes a color block with its label, a drag across the dock lifts each item under the finger with a name bubble and commits on release, badges count in a signal pill, and the whole dock tucks away on scroll.",
     "category": "navigation",
     "license": "MIT+Commons-Clause",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "minIOSVersion": "17.0",
     "swiftToolsVersion": "6.1",
     "tags": [
@@ -2333,7 +2333,7 @@
     "description": "An A to Z section index for long lists in any scroll view: touch or drag the trailing rail to jump to the section under your finger with a selection tick per new section, a large letter block that follows the finger and rolls in the direction of travel, letters without a section dimmed or hidden, a dotted collapse when the rail is too short for every title, one adjustable VoiceOver element and type-to-jump on a hardware keyboard.",
     "category": "navigation",
     "license": "MIT+Commons-Clause",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "minIOSVersion": "17.0",
     "swiftToolsVersion": "6.1",
     "tags": [
@@ -2376,7 +2376,7 @@
     "description": "A hero header for your own ScrollView and NavigationStack: a heavy display title and uppercase eyebrow over a solid block hero that stretches on overscroll, a title that shrinks toward the real navigation bar, a stat row that pins under the bar, and a solid bar that fades in.",
     "category": "navigation",
     "license": "MIT+Commons-Clause",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "minIOSVersion": "17.0",
     "swiftToolsVersion": "6.1",
     "tags": [
@@ -2417,7 +2417,7 @@
     "description": "Tabs over a paging ScrollView whose solid block indicator follows the pages through fractional scroll progress, with ink titles that fade in as the block passes, optional counts, a pressed state, and a selection tick on settle.",
     "category": "navigation",
     "license": "MIT+Commons-Clause",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "minIOSVersion": "17.0",
     "swiftToolsVersion": "6.1",
     "tags": [
@@ -2458,7 +2458,7 @@
     "description": "A confirmation card that presents as a height-fitted bottom sheet or, inline, as a floating card you can drag away, with a solid icon tile that bounces on present, a heavy headline, a loading primary action that lands on a success check before dismissing, and a warning haptic for destructive choices.",
     "category": "sheets",
     "license": "MIT+Commons-Clause",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "minIOSVersion": "17.0",
     "swiftToolsVersion": "6.1",
     "tags": [
@@ -2498,7 +2498,7 @@
     "description": "A pre-permission sheet with a solid icon tile that bounces on present and turns into a check when granted, a heavy left-aligned headline, benefit rows on their own color tiles that stagger in, a signal-colored request button that spins while the system asks, and a denied result that swaps the copy and routes the button to Settings.",
     "category": "sheets",
     "license": "MIT+Commons-Clause",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "minIOSVersion": "17.0",
     "swiftToolsVersion": "6.1",
     "tags": [
@@ -2538,7 +2538,7 @@
     "description": "A first-run feature tour for any screen: mark controls with .spotlightAnchor and .spotlightTour dims everything else through a cutout that springs from stop to stop as a red ring draws around it, sets a callout with step progress, Skip and a red Next below or above the target inside the safe area, lets taps through to the real control (which can also advance the tour), skips stops that aren't on screen, follows its target through scrolling, rotation and the keyboard, can show itself only once, and keeps VoiceOver, hardware keyboards and Reduce Motion in step.",
     "category": "sheets",
     "license": "MIT+Commons-Clause",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "minIOSVersion": "17.0",
     "swiftToolsVersion": "6.1",
     "tags": [
@@ -2582,7 +2582,7 @@
     "description": "A single toast card with a solid color tile for its kind, a bold message with an optional detail line, a signal-colored action such as Undo, and a thin timer that pauses while touched; placed inside the safe area so it clears the Dynamic Island and rides above the keyboard.",
     "category": "sheets",
     "license": "MIT+Commons-Clause",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "minIOSVersion": "17.0",
     "swiftToolsVersion": "6.1",
     "tags": [
@@ -2622,7 +2622,7 @@
     "description": "A paragraph clamped to a line limit that measures whether it is really truncated, and only then fades the end of its last line into a trailing \"more\" link; tapping grows the block smoothly to its full height with no reflow, a \"less\" link collapses it, links stay tappable, and VoiceOver always reads the whole text.",
     "category": "text",
     "license": "MIT+Commons-Clause",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "minIOSVersion": "17.0",
     "swiftToolsVersion": "6.1",
     "tags": [
@@ -2704,7 +2704,7 @@
     "description": "A headline with living pictures stuck between its words like a hand-placed collage. Each word rises into place and each picture opens from a dot into a tilted sticker with a white rim, landing with a spring, a light tick and a flash of crop marks, then keeps drifting. Press a sticker to lift it. Use the built-in house-palette scenes (the sun is our red mascot), your own images or SF Symbols; it wraps like text at any width and Dynamic Type size.",
     "category": "text",
     "license": "MIT+Commons-Clause",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "minIOSVersion": "17.0",
     "swiftToolsVersion": "6.1",
     "tags": [
@@ -2748,7 +2748,7 @@
     "description": "Reveals a headline by characters, words or lines, rising from a baseline mask with a stagger sized to land in under a second, then wipes solid highlight blocks behind the phrases that matter.",
     "category": "text",
     "license": "MIT+Commons-Clause",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "minIOSVersion": "17.0",
     "swiftToolsVersion": "6.1",
     "tags": [

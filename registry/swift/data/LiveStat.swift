@@ -2,7 +2,7 @@
 // title: Live Stat
 // description: A metric tile with a light display-scale value that rolls with a spring and dims its decimals, a solid delta block, a sparkline you hold and scrub to retarget the value live, a press that expands the line into a taller chart with low and high, and a solid color block variant.
 // category: data
-// version: "2.0.0"
+// version: "2.0.1"
 // pro: dashboard-screen
 // minIOSVersion: "17.0"
 // tags: [stat, kpi, sparkline, scrub, tile, numbers]
@@ -407,7 +407,7 @@ public struct LiveStatStyle: Sendable {
     }
 
     fileprivate static func adaptive(_ light: UInt32, _ dark: UInt32) -> Color {
-        Color(uiColor: UIColor { traits in
+        Color(uiColor: UIColor { @Sendable traits in
             let hex = traits.userInterfaceStyle == .dark ? dark : light
             return UIColor(red: CGFloat((hex >> 16) & 0xFF) / 255, green: CGFloat((hex >> 8) & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
         })

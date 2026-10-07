@@ -3,7 +3,7 @@
 // description: A headline with living pictures stuck between its words like a hand-placed collage. Each word rises into place and each picture opens from a dot into a tilted sticker with a white rim, landing with a spring, a light tick and a flash of crop marks, then keeps drifting. Press a sticker to lift it. Use the built-in house-palette scenes (the sun is our red mascot), your own images or SF Symbols; it wraps like text at any width and Dynamic Type size.
 // category: text
 // minIOSVersion: "17.0"
-// version: "1.0.0"
+// version: "1.0.1"
 // added: "2026-09-29"
 // tags: [text, headline, inline images, pictures, reveal, stagger, onboarding, hero, typography]
 
@@ -694,7 +694,7 @@ private enum PictureHeadlinePalette {
     static let text = adaptive(light: 0x141414, dark: 0xF4F3EF)
 
     private static func adaptive(light: UInt32, dark: UInt32) -> Color {
-        Color(UIColor { traits in
+        Color(UIColor { @Sendable traits in
             let hex = traits.userInterfaceStyle == .dark ? dark : light
             return UIColor(red: CGFloat(hex >> 16 & 0xFF) / 255, green: CGFloat(hex >> 8 & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
         })

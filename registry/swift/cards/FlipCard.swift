@@ -3,7 +3,7 @@
 // description: A two-sided card you flip by tap or by dragging sideways. The drag scrubs the rotation, release commits or snaps back by velocity, the card lifts toward you mid-turn with a layered shadow that slides off the raised edge, and each face shades as it turns edge-on.
 // category: cards
 // minIOSVersion: "17.0"
-// version: "2.0.0"
+// version: "2.0.1"
 // pro: payment-card
 // tags: [card, flip, drag, 3d, spring, flashcard]
 
@@ -229,7 +229,7 @@ public struct FlipCard<Front: View, Back: View>: View {
 fileprivate extension Color {
     /// An appearance-adaptive color, resolved per trait collection.
     init(flipLight light: Color, dark: Color) {
-        self.init(uiColor: UIColor { $0.userInterfaceStyle == .dark ? UIColor(dark) : UIColor(light) })
+        self.init(uiColor: UIColor { @Sendable traits in traits.userInterfaceStyle == .dark ? UIColor(dark) : UIColor(light) })
     }
 }
 

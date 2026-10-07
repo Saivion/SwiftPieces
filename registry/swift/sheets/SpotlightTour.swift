@@ -3,7 +3,7 @@
 // description: "A first-run feature tour for any screen: mark controls with .spotlightAnchor and .spotlightTour dims everything else through a cutout that springs from stop to stop as a red ring draws around it, sets a callout with step progress, Skip and a red Next below or above the target inside the safe area, lets taps through to the real control (which can also advance the tour), skips stops that aren't on screen, follows its target through scrolling, rotation and the keyboard, can show itself only once, and keeps VoiceOver, hardware keyboards and Reduce Motion in step."
 // category: sheets
 // minIOSVersion: "17.0"
-// version: "1.0.0"
+// version: "1.0.1"
 // added: "2026-09-29"
 // pro: onboarding-flow
 // tags: [onboarding, coach-marks, tour, tips, spotlight, overlay, first-run, accessibility]
@@ -184,7 +184,7 @@ public struct SpotlightTour: ViewModifier {
 
         /// Pass only what you want to change; `nil` keeps the house palette value.
         public init(scrim: Color? = nil, accent: Color? = nil, accentInk: Color? = nil, surface: Color? = nil, label: Color? = nil, secondaryLabel: Color? = nil, track: Color? = nil, cornerRadius: CGFloat = 26, ringWidth: CGFloat = 2, maxWidth: CGFloat = 360) {
-            self.scrim = scrim ?? Color(uiColor: UIColor { $0.userInterfaceStyle == .dark ? UIColor(white: 0, alpha: 0.58) : UIColor(white: 0.04, alpha: 0.46) })
+            self.scrim = scrim ?? Color(uiColor: UIColor { @Sendable traits in traits.userInterfaceStyle == .dark ? UIColor(white: 0, alpha: 0.58) : UIColor(white: 0.04, alpha: 0.46) })
             self.accent = accent ?? Color(red: 1, green: 0, blue: 0)
             self.accentInk = accentInk ?? adaptive(light: 0x141414, dark: 0x141414)
             self.surface = surface ?? adaptive(light: 0xFFFFFF, dark: 0x1C1C1C)
@@ -891,7 +891,7 @@ private struct SpotlightScrimHitShape: Shape {
     }
 }
 
-private func spotlightPath(_ rect: CGRect, _ radius: CGFloat) -> Path {
+nonisolated private func spotlightPath(_ rect: CGRect, _ radius: CGFloat) -> Path {
     var path = Path()
     guard rect.width > 0, rect.height > 0 else { return path }
     let r = max(0, min(radius, min(rect.width, rect.height) / 2))
@@ -1188,7 +1188,7 @@ private struct SpotlightPress: ButtonStyle {
 
 /// A house-palette color that follows the interface style.
 private func adaptive(light: UInt32, dark: UInt32) -> Color {
-    Color(uiColor: UIColor { traits in
+    Color(uiColor: UIColor { @Sendable traits in
         let hex = traits.userInterfaceStyle == .dark ? dark : light
         return UIColor(red: CGFloat((hex >> 16) & 0xFF) / 255, green: CGFloat((hex >> 8) & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
     })

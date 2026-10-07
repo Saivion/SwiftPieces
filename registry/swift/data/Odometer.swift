@@ -2,7 +2,7 @@
 // title: Odometer
 // description: A number whose digits roll on individual slots like a mechanical counter, carrying from the low digits up so unchanged digits never move, with softened slot edges while rolling, dimmed decimals, a separate sign, a solid delta block, and a dashed loading state.
 // category: data
-// version: "2.0.0"
+// version: "2.0.1"
 // pro: dashboard-screen
 // minIOSVersion: "17.0"
 // tags: [number, counter, digits, roll, currency, balance]
@@ -338,7 +338,7 @@ public struct OdometerStyle: Sendable {
     )
 
     fileprivate static func adaptive(_ light: UInt32, _ dark: UInt32) -> Color {
-        Color(uiColor: UIColor { traits in
+        Color(uiColor: UIColor { @Sendable traits in
             let hex = traits.userInterfaceStyle == .dark ? dark : light
             return UIColor(red: CGFloat((hex >> 16) & 0xFF) / 255, green: CGFloat((hex >> 8) & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
         })
