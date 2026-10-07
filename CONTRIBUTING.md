@@ -71,7 +71,7 @@ Some files build, deploy or configure SwiftPieces rather than make up the librar
 
 - **Dependencies:** any `package.json`, `package-lock.json` or `.npmrc`
 - **Repo setup:** `.github/`, `.gitignore`, `.gitattributes`, `.nvmrc`, `LICENSE`
-- **Build and deploy:** `scripts/`, `wrangler.jsonc`, `open-next.config.ts`, `next.config.ts`, `postcss.config.mjs`, any `tsconfig*.json`, `cloudflare-env.d.ts`
+- **Build and deploy:** `scripts/`, `wrangler.jsonc`, `open-next.config.ts`, `next.config.ts`, `source.config.ts`, `postcss.config.mjs`, any `tsconfig*.json`, `cloudflare-env.d.ts`
 - **Runtime config:** `middleware.ts`, `instrumentation-client.ts`, `public/_headers`
 - **Xcode project files:** anything inside a `.xcodeproj` or `.xcworkspace`, plus `.xcscheme`, `.xcconfig` and `.entitlements` files and `Package.swift`
 
