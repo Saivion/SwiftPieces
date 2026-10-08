@@ -273,9 +273,10 @@ function writeDocs(items: RegistryItem[]) {
 
   const cats = (Object.keys(categories) as Category[]).filter((c) => items.some((i) => i.category === c));
   writeFileSync(join(root, "index.mdx"), `---\ntitle: "All SwiftUI components"\ndescription: "Every free SwiftPieces component for iOS with a live preview. Filter by category, then open a piece for its notes, parameters, source and install command."\nindex: true\n---\n\n{/* GENERATED FILE. Edit scripts/build-registry.ts. */}\n`);
-  // Explore Pro: Pro's screens and templates as cards that open on pro.swiftpieces.com. The cards
+  // Explore Pro: Pro's screens, flows and templates as cards that open on pro.swiftpieces.com. The cards
   // come from lib/pro-cards.json and public/pro-cards/, refreshed by scripts/pro-cards/capture.ts.
   writeFileSync(join(root, "screens.mdx"), `---\ntitle: "Screens"\ndescription: "Production-ready SwiftUI screens from SwiftPieces Pro. Each one is a complete, themed screen you drop into your app and wire to your data."\npro: "screen"\n---\n\n{/* GENERATED FILE. Edit scripts/build-registry.ts. */}\n`);
+  writeFileSync(join(root, "flows.mdx"), `---\ntitle: "Flows"\ndescription: "Whole journeys through SwiftPieces Pro's app templates: first run through sign in and the paywall, the core of each app, then profile and settings, screen by screen."\npro: "flow"\n---\n\n{/* GENERATED FILE. Edit scripts/build-registry.ts. */}\n`);
   writeFileSync(join(root, "templates.mdx"), `---\ntitle: "Templates"\ndescription: "Complete Xcode app templates from SwiftPieces Pro, wired end to end. Open the project, swap the brand and the copy, ship."\npro: "template"\n---\n\n{/* GENERATED FILE. Edit scripts/build-registry.ts. */}\n`);
   writeFileSync(join(root, "meta.json"), JSON.stringify({
     title: "Components",
@@ -445,7 +446,7 @@ function writeLlms(items: RegistryItem[]) {
     "",
     "## SwiftPieces Pro",
     "",
-    `A separate paid library for building whole apps: ${proCountsLabel} (production-ready SwiftUI screens, complete Xcode projects, and agent skills that build the rest in the same design) at ${PRO_URL}/library, plus Pro remixing in the Playground at ${SITE_URL}/apps (all ${proCatalog.remixing.apps} apps in the App Library, remix any app with AI, keep up to ${proCatalog.remixing.saves} remixes). One plan with lifetime access; plan and pricing: ${PRO_URL}/pro. Pro MCP endpoint: ${PRO_URL}/api/mcp (license key required): search_library, get_item, list_kit, get_kit_item, apply_design_skill, apply_recipe.`,
+    `A separate paid library for building whole apps: ${proCountsLabel} (production-ready SwiftUI screens, flows that string them into whole journeys from first run to settings, complete Xcode projects, and agent skills that build the rest in the same design) at ${PRO_URL}/library, plus Pro remixing in the Playground at ${SITE_URL}/apps (all ${proCatalog.remixing.apps} apps in the App Library, remix any app with AI, keep up to ${proCatalog.remixing.saves} remixes). One plan with lifetime access; plan and pricing: ${PRO_URL}/pro. Pro MCP endpoint: ${PRO_URL}/api/mcp (license key required): search_library, get_item, list_kit, get_kit_item, apply_design_skill, apply_recipe.`,
     "",
   );
   for (const [cat, list] of byCat) {

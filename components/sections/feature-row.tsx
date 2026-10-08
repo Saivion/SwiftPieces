@@ -168,5 +168,8 @@ export const Glyph = {
   tag: () => <G><path d="M3 12V4a1 1 0 0 1 1-1h8l9 9-9 9-9-9Z" /><circle cx="7.5" cy="7.5" r="1.5" fill="currentColor" /></G>,
   bolt: () => <G fill><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z" /></G>,
   split: () => <G><rect x="3" y="4" width="18" height="16" rx="2.5" /><path d="M12 4v16" /></G>,
+  flow: () => <G><circle cx="6" cy="6" r="2.5" /><circle cx="18" cy="18" r="2.5" /><path d="M8.5 6H15a3 3 0 0 1 3 3v6.5" /></G>,
+  palette: () => <G><circle cx="12" cy="12" r="9" /><circle cx="8" cy="10" r="1.2" fill="currentColor" /><circle cx="12" cy="7.5" r="1.2" fill="currentColor" /><circle cx="16" cy="10" r="1.2" fill="currentColor" /></G>,
+  spark: () => <G fill><path d="M12 2c.4 4.8 2.2 7.6 8 10-5.8 2.4-7.6 5.2-8 10-.4-4.8-2.2-7.6-8-10 5.8-2.4 7.6-5.2 8-10Z" /></G>,
   gift: () => <G><rect x="3" y="8" width="18" height="4" rx="1" /><path d="M5 12v8h14v-8M12 8v12M12 8c-1.5-3-5-3-5-1s3 1 5 1c2 0 5 1 5-1s-3.5-2-5 1Z" /></G>,
 };

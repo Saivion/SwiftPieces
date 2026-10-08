@@ -3,7 +3,7 @@ import { Container } from "@/components/ui/container";
 import { Eyebrow } from "@/components/ui/badge";
 import { Button, Arrow, TextLink } from "@/components/ui/button";
 import { AnimatedText } from "@/components/ui/animated-text";
-import { CornerTicks, SectionCopy, Tags, Glyph, heroTitle, sectionTitle, sectionBody } from "@/components/sections/feature-row";
+import { CornerTicks, SectionCopy, Tags, TagIcon, Glyph, heroTitle, sectionTitle, sectionBody } from "@/components/sections/feature-row";
 import { CountUp } from "@/components/ui/stat";
 import { DitherStage } from "@/components/visual/dither-stage";
 import { Reveal, RevealGroup, RevealItem } from "@/components/effects/reveal";
@@ -22,7 +22,7 @@ const freeCount = getRegistryIndex().length;
 // The hero is the exception: its secondary CTA sends people into the Pro library instead.
 const pricing = pro.pricing;
 
-type Kind = "screen" | "template";
+type Kind = "screen" | "flow" | "template";
 const catalog: { name: string; kind: Kind; cat: string }[] = [
   { name: "Wallet", kind: "screen", cat: "Finance" },
   { name: "Onboarding", kind: "screen", cat: "Onboarding" },
@@ -31,16 +31,19 @@ const catalog: { name: string; kind: Kind; cat: string }[] = [
   { name: "Now Playing", kind: "screen", cat: "Media" },
   { name: "Meditation App", kind: "template", cat: "Health" },
   { name: "Paywall", kind: "screen", cat: "Commerce" },
+  { name: "Book A Stay", kind: "flow", cat: "Travel" },
   { name: "Dashboard", kind: "screen", cat: "Productivity" },
   { name: "Finance App", kind: "template", cat: "Finance" },
   { name: "Voice Mode", kind: "screen", cat: "AI" },
+  { name: "Cook Tonight's Dinner", kind: "flow", cat: "Meal planner" },
   { name: "Breathe", kind: "screen", cat: "Health" },
+  { name: "First Run", kind: "flow", cat: "Weather" },
   { name: "AI Assistant", kind: "template", cat: "AI" },
   { name: "Discover", kind: "screen", cat: "Travel" },
   { name: "Travel App", kind: "template", cat: "Travel" },
 ];
 
-const kindLabel: Record<Kind, string> = { screen: "Screen", template: "Template" };
+const kindLabel: Record<Kind, string> = { screen: "Screen", flow: "Flow", template: "Template" };
 
 /* ---------- Hero ---------- */
 
@@ -52,7 +55,7 @@ export function ProHero() {
         <Reveal priority><Eyebrow>SwiftPieces Pro · Production-ready SwiftUI</Eyebrow></Reveal>
         <AnimatedText as="h1" text="Every flow a top 1% app needs." accent="1%" className={cn("mt-8 max-w-4xl", heroTitle)} />
         <Reveal priority delay={0.35}>
-          <p className={cn("mx-auto mt-6 max-w-xl", sectionBody)}>Free is a curated taste of SwiftPieces. Pro is the complete library: production-ready SwiftUI screens, complete app templates, the Build Kit for your coding agent and Pro remixing in the Playground. Start from a finished screen or a whole Xcode project. Copy the source. Make it yours.</p>
+          <p className={cn("mx-auto mt-6 max-w-xl", sectionBody)}>Free is a taste. Pro is the complete library: production-ready screens, whole flows, full app templates, the Build Kit for your coding agent and Pro remixing in the Playground. Copy the source. Make it yours.</p>
         </Reveal>
         <Reveal priority delay={0.45} className="mt-9 flex flex-wrap items-center justify-center gap-x-7 gap-y-4">
           <Button href={buy}>Start building <Arrow /></Button>
@@ -60,7 +63,7 @@ export function ProHero() {
         </Reveal>
         <Reveal priority delay={0.55}>
           <p className="t-meta mt-10 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-subtle">
-            <span>{screens} screens</span><span aria-hidden>·</span><span>{templates} app templates</span><span aria-hidden>·</span><span>{buildKit.total}-item Build Kit</span><span aria-hidden>·</span><span>Pro remixing</span><span aria-hidden>·</span><span>Swift source, no runtime</span>
+            <span>{screens} screens</span><span aria-hidden>·</span><span>{proCatalog.flows.total} flows</span><span aria-hidden>·</span><span>{templates} app templates</span><span aria-hidden>·</span><span>{buildKit.total}-item Build Kit</span><span aria-hidden>·</span><span>Pro remixing</span><span aria-hidden>·</span><span>Swift source, no runtime</span>
           </p>
         </Reveal>
       </Container>
@@ -73,7 +76,7 @@ export function ProHero() {
 /** Abstract phone mock so the gallery reads as a product wall without shipping Pro previews in Free. Greys only, so it never competes with the grounds it sits on. */
 function Mock({ kind, i }: { kind: Kind; i: number }) {
   const bar = "rounded-[3px] bg-foreground/[.10]";
-  const rows = kind === "template" ? 6 : 5;
+  const rows = kind === "screen" ? 5 : 6;
   return (
     <div className="relative mx-auto h-[150px] w-[76px] rounded-[6px] border border-foreground/[.14] bg-background p-2">
       <div className="mx-auto mb-2 h-1 w-6 rounded-full bg-foreground/[.12]" />
@@ -86,10 +89,24 @@ function Mock({ kind, i }: { kind: Kind; i: number }) {
   );
 }
 
+/** A flow as the gallery draws it: three phones of a journey in a row, each with its step number. */
+function FlowMock({ i }: { i: number }) {
+  return (
+    <div className="flex items-start justify-center gap-2">
+      {[1, Math.max(2, 4 + (i % 3)), 9 + (i % 4)].map((n, k) => (
+        <div key={k} className="flex flex-col items-center gap-1.5" style={{ transform: `translateY(${k * -6}px)` }}>
+          <div className="origin-top scale-[0.82]"><Mock kind={k === 1 ? "screen" : "flow"} i={i + k} /></div>
+          <span className="-mt-6 rounded-full bg-foreground/[.12] px-1.5 text-[9.5px] font-semibold tabular-nums text-muted">{String(n).padStart(2, "0")}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function Tile({ item, i }: { item: (typeof catalog)[number]; i: number }) {
   return (
     <a href={buy} className="group stage dots relative flex h-[260px] w-[300px] shrink-0 flex-col justify-end overflow-hidden p-4 transition-transform duration-500 hover:-translate-y-1">
-      <div className="absolute inset-x-0 top-6"><Mock kind={item.kind} i={i} /></div>
+      <div className="absolute inset-x-0 top-6">{item.kind === "flow" ? <FlowMock i={i} /> : <Mock kind={item.kind} i={i} />}</div>
       <div className="relative flex items-end justify-between gap-3">
         <div className="min-w-0">
           <p className="p-meta text-subtle">{kindLabel[item.kind]} · {item.cat}</p>
@@ -102,10 +119,10 @@ function Tile({ item, i }: { item: (typeof catalog)[number]; i: number }) {
 }
 
 export function ProGallery() {
-  const a = catalog.slice(0, 7);
-  const b = catalog.slice(7);
+  const a = catalog.slice(0, 9);
+  const b = catalog.slice(9);
   const tabs: { label: string; n: string }[] = [
-    { label: "Screens", n: String(screens) }, { label: "Templates", n: String(templates) },
+    { label: "Screens", n: String(screens) }, { label: "Flows", n: String(proCatalog.flows.total) }, { label: "Templates", n: String(templates) },
   ];
   return (
     <section className="relative pb-20 md:pb-32">
@@ -114,7 +131,7 @@ export function ProGallery() {
           {[...a, ...a].map((item, i) => <Tile key={`${item.name}-${i}`} item={item} i={i} />)}
         </div>
         <div className="marquee marquee-reverse flex w-max gap-4" style={{ ["--marquee-duration" as string]: "80s" }}>
-          {[...b, ...b].map((item, i) => <Tile key={`${item.name}-${i}`} item={item} i={i + 7} />)}
+          {[...b, ...b].map((item, i) => <Tile key={`${item.name}-${i}`} item={item} i={i + 9} />)}
         </div>
       </div>
       <Container>
@@ -135,6 +152,7 @@ export function ProGallery() {
 export function WhatYouGet() {
   const items = [
     { value: screens, label: "Screens", detail: `${namesWithMore(proCatalog.screenExamples)}. Production-ready, not mockups.` },
+    { value: proCatalog.flows.total, label: "Flows", detail: `Whole journeys through every template: ${proCatalog.flows.onboarding} first runs through sign in and the paywall, ${proCatalog.flows.core} core journeys and ${proCatalog.flows.account} profile and settings flows.` },
     { value: templates, label: "App templates", detail: `Complete Xcode projects: ${namesWithMore(proCatalog.templateNames, 5)} apps, each a running app you download, rename and ship.` },
     { value: proCatalog.buildKit.total, label: "Build Kit items", detail: `${buildKitLine}.` },
     { value: proCatalog.remixing.apps, label: "Apps to remix", detail: `${remixingLine}.` },
@@ -143,10 +161,10 @@ export function WhatYouGet() {
     <section className="relative py-16 sm:py-24">
       <Container>
         <SectionCopy
-          tags={[{ label: "Screens", icon: <Glyph.phone /> }, { label: "App templates", icon: <Glyph.grid /> }, { label: "Build Kit", icon: <Glyph.wand /> }, { label: "Remixing", icon: <Glyph.split /> }]}
-          title="Finished screens, whole apps, and an agent that builds the rest to match"
+          tags={[{ label: "Screens", icon: <Glyph.phone /> }, { label: "Flows", icon: <Glyph.flow /> }, { label: "App templates", icon: <Glyph.grid /> }, { label: "Build Kit", icon: <Glyph.wand /> }, { label: "Remixing", icon: <Glyph.split /> }]}
+          title="Finished screens, whole flows and apps, and an agent that builds the rest to match"
         />
-        <RevealGroup className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4" stagger={0.08}>
+        <RevealGroup className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5" stagger={0.08}>
           {items.map((s) => (
             <RevealItem key={s.label}>
               <a href={buy} className="card group flex h-full flex-col overflow-hidden transition-colors">
@@ -185,12 +203,12 @@ function PlanCard({ tag, title, body, points, cta, pro: isPro }: { tag: string; 
     <div
       className={cn(
         "relative isolate flex flex-col p-8 md:p-9 lg:row-span-5 lg:grid lg:grid-rows-subgrid lg:gap-y-0",
-        // Free is drawn as an open artboard (dashed edge, corner ticks, the page's dots showing
-        // through), the same frame as the offer below; Pro is the solid, finished card beside it.
-        isPro ? "card overflow-hidden border-[var(--card-border-hover)]" : "frame-dashed rounded-[var(--radius)]",
+        // Both are drawn as open artboards (dashed edge, corner ticks, the page's dots showing
+        // through), the same frame as the offer below; Pro stands out by its accent and corner.
+        "frame-dashed rounded-[var(--radius)]",
       )}
     >
-      {isPro ? null : <CornerTicks />}
+      <CornerTicks />
       {/* The Pro card wears the Pro corner, like every Pro card in both apps. */}
       {isPro ? <CornerDither className="pointer-events-none absolute right-0 bottom-0 -z-10 h-56 w-full [mask-image:radial-gradient(120%_120%_at_100%_100%,black_35%,transparent_78%)] lg:h-[85%] lg:w-[58%]" /> : null}
       <div className="flex h-6 items-center justify-between">
@@ -214,7 +232,7 @@ export function Compare() {
         <SectionCopy
           tags={[{ label: "Free", icon: <Glyph.gift /> }, { label: "Pro", icon: <Glyph.split /> }]}
           title="A curated taste, then the complete library"
-          body="Free gives you standout pieces for a single moment. Pro gives you the screens and complete apps around them. Both are plain SwiftUI source in your project, so mixing them is the normal case."
+          body="Free gives you standout pieces for a single moment. Pro gives you the screens, the flows through them and the complete apps around them. Both are plain SwiftUI source in your project, so mixing them is the normal case."
         />
         <Reveal className="mt-12 grid gap-3 lg:grid-cols-2 lg:gap-y-0">
           <PlanCard tag="Free library" title="A curated taste of SwiftPieces." body={`${freeCount} animated pieces, Liquid Glass effects and Metal shaders. Genuinely good, and free to ship wherever a screen feels flat.`} points={["MIT + Commons Clause, forever", "Single-file pieces", "Install by CLI, MCP or copy-paste"]} cta="See what Pro adds" />
@@ -230,6 +248,7 @@ export function Compare() {
 export function TryFirst() {
   const cards = [
     { eyebrow: "Pro screen", cat: "Finance", title: "Wallet", body: "Stacked cards and passes you tap forward, fan out and reorder, with springs and haptics already tuned.", kind: "screen" as Kind, more: "More screens", href: pro.screens, seed: "try-wallet" },
+    { eyebrow: "Pro flow", cat: "Travel", title: "Book A Stay", body: "Wayfare's whole booking journey, eleven steps from a trip's recommendation through the booking card and checkout to a swipe to pay.", kind: "flow" as Kind, more: "More flows", href: `${pro.flows}/wayfare-book-a-stay`, seed: "try-book-a-stay" },
     { eyebrow: "Pro template", cat: "AI", title: "AI Assistant", body: "Nimbus, a complete Xcode project with streaming chat, a conversation library, voice mode and widgets. Download it and it runs.", kind: "template" as Kind, more: "More templates", href: pro.templates, seed: "try-assistant" },
   ];
   return (
@@ -239,14 +258,18 @@ export function TryFirst() {
           tags={[{ label: "Look before you buy", icon: <Glyph.eye /> }]}
           title="Every Pro piece has a public page. Look, then decide"
         />
-        <RevealGroup className="mt-12 grid gap-4 lg:grid-cols-2" stagger={0.1}>
+        <RevealGroup className="mt-12 grid gap-4 lg:grid-cols-3" stagger={0.1}>
           {cards.map((c, i) => (
             <RevealItem key={c.title} className="h-full">
               {/* Same dithered ground as Pro's library cards, with the device rising out of the bottom edge. */}
               <div className="card group flex h-full flex-col overflow-hidden">
                 <a href={c.href} className="relative isolate block h-[260px] overflow-hidden" aria-label={`${c.title} in SwiftPieces Pro`}>
                   <DitherStage seed={c.seed} className="-z-10 transition-transform duration-700 ease-out group-hover:scale-[1.03]" />
-                  {c.kind === "template" ? (
+                  {c.kind === "flow" ? (
+                    <div className="absolute inset-x-0 top-10 origin-top scale-[1.35] transition-transform duration-500 ease-out group-hover:-translate-y-1">
+                      <FlowMock i={i + 2} />
+                    </div>
+                  ) : c.kind === "template" ? (
                     // A template is a whole app, so it shows three of its screens, stacked the way Pro's
                     // template preview stacks them: the centre phone forward at full size, the two either
                     // side tucked behind it at 86%, lower, overlapping its edges.
@@ -312,11 +335,14 @@ export const proFaqs = [
  */
 /** The offer card. Used to close the Pro page and, with `id="pro"`, as the landing page's Pro block. */
 export function ProCTA({ className }: { className?: string }) {
+  // The same six parts, in the same order, as the offer card on pro.swiftpieces.com.
   const included = [
-    { n: screens, label: "Screens", note: namesWithMore(proCatalog.screenExamples, 4) },
-    { n: templates, label: "App templates", note: "Complete Xcode projects you download and ship" },
-    { n: proCatalog.buildKit.total, label: "Build Kit items", note: `${buildKit.styles} styles, ${buildKit.briefs} briefs, ${buildKit.recipes} recipes and ${buildKit.tools} tools for your coding agent` },
-    { n: proCatalog.remixing.apps, label: "Apps to remix", note: `Every app in the Playground, with AI remix and ${proCatalog.remixing.saves} saved remixes` },
+    { n: screens, label: "Screens", note: namesWithMore(proCatalog.screenExamples, 3), href: pro.screens, icon: <Glyph.phone /> },
+    { n: proCatalog.flows.total, label: "Flows", note: `${proCatalog.flows.onboarding} onboarding, ${proCatalog.flows.core} core journeys and ${proCatalog.flows.account} settings`, href: `${pro.library}/flows`, icon: <Glyph.flow /> },
+    { n: templates, label: "App Templates", note: "Complete Xcode projects you download and ship", href: pro.templates, icon: <Glyph.grid /> },
+    { n: proCatalog.buildKit.total, label: "Build Kit Items", note: `${buildKit.styles} styles, ${buildKit.briefs} briefs, ${buildKit.recipes} recipes and ${buildKit.tools} tools`, href: pro.kit, icon: <Glyph.wand /> },
+    { n: proCatalog.presets.total, label: "Brand Presets", note: `${proCatalog.presets.families} design families, each a one-tap restyle`, href: pro.templates, icon: <Glyph.palette /> },
+    { n: proCatalog.remixing.saves, label: "Remix Saves", note: `All ${proCatalog.remixing.apps} Playground apps, remixed with AI`, href: "/apps", icon: <Glyph.spark /> },
   ];
   const promises = ["Unlimited apps, commercial use included", "Everything added later included", "No subscription, nothing expires"];
   return (
@@ -327,13 +353,12 @@ export function ProCTA({ className }: { className?: string }) {
         <Reveal className="relative">
           <CornerTicks />
           <div className="frame-dashed relative isolate overflow-hidden rounded-[var(--radius)]">
-          {/* The Pro corner (OfferCorner on pro.swiftpieces.com), kept smaller here: this card's
-              bottom-right holds the template list, and a larger swell would sit over its labels. */}
-          <CornerDither className="pointer-events-none absolute right-0 bottom-0 -z-10 h-32 w-full md:h-40 [mask-image:radial-gradient(120%_120%_at_100%_100%,black_35%,transparent_78%)] lg:h-[27%] lg:w-[36%]" />
-          <div className="grid lg:grid-cols-[1.15fr_1fr]">
+          {/* The Pro corner (OfferCorner on pro.swiftpieces.com), sized as on Pro's offer card: below the included cells. */}
+          <CornerDither className="pointer-events-none absolute right-0 bottom-0 -z-10 h-48 w-full [mask-image:radial-gradient(120%_120%_at_100%_100%,black_35%,transparent_78%)] lg:h-[40%] lg:w-[50%]" />
+          <div className="grid lg:grid-cols-[5fr_7fr]">
             <div className="flex flex-col p-8 md:p-12 lg:p-14">
               <Tags tags={[{ label: "One purchase", icon: <Glyph.tag /> }]} className="mb-5" />
-              <h2 className={cn("max-w-md", sectionTitle)}>One payment. Lifetime access.</h2>
+              <h2 className={cn("max-w-md", sectionTitle)}>One Payment. Lifetime Access.</h2>
               <p className={cn("mt-4 max-w-md", sectionBody)}>The complete library, {proCountsLabel}, delivered as Swift you keep, with Pro remixing in the Playground.</p>
               <ul className="mt-10 flex flex-col gap-2.5">
                 {promises.map((p) => <li key={p} className="flex gap-2.5 text-[13px] leading-snug text-foreground/90"><Check strong />{p}</li>)}
@@ -344,28 +369,28 @@ export function ProCTA({ className }: { className?: string }) {
                 <TextLink href={pro.library}>Browse the library</TextLink>
               </div>
             </div>
-            <div className="flex flex-col p-8 pb-28 md:p-12 md:pb-32 lg:p-14">
-              <p className="p-meta text-subtle">Included</p>
-              <ul className="mt-6 grid gap-2 sm:grid-cols-2">
+            {/* Everything it includes as six open cells divided by dashed seams, the frame's own line, as
+                on Pro's offer card: nothing on the artboard is boxed. The halftone rises out of the corner below. */}
+            <div className="offer-seam relative flex flex-col p-8 pt-0 pb-40 md:p-12 md:pt-0 md:pb-44 lg:p-14 lg:pb-52">
+              <div className="flex items-baseline justify-between gap-4">
+                <p className="p-meta text-subtle">Everything included</p>
+                <p className="hidden text-[12px] text-subtle sm:block">One price for all of it</p>
+              </div>
+              <ul className="offer-cells -mx-4 mt-5 grid grid-cols-2 sm:-mx-6 sm:grid-cols-3">
                 {included.map((row) => (
-                  <li key={row.label} className="flex flex-col rounded-[var(--radius)] border border-[var(--card-border)] bg-background/70 p-6 backdrop-blur-[6px] sm:last:odd:col-span-2">
-                    <span className="text-[38.5px] leading-none font-medium tracking-[-0.04em] tabular-nums">{row.n}</span>
-                    <span className="mt-4 text-[14px] font-medium">{row.label}</span>
-                    <span className="mt-1.5 text-[12px] leading-snug text-muted">{row.note}</span>
+                  <li key={row.label}>
+                    <a href={row.href} className="group relative flex h-full flex-col px-4 py-5 transition-colors duration-300 hover:bg-foreground/[0.03] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-foreground/40 sm:p-6">
+                      <span className="flex items-center gap-2 text-[12.5px] font-medium whitespace-nowrap text-muted transition-colors group-hover:text-foreground">
+                        <TagIcon>{row.icon}</TagIcon>
+                        {row.label}
+                        <svg aria-hidden viewBox="0 0 16 16" className="ml-auto size-3.5 text-subtle opacity-0 transition-[opacity,transform] duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:opacity-100" fill="none" stroke="currentColor" strokeWidth="1.75"><path d="M5 11l6-6M6 5h5v5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                      </span>
+                      <span className="mt-6 text-[32px] leading-[0.9] font-extrabold tracking-[-0.05em] tabular-nums sm:mt-9 sm:text-[36px]">{row.n}</span>
+                      <span className="mt-3 line-clamp-3 text-[12.5px] leading-[19px] text-pretty text-muted sm:line-clamp-2">{row.note}</span>
+                    </a>
                   </li>
                 ))}
               </ul>
-              {/* The templates by name, so the count on the right reads as six real apps. */}
-              <p className="p-meta mt-10 text-subtle">The app templates</p>
-              <ul className="mt-3 grid sm:grid-cols-2 sm:gap-x-8">
-                {proCatalog.templateApps.map((t) => (
-                  <li key={t.app} className="flex items-baseline justify-between gap-4 border-b border-[var(--line)] py-3">
-                    <span className="text-[13px] font-semibold">{t.app}</span>
-                    <span className="text-[12px] text-muted">{t.kind}</span>
-                  </li>
-                ))}
-              </ul>
-              <p className="mt-6 max-w-xs text-[12px] leading-relaxed text-subtle">Each one a complete Xcode project, built on the same design system as every screen.</p>
             </div>
           </div>
           </div>

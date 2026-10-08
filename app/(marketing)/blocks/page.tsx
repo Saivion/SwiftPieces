@@ -8,8 +8,8 @@ import { pro } from "@/lib/site";
 import { proCountsLabel } from "@/lib/pro-catalog";
 
 export const metadata: Metadata = {
-  title: "Screens & App Templates",
-  description: `SwiftPieces Pro has ${proCountsLabel}: production-ready SwiftUI screens and complete Xcode projects.`,
+  title: "Screens, Flows & App Templates",
+  description: `SwiftPieces Pro has ${proCountsLabel}: production-ready SwiftUI screens, whole journeys through them and complete Xcode projects.`,
   alternates: { canonical: pro.library },
 };
 

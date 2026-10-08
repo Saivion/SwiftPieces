@@ -16,8 +16,9 @@ import { proCards, type ProCardType } from "@/components/docs/pro-cards";
 import { changelogPath } from "@/lib/changelog";
 
 /** Explore Pro rows: the section's icon and a quiet count of what Pro holds. */
-const exploreRows: Record<string, { kind: "screens" | "templates"; type: ProCardType }> = {
+const exploreRows: Record<string, { kind: "screens" | "flows" | "templates"; type: ProCardType }> = {
   "/docs/components/screens": { kind: "screens", type: "screen" },
+  "/docs/components/flows": { kind: "flows", type: "flow" },
   "/docs/components/templates": { kind: "templates", type: "template" },
 };
 
@@ -83,7 +84,7 @@ function flatSidebar(tree: PageTree.Root): PageTree.Root {
   out.push({ type: "page", name: "Changelog", url: changelogPath() });
 
   if (components && componentsIndex) {
-    out.push(heading("Browse"), withEnd({ ...componentsIndex, name: "All components" }, fresh.size ? <NewBadge>{`${fresh.size} New`}</NewBadge> : <span className="text-[11px] tabular-nums text-subtle">{index.length}</span>));
+    out.push(heading("Browse"), withEnd({ ...componentsIndex, name: "All Components" }, fresh.size ? <NewBadge>{`${fresh.size} New`}</NewBadge> : <span className="text-[11px] tabular-nums text-subtle">{index.length}</span>));
     const cats = components.children.filter((n): n is PageTree.Folder => n.type === "folder");
     const explore = components.children.filter((n): n is PageTree.Item => n.type === "page" && Boolean(exploreRows[n.url]));
     if (explore.length) {
@@ -104,7 +105,7 @@ function flatSidebar(tree: PageTree.Root): PageTree.Root {
   const guidePages = [...(guides?.children.filter((n): n is PageTree.Item => n.type === "page" && n.url !== "/docs/guides") ?? []), ...[page("/docs/liquid-glass")].filter((p): p is PageTree.Item => Boolean(p))];
   if (guidesIndex || guidePages.length) {
     out.push(heading("Guides", guidePages.length));
-    if (guidesIndex) out.push({ ...guidesIndex, name: "All guides" });
+    if (guidesIndex) out.push({ ...guidesIndex, name: "All Guides" });
     out.push(...guidePages.map((g) => ({ ...g, name: g.url === "/docs/liquid-glass" ? "Liquid Glass" : topic(g.url) })));
   }
   return { ...tree, children: out };
@@ -117,8 +118,10 @@ function previewItems(): Record<string, SidebarPreviewEntry> {
     out[piecePath(e)] = { kind: "piece", name: e.name, title: e.title, label: categoryTitle(e.category), tone: e.category === "backgrounds" ? "black" : "dark" };
   }
   const screen = proCards("screen")[0];
+  const flow = proCards("flow")[0];
   const template = proCards("template")[0];
   if (screen) out["/docs/components/screens"] = { kind: "image", src: `/pro-cards/${screen.id}.webp`, title: "Screens", label: `${proCards("screen").length} in Pro` };
+  if (flow) out["/docs/components/flows"] = { kind: "image", src: `/pro-cards/${flow.id}.webp`, title: "Flows", label: `${proCards("flow").length} in Pro` };
   if (template) out["/docs/components/templates"] = { kind: "image", src: `/pro-cards/${template.id}.webp`, title: "Templates", label: `${proCards("template").length} in Pro` };
   return out;
 }

@@ -168,7 +168,7 @@
     "structuredData": {
       "contents": [
         {
-          "content": "SwiftPieces is a free library (MIT + Commons Clause) of animated SwiftUI components built around iOS 26 Liquid Glass and Metal shaders, and a curated taste of what SwiftPieces Pro offers in full: production-ready SwiftUI screens and complete app templates. Read why SwiftPieces exists and how it is funded."
+          "content": "SwiftPieces is a free library (MIT + Commons Clause) of animated SwiftUI components built around iOS 26 Liquid Glass and Metal shaders, and a curated taste of what SwiftPieces Pro offers in full: production-ready SwiftUI screens, whole flows and complete app templates. Read why SwiftPieces exists and how it is funded."
         },
         {
           "heading": "what-earns-a-place",
@@ -469,7 +469,7 @@
         },
         {
           "heading": "rules-every-agent-should-follow-with-liquid-glass",
-          "content": "Have SwiftPieces Pro? Its screens, templates and Build Kit use a separate server with your license key. Set up the Pro server →"
+          "content": "Have SwiftPieces Pro? Its screens, flows, templates and Build Kit use a separate server with your license key. Set up the Pro server →"
         }
       ],
       "headings": [
@@ -494,6 +494,20 @@
           "content": "Rules every agent should follow with Liquid Glass"
         }
       ]
+    }
+  },
+  {
+    "url": "/docs/components/flows",
+    "title": "Flows",
+    "description": "Whole journeys through SwiftPieces Pro's app templates: first run through sign in and the paywall, the core of each app, then profile and settings, screen by screen.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Components",
+      "Explore Pro"
+    ],
+    "structuredData": {
+      "contents": [],
+      "headings": []
     }
   },
   {

@@ -267,7 +267,7 @@ export default function PlaygroundApp({ page, project, onReady }: Props) {
         // "Open in the Playground", so a round trip comes back here.
         styles: (code) => `/styles?style=${encodeURIComponent(code)}&app=${current.slug}`,
         // Everyone without Pro sees what it adds (no prices here). Owners already have it all here.
-        ...(pro ? {} : { handoff: { label: "Take it further with Pro", desc: `Unlock all ${proCatalog.remixing.apps} apps and every future app, keep up to ${proCatalog.remixing.saves} remixes and remix with AI, with every screen, template and the Build Kit.`, url: () => `${site.proUrl}/pro`, icon: "crown" as const, backdrop: <CornerDither /> } }),
+        ...(pro ? {} : { handoff: { label: "Take it further with Pro", desc: `Unlock all ${proCatalog.remixing.apps} apps and every future app, keep up to ${proCatalog.remixing.saves} remixes and remix with AI, with every screen, flow, template and the Build Kit.`, url: () => `${site.proUrl}/pro`, icon: "crown" as const, backdrop: <CornerDither /> } }),
       },
     }),
     [session, pro, signedIn, current, onEntry, signInHere, remember, aiSessionId],

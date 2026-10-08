@@ -9,9 +9,10 @@ import { buildKitLine, namesWithMore, proCatalog, remixingLine } from "@/lib/pro
 // Marketing list. Pro items never come from a registry file in Free (Rev 3 §3.2); counts live in lib/pro-catalog.ts.
 export const proSections = [
   { n: "01", title: `${proCatalog.screens} screens`, body: `${namesWithMore(proCatalog.screenExamples)}. Production-ready screens you adapt, not rebuild.`, href: pro.screens },
-  { n: "02", title: `${proCatalog.templates} app templates`, body: `Complete Xcode projects: ${namesWithMore(proCatalog.templateNames, 5)} apps. Download one, rename it and ship.`, href: pro.templates },
-  { n: "03", title: "The Build Kit", body: `${buildKitLine}.`, href: pro.kit },
-  { n: "04", title: "Pro remixing", body: `${remixingLine}.`, href: "/apps", where: "In the Playground" },
+  { n: "02", title: `${proCatalog.flows.total} flows`, body: `Whole journeys through every template, from first run through sign in and the paywall to the core of the app and its settings, screen by screen.`, href: pro.flows },
+  { n: "03", title: `${proCatalog.templates} app templates`, body: `Complete Xcode projects: ${namesWithMore(proCatalog.templateNames, 5)} apps. Download one, rename it and ship.`, href: pro.templates },
+  { n: "04", title: "The Build Kit", body: `${buildKitLine}.`, href: pro.kit },
+  { n: "05", title: "Pro remixing", body: `${remixingLine}.`, href: "/apps", where: "In the Playground" },
 ];
 
 export function ProSection({ heading = true }: { heading?: boolean }) {
@@ -23,7 +24,7 @@ export function ProSection({ heading = true }: { heading?: boolean }) {
         </Container>
       ) : null}
       <Container>
-        <RevealGroup className={`grid gap-4 md:grid-cols-2 xl:grid-cols-4 ${heading ? "mt-14" : ""}`} stagger={0.1}>
+        <RevealGroup className={`grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 ${heading ? "mt-14" : ""}`} stagger={0.1}>
           {proSections.map((c) => (
             <RevealItem key={c.n} className="h-full">
               <a href={c.href} className="group block h-full">

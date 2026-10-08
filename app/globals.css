@@ -857,3 +857,21 @@ html.light .studio-tray { --studio-tray: #e9e9e7; --studio-tray-solid: #e9e9e7; 
 .studio-grid > [data-tile="days"] { grid-area: days; }
 /* A tile's components take the whole tile: the column fills it and its spacers share what's left. */
 .studio-fill .spb-screen-host > .spb-vflow { flex: 1 1 auto; }
+
+/* The Pro offer's "Included" grid (ProCTA), the same as pro.swiftpieces.com's offer card: open cells
+   divided only by seams in the frame's own 4px dash, never boxed. ::before draws a cell's right seam,
+   ::after its bottom seam; the last column and the last row draw none. Two columns, three from sm.
+   .offer-seam is the line between the card's two columns, from lg up. Keep in step with Pro's globals.css. */
+.offer-cells > * { position: relative; }
+.offer-cells > *::before, .offer-cells > *::after, .offer-seam::before { --dash: rgb(255 255 255 / 0.16); content: ""; position: absolute; pointer-events: none; }
+html.light .offer-cells > *::before, html.light .offer-cells > *::after, html.light .offer-seam::before { --dash: rgb(0 0 0 / 0.2); }
+.offer-cells > *::before { top: 10px; bottom: 10px; right: 0; width: 1px; background: linear-gradient(180deg, transparent 3px, var(--dash) 3px 7px, transparent 7px) 0 0 / 1px 10px repeat-y; }
+.offer-cells > *::after { left: 10px; right: 10px; bottom: 0; height: 1px; background: linear-gradient(90deg, transparent 3px, var(--dash) 3px 7px, transparent 7px) 0 0 / 10px 1px repeat-x; }
+.offer-cells > :nth-child(2n)::before, .offer-cells > :nth-last-child(-n + 2)::after { display: none; }
+@media (min-width: 640px) {
+  .offer-cells > :nth-child(2n)::before, .offer-cells > :nth-last-child(-n + 2)::after { display: block; }
+  .offer-cells > :nth-child(3n)::before, .offer-cells > :nth-last-child(-n + 3)::after { display: none; }
+}
+@media (min-width: 1024px) {
+  .offer-seam::before { top: 0; bottom: 0; left: 0; width: 1px; background: linear-gradient(180deg, transparent 3px, var(--dash) 3px 7px, transparent 7px) 0 0 / 1px 10px repeat-y; }
+}
