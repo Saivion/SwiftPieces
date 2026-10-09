@@ -11,6 +11,8 @@ const grid16: Record<string, { motion?: string; parts: ReactNode }> = {
   components: { parts: <>{[[3, 3], [9, 3], [3, 9], [9, 9]].map(([x, y], n) => <rect key={n} className="ai-pop" style={i(n)} x={x} y={y} width="4" height="4" />)}</> },
   blocks: { parts: <><rect className="ai-pop" x="2.5" y="4.5" width="11" height="3" /><rect className="ai-pop" style={i(1)} x="2.5" y="9.5" width="5" height="3" /><rect className="ai-pop" style={i(2)} x="9.5" y="9.5" width="4" height="3" /></> },
   screens: { motion: "ai-tilt", parts: <path d="M4 2.5h8a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1zM6 12h4" /> },
+  // Two screens and the step between them; the path redraws when its row is pointed at. Same as Pro's.
+  flows: { parts: <><rect x="1.5" y="3" width="4.5" height="10" rx="1" /><rect x="10" y="3" width="4.5" height="10" rx="1" /><path className="ai-redraw" pathLength={1} d="M6.5 8h3M8.2 6.6 9.6 8l-1.4 1.4" strokeLinecap="round" /></> },
   templates: { parts: <><rect className="ai-drop" x="2.5" y="3.5" width="11" height="2" /><rect x="2.5" y="7.5" width="11" height="5" /></> },
   agent: { parts: <path className="ai-twinkle" d="M8 2l1.2 3.3L12.5 6.5 9.2 7.8 8 11 6.8 7.8 3.5 6.5l3.3-1.2z" /> },
   free: { parts: <><path d="M8 2.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11z" /><path className="ai-spin" style={{ "--ai-turn": "180deg" } as CSSProperties} d="M5.5 8h5" /></> },

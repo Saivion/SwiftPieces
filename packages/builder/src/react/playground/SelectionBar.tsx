@@ -18,9 +18,13 @@ const GAP = 8;
 
 type Menu = { mode: "add" | "swap" } | null;
 
-export const SelectionBar = memo(function SelectionBar({ phoneRef, slotRef }: { phoneRef: RefObject<HTMLDivElement | null>; slotRef: RefObject<HTMLDivElement | null> }) {
+/**
+ * `always`: shown for any selection, whatever the mode. The every-screen canvas passes it: its
+ * screens are stills and every click there picks a part, so it is always inspecting.
+ */
+export const SelectionBar = memo(function SelectionBar({ phoneRef, slotRef, always = false }: { phoneRef: RefObject<HTMLDivElement | null>; slotRef: RefObject<HTMLDivElement | null>; always?: boolean }) {
   const { store, host } = usePlayground();
-  const selected = usePlay(store, (s) => (s.mode === "inspect" ? s.selected : null));
+  const selected = usePlay(store, (s) => (always || s.mode === "inspect" ? s.selected : null));
   const project = usePlay(store, (s) => s.project);
   const bar = useRef<HTMLDivElement>(null);
   const [menu, setMenu] = useState<Menu>(null);

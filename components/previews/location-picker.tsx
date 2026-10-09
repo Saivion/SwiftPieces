@@ -1,32 +1,39 @@
 "use client";
-import { useEffect, useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { blocks, font, ground, ink, paper, signal } from "./palette";
+import { pressScale, roles, springValue, t, type Spring } from "./piece-motion";
+import { BudContent, Liquid, LiquidGroup, MorphText, liquid } from "./piece-liquid";
 
 /*
- * Location Picker: a drawn map under a fixed red pin, with the address card and the locate button.
- * It rests on the person's location, then a finger drags the map (the pin lifts, the card says
- * Locating…), lets go, the map coasts and settles, the pin drops with a bounce and the card loads and
- * names the new street. Locate-me glides the map back to the sky user dot, the pin drops on it, the
- * address returns and Confirm dips, which is exactly where the loop began.
+ * Location Picker: a drawn map under a fixed red pin, with the liquid glass chrome over it: the address card, the
+ * red Confirm capsule resting apart below it, and the locate button.
+ * It rests on the person's location, then a finger drags the map (the pin lifts, the card dims the street and says
+ * Locating…, and Confirm melts back up into the card), throws it, the map coasts and settles, and the pin drops and
+ * presses into place. The card holds the old street, Locating… breathing, until the new one morphs in letter by
+ * letter and Confirm buds back down out of the card. Locate-me flies the map back to the sky user dot, the pin
+ * presses in on it, the street it already knows returns at once with Confirm, and Confirm dips, which is exactly
+ * where the loop began.
  * Sizes are authored in iOS points: 1 pt is 1.08 px on the 560 px docs stage, converted to `cqw`.
  */
 
 /**
  * The storyboard (also the launch video's script). Each step holds for `ms`. `map` is how far the map
- * has moved from rest, in points, reached over `glide` ms with `curve`. `finger` is the touch in points
- * inside the picker (372 x 363), `null` when lifted. `card`: the address, `moving` (last address dimmed,
- * "Locating…") or `loading` (skeleton). `address` 0 is 210 Maple Avenue (rest), 1 is 48 Juniper Lane.
+ * has moved from rest, in points, reached over `glide` ms with `curve`, or on the camera's flight spring.
+ * `finger` is the touch in points inside the picker (372 x 363), `null` when lifted. `card`: the address,
+ * or `moving` (last address dimmed, "Locating…") from the moment the map moves until the next address
+ * arrives. `address` 0 is 210 Maple Avenue (rest), 1 is 48 Juniper Lane.
  */
 const STEPS = [
   { name: "rest", ms: 1700, map: [0, 0], pin: "down", card: "address", address: 0, finger: null, atUser: true },
   { name: "touch", ms: 260, map: [0, 0], pin: "down", card: "address", address: 0, finger: [290, 172], atUser: true },
-  { name: "drag", ms: 900, map: [-56, -64], glide: 900, curve: "linear", pin: "up", card: "moving", address: 0, finger: [234, 108], atUser: false },
+  { name: "drag", ms: 900, map: [-56, -64], glide: 900, curve: "drag", pin: "up", card: "moving", address: 0, finger: [234, 108], atUser: false },
   { name: "let go and coast", ms: 380, map: [-70, -80], glide: 380, curve: "coast", pin: "up", card: "moving", address: 0, finger: null, atUser: false },
-  { name: "drop", ms: 650, map: [-70, -80], pin: "down", card: "loading", address: 0, finger: null, atUser: false },
+  { name: "drop", ms: 650, map: [-70, -80], pin: "down", card: "moving", address: 0, finger: null, atUser: false },
   { name: "new street", ms: 1400, map: [-70, -80], pin: "down", card: "address", address: 1, finger: null, atUser: false },
   { name: "tap locate", ms: 240, map: [-70, -80], pin: "down", card: "address", address: 1, finger: [338, 34], press: "locate", atUser: false },
-  { name: "glide home", ms: 700, map: [0, 0], glide: 700, curve: "glide", pin: "up", card: "moving", address: 1, finger: null, atUser: false },
-  { name: "drop on you", ms: 600, map: [0, 0], pin: "down", card: "loading", address: 1, finger: null, atUser: true },
+  { name: "glide home", ms: 700, map: [0, 0], curve: "flight", pin: "up", card: "moving", address: 1, finger: null, atUser: false },
+  // A spot already looked up is cached, so its street lands as the pin does.
+  { name: "drop on you", ms: 600, map: [0, 0], pin: "down", card: "address", address: 0, finger: null, atUser: true },
   { name: "your street", ms: 1300, map: [0, 0], pin: "down", card: "address", address: 0, finger: null, atUser: true },
   { name: "tap confirm", ms: 240, map: [0, 0], pin: "down", card: "address", address: 0, finger: [186, 310], press: "confirm", atUser: true },
   { name: "release", ms: 600, map: [0, 0], pin: "down", card: "address", address: 0, finger: null, atUser: true },
@@ -40,15 +47,52 @@ const ADDRESSES = [
 ];
 
 const u = (pt: number) => `${((pt * 1.08) / 5.6).toFixed(3)}cqw`;
-const spring = "cubic-bezier(0.34, 1.56, 0.64, 1)";
-const ease = "cubic-bezier(0.22, 1, 0.36, 1)";
-const CURVES = { linear: "linear", coast: "cubic-bezier(0.15, 0.6, 0.3, 1)", glide: "cubic-bezier(0.45, 0, 0.2, 1)" } as const;
+/**
+ * The finger speeds up into the throw, and MapKit's coast leaves at that same speed (both about 0.135 pt
+ * per ms) and slows to rest, so letting go never jolts the map.
+ */
+const CURVES = { drag: "cubic-bezier(0.35, 0, 0.65, 0.5)", coast: "cubic-bezier(0.2, 0.49, 0.3, 1)" } as const;
 
-/** The picker, the card in it and the pin, which sits in the middle of the map the card leaves visible. */
+/**
+ * The picker, the glass at its bottom edge and the pin, which sits in the middle of the map the glass leaves
+ * visible: the card (two lines in 16 pt of padding), then Confirm's place `liquid.apart` below it, which keeps its
+ * height while Confirm is away.
+ */
 const W = 372;
 const H = 363;
-const CARD_H = 143;
+const PANEL_H = 79;
+const CONFIRM_H = 50;
+const CARD_H = PANEL_H + liquid.apart + CONFIRM_H;
 const PIN = { x: W / 2, y: (H - CARD_H - 12) / 2 };
+/** Confirm's home: shrunk, just inside the card's bottom edge. */
+const CONFIRM_HOME: [number, number] = [0, -(CONFIRM_H / 2 + liquid.apart + (CONFIRM_H * liquid.homeScale) / 2)];
+
+/**
+ * A camera flight, as Swift times it: longer the farther it goes (0.5 s plus a little per screen, 1.2 s at
+ * most), on a spring with no bounce, so the map never carries past the spot and back under the pin.
+ */
+const flight = (dx: number, dy: number): Spring => ({ duration: Math.min(0.5 + 0.18 * Math.log2(1 + Math.hypot(dx / W, dy / H)), 1.2), bounce: 0 });
+const FLIGHT = flight(70, 80);
+
+/** Buttons sink about 2.5 pt per edge: the 44 pt locate button to 0.92, the 348 x 50 pt Confirm to 0.97. */
+const LOCATE_PRESS = pressScale(44, 44);
+const CONFIRM_PRESS = pressScale(W - 24, CONFIRM_H);
+
+/**
+ * The pin pressing into place, keyed as Swift keys it: still until the tip meets the ground 90 ms into the
+ * drop, then 6% wider and shorter from the tip on the press spring over 70 ms, then back into shape on the
+ * release spring over 400 ms. Sampled from the springs themselves.
+ */
+const SQUASH = (() => {
+  const contact = 90, sink = 70, back = 400, give = 0.06, total = contact + sink + back;
+  const at = (ms: number, s: number): Keyframe => ({ offset: ms / total, transform: `scale(${(1 + s).toFixed(4)}, ${(1 / (1 + s)).toFixed(4)})` });
+  const end = springValue(roles.press, sink / 1000);
+  const frames = [at(0, 0), at(contact, 0)];
+  for (let ms = 10; ms <= sink; ms += 10) frames.push(at(contact + ms, (give * springValue(roles.press, ms / 1000)) / end));
+  for (let ms = 16; ms < back; ms += 16) frames.push(at(contact + sink + ms, give * (1 - springValue(roles.release, ms / 1000))));
+  frames.push(at(total, 0));
+  return { frames, ms: total };
+})();
 /** The drawn map, and the person's location on it (under the pin at rest). */
 const MAP = { w: 720, h: 640 };
 const USER = { x: 300, y: 300 };
@@ -88,8 +132,8 @@ function useSteps(steps: readonly Step[]) {
       setI(0);
       return;
     }
-    const t = setTimeout(() => setI((v) => (v + 1) % steps.length), steps[i].ms);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => setI((v) => (v + 1) % steps.length), steps[i].ms);
+    return () => clearTimeout(timer);
   }, [i, steps, reduced]);
   return { step: steps[i], reduced };
 }
@@ -148,18 +192,31 @@ function MapArt() {
   );
 }
 
-function Pin({ up, reduced }: { up: boolean; reduced: boolean }) {
+function Pin({ up, flight, reduced }: { up: boolean; flight: boolean; reduced: boolean }) {
   const lift = up && !reduced;
-  const fall = `${lift ? ".24s ease-out" : `.45s ${spring}`}`;
+  // Picked up by the drag, it springs about a point past its lift and settles; a camera flight lifts it on a
+  // snap. Drops on the press spring, which never overshoots, so the tip stops on the spot.
+  const role = up ? (flight || reduced ? "snap" : "release") : reduced ? "snap" : "press";
+  const body = useRef<HTMLSpanElement>(null);
+  const wasUp = useRef(up);
+  // Each landing presses the pin into the ground as the tip meets it. Reduce Motion lands without the press.
+  useEffect(() => {
+    const landed = wasUp.current && !up;
+    wasUp.current = up;
+    const el = body.current;
+    if (!landed || reduced || !el) return;
+    const press = el.animate(SQUASH.frames, { duration: SQUASH.ms });
+    return () => press.cancel();
+  }, [up, reduced]);
   return (
     <div data-motion style={{ position: "absolute", left: u(PIN.x), top: u(PIN.y), width: 0, height: 0 }}>
-      {/* The shadow on the ground spreads and fades as the pin rises. */}
+      {/* The shadow on the ground spreads and fades as the pin rises, on the pin's own spring. */}
       <span
         data-motion
         style={{
           position: "absolute", left: u(-9), top: u(-3), width: u(18), height: u(6), borderRadius: "50%", background: "#000",
           filter: `blur(${u(lift ? 3 : 1.2)})`, opacity: lift ? 0.16 : 0.34, transform: `scale(${lift ? 1.7 : 1})`,
-          transition: `transform ${fall}, opacity .3s, filter .3s`,
+          transition: t(["transform", "opacity", "filter"], role),
         }}
       />
       {/* The exact spot. */}
@@ -168,78 +225,93 @@ function Pin({ up, reduced }: { up: boolean; reduced: boolean }) {
         data-motion
         style={{
           position: "absolute", left: u(-15), top: u(-46), width: u(30), height: u(46),
-          transform: `translateY(${lift ? u(-12) : "0px"})`, opacity: up && reduced ? 0.55 : 1, transition: `transform ${fall}, opacity .2s`,
+          transform: `translateY(${lift ? u(-12) : "0px"})`, opacity: up && reduced ? 0.55 : 1, transition: t(["transform", "opacity"], role),
         }}
       >
-        <span style={{ position: "absolute", left: u(13.5), top: u(15), width: u(3), height: u(31), borderRadius: u(1.5), background: ink }} />
-        <span
-          style={{
-            position: "absolute", left: 0, top: 0, width: u(30), height: u(30), borderRadius: "50%", background: signal.fill,
-            boxShadow: `0 ${u(1)} ${u(2)} rgba(0,0,0,.24)`, display: "grid", placeItems: "center",
-          }}
-        >
-          <span style={{ width: u(10), height: u(10), borderRadius: "50%", background: ink }} />
+        {/* Gives from the tip: wider and shorter by the same factor, so it never sinks through the spot. */}
+        <span ref={body} style={{ position: "absolute", inset: 0, transformOrigin: "50% 100%" }}>
+          <span style={{ position: "absolute", left: u(13.5), top: u(15), width: u(3), height: u(31), borderRadius: u(1.5), background: ink }} />
+          <span
+            style={{
+              position: "absolute", left: 0, top: 0, width: u(30), height: u(30), borderRadius: "50%", background: signal.fill,
+              boxShadow: `0 ${u(1)} ${u(2)} rgba(0,0,0,.24)`, display: "grid", placeItems: "center",
+            }}
+          >
+            <span style={{ width: u(10), height: u(10), borderRadius: "50%", background: ink }} />
+          </span>
         </span>
       </span>
     </div>
   );
 }
 
+const ARROW = "M20.2 3.8 3.9 10.6c-.6.3-.5 1.1.1 1.3l6.4 1.7 1.7 6.4c.2.6 1 .7 1.3.1l6.8-16.3z";
+
 function LocateButton({ filled, pressed }: { filled: boolean; pressed: boolean }) {
   return (
-    <span
-      data-motion
+    <Liquid
       style={{
-        position: "absolute", right: u(12), top: u(12), width: u(44), height: u(44), borderRadius: "50%", background: ground.raised,
-        boxShadow: `0 ${u(4)} ${u(10)} rgba(0,0,0,.16)`, display: "grid", placeItems: "center", color: ground.text,
-        transform: pressed ? "scale(.9)" : "none", transition: `transform .3s ${spring}`,
+        position: "absolute", right: u(12), top: u(12), width: u(44), height: u(44), display: "grid", placeItems: "center", color: ground.text,
+        transform: pressed ? `scale(${LOCATE_PRESS})` : "none", transition: t("transform", pressed ? "press" : "release"),
       }}
     >
       <svg aria-hidden viewBox="0 0 24 24" style={{ width: u(19), height: u(19) }}>
-        <path d="M20.2 3.8 3.9 10.6c-.6.3-.5 1.1.1 1.3l6.4 1.7 1.7 6.4c.2.6 1 .7 1.3.1l6.8-16.3z" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth={1.9} strokeLinejoin="round" style={{ transition: "fill .25s" }} />
+        {/* The arrow fills in as the pin lands on the person: one glyph blurs out as the other sharpens in, on a snap.
+            A fill can't fade from none, so the two glyphs are drawn and swapped. */}
+        {[false, true].map((solid) => (
+          <path
+            key={String(solid)}
+            data-motion
+            d={ARROW}
+            fill={solid ? "currentColor" : "none"}
+            stroke="currentColor"
+            strokeWidth={1.9}
+            strokeLinejoin="round"
+            style={{
+              opacity: solid === filled ? 1 : 0, filter: `blur(${solid === filled ? 0 : 1.5}px)`,
+              transition: t(["opacity", "filter"], "snap"),
+            }}
+          />
+        ))}
       </svg>
-    </span>
+    </Liquid>
   );
 }
 
 function Card({ s }: { s: Step }) {
-  const a = ADDRESSES[s.address];
   const moving = s.card === "moving";
-  const loading = s.card === "loading";
-  const layer = (on: boolean): CSSProperties => ({ gridArea: "1 / 1", opacity: on ? 1 : 0, transition: `opacity .25s ${ease}`, whiteSpace: "nowrap" });
-  const bar = (width: string, height: number, top: number): CSSProperties => ({ position: "absolute", left: 0, top: u(top), width, height: u(height), borderRadius: u(height / 2), background: ground.control });
+  const lifted = s.pin === "up";
+  const address = ADDRESSES[s.address];
+  // Confirm buds out of the card once the spot has its address and melts back into it while the map moves.
+  const confirmOut = s.card === "address";
   const pressed = "press" in s && s.press === "confirm";
   return (
-    <div
-      style={{
-        position: "absolute", left: u(12), right: u(12), bottom: u(12), height: u(CARD_H), boxSizing: "border-box", padding: u(16),
-        borderRadius: u(26), background: ground.raised, boxShadow: `0 ${u(8)} ${u(22)} rgba(0,0,0,.16)`,
-      }}
-    >
-      <div style={{ position: "relative", height: u(47) }}>
-        <div style={{ opacity: loading ? 0 : 1, transition: `opacity .25s ${ease}` }}>
-          <div style={{ fontSize: u(20), lineHeight: u(25), fontWeight: 700, letterSpacing: "-0.01em", color: ground.text, opacity: moving ? 0.35 : 1, transition: `opacity .3s ${ease}`, whiteSpace: "nowrap" }}>
-            {a.title}
+    <div style={{ position: "absolute", left: u(12), right: u(12), bottom: u(12) }}>
+      <LiquidGroup unit={u(1)} axis="y">
+        <div className="flex flex-col" style={{ gap: u(liquid.apart) }}>
+          {/* Above Confirm, so Confirm waiting at home slips under it. */}
+          <div className="relative" style={{ zIndex: 1 }}>
+            <Liquid radius={26} style={{ height: u(PANEL_H), boxSizing: "border-box", padding: u(16) }}>
+              {/* The last street stays, dimmed, until the next one morphs in over it letter by letter. */}
+              <div data-motion style={{ fontSize: u(20), lineHeight: u(25), fontWeight: 600, letterSpacing: "-0.01em", color: ground.text, opacity: moving ? 0.35 : 1, transition: t("opacity", moving ? "snap" : "reveal"), whiteSpace: "nowrap" }}>
+                <MorphText text={address.title} />
+              </div>
+              <div style={{ marginTop: u(2), fontSize: u(15), lineHeight: u(20), fontWeight: 600, color: ground.muted, fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap" }}>
+                {/* Locating… breathes once the pin is down and the lookup runs; it holds steady while the map moves. */}
+                <span data-motion style={{ display: "inline-flex", animation: moving && !lifted ? "lp-breathe 1.6s ease-in-out infinite" : "none" }}>
+                  <MorphText text={moving ? "Locating…" : address.subtitle} />
+                </span>
+              </div>
+            </Liquid>
           </div>
-          <div className="grid" style={{ marginTop: u(2), fontSize: u(15), lineHeight: u(20), color: ground.muted, fontVariantNumeric: "tabular-nums" }}>
-            <span style={layer(!moving)}>{a.subtitle}</span>
-            <span style={layer(moving)}>Locating…</span>
-          </div>
+          <span data-motion className="flex" style={{ transform: pressed ? `scale(${CONFIRM_PRESS})` : "none", transition: t("transform", pressed ? "press" : "release") }}>
+            {/* Its red drains as it melts home, so it never sits over the address. */}
+            <Liquid tint={confirmOut ? signal.fill : undefined} bud={{ out: confirmOut, home: CONFIRM_HOME }} className="grid place-items-center" style={{ width: "100%", height: u(CONFIRM_H), color: signal.on, fontSize: u(17), fontWeight: 600 }}>
+              <BudContent out={confirmOut}>Confirm location</BudContent>
+            </Liquid>
+          </span>
         </div>
-        <div data-motion style={{ position: "absolute", inset: 0, opacity: loading ? 1 : 0, transition: `opacity .25s ${ease}`, animation: "lp-breathe 1.6s ease-in-out infinite" }}>
-          <span style={bar("62%", 13, 6)} />
-          <span style={bar("40%", 10, 32)} />
-        </div>
-      </div>
-      <div
-        data-motion
-        style={{
-          marginTop: u(14), height: u(50), borderRadius: u(25), background: signal.fill, color: signal.on, display: "grid", placeItems: "center",
-          fontSize: u(17), fontWeight: 600, transform: pressed ? "scale(.97)" : "none", transition: `transform .3s ${spring}`,
-        }}
-      >
-        <span style={{ opacity: moving ? 0.35 : 1, transition: `opacity .25s ${ease}` }}>Confirm location</span>
-      </div>
+      </LiquidGroup>
     </div>
   );
 }
@@ -247,7 +319,7 @@ function Card({ s }: { s: Step }) {
 export function LocationPickerPreview() {
   const { step: s, reduced } = useSteps(STEPS);
   const [dx, dy] = s.map;
-  const glide = "glide" in s ? `transform ${s.glide}ms ${CURVES[s.curve]}` : "none";
+  const glide = !("curve" in s) ? "none" : s.curve === "flight" ? t("transform", FLIGHT) : `transform ${s.glide}ms ${CURVES[s.curve]}`;
   const finger = s.finger;
   // A lifted finger fades where it was.
   const [last, setLast] = useState<readonly [number, number]>([PIN.x, PIN.y]);
@@ -268,18 +340,18 @@ export function LocationPickerPreview() {
         >
           <MapArt />
         </div>
-        <Pin up={s.pin === "up"} reduced={reduced} />
+        <Pin up={s.pin === "up"} flight={"curve" in s && s.curve === "flight"} reduced={reduced} />
         <LocateButton filled={s.atUser} pressed={"press" in s && s.press === "locate"} />
         <Card s={s} />
-        {/* The finger: a soft disc that follows the scripted touch. */}
+        {/* The finger: a soft disc that follows the scripted touch, moving with the map it drags. */}
         <span
           aria-hidden
           data-motion
           style={{
-            position: "absolute", left: u(at[0]), top: u(at[1]), width: u(40), height: u(40), marginLeft: u(-20), marginTop: u(-20),
+            position: "absolute", left: 0, top: 0, width: u(40), height: u(40), transform: `translate(${u(at[0] - 20)}, ${u(at[1] - 20)})`,
             borderRadius: "50%", boxSizing: "border-box", border: `${u(1.5)} solid color-mix(in srgb, ${ground.text} 40%, transparent)`,
             background: `color-mix(in srgb, ${ground.text} 14%, transparent)`, opacity: finger ? 1 : 0, pointerEvents: "none",
-            transition: finger && s.name === "drag" ? `left ${s.glide}ms linear, top ${s.glide}ms linear, opacity .2s` : "opacity .2s",
+            transition: finger && s.name === "drag" ? `transform ${s.glide}ms ${CURVES.drag}, opacity .2s` : "opacity .2s",
           }}
         />
       </div>

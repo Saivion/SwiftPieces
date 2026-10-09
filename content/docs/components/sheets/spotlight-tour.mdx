@@ -1,34 +1,36 @@
 ---
 title: "Spotlight Tour"
-description: "A first-run feature tour for any screen: mark controls with .spotlightAnchor and .spotlightTour dims everything else through a cutout that springs from stop to stop as a red ring draws around it, sets a callout with step progress, Skip and a red Next below or above the target inside the safe area, lets taps through to the real control (which can also advance the tour), skips stops that aren't on screen, follows its target through scrolling, rotation and the keyboard, can show itself only once, and keeps VoiceOver, hardware keyboards and Reduce Motion in step."
+description: "A first-run feature tour for any screen: mark controls with .spotlightAnchor and .spotlightTour dims everything else through a cutout that springs from stop to stop as a red ring draws around it, and sets a liquid glass callout with step progress below or above the target inside the safe area, its glass nub pointing at it. Skip and a red Next are a liquid glass pair that bud out of the callout on the far side from the target; on the last stop Skip melts into Next as Next morphs to Done. Taps reach the real control (which can also advance the tour), stops that aren't on screen are skipped, the cutout follows its target through scrolling, rotation and the keyboard, the tour can show itself only once, and VoiceOver, hardware keyboards and Reduce Motion stay in step."
 piece: "SpotlightTour"
 category: "sheets"
 minIOSVersion: "17.0"
-version: "1.0.1"
+version: "1.2.0"
 tags: ["onboarding","coach-marks","tour","tips","spotlight","overlay","first-run","accessibility"]
 registryDependencies: []
 ---
 
 {/* GENERATED FILE. Edit registry/swift/sheets/SpotlightTour.swift or SpotlightTour.mdx instead. */}
 
-Walks people through the controls on a screen, one stop at a time: everything but the current stop is dimmed, a red ring draws around it, and a callout explains it with Skip and Next. Mark each control with `.spotlightAnchor("compose")`, then apply `.spotlightTour` once, high in the hierarchy: on the `NavigationStack` or `TabView`, so the scrim covers the bars too, or on a sheet's root. Anchors anywhere inside it are found, toolbar items included. Taps inside the cutout reach the real control. Steps whose anchor is not on screen are skipped; while none is on screen, the tour waits.
+Walks people through the controls on a screen, one stop at a time: everything but the current stop is dimmed, a red ring draws around it, and a liquid glass callout explains it, with Skip and Next as a liquid pair. Mark each control with `.spotlightAnchor("compose")`, then apply `.spotlightTour` once, high in the hierarchy: on the `NavigationStack` or `TabView`, so the scrim covers the bars too, or on a sheet's root. Anchors anywhere inside it are found, toolbar items included. Taps inside the cutout reach the real control. Steps whose anchor is not on screen are skipped; while none is on screen, the tour waits.
 
 ## Notes
 
 - Two modifiers. `.spotlightAnchor("compose")` marks a control as a stop; `.spotlightTour(isPresented:steps:)` goes once on the container that holds them, ideally the `NavigationStack` or `TabView` so the scrim covers the bars too, or a sheet's root. Each `SpotlightTour.Step` names its anchor, a title and a message, and optionally an SF Symbol, the cutout's shape (`.automatic`, `.capsule`, `.circle`, `.rectangle(cornerRadius:)`) and its padding.
 - Put the anchor right on the control, before modifiers that widen its frame: `.spotlightAnchor("add")` then `.frame(maxWidth: .infinity, alignment: .trailing)`, not the other way round. Anchors report their frame in window coordinates through the environment, so toolbar items, safe area insets and other hosted content work. Use one id per stop.
-- While a stop shows, everything else is dimmed and a 2 pt red ring draws itself around the cutout from the top. Next springs the cutout to the next stop, morphing between rounded rectangles, capsules and circles, and the callout travels with it while its text dips out and back so words never smear. `.automatic` picks a circle for small square targets, a capsule for short wide ones and a rounded rectangle for the rest, with corners running parallel to the target's.
-- The callout sits below its target when it fits, else above, else on the roomier side, always inside the safe area and the keyboard with 16 pt margins and at most 360 pt wide. Its nub points at the target's centre and hides when the callout had to overlap the target (very large text on a small screen).
-- Taps inside the cutout reach the real control, UIKit bar buttons included. With `advancesOnTargetTap` (the default) the tap also moves the tour on. Taps and drags on the scrim are absorbed with a small nudge of the callout and a light tap, so nothing underneath changes by accident. Swipe the callout toward the end of the line for Next, back toward its start to go back.
+- While a stop shows, everything else is dimmed and a 2 pt red ring draws itself around the cutout from the top once the cutout has landed. The cutout and the ring stay as they are; the callout is liquid glass. Next springs the cutout to the next stop without overshoot, morphing between rounded rectangles, capsules and circles so its corners never wobble, and the callout trails it like a cue card, landing a beat later on a softer spring with a little give while its text dips out and back so words never smear. On a long trip the give is held to a few points, so the nub never reaches the ring. The tour irises in calmly onto the first stop with the callout following out of the target, and leaves quicker than it came. `.automatic` picks a circle for small square targets, a capsule for short wide ones and a rounded rectangle for the rest, with corners running parallel to the target's.
+- The callout sits below its target when it fits, else above, else on the roomier side, always inside the safe area and clear of the keyboard, resting 16 pt in from the sides and 10 pt from the top and bottom, and at most 360 pt wide. It is a glass panel with the step's words and progress, and a glass nub that melts into the panel's edge and points at the target's centre; the nub hides when the callout had to overlap the target (very large text on a small screen).
+- Skip and the red Next are a liquid pair: two glass capsules that rest apart from each other and from the panel, on the panel's far side from the target, so they never come between the two. As the callout arrives they bud out of the panel, each pulling a neck that snaps. On the last stop Skip melts into Next while Next morphs letter by letter into Done, and going back it buds out of Next again. When the callout flips to the other side of its target on the way to a stop, the pair flows round to the panel's other side. All text is semibold.
+- Taps inside the cutout reach the real control, UIKit bar buttons included. With `advancesOnTargetTap` (the default) the tap also moves the tour on. Taps and drags on the scrim are absorbed, so nothing underneath changes by accident, and a tap there swells the callout for a beat with a light tap. Swipe the callout toward the end of the line for Next, back toward its start to go back. It stays close to the finger at first and gets firmer the further it goes, firmer still toward a step that isn't there, then carries the flick's speed on to the next stop or springs home from it. Next and Skip sink slightly while pressed.
 - Steps whose anchor isn't on screen (a lazy row scrolled away, a view that isn't there yet) are skipped, and the count shows only the steps on screen. While no anchor is on screen the tour waits without dimming anything, then starts when one appears. The tour gives an anchor a moment before moving on, so toolbar items that report late and the frame changes of a rotation never make it jump. The cutout follows its target through scrolling, rotation, size changes and the keyboard.
 - `isPresented` works with `@AppStorage`: `@AppStorage("inbox.showTour") var showTour = true` shows it until it is finished or skipped. Or pass `showOnceKey: "inbox.tour.v1"` and the tour presents itself the first time the view appears and records completion in `UserDefaults`; `.spotlightTour(steps, showOnceKey:)` does the same without a binding. `SpotlightTour.resetShowOnce(_:)` brings it back, for a "Show tips again" setting.
 - `step:` takes an optional binding to the current step, to resume a tour or move it on when someone completes the thing you pointed at. The tour writes it as people move through and sets it back to 0 when it ends. `onFinish` reports `.completed` or `.skipped`.
-- VoiceOver: while the tour shows it is modal and the screen under it is hidden; focus moves to the callout, which reads "Step 2 of 4. Find it fast. Narrow the inbox by sender, date, attachments or unread." Skip and Next are buttons, Previous step is a custom action, the escape gesture skips, and each step change is announced.
+- VoiceOver: while the tour shows it is modal and the screen under it is hidden; focus moves to the callout's words, which are read before Skip and Next wherever the pair sits, and read "Step 2 of 4. Find it fast. Narrow the inbox by sender, date, attachments or unread." Skip and Next are buttons, Previous step is a custom action, the escape gesture skips, and each step change is announced.
 - Hardware keyboard: Return is Next or Done, Escape skips, and the arrow keys move along the steps in reading order. The tour never takes focus, so a text field keeps its keyboard.
 - Dynamic Type: the callout grows and flips above its target when it no longer fits below. At accessibility sizes Next and Skip stack full width, the symbol tile steps aside and the callout may use the full width. RTL mirrors the callout; the cutout stays on the physical control.
-- Reduce Motion: the cutout and callout crossfade from stop to stop instead of travelling, the ring appears without drawing, and nothing scales.
+- Reduce Motion: the cutout, ring and callout crossfade from stop to stop instead of travelling, the ring appears without drawing, and nothing scales. Skip and Next are simply there instead of budding, Skip fades instead of melting into Next, and Next and Done crossfade. A scrim tap shades the callout for a beat instead of swelling it (darker in light mode, lighter in dark), and Next and Skip shade the same way instead of sinking.
 - Haptics: a selection tick when a step changes, a soft impact when the tour ends, a light tap for a nudge. Nothing when the tour appears on its own.
-- All copy goes through `String(localized:)` and can be replaced with `Messages` (Next, Done, Skip, Previous step and the "2 of 4" and "Step 2 of 4" formats). `Style` sets the scrim, the accent used for the ring, the current step and the Next capsule, its ink, the callout surface and text colors, the track, the corner radius, the ring width and the callout's widest size.
+- All copy goes through `String(localized:)` and can be replaced with `Messages` (Next, Done, Skip, Previous step and the "2 of 4" and "Step 2 of 4" formats). `Style` sets the scrim, the accent used for the ring, the current step and the Next bubble, its ink, the callout's glass tint (`.clear`, the default, leaves it neutral) and text colors, the track, the corner radius, the ring width and the callout's widest size.
+- On iOS 26 the callout, its nub and the pair are Liquid Glass in one group, so they melt into each other through the neck; before that they are frosted glass with a light rim, and with Reduce Transparency they are solid.
 
 ## Usage
 
@@ -46,7 +48,7 @@ SpotlightTourExample()
 | `showOnceKey` | A `UserDefaults` key. When set, the tour presents itself (by setting `isPresented`) the first time the view appears, once the screen has settled, and records under this key when it is finished or skipped, so it never presents itself again. Setting `isPresented` yourself always presents it. Reset with `SpotlightTour.resetShowOnce(_:)`. |
 | `advancesOnTargetTap` | Tapping the highlighted control also moves the tour on, as well as running the control's own action. Defaults to `true`. |
 | `messages` | The built-in copy: Next, Done, Skip and the step count. Defaults are localizable through your String Catalog. |
-| `style` | Colors and metrics. Defaults to the SwiftPieces house palette, adapting to light and dark, with the red ring, current step and Next capsule. |
+| `style` | Colors and metrics. Defaults to the SwiftPieces house palette, adapting to light and dark, with the red ring, current step and Next bubble. |
 | `onFinish` | Called when the tour ends with Done (`.completed`) or Skip (`.skipped`), for analytics or to save that it was seen. Not called when you set `isPresented` to `false` yourself. |
 
 ## Source
@@ -58,7 +60,7 @@ SpotlightTourExample()
 import SwiftUI
 
 /// Walks people through the controls on a screen, one stop at a time: everything but the current stop
-/// is dimmed, a red ring draws around it, and a callout explains it with Skip and Next.
+/// is dimmed, a red ring draws around it, and a liquid glass callout explains it, with Skip and Next as a liquid pair.
 ///
 /// Mark each control with `.spotlightAnchor("compose")`, then apply `.spotlightTour` once, high in the
 /// hierarchy: on the `NavigationStack` or `TabView`, so the scrim covers the bars too, or on a sheet's
@@ -72,7 +74,7 @@ import SwiftUI
 ///   - showOnceKey: A `UserDefaults` key. When set, the tour presents itself (by setting `isPresented`) the first time the view appears, once the screen has settled, and records under this key when it is finished or skipped, so it never presents itself again. Setting `isPresented` yourself always presents it. Reset with `SpotlightTour.resetShowOnce(_:)`.
 ///   - advancesOnTargetTap: Tapping the highlighted control also moves the tour on, as well as running the control's own action. Defaults to `true`.
 ///   - messages: The built-in copy: Next, Done, Skip and the step count. Defaults are localizable through your String Catalog.
-///   - style: Colors and metrics. Defaults to the SwiftPieces house palette, adapting to light and dark, with the red ring, current step and Next capsule.
+///   - style: Colors and metrics. Defaults to the SwiftPieces house palette, adapting to light and dark, with the red ring, current step and Next bubble.
 ///   - onFinish: Called when the tour ends with Done (`.completed`) or Skip (`.skipped`), for analytics or to save that it was seen. Not called when you set `isPresented` to `false` yourself.
 public extension View {
     /// Marks this view as a stop a spotlight tour can point at.
@@ -205,16 +207,16 @@ public struct SpotlightTour: ViewModifier {
         public static var standard: Messages { Messages() }
     }
 
-    /// Colors and metrics. `.standard` is the house palette: a dark scrim in both appearances, a house
-    /// surface callout, and red for the ring, the current step and the Next capsule.
+    /// Colors and metrics. `.standard` is the house palette: a dark scrim in both appearances, a neutral
+    /// liquid glass callout, and red for the ring, the current step and the Next bubble.
     public struct Style: Sendable {
         /// The dim over everything but the cutout.
         public var scrim: Color
-        /// The ring around the cutout, the current step's capsule and the Next button.
+        /// The ring around the cutout, the current step's capsule and the Next bubble's glass tint.
         public var accent: Color
-        /// Text on the Next button.
+        /// Text on the Next bubble.
         public var accentInk: Color
-        /// The callout card.
+        /// The glass tint of the callout and its nub. `.clear`, the default, leaves them neutral glass.
         public var surface: Color
         /// The title.
         public var label: Color
@@ -234,7 +236,7 @@ public struct SpotlightTour: ViewModifier {
             self.scrim = scrim ?? Color(uiColor: UIColor { @Sendable traits in traits.userInterfaceStyle == .dark ? UIColor(white: 0, alpha: 0.58) : UIColor(white: 0.04, alpha: 0.46) })
             self.accent = accent ?? Color(red: 1, green: 0, blue: 0)
             self.accentInk = accentInk ?? adaptive(light: 0x141414, dark: 0x141414)
-            self.surface = surface ?? adaptive(light: 0xFFFFFF, dark: 0x1C1C1C)
+            self.surface = surface ?? .clear
             self.label = label ?? adaptive(light: 0x141414, dark: 0xF4F3EF)
             self.secondaryLabel = secondaryLabel ?? adaptive(light: 0x5C5A56, dark: 0xA6A49F)
             self.track = track ?? adaptive(light: 0xDEDBD4, dark: 0x3A3A3A)
@@ -646,6 +648,7 @@ private struct SpotlightStage: View {
     let closed: () -> Void
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.colorScheme) private var colorScheme
     @Environment(\.dynamicTypeSize) private var typeSize
     @State private var shown = false
     @State private var session = 0
@@ -655,27 +658,51 @@ private struct SpotlightStage: View {
     @State private var fading: SpotlightHole?
     @State private var fadeKey = 0
     @State private var nudge = 0
-    @State private var nudgeTick = 0
     @State private var dragX: CGFloat = 0
+    /// The callout card's height, so a step change can tell how far the card will travel.
+    @State private var cardHeight: CGFloat = 0
+    /// When the current swipe took hold, so its first moments can blend onto the finger. `nil` between swipes.
+    @State private var grabbedAt: Date?
+    /// Resets when the system cancels a swipe, which skips onEnded.
+    @GestureState private var swiping = false
     @AccessibilityFocusState private var textFocus: Bool
 
     private var visible: Bool { isPresented && resolution.display != nil }
     private var shownResolution: SpotlightResolution? { resolution.display != nil ? resolution : last }
-    private var morph: Animation { reduceMotion ? .easeInOut(duration: 0.22) : .spring(duration: 0.5, bounce: 0.16) }
+    private var motion: PieceMotion { PieceMotion(reduceMotion: reduceMotion) }
+    /// The cue card trails the light: the same moment on a softer spring, so it lands a beat after the cutout.
+    private var trail: Animation { motion.follow(PieceMotion.calm, rank: 2) }
+    /// The trail from stop to stop. Its give grows with the trip, and the nub's tip lands only about 9 pt from the
+    /// new ring, so on a long trip the bounce eases off until the card overshoots by at most 6 pt: the nub never
+    /// reaches the ring and the card never leaves the safe area. While the new stop is drawn, `last` still holds the
+    /// stop the card is leaving.
+    private var stopTrail: Animation {
+        guard !reduceMotion, let from = last, from.display != resolution.display, let leaving = from.hole, let hole = resolution.hole else { return trail }
+        let a = calloutLayout(from, hole: leaving).card(height: cardHeight).frame
+        let b = calloutLayout(resolution, hole: hole).card(height: cardHeight).frame
+        let bounce = spotlightBounce(overshoot: 6, travel: max(abs(a.minX - b.minX), abs(a.minY - b.minY)))
+        // The trail is 0.58 s with a bounce of 0.24; a shorter trip keeps all of it.
+        return bounce < 0.24 ? .spring(duration: 0.58, bounce: bounce) : trail
+    }
+    /// How far out the cutout starts when the tour irises in.
+    private static let iris: CGFloat = 44
 
     var body: some View {
         ZStack {
             if let current = shownResolution, let hole = current.hole, let display = current.display {
-                let drawn = shown || reduceMotion ? hole : hole.expanded(by: 44)
+                let drawn = shown || reduceMotion ? hole : hole.expanded(by: Self.iris)
                 SpotlightScrim(hole: drawn, fading: fading, fadeKey: fadeKey, color: style.scrim, reduceMotion: reduceMotion)
                     .opacity(shown ? 1 : 0)
                     .onTapGesture { nudgeCallout() }
                     .accessibilityHidden(true)
 
                 if shown {
-                    SpotlightRing(hole: hole, color: style.accent, width: style.ringWidth, draws: !reduceMotion)
+                    SpotlightRing(hole: hole, color: style.accent, width: style.ringWidth, delay: ringDelay(to: hole, display: display))
                         .id("\(session)-\(display)")
-                        .transition(.opacity.animation(.easeOut(duration: 0.15)))
+                        // A deliberate quick fade: the ring a step change leaves behind is all but gone by the time the
+                        // cutout is halfway to its next stop, where dismiss's tail would leave it outlining an empty
+                        // spot. On exit it clears just ahead of the scrim. Under Reduce Motion it crossfades with the cutout.
+                        .transition(.opacity.animation(reduceMotion ? motion.morph : .easeOut(duration: 0.15)))
                         .allowsHitTesting(false)
                         .accessibilityHidden(true)
                 }
@@ -685,7 +712,10 @@ private struct SpotlightStage: View {
                     .transition(.opacity)
             }
         }
-        .animation(morph, value: resolution.display)
+        // The cutout leads: it changes place and form without overshoot, so its corners never wobble, it never
+        // uncovers a sliver of the controls beside its target, and the ring never lands ahead of it. The morph has a
+        // little give, so the cutout takes the no-overshoot spring; the callout trailing it carries the give.
+        .animation(motion.value, value: resolution.display)
         .allowsHitTesting(visible && shown)
         .accessibilityElement(children: .contain)
         .accessibilityAddTraits(visible ? .isModal : [])
@@ -717,65 +747,135 @@ private struct SpotlightStage: View {
             // After the control's own action has run.
             Task { @MainActor in next() }
         }
-        .sensoryFeedback(.impact(flexibility: .rigid, intensity: 0.45), trigger: nudgeTick)
+        // A swipe the system cancelled (a call, an alert) never ran onEnded, so bring the callout home here.
+        // After a normal release onEnded has already cleared the grab, so this does nothing.
+        .onChange(of: swiping) { _, isSwiping in
+            guard !isSwiping, grabbedAt != nil else { return }
+            grabbedAt = nil
+            withAnimation(motion.snap) { dragX = 0 }
+        }
+        .sensoryFeedback(.impact(flexibility: .rigid, intensity: 0.45), trigger: nudge)
+    }
+
+    /// How long a new ring waits before drawing: until the cutout is within 2 pt of it, so a long jump waits longer
+    /// than a short one and the arc never floats ahead of the light. While the new ring is made, `last` still holds
+    /// the stop the cutout is leaving.
+    private func ringDelay(to hole: SpotlightHole, display: Int) -> Double {
+        guard let from = last?.hole, last?.display != display else {
+            // Presenting: the iris closes in on the reveal spring, whose slight bounce only lands it sooner.
+            return spotlightLanding(travel: Self.iris, response: PieceMotion.calm.duration)
+        }
+        let a = from.rect, b = hole.rect
+        let travel = max(abs(a.minX - b.minX), abs(a.minY - b.minY), abs(a.maxX - b.maxX), abs(a.maxY - b.maxY))
+        // The cutout moves on the value role's spring, 0.35 s with no bounce. Never before the old ring has cleared
+        // at 0.15 s.
+        return max(spotlightLanding(travel: travel, response: 0.35), 0.15)
     }
 
     // MARK: Callout
 
-    private func callout(_ current: SpotlightResolution, step: SpotlightTour.Step, hole: SpotlightHole) -> some View {
+    /// Places the callout for one stop: around the target and its ring, inside the safe area with margins.
+    private func calloutLayout(_ current: SpotlightResolution, hole: SpotlightHole) -> SpotlightCalloutLayout {
         let ring = style.ringWidth
-        let target = hole.rect.insetBy(dx: -ring, dy: -ring)
+        return SpotlightCalloutLayout(target: hole.rect.insetBy(dx: -ring, dy: -ring), safe: current.safe.insetBy(dx: 16, dy: 10), maxWidth: typeSize.isAccessibilitySize ? .infinity : style.maxWidth, gap: 16, nub: CGSize(width: 20, height: 9), inset: style.cornerRadius * 0.8)
+    }
+
+    private func callout(_ current: SpotlightResolution, step: SpotlightTour.Step, hole: SpotlightHole) -> some View {
+        let layout = calloutLayout(current, hole: hole)
+        let target = layout.target
         let anchor = UnitPoint(x: current.bounds.width > 0 ? target.midX / current.bounds.width : 0.5, y: current.bounds.height > 0 ? target.midY / current.bounds.height : 0.5)
-        let margins = current.safe.insetBy(dx: 16, dy: 10)
-        return SpotlightCalloutLayout(target: target, safe: margins, maxWidth: typeSize.isAccessibilitySize ? .infinity : style.maxWidth, gap: 16, nub: CGSize(width: 20, height: 9), inset: style.cornerRadius * 0.8) {
-            SpotlightCallout(
-                step: step,
-                key: current.display ?? 0,
-                position: current.position,
-                count: current.count,
-                isLast: current.next == nil,
-                canGoBack: current.previous != nil,
-                messages: messages,
-                style: style,
-                textFocus: $textFocus,
-                next: next,
-                back: back,
-                skip: skip,
-                send: { [registry] in registry.send($0) }
-            )
-            .environment(\.layoutDirection, direction)
-            .shadow(color: .black.opacity(0.18), radius: 22, y: 10)
-            .gesture(swipe)
-            SpotlightNub(pointsUp: true).fill(style.surface)
-            SpotlightNub(pointsUp: false).fill(style.surface)
+        // A tap on the scrim swells the callout for a beat, out from the target. Under Reduce Motion it shades for
+        // the same beat instead (darker in light mode, lighter in dark). Copied out of `self`, since the animator's
+        // content runs off the body.
+        let swell: CGFloat = reduceMotion ? 0 : 0.035
+        let flash: Double = reduceMotion ? (colorScheme == .dark ? 0.1 : -0.08) : 0
+        let tint = style.surface == .clear ? nil : style.surface
+        // The panel faces the target with its nub; Skip and Next sit on the far side, so they never come between.
+        let pairOnTop = !layout.card(height: cardHeight).below
+        return PieceLiquidGroup {
+            layout {
+                SpotlightCallout(
+                    step: step,
+                    key: current.display ?? 0,
+                    position: current.position,
+                    count: current.count,
+                    isLast: current.next == nil,
+                    canGoBack: current.previous != nil,
+                    pairOnTop: pairOnTop,
+                    messages: messages,
+                    style: style,
+                    textFocus: $textFocus,
+                    next: next,
+                    back: back,
+                    skip: skip,
+                    send: { [registry] in registry.send($0) }
+                )
+                .environment(\.layoutDirection, direction)
+                // The card moves as one piece, so a part that arrives mid-trip (Skip coming back, a symbol tile) rides
+                // with it instead of appearing where the card will land.
+                .geometryGroup()
+                .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { cardHeight = $0 }
+                .gesture(swipe)
+                // The nub is glass too, in the same group, so it melts into the panel's edge as one pointer.
+                Color.clear.pieceLiquid(SpotlightNub(pointsUp: true), tint: tint, interactive: false)
+                Color.clear.pieceLiquid(SpotlightNub(pointsUp: false), tint: tint, interactive: false)
+            }
         }
         .offset(x: dragX)
-        .keyframeAnimator(initialValue: CGFloat(1), trigger: nudge) { content, scale in
-            content.scaleEffect(scale, anchor: anchor)
+        .keyframeAnimator(initialValue: CGFloat(0), trigger: nudge) { content, pulse in
+            content
+                .scaleEffect(1 + swell * pulse, anchor: anchor)
+                .brightness(flash * Double(pulse))
         } keyframes: { _ in
             KeyframeTrack {
-                CubicKeyframe(1.035, duration: 0.12)
-                SpringKeyframe(1, duration: 0.38, spring: .bouncy)
+                CubicKeyframe(1, duration: 0.12)
+                SpringKeyframe(0, duration: 0.38, spring: PieceMotion.elastic)
             }
         }
         .opacity(shown ? 1 : 0)
         .scaleEffect(shown || reduceMotion ? 1 : 0.94, anchor: anchor)
+        // The card follows the cutout from stop to stop and out of it on presenting, and leaves with it.
+        .animation(stopTrail, value: resolution.display)
+        .animation(shown ? trail : motion.dismiss, value: shown)
+    }
+
+    /// The callout's offset for a horizontal drag of `t`: close to the finger at first and firmer the further it
+    /// goes, like a card on a tether, and firmer still toward a step that isn't there.
+    private func swipeOffset(for t: CGFloat) -> CGFloat {
+        let forward = direction == .rightToLeft ? t > 0 : t < 0
+        return forward || resolution.previous != nil
+            ? PieceMotion.rubberBand(t, limit: 80, coefficient: 1)
+            : PieceMotion.rubberBand(t, limit: 24)
     }
 
     /// Swipe toward the end of the line to go on, back toward its start to go back.
     private var swipe: some Gesture {
         DragGesture(minimumDistance: 14)
+            .updating($swiping) { _, state, _ in state = true }
             .onChanged { value in
-                let t = value.translation.width
-                let forward = direction == .rightToLeft ? t > 0 : t < 0
-                let possible = forward || resolution.previous != nil
-                dragX = possible ? t * 0.45 : t * 0.12
+                let x = swipeOffset(for: value.translation.width)
+                let start = grabbedAt ?? value.time
+                grabbedAt = start
+                // The first moments blend onto the finger, so neither the hop past the minimum distance nor a grab
+                // while the card is still landing jumps. After that it stays under the finger, unanimated.
+                if value.time.timeIntervalSince(start) < 0.1 {
+                    withAnimation(motion.press) { dragX = x }
+                } else {
+                    dragX = x
+                }
             }
             .onEnded { value in
+                grabbedAt = nil
                 let t = value.predictedEndTranslation.width
                 let forward = direction == .rightToLeft ? t > 0 : t < 0
-                withAnimation(reduceMotion ? .easeOut(duration: 0.2) : .spring(duration: 0.4, bounce: 0.25)) { dragX = 0 }
-                guard abs(value.translation.width) > 40 || abs(t) > 110 else { return }
+                let commits = abs(value.translation.width) > 40 || abs(t) > 110
+                let moves = commits && (forward || resolution.previous != nil)
+                // The card's own speed through the band, not the finger's. Going on, it carries that speed into the
+                // trip to the next stop on the trailing spring; otherwise it springs home from it.
+                let x = value.translation.width
+                let speed = (swipeOffset(for: x + value.velocity.width * 0.01) - swipeOffset(for: x)) / 0.01
+                withAnimation(motion.settle(velocity: speed, from: dragX, to: 0, spring: moves ? PieceMotion.calm : PieceMotion.elastic)) { dragX = 0 }
+                guard commits else { return }
                 if forward { next() } else { back() }
             }
     }
@@ -801,9 +901,9 @@ private struct SpotlightStage: View {
         finish(.skipped)
     }
 
+    /// One counter drives the callout's beat and its haptic, so every tap gets exactly one of each.
     private func nudgeCallout() {
-        nudgeTick += 1
-        if !reduceMotion { nudge += 1 }
+        nudge += 1
     }
 
     private func appear() {
@@ -811,7 +911,9 @@ private struct SpotlightStage: View {
         session += 1
         fading = nil
         dragX = 0
-        withAnimation(reduceMotion ? .easeOut(duration: 0.25) : .spring(duration: 0.55, bounce: 0.12)) { shown = true }
+        grabbedAt = nil
+        // The iris closes calmly onto the first stop; the callout trails it out of the target.
+        withAnimation(motion.reveal) { shown = true }
         Task { @MainActor in
             try? await Task.sleep(for: .milliseconds(350))
             guard visible else { return }
@@ -825,7 +927,8 @@ private struct SpotlightStage: View {
             if !isPresented { closed() }
             return
         }
-        withAnimation(.easeOut(duration: 0.28)) {
+        // Out quicker than it came in, all together.
+        withAnimation(motion.dismiss) {
             shown = false
         } completion: {
             if !isPresented { closed() }
@@ -873,10 +976,12 @@ private struct SpotlightScrim: View {
     }
 }
 
-/// Fades its content from one opacity to another once, when it appears.
+/// Fades its content from one opacity to another once, when it appears. Only Reduce Motion's crossfade of the
+/// cutout uses it, on the morph's beat like the callout's crossfade.
 private struct SpotlightFade: ViewModifier {
     let from: Double
     let to: Double
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var value: Double?
 
     func body(content: Content) -> some View {
@@ -884,28 +989,57 @@ private struct SpotlightFade: ViewModifier {
             .opacity(value ?? from)
             .onAppear {
                 guard from != to else { return }
-                withAnimation(.easeInOut(duration: 0.25)) { value = to }
+                withAnimation(PieceMotion(reduceMotion: reduceMotion).morph) { value = to }
             }
     }
 }
 
-/// The red ring just outside the cutout. It draws itself in from the top once the cutout has landed.
+/// The red ring just outside the cutout. It draws itself in from the top once the cutout has landed, or is simply
+/// there under Reduce Motion.
 private struct SpotlightRing: View {
     let hole: SpotlightHole
     let color: Color
     let width: CGFloat
-    let draws: Bool
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var drawn: CGFloat = 0
+    /// Taken once, when the ring is made: the stage's record of the stop it left moves on right after.
+    @State private var delay: Double
+
+    init(hole: SpotlightHole, color: Color, width: CGFloat, delay: Double) {
+        self.hole = hole
+        self.color = color
+        self.width = width
+        _delay = State(initialValue: delay)
+    }
 
     var body: some View {
         SpotlightHoleShape(rect: hole.rect.insetBy(dx: -width / 2, dy: -width / 2), radius: hole.radius + width / 2)
-            .trim(from: 0, to: draws ? drawn : 1)
+            .trim(from: 0, to: reduceMotion ? 1 : drawn)
             .stroke(color, style: StrokeStyle(lineWidth: width, lineCap: .round, lineJoin: .round))
             .onAppear {
-                guard draws else { return }
-                withAnimation(.easeOut(duration: 0.45).delay(0.3)) { drawn = 1 }
+                guard !reduceMotion else { return }
+                withAnimation(PieceMotion(reduceMotion: reduceMotion).reveal.delay(delay)) { drawn = 1 }
             }
     }
+}
+
+/// How long a spring with no bounce and this `response` takes to bring a move of `travel` points within `tolerance`
+/// of its stop: the time where (1 + ωt)e^(-ωt) = tolerance / travel, solved by fixed-point iteration.
+nonisolated private func spotlightLanding(travel: CGFloat, response: Double, tolerance: CGFloat = 2) -> Double {
+    guard travel > tolerance, response > 0 else { return 0 }
+    let left = Double(tolerance / travel)
+    var x = -log(left)
+    for _ in 0..<4 { x = log((1 + x) / left) }
+    return x * response / (2 * .pi)
+}
+
+/// The most bounce a spring can have and still overshoot a move of `travel` points by at most `overshoot`. With
+/// damping ratio ζ = 1 - bounce, a spring overshoots by e^(-πζ/√(1-ζ²)) of its move, so ζ = l/√(π² + l²) where
+/// l = ln(travel / overshoot).
+nonisolated private func spotlightBounce(overshoot: CGFloat, travel: CGFloat) -> Double {
+    guard travel > overshoot, overshoot > 0 else { return 1 }
+    let l = Double(log(travel / overshoot))
+    return 1 - l / (Double.pi * Double.pi + l * l).squareRoot()
 }
 
 /// A rounded rectangle with circular corners that starts at the top centre and runs clockwise, so a
@@ -967,17 +1101,22 @@ private struct SpotlightCalloutLayout: Layout {
         proposal.replacingUnspecifiedDimensions()
     }
 
-    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
-        guard subviews.count == 3, safe.width > 0 else { return }
+    /// Where a card of `height` goes, and whether it sits below the target.
+    func card(height: CGFloat) -> (frame: CGRect, below: Bool) {
         let width = min(maxWidth, safe.width)
-        let height = subviews[0].sizeThatFits(ProposedViewSize(width: width, height: nil)).height
         let below = target.maxY + gap + height <= safe.maxY
         let above = target.minY - gap - height >= safe.minY
         let placesBelow = below || (!above && safe.maxY - target.maxY >= target.minY - safe.minY)
         var y = placesBelow ? target.maxY + gap : target.minY - gap - height
         y = min(max(y, safe.minY), max(safe.maxY - height, safe.minY))
         let x = min(max(target.midX - width / 2, safe.minX), max(safe.maxX - width, safe.minX))
-        let card = CGRect(x: x, y: y, width: width, height: height)
+        return (CGRect(x: x, y: y, width: width, height: height), placesBelow)
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        guard subviews.count == 3, safe.width > 0 else { return }
+        let height = subviews[0].sizeThatFits(ProposedViewSize(width: min(maxWidth, safe.width), height: nil)).height
+        let (card, placesBelow) = self.card(height: height)
         subviews[0].place(at: CGPoint(x: bounds.minX + card.minX, y: bounds.minY + card.minY), proposal: ProposedViewSize(card.size))
 
         // The nub hides when the callout had to overlap the target.
@@ -989,7 +1128,8 @@ private struct SpotlightCalloutLayout: Layout {
     }
 }
 
-/// A small pointer with a softened tip.
+/// A small pointer with a softened tip. Its base is left open: a fill closes it, but a rim stroked around it never
+/// draws a line across the panel's edge where the two meet.
 private struct SpotlightNub: Shape {
     let pointsUp: Bool
 
@@ -1004,7 +1144,6 @@ private struct SpotlightNub: Shape {
         path.addLine(to: CGPoint(x: rect.midX - soft, y: tip + lift * soft * 0.8))
         path.addQuadCurve(to: CGPoint(x: rect.midX + soft, y: tip + lift * soft * 0.8), control: CGPoint(x: rect.midX, y: tip - lift * 0.4))
         path.addLine(to: CGPoint(x: rect.maxX, y: base))
-        path.closeSubpath()
         return path
     }
 }
@@ -1017,6 +1156,8 @@ private struct SpotlightCallout: View {
     let count: Int
     let isLast: Bool
     let canGoBack: Bool
+    /// Skip and Next sit above the panel, when the callout is above its target.
+    let pairOnTop: Bool
     let messages: SpotlightTour.Messages
     let style: SpotlightTour.Style
     var textFocus: AccessibilityFocusState<Bool>.Binding
@@ -1031,34 +1172,139 @@ private struct SpotlightCallout: View {
     @Environment(\.layoutDirection) private var direction
     @ScaledMetric(relativeTo: .title3) private var tileSide: CGFloat = 40
     @ScaledMetric(relativeTo: .caption) private var dot: CGFloat = 6
-    /// The text that was on the card while it dips out after a change of step. The new text comes back
-    /// once it is hidden, so words never smear across each other while the card travels.
-    @State private var outgoing: SpotlightHeader?
+    /// The text on the card. After a change of step it keeps the old text until that has dipped out, then takes
+    /// the new one, so words never smear and nothing on the card is rebuilt while it travels.
+    @State private var onCard: SpotlightHeader?
     @State private var textOpacity = 1.0
+    /// Counts dips, so only the latest step change puts its text on the card when two land close together.
+    @State private var dips = 0
+    /// Skip and Next: home inside the panel until the callout has arrived, then out on the far side. Next is always
+    /// laid out, so the callout keeps its size while the pair is home.
+    @State private var buds = PieceBuds()
+    /// Where Skip goes home to: the panel it first budded from, or Next, once the last stop calls it in.
+    @State private var skipIntoNext = false
+    /// The panel's and the pair's frames in the callout, for how far a bubble is from home.
+    @State private var frames: [String: CGRect] = [:]
+    /// The pair is flowing round the panel to its other side: its glass passes through the panel's, so its words hide
+    /// and Next drops its tint until it lands.
+    @State private var flowing = false
+    @State private var flows = 0
+
+    private enum Part: Hashable { case panel, pair }
 
     private var content: SpotlightHeader { SpotlightHeader(key: key, step: step, position: position, count: count) }
 
+    private var shownHeader: SpotlightHeader {
+        guard let onCard, onCard.key != content.key, !reduceMotion else { return content }
+        return onCard
+    }
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            header(outgoing ?? content)
-                .opacity(textOpacity)
-            controls
+        // One structure with the parts in either order, so when the callout flips to the other side of its target the
+        // pair flows to the panel's other side instead of being rebuilt.
+        VStack(alignment: .trailing, spacing: PieceLiquid.apart) {
+            ForEach(pairOnTop ? [Part.pair, .panel] : [Part.panel, .pair], id: \.self) { part in
+                switch part {
+                case .panel: panel.zIndex(1)  // above the pair, so a bubble at home sits under it
+                case .pair: pair
+                }
+            }
         }
-        .padding(.horizontal, 18)
-        .padding(.top, 16)
-        .padding(.bottom, 10)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(style.surface, in: RoundedRectangle(cornerRadius: style.cornerRadius, style: .continuous))
-        .contentShape(RoundedRectangle(cornerRadius: style.cornerRadius, style: .continuous))
+        .coordinateSpace(.named("spotlight.callout"))
+        .fontWeight(.semibold)
         .accessibilityElement(children: .contain)
-        .onChange(of: content) { old, new in
-            guard old.key != new.key, !reduceMotion else { return }
-            outgoing = old
+        .onChange(of: content, initial: true) { old, new in
+            guard old.key != new.key, !reduceMotion else {
+                onCard = new
+                return
+            }
+            // The dip's quick fades are deliberate: the words are gone before the card has gone far and back as it
+            // lands, so the next stop reads at once. The card resizes to the new text on the morph.
+            dips += 1
+            let dip = dips
             withAnimation(.easeIn(duration: 0.1)) {
                 textOpacity = 0
             } completion: {
-                withAnimation(.spring(duration: 0.4, bounce: 0.1)) { outgoing = nil }
+                // A step change during the dip finishes on its own: an earlier dip ending later must not put back
+                // a step the tour has already left.
+                guard dip == dips else { return }
+                withAnimation(PieceMotion(reduceMotion: reduceMotion).morph) { onCard = new }
                 withAnimation(.easeOut(duration: 0.22)) { textOpacity = 1 }
+            }
+        }
+        .onAppear {
+            let ids = isLast ? ["next"] : ["next", "skip"]
+            // Under Reduce Motion the callout crossfades in, and is made again for each stop, so the pair is simply
+            // there. Otherwise it buds out of the panel once the panel has nearly arrived.
+            // The delay is the bloom's own, so a last stop reached before it ends still calls Skip home.
+            if reduceMotion {
+                buds.place(ids)
+            } else {
+                Task { await buds.bloom(ids, reduceMotion: reduceMotion, delay: 0.32) }
+            }
+        }
+        // Flipping sides, the pair's glass melts through the panel's on the trail and out the other side. Its words leave
+        // at once and come back as it lands, so they never cross the panel's.
+        .onChange(of: pairOnTop) {
+            guard !reduceMotion else { return }
+            flows += 1
+            let flow = flows
+            flowing = true
+            Task {
+                try? await Task.sleep(for: .milliseconds(400))
+                if flow == flows { flowing = false }
+            }
+        }
+        // The last stop has no Skip: it melts into Next as Next becomes Done, and buds back out of Next on the way back.
+        .onChange(of: isLast) { _, last in
+            skipIntoNext = true
+            Task {
+                if last {
+                    await buds.gather(["skip"], reduceMotion: reduceMotion)
+                } else {
+                    await buds.bloom(["skip"], reduceMotion: reduceMotion)
+                }
+            }
+        }
+    }
+
+    /// The glass panel: the step's words and its progress. It faces the target, and its nub joins it there.
+    private var panel: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            header(shownHeader)
+                // The dip hides the swap, so the words change in place instead of crossfading over each other.
+                .contentTransition(.identity)
+                // The symbol and the layout too, which contentTransition alone doesn't hold: nothing slides across the
+                // tile or smears one symbol into the next. Only the card around them resizes on the morph.
+                .transaction(value: shownHeader.key) { $0.animation = nil }
+                .opacity(textOpacity)
+            if count > 1 { progress }
+        }
+        .padding(.horizontal, 18)
+        .padding(.vertical, 16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background { keys }
+        .contentShape(RoundedRectangle(cornerRadius: style.cornerRadius, style: .continuous))
+        .pieceLiquid(RoundedRectangle(cornerRadius: style.cornerRadius, style: .continuous), tint: style.surface == .clear ? nil : style.surface, interactive: false)
+        .onGeometryChange(for: CGRect.self) { $0.frame(in: .named("spotlight.callout")) } action: { frames["panel"] = $0 }
+        // Read first wherever the pair sits.
+        .accessibilitySortPriority(1)
+    }
+
+    /// Skip and Next, separate actions resting apart. At accessibility sizes they stack full width, Next first.
+    @ViewBuilder
+    private var pair: some View {
+        let skipShown = !isLast || buds.contains("skip")
+        if typeSize.isAccessibilitySize {
+            VStack(spacing: PieceLiquid.apart) {
+                // Above Skip, so Skip melting home slips under it.
+                primary(fullWidth: true).zIndex(1)
+                if skipShown { secondary(fullWidth: true) }
+            }
+        } else {
+            HStack(spacing: PieceLiquid.apart) {
+                if skipShown { secondary(fullWidth: false) }
+                primary(fullWidth: false).zIndex(1)
             }
         }
     }
@@ -1074,6 +1320,8 @@ private struct SpotlightCallout: View {
                     .frame(width: tileSide, height: tileSide)
                     .background(style.track, in: .rect(cornerRadius: 12, style: .continuous))
                     .accessibilityHidden(true)
+                    // Leaves at once, so it never lingers under the next step's text.
+                    .transition(.asymmetric(insertion: .opacity, removal: .identity))
             }
             VStack(alignment: .leading, spacing: 4) {
                 if content.count > 1 {
@@ -1085,11 +1333,11 @@ private struct SpotlightCallout: View {
                         .foregroundStyle(style.secondaryLabel)
                 }
                 Text(step.title)
-                    .font(.title3.weight(.bold))
+                    .font(.title3.weight(.semibold))
                     .tracking(-0.3)
                     .foregroundStyle(style.label)
                 Text(step.message)
-                    .font(.subheadline)
+                    .font(.subheadline.weight(.semibold))
                     .foregroundStyle(style.secondaryLabel)
             }
             .fixedSize(horizontal: false, vertical: true)
@@ -1106,27 +1354,6 @@ private struct SpotlightCallout: View {
     private var accessibilityText: String {
         let parts = (count > 1 ? [messages.stepLabel(position, count)] : []) + [step.title, step.message]
         return parts.joined(separator: ". ")
-    }
-
-    @ViewBuilder
-    private var controls: some View {
-        Group {
-            if typeSize.isAccessibilitySize {
-                VStack(alignment: .leading, spacing: 6) {
-                    if count > 1 { progress.padding(.bottom, 6) }
-                    primary(fullWidth: true)
-                    if !isLast { secondary(fullWidth: true) }
-                }
-            } else {
-                HStack(spacing: 2) {
-                    if count > 1 { progress }
-                    Spacer(minLength: 8)
-                    if !isLast { secondary(fullWidth: false) }
-                    primary(fullWidth: false)
-                }
-            }
-        }
-        .background { keys }
     }
 
     /// A hardware keyboard works the tour without taking focus from anything: Return is Next or Done,
@@ -1151,32 +1378,80 @@ private struct SpotlightCallout: View {
         .accessibilityHidden(true)
     }
 
-    private func primary(fullWidth: Bool) -> some View {
-        Button(action: next) {
-            Text(isLast ? messages.done : messages.next)
-                .font(.subheadline.weight(.bold))
-                .foregroundStyle(style.accentInk)
-                .padding(.horizontal, 20)
-                .frame(minHeight: 38)
-                .frame(maxWidth: fullWidth ? .infinity : nil)
-                .background(style.accent, in: .capsule)
-                .frame(minHeight: 44)
-                .contentShape(.rect)
-        }
-        .buttonStyle(SpotlightPress(reduceMotion: reduceMotion))
+    /// From a bubble's centre to just inside the panel's nearest edge, shrunk, where the two are one shape.
+    private func homeInPanel(_ id: String) -> CGSize {
+        guard let panel = frames["panel"], let bubble = frames[id] else { return .zero }
+        let inset = bubble.height * PieceLiquid.homeScale / 2
+        let y = bubble.midY > panel.midY ? panel.maxY - inset : panel.minY + inset
+        return CGSize(width: 0, height: y - bubble.midY)
     }
 
+    /// From Skip's centre to just inside Next's nearest end: beside it in a row, above it when they stack.
+    private func homeInNext(fullWidth: Bool) -> CGSize {
+        guard let skip = frames["skip"], let next = frames["next"] else { return .zero }
+        if fullWidth {
+            return CGSize(width: 0, height: next.maxY - skip.height * PieceLiquid.homeScale / 2 - skip.midY)
+        }
+        // Toward the trailing side, which an offset follows in either layout direction.
+        return CGSize(width: skip.width / 2 + PieceLiquid.apart + skip.width * PieceLiquid.homeScale / 2, height: 0)
+    }
+
+    /// Next, on red glass. Its label morphs letter by letter into Done on the last stop.
+    private func primary(fullWidth: Bool) -> some View {
+        let out = buds.isOut("next")
+        return Button(action: next) {
+            SpotlightLabel(text: isLast ? messages.done : messages.next, font: .subheadline.weight(.semibold))
+                .foregroundStyle(style.accentInk)
+                .pieceBudContent(out: out && !flowing)
+                .padding(.horizontal, 20)
+                .frame(maxWidth: fullWidth ? .infinity : nil, minHeight: 44)
+                .contentShape(.capsule)
+                // Its tint drains as it melts or flows through the panel, so it never sits red over the panel's words.
+                .pieceLiquid(.capsule, tint: out && !flowing ? style.accent : nil, interactive: false)
+        }
+        // The liquid press, so the label sinks with its glass.
+        .buttonStyle(PieceLiquidPressStyle())
+        .pieceBud(out: out, home: homeInPanel("next"))
+        .onGeometryChange(for: CGRect.self) { $0.frame(in: .named("spotlight.callout")) } action: { frames["next"] = $0 }
+    }
+
+    /// Skip, on neutral glass.
     private func secondary(fullWidth: Bool) -> some View {
-        Button(action: skip) {
+        let out = buds.isOut("skip")
+        return Button(action: skip) {
             Text(messages.skip)
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(style.secondaryLabel)
-                .padding(.horizontal, 12)
-                .frame(minWidth: 44, minHeight: 44)
-                .frame(maxWidth: fullWidth ? .infinity : nil)
-                .contentShape(.rect)
+                .pieceBudContent(out: out && !flowing)
+                .padding(.horizontal, 16)
+                .frame(minWidth: 44, maxWidth: fullWidth ? .infinity : nil, minHeight: 44)
+                .contentShape(.capsule)
+                .pieceLiquid(.capsule, interactive: false)
         }
-        .buttonStyle(SpotlightPress(reduceMotion: reduceMotion))
+        .buttonStyle(PieceLiquidPressStyle())
+        .pieceBud(out: out, home: skipIntoNext ? homeInNext(fullWidth: fullWidth) : homeInPanel("skip"))
+        .onGeometryChange(for: CGRect.self) { $0.frame(in: .named("spotlight.callout")) } action: { frames["skip"] = $0 }
+    }
+}
+
+/// A label that morphs letter by letter when it changes. At accessibility text sizes it is plain text that can wrap,
+/// and blurs from the old word to the new instead.
+private struct SpotlightLabel: View {
+    let text: String
+    let font: Font
+    @Environment(\.dynamicTypeSize) private var typeSize
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        if typeSize.isAccessibilitySize {
+            Text(text)
+                .font(font)
+                .multilineTextAlignment(.center)
+                .id(text)
+                .transition(PieceMotion(reduceMotion: reduceMotion).swap)
+        } else {
+            PieceMorphText(text: text, font: font)
+        }
     }
 }
 
@@ -1208,28 +1483,16 @@ private struct SpotlightHeader: Equatable {
     var count: Int
 }
 
-/// A named VoiceOver action that goes back a step, only when there is one.
+/// A named VoiceOver action that goes back a step, only when there is one. One structure either way: a branch
+/// would rebuild the callout's text when the first step gains a way back, tearing it off the travelling card.
 private struct SpotlightPreviousAction: ViewModifier {
     let title: String?
     let perform: () -> Void
 
     func body(content: Content) -> some View {
-        if let title {
-            content.accessibilityAction(named: Text(title), perform)
-        } else {
-            content
+        content.accessibilityActions {
+            if let title { Button(title, action: perform) }
         }
-    }
-}
-
-private struct SpotlightPress: ButtonStyle {
-    let reduceMotion: Bool
-
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .scaleEffect(configuration.isPressed && !reduceMotion ? 0.94 : 1)
-            .opacity(configuration.isPressed && reduceMotion ? 0.7 : 1)
-            .animation(.spring(duration: 0.25, bounce: 0.3), value: configuration.isPressed)
     }
 }
 
@@ -1271,7 +1534,7 @@ private struct SpotlightTourExample: View {
             Spacer(minLength: 0)
 
             Image(systemName: "plus")
-                .font(.title3.weight(.bold))
+                .font(.title3.weight(.semibold))
                 .foregroundStyle(adaptive(light: 0xF4F3EF, dark: 0x141414))
                 .frame(width: 56, height: 56)
                 .background(adaptive(light: 0x141414, dark: 0xF4F3EF), in: .circle)
@@ -1331,6 +1594,499 @@ private struct SpotlightTourExampleRow: View {
     SpotlightTourExample()
         .preferredColorScheme(.dark)
 }
+
+// MARK: - Piece motion
+//
+// The SwiftPieces motion language: shared spring tokens and gesture physics, with the same values in every
+// piece. Each piece carries a copy of only the parts it uses, so this file stands alone. Generated from
+// registry/foundation/PieceMotion.swift in the SwiftPieces repo; edit it there, not here.
+// swiftpieces-motion: 1.1.0 (core, follow, momentum, rubberBand, pressMath)
+
+/// The SwiftPieces motion language: five spring tiers, and a named role for every moment a piece moves,
+/// each with its Reduce Motion substitute.
+///
+/// Build one from the environment, `PieceMotion(reduceMotion: reduceMotion)`, and pick the role that names
+/// what just happened. Never animate the tracking of a finger: set gesture state directly in `onChanged`, so the
+/// surface stays under the finger, and spring only the release.
+private struct PieceMotion {
+    var reduceMotion = false
+
+    // Tiers. Overshoot and settle times are measured from rest with SwiftUI's Spring.
+    /// No overshoot, 90% in about 90ms. A press arriving under the finger.
+    static var tight: Spring { Spring(duration: 0.14, bounce: 0) }
+    /// About 2.8% overshoot, 90% in about 140ms. Snapping to a detent, page or segment.
+    static var responsive: Spring { Spring(duration: 0.32, bounce: 0.25) }
+    /// About 8.4% overshoot. Visible give: a release, a return from past an edge, a drag settling home.
+    static var elastic: Spring { Spring(duration: 0.42, bounce: 0.38) }
+    /// About 15% overshoot. A resolved action landing. At most once per interaction.
+    static var expressive: Spring { Spring(duration: 0.48, bounce: 0.48) }
+    /// About 1.5% overshoot, unhurried. Opening large surfaces and ambient change.
+    static var calm: Spring { Spring(duration: 0.5, bounce: 0.2) }
+
+    /// Reduce Motion: settles become this short spring with no overshoot.
+    private static var still: Animation { .spring(duration: 0.25, bounce: 0) }
+
+    // Roles.
+    /// Touch-down. Starts on the same frame and never bounces under the finger.
+    var press: Animation { .spring(Self.tight) }
+    /// The finger lifts off a pressed surface, which springs back through rest.
+    var release: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A dragged thing comes to rest. With a gesture's velocity, use `settle(velocity:from:to:)` instead.
+    var settle: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// Lands on a detent, page or segment.
+    var snap: Animation { reduceMotion ? Self.still : .spring(Self.responsive) }
+    /// A number, a chart value or anything else people read moves to its new value. Never overshoots, so it
+    /// never shows a value that isn't true.
+    var value: Animation { reduceMotion ? Self.still : .spring(duration: 0.35, bounce: 0) }
+    /// Comes back from past a limit: a pull beyond the edge, a value pushed against its bound.
+    var rebound: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A shape or container changes size, corner radius or form, with a little give at the end.
+    var morph: Animation { reduceMotion ? Self.still : .spring(duration: 0.4, bounce: 0.2) }
+    /// Something appears, opens or expands. Opening is a little slower than closing.
+    var reveal: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.calm) }
+    /// Something leaves, closes or collapses. Quick and firm, out of the way.
+    var dismiss: Animation { reduceMotion ? .easeIn(duration: 0.18) : .spring(duration: 0.3, bounce: 0.08) }
+    /// A resolved action lands: a check, a sent state, a reaction.
+    var success: Animation { reduceMotion ? .easeOut(duration: 0.24) : .spring(Self.expressive) }
+    /// A refused action. Firm, no wobble; `pieceShake` adds the movement.
+    var error: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.responsive) }
+    /// Slow ambient change. Loops themselves stop under Reduce Motion: check `allowsAmbient`.
+    var ambient: Animation { reduceMotion ? .easeInOut(duration: 0.3) : .spring(Self.calm) }
+
+    /// Loops, drifts, idle breathing and parallax run only when this is true.
+    var allowsAmbient: Bool { !reduceMotion }
+
+    /// A moving transition, or a plain fade under Reduce Motion.
+    func transition(_ transition: AnyTransition) -> AnyTransition {
+        reduceMotion ? .opacity : transition
+    }
+
+    /// For content replaced inside a container that stays put (a label, a glyph, a count): the old content
+    /// blurs out as the new one sharpens in. A fade under Reduce Motion.
+    @MainActor var swap: AnyTransition {
+        reduceMotion ? .opacity : AnyTransition(.blurReplace)
+    }
+}
+
+extension PieceMotion {
+    /// Follow-through: rank 0 leads, each later rank arrives a beat later on a slightly looser spring. Safe to reverse.
+    func follow(_ spring: Spring = PieceMotion.elastic, rank: Int) -> Animation {
+        guard !reduceMotion else { return .spring(duration: 0.25, bounce: 0) }
+        let k = Double(min(max(rank, 0), 6))
+        return .spring(duration: spring.duration + 0.04 * k, bounce: min(spring.bounce + 0.02 * k, 0.55))
+    }
+
+    /// One-shot entrances only: item `index` waits 30ms per place, capped at the seventh. Exits go together.
+    func cascade(_ animation: Animation, index: Int, step: Double = 0.03) -> Animation {
+        guard !reduceMotion, index > 0 else { return animation }
+        return animation.delay(step * Double(min(index, 7)))
+    }
+}
+
+extension PieceMotion {
+    /// Where a flick at `velocity` (pt/s) coasts to. 0.998 coasts like a scroll view; 0.99 suits detents.
+    nonisolated static func project(_ position: CGFloat, velocity: CGFloat, decelerationRate: CGFloat = 0.99) -> CGFloat {
+        position + velocity / 1000 * decelerationRate / (1 - decelerationRate)
+    }
+
+    /// The candidate closest to `value`.
+    nonisolated static func nearest(_ value: CGFloat, in candidates: [CGFloat]) -> CGFloat {
+        candidates.min { abs($0 - value) < abs($1 - value) } ?? value
+    }
+
+    /// A settle that leaves at the finger's speed (pt/s). One per axis, each on its own `.offset(x:)` / `.offset(y:)`:
+    /// a spring takes one velocity. SwiftUI's own velocity carry-over is unreliable; this always carries it.
+    func settle(velocity: CGFloat, from current: CGFloat, to target: CGFloat, spring: Spring = PieceMotion.elastic) -> Animation {
+        let spring = reduceMotion ? Spring(duration: 0.25, bounce: 0) : spring
+        let distance = target - current
+        guard abs(distance) >= 1 else { return .spring(spring) }
+        // In whole distances per second, capped near the spring's frequency: a hard flick adds give, not a slingshot.
+        // At exactly the frequency a critically damped spring cannot pass its target, so Reduce Motion stops there.
+        let cap = 2 * Double.pi / spring.duration * (reduceMotion ? 1 : 1.5)
+        let relative = min(max(Double(velocity / distance), -cap), cap)
+        return .interpolatingSpring(spring, initialVelocity: relative)
+    }
+}
+
+extension PieceMotion {
+    /// A scroll view's edge resistance for a pull `overshoot` points past a limit; never reaches `limit`.
+    /// About 24 to 40 for thumbs and toggles, 60 to 120 for cards and sheets. Band the total pull, not deltas.
+    nonisolated static func rubberBand(_ overshoot: CGFloat, limit: CGFloat, coefficient: CGFloat = 0.55) -> CGFloat {
+        guard limit > 0, overshoot != 0 else { return 0 }
+        let banded = (1 - 1 / (abs(overshoot) * coefficient / limit + 1)) * limit
+        return overshoot < 0 ? -banded : banded
+    }
+
+    /// `value` inside `range` passes through unchanged; past either end it moves with rubber-band resistance.
+    nonisolated static func rubberBand(_ value: CGFloat, in range: ClosedRange<CGFloat>, limit: CGFloat, coefficient: CGFloat = 0.55) -> CGFloat {
+        if value < range.lowerBound { return range.lowerBound + rubberBand(value - range.lowerBound, limit: limit, coefficient: coefficient) }
+        if value > range.upperBound { return range.upperBound + rubberBand(value - range.upperBound, limit: limit, coefficient: coefficient) }
+        return value
+    }
+}
+
+extension PieceMotion {
+    /// About `depth` points per edge, not a fixed percentage: an icon sinks to 0.92, a pill 0.95, a card 0.985.
+    nonisolated static func pressScale(for size: CGSize, depth: CGFloat = 2.5) -> CGFloat {
+        let side = (max(size.width, 1) * max(size.height, 1)).squareRoot()
+        return min(max(1 - depth * 2 / side, 0.92), 0.985)
+    }
+
+    /// An anchor partway from the center toward the touch, so the press leans into the finger without tipping.
+    nonisolated static func pressAnchor(touch: CGPoint?, in size: CGSize, lean: CGFloat = 0.6) -> UnitPoint {
+        guard let touch, size.width > 0, size.height > 0 else { return .center }
+        let x = min(max(touch.x / size.width, 0), 1)
+        let y = min(max(touch.y / size.height, 0), 1)
+        return UnitPoint(x: 0.5 + (x - 0.5) * lean, y: 0.5 + (y - 0.5) * lean)
+    }
+}
+
+// swiftpieces-motion: end
+
+// MARK: - Piece liquid
+//
+// The SwiftPieces liquid glass language: glass shapes that merge through a neck, bubbles that bud out of
+// and melt back into each other, and the frosted fallback before iOS 26. Each piece carries a copy of only
+// the parts it uses, so this file stands alone. Generated from registry/foundation/PieceLiquid.swift in the
+// SwiftPieces repo; edit it there, not here. The rules are in LIQUID_GLASS.md.
+// swiftpieces-liquid: 1.7.0 (liquid, liquidPress, bud, morphText)
+
+/// The liquid glass language: one merge distance, two rest gaps, and the springs a bubble leaves and comes home on.
+///
+/// Glass shapes inside one `PieceLiquidGroup` melt into each other through a neck when they come within `merge`
+/// points. Parts of one control rest `joined`, inside that distance, so the neck holds; separate actions rest
+/// `apart`, outside it, so they only goo while one buds out of, or melts back into, another.
+private enum PieceLiquid {
+    /// Glass shapes closer than this share a neck.
+    static let merge: CGFloat = 20
+    /// The gap between parts of one control (a stepper's buttons, a progress pill and its stop): the neck holds,
+    /// short and smooth, about two thirds of the shapes' height at its waist. Joined parts read best at one height.
+    static let joined: CGFloat = 4
+    /// The gap between separate actions (menu items, confirm and cancel, chips): they rest as their own bubbles.
+    static let apart: CGFloat = 26
+    /// How far a bubble shrinks while it is home inside its parent.
+    static let homeScale: CGFloat = 0.72
+
+    /// A bubble leaving its parent: slow enough that the neck's stretch and snap read.
+    static func split(reduceMotion: Bool) -> Animation {
+        reduceMotion ? .easeOut(duration: 0.2) : .spring(duration: 0.62, bounce: 0.22)
+    }
+
+    /// A bubble going home. No bounce: a bounce would carry it out through the far side of its parent.
+    static func home(reduceMotion: Bool) -> Animation {
+        reduceMotion ? .easeIn(duration: 0.18) : .spring(duration: 0.5, bounce: 0)
+    }
+}
+
+/// A group of glass shapes that merge into one liquid surface. On iOS 26 it is a `GlassEffectContainer`; before
+/// that, and under Reduce Transparency, the shapes draw on their own and simply don't merge. `lift` adds the soft
+/// shadow liquid glass floats on in light mode.
+private struct PieceLiquidGroup<Content: View>: View {
+    var spacing: CGFloat = PieceLiquid.merge
+    var lift = true
+    @ViewBuilder var content: Content
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        container
+            .shadow(color: .black.opacity(lift && colorScheme == .light ? 0.07 : 0), radius: 18, y: 8)
+    }
+
+    @ViewBuilder private var container: some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26, *), !reduceTransparency {
+            GlassEffectContainer(spacing: spacing) { content }
+        } else {
+            content
+        }
+        #else
+        content
+        #endif
+    }
+}
+
+/// One liquid glass shape: Liquid Glass on iOS 26, carrying `tint` as a solid colour and swelling under a press when
+/// `interactive`; a frosted Material with a light rim and a soft shadow before that; a solid fill under Reduce
+/// Transparency.
+///
+/// The tint is painted inside clear glass rather than tinting the glass. Tinted glass in a group bleeds its colour
+/// through every neck as a smear, so a red button would glow into the white pill it is joined to; painted inside,
+/// the colour stays crisp to the shape's edge, the necks between shapes are clear glass, and a tint change animates
+/// like any colour (tinted glass snaps).
+private struct PieceLiquidSurface<S: Shape>: ViewModifier {
+    var shape: S
+    var tint: Color?
+    var interactive: Bool
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.pieceLiquidScale) private var scale
+
+    func body(content: Content) -> some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26, *), !reduceTransparency {
+            // Scaled as two parts, content and outline, about the same centre. A scaleEffect on a glass view inside a
+            // GlassEffectContainer shrinks the glass but leaves what it carries full size, pinned to its corner.
+            content
+                .background { shape.fill(tint ?? .clear) }
+                .scaleEffect(scale)
+                .glassEffect(glass, in: shape.scale(scale))
+        } else {
+            fallback(content).scaleEffect(scale)
+        }
+        #else
+        fallback(content).scaleEffect(scale)
+        #endif
+    }
+
+    #if compiler(>=6.2)
+    @available(iOS 26, *)
+    private var glass: Glass {
+        interactive ? Glass.regular.interactive() : .regular
+    }
+    #endif
+
+    private func fallback(_ content: Content) -> some View {
+        let dark = colorScheme == .dark
+        return content
+            .background {
+                if reduceTransparency {
+                    shape.fill(tint ?? (dark ? Color(white: 0.17) : Color(white: 0.97)))
+                } else {
+                    ZStack {
+                        shape.fill(.regularMaterial)
+                        if let tint { shape.fill(tint.opacity(0.88)) }
+                    }
+                }
+            }
+            .overlay { shape.stroke(Color.white.opacity(dark ? 0.14 : 0.7), lineWidth: 0.5) }
+            .shadow(color: .black.opacity(dark ? 0.32 : 0.08), radius: 10, y: 5)
+    }
+}
+
+private struct PieceLiquidScaleKey: EnvironmentKey {
+    static let defaultValue: CGFloat = 1
+}
+
+private extension EnvironmentValues {
+    /// How much the liquid shapes below are scaled, about their own centres. Nested scales multiply.
+    var pieceLiquidScale: CGFloat {
+        get { self[PieceLiquidScaleKey.self] }
+        set { self[PieceLiquidScaleKey.self] = newValue }
+    }
+}
+
+private extension View {
+    /// Draws this view on a liquid glass `shape`. Put it inside a `PieceLiquidGroup` so it can merge with its neighbours.
+    func pieceLiquid<S: Shape>(_ shape: S, tint: Color? = nil, interactive: Bool = true) -> some View {
+        modifier(PieceLiquidSurface(shape: shape, tint: tint, interactive: interactive))
+    }
+
+    /// Scales the liquid glass shapes in this view, content and outline together, about their own centres. Use it
+    /// instead of `scaleEffect` on a glass view (a press, a lift, a swell): inside a group a plain `scaleEffect` shrinks
+    /// the glass but leaves its content full size and off centre. Animates like any other value.
+    func pieceLiquidScale(_ scale: CGFloat) -> some View {
+        transformEnvironment(\.pieceLiquidScale) { $0 *= scale }
+    }
+}
+
+/// The press for a glass control: the same size-aware sink and lean as `piecePress`, applied through
+/// `pieceLiquidScale` so the glass and what it carries sink together (a plain scaleEffect on glass leaves the content
+/// behind). Put the glass inside what it presses: the label of a button, the view this modifies. Under Reduce Motion
+/// it shades instead of moving.
+private struct PieceLiquidPress: ViewModifier {
+    let pressed: Bool
+    var touch: CGPoint?
+    var depth: CGFloat = 2.5
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.colorScheme) private var colorScheme
+    @State private var size: CGSize = .zero
+    @State private var anchor: UnitPoint = .center
+
+    func body(content: Content) -> some View {
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        let scale = pressed && !reduceMotion ? PieceMotion.pressScale(for: size, depth: depth) : 1
+        // A scale about `anchor` is a scale about the centre plus this shift toward the anchor.
+        let lean = CGSize(width: (anchor.x - 0.5) * size.width * (1 - scale), height: (anchor.y - 0.5) * size.height * (1 - scale))
+        content
+            .onGeometryChange(for: CGSize.self) { $0.size } action: { size = $0 }
+            .brightness(pressed && reduceMotion ? (colorScheme == .dark ? 0.1 : -0.08) : 0)
+            .pieceLiquidScale(scale)
+            .offset(lean)
+            .animation(pressed ? motion.press : motion.release, value: pressed)
+            .onChange(of: pressed) { _, isPressed in
+                if isPressed { anchor = PieceMotion.pressAnchor(touch: touch, in: size) }
+            }
+            .onChange(of: touch) { _, touch in
+                if pressed, let touch { anchor = PieceMotion.pressAnchor(touch: touch, in: size) }
+            }
+    }
+}
+
+/// `PiecePressStyle` for glass buttons: the label (with its `.pieceLiquid` inside) sinks as one.
+private struct PieceLiquidPressStyle: ButtonStyle {
+    var depth: CGFloat = 2.5
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label.pieceLiquidPress(configuration.isPressed, depth: depth)
+    }
+}
+
+private extension View {
+    /// Sinks this view's glass while `pressed`, leaning toward `touch` (in this view's coordinates) when given.
+    func pieceLiquidPress(_ pressed: Bool, touch: CGPoint? = nil, depth: CGFloat = 2.5) -> some View {
+        modifier(PieceLiquidPress(pressed: pressed, touch: touch, depth: depth))
+    }
+}
+
+/// The bud: how a bubble leaves and rejoins its parent, driven explicitly so every bubble shows the whole cycle.
+///
+/// A bubble is born at `home`, inside its parent, where the two glass shapes are one. It springs out to `rest`, and
+/// while it is inside the merge distance a neck holds it to the parent, thinning as it goes, until it snaps free.
+/// Going home it springs back on a spring with no bounce, the neck reaches out and re-forms, and only once it has
+/// melted all the way in is it removed. Both offsets are relative to where the bubble is laid out. Under Reduce
+/// Motion it stays at `rest`: its content fades and its glass closes in place.
+private struct PieceBud: ViewModifier {
+    var out: Bool
+    var rest: CGSize
+    var home: CGSize
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func body(content: Content) -> some View {
+        if reduceMotion {
+            // No travel. Inside a group glass ignores opacity, so the glass closes to nothing in place on the short
+            // Reduce Motion ease while its content fades; the opacity covers a bubble outside a group.
+            content
+                .pieceLiquidScale(out ? 1 : 0.001)
+                .opacity(out ? 1 : 0)
+                .offset(rest)
+        } else {
+            // The glass shrinks through `pieceLiquidScale`, never a plain scaleEffect (see there), then moves.
+            content
+                .pieceLiquidScale(out ? 1 : PieceLiquid.homeScale)
+                .offset(out ? rest : home)
+        }
+    }
+}
+
+/// A bubble's own content, on its own clock: gone the moment the bubble heads home, so it never rides over the
+/// parent's content, and arriving just after the bubble leaves.
+private struct PieceBudContent: ViewModifier {
+    var out: Bool
+
+    func body(content: Content) -> some View {
+        content
+            .blur(radius: out ? 0 : 6)
+            .opacity(out ? 1 : 0)
+            .animation(out ? .easeOut(duration: 0.3).delay(0.1) : .easeOut(duration: 0.14), value: out)
+    }
+}
+
+private extension View {
+    /// Places a bubble at `rest` while `out`, and at `home` (inside its parent, shrunk) while not.
+    func pieceBud(out: Bool, rest: CGSize = .zero, home: CGSize) -> some View {
+        modifier(PieceBud(out: out, rest: rest, home: home))
+    }
+
+    /// Hides a bubble's icon or label while it is home. Put it on the content, inside the glass.
+    func pieceBudContent(out: Bool) -> some View {
+        modifier(PieceBudContent(out: out))
+    }
+}
+
+/// Which bubbles exist and which are out. A bubble is added home with no animation, sent out on the next frame,
+/// and called home before it is removed, so it always melts in rather than fading. Keep one in `@State`.
+@MainActor @Observable
+private final class PieceBuds {
+    private(set) var present: [String] = []
+    private(set) var out: Set<String> = []
+    /// The latest call for each bubble. A bloom or gather that has been overtaken (a bubble sent home while it was
+    /// still waiting to go out, or called out again while melting) leaves that bubble alone.
+    @ObservationIgnored private var turn: [String: Int] = [:]
+
+    func contains(_ id: String) -> Bool { present.contains(id) }
+    func isOut(_ id: String) -> Bool { out.contains(id) }
+
+    private func claim(_ ids: [String]) -> [String: Int] {
+        var mine: [String: Int] = [:]
+        for id in ids {
+            let next = (turn[id] ?? 0) + 1
+            turn[id] = next
+            mine[id] = next
+        }
+        return mine
+    }
+
+    /// Puts bubbles straight out at rest with no motion: a view's first frame, or a state restored.
+    func place(_ ids: [String]) {
+        _ = claim(ids)
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) {
+            for id in ids where !present.contains(id) { present.append(id) }
+            out.formUnion(ids)
+        }
+    }
+
+    /// Adds bubbles home, then sends each out, `stagger` seconds apart, after an optional `delay`.
+    func bloom(_ ids: [String], reduceMotion: Bool, stagger: Double = 0.05, delay: Double = 0) async {
+        let mine = claim(ids)
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) {
+            for id in ids where !present.contains(id) { present.append(id) }
+        }
+        try? await Task.sleep(for: .milliseconds(24 + Int(max(delay, 0) * 1000)))
+        let split = PieceLiquid.split(reduceMotion: reduceMotion)
+        for (i, id) in ids.enumerated() where turn[id] == mine[id] {
+            withAnimation(split.delay(reduceMotion ? 0 : Double(i) * stagger)) { _ = out.insert(id) }
+        }
+    }
+
+    /// Calls bubbles home, last first, then removes them once they have melted in.
+    func gather(_ ids: [String], reduceMotion: Bool, stagger: Double = 0.04) async {
+        let mine = claim(ids)
+        let home = PieceLiquid.home(reduceMotion: reduceMotion)
+        for (i, id) in ids.reversed().enumerated() {
+            withAnimation(home.delay(reduceMotion ? 0 : Double(i) * stagger)) { _ = out.remove(id) }
+        }
+        try? await Task.sleep(for: .milliseconds(Int((0.52 + Double(ids.count) * stagger) * 1000)))
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) { present.removeAll { ids.contains($0) && !out.contains($0) && turn[$0] == mine[$0] } }
+    }
+}
+
+/// A label that changes letter by letter: letters both strings share hold still, the rest blur out and the new ones
+/// blur in a few milliseconds apart. Under Reduce Motion it cross-fades. VoiceOver reads the whole string.
+private struct PieceMorphText: View {
+    var text: String
+    var font: Font = .body.weight(.semibold)
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        let glyphs = Array(text)
+        HStack(spacing: 0) {
+            ForEach(glyphs.indices, id: \.self) { i in
+                Text(String(glyphs[i]))
+                    .id("\(i)\(glyphs[i])")
+                    .transition(transition(i))
+            }
+        }
+        .font(font)
+        .fixedSize()
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(text)
+    }
+
+    private func transition(_ i: Int) -> AnyTransition {
+        guard !reduceMotion else { return .opacity }
+        return AnyTransition(.blurReplace(.downUp)).combined(with: .scale(scale: 0.6, anchor: .bottom))
+            .animation(.spring(duration: 0.42, bounce: 0.3).delay(Double(i) * 0.022))
+    }
+}
+
+// swiftpieces-liquid: end
 ```
 
 </Tab>

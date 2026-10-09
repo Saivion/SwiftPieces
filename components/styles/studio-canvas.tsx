@@ -473,7 +473,9 @@ function FloatingBar({ view, onView, scheme, onScheme, pinned }: { view: CanvasV
   const next: Scheme = scheme === "dark" ? "light" : "dark";
   return (
     // Docked on the frame's bottom edge, half over the tray's padding, so it covers almost nothing.
-    <div className="studio-dark absolute -bottom-[31px] left-1/2 z-20 flex -translate-x-1/2 items-center gap-1.5">
+    // Centred on the whole studio, not just the canvas: on wide screens it moves right by half the
+    // settings panel plus the gap (studio-frame.tsx: 300px, 340px at xl, gap-3).
+    <div className="studio-dark absolute -bottom-[31px] left-1/2 z-20 flex -translate-x-1/2 items-center gap-1.5 lg:left-[calc(50%+156px)] xl:left-[calc(50%+176px)]">
       <div role="tablist" aria-label="Canvas" className="flex rounded-[var(--radius-lg)] bg-[var(--studio-panel)] p-1 shadow-[0_14px_36px_-12px_rgb(0_0_0/.7)] ring-1 ring-white/10">
         {(
           [

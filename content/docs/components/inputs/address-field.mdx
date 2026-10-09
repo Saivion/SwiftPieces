@@ -1,35 +1,38 @@
 ---
 title: "Address Field"
-description: "An address field for checkout, delivery and sign-up that lists type-ahead suggestions under a soft 56pt block with the matched text in bold, picks one with a tap or the hardware keyboard, shows a spinner on the chosen row while it resolves into a structured address with street, city, state, postal code, country and coordinate, then settles into the field with the locality on a second line and a sage check, keeping the typed text usable with a \"Use as typed\" row and an inline retry when a lookup fails."
+description: "A liquid glass address field for checkout, delivery and sign-up. Type-ahead suggestions pour down out of the field as a glass list with the matched text picked out, a clear or searching bubble buds from the field's end, and picking a row with a tap or the hardware keyboard buds a spinner bubble beside it while it resolves into a structured address with street, city, state, postal code, country and coordinate; the list then melts back into the field as the address settles in with the locality on a second line and a sage check, keeping the typed text usable with a \"Use as typed\" row and a butter retry bubble when a lookup fails."
 piece: "AddressField"
 category: "inputs"
 minIOSVersion: "17.0"
-version: "1.0.1"
+version: "1.2.0"
 tags: ["address","autocomplete","mapkit","checkout","delivery","form","search"]
 registryDependencies: []
 ---
 
 {/* GENERATED FILE. Edit registry/swift/inputs/AddressField.swift or AddressField.mdx instead. */}
 
-Address entry with type-ahead suggestions that resolve to a structured, verified address. Typing searches after a short pause (three characters or more). Each new keystroke cancels the search in flight, so a slow answer for an older query never replaces a newer one. Picking a suggestion looks up the full address; when it arrives, `address` is set, `text` becomes the address's first line (usually the street) and the locality shows under it. Editing the text again clears `address`. Location permission is never requested: suggestions come from the query alone, optionally biased by `region`. ```swift @State private var query = "" @State private var address: AddressField.Address? AddressField("Delivery address", text: $query, address: $address, countries: ["US", "CA"]) ```
+Address entry with type-ahead suggestions that resolve to a structured, verified address. The field is a liquid glass shape, and what it shows buds out of it: the suggestion list pours down out of the field and rests apart from it, the clear (or searching) bubble comes out of its end, and the bubble that spins while a pick resolves comes out of the list beside the chosen row. Each melts back into where it came from. Typing searches after a short pause (three characters or more). Each new keystroke cancels the search in flight, so a slow answer for an older query never replaces a newer one. Picking a suggestion looks up the full address; when it arrives, `address` is set, `text` becomes the address's first line (usually the street) and the locality shows under it. Editing the text again clears `address`. Location permission is never requested: suggestions come from the query alone, optionally biased by `region`. ```swift @State private var query = "" @State private var address: AddressField.Address? AddressField("Delivery address", text: $query, address: $address, countries: ["US", "CA"]) ```
 
 ## Notes
 
-- Typing searches once the trimmed text is three characters or more, after a 250ms pause. The search runs in a task keyed on the text, so every keystroke cancels the one in flight: a slow answer for an older query can never replace a newer list. Earlier suggestions stay on screen while the next ones load, with a small spinner in the field instead of a flicker.
-- Suggestions come from `MKLocalSearchCompleter` with `resultTypes = .address`, at most five, the matched runs in bold and the locality on a second line. Picking one runs an `MKLocalSearch` for that completion, with a spinner on the chosen row and the other rows dimmed. Picking another row, editing the text or leaving the screen cancels the lookup, and a late answer is ignored.
-- Once resolved, `address` holds the street, city, state, postal code, country, ISO country code, coordinate and a single line formatted for the address's own country. `text` becomes the first line (usually the street), the rest shows under it in the field and a sage check appears. `mailingLines` gives the label lines in the country's postal order.
-- Editing the text clears `address`. Setting `address` from outside (a saved address) fills the field without searching; setting `text` and `address` together is not treated as an edit.
-- A failed lookup stays on its row in red with a Retry pill; a failed suggestion request shows "Couldn't load suggestions" with Retry. No matches is a quiet line. In each of these cases a "Use as typed" row sets an address with `isVerified == false` holding only the typed text. Turn it off with `allowsUnverified: false`.
-- `countries: ["US", "CA"]` leaves out suggestions whose last line names another country, and a picked address outside the list shows "Choose an address in United States" on its row instead of being set. `region` biases suggestions toward an area. Location permission is never requested.
+- The field is a liquid glass shape (Liquid Glass on iOS 26, a frosted fallback before it, a solid fill under Reduce Transparency), and what it shows buds out of it and melts back in. The suggestion list pours down out of the field and rests apart from it, 26pt below. A round bubble as tall as the field buds from the field's end while you edit: it spins while suggestions load and is a clear button otherwise. While that bubble is out the field gives it its end, and the list follows the field's edge, so the two stay in line with the bubble's column beside them. `Style.field` tints the glass; `.clear`, the default, leaves it neutral.
+- Typing searches once the trimmed text is three characters or more, after a 250ms pause. The search runs in a task keyed on the text, so every keystroke cancels the one in flight: a slow answer for an older query can never replace a newer list. Earlier suggestions stay on screen while the next ones load, with the field's bubble spinning instead of a flicker.
+- Suggestions come from `MKLocalSearchCompleter` with `resultTypes = .address`, at most five, with the matched runs in the label colour, the rest of the title in the secondary colour, and the locality on a second line. Picking one runs an `MKLocalSearch` for that completion: the other rows dim and a spinner bubble buds out of the list's end beside the chosen row. Picking another row, editing the text or leaving the screen cancels the lookup, and a late answer is ignored.
+- Once resolved, `address` holds the street, city, state, postal code, country, ISO country code, coordinate and a single line formatted for the address's own country. `text` becomes the first line (usually the street), the rest shows under it in the field and a sage check lands inside the field. `mailingLines` gives the label lines in the country's postal order.
+- Editing the text clears `address`. Setting `address` from outside (a saved address) fills the field without searching, and its check lands on a short spring with no success pop or haptic; setting `text` and `address` together is not treated as an edit.
+- A failed lookup stays on its row: the row's pin turns into a butter warning mark, the message replaces the locality, and the spinner bubble beside it turns butter with a retry arrow; tapping the bubble or the row tries again. A failed suggestion request shows "Couldn't load suggestions" with the same butter retry bubble beside it. No matches is a quiet line. In each of these cases a "Use as typed" row sets an address with `isVerified == false` holding only the typed text. Turn it off with `allowsUnverified: false`.
+- `countries: ["US", "CA"]` leaves out suggestions whose last line names another country, and a picked address outside the list shows "Choose an address in United States" on its row instead of being set, with no retry bubble since trying again gives the same answer. `region` biases suggestions toward an area. Location permission is never requested.
 - iOS 26 moves map items to `MKAddress`, which has no separate street or postal code, and deprecates `MKPlacemark`. On iOS 17 to 25 the parts come from the placemark; on iOS 26 from the item's placemark read dynamically (so the file builds without deprecation warnings), with `MKAddressRepresentations` for the formatted line, city and country as the fallback.
 - `source:` swaps MapKit for your own backend, or a fixed list for previews and tests. Both calls are cancelled when their result is no longer wanted.
 - Hardware keyboard: up and down arrows move the highlight, Return picks the highlighted row (or the top one), Escape closes the list. A long street wraps up to three lines. A pasted multi-line address is joined with commas.
 - The list sits inline under the field and pushes content down, so it scrolls with a form and never clips inside a scroll view. Leaving the field hides it; coming back shows it again.
-- VoiceOver: the field's hint says whether the address is verified; the suggestion count ("5 suggestions", inflected), "Finding address", the result and any error are announced; rows are buttons read as title and locality with the selected trait when highlighted.
-- Haptics: a soft impact on pick, success when the address resolves, error when a lookup fails, selection ticks for arrow-key moves. Nothing per keystroke.
+- Motion: the list is born as a thin sliver tucked inside the field's bottom edge and springs down to its place, growing to full height as the neck between them stretches and snaps; its room in the layout opens with it, so what sits below glides down. Going home it reaches back up, melts into the field on a spring with no bounce, and only then leaves the layout, its rows gone the moment it heads back. As it refines while you type it resizes without overshoot, so nothing below it wobbles, and typing itself is never animated or delayed. Bubbles bud out of their parent's end on the same cycle, their glyphs blurring in just after they leave and out the moment they head home, and a glyph that changes inside a bubble (spinner to clear, spinner to retry) blurs from one to the other. A row's highlight wash is there on touch-down, the row sinks about a point, and the wash fades as the finger lifts; bubbles sink too and spring back. When a pick resolves, the spinner and the list melt home as the street and locality settle into the field, which grows for the second line with a little give, and the sage check lands on the expressive spring as the success haptic plays.
+- Type is one weight, semibold, for the text, rows and every glyph; size and colour set the hierarchy.
+- VoiceOver: the field's hint says whether the address is verified; the suggestion count ("5 suggestions", inflected), "Finding address", the result and any error are announced; rows are buttons read as title and locality with the selected trait when highlighted. The clear bubble is "Clear address"; a failed suggestion request's bubble is "Retry suggestions".
+- Haptics: a soft impact on picking a suggestion, success when the address resolves, error when a lookup fails, selection ticks for arrow-key moves. "Use as typed" sets the address at once, so it plays only the success. Nothing per keystroke.
 - Dynamic Type: rows and the field grow and wrap; at accessibility sizes the leading glyphs step aside so titles get the width.
-- `Style` sets the field, label, secondary label, focus ring, row highlight, success, error and ink colors, the corner radius and the minimum height.
-- Reduce Motion: the list, check and rows fade instead of sliding and scaling.
+- `Style` sets the field tint, label, secondary label, focus ring, row highlight, success, error (the warning mark and the retry bubble) and ink colors, the pin, optional suggestion tiles, the corner radius and the minimum height (also the bubbles' size).
+- Reduce Motion: the list and bubbles fade in and out in place instead of budding, glyph changes fade, and pressed rows and buttons dim instead of sinking. Highlights, the dimmed rows during a lookup, the spinners, colors, announcements and haptics are unchanged. Reduce Transparency draws the field, list and bubbles as solid shapes.
 
 ## Usage
 
@@ -61,6 +64,10 @@ import MapKit
 import SwiftUI
 
 /// Address entry with type-ahead suggestions that resolve to a structured, verified address.
+///
+/// The field is a liquid glass shape, and what it shows buds out of it: the suggestion list pours down out of the
+/// field and rests apart from it, the clear (or searching) bubble comes out of its end, and the bubble that spins
+/// while a pick resolves comes out of the list beside the chosen row. Each melts back into where it came from.
 ///
 /// Typing searches after a short pause (three characters or more). Each new keystroke cancels the search
 /// in flight, so a slow answer for an older query never replaces a newer one. Picking a suggestion looks up
@@ -173,7 +180,8 @@ public struct AddressField: View {
         public let title: String
         /// The locality line, such as "Cupertino, CA, United States". May be empty.
         public let subtitle: String
-        /// Runs of `title` that match the query, drawn in bold. Empty bolds the query where it appears.
+        /// Runs of `title` that match the query, drawn in the label colour with the rest of the title in the secondary
+        /// colour. Empty picks out the query where it appears.
         public let highlights: [Range<String.Index>]
 
         public init(id: String? = nil, title: String, subtitle: String = "", highlights: [Range<String.Index>] = []) {
@@ -209,7 +217,7 @@ public struct AddressField: View {
 
     /// Colors and metrics. `.standard` is the house palette.
     public struct Style: Sendable {
-        /// The field block and the suggestion list.
+        /// The glass tint of the field and the suggestion list. `.clear`, the default, leaves them neutral glass.
         public var field: Color
         /// Typed text and suggestion titles.
         public var label: Color
@@ -217,43 +225,47 @@ public struct AddressField: View {
         public var secondaryLabel: Color
         /// The 2pt ring while focused.
         public var focusRing: Color
-        /// The highlighted and pressed suggestion row.
+        /// The highlighted and pressed suggestion row, a quiet wash inside the glass list.
         public var highlight: Color
         /// The verified check block.
         public var success: Color
-        /// Lookup errors.
+        /// Lookup errors: the warning mark on a failed row and the tint of its retry bubble. Butter by default.
         public var error: Color
-        /// Glyphs on solid blocks.
+        /// Glyphs on solid blocks and tinted glass.
         public var ink: Color
         /// The pin at the front of the field: the one accent at rest.
         public var pin: Color
-        /// Suggestion tiles. Each suggestion keeps the same block (picked from its text), so one color gives uniform tiles.
+        /// Suggestion tiles: solid blocks behind each suggestion's pin, which is then drawn in ink. Each suggestion keeps
+        /// the same block (picked from its text), so one color gives uniform tiles. Empty, the default, draws the pin
+        /// without a tile, like the other rows' glyphs.
         public var tiles: [Color]
-        /// Minimum field height. Grows with Dynamic Type and the locality line.
+        /// Minimum field height, and the diameter of the bubbles that bud beside the field and the list. Grows with
+        /// Dynamic Type and the locality line.
         public var height: CGFloat
         /// Field corner radius. Rows use a smaller radius that follows it.
         public var cornerRadius: CGFloat
 
         /// Pass only what you want to change; `nil` keeps the house palette value.
         public init(field: Color? = nil, label: Color? = nil, secondaryLabel: Color? = nil, focusRing: Color? = nil, highlight: Color? = nil, success: Color? = nil, error: Color? = nil, ink: Color? = nil, pin: Color? = nil, tiles: [Color]? = nil, height: CGFloat = 56, cornerRadius: CGFloat = 18) {
-            self.field = field ?? adaptive(light: 0xEBE9E3, dark: 0x262626)
+            self.field = field ?? .clear
             self.label = label ?? adaptive(light: 0x141414, dark: 0xF4F3EF)
             self.secondaryLabel = secondaryLabel ?? adaptive(light: 0x5C5A56, dark: 0xA6A49F)
             self.focusRing = focusRing ?? adaptive(light: 0xFF0000, dark: 0xFF0000)
-            self.highlight = highlight ?? adaptive(light: 0xDCD9D1, dark: 0x3A3A3A)
+            self.highlight = highlight ?? Color.primary.opacity(0.08)
             self.success = success ?? adaptive(light: 0xA9DCB7, dark: 0xA9DCB7)
-            self.error = error ?? adaptive(light: 0xFF0000, dark: 0xFF0000)
+            self.error = error ?? adaptive(light: 0xFFD976, dark: 0xFFD976)
             self.ink = ink ?? adaptive(light: 0x141414, dark: 0x141414)
             self.pin = pin ?? adaptive(light: 0xFF0000, dark: 0xFF0000)
-            self.tiles = (tiles?.isEmpty == false ? tiles : nil) ?? [0x9CC2FF, 0xFFD976, 0xA9DCB7, 0xCDB8FF].map { adaptive(light: $0, dark: $0) }
+            self.tiles = tiles ?? []
             self.height = max(height, 44)
             self.cornerRadius = cornerRadius
         }
 
         public static let standard = Style()
 
-        /// A stable tile per suggestion, so a row never changes color as the list refines.
-        func tile(for key: String) -> Color {
+        /// A stable tile per suggestion, so a row never changes color as the list refines. `nil` when there are no tiles.
+        func tile(for key: String) -> Color? {
+            guard !tiles.isEmpty else { return nil }
             var hash: UInt64 = 5381
             for scalar in key.lowercased().unicodeScalars { hash = (hash &* 33) &+ UInt64(scalar.value) }
             return tiles[Int(hash % UInt64(tiles.count))]
@@ -282,6 +294,9 @@ public struct AddressField: View {
     /// Queries shorter than this (after trimming) don't search.
     private static let minimumQueryLength = 3
     nonisolated private static let typedRowID = "\u{0}typed"
+    nonisolated private static let failedRowID = "\u{0}failed"
+    /// The list's own coordinates, where each row reports its middle so the row bubble can sit level with it.
+    nonisolated private static let listSpace = "AddressField.list"
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.isEnabled) private var isEnabled
@@ -311,6 +326,18 @@ public struct AddressField: View {
     @State private var moveTick = 0
     @State private var successTick = 0
     @State private var errorTick = 0
+    /// The address the field itself last resolved. Only that one pops its check with the success haptic; one set from
+    /// outside plays no haptic, so its check lands on a snap.
+    @State private var resolvedHere: Address?
+    /// The accessory bubble beside the field, the suggestion list and the row bubble beside the list: each out while
+    /// it has something to show, melted into its parent otherwise.
+    @State private var buds = PieceBuds()
+    /// The rows the list last showed, so a list on its way home melts as it last looked instead of emptying first.
+    @State private var keptRows: [Row] = []
+    /// Each row's middle in the list's coordinates.
+    @State private var rowMids: [String: CGFloat] = [:]
+    /// The row the row bubble sits beside, kept while it melts home.
+    @State private var bubbleRow: String?
 
     private let label: String
     private let region: MKCoordinateRegion?
@@ -338,51 +365,131 @@ public struct AddressField: View {
         self.style = style
     }
 
-    private var motion: Animation { reduceMotion ? .smooth(duration: 0.2) : .spring(duration: 0.38, bounce: 0.16) }
+    private var motion: PieceMotion { PieceMotion(reduceMotion: reduceMotion) }
     private var query: String { text.trimmingCharacters(in: .whitespacesAndNewlines) }
     /// What the search task follows. Leaving the field doesn't change it, so results survive a blur (and a pick in flight).
     private var searchQuery: String { address == nil ? query : "" }
 
     public var body: some View {
+        let motion = self.motion
         let rows = self.rows
-        VStack(alignment: .leading, spacing: 8) {
-            field
-            if !rows.isEmpty {
-                panel(rows)
-                    .transition(reduceMotion ? .opacity : .move(edge: .top).combined(with: .opacity))
+        let content = PieceLiquidGroup {
+            VStack(alignment: .leading, spacing: 0) {
+                ZStack(alignment: .topTrailing) {
+                    // Laid out first, so at home the bubble sits under the field's end and melts into it.
+                    if buds.contains("accessory") { accessoryBubble }
+                    field
+                        .padding(.trailing, column)
+                }
+                // Above the list, so the list at home slips under the field.
+                .zIndex(1)
+                if buds.contains("list") {
+                    list(rows.isEmpty ? keptRows : rows)
+                }
             }
         }
+        .fontWeight(.semibold)
         .opacity(isEnabled ? 1 : 0.45)
-        .animation(motion, value: rows.map(\.id))
-        .animation(motion, value: address)
-        .animation(.smooth(duration: 0.2), value: resolvingID)
-        .animation(.smooth(duration: 0.2), value: failure)
-        .sensoryFeedback(.selection, trigger: moveTick)
-        .sensoryFeedback(.impact(flexibility: .soft, intensity: 0.7), trigger: pickTick)
-        .sensoryFeedback(.success, trigger: successTick)
-        .sensoryFeedback(.error, trigger: errorTick)
-        .task(id: SearchKey(query: searchQuery, attempt: attempt)) { await search() }
-        .onChange(of: text) { old, new in textChanged(from: old, to: new) }
-        .onChange(of: address) { _, new in addressChanged(to: new) }
-        .onChange(of: isFocused) { _, focused in
-            // Coming back to the field brings back the suggestions it had.
-            isActive = focused && address == nil && status != .idle
+        // When several of these change in one update the first listed wins, so a failed lookup keeps the error role as
+        // its row grows. The list refining as you type is text being read and moves on `value`, which never overshoots,
+        // so nothing below an inline list ever wobbles. A pick answers with a snap: the other rows dimming.
+        .animation(failure == nil ? motion.dismiss : motion.error, value: failure)
+        .animation(motion.value, value: rows.map(\.id))
+        .animation(motion.snap, value: resolvingID)
+        return budding(searching(content), rows: rows)
+    }
+
+    /// Haptics, the search task and the field's own state.
+    private func searching(_ content: some View) -> some View {
+        content
+            .sensoryFeedback(.selection, trigger: moveTick)
+            .sensoryFeedback(.impact(flexibility: .soft, intensity: 0.7), trigger: pickTick)
+            .sensoryFeedback(.success, trigger: successTick)
+            .sensoryFeedback(.error, trigger: errorTick)
+            .task(id: SearchKey(query: searchQuery, attempt: attempt)) { await search() }
+            .onChange(of: text) { old, new in textChanged(from: old, to: new) }
+            .onChange(of: address) { _, new in addressChanged(to: new) }
+            .onChange(of: isFocused) { _, focused in
+                // Coming back to the field brings back the suggestions it had.
+                isActive = focused && address == nil && status != .idle
+            }
+            .onAppear {
+                // A saved address passed in on first appearance fills an empty field.
+                if let address, query.isEmpty { setText(address.fieldText) }
+            }
+            .onDisappear { resolveTask?.cancel() }
+    }
+
+    /// The bud cycle of the accessory bubble, the list and the row bubble.
+    private func budding(_ content: some View, rows: [Row]) -> some View {
+        content
+            .onChange(of: showsAccessory) { _, shows in cycle("accessory", out: shows) }
+            .onChange(of: rows.map(\.id)) { _, ids in
+                if !ids.isEmpty { keptRows = rows }
+            }
+            .onChange(of: rows.isEmpty) { _, empty in
+                if !empty { keptRows = rows }
+                cycle("list", out: !empty)
+            }
+            .onChange(of: bubbleTarget) { _, target in
+                guard let target else { return cycle("row", out: false) }
+                // Moving between rows while out, it slides along the list's edge.
+                withAnimation(motion.snap) { bubbleRow = target }
+                if !buds.isOut("row") { cycle("row", out: true) }
+            }
+            .onAppear {
+                keptRows = rows
+                bubbleRow = bubbleTarget
+                var placed: [String] = []
+                if showsAccessory { placed.append("accessory") }
+                if !rows.isEmpty { placed.append("list") }
+                if bubbleTarget != nil { placed.append("row") }
+                buds.place(placed)
+            }
+    }
+
+    /// Sends a bubble out of its parent, or calls it home.
+    private func cycle(_ id: String, out: Bool) {
+        Task {
+            if out { await buds.bloom([id], reduceMotion: reduceMotion) } else { await buds.gather([id], reduceMotion: reduceMotion) }
         }
-        .onAppear {
-            // A saved address passed in on first appearance fills an empty field.
-            if let address, query.isEmpty { setText(address.fieldText) }
-        }
-        .onDisappear { resolveTask?.cancel() }
     }
 
     // MARK: Field
 
+    /// The bubbles beside the field and the list are as tall as the field at rest.
+    private var bubble: CGFloat { style.height }
+
+    /// While a bubble holds the column beside them, the field and the list both give it their end, so their edges stay
+    /// in line. The edges pull back on the bubble's own spring, so the two part through a neck.
+    private var column: CGFloat {
+        buds.isOut("accessory") || buds.isOut("row") ? bubble + PieceLiquid.joined : 0
+    }
+
+    /// Searching for suggestions: the accessory bubble spins.
+    private var isSearching: Bool { isLoading && address == nil }
+
+    /// The accessory bubble is out while it spins, or as a clear button while the field is edited and not verified.
+    private var showsAccessory: Bool {
+        isSearching || (address?.isVerified != true && isFocused && !text.isEmpty)
+    }
+
+    /// The offset that tucks a bubble just inside its parent's end: from where the edge already sits when another
+    /// bubble holds the column open, or from the parent's full width when it is about to pull back.
+    private func tucked(columnHeld: Bool) -> CGSize {
+        let width = columnHeld
+            ? -(bubble / 2 + PieceLiquid.joined + bubble * PieceLiquid.homeScale / 2)
+            : bubble * (1 - PieceLiquid.homeScale) / 2
+        return CGSize(width: width, height: 0)
+    }
+
     private var field: some View {
         let shape = RoundedRectangle(cornerRadius: style.cornerRadius, style: .continuous)
+        let verified = address?.isVerified == true
         return HStack(spacing: 12) {
             if showsRowGlyphs {
                 Image(systemName: "mappin.and.ellipse")
-                    .font(.body.weight(.semibold))
+                    .font(.body)
                     .foregroundStyle(style.pin)
                     .frame(width: iconWidth)
                     .accessibilityHidden(true)
@@ -414,57 +521,79 @@ public struct AddressField: View {
                         .font(.subheadline)
                         .foregroundStyle(style.secondaryLabel)
                         .lineLimit(2)
-                        .transition(.opacity)
+                        .transition(motion.swap)
                         .accessibilityHidden(true)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            accessory
+            if verified { check }
         }
         .padding(.leading, 16)
-        .padding(.trailing, 8)
+        .padding(.trailing, verified ? 12 : 16)
         .padding(.vertical, 8)
         .frame(maxWidth: .infinity, minHeight: style.height, alignment: .leading)
-        .background(style.field, in: shape)
+        // The ring is drawn inside the glass: on iOS 26 a glass container takes in whatever is layered over a glass
+        // shape after it, and the ring would all but vanish. It sits a few points in from the edge, so the bubbles
+        // that bud from the field meet clean glass and their necks never cut through it.
         .overlay {
-            shape.strokeBorder(style.focusRing, lineWidth: 2)
+            RoundedRectangle(cornerRadius: max(style.cornerRadius - 3, 0), style: .continuous)
+                .strokeBorder(style.focusRing, lineWidth: 2)
+                .padding(3)
                 .opacity(isFocused ? 1 : 0)
+                .allowsHitTesting(false)
         }
+        .pieceLiquid(shape, tint: style.field == .clear ? nil : style.field, interactive: false)
         .contentShape(shape)
         .onTapGesture { if isEnabled { isFocused = true } }
-        .animation(.smooth(duration: 0.2), value: isFocused)
-        .animation(.smooth(duration: 0.2), value: isLoading)
+        // Taking an address grows the field for the locality line with a little give, though focus leaves in the same update.
+        .animation(motion.morph, value: address)
+        .animation(motion.snap, value: isFocused)
     }
 
-    /// Spinner while searching, the verified check once resolved, otherwise a clear button while editing.
-    @ViewBuilder private var accessory: some View {
-        ZStack {
-            if isLoading && address == nil {
-                ProgressView()
-                    .controlSize(.small)
-                    .tint(style.secondaryLabel)
-                    .transition(.opacity)
-            } else if let address, address.isVerified {
-                Image(systemName: "checkmark")
-                    .font(.system(size: min(badgeSize, 36) * 0.46, weight: .heavy))
-                    .foregroundStyle(style.ink)
-                    .frame(width: min(badgeSize, 36), height: min(badgeSize, 36))
-                    .background(style.success, in: .circle)
-                    .transition(reduceMotion ? .opacity : .scale(scale: 0.4).combined(with: .opacity))
-                    .accessibilityHidden(true)
-            } else if isFocused && !text.isEmpty {
-                Button(action: clear) {
-                    Image(systemName: "xmark.circle.fill")
-                        .font(.body)
-                        .foregroundStyle(style.secondaryLabel)
+    /// The verified mark inside the glass: a status, not a control. The field's own resolve lands it with the success
+    /// haptic on the expressive spring; an address set from outside lands on a snap.
+    private var check: some View {
+        let size = min(badgeSize, 36)
+        let arrive = motion.swap.animation(address == resolvedHere ? motion.success : motion.snap)
+        return Image(systemName: "checkmark")
+            .font(.system(size: size * 0.46, weight: .semibold))
+            .foregroundStyle(style.ink)
+            .frame(width: size, height: size)
+            .background(style.success, in: .circle)
+            .transition(.asymmetric(insertion: arrive, removal: motion.swap))
+            .accessibilityHidden(true)
+    }
+
+    /// Beside the field's end: a spinner while suggestions load, otherwise a clear button while the field is edited.
+    private var accessoryBubble: some View {
+        let out = buds.isOut("accessory")
+        let searching = isSearching
+        return Button(action: clear) {
+            ZStack {
+                if searching {
+                    ProgressView()
+                        .controlSize(.small)
+                        .tint(style.secondaryLabel)
+                        .transition(motion.swap)
+                } else {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(style.label)
+                        .transition(motion.swap)
                 }
-                .buttonStyle(.plain)
-                .accessibilityLabel(String(localized: "Clear address"))
-                .transition(.opacity)
             }
+            .pieceBudContent(out: out)
+            .frame(width: bubble, height: bubble)
+            .contentShape(.circle)
+            .pieceLiquid(.circle, interactive: false)
         }
-        .frame(minWidth: 44, minHeight: 44)
-        .contentShape(.rect)
+        .buttonStyle(PieceLiquidPressStyle())
+        .animation(motion.snap, value: searching)
+        // A spinner is not a button: it takes no taps and VoiceOver hears the result instead.
+        .allowsHitTesting(!searching)
+        .accessibilityHidden(searching)
+        .accessibilityLabel(String(localized: "Clear address"))
+        .pieceBud(out: out, home: tucked(columnHeld: buds.isOut("row")))
     }
 
     private var fieldHint: String {
@@ -486,7 +615,7 @@ public struct AddressField: View {
             case .suggestion(let s): s.id
             case .typed: AddressField.typedRowID
             case .empty: "\u{0}empty"
-            case .failed: "\u{0}failed"
+            case .failed: AddressField.failedRowID
             }
         }
 
@@ -517,21 +646,104 @@ public struct AddressField: View {
         return rows
     }
 
-    private func panel(_ rows: [Row]) -> some View {
-        VStack(alignment: .leading, spacing: 0) {
-            ForEach(rows) { row in
-                switch row {
-                case .suggestion(let suggestion): suggestionRow(suggestion)
-                case .typed(let typed): typedRow(typed)
-                case .empty: emptyRow
-                case .failed(let message): failedRow(message)
+    /// The row the row bubble belongs beside: the one resolving, or one that failed and can be tried again.
+    private var bubbleTarget: String? {
+        if let resolvingID { return resolvingID }
+        let shown = rows.map(\.id)
+        if let failure, failure.canRetry, shown.contains(failure.id) { return failure.id }
+        if shown.contains(Self.failedRowID) { return Self.failedRowID }
+        return nil
+    }
+
+    /// The thin glass sliver the list is born as and melts back to.
+    private let sliver: CGFloat = 28
+
+    /// The glass list, poured down out of the field: born as a thin sliver tucked inside the field's bottom edge, it
+    /// springs down to rest apart from the field, growing to its full height as it goes, and melts back the same way.
+    /// Its room in the layout opens and closes with it, so what sits below glides rather than jumps.
+    private func list(_ rows: [Row]) -> some View {
+        let out = buds.isOut("list")
+        let shape = RoundedRectangle(cornerRadius: style.cornerRadius, style: .continuous)
+        // How far up the list starts: its sliver a few points inside the field's bottom edge.
+        let home = PieceLiquid.apart + sliver / 2 + sliver * PieceLiquid.homeScale / 2 + 4
+        return ZStack(alignment: .topTrailing) {
+            if buds.contains("row") { rowBubble }
+            VStack(alignment: .leading, spacing: 0) {
+                ForEach(rows) { row in
+                    Group {
+                        switch row {
+                        case .suggestion(let suggestion): suggestionRow(suggestion)
+                        case .typed(let typed): typedRow(typed)
+                        case .empty: emptyRow
+                        case .failed(let message): failedRow(message)
+                        }
+                    }
+                    .onGeometryChange(for: CGFloat.self) { $0.frame(in: .named(Self.listSpace)).midY } action: { rowMids[row.id] = $0 }
                 }
             }
+            .pieceBudContent(out: out)
+            .padding(6)
+            // Always its full height inside, so the rows never squeeze to fit the sliver and reflow as it grows.
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .frame(height: out ? nil : sliver, alignment: .top)
+            .clipShape(shape)
+            .pieceLiquid(shape, tint: style.field == .clear ? nil : style.field, interactive: false)
+            .padding(.trailing, column)
+            .accessibilityElement(children: .contain)
+            .accessibilityLabel(String(localized: "Address suggestions"))
         }
-        .padding(6)
-        .background(style.field, in: .rect(cornerRadius: style.cornerRadius, style: .continuous))
-        .accessibilityElement(children: .contain)
-        .accessibilityLabel(String(localized: "Address suggestions"))
+        .coordinateSpace(.named(Self.listSpace))
+        .pieceBud(out: out, home: CGSize(width: 0, height: -home))
+        .padding(.top, PieceLiquid.apart)
+        .frame(height: out ? nil : 0, alignment: .top)
+    }
+
+    /// Beside the chosen row, out of the list's end: it spins while the pick resolves, and when a lookup fails and can
+    /// be tried again it turns butter with a retry arrow. Tapping it then tries again.
+    private var rowBubble: some View {
+        let out = buds.isOut("row")
+        let resolving = resolvingID != nil
+        // While the list heads home the bubble rides up with its shrinking edge, so it melts in with the list rather
+        // than hanging below it.
+        let anchor = buds.isOut("list") ? bubbleRow.flatMap { rowMids[$0] } ?? bubble / 2 : sliver / 2
+        return Button(action: retry) {
+            ZStack {
+                if resolving {
+                    ProgressView()
+                        .controlSize(.small)
+                        .tint(style.label)
+                        .transition(motion.swap)
+                } else {
+                    Image(systemName: "arrow.clockwise")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(style.ink)
+                        .transition(motion.swap)
+                }
+            }
+            .pieceBudContent(out: out)
+            .frame(width: bubble, height: bubble)
+            .contentShape(.circle)
+            // The tint means "try again", and drains as it melts so it dissolves into the list as clear glass.
+            .pieceLiquid(.circle, tint: out && !resolving ? style.error : nil, interactive: false)
+        }
+        .buttonStyle(PieceLiquidPressStyle())
+        .animation(motion.error, value: resolving)
+        .allowsHitTesting(!resolving)
+        // A failed suggestion's row is its own retry button, so only the suggestions request's retry is read out here.
+        .accessibilityHidden(resolving || bubbleRow != Self.failedRowID)
+        .accessibilityLabel(String(localized: "Retry suggestions"))
+        .pieceBud(out: out, home: tucked(columnHeld: buds.isOut("accessory")))
+        .offset(y: anchor - bubble / 2)
+    }
+
+    /// The row bubble's action: a failed suggestion is picked again, a failed suggestions request is sent again.
+    private func retry() {
+        if bubbleRow == Self.failedRowID {
+            attempt += 1
+        } else if let failure, let suggestion = suggestions.first(where: { $0.id == failure.id }) {
+            pick(suggestion)
+        }
     }
 
     private var rowRadius: CGFloat { max(style.cornerRadius - 6, 6) }
@@ -542,25 +754,46 @@ public struct AddressField: View {
     @ViewBuilder private func rowGlyph(_ name: String) -> some View {
         if showsRowGlyphs {
             Image(systemName: name)
-                .font(.body.weight(.semibold))
+                .font(.body)
                 .foregroundStyle(style.secondaryLabel)
                 .frame(width: iconWidth)
                 .accessibilityHidden(true)
         }
     }
 
-    /// A suggestion's leading tile: a small solid block with the pin in ink.
-    @ViewBuilder private func suggestionTile(_ suggestion: Suggestion) -> some View {
+    /// The warning mark in a row's glyph column: a small butter disc with an ink exclamation mark.
+    private var warningMark: some View {
+        Image(systemName: "exclamationmark")
+            .font(.caption)
+            .foregroundStyle(style.ink)
+            .frame(width: 22, height: 22)
+            .background(style.error, in: .circle)
+            .frame(width: iconWidth)
+            .accessibilityHidden(true)
+    }
+
+    /// A suggestion's leading glyph: the pin, on a solid tile when `Style.tiles` has any, or the warning mark once its
+    /// lookup has failed.
+    @ViewBuilder private func suggestionTile(_ suggestion: Suggestion, failed: Bool) -> some View {
         if showsRowGlyphs {
-            RoundedRectangle(cornerRadius: iconWidth * 0.3, style: .continuous)
-                .fill(style.tile(for: suggestion.title))
-                .frame(width: iconWidth, height: iconWidth)
-                .overlay {
-                    Image(systemName: "mappin")
-                        .font(.subheadline.weight(.bold))
-                        .foregroundStyle(style.ink)
+            ZStack {
+                if failed {
+                    warningMark.transition(motion.swap)
+                } else if let tile = style.tile(for: suggestion.title) {
+                    RoundedRectangle(cornerRadius: iconWidth * 0.3, style: .continuous)
+                        .fill(tile)
+                        .frame(width: iconWidth, height: iconWidth)
+                        .overlay {
+                            Image(systemName: "mappin")
+                                .font(.subheadline)
+                                .foregroundStyle(style.ink)
+                        }
+                        .transition(motion.swap)
+                } else {
+                    rowGlyph("mappin").transition(motion.swap)
                 }
-                .accessibilityHidden(true)
+            }
+            .accessibilityHidden(true)
         }
     }
 
@@ -570,7 +803,7 @@ public struct AddressField: View {
         let isHighlighted = highlightedID == suggestion.id
         return Button { pick(suggestion) } label: {
             HStack(spacing: 12) {
-                suggestionTile(suggestion)
+                suggestionTile(suggestion, failed: failed != nil)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(highlighted(suggestion))
                         .font(.body)
@@ -578,32 +811,19 @@ public struct AddressField: View {
                         .lineLimit(2)
                     if let failed {
                         Text(failed.message)
-                            .font(.subheadline.weight(.medium))
-                            .foregroundStyle(style.error)
-                            .transition(.opacity)
+                            .font(.subheadline)
+                            .foregroundStyle(style.label)
+                            .transition(motion.swap)
                     } else if !suggestion.subtitle.isEmpty {
                         Text(suggestion.subtitle)
                             .font(.subheadline)
                             .foregroundStyle(style.secondaryLabel)
                             .lineLimit(2)
+                            .transition(motion.swap)
                     }
                 }
                 .multilineTextAlignment(.leading)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                if isResolving {
-                    ProgressView()
-                        .controlSize(.small)
-                        .tint(style.label)
-                        .transition(.opacity)
-                } else if failed?.canRetry == true {
-                    Text("Retry")
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(style.field)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(style.label, in: .capsule)
-                        .transition(.opacity)
-                }
             }
             .padding(.horizontal, 10)
             .padding(.vertical, 8)
@@ -625,7 +845,7 @@ public struct AddressField: View {
                 rowGlyph("character.cursor.ibeam")
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Use \u{201C}\(typed)\u{201D}")
-                        .font(.body.weight(.medium))
+                        .font(.body)
                         .foregroundStyle(style.label)
                         .lineLimit(2)
                     Text("Keep it exactly as typed")
@@ -656,52 +876,41 @@ public struct AddressField: View {
             .frame(maxWidth: .infinity, minHeight: 40, alignment: .leading)
     }
 
+    /// The suggestions request failed. Its retry is the butter bubble that buds out of the list beside this row.
     private func failedRow(_ message: String) -> some View {
         HStack(spacing: 12) {
-            Image(systemName: "exclamationmark")
-                .font(.caption.weight(.heavy))
-                .foregroundStyle(style.ink)
-                .frame(width: 22, height: 22)
-                .background(style.error, in: .circle)
-                .frame(width: iconWidth)
-                .accessibilityHidden(true)
+            if showsRowGlyphs { warningMark }
             Text(message)
-                .font(.subheadline.weight(.medium))
+                .font(.subheadline)
                 .foregroundStyle(style.label)
                 .frame(maxWidth: .infinity, alignment: .leading)
-            Button { attempt += 1 } label: {
-                Text("Retry")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(style.field)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(style.label, in: .capsule)
-                    .frame(minHeight: 44)
-                    .contentShape(.rect)
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel(String(localized: "Retry suggestions"))
         }
         .padding(.horizontal, 10)
         .frame(maxWidth: .infinity, minHeight: max(rowHeight, 44), alignment: .leading)
-        .accessibilityElement(children: .contain)
+        .accessibilityElement(children: .combine)
     }
 
-    /// Matched runs in bold: the source's ranges when it gave any, otherwise the query where it appears.
+    /// Matched runs in the label colour and the rest of the title in the secondary colour: the source's ranges when it
+    /// gave any, otherwise the query where it appears. One weight throughout, so colour carries the match.
     private func highlighted(_ suggestion: Suggestion) -> AttributedString {
         let title = suggestion.title
         var ranges = suggestion.highlights.filter { $0.lowerBound >= title.startIndex && $0.upperBound <= title.endIndex }
         if ranges.isEmpty, let match = title.range(of: query, options: [.caseInsensitive, .diacriticInsensitive]) { ranges = [match] }
+        // Nothing to pick out: the whole title reads in the label colour.
+        guard !ranges.isEmpty else { return AttributedString(title) }
         var result = AttributedString()
         var cursor = title.startIndex
+        func quiet(_ text: Substring) -> AttributedString {
+            var run = AttributedString(String(text))
+            run.foregroundColor = style.secondaryLabel
+            return run
+        }
         for range in ranges.sorted(by: { $0.lowerBound < $1.lowerBound }) where range.lowerBound >= cursor {
-            result += AttributedString(String(title[cursor..<range.lowerBound]))
-            var bold = AttributedString(String(title[range]))
-            bold.font = .body.weight(.bold)
-            result += bold
+            result += quiet(title[cursor..<range.lowerBound])
+            result += AttributedString(String(title[range]))
             cursor = range.upperBound
         }
-        result += AttributedString(String(title[cursor...]))
+        result += quiet(title[cursor...])
         return result
     }
 
@@ -816,6 +1025,7 @@ public struct AddressField: View {
         isActive = false
         setText(resolved.fieldText)
         address = resolved
+        resolvedHere = resolved
         resetResults()
         successTick += 1
         announce(resolved.isVerified ? String(localized: "Address set: \(resolved.formatted)") : String(localized: "Address set as typed"))
@@ -825,7 +1035,7 @@ public struct AddressField: View {
     private func useTyped() {
         guard isEnabled, !query.isEmpty else { return }
         resolveTask?.cancel()
-        pickTick += 1
+        // No pick tap here: the address sets at once, and the success haptic in `complete` is this event's one haptic.
         complete(with: Address(formatted: query, isVerified: false))
     }
 
@@ -895,7 +1105,10 @@ public struct AddressField: View {
     }
 
     private func addressChanged(to new: Address?) {
-        guard let new else { return }
+        guard let new else {
+            resolvedHere = nil
+            return
+        }
         resolveTask?.cancel()
         resolvingID = nil
         failure = nil
@@ -911,7 +1124,7 @@ public struct AddressField: View {
 
 // MARK: - Row style
 
-/// A suggestion row: the highlight block on press, keyboard highlight or while resolving, and a slight press-in.
+/// A suggestion row: the highlight wash on press, keyboard highlight or while resolving, and a slight press-in.
 private struct RowButtonStyle: ButtonStyle {
     let highlight: Color
     let isHighlighted: Bool
@@ -919,15 +1132,18 @@ private struct RowButtonStyle: ButtonStyle {
     let reduceMotion: Bool
 
     func makeBody(configuration: Configuration) -> some View {
-        configuration.label
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        return configuration.label
             .background {
                 RoundedRectangle(cornerRadius: radius, style: .continuous)
                     .fill(highlight)
                     .opacity(configuration.isPressed || isHighlighted ? 1 : 0)
+                    // Like a system row, the wash is there on touch-down and fades as the finger lifts.
+                    .animation(configuration.isPressed ? nil : motion.dismiss, value: configuration.isPressed)
+                    .animation(motion.snap, value: isHighlighted)
             }
-            .scaleEffect(configuration.isPressed && !reduceMotion ? 0.985 : 1)
-            .animation(.spring(duration: 0.25, bounce: 0.2), value: configuration.isPressed)
-            .animation(.smooth(duration: 0.15), value: isHighlighted)
+            // A dense row sinks about a point, so the list stays steady under the finger. Reduce Motion dims it instead.
+            .piecePress(configuration.isPressed, depth: 1)
     }
 }
 
@@ -1195,6 +1411,448 @@ private struct AddressFieldExample: View {
     AddressFieldExample()
         .preferredColorScheme(.dark)
 }
+
+// MARK: - Piece motion
+//
+// The SwiftPieces motion language: shared spring tokens and gesture physics, with the same values in every
+// piece. Each piece carries a copy of only the parts it uses, so this file stands alone. Generated from
+// registry/foundation/PieceMotion.swift in the SwiftPieces repo; edit it there, not here.
+// swiftpieces-motion: 1.1.0 (core, pressMath, press)
+
+/// The SwiftPieces motion language: five spring tiers, and a named role for every moment a piece moves,
+/// each with its Reduce Motion substitute.
+///
+/// Build one from the environment, `PieceMotion(reduceMotion: reduceMotion)`, and pick the role that names
+/// what just happened. Never animate the tracking of a finger: set gesture state directly in `onChanged`, so the
+/// surface stays under the finger, and spring only the release.
+private struct PieceMotion {
+    var reduceMotion = false
+
+    // Tiers. Overshoot and settle times are measured from rest with SwiftUI's Spring.
+    /// No overshoot, 90% in about 90ms. A press arriving under the finger.
+    static var tight: Spring { Spring(duration: 0.14, bounce: 0) }
+    /// About 2.8% overshoot, 90% in about 140ms. Snapping to a detent, page or segment.
+    static var responsive: Spring { Spring(duration: 0.32, bounce: 0.25) }
+    /// About 8.4% overshoot. Visible give: a release, a return from past an edge, a drag settling home.
+    static var elastic: Spring { Spring(duration: 0.42, bounce: 0.38) }
+    /// About 15% overshoot. A resolved action landing. At most once per interaction.
+    static var expressive: Spring { Spring(duration: 0.48, bounce: 0.48) }
+    /// About 1.5% overshoot, unhurried. Opening large surfaces and ambient change.
+    static var calm: Spring { Spring(duration: 0.5, bounce: 0.2) }
+
+    /// Reduce Motion: settles become this short spring with no overshoot.
+    private static var still: Animation { .spring(duration: 0.25, bounce: 0) }
+
+    // Roles.
+    /// Touch-down. Starts on the same frame and never bounces under the finger.
+    var press: Animation { .spring(Self.tight) }
+    /// The finger lifts off a pressed surface, which springs back through rest.
+    var release: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A dragged thing comes to rest. With a gesture's velocity, use `settle(velocity:from:to:)` instead.
+    var settle: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// Lands on a detent, page or segment.
+    var snap: Animation { reduceMotion ? Self.still : .spring(Self.responsive) }
+    /// A number, a chart value or anything else people read moves to its new value. Never overshoots, so it
+    /// never shows a value that isn't true.
+    var value: Animation { reduceMotion ? Self.still : .spring(duration: 0.35, bounce: 0) }
+    /// Comes back from past a limit: a pull beyond the edge, a value pushed against its bound.
+    var rebound: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A shape or container changes size, corner radius or form, with a little give at the end.
+    var morph: Animation { reduceMotion ? Self.still : .spring(duration: 0.4, bounce: 0.2) }
+    /// Something appears, opens or expands. Opening is a little slower than closing.
+    var reveal: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.calm) }
+    /// Something leaves, closes or collapses. Quick and firm, out of the way.
+    var dismiss: Animation { reduceMotion ? .easeIn(duration: 0.18) : .spring(duration: 0.3, bounce: 0.08) }
+    /// A resolved action lands: a check, a sent state, a reaction.
+    var success: Animation { reduceMotion ? .easeOut(duration: 0.24) : .spring(Self.expressive) }
+    /// A refused action. Firm, no wobble; `pieceShake` adds the movement.
+    var error: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.responsive) }
+    /// Slow ambient change. Loops themselves stop under Reduce Motion: check `allowsAmbient`.
+    var ambient: Animation { reduceMotion ? .easeInOut(duration: 0.3) : .spring(Self.calm) }
+
+    /// Loops, drifts, idle breathing and parallax run only when this is true.
+    var allowsAmbient: Bool { !reduceMotion }
+
+    /// A moving transition, or a plain fade under Reduce Motion.
+    func transition(_ transition: AnyTransition) -> AnyTransition {
+        reduceMotion ? .opacity : transition
+    }
+
+    /// For content replaced inside a container that stays put (a label, a glyph, a count): the old content
+    /// blurs out as the new one sharpens in. A fade under Reduce Motion.
+    @MainActor var swap: AnyTransition {
+        reduceMotion ? .opacity : AnyTransition(.blurReplace)
+    }
+}
+
+extension PieceMotion {
+    /// About `depth` points per edge, not a fixed percentage: an icon sinks to 0.92, a pill 0.95, a card 0.985.
+    nonisolated static func pressScale(for size: CGSize, depth: CGFloat = 2.5) -> CGFloat {
+        let side = (max(size.width, 1) * max(size.height, 1)).squareRoot()
+        return min(max(1 - depth * 2 / side, 0.92), 0.985)
+    }
+
+    /// An anchor partway from the center toward the touch, so the press leans into the finger without tipping.
+    nonisolated static func pressAnchor(touch: CGPoint?, in size: CGSize, lean: CGFloat = 0.6) -> UnitPoint {
+        guard let touch, size.width > 0, size.height > 0 else { return .center }
+        let x = min(max(touch.x / size.width, 0), 1)
+        let y = min(max(touch.y / size.height, 0), 1)
+        return UnitPoint(x: 0.5 + (x - 0.5) * lean, y: 0.5 + (y - 0.5) * lean)
+    }
+}
+
+/// Sinks on touch-down, leaning toward the touch if given, and springs back from the same lean. Under Reduce
+/// Motion it shades instead of moving (darker in light mode, lighter in dark), without turning transparent.
+private struct PiecePress: ViewModifier {
+    let pressed: Bool
+    var touch: CGPoint?
+    var depth: CGFloat = 2.5
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.colorScheme) private var colorScheme
+    @State private var size: CGSize = .zero
+    @State private var anchor: UnitPoint = .center
+
+    func body(content: Content) -> some View {
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        let scale = pressed && !reduceMotion ? PieceMotion.pressScale(for: size, depth: depth) : 1
+        content
+            .onGeometryChange(for: CGSize.self) { $0.size } action: { size = $0 }
+            .brightness(pressed && reduceMotion ? (colorScheme == .dark ? 0.1 : -0.08) : 0)
+            .scaleEffect(scale, anchor: anchor)
+            .animation(pressed ? motion.press : motion.release, value: pressed)
+            .onChange(of: pressed) { _, isPressed in
+                if isPressed { anchor = PieceMotion.pressAnchor(touch: touch, in: size) }
+            }
+            .onChange(of: touch) { _, touch in
+                if pressed, let touch { anchor = PieceMotion.pressAnchor(touch: touch, in: size) }
+            }
+    }
+}
+
+private extension View {
+    /// Sinks this view while `pressed`, leaning toward `touch` (in this view's coordinates) when given.
+    func piecePress(_ pressed: Bool, touch: CGPoint? = nil, depth: CGFloat = 2.5) -> some View {
+        modifier(PiecePress(pressed: pressed, touch: touch, depth: depth))
+    }
+}
+
+// swiftpieces-motion: end
+
+// MARK: - Piece liquid
+//
+// The SwiftPieces liquid glass language: glass shapes that merge through a neck, bubbles that bud out of
+// and melt back into each other, and the frosted fallback before iOS 26. Each piece carries a copy of only
+// the parts it uses, so this file stands alone. Generated from registry/foundation/PieceLiquid.swift in the
+// SwiftPieces repo; edit it there, not here. The rules are in LIQUID_GLASS.md.
+// swiftpieces-liquid: 1.7.0 (liquid, liquidPress, bud)
+
+/// The liquid glass language: one merge distance, two rest gaps, and the springs a bubble leaves and comes home on.
+///
+/// Glass shapes inside one `PieceLiquidGroup` melt into each other through a neck when they come within `merge`
+/// points. Parts of one control rest `joined`, inside that distance, so the neck holds; separate actions rest
+/// `apart`, outside it, so they only goo while one buds out of, or melts back into, another.
+private enum PieceLiquid {
+    /// Glass shapes closer than this share a neck.
+    static let merge: CGFloat = 20
+    /// The gap between parts of one control (a stepper's buttons, a progress pill and its stop): the neck holds,
+    /// short and smooth, about two thirds of the shapes' height at its waist. Joined parts read best at one height.
+    static let joined: CGFloat = 4
+    /// The gap between separate actions (menu items, confirm and cancel, chips): they rest as their own bubbles.
+    static let apart: CGFloat = 26
+    /// How far a bubble shrinks while it is home inside its parent.
+    static let homeScale: CGFloat = 0.72
+
+    /// A bubble leaving its parent: slow enough that the neck's stretch and snap read.
+    static func split(reduceMotion: Bool) -> Animation {
+        reduceMotion ? .easeOut(duration: 0.2) : .spring(duration: 0.62, bounce: 0.22)
+    }
+
+    /// A bubble going home. No bounce: a bounce would carry it out through the far side of its parent.
+    static func home(reduceMotion: Bool) -> Animation {
+        reduceMotion ? .easeIn(duration: 0.18) : .spring(duration: 0.5, bounce: 0)
+    }
+}
+
+/// A group of glass shapes that merge into one liquid surface. On iOS 26 it is a `GlassEffectContainer`; before
+/// that, and under Reduce Transparency, the shapes draw on their own and simply don't merge. `lift` adds the soft
+/// shadow liquid glass floats on in light mode.
+private struct PieceLiquidGroup<Content: View>: View {
+    var spacing: CGFloat = PieceLiquid.merge
+    var lift = true
+    @ViewBuilder var content: Content
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        container
+            .shadow(color: .black.opacity(lift && colorScheme == .light ? 0.07 : 0), radius: 18, y: 8)
+    }
+
+    @ViewBuilder private var container: some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26, *), !reduceTransparency {
+            GlassEffectContainer(spacing: spacing) { content }
+        } else {
+            content
+        }
+        #else
+        content
+        #endif
+    }
+}
+
+/// One liquid glass shape: Liquid Glass on iOS 26, carrying `tint` as a solid colour and swelling under a press when
+/// `interactive`; a frosted Material with a light rim and a soft shadow before that; a solid fill under Reduce
+/// Transparency.
+///
+/// The tint is painted inside clear glass rather than tinting the glass. Tinted glass in a group bleeds its colour
+/// through every neck as a smear, so a red button would glow into the white pill it is joined to; painted inside,
+/// the colour stays crisp to the shape's edge, the necks between shapes are clear glass, and a tint change animates
+/// like any colour (tinted glass snaps).
+private struct PieceLiquidSurface<S: Shape>: ViewModifier {
+    var shape: S
+    var tint: Color?
+    var interactive: Bool
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.pieceLiquidScale) private var scale
+
+    func body(content: Content) -> some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26, *), !reduceTransparency {
+            // Scaled as two parts, content and outline, about the same centre. A scaleEffect on a glass view inside a
+            // GlassEffectContainer shrinks the glass but leaves what it carries full size, pinned to its corner.
+            content
+                .background { shape.fill(tint ?? .clear) }
+                .scaleEffect(scale)
+                .glassEffect(glass, in: shape.scale(scale))
+        } else {
+            fallback(content).scaleEffect(scale)
+        }
+        #else
+        fallback(content).scaleEffect(scale)
+        #endif
+    }
+
+    #if compiler(>=6.2)
+    @available(iOS 26, *)
+    private var glass: Glass {
+        interactive ? Glass.regular.interactive() : .regular
+    }
+    #endif
+
+    private func fallback(_ content: Content) -> some View {
+        let dark = colorScheme == .dark
+        return content
+            .background {
+                if reduceTransparency {
+                    shape.fill(tint ?? (dark ? Color(white: 0.17) : Color(white: 0.97)))
+                } else {
+                    ZStack {
+                        shape.fill(.regularMaterial)
+                        if let tint { shape.fill(tint.opacity(0.88)) }
+                    }
+                }
+            }
+            .overlay { shape.stroke(Color.white.opacity(dark ? 0.14 : 0.7), lineWidth: 0.5) }
+            .shadow(color: .black.opacity(dark ? 0.32 : 0.08), radius: 10, y: 5)
+    }
+}
+
+private struct PieceLiquidScaleKey: EnvironmentKey {
+    static let defaultValue: CGFloat = 1
+}
+
+private extension EnvironmentValues {
+    /// How much the liquid shapes below are scaled, about their own centres. Nested scales multiply.
+    var pieceLiquidScale: CGFloat {
+        get { self[PieceLiquidScaleKey.self] }
+        set { self[PieceLiquidScaleKey.self] = newValue }
+    }
+}
+
+private extension View {
+    /// Draws this view on a liquid glass `shape`. Put it inside a `PieceLiquidGroup` so it can merge with its neighbours.
+    func pieceLiquid<S: Shape>(_ shape: S, tint: Color? = nil, interactive: Bool = true) -> some View {
+        modifier(PieceLiquidSurface(shape: shape, tint: tint, interactive: interactive))
+    }
+
+    /// Scales the liquid glass shapes in this view, content and outline together, about their own centres. Use it
+    /// instead of `scaleEffect` on a glass view (a press, a lift, a swell): inside a group a plain `scaleEffect` shrinks
+    /// the glass but leaves its content full size and off centre. Animates like any other value.
+    func pieceLiquidScale(_ scale: CGFloat) -> some View {
+        transformEnvironment(\.pieceLiquidScale) { $0 *= scale }
+    }
+}
+
+/// The press for a glass control: the same size-aware sink and lean as `piecePress`, applied through
+/// `pieceLiquidScale` so the glass and what it carries sink together (a plain scaleEffect on glass leaves the content
+/// behind). Put the glass inside what it presses: the label of a button, the view this modifies. Under Reduce Motion
+/// it shades instead of moving.
+private struct PieceLiquidPress: ViewModifier {
+    let pressed: Bool
+    var touch: CGPoint?
+    var depth: CGFloat = 2.5
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.colorScheme) private var colorScheme
+    @State private var size: CGSize = .zero
+    @State private var anchor: UnitPoint = .center
+
+    func body(content: Content) -> some View {
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        let scale = pressed && !reduceMotion ? PieceMotion.pressScale(for: size, depth: depth) : 1
+        // A scale about `anchor` is a scale about the centre plus this shift toward the anchor.
+        let lean = CGSize(width: (anchor.x - 0.5) * size.width * (1 - scale), height: (anchor.y - 0.5) * size.height * (1 - scale))
+        content
+            .onGeometryChange(for: CGSize.self) { $0.size } action: { size = $0 }
+            .brightness(pressed && reduceMotion ? (colorScheme == .dark ? 0.1 : -0.08) : 0)
+            .pieceLiquidScale(scale)
+            .offset(lean)
+            .animation(pressed ? motion.press : motion.release, value: pressed)
+            .onChange(of: pressed) { _, isPressed in
+                if isPressed { anchor = PieceMotion.pressAnchor(touch: touch, in: size) }
+            }
+            .onChange(of: touch) { _, touch in
+                if pressed, let touch { anchor = PieceMotion.pressAnchor(touch: touch, in: size) }
+            }
+    }
+}
+
+/// `PiecePressStyle` for glass buttons: the label (with its `.pieceLiquid` inside) sinks as one.
+private struct PieceLiquidPressStyle: ButtonStyle {
+    var depth: CGFloat = 2.5
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label.pieceLiquidPress(configuration.isPressed, depth: depth)
+    }
+}
+
+private extension View {
+    /// Sinks this view's glass while `pressed`, leaning toward `touch` (in this view's coordinates) when given.
+    func pieceLiquidPress(_ pressed: Bool, touch: CGPoint? = nil, depth: CGFloat = 2.5) -> some View {
+        modifier(PieceLiquidPress(pressed: pressed, touch: touch, depth: depth))
+    }
+}
+
+/// The bud: how a bubble leaves and rejoins its parent, driven explicitly so every bubble shows the whole cycle.
+///
+/// A bubble is born at `home`, inside its parent, where the two glass shapes are one. It springs out to `rest`, and
+/// while it is inside the merge distance a neck holds it to the parent, thinning as it goes, until it snaps free.
+/// Going home it springs back on a spring with no bounce, the neck reaches out and re-forms, and only once it has
+/// melted all the way in is it removed. Both offsets are relative to where the bubble is laid out. Under Reduce
+/// Motion it stays at `rest`: its content fades and its glass closes in place.
+private struct PieceBud: ViewModifier {
+    var out: Bool
+    var rest: CGSize
+    var home: CGSize
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func body(content: Content) -> some View {
+        if reduceMotion {
+            // No travel. Inside a group glass ignores opacity, so the glass closes to nothing in place on the short
+            // Reduce Motion ease while its content fades; the opacity covers a bubble outside a group.
+            content
+                .pieceLiquidScale(out ? 1 : 0.001)
+                .opacity(out ? 1 : 0)
+                .offset(rest)
+        } else {
+            // The glass shrinks through `pieceLiquidScale`, never a plain scaleEffect (see there), then moves.
+            content
+                .pieceLiquidScale(out ? 1 : PieceLiquid.homeScale)
+                .offset(out ? rest : home)
+        }
+    }
+}
+
+/// A bubble's own content, on its own clock: gone the moment the bubble heads home, so it never rides over the
+/// parent's content, and arriving just after the bubble leaves.
+private struct PieceBudContent: ViewModifier {
+    var out: Bool
+
+    func body(content: Content) -> some View {
+        content
+            .blur(radius: out ? 0 : 6)
+            .opacity(out ? 1 : 0)
+            .animation(out ? .easeOut(duration: 0.3).delay(0.1) : .easeOut(duration: 0.14), value: out)
+    }
+}
+
+private extension View {
+    /// Places a bubble at `rest` while `out`, and at `home` (inside its parent, shrunk) while not.
+    func pieceBud(out: Bool, rest: CGSize = .zero, home: CGSize) -> some View {
+        modifier(PieceBud(out: out, rest: rest, home: home))
+    }
+
+    /// Hides a bubble's icon or label while it is home. Put it on the content, inside the glass.
+    func pieceBudContent(out: Bool) -> some View {
+        modifier(PieceBudContent(out: out))
+    }
+}
+
+/// Which bubbles exist and which are out. A bubble is added home with no animation, sent out on the next frame,
+/// and called home before it is removed, so it always melts in rather than fading. Keep one in `@State`.
+@MainActor @Observable
+private final class PieceBuds {
+    private(set) var present: [String] = []
+    private(set) var out: Set<String> = []
+    /// The latest call for each bubble. A bloom or gather that has been overtaken (a bubble sent home while it was
+    /// still waiting to go out, or called out again while melting) leaves that bubble alone.
+    @ObservationIgnored private var turn: [String: Int] = [:]
+
+    func contains(_ id: String) -> Bool { present.contains(id) }
+    func isOut(_ id: String) -> Bool { out.contains(id) }
+
+    private func claim(_ ids: [String]) -> [String: Int] {
+        var mine: [String: Int] = [:]
+        for id in ids {
+            let next = (turn[id] ?? 0) + 1
+            turn[id] = next
+            mine[id] = next
+        }
+        return mine
+    }
+
+    /// Puts bubbles straight out at rest with no motion: a view's first frame, or a state restored.
+    func place(_ ids: [String]) {
+        _ = claim(ids)
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) {
+            for id in ids where !present.contains(id) { present.append(id) }
+            out.formUnion(ids)
+        }
+    }
+
+    /// Adds bubbles home, then sends each out, `stagger` seconds apart, after an optional `delay`.
+    func bloom(_ ids: [String], reduceMotion: Bool, stagger: Double = 0.05, delay: Double = 0) async {
+        let mine = claim(ids)
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) {
+            for id in ids where !present.contains(id) { present.append(id) }
+        }
+        try? await Task.sleep(for: .milliseconds(24 + Int(max(delay, 0) * 1000)))
+        let split = PieceLiquid.split(reduceMotion: reduceMotion)
+        for (i, id) in ids.enumerated() where turn[id] == mine[id] {
+            withAnimation(split.delay(reduceMotion ? 0 : Double(i) * stagger)) { _ = out.insert(id) }
+        }
+    }
+
+    /// Calls bubbles home, last first, then removes them once they have melted in.
+    func gather(_ ids: [String], reduceMotion: Bool, stagger: Double = 0.04) async {
+        let mine = claim(ids)
+        let home = PieceLiquid.home(reduceMotion: reduceMotion)
+        for (i, id) in ids.reversed().enumerated() {
+            withAnimation(home.delay(reduceMotion ? 0 : Double(i) * stagger)) { _ = out.remove(id) }
+        }
+        try? await Task.sleep(for: .milliseconds(Int((0.52 + Double(ids.count) * stagger) * 1000)))
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) { present.removeAll { ids.contains($0) && !out.contains($0) && turn[$0] == mine[$0] } }
+    }
+}
+
+// swiftpieces-liquid: end
 ```
 
 </Tab>

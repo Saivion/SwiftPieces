@@ -1,0 +1,892 @@
+---
+title: "Glass Quick Add"
+description: "A liquid glass Quick add pill that folds up into a card. Tap it and the pill grows up and across into a menu of capture kinds; pick one and the same glass re-forms in place into that capture, a title field and its option chips. A signal Save bubble buds out from under the card's corner only once there is something to save, melts back if the field empties, and saving folds the whole thing down into the pill."
+piece: "GlassQuickAdd"
+category: "glass"
+minIOSVersion: "17.0"
+version: "1.0.0"
+tags: ["glass","quick-add","capture","menu","morph","form","liquid","bud"]
+registryDependencies: []
+---
+
+{/* GENERATED FILE. Edit registry/swift/glass/GlassQuickAdd.swift or GlassQuickAdd.mdx instead. */}
+
+A capture kind in a `GlassQuickAdd`: its row in the menu, and what the capture asks for.
+
+## Notes
+
+- One glass card that changes what it is. At rest it is a Quick add pill. Tap it and it grows up and across into a card listing the capture kinds, each keyed by a tinted disc; pick one and the same glass re-forms in place into that kind's capture: a header with the kind and a close button, a title field (up to three lines) and the kind's option chips. The card's 26pt continuous corner makes the 52pt pill a capsule and the open card a rounded panel, so the shape never changes kind, only size, on the morph spring. Each stage's contents blur out as the next blur in.
+- It grows from its lower trailing corner, so place it at the bottom of its space (a screen's bottom trailing corner, above a tab bar) and it opens upward.
+- Save is a signal bubble joined under the card's trailing corner. It buds out of the card the moment the field has text and melts back into the corner if the field empties, so it is only ever there when there is something to save. Saving (or Return) calls `onSave` with the kind, the trimmed text and the options that are on, then plays its own beat before anything closes: Save shows a spinner and morphs letter by letter to Saving, then turns sage with a check and Saved, with a success tap, then melts home and the card folds down into the pill. Each stage's contents leave quickly and the next arrive a beat later, so they never smear together as the glass resizes.
+- The field takes focus as a capture opens, so the keyboard rises with it. Chips are plain content inside the card's glass: a soft fill, stronger when on; any number can be on.
+- Pass `stage` to open the menu or a capture from your code (`.closed`, `.menu`, `.capture(id)`), `text` to keep a draft or fill it in, and change `saveTrigger` to save from your code (a keyboard shortcut, a toolbar button) as if Save were tapped. Without them the piece keeps its own.
+- Haptics: a soft impact as the pill opens, a success tap as Saved lands.
+- On iOS 26 the card and Save are Liquid Glass and Save's neck forms against the card; before that they are frosted glass, and under Reduce Transparency they are solid.
+- Reduce Motion: the card resizes on a short spring with no overshoot, Save fades in and out where it rests instead of budding, and the stage swaps cross-fade.
+- VoiceOver: the pill, every kind, each chip (with its selected state), Close and Save are buttons; saving is announced. Text follows Dynamic Type.
+- `Style` (`GlassQuickAddStyle`) sets the label, secondary, ink, action (Save) and success (Saved) colours. `Kind` (`GlassQuickAddKind`) sets each kind's id, symbol, title, prompt, options and disc tint. All text and symbols are semibold.
+
+## Usage
+
+```swift
+GlassQuickAddExample()
+```
+
+
+## Source
+
+<Tabs items={["GlassQuickAdd.swift"]}>
+<Tab value="GlassQuickAdd.swift">
+
+```swift title="GlassQuickAdd.swift"
+import SwiftUI
+import UIKit
+
+/// A capture kind in a `GlassQuickAdd`: its row in the menu, and what the capture asks for.
+public struct GlassQuickAddKind: Identifiable, Hashable, Sendable {
+    public var id: String
+    public var systemImage: String
+    public var title: String
+    /// The title field's placeholder in this kind's capture.
+    public var prompt: String
+    /// Option chips under the field (a due day, a flag, a time). Any number can be on.
+    public var options: [String]
+    /// The disc behind the kind's glyph.
+    public var tint: Color
+
+    public init(id: String, systemImage: String, title: String, prompt: String, options: [String] = [], tint: Color) {
+        self.id = id
+        self.systemImage = systemImage
+        self.title = title
+        self.prompt = prompt
+        self.options = options
+        self.tint = tint
+    }
+}
+
+/// Where a `GlassQuickAdd` is: the pill, the menu of kinds, or one kind's capture.
+public enum GlassQuickAddStage: Hashable, Sendable {
+    case closed
+    case menu
+    case capture(String)
+}
+
+/// Colors of a `GlassQuickAdd`. `.standard` is the house palette.
+public struct GlassQuickAddStyle: Sendable {
+    /// Text and glyphs on the glass.
+    public var label: Color
+    /// Placeholders, the menu's heading and unselected chips' text.
+    public var secondary: Color
+    /// Glyphs and text on tinted shapes (the kind discs, Save).
+    public var ink: Color
+    /// Save's tint: signal, the brand red.
+    public var action: Color
+    /// Save's tint once saved: sage.
+    public var success: Color
+
+    /// Pass only what you want to change; `nil` keeps the house value.
+    public init(label: Color? = nil, secondary: Color? = nil, ink: Color? = nil, action: Color? = nil, success: Color? = nil) {
+        self.label = label ?? glassQuickAddColor(light: 0x141414, dark: 0xF4F3EF)
+        self.secondary = secondary ?? glassQuickAddColor(light: 0x5C5A56, dark: 0xA6A49F)
+        self.ink = ink ?? Color(red: 0x14 / 255, green: 0x14 / 255, blue: 0x14 / 255)
+        self.action = action ?? Color(red: 1, green: 0, blue: 0)
+        self.success = success ?? Color(red: 0.663, green: 0.863, blue: 0.718)
+    }
+
+    public static let standard = GlassQuickAddStyle()
+}
+
+/// A Quick add pill that folds up into a card: a menu of capture kinds, then the chosen kind's capture, all in the same
+/// glass. Place it at the bottom of its space (a screen's bottom trailing corner, a toolbar) so it grows upward.
+///
+/// ```swift
+/// GlassQuickAdd(kinds: [
+///     .init(id: "task", systemImage: "checkmark.circle", title: "Task", prompt: "What needs doing?", options: ["Today", "Flag"], tint: .yellow),
+///     .init(id: "note", systemImage: "note.text", title: "Note", prompt: "Write it down", tint: .blue),
+/// ]) { kind, text, options in
+///     store.add(kind.id, text, options)
+/// }
+/// ```
+///
+/// - Parameters:
+///   - title: The pill's label. Defaults to "Quick add".
+///   - kinds: What can be added, in menu order.
+///   - stage: Optional two-way stage, to open the menu or a capture from your code. Without it the piece keeps its own.
+///   - text: Optional two-way capture text, to keep a draft or fill it in.
+///   - style: Colors. Defaults to the SwiftPieces house palette, adapting to light and dark.
+///   - saveTrigger: Change it to save the open capture from your code, as if Save were tapped (a keyboard shortcut, a
+///     toolbar button). Ignored while there is nothing to save.
+///   - onSave: Runs with the kind, the trimmed text and the options that are on, when Save is tapped or Return pressed.
+public struct GlassQuickAdd: View {
+    public typealias Kind = GlassQuickAddKind
+    public typealias Stage = GlassQuickAddStage
+    public typealias Style = GlassQuickAddStyle
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @FocusState private var fieldFocused: Bool
+    @State private var ownStage: Stage = .closed
+    @State private var draft = ""
+    @State private var picked: Set<String> = []
+    /// The Save bubble: home inside the card's lower trailing corner until there is something to save.
+    @State private var buds = PieceBuds()
+    @State private var saveHeight: CGFloat = 48
+    @State private var openTick = 0
+    @State private var saveTick = 0
+    /// Save's own beat after a tap: a spinner while it saves, then a check on sage, then it melts home.
+    @State private var saveState: SaveState = .idle
+
+    private enum SaveState { case idle, saving, saved }
+
+    private let title: String
+    private let kinds: [Kind]
+    private let stageBinding: Binding<Stage>?
+    private let textBinding: Binding<String>?
+    private let style: Style
+    private let saveTrigger: Int
+    private let onSave: (Kind, String, Set<String>) -> Void
+
+    public init(title: String = "Quick add", kinds: [Kind], stage: Binding<Stage>? = nil, text: Binding<String>? = nil, style: Style = .standard, saveTrigger: Int = 0, onSave: @escaping (Kind, String, Set<String>) -> Void) {
+        self.saveTrigger = saveTrigger
+        self.title = title
+        self.kinds = kinds
+        self.stageBinding = stage
+        self.textBinding = text
+        self.style = style
+        self.onSave = onSave
+    }
+
+    private var stage: Stage { stageBinding?.wrappedValue ?? ownStage }
+    private var field: Binding<String> { textBinding ?? $draft }
+    private var capturing: Kind? {
+        if case .capture(let id) = stage { return kinds.first { $0.id == id } }
+        return nil
+    }
+    private var canSave: Bool { capturing != nil && !field.wrappedValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+    private var motion: PieceMotion { PieceMotion(reduceMotion: reduceMotion) }
+
+    public var body: some View {
+        let _ = (buds.present, buds.out)
+        // One glass card and the Save bubble that buds from under its corner, joined.
+        PieceLiquidGroup {
+            VStack(alignment: .trailing, spacing: PieceLiquid.joined) {
+                card
+                if buds.contains("save") { saveButton }
+            }
+        }
+        // Grows up and across from its lower trailing corner, wherever its container puts it.
+        .frame(maxWidth: .infinity, alignment: .bottomTrailing)
+        .fontWeight(.semibold)
+        .animation(motion.morph, value: stage)
+        .sensoryFeedback(.impact(flexibility: .soft, intensity: 0.6), trigger: openTick)
+        .sensoryFeedback(.success, trigger: saveTick)
+        .onChange(of: canSave) { _, ready in
+            // Save buds out the moment there is something to save, and melts home if the field empties.
+            Task {
+                if ready {
+                    if !buds.contains("save") { await buds.bloom(["save"], reduceMotion: reduceMotion) }
+                } else if buds.contains("save") {
+                    await buds.gather(["save"], reduceMotion: reduceMotion)
+                }
+            }
+        }
+        .onChange(of: saveTrigger) { save() }
+        .onChange(of: stage) { _, new in
+            if case .capture = new { fieldFocused = true } else { fieldFocused = false }
+        }
+    }
+
+    // MARK: Card
+
+    /// The one glass shape: a pill at rest, the menu or a capture once open. A 26pt continuous corner makes the 52pt
+    /// pill a capsule and the card a rounded panel, so the shape never changes kind as it grows.
+    private var card: some View {
+        ZStack(alignment: .topLeading) {
+            switch stage {
+            case .closed:
+                pill.transition(stageSwap)
+            case .menu:
+                menu.transition(stageSwap)
+            case .capture:
+                if let capturing { capture(capturing).transition(stageSwap) }
+            }
+        }
+        .frame(maxWidth: stage == .closed ? nil : .infinity, alignment: .topLeading)
+        .pieceLiquid(RoundedRectangle(cornerRadius: 26, style: .continuous), interactive: false)
+    }
+
+    /// Each stage's contents: the outgoing ones blur away quickly, the incoming ones sharpen in a beat later, once the
+    /// glass is most of the way to its new size, so the two never smear together mid-resize.
+    private var stageSwap: AnyTransition {
+        .asymmetric(
+            insertion: motion.swap.animation(motion.reveal.delay(reduceMotion ? 0 : 0.14)),
+            removal: motion.swap.animation(motion.dismiss)
+        )
+    }
+
+    private var pill: some View {
+        Button { setStage(.menu) } label: {
+            HStack(spacing: 8) {
+                Image(systemName: "plus")
+                Text(title)
+            }
+            .font(.body.weight(.semibold))
+            .foregroundStyle(style.label)
+            .padding(.horizontal, 20)
+            .frame(minHeight: 52)
+            .contentShape(.rect)
+        }
+        .buttonStyle(.plain)
+    }
+
+    private var menu: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            header(Text(title).foregroundStyle(style.secondary))
+            ForEach(kinds) { kind in
+                Button {
+                    picked = []
+                    setStage(.capture(kind.id))
+                } label: {
+                    HStack(spacing: 12) {
+                        disc(kind)
+                        Text(kind.title)
+                            .font(.body.weight(.semibold))
+                            .foregroundStyle(style.label)
+                        Spacer(minLength: 0)
+                    }
+                    .frame(minHeight: 48)
+                    .contentShape(.rect)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+    }
+
+    private func capture(_ kind: Kind) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            header(HStack(spacing: 10) {
+                disc(kind, size: 28)
+                Text(kind.title).foregroundStyle(style.label)
+            })
+            TextField("", text: field, prompt: Text(kind.prompt).foregroundStyle(style.secondary), axis: .vertical)
+                .font(.title3.weight(.semibold))
+                .foregroundStyle(style.label)
+                .tint(style.label)
+                .lineLimit(1...3)
+                .focused($fieldFocused)
+                .submitLabel(.done)
+                .onSubmit(save)
+            if !kind.options.isEmpty {
+                // Chips are plain content inside the card's glass: a soft fill, stronger when on.
+                HStack(spacing: 8) {
+                    ForEach(kind.options, id: \.self) { option in
+                        let on = picked.contains(option)
+                        Button {
+                            if on { picked.remove(option) } else { picked.insert(option) }
+                        } label: {
+                            Text(option)
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundStyle(on ? style.label : style.secondary)
+                                .padding(.horizontal, 14)
+                                .frame(minHeight: 34)
+                                .background(style.label.opacity(on ? 0.16 : 0.07), in: .capsule)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityAddTraits(on ? .isSelected : [])
+                    }
+                }
+                .animation(motion.snap, value: picked)
+            }
+        }
+        .padding(16)
+    }
+
+    /// A row with the given lead and a close button, at the top of the menu and of a capture.
+    private func header(_ lead: some View) -> some View {
+        HStack {
+            lead.font(.subheadline.weight(.semibold))
+            Spacer(minLength: 8)
+            Button { setStage(.closed) } label: {
+                Image(systemName: "xmark")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(style.secondary)
+                    .frame(width: 32, height: 32)
+                    .background(style.label.opacity(0.07), in: .circle)
+                    .frame(width: 44, height: 44)
+                    .contentShape(.rect)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Close")
+        }
+    }
+
+    private func disc(_ kind: Kind, size: CGFloat = 36) -> some View {
+        Image(systemName: kind.systemImage)
+            .font(.system(size: size * 0.42, weight: .semibold))
+            .foregroundStyle(style.ink)
+            .frame(width: size, height: size)
+            .background(kind.tint, in: .circle)
+            .accessibilityHidden(true)
+    }
+
+    // MARK: Save
+
+    /// The signal bubble under the card's trailing corner, joined to it. It buds out of the card when there is text
+    /// and melts back into the corner when there isn't, or once saved.
+    private var saveButton: some View {
+        let out = buds.isOut("save")
+        let saved = saveState == .saved
+        return Button(action: save) {
+            HStack(spacing: 8) {
+                // The beat: a spinner while it saves, a check once saved.
+                ZStack {
+                    switch saveState {
+                    case .idle: EmptyView()
+                    case .saving: ProgressView().controlSize(.small).tint(style.ink).transition(motion.swap)
+                    case .saved: Image(systemName: "checkmark").transition(motion.swap)
+                    }
+                }
+                PieceMorphText(text: saveState == .idle ? String(localized: "Save") : saved ? String(localized: "Saved") : String(localized: "Saving"), font: .body.weight(.semibold))
+            }
+                .font(.body.weight(.semibold))
+                .foregroundStyle(style.ink)
+                .pieceBudContent(out: out)
+                .padding(.horizontal, 22)
+                .frame(minHeight: 48)
+                .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { saveHeight = $0 }
+                .pieceLiquid(Capsule(), tint: out ? (saved ? style.success : style.action) : nil)
+                .animation(motion.success, value: saveState)
+        }
+        .buttonStyle(PieceLiquidPressStyle())
+        .disabled(!canSave)
+        .pieceBud(out: out, home: CGSize(width: 0, height: -(saveHeight / 2 + PieceLiquid.joined + saveHeight * PieceLiquid.homeScale / 2)))
+    }
+
+    // MARK: Actions
+
+    private func setStage(_ next: Stage) {
+        if next == .menu, stage == .closed { openTick += 1 }
+        if next == .closed { picked = [] }
+        if let stageBinding { stageBinding.wrappedValue = next } else { ownStage = next }
+    }
+
+    private func save() {
+        guard let kind = capturing, canSave, saveState == .idle else { return }
+        let text = field.wrappedValue.trimmingCharacters(in: .whitespacesAndNewlines)
+        let options = picked
+        onSave(kind, text, options)
+        fieldFocused = false
+        withAnimation(motion.snap) { saveState = .saving }
+        Task {
+            // Saving, then saved with the success tap, then Save melts home and the card folds down into the pill.
+            try? await Task.sleep(for: .milliseconds(reduceMotion ? 300 : 650))
+            withAnimation(motion.success) { saveState = .saved }
+            saveTick += 1
+            AccessibilityNotification.Announcement(String(localized: "\(kind.title) added")).post()
+            try? await Task.sleep(for: .milliseconds(reduceMotion ? 300 : 600))
+            await buds.gather(["save"], reduceMotion: reduceMotion)
+            saveState = .idle
+            field.wrappedValue = ""
+            setStage(.closed)
+        }
+    }
+}
+
+/// A house-palette colour that follows the interface style.
+private func glassQuickAddColor(light: UInt32, dark: UInt32) -> Color {
+    Color(uiColor: UIColor { @Sendable traits in
+        let hex = traits.userInterfaceStyle == .dark ? dark : light
+        return UIColor(red: CGFloat((hex >> 16) & 0xFF) / 255, green: CGFloat((hex >> 8) & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
+    })
+}
+
+// MARK: - Example
+
+/// Quick add in a screen's lower trailing corner. It opens on its own, picks Task, types one and saves it, so the
+/// fold and the saving beat can be watched.
+private struct GlassQuickAddExample: View {
+    @State private var stage: GlassQuickAddStage = .closed
+    @State private var text = ""
+    @State private var save = 0
+
+    private let kinds: [GlassQuickAddKind] = [
+        .init(id: "note", systemImage: "note.text", title: "Note", prompt: "Write it down", tint: glassQuickAddColor(light: 0x9CC2FF, dark: 0x9CC2FF)),
+        .init(id: "task", systemImage: "checkmark", title: "Task", prompt: "What needs doing?", options: ["Today", "Tomorrow", "Flag"], tint: glassQuickAddColor(light: 0xFFD976, dark: 0xFFD976)),
+        .init(id: "link", systemImage: "link", title: "Link", prompt: "Paste a link", options: ["Read later"], tint: glassQuickAddColor(light: 0xCDB8FF, dark: 0xCDB8FF)),
+        .init(id: "reminder", systemImage: "bell", title: "Reminder", prompt: "Remind me to…", options: ["9:00", "13:00", "18:00"], tint: glassQuickAddColor(light: 0xA9DCB7, dark: 0xA9DCB7)),
+    ]
+
+    var body: some View {
+        GlassQuickAdd(kinds: kinds, stage: $stage, text: $text, saveTrigger: save) { _, _, _ in }
+            .padding(20)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+            .background(glassQuickAddColor(light: 0xF3F2EE, dark: 0x121212))
+            .task {
+                while !Task.isCancelled {
+                    try? await Task.sleep(for: .seconds(1.2))
+                    stage = .menu
+                    try? await Task.sleep(for: .seconds(1.4))
+                    stage = .capture("task")
+                    try? await Task.sleep(for: .seconds(0.6))
+                    for character in "Call the bakery" {
+                        text.append(character)
+                        try? await Task.sleep(for: .milliseconds(60))
+                    }
+                    try? await Task.sleep(for: .seconds(0.8))
+                    // Saves as a tap would: Saving, Saved, then it folds into the pill.
+                    save += 1
+                    try? await Task.sleep(for: .seconds(2.4))
+                }
+            }
+    }
+}
+
+#Preview("Light") {
+    GlassQuickAddExample()
+}
+
+#Preview("Dark") {
+    GlassQuickAddExample()
+        .preferredColorScheme(.dark)
+}
+
+// MARK: - Piece motion
+//
+// The SwiftPieces motion language: shared spring tokens and gesture physics, with the same values in every
+// piece. Each piece carries a copy of only the parts it uses, so this file stands alone. Generated from
+// registry/foundation/PieceMotion.swift in the SwiftPieces repo; edit it there, not here.
+// swiftpieces-motion: 1.1.0 (core, pressMath)
+
+/// The SwiftPieces motion language: five spring tiers, and a named role for every moment a piece moves,
+/// each with its Reduce Motion substitute.
+///
+/// Build one from the environment, `PieceMotion(reduceMotion: reduceMotion)`, and pick the role that names
+/// what just happened. Never animate the tracking of a finger: set gesture state directly in `onChanged`, so the
+/// surface stays under the finger, and spring only the release.
+private struct PieceMotion {
+    var reduceMotion = false
+
+    // Tiers. Overshoot and settle times are measured from rest with SwiftUI's Spring.
+    /// No overshoot, 90% in about 90ms. A press arriving under the finger.
+    static var tight: Spring { Spring(duration: 0.14, bounce: 0) }
+    /// About 2.8% overshoot, 90% in about 140ms. Snapping to a detent, page or segment.
+    static var responsive: Spring { Spring(duration: 0.32, bounce: 0.25) }
+    /// About 8.4% overshoot. Visible give: a release, a return from past an edge, a drag settling home.
+    static var elastic: Spring { Spring(duration: 0.42, bounce: 0.38) }
+    /// About 15% overshoot. A resolved action landing. At most once per interaction.
+    static var expressive: Spring { Spring(duration: 0.48, bounce: 0.48) }
+    /// About 1.5% overshoot, unhurried. Opening large surfaces and ambient change.
+    static var calm: Spring { Spring(duration: 0.5, bounce: 0.2) }
+
+    /// Reduce Motion: settles become this short spring with no overshoot.
+    private static var still: Animation { .spring(duration: 0.25, bounce: 0) }
+
+    // Roles.
+    /// Touch-down. Starts on the same frame and never bounces under the finger.
+    var press: Animation { .spring(Self.tight) }
+    /// The finger lifts off a pressed surface, which springs back through rest.
+    var release: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A dragged thing comes to rest. With a gesture's velocity, use `settle(velocity:from:to:)` instead.
+    var settle: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// Lands on a detent, page or segment.
+    var snap: Animation { reduceMotion ? Self.still : .spring(Self.responsive) }
+    /// A number, a chart value or anything else people read moves to its new value. Never overshoots, so it
+    /// never shows a value that isn't true.
+    var value: Animation { reduceMotion ? Self.still : .spring(duration: 0.35, bounce: 0) }
+    /// Comes back from past a limit: a pull beyond the edge, a value pushed against its bound.
+    var rebound: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A shape or container changes size, corner radius or form, with a little give at the end.
+    var morph: Animation { reduceMotion ? Self.still : .spring(duration: 0.4, bounce: 0.2) }
+    /// Something appears, opens or expands. Opening is a little slower than closing.
+    var reveal: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.calm) }
+    /// Something leaves, closes or collapses. Quick and firm, out of the way.
+    var dismiss: Animation { reduceMotion ? .easeIn(duration: 0.18) : .spring(duration: 0.3, bounce: 0.08) }
+    /// A resolved action lands: a check, a sent state, a reaction.
+    var success: Animation { reduceMotion ? .easeOut(duration: 0.24) : .spring(Self.expressive) }
+    /// A refused action. Firm, no wobble; `pieceShake` adds the movement.
+    var error: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.responsive) }
+    /// Slow ambient change. Loops themselves stop under Reduce Motion: check `allowsAmbient`.
+    var ambient: Animation { reduceMotion ? .easeInOut(duration: 0.3) : .spring(Self.calm) }
+
+    /// Loops, drifts, idle breathing and parallax run only when this is true.
+    var allowsAmbient: Bool { !reduceMotion }
+
+    /// A moving transition, or a plain fade under Reduce Motion.
+    func transition(_ transition: AnyTransition) -> AnyTransition {
+        reduceMotion ? .opacity : transition
+    }
+
+    /// For content replaced inside a container that stays put (a label, a glyph, a count): the old content
+    /// blurs out as the new one sharpens in. A fade under Reduce Motion.
+    @MainActor var swap: AnyTransition {
+        reduceMotion ? .opacity : AnyTransition(.blurReplace)
+    }
+}
+
+extension PieceMotion {
+    /// About `depth` points per edge, not a fixed percentage: an icon sinks to 0.92, a pill 0.95, a card 0.985.
+    nonisolated static func pressScale(for size: CGSize, depth: CGFloat = 2.5) -> CGFloat {
+        let side = (max(size.width, 1) * max(size.height, 1)).squareRoot()
+        return min(max(1 - depth * 2 / side, 0.92), 0.985)
+    }
+
+    /// An anchor partway from the center toward the touch, so the press leans into the finger without tipping.
+    nonisolated static func pressAnchor(touch: CGPoint?, in size: CGSize, lean: CGFloat = 0.6) -> UnitPoint {
+        guard let touch, size.width > 0, size.height > 0 else { return .center }
+        let x = min(max(touch.x / size.width, 0), 1)
+        let y = min(max(touch.y / size.height, 0), 1)
+        return UnitPoint(x: 0.5 + (x - 0.5) * lean, y: 0.5 + (y - 0.5) * lean)
+    }
+}
+
+// swiftpieces-motion: end
+
+// MARK: - Piece liquid
+//
+// The SwiftPieces liquid glass language: glass shapes that merge through a neck, bubbles that bud out of
+// and melt back into each other, and the frosted fallback before iOS 26. Each piece carries a copy of only
+// the parts it uses, so this file stands alone. Generated from registry/foundation/PieceLiquid.swift in the
+// SwiftPieces repo; edit it there, not here. The rules are in LIQUID_GLASS.md.
+// swiftpieces-liquid: 1.7.0 (liquid, liquidPress, bud, morphText)
+
+/// The liquid glass language: one merge distance, two rest gaps, and the springs a bubble leaves and comes home on.
+///
+/// Glass shapes inside one `PieceLiquidGroup` melt into each other through a neck when they come within `merge`
+/// points. Parts of one control rest `joined`, inside that distance, so the neck holds; separate actions rest
+/// `apart`, outside it, so they only goo while one buds out of, or melts back into, another.
+private enum PieceLiquid {
+    /// Glass shapes closer than this share a neck.
+    static let merge: CGFloat = 20
+    /// The gap between parts of one control (a stepper's buttons, a progress pill and its stop): the neck holds,
+    /// short and smooth, about two thirds of the shapes' height at its waist. Joined parts read best at one height.
+    static let joined: CGFloat = 4
+    /// The gap between separate actions (menu items, confirm and cancel, chips): they rest as their own bubbles.
+    static let apart: CGFloat = 26
+    /// How far a bubble shrinks while it is home inside its parent.
+    static let homeScale: CGFloat = 0.72
+
+    /// A bubble leaving its parent: slow enough that the neck's stretch and snap read.
+    static func split(reduceMotion: Bool) -> Animation {
+        reduceMotion ? .easeOut(duration: 0.2) : .spring(duration: 0.62, bounce: 0.22)
+    }
+
+    /// A bubble going home. No bounce: a bounce would carry it out through the far side of its parent.
+    static func home(reduceMotion: Bool) -> Animation {
+        reduceMotion ? .easeIn(duration: 0.18) : .spring(duration: 0.5, bounce: 0)
+    }
+}
+
+/// A group of glass shapes that merge into one liquid surface. On iOS 26 it is a `GlassEffectContainer`; before
+/// that, and under Reduce Transparency, the shapes draw on their own and simply don't merge. `lift` adds the soft
+/// shadow liquid glass floats on in light mode.
+private struct PieceLiquidGroup<Content: View>: View {
+    var spacing: CGFloat = PieceLiquid.merge
+    var lift = true
+    @ViewBuilder var content: Content
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        container
+            .shadow(color: .black.opacity(lift && colorScheme == .light ? 0.07 : 0), radius: 18, y: 8)
+    }
+
+    @ViewBuilder private var container: some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26, *), !reduceTransparency {
+            GlassEffectContainer(spacing: spacing) { content }
+        } else {
+            content
+        }
+        #else
+        content
+        #endif
+    }
+}
+
+/// One liquid glass shape: Liquid Glass on iOS 26, carrying `tint` as a solid colour and swelling under a press when
+/// `interactive`; a frosted Material with a light rim and a soft shadow before that; a solid fill under Reduce
+/// Transparency.
+///
+/// The tint is painted inside clear glass rather than tinting the glass. Tinted glass in a group bleeds its colour
+/// through every neck as a smear, so a red button would glow into the white pill it is joined to; painted inside,
+/// the colour stays crisp to the shape's edge, the necks between shapes are clear glass, and a tint change animates
+/// like any colour (tinted glass snaps).
+private struct PieceLiquidSurface<S: Shape>: ViewModifier {
+    var shape: S
+    var tint: Color?
+    var interactive: Bool
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.pieceLiquidScale) private var scale
+
+    func body(content: Content) -> some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26, *), !reduceTransparency {
+            // Scaled as two parts, content and outline, about the same centre. A scaleEffect on a glass view inside a
+            // GlassEffectContainer shrinks the glass but leaves what it carries full size, pinned to its corner.
+            content
+                .background { shape.fill(tint ?? .clear) }
+                .scaleEffect(scale)
+                .glassEffect(glass, in: shape.scale(scale))
+        } else {
+            fallback(content).scaleEffect(scale)
+        }
+        #else
+        fallback(content).scaleEffect(scale)
+        #endif
+    }
+
+    #if compiler(>=6.2)
+    @available(iOS 26, *)
+    private var glass: Glass {
+        interactive ? Glass.regular.interactive() : .regular
+    }
+    #endif
+
+    private func fallback(_ content: Content) -> some View {
+        let dark = colorScheme == .dark
+        return content
+            .background {
+                if reduceTransparency {
+                    shape.fill(tint ?? (dark ? Color(white: 0.17) : Color(white: 0.97)))
+                } else {
+                    ZStack {
+                        shape.fill(.regularMaterial)
+                        if let tint { shape.fill(tint.opacity(0.88)) }
+                    }
+                }
+            }
+            .overlay { shape.stroke(Color.white.opacity(dark ? 0.14 : 0.7), lineWidth: 0.5) }
+            .shadow(color: .black.opacity(dark ? 0.32 : 0.08), radius: 10, y: 5)
+    }
+}
+
+private struct PieceLiquidScaleKey: EnvironmentKey {
+    static let defaultValue: CGFloat = 1
+}
+
+private extension EnvironmentValues {
+    /// How much the liquid shapes below are scaled, about their own centres. Nested scales multiply.
+    var pieceLiquidScale: CGFloat {
+        get { self[PieceLiquidScaleKey.self] }
+        set { self[PieceLiquidScaleKey.self] = newValue }
+    }
+}
+
+private extension View {
+    /// Draws this view on a liquid glass `shape`. Put it inside a `PieceLiquidGroup` so it can merge with its neighbours.
+    func pieceLiquid<S: Shape>(_ shape: S, tint: Color? = nil, interactive: Bool = true) -> some View {
+        modifier(PieceLiquidSurface(shape: shape, tint: tint, interactive: interactive))
+    }
+
+    /// Scales the liquid glass shapes in this view, content and outline together, about their own centres. Use it
+    /// instead of `scaleEffect` on a glass view (a press, a lift, a swell): inside a group a plain `scaleEffect` shrinks
+    /// the glass but leaves its content full size and off centre. Animates like any other value.
+    func pieceLiquidScale(_ scale: CGFloat) -> some View {
+        transformEnvironment(\.pieceLiquidScale) { $0 *= scale }
+    }
+}
+
+/// The press for a glass control: the same size-aware sink and lean as `piecePress`, applied through
+/// `pieceLiquidScale` so the glass and what it carries sink together (a plain scaleEffect on glass leaves the content
+/// behind). Put the glass inside what it presses: the label of a button, the view this modifies. Under Reduce Motion
+/// it shades instead of moving.
+private struct PieceLiquidPress: ViewModifier {
+    let pressed: Bool
+    var touch: CGPoint?
+    var depth: CGFloat = 2.5
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.colorScheme) private var colorScheme
+    @State private var size: CGSize = .zero
+    @State private var anchor: UnitPoint = .center
+
+    func body(content: Content) -> some View {
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        let scale = pressed && !reduceMotion ? PieceMotion.pressScale(for: size, depth: depth) : 1
+        // A scale about `anchor` is a scale about the centre plus this shift toward the anchor.
+        let lean = CGSize(width: (anchor.x - 0.5) * size.width * (1 - scale), height: (anchor.y - 0.5) * size.height * (1 - scale))
+        content
+            .onGeometryChange(for: CGSize.self) { $0.size } action: { size = $0 }
+            .brightness(pressed && reduceMotion ? (colorScheme == .dark ? 0.1 : -0.08) : 0)
+            .pieceLiquidScale(scale)
+            .offset(lean)
+            .animation(pressed ? motion.press : motion.release, value: pressed)
+            .onChange(of: pressed) { _, isPressed in
+                if isPressed { anchor = PieceMotion.pressAnchor(touch: touch, in: size) }
+            }
+            .onChange(of: touch) { _, touch in
+                if pressed, let touch { anchor = PieceMotion.pressAnchor(touch: touch, in: size) }
+            }
+    }
+}
+
+/// `PiecePressStyle` for glass buttons: the label (with its `.pieceLiquid` inside) sinks as one.
+private struct PieceLiquidPressStyle: ButtonStyle {
+    var depth: CGFloat = 2.5
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label.pieceLiquidPress(configuration.isPressed, depth: depth)
+    }
+}
+
+private extension View {
+    /// Sinks this view's glass while `pressed`, leaning toward `touch` (in this view's coordinates) when given.
+    func pieceLiquidPress(_ pressed: Bool, touch: CGPoint? = nil, depth: CGFloat = 2.5) -> some View {
+        modifier(PieceLiquidPress(pressed: pressed, touch: touch, depth: depth))
+    }
+}
+
+/// The bud: how a bubble leaves and rejoins its parent, driven explicitly so every bubble shows the whole cycle.
+///
+/// A bubble is born at `home`, inside its parent, where the two glass shapes are one. It springs out to `rest`, and
+/// while it is inside the merge distance a neck holds it to the parent, thinning as it goes, until it snaps free.
+/// Going home it springs back on a spring with no bounce, the neck reaches out and re-forms, and only once it has
+/// melted all the way in is it removed. Both offsets are relative to where the bubble is laid out. Under Reduce
+/// Motion it stays at `rest`: its content fades and its glass closes in place.
+private struct PieceBud: ViewModifier {
+    var out: Bool
+    var rest: CGSize
+    var home: CGSize
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func body(content: Content) -> some View {
+        if reduceMotion {
+            // No travel. Inside a group glass ignores opacity, so the glass closes to nothing in place on the short
+            // Reduce Motion ease while its content fades; the opacity covers a bubble outside a group.
+            content
+                .pieceLiquidScale(out ? 1 : 0.001)
+                .opacity(out ? 1 : 0)
+                .offset(rest)
+        } else {
+            // The glass shrinks through `pieceLiquidScale`, never a plain scaleEffect (see there), then moves.
+            content
+                .pieceLiquidScale(out ? 1 : PieceLiquid.homeScale)
+                .offset(out ? rest : home)
+        }
+    }
+}
+
+/// A bubble's own content, on its own clock: gone the moment the bubble heads home, so it never rides over the
+/// parent's content, and arriving just after the bubble leaves.
+private struct PieceBudContent: ViewModifier {
+    var out: Bool
+
+    func body(content: Content) -> some View {
+        content
+            .blur(radius: out ? 0 : 6)
+            .opacity(out ? 1 : 0)
+            .animation(out ? .easeOut(duration: 0.3).delay(0.1) : .easeOut(duration: 0.14), value: out)
+    }
+}
+
+private extension View {
+    /// Places a bubble at `rest` while `out`, and at `home` (inside its parent, shrunk) while not.
+    func pieceBud(out: Bool, rest: CGSize = .zero, home: CGSize) -> some View {
+        modifier(PieceBud(out: out, rest: rest, home: home))
+    }
+
+    /// Hides a bubble's icon or label while it is home. Put it on the content, inside the glass.
+    func pieceBudContent(out: Bool) -> some View {
+        modifier(PieceBudContent(out: out))
+    }
+}
+
+/// Which bubbles exist and which are out. A bubble is added home with no animation, sent out on the next frame,
+/// and called home before it is removed, so it always melts in rather than fading. Keep one in `@State`.
+@MainActor @Observable
+private final class PieceBuds {
+    private(set) var present: [String] = []
+    private(set) var out: Set<String> = []
+    /// The latest call for each bubble. A bloom or gather that has been overtaken (a bubble sent home while it was
+    /// still waiting to go out, or called out again while melting) leaves that bubble alone.
+    @ObservationIgnored private var turn: [String: Int] = [:]
+
+    func contains(_ id: String) -> Bool { present.contains(id) }
+    func isOut(_ id: String) -> Bool { out.contains(id) }
+
+    private func claim(_ ids: [String]) -> [String: Int] {
+        var mine: [String: Int] = [:]
+        for id in ids {
+            let next = (turn[id] ?? 0) + 1
+            turn[id] = next
+            mine[id] = next
+        }
+        return mine
+    }
+
+    /// Puts bubbles straight out at rest with no motion: a view's first frame, or a state restored.
+    func place(_ ids: [String]) {
+        _ = claim(ids)
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) {
+            for id in ids where !present.contains(id) { present.append(id) }
+            out.formUnion(ids)
+        }
+    }
+
+    /// Adds bubbles home, then sends each out, `stagger` seconds apart, after an optional `delay`.
+    func bloom(_ ids: [String], reduceMotion: Bool, stagger: Double = 0.05, delay: Double = 0) async {
+        let mine = claim(ids)
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) {
+            for id in ids where !present.contains(id) { present.append(id) }
+        }
+        try? await Task.sleep(for: .milliseconds(24 + Int(max(delay, 0) * 1000)))
+        let split = PieceLiquid.split(reduceMotion: reduceMotion)
+        for (i, id) in ids.enumerated() where turn[id] == mine[id] {
+            withAnimation(split.delay(reduceMotion ? 0 : Double(i) * stagger)) { _ = out.insert(id) }
+        }
+    }
+
+    /// Calls bubbles home, last first, then removes them once they have melted in.
+    func gather(_ ids: [String], reduceMotion: Bool, stagger: Double = 0.04) async {
+        let mine = claim(ids)
+        let home = PieceLiquid.home(reduceMotion: reduceMotion)
+        for (i, id) in ids.reversed().enumerated() {
+            withAnimation(home.delay(reduceMotion ? 0 : Double(i) * stagger)) { _ = out.remove(id) }
+        }
+        try? await Task.sleep(for: .milliseconds(Int((0.52 + Double(ids.count) * stagger) * 1000)))
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) { present.removeAll { ids.contains($0) && !out.contains($0) && turn[$0] == mine[$0] } }
+    }
+}
+
+/// A label that changes letter by letter: letters both strings share hold still, the rest blur out and the new ones
+/// blur in a few milliseconds apart. Under Reduce Motion it cross-fades. VoiceOver reads the whole string.
+private struct PieceMorphText: View {
+    var text: String
+    var font: Font = .body.weight(.semibold)
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        let glyphs = Array(text)
+        HStack(spacing: 0) {
+            ForEach(glyphs.indices, id: \.self) { i in
+                Text(String(glyphs[i]))
+                    .id("\(i)\(glyphs[i])")
+                    .transition(transition(i))
+            }
+        }
+        .font(font)
+        .fixedSize()
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(text)
+    }
+
+    private func transition(_ i: Int) -> AnyTransition {
+        guard !reduceMotion else { return .opacity }
+        return AnyTransition(.blurReplace(.downUp)).combined(with: .scale(scale: 0.6, anchor: .bottom))
+            .animation(.spring(duration: 0.42, bounce: 0.3).delay(Double(i) * 0.022))
+    }
+}
+
+// swiftpieces-liquid: end
+```
+
+</Tab>
+</Tabs>

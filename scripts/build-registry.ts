@@ -29,6 +29,7 @@ import {
 import { categories } from "../lib/categories";
 import { exploreProPages, proCatalog, proCountsLabel } from "../lib/pro-catalog";
 import { hubs, hubItems, hubPath } from "../lib/hubs";
+import { motionDrift } from "./sync-motion";
 
 const ROOT = join(import.meta.dirname, "..");
 const SWIFT_DIR = join(ROOT, "registry/swift");
@@ -110,6 +111,10 @@ export function toSlug(name: string): string {
 }
 
 function build() {
+  // Each piece carries its own copy of the motion sections it uses (registry/foundation/PieceMotion.swift).
+  // A stale copy would ship old motion to the registry and the docs, so it stops the build.
+  const drift = motionDrift();
+  if (drift.length) throw new Error(`Piece motion blocks are out of date in ${drift.join(", ")}. Run \`npm run motion:sync\`.`);
   const previews = readPreviewManifest();
   const items: RegistryItem[] = [];
 
@@ -273,9 +278,10 @@ function writeDocs(items: RegistryItem[]) {
 
   const cats = (Object.keys(categories) as Category[]).filter((c) => items.some((i) => i.category === c));
   writeFileSync(join(root, "index.mdx"), `---\ntitle: "All SwiftUI components"\ndescription: "Every free SwiftPieces component for iOS with a live preview. Filter by category, then open a piece for its notes, parameters, source and install command."\nindex: true\n---\n\n{/* GENERATED FILE. Edit scripts/build-registry.ts. */}\n`);
-  // Explore Pro: Pro's screens and templates as cards that open on pro.swiftpieces.com. The cards
+  // Explore Pro: Pro's screens, flows and templates as cards that open on pro.swiftpieces.com. The cards
   // come from lib/pro-cards.json and public/pro-cards/, refreshed by scripts/pro-cards/capture.ts.
   writeFileSync(join(root, "screens.mdx"), `---\ntitle: "Screens"\ndescription: "Production-ready SwiftUI screens from SwiftPieces Pro. Each one is a complete, themed screen you drop into your app and wire to your data."\npro: "screen"\n---\n\n{/* GENERATED FILE. Edit scripts/build-registry.ts. */}\n`);
+  writeFileSync(join(root, "flows.mdx"), `---\ntitle: "Flows"\ndescription: "Whole journeys through SwiftPieces Pro's app templates: first run through sign in and the paywall, the core of each app, then profile and settings, screen by screen."\npro: "flow"\n---\n\n{/* GENERATED FILE. Edit scripts/build-registry.ts. */}\n`);
   writeFileSync(join(root, "templates.mdx"), `---\ntitle: "Templates"\ndescription: "Complete Xcode app templates from SwiftPieces Pro, wired end to end. Open the project, swap the brand and the copy, ship."\npro: "template"\n---\n\n{/* GENERATED FILE. Edit scripts/build-registry.ts. */}\n`);
   writeFileSync(join(root, "meta.json"), JSON.stringify({
     title: "Components",
@@ -412,7 +418,8 @@ function writeLlms(items: RegistryItem[]) {
     "- License: MIT + Commons Clause. Free for personal and commercial apps, including client work. Source-available rather than OSI open source: the pieces themselves may not be sold or redistributed.",
     "- No dependencies and no Swift package: the CLI copies source files into a SwiftPieces folder in the app, and they become the developer's own code.",
     "- iOS 17 baseline. Liquid Glass pieces gate glass with `#available(iOS 26, *)` and fall back to Material.",
-    "- Motion, states and accessibility are built in (Dynamic Type, Reduce Motion, Reduce Transparency), with haptics (sensoryFeedback) where an interaction calls for them.",
+    `- One motion language across every piece: five spring tiers with named roles, gesture releases that keep the finger's velocity, rubber-band limits and a Reduce Motion substitute for every movement (${SITE_URL}/docs/guides/swiftui-motion).`,
+    "- States and accessibility are built in (Dynamic Type, Reduce Motion, Reduce Transparency), with haptics (sensoryFeedback) where an interaction calls for them.",
     `- Source: ${"https://github.com/Saivion/SwiftPieces"}`,
     "",
     "Rules for Liquid Glass: gate with `#available(iOS 26, *)` and a Material fallback; wrap multiple glass views in one `GlassEffectContainer`; apply `.glassEffect` after layout modifiers; respect `accessibilityReduceTransparency`; never use invented modifiers such as `.liquidGlassUltra`.",
@@ -445,7 +452,7 @@ function writeLlms(items: RegistryItem[]) {
     "",
     "## SwiftPieces Pro",
     "",
-    `A separate paid library for building whole apps: ${proCountsLabel} (production-ready SwiftUI screens, complete Xcode projects, and agent skills that build the rest in the same design) at ${PRO_URL}/library, plus Pro remixing in the Playground at ${SITE_URL}/apps (all ${proCatalog.remixing.apps} apps in the App Library, remix any app with AI, keep up to ${proCatalog.remixing.saves} remixes). One plan with lifetime access; plan and pricing: ${PRO_URL}/pro. Pro MCP endpoint: ${PRO_URL}/api/mcp (license key required): search_library, get_item, list_kit, get_kit_item, apply_design_skill, apply_recipe.`,
+    `A separate paid library for building whole apps: ${proCountsLabel} (production-ready SwiftUI screens, flows that string them into whole journeys from first run to settings, complete Xcode projects, and agent skills that build the rest in the same design) at ${PRO_URL}/library, plus Pro remixing in the Playground at ${SITE_URL}/apps (all ${proCatalog.remixing.apps} apps in the App Library, remix any app with AI, keep up to ${proCatalog.remixing.saves} remixes). One plan with lifetime access; plan and pricing: ${PRO_URL}/pro. Pro MCP endpoint: ${PRO_URL}/api/mcp (license key required): search_library, get_item, list_kit, get_kit_item, apply_design_skill, apply_recipe.`,
     "",
   );
   for (const [cat, list] of byCat) {

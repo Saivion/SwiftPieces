@@ -1,10 +1,12 @@
 ## Notes
 
-- Glyph outlines come from Core Text (`CTFontCreatePathForGlyph`), so any `UIFont` works, including custom families. The path is built once per string and font, not on every layout pass.
-- On iOS 26 the outline is passed to `glassEffect(_:in:)` as a shape. Below iOS 26 it is filled with `.ultraThinMaterial` and a hairline highlight; Reduce Transparency fills it with `.primary` instead.
+- Glyph outlines come from Core Text (`CTFontCreatePathForGlyph`), so any `UIFont` works, including custom families. The default is the system font at the house weight, semibold, like all SwiftPieces type; the example sets its numerals at 120pt so the strokes stay wide enough to bend the light. The path is built in `body`, not on layout passes, so keep `GlassText` out of anything that re-renders every frame: put the clock on the backdrop, as the example does, and leave the glass outside it.
+- On iOS 26 the outline is passed to `glassEffect(_:in:)` as a shape. Glass is this piece's subject, so it draws its glass directly instead of through the liquid group the other pieces share; the glass call needs the iOS 26 SDK and is compiled only with it, so the piece still builds with Xcode 16. Below iOS 26 the outline is filled with `.ultraThinMaterial` and a hairline highlight; Reduce Transparency fills it with `.primary` instead.
 - The point size follows Dynamic Type via `@ScaledMetric(relativeTo: .largeTitle)`, capped at 1.6x so a display word never leaves the screen. Pass `scalesWithDynamicType: false` to pin it.
 - Glass reads best over a backdrop with soft tonal variation; a flat color gives it nothing to refract.
 - Split the string with `\n` for a stacked display title. `Style.alignment` and `Style.leading` (0.86 of the font's line height by default) lay out the lines.
 - States: Liquid Glass on iOS 26 with a soft lift shadow; below iOS 26 a layered fallback (Material, optional tint at `fallbackTintAmount`, a top light and a 1pt specular rim); under Reduce Transparency a solid `Style.solidFill` (`.primary` by default).
+- The letters have no motion of their own: no entrance, no idle loop, no press. A new string takes the old one's place at once, so letters that did not change never dim or double up mid-swap. For numerals that tick, such as a clock, use `UIFont.monospacedDigitSystemFont(ofSize:weight:)` so unchanged digits keep their place. The life comes from the backdrop moving behind the glass.
+- Reduce Motion changes nothing in the component, since nothing in it moves. The example's color blocks start from a rest pose when the view appears and ease into their drift over two seconds; under Reduce Motion they hold that rest pose, and turning it off starts the drift again from rest.
 - VoiceOver reads the lines as one static text.
 - For a full purchase screen built around glass display type, see the Pro Purchase screen.

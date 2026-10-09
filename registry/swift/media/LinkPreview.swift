@@ -1,9 +1,9 @@
 // swiftpieces:
 // title: Link Preview
-// description: A rich card for any URL that holds its final size while a skeleton sweeps, then settles the page's image, title and host into place, fetched once with LinkPresentation, shared by every card showing the same link and cached so scrolling never refetches, falling back to a quiet card with the address when a page cannot be read, opening on tap and offering Copy Link and Share on long press.
+// description: A rich card for any URL that holds its final size while a skeleton sweeps, then settles the page's image and title into place under a liquid glass host chip that is there from the first frame (riding over the picture on the large card), fetched once with LinkPresentation, shared by every card showing the same link and cached so scrolling never refetches, falling back to a quiet card with the address when a page cannot be read, opening on tap and offering Copy Link and Share on long press.
 // category: media
 // minIOSVersion: "17.0"
-// version: "1.0.1"
+// version: "1.2.0"
 // added: "2026-09-29"
 // tags: [link, url, preview, unfurl, metadata, linkpresentation, cache, chat]
 
@@ -13,6 +13,9 @@ import ImageIO
 import UniformTypeIdentifiers
 
 /// A rich preview card for a URL: the page's image, title and host, fetched once and cached.
+///
+/// The card is content; its one piece of chrome, the host, sits on a small liquid glass chip. It shows from the first
+/// frame (the host is known before the page is) and rides over the picture on the large card.
 ///
 /// Tapping opens `url` through the environment's `openURL`, so an app that shows links in its own browser
 /// routes it with `.environment(\.openURL, OpenURLAction { url in … })` like any other link.
@@ -57,11 +60,11 @@ public struct LinkPreview: View {
         public var card: Color
         /// Skeleton bones while loading, and the tile behind a site icon.
         public var placeholder: Color
-        /// The soft band that sweeps across the skeleton.
+        /// The soft band that sweeps across the skeleton, and the tone it breathes toward under Reduce Motion.
         public var highlight: Color
         /// The title.
         public var title: Color
-        /// The host line and the glyph on the fallback tile.
+        /// The host on its glass chip, and the glyph on the fallback tile.
         public var secondary: Color
         /// Solid blocks for a page with no image and no icon; the block and its letter are picked from the host, so a site keeps its color.
         public var tiles: [Color]
@@ -138,7 +141,7 @@ public struct LinkPreview: View {
         return .loading
     }
 
-    private var motion: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(duration: 0.45, bounce: 0.12) }
+    private var motion: PieceMotion { PieceMotion(reduceMotion: reduceMotion) }
     private var shape: RoundedRectangle { RoundedRectangle(cornerRadius: style.cornerRadius, style: .continuous) }
     private var titleLines: Int { dynamicTypeSize.isAccessibilitySize ? 3 : 2 }
 
@@ -147,7 +150,9 @@ public struct LinkPreview: View {
         Button { openURL(url) } label: {
             card(phase)
         }
-        .buttonStyle(PressStyle(reduceMotion: reduceMotion))
+        // Centered, so a card in a feed or chat never fights the scroll.
+        .buttonStyle(PiecePressStyle())
+        .fontWeight(.semibold)
         .contentShape(.contextMenuPreview, shape)
         .contextMenu { menu(phase) }
         .opacity(isEnabled ? 1 : 0.5)
@@ -171,6 +176,11 @@ public struct LinkPreview: View {
                 VStack(alignment: .leading, spacing: 0) {
                     HeroFrame(aspectRatio: 1.91, maxHeight: 280) { hero(phase) }
                         .clipped()
+                        // The host rides over the picture on glass, so the picture develops underneath it.
+                        .overlay(alignment: .topLeading) {
+                            hostChip(chipText(phase))
+                                .padding(10)
+                        }
                     text(phase, large: true)
                         .padding(.horizontal, 16)
                         .padding(.top, 12)
@@ -201,14 +211,16 @@ public struct LinkPreview: View {
     private func thumbnail(_ phase: Phase) -> some View {
         let tile = RoundedRectangle(cornerRadius: max(style.cornerRadius - 8, 4), style: .continuous)
         return ZStack {
+            // The placeholder stays underneath in every state, as on the hero, so the picture develops on it
+            // instead of crossfading through the card color.
+            tile.fill(style.placeholder)
             switch phase {
             case .loading:
-                tile.fill(style.placeholder)
+                EmptyView()
             case .loaded(let metadata):
                 artwork(metadata, compact: true)
                     .transition(reveal)
             case .fallback:
-                tile.fill(style.placeholder)
                 Image(systemName: LinkPreviewLoader.glyph(for: url))
                     .font(.system(size: thumbnail * 0.34, weight: .semibold))
                     .foregroundStyle(style.secondary)
@@ -251,7 +263,7 @@ public struct LinkPreview: View {
         } else {
             style.tile(for: host).overlay {
                 Text(LinkPreviewLoader.monogram(for: host))
-                    .font(.system(size: compact ? thumbnail * 0.44 : 64, weight: .heavy, design: .rounded))
+                    .font(.system(size: compact ? thumbnail * 0.44 : 64, weight: .semibold, design: .rounded))
                     .foregroundStyle(style.ink)
                     .minimumScaleFactor(0.5)
                     .accessibilityHidden(true)
@@ -259,8 +271,14 @@ public struct LinkPreview: View {
         }
     }
 
+    /// The lead: the picture surfaces from just above full size and settles flat, like a print developing.
     private var reveal: AnyTransition {
-        reduceMotion ? .opacity : .opacity.combined(with: .scale(scale: 1.06))
+        motion.transition(.opacity.combined(with: .scale(scale: 1.06)))
+    }
+
+    /// The caption rises a few points into the place its skeleton held. Offset only, so the reserved height never moves.
+    private var caption: AnyTransition {
+        motion.transition(.opacity.combined(with: .offset(y: 4)))
     }
 
     // MARK: Text
@@ -269,8 +287,13 @@ public struct LinkPreview: View {
     private func text(_ phase: Phase, large: Bool) -> some View {
         let titleFont: Font = large ? .headline : .subheadline.weight(.semibold)
         // The large card reserves every title line so a short title never changes its height after the skeleton.
-        // The compact row is as tall as its thumbnail, which already holds two lines and the host.
+        // The compact row is as tall as its thumbnail, which already holds the chip and two lines.
         VStack(alignment: .leading, spacing: textSpacing) {
+            // On the large card the chip rides over the picture instead. It is the same view in every phase, so a
+            // redirect blurs its host over rather than replacing the chip.
+            if !large {
+                hostChip(chipText(phase))
+            }
             switch phase {
             case .loading:
                 // Real text laid out and redacted into solid bones, so the skeleton has exactly the loaded geometry.
@@ -280,16 +303,14 @@ public struct LinkPreview: View {
                     .overlay { Sweep(color: style.highlight).mask { SolidBones(color: .black) { bones(titleFont, reserves: large) } } }
                     .transition(.opacity)
             case .loaded(let metadata):
-                let finalURL = metadata.url ?? url
-                meta(LinkPreviewLoader.host(of: finalURL))
-                Text(verbatim: LinkPreviewLoader.clean(metadata.title) ?? LinkPreviewLoader.address(of: finalURL))
+                Text(verbatim: LinkPreviewLoader.clean(metadata.title) ?? LinkPreviewLoader.address(of: metadata.url ?? url))
                     .font(titleFont)
                     .foregroundStyle(style.title)
                     .lineLimit(titleLines, reservesSpace: large)
                     .truncationMode(.tail)
                     .multilineTextAlignment(.leading)
+                    .transition(caption)
             case .fallback:
-                meta(LinkPreviewLoader.kind(of: url))
                 Text(verbatim: LinkPreviewLoader.address(of: url))
                     .font(titleFont)
                     .foregroundStyle(style.title)
@@ -299,28 +320,50 @@ public struct LinkPreview: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+        // The caption follows the picture: it starts on the same beat, so nothing you read is held back, on a slightly
+        // softer spring, so it settles just after. Calm's timing without its give: text never bounces. Only an animated
+        // change is retimed; a cache hit stays instant.
+        .transaction(value: phase) { [follow = motion.follow(Spring(duration: PieceMotion.calm.duration, bounce: 0), rank: 1)] transaction in
+            if transaction.animation != nil { transaction.animation = follow }
+        }
     }
 
     private func bones(_ titleFont: Font, reserves: Bool) -> some View {
-        VStack(alignment: .leading, spacing: textSpacing) {
-            Text(verbatim: LinkPreviewLoader.host(of: url))
-                .font(.caption.weight(.semibold))
-                .lineLimit(1)
-            Text(verbatim: "A page title that runs across the full width of two lines of the card")
-                .font(titleFont)
-                .lineLimit(titleLines, reservesSpace: reserves)
-        }
-        .redacted(reason: .placeholder)
+        Text(verbatim: "A page title that runs across the full width of two lines of the card")
+            .font(titleFont)
+            .lineLimit(titleLines, reservesSpace: reserves)
+            .redacted(reason: .placeholder)
     }
 
-    private func meta(_ text: String) -> some View {
-        Text(verbatim: text)
-            .font(.caption.weight(.semibold))
-            .textCase(.uppercase)
-            .tracking(0.4)
-            .foregroundStyle(style.secondary)
-            .lineLimit(1)
-            .truncationMode(.middle)
+    /// What the chip says: the host that answered once the page is in (after any redirect), the link's own host before
+    /// that, and the kind of link ("Email") for links that are not web pages.
+    private func chipText(_ phase: Phase) -> String {
+        switch phase {
+        case .loading: LinkPreviewLoader.host(of: url)
+        case .loaded(let metadata): LinkPreviewLoader.host(of: metadata.url ?? url)
+        case .fallback: LinkPreviewLoader.kind(of: url)
+        }
+    }
+
+    /// The host on a small liquid glass chip: the card's one piece of chrome. A new host (a redirect) blurs in over the
+    /// old one as the glass reshapes around it.
+    private func hostChip(_ text: String) -> some View {
+        PieceLiquidGroup {
+            ZStack {
+                Text(verbatim: text)
+                    .font(.caption.weight(.semibold))
+                    .textCase(.uppercase)
+                    .tracking(0.4)
+                    .foregroundStyle(style.secondary)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+                    .id(text)
+                    .transition(motion.swap)
+            }
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .pieceLiquid(.capsule, interactive: false)
+        }
     }
 
     // MARK: Menu and actions
@@ -375,44 +418,42 @@ public struct LinkPreview: View {
         do {
             let result = try await LinkPreviewLoader.shared.metadata(for: url, timeout: timeout)
             guard !Task.isCancelled else { return }
-            withAnimation(motion) { fetched = Fetched(url: url, phase: .loaded(result)) }
+            withAnimation(motion.reveal) { fetched = Fetched(url: url, phase: .loaded(result)) }
         } catch {
             // Cancelled: the card left the screen or its URL changed; the next appearance starts again.
             guard !Task.isCancelled, !(error is CancellationError) else { return }
-            withAnimation(motion) { fetched = Fetched(url: url, phase: .fallback) }
+            // A large card closes to the address row here. Its height moves on `value`, which never overshoots: the
+            // feed below reflows once, without bobbing, and the card's clip never dips into the row it closes to.
+            withAnimation(motion.value) { fetched = Fetched(url: url, phase: .fallback) }
         }
-    }
-}
-
-// MARK: - Press
-
-/// A soft dip on press, springing back on release. Reduce Motion keeps only the dim.
-private struct PressStyle: ButtonStyle {
-    let reduceMotion: Bool
-
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .scaleEffect(configuration.isPressed && !reduceMotion ? 0.97 : 1)
-            .opacity(configuration.isPressed ? 0.85 : 1)
-            .animation(.spring(duration: 0.3, bounce: 0.35), value: configuration.isPressed)
     }
 }
 
 // MARK: - Skeleton sweep
 
-/// A soft diagonal band on a shared clock, so every loading card sweeps in phase. Off under Reduce Motion.
+/// A soft diagonal band on a shared clock, so every loading card sweeps in phase. Under Reduce Motion nothing
+/// travels: the bones breathe partway toward the highlight and back on the same clock, so a loading card still looks
+/// alive without ever fading into the card.
 private struct Sweep: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let color: Color
     var period: Double = 1.6
+    /// One slow breath under Reduce Motion.
+    var breath: Double = 2
+    /// How far the breath goes toward the highlight. The light highlight is nearly the card color, so a full breath
+    /// would blank the whole skeleton at every peak; 0.6 keeps the bones readable throughout.
+    var depth: Double = 0.6
 
     var body: some View {
-        if !reduceMotion {
-            TimelineView(.animation) { context in
+        let travels = PieceMotion(reduceMotion: reduceMotion).allowsAmbient
+        // A slow opacity breath needs no more than 30 frames a second, so a feed of loading cards stays cheap.
+        TimelineView(.animation(minimumInterval: travels ? nil : 1.0 / 30)) { context in
+            let time = context.date.timeIntervalSinceReferenceDate
+            if travels {
                 GeometryReader { proxy in
                     let width = proxy.size.width
                     let band = max(80, width * 0.5)
-                    let phase = (context.date.timeIntervalSinceReferenceDate / period).truncatingRemainder(dividingBy: 1)
+                    let phase = (time / period).truncatingRemainder(dividingBy: 1)
                     LinearGradient(
                         stops: [.init(color: color.opacity(0), location: 0), .init(color: color, location: 0.5), .init(color: color.opacity(0), location: 1)],
                         startPoint: .leading,
@@ -422,10 +463,13 @@ private struct Sweep: View {
                     .rotationEffect(.degrees(16))
                     .offset(x: -band * 1.5 + (width + band * 3) * phase, y: -max(proxy.size.height, 50))
                 }
+            } else {
+                // Opacity only, from the placeholder partway toward the band's own tone and back.
+                color.opacity(depth * (0.5 - 0.5 * cos(2 * .pi * time / breath)))
             }
-            .allowsHitTesting(false)
-            .accessibilityHidden(true)
         }
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
     }
 }
 
@@ -797,3 +841,302 @@ private enum LinkPreviewExampleArt {
     LinkPreviewExample()
         .preferredColorScheme(.dark)
 }
+
+// MARK: - Piece motion
+//
+// The SwiftPieces motion language: shared spring tokens and gesture physics, with the same values in every
+// piece. Each piece carries a copy of only the parts it uses, so this file stands alone. Generated from
+// registry/foundation/PieceMotion.swift in the SwiftPieces repo; edit it there, not here.
+// swiftpieces-motion: 1.1.0 (core, follow, pressMath, press, pressStyle)
+
+/// The SwiftPieces motion language: five spring tiers, and a named role for every moment a piece moves,
+/// each with its Reduce Motion substitute.
+///
+/// Build one from the environment, `PieceMotion(reduceMotion: reduceMotion)`, and pick the role that names
+/// what just happened. Never animate the tracking of a finger: set gesture state directly in `onChanged`, so the
+/// surface stays under the finger, and spring only the release.
+private struct PieceMotion {
+    var reduceMotion = false
+
+    // Tiers. Overshoot and settle times are measured from rest with SwiftUI's Spring.
+    /// No overshoot, 90% in about 90ms. A press arriving under the finger.
+    static var tight: Spring { Spring(duration: 0.14, bounce: 0) }
+    /// About 2.8% overshoot, 90% in about 140ms. Snapping to a detent, page or segment.
+    static var responsive: Spring { Spring(duration: 0.32, bounce: 0.25) }
+    /// About 8.4% overshoot. Visible give: a release, a return from past an edge, a drag settling home.
+    static var elastic: Spring { Spring(duration: 0.42, bounce: 0.38) }
+    /// About 15% overshoot. A resolved action landing. At most once per interaction.
+    static var expressive: Spring { Spring(duration: 0.48, bounce: 0.48) }
+    /// About 1.5% overshoot, unhurried. Opening large surfaces and ambient change.
+    static var calm: Spring { Spring(duration: 0.5, bounce: 0.2) }
+
+    /// Reduce Motion: settles become this short spring with no overshoot.
+    private static var still: Animation { .spring(duration: 0.25, bounce: 0) }
+
+    // Roles.
+    /// Touch-down. Starts on the same frame and never bounces under the finger.
+    var press: Animation { .spring(Self.tight) }
+    /// The finger lifts off a pressed surface, which springs back through rest.
+    var release: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A dragged thing comes to rest. With a gesture's velocity, use `settle(velocity:from:to:)` instead.
+    var settle: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// Lands on a detent, page or segment.
+    var snap: Animation { reduceMotion ? Self.still : .spring(Self.responsive) }
+    /// A number, a chart value or anything else people read moves to its new value. Never overshoots, so it
+    /// never shows a value that isn't true.
+    var value: Animation { reduceMotion ? Self.still : .spring(duration: 0.35, bounce: 0) }
+    /// Comes back from past a limit: a pull beyond the edge, a value pushed against its bound.
+    var rebound: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A shape or container changes size, corner radius or form, with a little give at the end.
+    var morph: Animation { reduceMotion ? Self.still : .spring(duration: 0.4, bounce: 0.2) }
+    /// Something appears, opens or expands. Opening is a little slower than closing.
+    var reveal: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.calm) }
+    /// Something leaves, closes or collapses. Quick and firm, out of the way.
+    var dismiss: Animation { reduceMotion ? .easeIn(duration: 0.18) : .spring(duration: 0.3, bounce: 0.08) }
+    /// A resolved action lands: a check, a sent state, a reaction.
+    var success: Animation { reduceMotion ? .easeOut(duration: 0.24) : .spring(Self.expressive) }
+    /// A refused action. Firm, no wobble; `pieceShake` adds the movement.
+    var error: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.responsive) }
+    /// Slow ambient change. Loops themselves stop under Reduce Motion: check `allowsAmbient`.
+    var ambient: Animation { reduceMotion ? .easeInOut(duration: 0.3) : .spring(Self.calm) }
+
+    /// Loops, drifts, idle breathing and parallax run only when this is true.
+    var allowsAmbient: Bool { !reduceMotion }
+
+    /// A moving transition, or a plain fade under Reduce Motion.
+    func transition(_ transition: AnyTransition) -> AnyTransition {
+        reduceMotion ? .opacity : transition
+    }
+
+    /// For content replaced inside a container that stays put (a label, a glyph, a count): the old content
+    /// blurs out as the new one sharpens in. A fade under Reduce Motion.
+    @MainActor var swap: AnyTransition {
+        reduceMotion ? .opacity : AnyTransition(.blurReplace)
+    }
+}
+
+extension PieceMotion {
+    /// Follow-through: rank 0 leads, each later rank arrives a beat later on a slightly looser spring. Safe to reverse.
+    func follow(_ spring: Spring = PieceMotion.elastic, rank: Int) -> Animation {
+        guard !reduceMotion else { return .spring(duration: 0.25, bounce: 0) }
+        let k = Double(min(max(rank, 0), 6))
+        return .spring(duration: spring.duration + 0.04 * k, bounce: min(spring.bounce + 0.02 * k, 0.55))
+    }
+
+    /// One-shot entrances only: item `index` waits 30ms per place, capped at the seventh. Exits go together.
+    func cascade(_ animation: Animation, index: Int, step: Double = 0.03) -> Animation {
+        guard !reduceMotion, index > 0 else { return animation }
+        return animation.delay(step * Double(min(index, 7)))
+    }
+}
+
+extension PieceMotion {
+    /// About `depth` points per edge, not a fixed percentage: an icon sinks to 0.92, a pill 0.95, a card 0.985.
+    nonisolated static func pressScale(for size: CGSize, depth: CGFloat = 2.5) -> CGFloat {
+        let side = (max(size.width, 1) * max(size.height, 1)).squareRoot()
+        return min(max(1 - depth * 2 / side, 0.92), 0.985)
+    }
+
+    /// An anchor partway from the center toward the touch, so the press leans into the finger without tipping.
+    nonisolated static func pressAnchor(touch: CGPoint?, in size: CGSize, lean: CGFloat = 0.6) -> UnitPoint {
+        guard let touch, size.width > 0, size.height > 0 else { return .center }
+        let x = min(max(touch.x / size.width, 0), 1)
+        let y = min(max(touch.y / size.height, 0), 1)
+        return UnitPoint(x: 0.5 + (x - 0.5) * lean, y: 0.5 + (y - 0.5) * lean)
+    }
+}
+
+/// Sinks on touch-down, leaning toward the touch if given, and springs back from the same lean. Under Reduce
+/// Motion it shades instead of moving (darker in light mode, lighter in dark), without turning transparent.
+private struct PiecePress: ViewModifier {
+    let pressed: Bool
+    var touch: CGPoint?
+    var depth: CGFloat = 2.5
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.colorScheme) private var colorScheme
+    @State private var size: CGSize = .zero
+    @State private var anchor: UnitPoint = .center
+
+    func body(content: Content) -> some View {
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        let scale = pressed && !reduceMotion ? PieceMotion.pressScale(for: size, depth: depth) : 1
+        content
+            .onGeometryChange(for: CGSize.self) { $0.size } action: { size = $0 }
+            .brightness(pressed && reduceMotion ? (colorScheme == .dark ? 0.1 : -0.08) : 0)
+            .scaleEffect(scale, anchor: anchor)
+            .animation(pressed ? motion.press : motion.release, value: pressed)
+            .onChange(of: pressed) { _, isPressed in
+                if isPressed { anchor = PieceMotion.pressAnchor(touch: touch, in: size) }
+            }
+            .onChange(of: touch) { _, touch in
+                if pressed, let touch { anchor = PieceMotion.pressAnchor(touch: touch, in: size) }
+            }
+    }
+}
+
+private extension View {
+    /// Sinks this view while `pressed`, leaning toward `touch` (in this view's coordinates) when given.
+    func piecePress(_ pressed: Bool, touch: CGPoint? = nil, depth: CGFloat = 2.5) -> some View {
+        modifier(PiecePress(pressed: pressed, touch: touch, depth: depth))
+    }
+}
+
+/// Only the press, centered: for chips, rows and tiles, and anything in scrolling content.
+private struct PiecePressStyle: ButtonStyle {
+    var depth: CGFloat = 2.5
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label.piecePress(configuration.isPressed, depth: depth)
+    }
+}
+
+// swiftpieces-motion: end
+
+// MARK: - Piece liquid
+//
+// The SwiftPieces liquid glass language: glass shapes that merge through a neck, bubbles that bud out of
+// and melt back into each other, and the frosted fallback before iOS 26. Each piece carries a copy of only
+// the parts it uses, so this file stands alone. Generated from registry/foundation/PieceLiquid.swift in the
+// SwiftPieces repo; edit it there, not here. The rules are in LIQUID_GLASS.md.
+// swiftpieces-liquid: 1.7.0 (liquid)
+
+/// The liquid glass language: one merge distance, two rest gaps, and the springs a bubble leaves and comes home on.
+///
+/// Glass shapes inside one `PieceLiquidGroup` melt into each other through a neck when they come within `merge`
+/// points. Parts of one control rest `joined`, inside that distance, so the neck holds; separate actions rest
+/// `apart`, outside it, so they only goo while one buds out of, or melts back into, another.
+private enum PieceLiquid {
+    /// Glass shapes closer than this share a neck.
+    static let merge: CGFloat = 20
+    /// The gap between parts of one control (a stepper's buttons, a progress pill and its stop): the neck holds,
+    /// short and smooth, about two thirds of the shapes' height at its waist. Joined parts read best at one height.
+    static let joined: CGFloat = 4
+    /// The gap between separate actions (menu items, confirm and cancel, chips): they rest as their own bubbles.
+    static let apart: CGFloat = 26
+    /// How far a bubble shrinks while it is home inside its parent.
+    static let homeScale: CGFloat = 0.72
+
+    /// A bubble leaving its parent: slow enough that the neck's stretch and snap read.
+    static func split(reduceMotion: Bool) -> Animation {
+        reduceMotion ? .easeOut(duration: 0.2) : .spring(duration: 0.62, bounce: 0.22)
+    }
+
+    /// A bubble going home. No bounce: a bounce would carry it out through the far side of its parent.
+    static func home(reduceMotion: Bool) -> Animation {
+        reduceMotion ? .easeIn(duration: 0.18) : .spring(duration: 0.5, bounce: 0)
+    }
+}
+
+/// A group of glass shapes that merge into one liquid surface. On iOS 26 it is a `GlassEffectContainer`; before
+/// that, and under Reduce Transparency, the shapes draw on their own and simply don't merge. `lift` adds the soft
+/// shadow liquid glass floats on in light mode.
+private struct PieceLiquidGroup<Content: View>: View {
+    var spacing: CGFloat = PieceLiquid.merge
+    var lift = true
+    @ViewBuilder var content: Content
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        container
+            .shadow(color: .black.opacity(lift && colorScheme == .light ? 0.07 : 0), radius: 18, y: 8)
+    }
+
+    @ViewBuilder private var container: some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26, *), !reduceTransparency {
+            GlassEffectContainer(spacing: spacing) { content }
+        } else {
+            content
+        }
+        #else
+        content
+        #endif
+    }
+}
+
+/// One liquid glass shape: Liquid Glass on iOS 26, carrying `tint` as a solid colour and swelling under a press when
+/// `interactive`; a frosted Material with a light rim and a soft shadow before that; a solid fill under Reduce
+/// Transparency.
+///
+/// The tint is painted inside clear glass rather than tinting the glass. Tinted glass in a group bleeds its colour
+/// through every neck as a smear, so a red button would glow into the white pill it is joined to; painted inside,
+/// the colour stays crisp to the shape's edge, the necks between shapes are clear glass, and a tint change animates
+/// like any colour (tinted glass snaps).
+private struct PieceLiquidSurface<S: Shape>: ViewModifier {
+    var shape: S
+    var tint: Color?
+    var interactive: Bool
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.pieceLiquidScale) private var scale
+
+    func body(content: Content) -> some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26, *), !reduceTransparency {
+            // Scaled as two parts, content and outline, about the same centre. A scaleEffect on a glass view inside a
+            // GlassEffectContainer shrinks the glass but leaves what it carries full size, pinned to its corner.
+            content
+                .background { shape.fill(tint ?? .clear) }
+                .scaleEffect(scale)
+                .glassEffect(glass, in: shape.scale(scale))
+        } else {
+            fallback(content).scaleEffect(scale)
+        }
+        #else
+        fallback(content).scaleEffect(scale)
+        #endif
+    }
+
+    #if compiler(>=6.2)
+    @available(iOS 26, *)
+    private var glass: Glass {
+        interactive ? Glass.regular.interactive() : .regular
+    }
+    #endif
+
+    private func fallback(_ content: Content) -> some View {
+        let dark = colorScheme == .dark
+        return content
+            .background {
+                if reduceTransparency {
+                    shape.fill(tint ?? (dark ? Color(white: 0.17) : Color(white: 0.97)))
+                } else {
+                    ZStack {
+                        shape.fill(.regularMaterial)
+                        if let tint { shape.fill(tint.opacity(0.88)) }
+                    }
+                }
+            }
+            .overlay { shape.stroke(Color.white.opacity(dark ? 0.14 : 0.7), lineWidth: 0.5) }
+            .shadow(color: .black.opacity(dark ? 0.32 : 0.08), radius: 10, y: 5)
+    }
+}
+
+private struct PieceLiquidScaleKey: EnvironmentKey {
+    static let defaultValue: CGFloat = 1
+}
+
+private extension EnvironmentValues {
+    /// How much the liquid shapes below are scaled, about their own centres. Nested scales multiply.
+    var pieceLiquidScale: CGFloat {
+        get { self[PieceLiquidScaleKey.self] }
+        set { self[PieceLiquidScaleKey.self] = newValue }
+    }
+}
+
+private extension View {
+    /// Draws this view on a liquid glass `shape`. Put it inside a `PieceLiquidGroup` so it can merge with its neighbours.
+    func pieceLiquid<S: Shape>(_ shape: S, tint: Color? = nil, interactive: Bool = true) -> some View {
+        modifier(PieceLiquidSurface(shape: shape, tint: tint, interactive: interactive))
+    }
+
+    /// Scales the liquid glass shapes in this view, content and outline together, about their own centres. Use it
+    /// instead of `scaleEffect` on a glass view (a press, a lift, a swell): inside a group a plain `scaleEffect` shrinks
+    /// the glass but leaves its content full size and off centre. Animates like any other value.
+    func pieceLiquidScale(_ scale: CGFloat) -> some View {
+        transformEnvironment(\.pieceLiquidScale) { $0 *= scale }
+    }
+}
+
+// swiftpieces-liquid: end

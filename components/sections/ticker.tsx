@@ -11,6 +11,7 @@ export function Ticker() {
   const row = [
     ...cats.map((c) => ({ v: c.v, n: String(c.n), pro: false })),
     { v: "Pro screens", n: String(proCatalog.screens), pro: true },
+    { v: "Pro flows", n: String(proCatalog.flows.total), pro: true },
     { v: "Pro app templates", n: String(proCatalog.templates), pro: true },
     { v: "Pro Build Kit", n: String(proCatalog.buildKit.total), pro: true },
   ];

@@ -1,20 +1,35 @@
 "use client";
 import { useEffect, useState, type CSSProperties } from "react";
-import { blocks, font, ground, ink, signal } from "./palette";
+import { blocks, font, ground, signal } from "./palette";
+import { curve, pressScale, t, tiers, type Spring } from "./piece-motion";
+import { BudContent, Liquid, LiquidGroup, budStyle } from "./piece-liquid";
 
 /*
- * Attachment Tray: an add tile with the count, then photo tiles. Two picks land as loading tiles, one
- * fills its ring and settles into a thumbnail, the other fails and retries, the tray hits its limit,
- * then both are removed with their badges. Sizes are authored in px against the 560 px docs stage.
+ * Attachment Tray: a liquid glass add tile with the count, then photo tiles. Two picks drop onto the end of the strip
+ * as loading tiles, each carrying a glass status bubble with its ring, and a beat later the remove badge buds out of
+ * that bubble to the corner on a liquid neck. The strip glides over to them. One fails: its bubble floods red with a
+ * retry arrow. The other fills its ring, holds it full for a beat, and as the photo develops the bubble melts up into
+ * the badge. The retry loads the same way, then both are removed and the rest close the gap.
+ * Sizes are authored in px against the 560 px docs stage; one iOS point is one px there.
  */
 
 const u = (px: number) => `${(px / 5.6).toFixed(3)}cqw`;
-const spring = "cubic-bezier(0.34, 1.4, 0.64, 1)";
-const ease = "cubic-bezier(0.22, 1, 0.36, 1)";
 const SIDE = 76;
 const GAP = 10;
 const LIMIT = 5;
 const PAPER = "#f4f3ef";
+/** The status bubble, the ring inside it, and the remove badge, as AttachmentTray.swift sizes them. */
+const BUBBLE = 30, RING = 18, BADGE = 22;
+/** From a tile's centre to the remove badge's centre, along each axis: the badge sits 4pt in from the corner. */
+const REACH = SIDE / 2 - 4 - BADGE / 2;
+const REMOVE_AT: [number, number] = [REACH, -REACH];
+/** A pick settles from at most 10 px past full size, as the Swift tray's drop at this tile size. */
+const DROP = 1 + Math.min(0.1, 10 / SIDE);
+/** Size-aware press depths: a 76 px tile, and the badge's 44 pt hit area. */
+const TILE_PRESS = pressScale(SIDE, SIDE);
+const BADGE_PRESS = pressScale(44, 44);
+/** Progress is data: a smooth follow with no overshoot, as Swift's `.smooth(duration: 0.3)`. */
+const FOLLOW: Spring = { duration: 0.3, bounce: 0 };
 
 function useReducedMotion() {
   const [reduced, setReduced] = useState(false);
@@ -50,33 +65,65 @@ const SCENES: Array<[string, string, string]> = [
 ];
 
 type Phase = "spin" | "ring" | "loaded" | "failed";
-type Tile = { id: string; scene: number; phase: Phase; p?: number; out?: boolean };
-type Step = { tiles: Tile[]; press?: string; ms: number };
+/** `p` is the ring's last reading; a failed tile keeps it so its ring blurs away as it stood. `born` holds a tile just
+ *  dropped onto the strip with its remove badge still inside the status bubble. */
+type Tile = { id: string; scene: number; phase: Phase; p?: number; out?: boolean; born?: boolean };
+/** `lay` holds the strip at an earlier tile count; `glide` moves it on `reveal` instead of `snap`. */
+type Step = { tiles: Tile[]; press?: string; lay?: number; glide?: boolean; ms: number };
 
 const A: Tile = { id: "a", scene: 0, phase: "loaded" };
 const B: Tile = { id: "b", scene: 1, phase: "loaded" };
 const C: Tile = { id: "c", scene: 2, phase: "loaded" };
 const rest = [A, B, C];
-const D = (phase: Phase, p?: number, out?: boolean): Tile => ({ id: "d", scene: 3, phase, p, out });
-const E = (phase: Phase, p?: number, out?: boolean): Tile => ({ id: "e", scene: 4, phase, p, out });
+const D = (phase: Phase, p?: number, out?: boolean, born?: boolean): Tile => ({ id: "d", scene: 3, phase, p, out, born });
+const E = (phase: Phase, p?: number, out?: boolean, born?: boolean): Tile => ({ id: "e", scene: 4, phase, p, out, born });
 
 const steps: readonly Step[] = [
   { tiles: rest, ms: 1500 },
   { tiles: rest, press: "add", ms: 260 },
-  { tiles: [...rest, D("spin"), E("spin")], ms: 800 },
-  { tiles: [...rest, D("ring", 0.45), E("ring", 0.15)], ms: 480 },
-  { tiles: [...rest, D("ring", 0.92), E("ring", 0.4)], ms: 460 },
-  { tiles: [...rest, D("loaded"), E("ring", 0.55)], ms: 700 },
-  { tiles: [...rest, D("loaded"), E("failed")], ms: 1300 },
+  // Picks into a tray that has tiles land together at the end of the strip as it stood, and both loads start
+  // at once. The count and the disc lead; 180 ms into the drop each remove badge buds out of its status bubble,
+  // and the strip glides to the newest tile once they have settled.
+  { tiles: [...rest, D("spin", undefined, false, true), E("spin", undefined, false, true)], lay: rest.length, ms: 180 },
+  { tiles: [...rest, D("spin"), E("spin")], lay: rest.length, ms: 350 },
+  { tiles: [...rest, D("spin"), E("spin")], glide: true, ms: 330 },
+  // E fails from its spinner right after the glide, while D is still filling.
+  { tiles: [...rest, D("ring", 0.4), E("failed")], ms: 380 },
+  { tiles: [...rest, D("ring", 0.8), E("failed")], ms: 340 },
+  // A finished load closes its ring fast and holds it full for a beat (Swift's 150 ms); then the photo develops.
+  { tiles: [...rest, D("ring", 1), E("failed")], ms: 240 },
+  { tiles: [...rest, D("loaded"), E("failed")], ms: 900 },
   { tiles: [...rest, D("loaded"), E("failed")], press: "e", ms: 260 },
   { tiles: [...rest, D("loaded"), E("spin")], ms: 500 },
   { tiles: [...rest, D("loaded"), E("ring", 0.62)], ms: 420 },
+  { tiles: [...rest, D("loaded"), E("ring", 1)], ms: 240 },
   { tiles: [...rest, D("loaded"), E("loaded")], ms: 1500 },
   { tiles: [...rest, D("loaded"), E("loaded")], press: "x-e", ms: 220 },
   { tiles: [...rest, D("loaded"), E("loaded", undefined, true)], ms: 460 },
   { tiles: [...rest, D("loaded")], press: "x-d", ms: 220 },
   { tiles: [...rest, D("loaded", undefined, true)], ms: 460 },
 ];
+
+/** Centre of slot `i` (the add tile is slot 0) in a row of `n` photo tiles, centred on the stage. */
+const slotX = (i: number, n: number) => -(SIDE + n * (SIDE + GAP)) / 2 + SIDE / 2 + i * (SIDE + GAP);
+
+/**
+ * A place on the strip. Closing a gap is quick, on `snap`. Gliding over to new picks is Swift's `reveal(_:)`
+ * scroll, a calm move that starts once they have landed.
+ */
+const slot = (x: number, glide = false): CSSProperties => ({
+  position: "absolute", left: "50%", top: u(6), width: u(SIDE), height: u(SIDE), marginInlineStart: u(-SIDE / 2),
+  transform: `translateX(${u(x)})`, transition: t("transform", glide ? "reveal" : "snap"),
+});
+
+/** Swift's press: in on `press` with no bounce, back out on `release` with give. */
+const pressed = (on: boolean, scale: number): CSSProperties => ({
+  transform: on ? `scale(${scale})` : "none", transition: t("transform", on ? "press" : "release"),
+});
+
+/** A face swapped inside a tile that stays put: the old one blurs out as the new one sharpens in. */
+const swap = (shown: boolean): CSSProperties =>
+  shown ? { opacity: 1, filter: `blur(${u(0)})`, transform: "none" } : { opacity: 0, filter: `blur(${u(4)})`, transform: "scale(0.9)" };
 
 function Scene({ scene }: { scene: number }) {
   const [sky, sun, land] = SCENES[scene % SCENES.length];
@@ -99,8 +146,9 @@ function Ring({ p, color }: { p?: number; color: string }) {
       <g data-motion style={{ transformOrigin: "12px 12px", animation: spinning ? "at-spin .9s linear infinite" : undefined, transform: spinning ? undefined : "rotate(-90deg)" }}>
         <circle
           cx="12" cy="12" r={r} fill="none" stroke={color} strokeWidth={2.6} strokeLinecap="round"
-          strokeDasharray={`${(spinning ? 0.28 : Math.max(p ?? 0, 0.02)) * c} ${c}`}
-          style={{ transition: `stroke-dasharray .3s ${ease}` }}
+          strokeDasharray={`${(spinning ? 0.28 : Math.max(p, 0.02)) * c} ${c}`}
+          // The last stretch closes fast, so the ring is full before the photo covers it.
+          style={{ transition: spinning ? undefined : t("stroke-dasharray", p >= 1 ? tiers.tight : FOLLOW) }}
         />
       </g>
     </svg>
@@ -115,66 +163,147 @@ function Glyph({ d, size, width = 3.4 }: { d: string; size: number; width?: numb
   );
 }
 
-function PhotoTile({ tile, press }: { tile: Tile; press?: string }) {
-  const out = tile.out === true;
-  const style: CSSProperties = {
-    position: "relative", flex: "none", width: out ? 0 : u(SIDE), height: u(SIDE), marginInlineStart: out ? 0 : u(GAP),
-    opacity: out ? 0 : 1, transform: `scale(${out ? 0.5 : press === tile.id ? 0.94 : 1})`,
-    transition: `width .42s ${ease}, margin .42s ${ease}, opacity .25s, transform .3s ${spring}`,
-    animation: `at-in .45s ${spring} backwards`,
-  };
+/** A count is read, so it rolls on `value` and never shows past its number: up as it grows, down as it shrinks. */
+function Roll({ value }: { value: number }) {
+  const [roll, setRoll] = useState({ now: value, was: value, dir: 0, n: 0 });
+  if (roll.now !== value) setRoll({ now: value, was: roll.now, dir: value > roll.now ? 1 : -1, n: roll.n + 1 });
+  const { easing, ms } = curve("value");
+  const dir = { "--at-dir": roll.dir } as CSSProperties;
   return (
-    <div data-motion style={style}>
-      <div style={{ position: "absolute", inset: 0, borderRadius: u(18), overflow: "hidden", background: ground.field, display: "grid", placeItems: "center" }}>
-        {tile.phase === "loaded" ? (
-          <div data-motion style={{ position: "absolute", inset: 0, animation: `at-thumb .45s ${spring} both` }}><Scene scene={tile.scene} /></div>
-        ) : tile.phase === "failed" ? (
-          <div className="flex flex-col items-center" style={{ gap: u(5), animation: "at-fade .2s both" }}>
-            <span className="grid place-items-center rounded-full" style={{ width: u(SIDE * 0.3), height: u(SIDE * 0.3), background: signal.fill, color: signal.on }}>
-              <Glyph d="M20 12a8 8 0 1 1-2.4-5.7M20 4v5h-5" size={SIDE * 0.14} width={3.2} />
-            </span>
-            <span style={{ fontSize: u(12), fontWeight: 600, color: ground.text }}>Retry</span>
-          </div>
-        ) : (
-          <Ring p={tile.phase === "ring" ? tile.p : undefined} color={ground.text} />
-        )}
-      </div>
-      <span
+    <span style={{ display: "inline-grid" }}>
+      {/* The outgoing digit stays mounted at zero opacity, so it is hidden from assistive tech. */}
+      {roll.n > 0 && (
+        <span key={roll.n - 1} aria-hidden data-motion style={{ ...dir, gridArea: "1 / 1", animation: `at-roll-out ${ms}ms ${easing} both` }}>{roll.was}</span>
+      )}
+      <span key={roll.n} data-motion style={{ ...dir, gridArea: "1 / 1", animation: roll.n > 0 ? `at-roll-in ${ms}ms ${easing} both` : undefined }}>{roll.now}</span>
+    </span>
+  );
+}
+
+/**
+ * A photo tile: the thumbnail is content, the glass floats over it. While the tile loads, fails or retries, the status
+ * bubble sits at its centre, joined to the remove badge by a liquid neck; once the photo has developed the bubble
+ * melts into the badge. The tile and its glass press, drop and leave together.
+ */
+function PhotoTile({ tile, x, glide, press }: { tile: Tile; x: number; glide: boolean; press?: string }) {
+  const out = tile.out === true;
+  const face = tile.phase === "loaded" ? "photo" : tile.phase === "failed" ? "retry" : "ring";
+  const drop = curve("settle");
+  // A loaded tile's ring stays closed while the bubble melts home; a failed one keeps the reading it failed at (a
+  // spinner if none).
+  const ringP = tile.phase === "loaded" ? 1 : tile.phase === "spin" ? undefined : tile.p;
+  const status = tile.phase !== "loaded";
+  const badge = tile.born !== true;
+  const failed = tile.phase === "failed";
+  return (
+    <div data-motion style={slot(x, glide)}>
+      {/* Dropped onto the strip: settles from just above full size with some give. Removal is quick and firm. */}
+      <div
         data-motion
-        className="grid place-items-center rounded-full"
         style={{
-          position: "absolute", top: u(4), insetInlineEnd: u(4), width: u(22), height: u(22), background: ink, color: PAPER,
-          transform: press === `x-${tile.id}` ? "scale(0.82)" : "none", transition: `transform .25s ${spring}`,
+          position: "absolute", inset: 0, opacity: out ? 0 : 1, transform: out ? "scale(0.5)" : "none",
+          transition: t(["transform", "opacity"], "dismiss"), animation: `at-drop ${drop.ms}ms ${drop.easing} backwards`,
         }}
       >
-        <Glyph d="M7 7l10 10M17 7L7 17" size={9} width={3.8} />
-      </span>
+        <div data-motion style={{ position: "absolute", inset: 0, ...pressed(press === tile.id, TILE_PRESS) }}>
+          <div style={{ position: "absolute", inset: 0, borderRadius: u(18), overflow: "hidden", background: ground.field }}>
+            {/* The Retry label hangs under the bubble, swapped on the tile as the bubble floods red. */}
+            <span
+              data-motion
+              aria-hidden={!failed || undefined}
+              style={{ position: "absolute", left: 0, right: 0, top: `calc(50% + ${u(BUBBLE / 2 + 5)})`, textAlign: "center", fontSize: u(12), fontWeight: 600, color: ground.text, ...swap(failed), transition: t(["opacity", "filter", "transform"], failed ? "error" : "snap") }}
+            >
+              Retry
+            </span>
+            {/* The photo develops from a slight zoom, on `value` so it never dips to show the tile edge. */}
+            <div
+              data-motion
+              aria-hidden={face !== "photo" || undefined}
+              style={{ position: "absolute", inset: 0, opacity: face === "photo" ? 1 : 0, transform: face === "photo" ? "none" : "scale(1.14)", transition: t(["opacity", "transform"], "value") }}
+            >
+              <Scene scene={tile.scene} />
+            </div>
+          </div>
+          {/* The glass, laid out from the tile's centre. No lift: over a photo it needs no shadow. */}
+          <LiquidGroup unit={u(1)} axis="both" lift={false} style={{ position: "absolute", inset: 0 }}>
+            <div style={{ position: "relative", width: u(SIDE), height: u(SIDE) }}>
+              {/* The bud moves a wrapper, so the glass can flood red and drain on its own beat as the Swift tint does. */}
+              <div data-motion style={{ position: "absolute", left: "50%", top: "50%", width: u(BUBBLE), height: u(BUBBLE), margin: `${u(-BUBBLE / 2)} 0 0 ${u(-BUBBLE / 2)}`, ...budStyle({ out: status, home: REMOVE_AT }, u(1)) }}>
+                <Liquid
+                  tint={status && failed ? signal.fill : undefined}
+                  className="grid place-items-center"
+                  style={{ width: u(BUBBLE), height: u(BUBBLE), transition: t("background-color", failed ? "error" : "snap") }}
+                >
+                  <BudContent out={status}>
+                    <span style={{ display: "grid", placeItems: "center", width: u(RING), height: u(RING) }}>
+                      {/* The ring and the retry arrow swap inside the bubble: one blurs out as the other sharpens in. */}
+                      <span data-motion style={{ gridArea: "1 / 1", display: "grid", placeItems: "center", ...swap(face !== "retry"), transition: t(["opacity", "filter", "transform"], face === "retry" ? "error" : "snap") }}>
+                        <Ring p={ringP} color={ground.text} />
+                      </span>
+                      <span data-motion style={{ gridArea: "1 / 1", display: "grid", placeItems: "center", color: signal.on, ...swap(face === "retry"), transition: t(["opacity", "filter", "transform"], face === "retry" ? "error" : "snap") }}>
+                        <Glyph d="M20 12a8 8 0 1 1-2.4-5.7M20 4v5h-5" size={13} width={3} />
+                      </span>
+                    </span>
+                  </BudContent>
+                </Liquid>
+              </div>
+              {/* Last, so the bubble melting home slips under the badge. Placed in its corner, where it sinks about its
+                  own centre when pressed; it buds from, and would melt back into, the bubble at the tile's centre. */}
+              <div
+                data-motion
+                style={{
+                  position: "absolute", left: "50%", top: "50%", width: u(BADGE), height: u(BADGE), margin: `${u(-BADGE / 2)} 0 0 ${u(-BADGE / 2)}`,
+                  transform: `translate(${u(REACH)}, ${u(-REACH)})${press === `x-${tile.id}` ? ` scale(${BADGE_PRESS})` : ""}`,
+                  transition: t("transform", press === `x-${tile.id}` ? "press" : "release"),
+                }}
+              >
+                <Liquid bud={{ out: badge, home: [-REACH, REACH] }} className="grid place-items-center" style={{ width: u(BADGE), height: u(BADGE), color: ground.text }}>
+                  <BudContent out={badge}>
+                    <Glyph d="M7 7l10 10M17 7L7 17" size={10} width={3.2} />
+                  </BudContent>
+                </Liquid>
+              </div>
+            </div>
+          </LiquidGroup>
+        </div>
+      </div>
     </div>
   );
 }
 
 export function AttachmentTrayPreview() {
   const s = useSteps(steps);
-  const count = s.tiles.filter((t) => !t.out).length;
+  const present = s.tiles.filter((t) => !t.out);
+  const count = present.length;
   const full = count >= LIMIT;
+  const blur = u(2);
+  // New picks land in the strip as it stood (the last one only a sliver at the stage edge) until it glides over.
+  const lay = s.lay ?? count;
+  const glide = s.glide === true;
   return (
     <div className="absolute inset-0 flex items-center justify-center" style={{ background: ground.bg, fontFamily: font.stack, color: ground.text }}>
-      <style>{`@keyframes at-in{from{width:0;margin-inline-start:0;opacity:0;transform:scale(.6)}}@keyframes at-thumb{from{opacity:0;transform:scale(1.14)}to{opacity:1;transform:none}}@keyframes at-fade{from{opacity:0}to{opacity:1}}@keyframes at-spin{to{transform:rotate(360deg)}}@media (prefers-reduced-motion: reduce){[data-motion]{animation:none!important;transition:none!important}}`}</style>
-      <div className="flex items-center justify-center" style={{ width: u(SIDE * 6 + GAP * 5), height: u(SIDE + 12) }}>
-        <div
-          data-motion
-          className="flex flex-col items-center justify-center"
-          style={{
-            flex: "none", width: u(SIDE), height: u(SIDE), gap: u(5), borderRadius: u(18), background: ground.field,
-            transform: s.press === "add" ? "scale(0.94)" : "none", transition: `transform .3s ${spring}`,
-          }}
-        >
-          <span className="grid place-items-center rounded-full" style={{ width: u(SIDE * 0.4), height: u(SIDE * 0.4), background: signal.fill, color: signal.on, opacity: full ? 0.25 : 1, transition: "opacity .25s" }}>
-            <Glyph d="M12 6v12M6 12h12" size={SIDE * 0.2} width={3.4} />
-          </span>
-          <span style={{ fontSize: u(12), fontWeight: 600, fontVariantNumeric: "tabular-nums", color: full ? ground.text : ground.muted, transition: "color .25s" }}>{count}/{LIMIT}</span>
+      <style>{`@keyframes at-drop{from{opacity:0;transform:scale(${DROP.toFixed(3)})}}@keyframes at-roll-in{from{opacity:0;filter:blur(${blur});transform:translateY(calc(var(--at-dir) * 60%)) scale(.8)}}@keyframes at-roll-out{to{opacity:0;filter:blur(${blur});transform:translateY(calc(var(--at-dir) * -60%)) scale(.8)}}@keyframes at-spin{to{transform:rotate(360deg)}}@media (prefers-reduced-motion: reduce){[data-motion]{animation:none!important;transition:none!important}}`}</style>
+      <div style={{ position: "relative", flex: "none", width: u(SIDE * 6 + GAP * 5), height: u(SIDE + 12) }}>
+        <div data-motion style={slot(slotX(0, lay), glide)}>
+          {/* The add tile is a glass tile; its plus disc is the one solid red mark on the strip. */}
+          <div data-motion style={{ position: "absolute", inset: 0, ...pressed(s.press === "add", TILE_PRESS) }}>
+            <LiquidGroup unit={u(1)} axis="both" lift={false}>
+              <Liquid radius={18} className="flex flex-col items-center justify-center" style={{ width: u(SIDE), height: u(SIDE), gap: u(5) }}>
+                <span className="grid place-items-center rounded-full" style={{ width: u(SIDE * 0.4), height: u(SIDE * 0.4), background: signal.fill, color: signal.on, opacity: full ? 0.25 : 1, transition: t("opacity", "snap") }}>
+                  <Glyph d="M12 6v12M6 12h12" size={SIDE * 0.2} width={3} />
+                </span>
+                <span style={{ fontSize: u(12), fontWeight: 600, fontVariantNumeric: "tabular-nums", color: full ? ground.text : ground.muted, transition: t("color", "snap") }}>
+                  <Roll value={count} />/{LIMIT}
+                </span>
+              </Liquid>
+            </LiquidGroup>
+          </div>
         </div>
-        {s.tiles.map((t) => <PhotoTile key={t.id} tile={t} press={s.press} />)}
+        {s.tiles.map((tile, i) => {
+          // A leaving tile shrinks on the strip and moves with it as the strip closes up, so nothing slides under it.
+          const x = slotX((tile.out ? i : present.indexOf(tile)) + 1, lay);
+          return <PhotoTile key={tile.id} tile={tile} press={s.press} x={x} glide={glide} />;
+        })}
       </div>
     </div>
   );

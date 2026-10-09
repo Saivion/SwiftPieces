@@ -1,16 +1,22 @@
 "use client";
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { blocks, font, ground, ink, signal } from "./palette";
+import { pressScale, roles, settleTime, springValue, t as tr, type Role } from "./piece-motion";
+import { BudContent, Liquid, LiquidGroup, liquid } from "./piece-liquid";
 
 /*
- * Signature Pad: a pad with a cross, a baseline and a "Sign here" hint, and Type instead, Undo and Clear under it.
+ * Signature Pad: the paper on its own, with a cross, a baseline and a status line ("Sign here" while empty), a sage glass
+ * Signed chip in the top trailing corner once the signature counts, and one liquid glass toolbar floating centred under it: the
+ * Type instead pill, with Undo budding out of its leading end and Clear out of its trailing end while they can act.
  * The loop signs "SwiftPieces" with real handwriting timing (slow in turns, fast on sweeps), so the ink thins on quick
- * strokes and runs full on slow ones, exactly as the Swift piece weights it. Then Undo fades the flourish, it is
- * drawn again, and Clear wipes the pad. Sizes are authored in px against the 560 px docs stage and converted to `cqw`.
+ * strokes and runs full on slow ones, exactly as the Swift piece weights it. The first stroke to land buds Undo and
+ * Clear out of the pill; Undo fades the flourish, it is drawn again, and Clear wipes the pad and melts home while Undo
+ * stays out to bring it back. Sizes are authored in px against the 560 px docs stage and converted to `cqw`; on the
+ * glass, one px stands for one point. The ink itself never animates, as in Swift: only removals fade (`dismiss`) and
+ * the chrome around it moves.
  */
 
 const u = (px: number) => `${(px / 5.6).toFixed(3)}cqw`;
-const ease = "cubic-bezier(0.22, 1, 0.36, 1)";
 
 function useReducedMotion() {
   const [reduced, setReduced] = useState(false);
@@ -124,7 +130,7 @@ function synthesize(raw: Array<[number, number]>): Pt[] {
 
 // ---------------------------------------------------------------- Ink (the Swift `InkShape`, line for line)
 
-const LINE = 3.6;
+const LINE = 5;
 
 function drawStroke(ctx: CanvasRenderingContext2D, points: Pt[], scale: number, dx: number, dy: number) {
   if (!points.length) return;
@@ -149,7 +155,7 @@ function drawStroke(ctx: CanvasRenderingContext2D, points: Pt[], scale: number, 
     const dt = Math.max(1 / 240, kept[i].t - kept[i - 1].t);
     const v = Math.hypot(kept[i].x - kept[i - 1].x, kept[i].y - kept[i - 1].y) / dt;
     const f = Math.min(1, Math.max(0, (v - 140) / 1100));
-    const target = LINE * (1 - 0.62 * f * (2 - f));
+    const target = LINE * (1 - 0.5 * f * (2 - f));
     w.push(w[i - 1] + (target - w[i - 1]) * (1 - Math.exp(-dt / 0.035)));
   }
   const V = kept.map(at);
@@ -189,37 +195,53 @@ const START: number[] = [];
 /** The flourish is the last stroke; Undo takes it back and it is drawn again. */
 const FL = SAMPLED.length - 1;
 const SIGNED = START[FL] + DUR[FL];
-const UNDO = SIGNED + 1300; // Undo pressed: the flourish fades
+const UNDO = SIGNED + 1300; // Undo lifts: the flourish fades
 const REDRAW = UNDO + 800; // the flourish again
 const RESIGNED = REDRAW + DUR[FL];
-const CLEAR = RESIGNED + 1500; // Clear pressed: everything fades
+const CLEAR = RESIGNED + 1500; // Clear lifts: everything fades
 const LOOP = CLEAR + 1300;
-const FADE = 260;
+/** A button acts on lift, so the finger goes down this long before Undo and Clear fire: long enough for the press to land. */
+const HOLD = 200;
+/** Removals fade on Swift's `dismiss` spring (quick, firm), sampled per frame because the ink is painted. */
+const FADE = settleTime(roles.dismiss);
+const fadeOut = (sinceMs: number) => (sinceMs >= FADE * 1000 ? 0 : Math.max(0, 1 - springValue(roles.dismiss, sinceMs / 1000)));
 
-type Frame = { strokes: Array<{ i: number; upto: number; alpha: number }>; empty: boolean; signed: boolean; press: "undo" | "clear" | null };
+type Chrome = { hint: boolean; canUndo: boolean; canClear: boolean; signed: boolean; pops: boolean; press: "undo" | "clear" | null };
+type Frame = Chrome & { strokes: Array<{ i: number; upto: number; alpha: number }> };
 
 function frameAt(ms: number): Frame {
   const t = ((ms % LOOP) + LOOP) % LOOP;
   const strokes: Frame["strokes"] = [];
-  const clearFade = t >= CLEAR ? Math.max(0, 1 - (t - CLEAR) / FADE) : 1;
+  const clearFade = t >= CLEAR ? fadeOut(t - CLEAR) : 1;
   for (let i = 0; i < SAMPLED.length; i++) {
     let start = START[i];
     let alpha = clearFade;
     if (i === FL && t >= UNDO) {
-      if (t < REDRAW) alpha = Math.max(0, 1 - (t - UNDO) / FADE);
+      if (t < REDRAW) alpha = fadeOut(t - UNDO);
       else start = REDRAW;
     }
-    if (t < start || alpha <= 0) continue;
+    if (t < start || alpha <= 0.002) continue;
     strokes.push({ i, upto: Math.max(0, t - start) / 1000, alpha });
   }
-  const press = t >= UNDO && t < UNDO + 200 ? "undo" : t >= CLEAR && t < CLEAR + 200 ? "clear" : null;
-  const empty = t < START[0] || t >= CLEAR + FADE;
+  const press = t >= UNDO - HOLD && t < UNDO ? "undo" : t >= CLEAR - HOLD && t < CLEAR ? "clear" : null;
+  // Swift's pad state: the strokes empty out the moment Clear fires (the ink only fades), so the hint settles back
+  // in beside the fading ink and Clear turns off, while Undo stays on (Clear keeps a restore) through the rest.
+  // The next touch-down drops that restore, and a stroke only commits on lift, so Undo and Clear come on there.
+  // The first pass has no restore yet, so Undo rests off.
+  const hint = t < START[0] || t >= CLEAR;
+  const lifted = t >= START[0] + DUR[0];
+  const canClear = lifted && t < CLEAR;
+  const canUndo = lifted || (ms >= LOOP && t < START[0]);
   // Signed shows once the signing is done (Swift: the signature counts and the pad has been still for a
-  // moment), hides while the flourish is drawn again, and goes with Clear.
+  // moment), hides while the flourish is drawn again, and goes with Clear. Only its first showing for this
+  // signature pops on `success`; coming back after the redraw it lands on `snap`.
   const settle = 650;
   const signed = (t >= SIGNED + settle && t < REDRAW) || (t >= RESIGNED + settle && t < CLEAR);
-  return { strokes, empty, signed, press };
+  const pops = t < REDRAW;
+  return { strokes, hint, canUndo, canClear, signed, pops, press };
 }
+
+const REST_CHROME: Chrome = { hint: true, canUndo: false, canClear: false, signed: false, pops: true, press: null };
 
 // ---------------------------------------------------------------- View
 
@@ -241,10 +263,34 @@ function UndoGlyph() {
   );
 }
 
+/** The toolbar glass, as Swift sizes it: 40 pt bubbles resting `liquid.joined` from the pill, Clear's capsule this wide. */
+const BUBBLE = 40, CLEAR_W = 72;
+/** Each bubble's press depth from its size, about 1.5 px a side like Swift's `piecePress(depth: 1.5)`: the chrome
+ *  stays quiet next to the ink. */
+const SINK = { undo: pressScale(BUBBLE, BUBBLE, 1.5), clear: pressScale(CLEAR_W, BUBBLE, 1.5) };
+/** Each bubble's home: shrunk, just inside the pill's nearer end, Undo's leading and Clear's trailing. */
+const homeAt = (width: number, side: 1 | -1): [number, number] => [side * (width / 2 + liquid.joined + (width * liquid.homeScale) / 2), 0];
+const HOME = { undo: homeAt(BUBBLE, 1), clear: homeAt(CLEAR_W, -1) };
+
+/** Swift's `PadButtonStyle`: the glass sinks on `press` and springs back through rest on `release`, while only the
+ *  label dims, so the glass stays clear. The label is hidden while the bubble is home in the pill. */
+function PadBubble({ out, pressed, sink, width, home, children }: { out: boolean; pressed: boolean; sink: number; width: number; home: [number, number]; children: ReactNode }) {
+  const press: Role = pressed ? "press" : "release";
+  return (
+    <span data-motion className="flex" style={{ transform: `scale(${pressed ? sink : 1})`, transition: tr("transform", press) }}>
+      <Liquid bud={{ out, home }} className="flex items-center justify-center" style={{ width: u(width), height: u(BUBBLE), color: ground.text }}>
+        <BudContent out={out}>
+          <span style={{ display: "inline-flex", alignItems: "center", opacity: pressed ? 0.55 : 1, transition: tr("opacity", press) }}>{children}</span>
+        </BudContent>
+      </Liquid>
+    </span>
+  );
+}
+
 export function SignaturePadPreview() {
   const reduced = useReducedMotion();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const [state, setState] = useState<{ empty: boolean; signed: boolean; press: Frame["press"] }>({ empty: true, signed: false, press: null });
+  const [state, setState] = useState<Chrome>(REST_CHROME);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -253,7 +299,7 @@ export function SignaturePadPreview() {
     if (!ctx) return;
     let raf = 0;
     const start = performance.now();
-    let last: { empty: boolean; signed: boolean; press: Frame["press"] } = { empty: true, signed: false, press: null };
+    let last: Chrome = REST_CHROME;
     const paint = (now: number) => {
       const dpr = window.devicePixelRatio || 1;
       const w = canvas.clientWidth, h = canvas.clientHeight;
@@ -278,9 +324,10 @@ export function SignaturePadPreview() {
         drawStroke(ctx, pts.length ? pts : [SAMPLED[s.i][0]], scale, 0, dy);
       }
       ctx.globalAlpha = 1;
-      if (f.empty !== last.empty || f.signed !== last.signed || f.press !== last.press) {
-        last = { empty: f.empty, signed: f.signed, press: f.press };
-        setState(last);
+      const next: Chrome = { hint: f.hint, canUndo: f.canUndo, canClear: f.canClear, signed: f.signed, pops: f.pops, press: f.press };
+      if ((Object.keys(next) as Array<keyof Chrome>).some((k) => next[k] !== last[k])) {
+        last = next;
+        setState(next);
       }
       if (!reduced) raf = requestAnimationFrame(paint);
     };
@@ -288,49 +335,68 @@ export function SignaturePadPreview() {
     return () => cancelAnimationFrame(raf);
   }, [reduced]);
 
-  const button = (active: boolean, pressed: boolean, pill = false): CSSProperties => ({
-    display: "inline-flex", alignItems: "center", justifyContent: "center", gap: u(8), height: pill ? u(34) : u(44), minWidth: pill ? u(34) : undefined,
-    paddingInline: pill ? u(14) : u(12), borderRadius: 999, background: pill ? ground.field : "transparent", margin: pill ? `${u(5)} ${u(3)}` : 0,
-    color: active ? ground.text : ground.muted, opacity: active ? 1 : 0.55, fontSize: u(15), fontWeight: 600,
-    transform: pressed ? "scale(0.94)" : "none", transition: `transform .25s ${ease}, color .25s, opacity .25s`,
-  });
+  // The chip pops in on `success` the first time a signature counts, lands on `snap` after a later pause, and
+  // steps out on `dismiss` when the finger comes back.
+  const chip: Role = state.signed ? (state.pops ? "success" : "snap") : "dismiss";
 
   return (
-    <div className="absolute inset-0 flex items-center justify-center" style={{ background: ground.bg, fontFamily: font.stack, color: ground.text }}>
-      <div style={{ width: u(460), display: "flex", flexDirection: "column", gap: u(4) }}>
-        <div style={{ position: "relative", height: u(256), borderRadius: u(26), background: ground.surface, overflow: "hidden" }}>
-          <div style={{ position: "absolute", left: u(22), right: u(22), bottom: 0, height: u(46), borderTop: `${u(1.5)} solid color-mix(in srgb, ${ground.muted} 32%, transparent)` }}>
-            <span data-motion style={{ display: "block", paddingTop: u(8), fontSize: u(13), fontWeight: 500, color: ground.muted, opacity: state.empty ? 1 : 0, transform: state.empty ? "none" : `translateY(${u(4)})`, transition: `opacity .25s ${ease}, transform .25s ${ease}` }}>
-              Sign here
-            </span>
-          </div>
-          <svg aria-hidden viewBox="0 0 12 12" style={{ position: "absolute", left: u(22), bottom: u(46 + 9), width: u(11), height: u(11), color: signal.fill }} fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round">
-            <path d="M2 2l8 8M10 2l-8 8" />
-          </svg>
-          <canvas ref={canvasRef} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", color: ground.text }} />
+    <div className="absolute inset-0 flex flex-col items-center justify-center" style={{ background: ground.bg, fontFamily: font.stack, color: ground.text, gap: u(12) }}>
+      {/* The paper is the whole card, all of it for the ink, with a hairline edge and a soft lift, as in Swift. */}
+      <div style={{ position: "relative", width: u(470), height: u(236), borderRadius: u(26), background: ground.surface, overflow: "hidden", boxShadow: `inset 0 0 0 ${u(1)} color-mix(in srgb, ${ground.muted} 16%, transparent), 0 ${u(6)} ${u(28)} rgba(0,0,0,.07)` }}>
+        <div style={{ position: "absolute", left: u(22), right: u(22), bottom: 0, height: u(46), borderTop: `${u(1.5)} solid color-mix(in srgb, ${ground.muted} 32%, transparent)`, display: "flex", alignItems: "flex-start" }}>
           <span
             data-motion
-            aria-hidden
             style={{
-              position: "absolute", top: u(14), right: u(14), display: "inline-flex", alignItems: "center", gap: u(4),
-              padding: `${u(5)} ${u(10)}`, borderRadius: 999, background: blocks.sage, color: ink, fontSize: u(12), fontWeight: 600,
-              opacity: state.signed ? 1 : 0, transform: state.signed ? "none" : "scale(0.6)", transformOrigin: "100% 0%",
-              transition: `opacity .25s ${ease}, transform .4s cubic-bezier(0.34, 1.5, 0.64, 1)`,
+              display: "block", paddingTop: u(8), fontSize: u(13), fontWeight: 600, color: ground.muted,
+              opacity: state.hint ? 1 : 0, transform: state.hint || reduced ? "none" : `translateY(${u(4)})`,
+              transition: tr(["opacity", "transform"], state.hint ? "reveal" : "dismiss"),
             }}
           >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3.4} strokeLinecap="round" strokeLinejoin="round" style={{ width: u(11), height: u(11) }}>
+            Sign here
+          </span>
+          <span style={{ flex: 1 }} />
+        </div>
+        <svg aria-hidden viewBox="0 0 12 12" style={{ position: "absolute", left: u(22), bottom: u(46 + 9), width: u(11), height: u(11), color: signal.fill }} fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round">
+          <path d="M2 2l8 8M10 2l-8 8" />
+        </svg>
+        {/* Signed, on sage glass, in the paper's top trailing corner, clear of the ink, as in Swift. */}
+        <span
+          data-motion
+          aria-hidden
+          style={{
+            position: "absolute", top: u(14), right: u(14), zIndex: 1, display: "inline-flex",
+            // Scales out of its corner, as in Swift.
+            opacity: state.signed ? 1 : 0, transform: state.signed || reduced ? "none" : "scale(0.6)", transformOrigin: "100% 0%",
+            transition: tr(["opacity", "transform"], chip),
+          }}
+        >
+          <Liquid tint={blocks.sage} style={{ display: "inline-flex", alignItems: "center", gap: u(4), padding: `${u(5)} ${u(10)}`, color: ink, fontSize: u(12), fontWeight: 600 }}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" style={{ width: u(11), height: u(11) }}>
               <path d="M5 12.5l4.5 4.5L19 7.5" />
             </svg>
             Signed
-          </span>
-        </div>
-        <div className="flex items-center" style={{ paddingInline: u(10) }}>
-          <span style={button(true, false)}><Keyboard />Type instead</span>
-          <span style={{ flex: 1 }} />
-          <span style={button(!state.empty, state.press === "undo", true)}><UndoGlyph /></span>
-          <span style={button(!state.empty, state.press === "clear", true)}>Clear</span>
-        </div>
+          </Liquid>
+        </span>
+        <canvas ref={canvasRef} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", color: ground.text }} />
       </div>
+      {/* The toolbar floats under the paper as one liquid shape, on the page where clear glass shows. Both side slots
+          are Clear's width, so the pill stays centred whether or not Undo and Clear are out. */}
+      <LiquidGroup unit={u(1)}>
+        <span className="flex items-center" style={{ gap: u(liquid.joined), fontSize: u(15), fontWeight: 600 }}>
+          <span className="flex justify-end" style={{ width: u(CLEAR_W) }}>
+            <PadBubble out={state.canUndo} pressed={state.press === "undo"} sink={SINK.undo} width={BUBBLE} home={HOME.undo}><UndoGlyph /></PadBubble>
+          </span>
+          {/* Above the bubbles, so one waiting at home slips under it. */}
+          <span className="relative" style={{ zIndex: 1 }}>
+            <Liquid className="flex items-center" style={{ height: u(BUBBLE), paddingInline: u(16), gap: u(8), color: ground.text }}>
+              <Keyboard />Type instead
+            </Liquid>
+          </span>
+          <span className="flex justify-start" style={{ width: u(CLEAR_W) }}>
+            <PadBubble out={state.canClear} pressed={state.press === "clear"} sink={SINK.clear} width={CLEAR_W} home={HOME.clear}>Clear</PadBubble>
+          </span>
+        </span>
+      </LiquidGroup>
     </div>
   );
 }

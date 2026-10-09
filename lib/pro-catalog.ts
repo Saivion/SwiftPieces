@@ -15,6 +15,10 @@ export const proCatalog = {
    * saved remixes (Pro SAVE_LIMITS). lib/apps.test.ts checks the app counts against lib/apps.
    */
   remixing: { saves: 100, apps: 20, proApps: 17 },
+  /** Flows: every template's journeys (Pro lib/flows.ts flowCount() and flowKindCounts()). */
+  flows: { total: 48, onboarding: 12, core: 24, account: 12 },
+  /** Brand presets across the templates and the families they come from (Pro lib/brand/presets.ts presetDefs). */
+  presets: { total: 36, families: 13 },
   /** A few screen names, in the order Pro features them. */
   screenExamples: ["Wallet", "Budget", "Dashboard", "Chat", "Voice Mode", "Paywall", "Now Playing"],
   /** Every template, short form. */
@@ -42,11 +46,11 @@ export function namesWithMore(names: readonly string[], take = names.length): st
   return names.length > take ? `${picked.join(", ")} and more` : `${picked.slice(0, -1).join(", ")} and ${picked.at(-1)}`;
 }
 
-/** "54 screens, 12 app templates and a 31-item Build Kit". */
 /** The Explore Pro docs pages (/docs/components/<page>), in sidebar order: docs pages, not registry categories. */
-export const exploreProPages = ["screens", "templates"] as const;
+export const exploreProPages = ["screens", "flows", "templates"] as const;
 
-export const proCountsLabel = `${proCatalog.screens} screens, ${proCatalog.templates} app templates and a ${proCatalog.buildKit.total}-item Build Kit`;
+/** "54 screens, 48 flows, 12 app templates and a 31-item Build Kit". */
+export const proCountsLabel = `${proCatalog.screens} screens, ${proCatalog.flows.total} flows, ${proCatalog.templates} app templates and a ${proCatalog.buildKit.total}-item Build Kit`;
 
 /** One line on the Build Kit for Free's Pro teasers. */
 export const buildKitLine = `${proCatalog.buildKit.styles} styles, ${proCatalog.buildKit.briefs} briefs and ${proCatalog.buildKit.recipes} recipes and ${proCatalog.buildKit.tools} tools your coding agent follows, written against the same design system, so everything it builds next matches`;

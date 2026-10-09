@@ -1,26 +1,28 @@
 ---
 title: "Odometer"
-description: "A number whose digits roll on individual slots like a mechanical counter, carrying from the low digits up so unchanged digits never move, with softened slot edges while rolling, dimmed decimals, a separate sign, a solid delta block, and a dashed loading state."
+description: "A number whose digits roll on individual slots like a mechanical counter, carrying from the low digits up so unchanged digits never move, with softened slot edges while rolling, dimmed decimals, a separate sign, a dashed loading state, and a tinted liquid glass delta chip that buds out from behind the figure after each change, rests joined beside it and melts back in."
 piece: "Odometer"
 category: "data"
 minIOSVersion: "17.0"
-version: "2.0.1"
+version: "2.2.0"
 tags: ["number","counter","digits","roll","currency","balance"]
 registryDependencies: []
 ---
 
 {/* GENERATED FILE. Edit registry/swift/data/Odometer.swift or Odometer.mdx instead. */}
 
-Slot-machine number with a single spring-driven `Animatable` value behind every digit.
+Slot-machine number with a single spring-driven `Animatable` value behind every digit. The digits are content, set semibold at whatever size you give them. After a change the delta is a tinted glass chip that buds out from behind the figure's trailing edge, rests a neck's width beside it, and melts back behind it when it goes.
 
 ## Notes
 
-- One `Animatable` number drives every slot. Each digit's roll is derived from that number and carries upward only while the digit below passes 9, so higher digits stay perfectly still until a carry reaches them. While a digit is between faces its slot edges soften, like a drum turning behind a window. The roll runs on `.smooth` with a duration that grows gently with the size of the change; there is no per-frame loop.
-- The layout (grouping separators, decimal separator, currency symbol) is read from the formatted target once per change. Use plain decimal or currency styles; compact notation such as `1.2K` will not match the rolled digits. Leading symbols always show, and the number never gives up width to the delta pill.
-- Decimals and their separator are dimmed by default. The sign is its own glyph and slides in or out at the zero crossing. After each change a solid delta block shows the signed amount for 1.6 s: sage for up, tangerine for down, ink text.
-- `Style` sets `up`, `down`, `ink`, `muted`, `dimsFraction`, and `tintsWhileRolling` (tints the digits until the roll settles; best on dark grounds).
-- `isLoading` swaps every digit for a dash; the first real value rolls up from zero. Reduce Motion replaces the roll with a short ease.
-- VoiceOver reads the final formatted value only, never the intermediate frames. Apply `.font` to the `Odometer` (light weights suit it); slot sizes are measured from that font.
+- One `Animatable` number drives every slot. Each digit's roll is derived from that number and carries upward only while the digit below passes 9, so higher digits stay perfectly still until a carry reaches them. While a digit is between faces its slot edges soften, like a drum turning behind a window: the softening eases in as a digit leaves its face and out as it seats, so the edges sharpen with the landing. The roll runs on a spring with no bounce, so it never shows a digit the value never had, and its duration grows gently with the size of the change, up to 1.2 s; there is no per-frame loop.
+- A new value mid-roll merges into the turning drum instead of restarting it, and the layout keeps every slot the in-flight number still needs: a high slot that reads zero narrows to nothing along with its separator, and spare slots fold away only once the drum has stopped. Only the latest roll lands, clearing the tint and playing the settle tick, so `ticksOnSettle` gives one `.selection` tick per landing. A roll that lands behind the loading dashes clears its tint without a tick.
+- The layout (grouping separators, decimal separator, currency symbol) is read from the formatted target once per change. Use plain decimal or currency styles; compact notation such as `1.2K` will not match the rolled digits. Leading symbols always show, and the number never gives up width to the delta chip.
+- Decimals and their separator are dimmed by default. The sign is its own glyph and slides in or out at the zero crossing. After each change the delta is a liquid glass chip, tinted sage for up and red for down with ink text, that shows the signed amount for 1.6 s. It is born behind the figure's last digit, shrunk and clear, and buds out with visible give to rest a neck's width beside the number, its amount arriving just after, while the number makes room a beat behind the roll. Going away, its amount blurs off at once, its tint drains and it slides back behind the digits on a spring with no bounce, fading as it gets there, and the number closes up. A change while it is showing rolls its amount without overshoot, blurs its arrow across when the direction turns, and resizes and recolors the glass in place with a little give.
+- `Style` sets `up` and `down` (the chip's glass tints), `ink`, `muted`, `dimsFraction`, and `tintsWhileRolling` (tints the digits from the start of a roll until it lands, switching without a fade; best on dark grounds).
+- `isLoading` swaps every digit for a dash. When it ends, the dashes give way to digits at once and the first real value rolls up from zero.
+- Under Reduce Motion nothing rolls: the number lands on its new value at once, each changed digit switching in place, and with no roll there is no roll tint. The sign fades instead of sliding, and the delta chip fades in and out in place beside the number instead of budding; the dimmed decimals and the settle tick are unchanged. Under Reduce Transparency the chip's glass draws solid.
+- VoiceOver reads the final formatted value only, never the intermediate frames. Apply `.font` to the `Odometer` to set its size; the piece sets every string semibold, as the whole library does, so size alone sets the hierarchy. Slot sizes are measured from that font.
 - A full dashboard screen ships in SwiftPieces Pro (`dashboard-screen`).
 
 ## Usage
@@ -36,9 +38,9 @@ OdometerExample().preferredColorScheme(.light)
 | `value` | The target value. Changing it rolls the digits from the current value. |
 | `format` | A decimal `FormatStyle` from `Double` to `String`, for example `.number.precision(.fractionLength(0))` or `.currency(code: "USD")`. Defaults to whole numbers. |
 | `isLoading` | Shows a dash in every digit slot instead of a value; the first real value rolls up from zero. |
-| `showsDelta` | Shows a signed delta pill next to the number for a moment after each change. |
+| `showsDelta` | Shows a signed delta chip of tinted glass beside the number for a moment after each change. |
 | `ticksOnSettle` | Plays a `.selection` haptic when a roll finishes. |
-| `style` | Delta block colors, decimal dimming, and roll tinting. Defaults to `.standard`: sage for up, tangerine for down, dimmed decimals, no tint while rolling. |
+| `style` | Delta chip tints, decimal dimming, and roll tinting. Defaults to `.standard`: sage for up, red for down, dimmed decimals, no tint while rolling. |
 
 ## Source
 
@@ -50,13 +52,17 @@ import SwiftUI
 
 /// Slot-machine number with a single spring-driven `Animatable` value behind every digit.
 ///
+/// The digits are content, set semibold at whatever size you give them. After a change the delta is a tinted glass
+/// chip that buds out from behind the figure's trailing edge, rests a neck's width beside it, and melts back behind
+/// it when it goes.
+///
 /// - Parameters:
 ///   - value: The target value. Changing it rolls the digits from the current value.
 ///   - format: A decimal `FormatStyle` from `Double` to `String`, for example `.number.precision(.fractionLength(0))` or `.currency(code: "USD")`. Defaults to whole numbers.
 ///   - isLoading: Shows a dash in every digit slot instead of a value; the first real value rolls up from zero.
-///   - showsDelta: Shows a signed delta pill next to the number for a moment after each change.
+///   - showsDelta: Shows a signed delta chip of tinted glass beside the number for a moment after each change.
 ///   - ticksOnSettle: Plays a `.selection` haptic when a roll finishes.
-///   - style: Delta block colors, decimal dimming, and roll tinting. Defaults to `.standard`: sage for up, tangerine for down, dimmed decimals, no tint while rolling.
+///   - style: Delta chip tints, decimal dimming, and roll tinting. Defaults to `.standard`: sage for up, red for down, dimmed decimals, no tint while rolling.
 public struct Odometer<Format: FormatStyle>: View where Format.FormatInput == Double, Format.FormatOutput == String {
     /// Delta and decimal styling. See `OdometerStyle`.
     public typealias Style = OdometerStyle
@@ -70,8 +76,16 @@ public struct Odometer<Format: FormatStyle>: View where Format.FormatInput == Do
     @State private var delta: Double = 0
     @State private var deltaShown = false
     @State private var deltaTask: Task<Void, Never>?
+    /// The delta chip: out beside the figure while it shows, melted back behind it otherwise.
+    @State private var buds = PieceBuds()
+    @State private var chipWidth: CGFloat = 0
     @State private var settles = 0
+    /// True while the dashes show, from the moment loading starts.
     @State private var wasLoading = true
+    /// Counts rolls, so only the latest one's landing clears the tint, narrows the layout and ticks.
+    @State private var rollTick = 0
+    /// The largest magnitude the tape has headed for since it last stopped. The layout keeps its slots.
+    @State private var span: Double = 0
 
     private let value: Double
     private let format: Format
@@ -94,17 +108,32 @@ public struct Odometer<Format: FormatStyle>: View where Format.FormatInput == Do
     }
 
     public var body: some View {
-        HStack(alignment: .center, spacing: 10) {
-            Tape(scaled: animated, template: template, slot: slotSize, loading: isLoading, tint: rollingTint, dim: style.dimsFraction ? style.muted : nil)
-                // The number never gives up width to the pill; separators and symbols would truncate first.
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        let gap = PieceLiquid.joined
+        HStack(alignment: .center, spacing: 0) {
+            Tape(scaled: animated, template: template, slot: slotSize, loading: isLoading, tint: rollingTint, dim: style.dimsFraction ? style.muted : nil, reduceMotion: reduceMotion)
+                // The number never gives up width to the chip; separators and symbols would truncate first.
                 .layoutPriority(1)
-            if showsDelta, deltaShown, !isLoading {
-                deltaPill
-            }
+                // Behind the figure, so the chip comes out from behind its last digit and melts back there.
+                .background(alignment: .trailing) {
+                    // Its leading edge rests a neck's width past the figure. The guide sits outside the condition: on a
+                    // view inside an `if` it would be ignored.
+                    ZStack {
+                        if buds.contains("delta") { PieceLiquidGroup { deltaChip } }
+                    }
+                    .alignmentGuide(.trailing) { d in d[.leading] - gap }
+                }
+            // The room the chip rests in. The roll leads and the number makes way a beat later on the snap, the tier for
+            // something its size, while the chip buds out with its own give; it closes up quickly, on the dismiss, as
+            // the chip melts home.
+            Color.clear
+                .frame(height: 1)
+                .animation(chipShown ? motion.cascade(motion.snap, index: 3) : motion.dismiss) { room in
+                    room.frame(width: chipShown ? gap + chipWidth : 0)
+                }
         }
         .monospacedDigit()
-        .animation(.snappy(duration: 0.3), value: deltaShown)
-        .animation(.easeOut(duration: 0.35), value: rollingTint)
+        .fontWeight(.semibold)
         .background {
             // One measurement for every slot: digits are monospaced.
             Text("0").hidden().fixedSize()
@@ -115,24 +144,52 @@ public struct Odometer<Format: FormatStyle>: View where Format.FormatInput == Do
         .accessibilityLabel(isLoading ? "Loading" : format.format(value))
         .onAppear { retarget(from: nil) }
         .onChange(of: value) { old, _ in retarget(from: old) }
-        .onChange(of: isLoading) { _, loading in if !loading { retarget(from: nil) } }
+        // A roll still turning when the dashes come up lands silently behind them.
+        .onChange(of: isLoading) { _, loading in if loading { wasLoading = true } else { retarget(from: nil) } }
+        .onChange(of: chipShown) { _, shown in
+            Task {
+                if shown { await buds.bloom(["delta"], reduceMotion: reduceMotion) } else { await buds.gather(["delta"], reduceMotion: reduceMotion) }
+            }
+        }
     }
 
-    private var deltaPill: some View {
+    /// Whether the delta chip is showing: for a moment after each change, never over the loading dashes.
+    private var chipShown: Bool { showsDelta && deltaShown && !isLoading }
+
+    /// The signed change on tinted glass: sage for up, red for down, with ink. It is born behind the figure's last
+    /// digit, shrunk, with its tint and amount hidden; it springs out with visible give and its amount arrives just
+    /// after. Going away the amount blurs off at once, the tint drains, and it slides home behind the digits on a
+    /// spring with no bounce, fading as it gets there, since the figure has no glass for it to melt into. A change
+    /// while it is out rolls its amount without overshoot, while the glass resizes and recolors in place with a
+    /// little give.
+    private var deltaChip: some View {
         let up = delta >= 0
+        let out = buds.isOut("delta")
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        let home = -(PieceLiquid.joined + chipWidth * (1 + PieceLiquid.homeScale) / 2)
         return HStack(spacing: 3) {
             Image(systemName: up ? "arrow.up.right" : "arrow.down.right")
-                .font(.system(size: 11, weight: .heavy))
+                .font(.system(size: 11, weight: .semibold))
+                .id(up)
+                .transition(motion.swap)
             Text((up ? "+" : "−") + format.format(abs(delta)))
+                .contentTransition(reduceMotion ? .opacity : .numericText(value: delta))
+                // The amount is a figure, so it lands without overshoot.
+                .animation(motion.value, value: delta)
         }
-        .font(.system(size: 14, weight: .bold))
+        .font(.system(size: 14, weight: .semibold))
         .monospacedDigit()
         .foregroundStyle(style.ink)
+        .fixedSize()
+        .pieceBudContent(out: out)
         .padding(.horizontal, 10)
         .frame(minHeight: 28)
-        .background(up ? style.up : style.down, in: Capsule())
-        .fixedSize()
-        .transition(.scale(scale: 0.7, anchor: .leading).combined(with: .opacity))
+        .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { chipWidth = $0 }
+        .pieceLiquid(Capsule(), tint: out ? (up ? style.up : style.down) : nil, interactive: false)
+        .animation(motion.snap, value: delta)
+        .pieceBud(out: out, home: CGSize(width: home, height: 0))
+        // With no glass to melt into, it fades as it slips behind the digits, gone by the time it is home.
+        .animation(out ? .easeOut(duration: 0.15) : .easeIn(duration: 0.22).delay(0.12)) { $0.opacity(out ? 1 : 0) }
     }
 
     // MARK: Rolling
@@ -145,14 +202,17 @@ public struct Odometer<Format: FormatStyle>: View where Format.FormatInput == Do
             wasLoading = true
             return
         }
+        let motion = PieceMotion(reduceMotion: reduceMotion)
         let start = wasLoading ? 0 : (old ?? value)
         wasLoading = false
-        // Lay out for the larger magnitude so a shrinking number keeps its high slots until it settles.
-        let layout = Self.layout(for: max(abs(start), abs(value)), format: format)
+        // Lay out for the largest magnitude since the tape last stopped, so a shrinking number, or one retargeted
+        // mid-roll, keeps its high slots until it settles and never shows a digit cut off.
+        span = max(span, abs(start), abs(value))
+        let layout = Self.layout(for: span, format: format)
         fractionDigits = layout.fractionDigits
         let target = (value * pow(10, Double(layout.fractionDigits))).rounded()
         let change = target - animated
-        withAnimation(.snappy(duration: 0.25)) { template = layout.glyphs }
+        withAnimation(motion.value) { template = layout.glyphs }
         guard change != 0 else { return }
         if let old, old != value {
             delta = value - old
@@ -163,16 +223,38 @@ public struct Odometer<Format: FormatStyle>: View where Format.FormatInput == Do
                 if !Task.isCancelled { deltaShown = false }
             }
         }
-        rollingTint = style.tintsWhileRolling ? (change > 0 ? style.up : style.down) : nil
-        let spring: Animation = reduceMotion ? .easeInOut(duration: 0.25) : .smooth(duration: min(1.2, 0.5 + Double(abs(change)).squareRoot() * 0.01))
-        withAnimation(spring, completionCriteria: .logicallyComplete) {
-            animated = target
-        } completion: {
-            rollingTint = nil
-            settles += 1
-            let final = Self.layout(for: abs(value), format: format)
-            withAnimation(.snappy(duration: 0.25)) { template = final.glyphs }
+        // The tint switches on and off without a fade: a color fade on text that the delta block is sliding garbled the
+        // digits, and blanked them when the block left. A fresh transaction, so a caller's `withAnimation` around the
+        // value change cannot fade it either. Under Reduce Motion there is no roll for it to cover.
+        var instant = Transaction()
+        instant.disablesAnimations = true
+        withTransaction(instant) {
+            rollingTint = style.tintsWhileRolling && !reduceMotion ? (change > 0 ? style.up : style.down) : nil
         }
+        rollTick += 1
+        let tick = rollTick
+        // The drum's own pacing: no bounce, since an overshoot would show digits the value never had, and a duration
+        // that grows gently with the size of the change. A retarget mid-roll merges into this spring. Under Reduce
+        // Motion the tape does not roll at all (see `Tape`): changed digits switch in place.
+        let roll: Animation = reduceMotion ? motion.value : .smooth(duration: min(1.2, 0.5 + Double(abs(change)).squareRoot() * 0.01))
+        var landing = Transaction(animation: roll)
+        // Only the latest roll lands: when a newer one took over, its own landing does all of this, once.
+        // The landing the eye sees: the tint lets go and the tick plays. Behind the loading dashes there is nothing to feel.
+        landing.addAnimationCompletion(criteria: .logicallyComplete) {
+            guard tick == rollTick else { return }
+            withTransaction(\.disablesAnimations, true) { rollingTint = nil }
+            if !wasLoading { settles += 1 }
+        }
+        // Spare slots fold only once the drum has stopped: its tail can still cross a high digit. Behind the dashes
+        // the placeholder keeps its slots, and the next real value lays out from `span`.
+        landing.addAnimationCompletion(criteria: .removed) {
+            guard tick == rollTick else { return }
+            span = abs(value)
+            guard !wasLoading else { return }
+            let final = Self.layout(for: abs(value), format: format)
+            withAnimation(motion.value) { template = final.glyphs }
+        }
+        withTransaction(landing) { animated = target }
     }
 
     /// Reads the formatted string once to learn where digits, separators, and symbols sit.
@@ -231,13 +313,17 @@ public struct Odometer<Format: FormatStyle>: View where Format.FormatInput == Do
         let loading: Bool
         let tint: Color?
         let dim: Color?
+        let reduceMotion: Bool
 
+        /// Under Reduce Motion nothing is interpolated: the tape lands on the new value at once and each changed digit
+        /// switches in place instead of turning through the faces between.
         nonisolated var animatableData: Double {
-            get { scaled }
-            set { scaled = newValue }
+            get { reduceMotion ? 0 : scaled }
+            set { if !reduceMotion { scaled = newValue } }
         }
 
         var body: some View {
+            let motion = PieceMotion(reduceMotion: reduceMotion)
             let magnitude = abs(scaled)
             let rolls = Dictionary(uniqueKeysWithValues: template.compactMap { glyph -> (Int, Double)? in
                 if case .digit(let position, _) = glyph.kind { return (position, roll(position, magnitude)) }
@@ -246,7 +332,7 @@ public struct Odometer<Format: FormatStyle>: View where Format.FormatInput == Do
             let visibility = leadingVisibility(rolls: rolls)
             HStack(spacing: 0) {
                 if scaled < -0.5, !loading {
-                    Text("−").transition(.move(edge: .leading).combined(with: .opacity))
+                    Text("−").transition(motion.transition(.move(edge: .leading).combined(with: .opacity)))
                 }
                 ForEach(Array(template.enumerated()), id: \.element.id) { index, glyph in
                     let reveal = visibility[index]
@@ -258,16 +344,22 @@ public struct Odometer<Format: FormatStyle>: View where Format.FormatInput == Do
                             .opacity(reveal)
                             .transition(.opacity)
                     case .literal(let text):
-                        Text(text)
-                            .fixedSize()
-                            .foregroundStyle(dimmed(glyph.id == 1000))
-                            .opacity(reveal)
-                            .transition(.opacity)
+                        // A separator between hidden slots narrows with them, so it never holds a gap open before the
+                        // number, and folding the spare slots away once the drum stops moves nothing.
+                        RevealWidth(fraction: reveal) {
+                            Text(text).fixedSize()
+                        }
+                        .foregroundStyle(dimmed(glyph.id == 1000))
+                        .opacity(reveal)
+                        .transition(.opacity)
                     }
                 }
             }
-            .animation(.snappy(duration: 0.25), value: scaled < -0.5)
-            .animation(.snappy(duration: 0.25), value: template)
+            // The number changes form without overshoot, on the value spring: the sign at the zero crossing, slots added
+            // or folded away. The dashes give way to digits at once: a crossfade into a drum already spinning doubled and
+            // cut the glyphs.
+            .animation(motion.value, value: scaled < -0.5)
+            .animation(motion.value, value: template)
         }
 
         /// Decimals and their separator sit back in the muted color unless the roll is tinted.
@@ -314,6 +406,20 @@ public struct Odometer<Format: FormatStyle>: View where Format.FormatInput == Do
         }
     }
 
+    /// Gives a glyph a fraction of its natural width, trailing aligned, the way a hidden digit slot narrows.
+    private struct RevealWidth: Layout {
+        let fraction: Double
+
+        func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+            let size = subviews.first?.sizeThatFits(.unspecified) ?? .zero
+            return CGSize(width: size.width * fraction, height: size.height)
+        }
+
+        func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+            subviews.first?.place(at: CGPoint(x: bounds.maxX, y: bounds.midY), anchor: .trailing, proposal: .unspecified)
+        }
+    }
+
     private struct DigitSlot: View {
         let roll: Double
         let slot: CGSize
@@ -322,6 +428,9 @@ public struct Odometer<Format: FormatStyle>: View where Format.FormatInput == Do
         var body: some View {
             let current = Int(roll.rounded(.down)) % 10
             let fraction = roll - roll.rounded(.down)
+            // The softening eases in over the first 8% of a turn and out over the last 8%, so a digit's edges sharpen
+            // as it seats instead of switching from soft to hard in one frame after the motion has visibly stopped.
+            let edge = 0.22 * min(1, min(fraction, 1 - fraction) / 0.08)
             ZStack {
                 if loading {
                     Text("–")
@@ -332,13 +441,15 @@ public struct Odometer<Format: FormatStyle>: View where Format.FormatInput == Do
             }
             .frame(width: slot.width, height: slot.height)
             .clipped()
-            // While a digit is between faces its slot edges soften, like a drum turning behind a window.
+            // A digit never crossfades: the fading copies stay where the number was while the delta block slides it, which
+            // blanked or doubled the digits. Under Reduce Motion, where the tape lands without rolling, a changed digit
+            // switches in place.
+            .contentTransition(.identity)
+            // While a digit is between faces its slot edges soften, like a drum turning behind a window. One gradient at
+            // every fraction (hard edges at a face): a mask swapped in mid-roll lands where the number is going while the
+            // digit is still sliding there with the delta block, and hid it until the slide ended.
             .mask {
-                if fraction > 0.001 {
-                    LinearGradient(stops: [.init(color: .clear, location: 0), .init(color: .black, location: 0.22), .init(color: .black, location: 0.78), .init(color: .clear, location: 1)], startPoint: .top, endPoint: .bottom)
-                } else {
-                    Rectangle()
-                }
+                LinearGradient(stops: [.init(color: .clear, location: 0), .init(color: .black, location: edge), .init(color: .black, location: 1 - edge), .init(color: .clear, location: 1)], startPoint: .top, endPoint: .bottom)
             }
         }
     }
@@ -346,11 +457,11 @@ public struct Odometer<Format: FormatStyle>: View where Format.FormatInput == Do
 
 /// Delta and decimal styling for `Odometer`, built from the Free house palette.
 public struct OdometerStyle: Sendable {
-    /// Delta block for a rise, and the roll tint when `tintsWhileRolling` is on.
+    /// Glass tint of the delta chip for a rise, and the roll tint when `tintsWhileRolling` is on.
     public var up: Color
-    /// Delta block for a fall, and the roll tint when `tintsWhileRolling` is on.
+    /// Glass tint of the delta chip for a fall, and the roll tint when `tintsWhileRolling` is on.
     public var down: Color
-    /// Text on the delta block.
+    /// Text on the delta chip.
     public var ink: Color
     /// Color of dimmed decimals.
     public var muted: Color
@@ -368,10 +479,10 @@ public struct OdometerStyle: Sendable {
         self.tintsWhileRolling = tintsWhileRolling
     }
 
-    /// Sage and tangerine delta blocks with ink, dimmed decimals, untinted digits. Copy it and change one property to customize.
+    /// Sage and red delta chips with ink, dimmed decimals, untinted digits. Copy it and change one property to customize.
     public static let standard = OdometerStyle(
         up: adaptive(0xA9DCB7, 0xA9DCB7),
-        down: adaptive(0xFF5B3A, 0xFF5B3A),
+        down: adaptive(0xFF0000, 0xFF0000),
         ink: adaptive(0x141414, 0x141414),
         muted: adaptive(0x8B8984, 0x6F6D69)
     )
@@ -392,7 +503,7 @@ private struct OdometerExample: View {
 
     var body: some View {
         Odometer(value: balance, format: .currency(code: "USD"), isLoading: loading, ticksOnSettle: true)
-            .font(.system(size: 48, weight: .light))
+            .font(.system(size: 48, weight: .semibold))
             .padding(24)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(OdometerStyle.adaptive(0xF3F2EE, 0x121212))
@@ -415,6 +526,363 @@ private struct OdometerExample: View {
 #Preview("Dark") {
     OdometerExample().preferredColorScheme(.dark)
 }
+
+// MARK: - Piece motion
+//
+// The SwiftPieces motion language: shared spring tokens and gesture physics, with the same values in every
+// piece. Each piece carries a copy of only the parts it uses, so this file stands alone. Generated from
+// registry/foundation/PieceMotion.swift in the SwiftPieces repo; edit it there, not here.
+// swiftpieces-motion: 1.1.0 (core, follow)
+
+/// The SwiftPieces motion language: five spring tiers, and a named role for every moment a piece moves,
+/// each with its Reduce Motion substitute.
+///
+/// Build one from the environment, `PieceMotion(reduceMotion: reduceMotion)`, and pick the role that names
+/// what just happened. Never animate the tracking of a finger: set gesture state directly in `onChanged`, so the
+/// surface stays under the finger, and spring only the release.
+private struct PieceMotion {
+    var reduceMotion = false
+
+    // Tiers. Overshoot and settle times are measured from rest with SwiftUI's Spring.
+    /// No overshoot, 90% in about 90ms. A press arriving under the finger.
+    static var tight: Spring { Spring(duration: 0.14, bounce: 0) }
+    /// About 2.8% overshoot, 90% in about 140ms. Snapping to a detent, page or segment.
+    static var responsive: Spring { Spring(duration: 0.32, bounce: 0.25) }
+    /// About 8.4% overshoot. Visible give: a release, a return from past an edge, a drag settling home.
+    static var elastic: Spring { Spring(duration: 0.42, bounce: 0.38) }
+    /// About 15% overshoot. A resolved action landing. At most once per interaction.
+    static var expressive: Spring { Spring(duration: 0.48, bounce: 0.48) }
+    /// About 1.5% overshoot, unhurried. Opening large surfaces and ambient change.
+    static var calm: Spring { Spring(duration: 0.5, bounce: 0.2) }
+
+    /// Reduce Motion: settles become this short spring with no overshoot.
+    private static var still: Animation { .spring(duration: 0.25, bounce: 0) }
+
+    // Roles.
+    /// Touch-down. Starts on the same frame and never bounces under the finger.
+    var press: Animation { .spring(Self.tight) }
+    /// The finger lifts off a pressed surface, which springs back through rest.
+    var release: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A dragged thing comes to rest. With a gesture's velocity, use `settle(velocity:from:to:)` instead.
+    var settle: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// Lands on a detent, page or segment.
+    var snap: Animation { reduceMotion ? Self.still : .spring(Self.responsive) }
+    /// A number, a chart value or anything else people read moves to its new value. Never overshoots, so it
+    /// never shows a value that isn't true.
+    var value: Animation { reduceMotion ? Self.still : .spring(duration: 0.35, bounce: 0) }
+    /// Comes back from past a limit: a pull beyond the edge, a value pushed against its bound.
+    var rebound: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A shape or container changes size, corner radius or form, with a little give at the end.
+    var morph: Animation { reduceMotion ? Self.still : .spring(duration: 0.4, bounce: 0.2) }
+    /// Something appears, opens or expands. Opening is a little slower than closing.
+    var reveal: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.calm) }
+    /// Something leaves, closes or collapses. Quick and firm, out of the way.
+    var dismiss: Animation { reduceMotion ? .easeIn(duration: 0.18) : .spring(duration: 0.3, bounce: 0.08) }
+    /// A resolved action lands: a check, a sent state, a reaction.
+    var success: Animation { reduceMotion ? .easeOut(duration: 0.24) : .spring(Self.expressive) }
+    /// A refused action. Firm, no wobble; `pieceShake` adds the movement.
+    var error: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.responsive) }
+    /// Slow ambient change. Loops themselves stop under Reduce Motion: check `allowsAmbient`.
+    var ambient: Animation { reduceMotion ? .easeInOut(duration: 0.3) : .spring(Self.calm) }
+
+    /// Loops, drifts, idle breathing and parallax run only when this is true.
+    var allowsAmbient: Bool { !reduceMotion }
+
+    /// A moving transition, or a plain fade under Reduce Motion.
+    func transition(_ transition: AnyTransition) -> AnyTransition {
+        reduceMotion ? .opacity : transition
+    }
+
+    /// For content replaced inside a container that stays put (a label, a glyph, a count): the old content
+    /// blurs out as the new one sharpens in. A fade under Reduce Motion.
+    @MainActor var swap: AnyTransition {
+        reduceMotion ? .opacity : AnyTransition(.blurReplace)
+    }
+}
+
+extension PieceMotion {
+    /// Follow-through: rank 0 leads, each later rank arrives a beat later on a slightly looser spring. Safe to reverse.
+    func follow(_ spring: Spring = PieceMotion.elastic, rank: Int) -> Animation {
+        guard !reduceMotion else { return .spring(duration: 0.25, bounce: 0) }
+        let k = Double(min(max(rank, 0), 6))
+        return .spring(duration: spring.duration + 0.04 * k, bounce: min(spring.bounce + 0.02 * k, 0.55))
+    }
+
+    /// One-shot entrances only: item `index` waits 30ms per place, capped at the seventh. Exits go together.
+    func cascade(_ animation: Animation, index: Int, step: Double = 0.03) -> Animation {
+        guard !reduceMotion, index > 0 else { return animation }
+        return animation.delay(step * Double(min(index, 7)))
+    }
+}
+
+// swiftpieces-motion: end
+
+// MARK: - Piece liquid
+//
+// The SwiftPieces liquid glass language: glass shapes that merge through a neck, bubbles that bud out of
+// and melt back into each other, and the frosted fallback before iOS 26. Each piece carries a copy of only
+// the parts it uses, so this file stands alone. Generated from registry/foundation/PieceLiquid.swift in the
+// SwiftPieces repo; edit it there, not here. The rules are in LIQUID_GLASS.md.
+// swiftpieces-liquid: 1.7.0 (liquid, bud)
+
+/// The liquid glass language: one merge distance, two rest gaps, and the springs a bubble leaves and comes home on.
+///
+/// Glass shapes inside one `PieceLiquidGroup` melt into each other through a neck when they come within `merge`
+/// points. Parts of one control rest `joined`, inside that distance, so the neck holds; separate actions rest
+/// `apart`, outside it, so they only goo while one buds out of, or melts back into, another.
+private enum PieceLiquid {
+    /// Glass shapes closer than this share a neck.
+    static let merge: CGFloat = 20
+    /// The gap between parts of one control (a stepper's buttons, a progress pill and its stop): the neck holds,
+    /// short and smooth, about two thirds of the shapes' height at its waist. Joined parts read best at one height.
+    static let joined: CGFloat = 4
+    /// The gap between separate actions (menu items, confirm and cancel, chips): they rest as their own bubbles.
+    static let apart: CGFloat = 26
+    /// How far a bubble shrinks while it is home inside its parent.
+    static let homeScale: CGFloat = 0.72
+
+    /// A bubble leaving its parent: slow enough that the neck's stretch and snap read.
+    static func split(reduceMotion: Bool) -> Animation {
+        reduceMotion ? .easeOut(duration: 0.2) : .spring(duration: 0.62, bounce: 0.22)
+    }
+
+    /// A bubble going home. No bounce: a bounce would carry it out through the far side of its parent.
+    static func home(reduceMotion: Bool) -> Animation {
+        reduceMotion ? .easeIn(duration: 0.18) : .spring(duration: 0.5, bounce: 0)
+    }
+}
+
+/// A group of glass shapes that merge into one liquid surface. On iOS 26 it is a `GlassEffectContainer`; before
+/// that, and under Reduce Transparency, the shapes draw on their own and simply don't merge. `lift` adds the soft
+/// shadow liquid glass floats on in light mode.
+private struct PieceLiquidGroup<Content: View>: View {
+    var spacing: CGFloat = PieceLiquid.merge
+    var lift = true
+    @ViewBuilder var content: Content
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        container
+            .shadow(color: .black.opacity(lift && colorScheme == .light ? 0.07 : 0), radius: 18, y: 8)
+    }
+
+    @ViewBuilder private var container: some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26, *), !reduceTransparency {
+            GlassEffectContainer(spacing: spacing) { content }
+        } else {
+            content
+        }
+        #else
+        content
+        #endif
+    }
+}
+
+/// One liquid glass shape: Liquid Glass on iOS 26, carrying `tint` as a solid colour and swelling under a press when
+/// `interactive`; a frosted Material with a light rim and a soft shadow before that; a solid fill under Reduce
+/// Transparency.
+///
+/// The tint is painted inside clear glass rather than tinting the glass. Tinted glass in a group bleeds its colour
+/// through every neck as a smear, so a red button would glow into the white pill it is joined to; painted inside,
+/// the colour stays crisp to the shape's edge, the necks between shapes are clear glass, and a tint change animates
+/// like any colour (tinted glass snaps).
+private struct PieceLiquidSurface<S: Shape>: ViewModifier {
+    var shape: S
+    var tint: Color?
+    var interactive: Bool
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.pieceLiquidScale) private var scale
+
+    func body(content: Content) -> some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26, *), !reduceTransparency {
+            // Scaled as two parts, content and outline, about the same centre. A scaleEffect on a glass view inside a
+            // GlassEffectContainer shrinks the glass but leaves what it carries full size, pinned to its corner.
+            content
+                .background { shape.fill(tint ?? .clear) }
+                .scaleEffect(scale)
+                .glassEffect(glass, in: shape.scale(scale))
+        } else {
+            fallback(content).scaleEffect(scale)
+        }
+        #else
+        fallback(content).scaleEffect(scale)
+        #endif
+    }
+
+    #if compiler(>=6.2)
+    @available(iOS 26, *)
+    private var glass: Glass {
+        interactive ? Glass.regular.interactive() : .regular
+    }
+    #endif
+
+    private func fallback(_ content: Content) -> some View {
+        let dark = colorScheme == .dark
+        return content
+            .background {
+                if reduceTransparency {
+                    shape.fill(tint ?? (dark ? Color(white: 0.17) : Color(white: 0.97)))
+                } else {
+                    ZStack {
+                        shape.fill(.regularMaterial)
+                        if let tint { shape.fill(tint.opacity(0.88)) }
+                    }
+                }
+            }
+            .overlay { shape.stroke(Color.white.opacity(dark ? 0.14 : 0.7), lineWidth: 0.5) }
+            .shadow(color: .black.opacity(dark ? 0.32 : 0.08), radius: 10, y: 5)
+    }
+}
+
+private struct PieceLiquidScaleKey: EnvironmentKey {
+    static let defaultValue: CGFloat = 1
+}
+
+private extension EnvironmentValues {
+    /// How much the liquid shapes below are scaled, about their own centres. Nested scales multiply.
+    var pieceLiquidScale: CGFloat {
+        get { self[PieceLiquidScaleKey.self] }
+        set { self[PieceLiquidScaleKey.self] = newValue }
+    }
+}
+
+private extension View {
+    /// Draws this view on a liquid glass `shape`. Put it inside a `PieceLiquidGroup` so it can merge with its neighbours.
+    func pieceLiquid<S: Shape>(_ shape: S, tint: Color? = nil, interactive: Bool = true) -> some View {
+        modifier(PieceLiquidSurface(shape: shape, tint: tint, interactive: interactive))
+    }
+
+    /// Scales the liquid glass shapes in this view, content and outline together, about their own centres. Use it
+    /// instead of `scaleEffect` on a glass view (a press, a lift, a swell): inside a group a plain `scaleEffect` shrinks
+    /// the glass but leaves its content full size and off centre. Animates like any other value.
+    func pieceLiquidScale(_ scale: CGFloat) -> some View {
+        transformEnvironment(\.pieceLiquidScale) { $0 *= scale }
+    }
+}
+
+/// The bud: how a bubble leaves and rejoins its parent, driven explicitly so every bubble shows the whole cycle.
+///
+/// A bubble is born at `home`, inside its parent, where the two glass shapes are one. It springs out to `rest`, and
+/// while it is inside the merge distance a neck holds it to the parent, thinning as it goes, until it snaps free.
+/// Going home it springs back on a spring with no bounce, the neck reaches out and re-forms, and only once it has
+/// melted all the way in is it removed. Both offsets are relative to where the bubble is laid out. Under Reduce
+/// Motion it stays at `rest`: its content fades and its glass closes in place.
+private struct PieceBud: ViewModifier {
+    var out: Bool
+    var rest: CGSize
+    var home: CGSize
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func body(content: Content) -> some View {
+        if reduceMotion {
+            // No travel. Inside a group glass ignores opacity, so the glass closes to nothing in place on the short
+            // Reduce Motion ease while its content fades; the opacity covers a bubble outside a group.
+            content
+                .pieceLiquidScale(out ? 1 : 0.001)
+                .opacity(out ? 1 : 0)
+                .offset(rest)
+        } else {
+            // The glass shrinks through `pieceLiquidScale`, never a plain scaleEffect (see there), then moves.
+            content
+                .pieceLiquidScale(out ? 1 : PieceLiquid.homeScale)
+                .offset(out ? rest : home)
+        }
+    }
+}
+
+/// A bubble's own content, on its own clock: gone the moment the bubble heads home, so it never rides over the
+/// parent's content, and arriving just after the bubble leaves.
+private struct PieceBudContent: ViewModifier {
+    var out: Bool
+
+    func body(content: Content) -> some View {
+        content
+            .blur(radius: out ? 0 : 6)
+            .opacity(out ? 1 : 0)
+            .animation(out ? .easeOut(duration: 0.3).delay(0.1) : .easeOut(duration: 0.14), value: out)
+    }
+}
+
+private extension View {
+    /// Places a bubble at `rest` while `out`, and at `home` (inside its parent, shrunk) while not.
+    func pieceBud(out: Bool, rest: CGSize = .zero, home: CGSize) -> some View {
+        modifier(PieceBud(out: out, rest: rest, home: home))
+    }
+
+    /// Hides a bubble's icon or label while it is home. Put it on the content, inside the glass.
+    func pieceBudContent(out: Bool) -> some View {
+        modifier(PieceBudContent(out: out))
+    }
+}
+
+/// Which bubbles exist and which are out. A bubble is added home with no animation, sent out on the next frame,
+/// and called home before it is removed, so it always melts in rather than fading. Keep one in `@State`.
+@MainActor @Observable
+private final class PieceBuds {
+    private(set) var present: [String] = []
+    private(set) var out: Set<String> = []
+    /// The latest call for each bubble. A bloom or gather that has been overtaken (a bubble sent home while it was
+    /// still waiting to go out, or called out again while melting) leaves that bubble alone.
+    @ObservationIgnored private var turn: [String: Int] = [:]
+
+    func contains(_ id: String) -> Bool { present.contains(id) }
+    func isOut(_ id: String) -> Bool { out.contains(id) }
+
+    private func claim(_ ids: [String]) -> [String: Int] {
+        var mine: [String: Int] = [:]
+        for id in ids {
+            let next = (turn[id] ?? 0) + 1
+            turn[id] = next
+            mine[id] = next
+        }
+        return mine
+    }
+
+    /// Puts bubbles straight out at rest with no motion: a view's first frame, or a state restored.
+    func place(_ ids: [String]) {
+        _ = claim(ids)
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) {
+            for id in ids where !present.contains(id) { present.append(id) }
+            out.formUnion(ids)
+        }
+    }
+
+    /// Adds bubbles home, then sends each out, `stagger` seconds apart, after an optional `delay`.
+    func bloom(_ ids: [String], reduceMotion: Bool, stagger: Double = 0.05, delay: Double = 0) async {
+        let mine = claim(ids)
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) {
+            for id in ids where !present.contains(id) { present.append(id) }
+        }
+        try? await Task.sleep(for: .milliseconds(24 + Int(max(delay, 0) * 1000)))
+        let split = PieceLiquid.split(reduceMotion: reduceMotion)
+        for (i, id) in ids.enumerated() where turn[id] == mine[id] {
+            withAnimation(split.delay(reduceMotion ? 0 : Double(i) * stagger)) { _ = out.insert(id) }
+        }
+    }
+
+    /// Calls bubbles home, last first, then removes them once they have melted in.
+    func gather(_ ids: [String], reduceMotion: Bool, stagger: Double = 0.04) async {
+        let mine = claim(ids)
+        let home = PieceLiquid.home(reduceMotion: reduceMotion)
+        for (i, id) in ids.reversed().enumerated() {
+            withAnimation(home.delay(reduceMotion ? 0 : Double(i) * stagger)) { _ = out.remove(id) }
+        }
+        try? await Task.sleep(for: .milliseconds(Int((0.52 + Double(ids.count) * stagger) * 1000)))
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) { present.removeAll { ids.contains($0) && !out.contains($0) && turn[$0] == mine[$0] } }
+    }
+}
+
+// swiftpieces-liquid: end
 ```
 
 </Tab>

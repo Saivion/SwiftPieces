@@ -39,7 +39,7 @@ export default function AboutPage() {
       <p>Copy a piece&apos;s source into your app, add it with the <Link href="/docs/cli">swiftpieces CLI</Link>, or ask your coding agent through the <Link href="/docs/mcp">MCP server</Link>. The <Link href="/docs/installation">installation guide</Link> covers each one.</p>
 
       <h2>Who builds it and how it is funded</h2>
-      <p>SwiftPieces is curated by Saivion. The free library is the product, available under <Link href="/license">MIT + Commons Clause</Link>: use the pieces in any app, including client work. <a href={pro.home}>SwiftPieces Pro</a>, with production-ready screens and complete app templates, funds the maintenance and the new pieces.</p>
+      <p>SwiftPieces is curated by Saivion. The free library is the product, available under <Link href="/license">MIT + Commons Clause</Link>: use the pieces in any app, including client work. <a href={pro.home}>SwiftPieces Pro</a>, with production-ready screens, whole flows and complete app templates, funds the maintenance and the new pieces.</p>
     </ProsePage>
   );
 }

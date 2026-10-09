@@ -16,7 +16,7 @@ Guide: ${site.url}/docs/liquid-glass`;
 export const POST = createMcpHandler({
   name: "swiftpieces",
   version: "0.1.0",
-  instructions: `Search and install free SwiftPieces (MIT + Commons Clause). For SwiftPieces Pro screens and app templates use the Pro server at ${pro.mcp} with a license key.`,
+  instructions: `Search and install free SwiftPieces (MIT + Commons Clause). For SwiftPieces Pro screens, flows and app templates use the Pro server at ${pro.mcp} with a license key.`,
   tools: [
     {
       name: "search_pieces",
@@ -37,7 +37,7 @@ export const POST = createMcpHandler({
       inputSchema: { type: "object", properties: { name: { type: "string" } }, required: ["name"] },
       handler: async ({ name }) => {
         const item = await loadFullRegistryItem(String(name));
-        if (!item) throw new Error(`No free piece named "${name}". If it is a Pro screen or template, use the Pro MCP at ${pro.mcp}.`);
+        if (!item) throw new Error(`No free piece named "${name}". If it is a Pro screen, flow or template, use the Pro MCP at ${pro.mcp}.`);
         return item;
       },
     },
@@ -55,12 +55,12 @@ export const POST = createMcpHandler({
     },
     {
       name: "list_categories",
-      description: "List free categories with counts, and links to the SwiftPieces Pro library (screens and app templates).",
+      description: "List free categories with counts, and links to the SwiftPieces Pro library (screens, flows and app templates).",
       inputSchema: { type: "object", properties: {} },
       handler: () => {
         const counts: Record<string, number> = {};
         for (const i of getRegistryIndex()) counts[i.category] = (counts[i.category] ?? 0) + 1;
-        return { free: counts, pro: { library: pro.library, screens: pro.screens, templates: pro.templates, mcp: pro.mcp } };
+        return { free: counts, pro: { library: pro.library, screens: pro.screens, flows: pro.flows, templates: pro.templates, mcp: pro.mcp } };
       },
     },
     {

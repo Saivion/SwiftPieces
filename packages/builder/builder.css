@@ -1076,6 +1076,8 @@ a.spp-compose-locked > svg { flex: none; color: var(--spp-subtle); }
 /* On the canvas every part is picked with a click: a pointer over the phone (a drag still shows grabbing). */
 .spp-wall-phone * { cursor: pointer !important; }
 .spp-wall-highlights { z-index: 3; }
+/* The layout bar on the canvas is a tool: an ordinary pointer, not the canvas's grab hand. */
+.spp-wall .spp-selbar { cursor: default; }
 .spp-wall-phone::after { content: ""; position: absolute; inset: calc(-6px / var(--z)); border-radius: calc(67px + 6px / var(--z)); box-shadow: 0 0 0 calc(1.5px / var(--z)) var(--spp-line); opacity: 0; pointer-events: none; transition: opacity .2s, box-shadow .2s; }
 .spp-wall-phone:focus-visible::after { opacity: 1; }
 .spp-wall-item[data-current] .spp-wall-phone::after { opacity: 1; box-shadow: 0 0 0 calc(1.5px / var(--z)) var(--accent); }

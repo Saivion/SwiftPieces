@@ -1,10 +1,14 @@
 ## Notes
 
 - Everything is drawn in one `Canvas` inside a `TimelineView` that pauses when nothing is pressed, springing or rippling, so an idle grid costs nothing. A short task clears expired springs and ripples so the timeline can pause again.
-- Release is a damped spring computed per frame (`e^-7t · cos 10t`), so the dots overshoot slightly below their resting size before settling. While dragging the field follows the finger directly.
-- A tap (moved under 8 pt, held under 0.3 s) emits one ripple ring that eases outward and widens as it fades; ripples are capped at three. Reduce Motion disables only the ripple; the highlight and spring remain.
-- The highlight is a tonal ramp on `.primary` (`baseOpacity` up to 0.92) with a 3.2x swell, so it matches any tint and both color schemes.
-- The `.selection` haptic fires at most every 60 ms and only when the finger crosses into a new grid cell.
-- `probe` drives the grid without a finger, for previews, hints, or onboarding.
-- `style:` sets the resting dot color (`.primary` by default) and the block the dots take on as they lift. `.standard` warms into tangerine; `.sky`, `.lilac`, `.sage` and `.butter` use the other blocks, and `.mono` keeps the single-tone ramp.
-- The `#Preview` is the grid alone on the house ground, full bleed; touch it to swell, release to spring back, tap for a ripple.
+- While dragging, the field sits on the finger at every frame. At touch-down its strength swells in on the library's press spring (about 90% in 90 ms, no overshoot), so the dots rise under the finger instead of appearing at full size.
+- On release the field springs back on the library's expressive spring, dipping below resting size before it settles in about 0.8 s (the dots under a full press shrink to about 0.75x for a moment), and coasts on along the finger's last direction like a scroll view decelerating, eased toward half the `radius`, so a flick leaves a short wake. A quick tap lifted mid-swell carries on for a moment before it springs back. A new touch never cuts a lifted field short: it plays out where it was let go while the new one swells under the finger.
+- A tap (moved under 8 pt, held under 0.3 s) emits one ripple ring that eases outward and widens as it fades; ripples are capped at three.
+- Lifted dots swell up to 3.2x and crossfade from the resting ink into the `style` highlight, so a fully lifted dot reads as solid block color.
+- The `.selection` haptic fires at most every 120 ms and only when the finger crosses into a new grid cell, so a quick drag ticks lightly instead of buzzing.
+- A touch the system cancels (a scroll taking over, an alert) lets go like a lift, so the grid never stays pressed.
+- Reduce Motion keeps the swell, the color and the haptic under the finger. The release settles on a short spring without dipping below rest or coasting, and a tap blooms in place, warming the dots around it for about half a second, instead of sending a ring out. `ripples: false` turns the bloom off too.
+- `probe` drives the grid without a finger, for previews, hints, or onboarding. Its releases spring back in place, with no coast.
+- `style:` sets the resting dot color (`.primary` by default) and the block the dots take on as they lift. `.standard` warms into the brand red, `#FF0000`; `.sky`, `.lilac`, `.sage` and `.butter` use the other blocks, and `.mono` keeps the single-tone ramp.
+- The grid is a surface, not a control, so it draws no glass and no text of its own.
+- The `#Preview` is the grid alone on the house ground, full bleed; touch it to swell, release to spring back, flick to see the field coast, tap for a ripple.

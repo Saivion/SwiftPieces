@@ -17,6 +17,7 @@ import { BEZEL, DockView, PHONE_H, PHONE_W, StatusBar, screenTitle } from "./Dev
 import { maskBars, placeHoverTag, placeOutline, revealWithin, visibleRect } from "./outline.js";
 import { currentScreenId, pathFromTabs, tabRoots, usePlay } from "./store.js";
 import { useStyleFonts } from "./style-fonts.js";
+import { SelectionBar } from "./SelectionBar.js";
 
 // ---------------------------------------------------------------- Where a screen came from
 
@@ -157,6 +158,19 @@ export const ScreenWall = memo(function ScreenWall() {
   const theme = useMemo(() => (project?.theme ? resolveTheme(project.theme) : null), [project?.theme]);
   useStyleFonts(theme);
   const box = useRef<HTMLDivElement>(null);
+  // The layout bar rides on the selection here too, as it does on the running screen. Every click on
+  // the canvas picks a part (in Interact as well), so it shows for any selection, not only while
+  // inspecting. It is pointed at the selected screen's phone on the wall and drawn in the wall's own
+  // pixels (outside the zoom), so it stays crisp at any zoom and follows every pan and pinch.
+  const selScreen = usePlay(store, (s) => s.selected?.screenId ?? null);
+  const selPhone = useMemo(
+    () => ({
+      get current() {
+        return selScreen ? (box.current?.querySelector<HTMLDivElement>(`.spp-wall-item[data-screen-id="${CSS.escape(selScreen)}"] .spp-wall-phone`) ?? null) : null;
+      },
+    }) as React.RefObject<HTMLDivElement | null>,
+    [selScreen],
+  );
   const [view, setView] = useState<View | null>(null);
   const viewRef = useRef<View | null>(null);
   viewRef.current = view;
@@ -262,6 +276,8 @@ export const ScreenWall = memo(function ScreenWall() {
       return [e.clientX - r.left, e.clientY - r.top] as const;
     };
     const onWheel = (e: WheelEvent) => {
+      // Scrolling the layout bar's piece menu scrolls the menu, not the canvas.
+      if ((e.target as HTMLElement | null)?.closest(".spp-selbar")) return;
       e.preventDefault();
       const v = viewRef.current;
       if (!v) return;
@@ -321,6 +337,8 @@ export const ScreenWall = memo(function ScreenWall() {
   const press = useRef<{ x: number; y: number; far: boolean; dist: number; z: number } | null>(null);
   const onPointerDown = (e: React.PointerEvent) => {
     if (e.button !== 0 && e.button !== 1) return;
+    // The layout bar and its menu are tools, not canvas: pressing them (or dragging the grip) never pans.
+    if ((e.target as HTMLElement).closest(".spp-selbar")) return;
     // A new first finger or click: any pointer whose release went missing is gone, so this press
     // is never mistaken for the second finger of a pinch.
     if (e.isPrimary) pointers.current.clear();
@@ -501,7 +519,8 @@ export const ScreenWall = memo(function ScreenWall() {
           {items}
         </ol>
       ) : null}
-      <WallHighlight wall={box} />
+      <WallHighlight wall={box} tagged={Boolean(selScreen)} />
+      <SelectionBar phoneRef={selPhone} slotRef={box} always />
       <div className="spp-zoom" role="group" aria-label="Zoom" onPointerDown={(e) => e.stopPropagation()}>
         <button type="button" className="spp-icon-btn spp-icon-btn-sm" onClick={() => zoomCentre(0.8)} aria-label="Zoom out" title="Zoom out (⌘ −)">
           <UI name="minus" size={13} />
@@ -526,7 +545,7 @@ export const ScreenWall = memo(function ScreenWall() {
  * Drawn over the canvas in screen space (not inside the zoom), so they stay crisp at any zoom, and
  * placed every frame, so they follow a pan or a pinch.
  */
-function WallHighlight({ wall }: { wall: React.RefObject<HTMLDivElement | null> }) {
+function WallHighlight({ wall, tagged = false }: { wall: React.RefObject<HTMLDivElement | null>; tagged?: boolean }) {
   const { store, host } = usePlayground();
   const selected = usePlay(store, (s) => s.selected?.nodeId ?? null);
   const hover = usePlay(store, (s) => s.hover);
@@ -562,7 +581,8 @@ function WallHighlight({ wall }: { wall: React.RefObject<HTMLDivElement | null> 
         {hovLabel ? <span className="spp-hl-label">{hovLabel}</span> : null}
       </div>
       <div ref={selBox} className="spp-hl is-selected" style={{ opacity: 0 }}>
-        {selLabel ? <span className="spp-hl-label">{selLabel}</span> : null}
+        {/* While inspecting, the layout bar is the selection's name tag (as on the running screen). */}
+        {selLabel && !tagged ? <span className="spp-hl-label">{selLabel}</span> : null}
       </div>
     </div>
   );

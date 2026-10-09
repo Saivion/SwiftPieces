@@ -7,7 +7,7 @@ import { pieceFrontmatterSchema } from "@/lib/registry-schema";
 const docs = defineDocs({
   dir: "content/docs",
   docs: {
-    schema: pageSchema.extend({ ...pieceFrontmatterSchema.shape, index: z.boolean().optional(), pro: z.enum(["screen", "template"]).optional() }),
+    schema: pageSchema.extend({ ...pieceFrontmatterSchema.shape, index: z.boolean().optional(), pro: z.enum(["screen", "flow", "template"]).optional() }),
   },
 });
 

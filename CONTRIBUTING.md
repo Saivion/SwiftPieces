@@ -51,7 +51,7 @@ The same goes for the tools underneath. Wrangler and OpenNext only act on a Clou
 6. Run the checks below.
 
 ```bash
-npm run swift:typecheck && npm run registry:build && npm run typecheck
+npm run motion:sync && npm run swift:typecheck && npm run registry:build && npm run typecheck
 ```
 
 A piece has to build and run in two kinds of app: one with Swift's default isolation, and one made with Xcode 26 or later, which makes the main actor the default. In the second, anything SwiftUI or UIKit calls off the main actor must opt out with `nonisolated`: layout value keys, helpers called from a shape's `path(in:)`, `VectorArithmetic` types and other pure math. A dynamic color is written `UIColor { @Sendable traits in … }`, because SwiftUI resolves colors on its render thread. `swift:typecheck` checks every piece both ways.
@@ -64,7 +64,27 @@ A piece has to build and run in two kinds of app: one with Swift's default isola
 - iOS 17 baseline. Liquid Glass gated with `#available(iOS 26, *)` and a Material fallback.
 - Every Apple API must exist in the SDK. CI type-checks every file against the iOS 26 simulator SDK.
 - Respect Reduce Motion and Reduce Transparency, use semantic colors, support Dynamic Type.
-- One piece per file. A piece is self-contained: no shared helper files, no cross-piece imports beyond declared `registryDependencies`.
+- One piece per file. A piece is self-contained: no shared helper files, no cross-piece imports beyond declared `registryDependencies`. The shared sources are the motion language and the liquid glass language, and they are copied, not imported: see Motion and Liquid glass below.
+
+## Motion
+
+Every piece moves with one shared language, `PieceMotion`: five spring tiers, named roles (`press`, `release`, `settle`, `snap`, `value`, `rebound`, `morph`, `reveal`, `dismiss`, `success`, `error`, `ambient`) that each carry their Reduce Motion substitute, and helpers for velocity-carrying releases, rubber banding, press deformation, stretch, follow-through, pop and shake. [The motion guide](https://swiftpieces.com/docs/guides/swiftui-motion) explains the principles, the tokens and the anti-patterns.
+
+- Use a role instead of writing a spring: `PieceMotion(reduceMotion: reduceMotion).snap`. Keep a literal only where it is the piece's signature, with a comment saying so.
+- Never animate finger tracking. Spring the release, with the finger's velocity.
+- The source is `registry/foundation/PieceMotion.swift`. After using a new part of it in a piece, run `npm run motion:sync`: it copies just the sections that piece uses to the end of its file, under `// MARK: - Piece motion`, so the piece still installs as one file. Never edit that block by hand. `registry:build` fails while any copy is stale, and `npm run motion:check` checks without writing.
+- Adding to `PieceMotion` itself is a maintainer change: keep it small, keep it Swift 6.0 syntax, and bump its `version` line.
+- Web previews (`components/previews/`) use the same language through `components/previews/piece-motion.ts`, which turns each spring into a CSS `linear()` easing: `transition: t("transform", "snap")`. A preview should move the way its piece does, so change both together, and keep `piece-motion.ts` in step with `PieceMotion.swift`.
+## Liquid glass
+
+Every piece is liquid glass: its controls are glass shapes that melt into each other through a neck, anything that appears buds out of the shape that caused it and melts back into it, and all text is semibold. [LIQUID_GLASS.md](LIQUID_GLASS.md) is the rulebook, with a map of how each piece applies it; read it before you change how a piece looks or moves, or make a new one. The `liquid-glass` agent (`.github/agents/liquid-glass.agent.md`) follows it for you.
+
+- Draw every control surface with `.pieceLiquid(...)` inside one `PieceLiquidGroup`, never `glassEffect` or a Material by hand: the foundation owns the iOS 26 check, the fallback and Reduce Transparency.
+- Parts of one control rest `PieceLiquid.joined` apart; separate actions rest `PieceLiquid.apart` apart.
+- Anything that appears or leaves buds and melts with `PieceBuds`: born inside its parent, out on the split spring, home with no bounce.
+- One font weight, semibold, for every string and SF Symbol. `swift:typecheck` fails on any other weight and on glass written outside the foundation.
+- The source is `registry/foundation/PieceLiquid.swift`; `npm run motion:sync` copies the sections a piece uses into a `// MARK: - Piece liquid` block, the same way as the motion language. Web previews use `components/previews/piece-liquid.tsx`.
+
 - No secrets, no entitlement code, no database. `npm run audit:public` enforces this.
 
 ## Files only the maintainer changes

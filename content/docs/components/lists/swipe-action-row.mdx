@@ -1,27 +1,30 @@
 ---
 title: "Swipe Action Row"
-description: "Wraps any row in a soft card with swipe actions drawn as solid color blocks. Tiles grow in as the row opens, the drag rubber-bands, a full swipe arms with a haptic and lets the edge block take the whole bar, and a shared binding keeps one row open at a time."
+description: "Wraps any row in a liquid glass card whose swipe actions are tinted glass bubbles. As the card slides they bud out of its edge, joined to it and to each other by liquid necks, and melt back in as it closes; the card lands in its detent at the speed you let go, a full swipe clicks in with a haptic as the edge bubble swallows the others and takes the bar, a destructive one carries the card out of the row, and a shared binding keeps one row open at a time."
 piece: "SwipeActionRow"
 category: "lists"
 minIOSVersion: "17.0"
-version: "2.0.1"
-tags: ["list","swipe","gesture","actions","blocks"]
+version: "2.2.0"
+tags: ["list","swipe","gesture","actions","glass"]
 registryDependencies: []
 ---
 
 {/* GENERATED FILE. Edit registry/swift/lists/SwipeActionRow.swift or SwipeActionRow.mdx instead. */}
 
-Row with swipe-to-reveal actions that works in a plain `VStack` or `ScrollView`, not only in `List`.
+Row with swipe-to-reveal actions that works in a plain `VStack` or `ScrollView`, not only in `List`. The row is a liquid glass card and its actions are tinted glass bubbles. As the card slides they bud out of its edge and rest joined to it and to each other, so the open row is one liquid surface; closing, they melt back in.
 
 ## Notes
 
-- Rows are soft cards (`style.surface`, 26pt continuous radius) and actions are solid color blocks with dark ink, separated from the card and each other by `style.tileGap`. Pass light block colors as `tint`; the house defaults are sky, butter, sage, tangerine and lilac, with signal (`#FF5B3A`) reserved for the one destructive or primary action.
-- Drags are only claimed when they start horizontally, so the enclosing `ScrollView` keeps vertical scrolling. The card lifts off the tiles with a soft shadow as it opens, and the row clips sideways only so that shadow is never cut.
-- Tiles grow in: the glyph scales from 55% to full size with the reveal and the label fades in over the last half, so a short peek never shows cropped text. Tiles dip to 94% when pressed. A full swipe (past 60% of the row width) lets the edge block take the whole bar, bounces its glyph, fires a rigid impact at the moment it arms, and runs that action on release. The first declared action sits at the screen edge, matching `.swipeActions`.
+- The row is a liquid glass card (26pt continuous radius) and its actions are tinted glass bubbles with dark ink, `style.tileGap` (6pt) from the card and from each other. That gap sits inside the liquid merge distance, so an open row is one liquid surface: card and bubbles held together by necks. Pass light tints as `tint`; the house uses signal (`#FF0000`) for the one destructive or primary action and butter for a warning-like one such as snooze. On iOS 26 this is Liquid Glass; before that the same shapes draw as frosted Material, and under Reduce Transparency as solid fills.
+- Drags are only claimed when they start horizontally, so the enclosing `ScrollView` keeps vertical scrolling. The card stays under your finger. The row clips sideways, and the clip fades out over a short distance past each edge, so the glass's shadow is never cut by a hard line and a card slid past the edge slips away under the fade. A drag the system cancels (a scroll that takes over) lands the card in the nearest position and fires nothing.
+- Letting go keeps the card's speed: it settles into the open bubbles with a visible give, more the harder you flick, though never more than about a sixth of its travel past them, and a drag that closes comes home firmly. Tapping the card or a bubble, or opening and closing through the `open` binding, snaps it into place with a smaller give. Whether it opens or closes still depends on where the flick would carry it. Grabbing a card that is still landing never jumps: it finishes landing under your finger over the first tenth of a second.
+- Bubbles bud out of the card's edge: each is born just inside it, shrunk, where the two are one shape, and the reveal draws it out to its slot at the row's edge, pulling a neck as it goes. The edge bubble leads and each one further in follows a step behind, all driven by the card's place, so they never trail the finger and bud and melt exactly with the card when it springs. A bubble's color fills in as it clears the card and drains as it heads home; its glyph and label arrive once it is clear and blur away the moment the card heads home, so nothing ever sits on the card's glass. Opened past their slots, the bubbles stretch to fill the gap. A pressed bubble sinks a few points, glass and glyph together.
+- A full swipe (past 60% of the row width, and never less than two bubbles) clicks in like a detent: the other bubbles melt into the edge bubble as it swells across the whole bar, its glyph bounces once and a rigid impact fires as it arms, never as it lets go. Drag back before letting go and they bud out of it again. Past that line the card moves against rubber-band resistance; where the open bubbles reach further (several actions, or a narrow row), the resistance starts at them instead. Releasing runs that action. A destructive action (`role: .destructive`) carries the card on out of the row at the speed you let go, so removing the row in the handler reads as one motion. The edge bubble stays put and can't be tapped again while the card is out. If the row is still there 0.35s after the card is out (the handler asked first, or deletes later), the card comes back home and the bar melts into its edge. That pause outlasts a `List` delete or a default `withAnimation` removal; a removal slower than that shows the card returning as the row fades. Any other action brings the card home the same way. The first declared action sits at the screen edge, matching `.swipeActions`.
 - Pass the same `open:` binding to every row in a list (with a unique `id:` per row) and only one row can be open at a time. Set the binding to `nil` to close all rows, or to a row's id to reveal its trailing actions (leading when there are none).
-- Swiping toward an edge with no actions rubber-bands to a 40pt limit and springs back.
-- `Style` (`SwipeActionRow.Style`, also `SwipeActionRowStyle`): `surface`, `tileInk`, `cornerRadius`, `tileWidth`, `tileGap`. `background:` still overrides the card fill; set `cornerRadius` and `tileGap` to 0 for classic full-bleed list rows.
-- Reduce Motion keeps every state change but replaces the springs and the tile grow-in with short fades. All actions are exposed as VoiceOver custom actions on the row.
+- Swiping toward an edge with no actions gives with rubber-band resistance, never more than 60pt, and springs back.
+- `background:` sets the card's glass: `nil` leaves it neutral, a color tints it. `.clear` suits a list that draws its own surface: there is no card, the content slides on its own, and with nothing to bud from the bubbles wait in their slots and are uncovered as the content slides off them.
+- `Style` (`SwipeActionRow.Style`, also `SwipeActionRowStyle`): `tileInk`, `cornerRadius`, `tileWidth`, `tileGap`. `surface` is kept so existing code compiles but no longer draws anything: the card is glass. Set `cornerRadius` and `tileGap` to 0 for classic full-bleed list rows.
+- Reduce Motion keeps every state change and the arm haptic, but lands the card quickly with no overshoot or give, lets the bubbles wait in their slots and fade in with the reveal instead of budding, skips the arm bounce, and shades a pressed bubble instead of sinking it. All actions are exposed as VoiceOver custom actions on the row.
 - Need grouped activity with categorize, split and expanding detail? That is the Transaction Row screen in SwiftPieces Pro.
 
 ## Usage
@@ -37,9 +40,9 @@ SwipeActionRowExample().preferredColorScheme(.light)
 | `id` | Identity used with `open`. Defaults to a private id, which still lets a parent close the row. |
 | `leading` | Actions revealed by swiping right. The first one sits at the edge and fires on a full swipe. |
 | `trailing` | Actions revealed by swiping left. The first one sits at the edge and fires on a full swipe. |
-| `background` | Surface of the row card. `nil` uses `style.surface`. `.clear` suits a list that draws its own surface: tiles only appear in the gap the row opens, and a clear row drops its lift shadow. |
+| `background` | The card's glass. `nil` leaves it neutral glass and a color tints it. `.clear` suits a list that draws its own surface: the content slides with no card behind it, and the bubbles only show in the gap the row opens. |
 | `open` | Shared binding to the id of the open row. Swiping a row stores its id here and closes every other row bound to it; set it to `nil` to close all, or to a row id to reveal that row's trailing actions. |
-| `style` | Card surface, corner radius, tile ink, tile width and gap. Defaults to the house palette. |
+| `style` | Corner radius, bubble ink, bubble width and gap. Defaults to the house palette. |
 | `content` | Row content. |
 
 ## Source
@@ -53,18 +56,21 @@ import UIKit
 
 /// Row with swipe-to-reveal actions that works in a plain `VStack` or `ScrollView`, not only in `List`.
 ///
+/// The row is a liquid glass card and its actions are tinted glass bubbles. As the card slides they bud out of its
+/// edge and rest joined to it and to each other, so the open row is one liquid surface; closing, they melt back in.
+///
 /// - Parameters:
 ///   - id: Identity used with `open`. Defaults to a private id, which still lets a parent close the row.
 ///   - leading: Actions revealed by swiping right. The first one sits at the edge and fires on a full swipe.
 ///   - trailing: Actions revealed by swiping left. The first one sits at the edge and fires on a full swipe.
-///   - background: Surface of the row card. `nil` uses `style.surface`. `.clear` suits a list that draws its own surface: tiles only appear in the gap the row opens, and a clear row drops its lift shadow.
+///   - background: The card's glass. `nil` leaves it neutral glass and a color tints it. `.clear` suits a list that draws its own surface: the content slides with no card behind it, and the bubbles only show in the gap the row opens.
 ///   - open: Shared binding to the id of the open row. Swiping a row stores its id here and closes every other row bound to it; set it to `nil` to close all, or to a row id to reveal that row's trailing actions.
-///   - style: Card surface, corner radius, tile ink, tile width and gap. Defaults to the house palette.
+///   - style: Corner radius, bubble ink, bubble width and gap. Defaults to the house palette.
 ///   - content: Row content.
 public struct SwipeActionRow<Content: View>: View {
     public typealias Style = SwipeActionRowStyle
 
-    /// One swipe action, drawn as a solid block with dark ink.
+    /// One swipe action, drawn as a tinted glass bubble with dark ink.
     public struct Action: Identifiable {
         public let id = UUID()
         public let title: String
@@ -75,10 +81,10 @@ public struct SwipeActionRow<Content: View>: View {
 
         /// - Parameters:
         ///   - title: Label under the glyph, and the VoiceOver action name.
-        ///   - systemImage: SF Symbol for the tile.
-        ///   - tint: Block color. Light blocks read best with the default dark ink.
+        ///   - systemImage: SF Symbol for the bubble.
+        ///   - tint: The bubble's glass tint. Light tints read best with the default dark ink.
         ///   - role: Pass `.destructive` for delete-style actions.
-        ///   - handler: Runs when the tile is tapped, the full swipe fires, or VoiceOver performs the action.
+        ///   - handler: Runs when the bubble is tapped, the full swipe fires, or VoiceOver performs the action.
         public init(_ title: String, systemImage: String, tint: Color = Color(red: 0.612, green: 0.761, blue: 1), role: ButtonRole? = nil, handler: @escaping () -> Void) {
             self.title = title
             self.systemImage = systemImage
@@ -91,9 +97,22 @@ public struct SwipeActionRow<Content: View>: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var offset: CGFloat = 0
     @State private var dragStart: CGFloat? = nil
+    /// When the current drag claimed the row. Its first moments ease onto the finger.
+    @State private var grabbedAt: Date = .distantPast
     @State private var armed = false
+    /// One per arm, so the haptic and the edge glyph's bounce play when a full swipe arms, never when it lets go.
+    @State private var arms = 0
+    /// The edge bubble has swallowed the others to take the bar. It follows `armed` while a finger is on the row and
+    /// holds after a full swipe lets go, so the bar melts into the card whole instead of splitting on its way home.
+    @State private var swallowed = false
+    /// A destructive full swipe is carrying the card out of the row, or holding it out for a beat.
+    @State private var leaving = false
+    /// Resets when the system cancels the drag, which skips onEnded.
+    @GestureState private var dragging = false
     @State private var rowWidth: CGFloat = 0
     @State private var fallbackID = UUID()
+    /// The bubbles behind each edge one: out in their slots, or melted into the edge bubble while it takes the bar.
+    @State private var buds = PieceBuds()
 
     private let id: AnyHashable?
     private let leading: [Action]
@@ -113,177 +132,434 @@ public struct SwipeActionRow<Content: View>: View {
         self.content = content()
     }
 
+    /// How far past the row's edges the sideways clip fades out: about the reach of the glass's shadow.
+    private static var fade: CGFloat { 20 }
+
     private var rowID: AnyHashable { id ?? AnyHashable(fallbackID) }
     private var isOpen: Bool { offset != 0 }
-    private var lift: Double { Double(min(1, abs(offset) / 40)) }
+    private var isClear: Bool { background == Color.clear }
     private var card: RoundedRectangle { RoundedRectangle(cornerRadius: style.cornerRadius, style: .continuous) }
 
     public var body: some View {
-        content
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(background ?? style.surface, in: card)
-            // The sliding card lifts off the tiles as it opens, so it reads as a layer above them.
-            // A clear row (in a list that draws its own surface) has no card to lift.
-            .shadow(color: .black.opacity(background == Color.clear ? 0 : 0.16 * lift), radius: 14, x: offset > 0 ? -3 : 3, y: 4 * lift)
-            .offset(x: offset)
-            .background(alignment: .leading) { tileBar(leading, edge: .leading) }
-            .background(alignment: .trailing) { tileBar(trailing, edge: .trailing) }
-            // Clip sideways only, so the lifted card keeps its shadow above and below.
-            .mask { Rectangle().padding(.vertical, -24) }
-            .contentShape(card)
-            .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { rowWidth = $0 }
-            .simultaneousGesture(TapGesture().onEnded { if isOpen { settle(to: nil) } })
-            .gesture(drag)
-            .onChange(of: open?.wrappedValue) { _, current in
-                if current == rowID, !isOpen { settle(to: trailing.isEmpty ? .leading : .trailing, notify: false) }
-                if current != rowID, isOpen { settle(to: nil, notify: false) }
+        surface
+            .fontWeight(.semibold)
+            // Clip sideways only, outside the glass group: a group draws its shapes in a pass of its own, so a clip
+            // inside it does nothing. Past each edge the clip fades out over the reach of the glass's shadow, so it never
+            // cuts a hard line through it, and a card slid past the edge slips away under the fade.
+            .mask {
+                HStack(spacing: 0) {
+                    LinearGradient(colors: [.clear, .black], startPoint: .leading, endPoint: .trailing).frame(width: Self.fade)
+                    Rectangle()
+                    LinearGradient(colors: [.black, .clear], startPoint: .leading, endPoint: .trailing).frame(width: Self.fade)
+                }
+                .padding(.horizontal, -Self.fade)
+                .padding(.vertical, -48)
             }
-            .sensoryFeedback(.impact(flexibility: .rigid), trigger: armed) { _, isArmed in isArmed }
-            .accessibilityActions {
-                ForEach(leading + trailing) { action in
-                    Button(action.title, role: action.role, action: action.handler)
+            .contentShape(card)
+        .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { rowWidth = $0 }
+        .simultaneousGesture(TapGesture().onEnded { if isOpen, !leaving { settle(to: nil) } })
+        .gesture(drag)
+        .onAppear { buds.place(followers) }
+        // Actions added later start out in their slots.
+        .onChange(of: followers) { _, ids in if !swallowed { buds.place(ids) } }
+        // The followers melt into the edge bubble as it takes the bar and bud back out as it gives the room back. The
+        // latest call wins, so a full swipe let go of halfway never leaves one stranded.
+        .onChange(of: swallowed) { _, swallowed in
+            Task {
+                if swallowed {
+                    await buds.gather(followers, reduceMotion: reduceMotion)
+                } else {
+                    await buds.bloom(followers.filter { !buds.isOut($0) }, reduceMotion: reduceMotion)
                 }
             }
+        }
+        .onChange(of: open?.wrappedValue) { _, current in
+            // A card on its way out finishes leaving; it comes home on its own if the row stays.
+            guard !leaving else { return }
+            if current == rowID, !isOpen { settle(to: trailing.isEmpty ? .leading : .trailing, notify: false) }
+            if current != rowID, isOpen { settle(to: nil, notify: false) }
+        }
+        // A drag the system cancels (the scroll view took over) never reaches onEnded: land in the nearest
+        // detent and fire nothing.
+        .onChange(of: dragging) { _, active in
+            guard !active, dragStart != nil else { return }
+            dragStart = nil
+            armed = false
+            settle(to: offset > width(of: leading) / 2 ? .leading : offset < -width(of: trailing) / 2 ? .trailing : nil)
+        }
+        .sensoryFeedback(.impact(flexibility: .rigid), trigger: arms)
+        .accessibilityActions {
+            ForEach(leading + trailing) { action in
+                Button(action.title, role: action.role, action: action.handler)
+            }
+        }
     }
 
-    // MARK: Tiles
-
+    /// The card and its bubbles. The card is liquid glass under the content, tinted when `background` is a color, and
+    /// it shares one liquid group with the bubbles, so a bubble leaving its edge pulls a neck from it. With a `.clear`
+    /// background there is no card: the content slides alone, and the bubbles, in a group of their own, show only in
+    /// the gap it opens.
     @ViewBuilder
-    private func tileBar(_ actions: [Action], edge: HorizontalEdge) -> some View {
-        let revealed = edge == .leading ? max(offset, 0) : max(-offset, 0)
-        if let first = actions.first, revealed > 0 {
-            // 0 as the row starts to move, 1 once the tiles are fully revealed.
-            let reveal = min(1, revealed / width(of: actions))
-            // The first declared action sits at the screen edge, like `.swipeActions`.
-            let ordered = edge == .leading ? actions : Array(actions.reversed())
-            let room = max(revealed - style.tileGap * CGFloat(actions.count), 0)
-            HStack(spacing: 0) {
-                if edge == .trailing { Color.clear.frame(width: style.tileGap) }
-                ForEach(Array(ordered.enumerated()), id: \.element.id) { index, action in
-                    let expanded = armed && action.id == first.id
-                    let tileWidth = armed ? (expanded ? room + style.tileGap * CGFloat(actions.count - 1) : 0) : room / CGFloat(actions.count)
-                    Button(role: action.role) { perform(action) } label: {
-                        tile(action, reveal: reveal, expanded: expanded)
+    private var surface: some View {
+        if isClear {
+            content
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .offset(x: offset)
+                .background {
+                    Rail(position: offset) { position in
+                        // No lift: the gap's clip would cut it.
+                        PieceLiquidGroup(lift: false) { sides(at: position) }
+                            // Only in the gap the content opens, tall enough to keep the bubbles' shadow and
+                            // softened at the content's edge, so the shadow never shows a hard line there.
+                            .mask {
+                                ZStack {
+                                    gap(max(position, 0), edge: .leading)
+                                    gap(max(-position, 0), edge: .trailing)
+                                }
+                                .padding(.vertical, -48)
+                            }
                     }
-                    .buttonStyle(TilePress(reduceMotion: reduceMotion))
-                    .frame(width: tileWidth)
-                    .background(action.tint, in: RoundedRectangle(cornerRadius: style.cornerRadius, style: .continuous))
-                    .clipShape(RoundedRectangle(cornerRadius: style.cornerRadius, style: .continuous))
-                    .opacity(tileWidth < 1 ? 0 : 1)
-                    if index < ordered.count - 1, !armed { Color.clear.frame(width: style.tileGap) }
                 }
-                if edge == .leading { Color.clear.frame(width: style.tileGap) }
+        } else {
+            PieceLiquidGroup {
+                content
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .pieceLiquid(card, tint: background, interactive: false)
+                    .offset(x: offset)
+                    // Laid out from the card's place as drawn, so the bubbles bud and melt exactly with it, also while
+                    // it springs, and are removed only once it is home.
+                    .background {
+                        Rail(position: offset) { sides(at: $0) }
+                    }
             }
-            .frame(width: revealed, alignment: edge == .leading ? .leading : .trailing)
-            .animation(reduceMotion ? .easeOut(duration: 0.15) : .snappy(duration: 0.25), value: armed)
+        }
+    }
+
+    /// The clip for a clear row's gap of `width` on `edge`, fading in over its first points from the content's edge.
+    private func gap(_ width: CGFloat, edge: HorizontalEdge) -> some View {
+        let soft = min(width, 16)
+        return HStack(spacing: 0) {
+            if edge == .leading { Rectangle() }
+            LinearGradient(colors: [.black, .clear], startPoint: edge == .leading ? .leading : .trailing, endPoint: edge == .leading ? .trailing : .leading)
+                .frame(width: soft)
+            if edge == .trailing { Rectangle() }
+        }
+        // On past the row's outer edge, where the sideways clip fades it out instead.
+        .frame(width: width + Self.fade)
+        .frame(maxWidth: .infinity, alignment: edge == .leading ? .leading : .trailing)
+        .padding(.horizontal, -Self.fade)
+    }
+
+    /// Both sides' bubbles for the card drawn at `position`.
+    private func sides(at position: CGFloat) -> some View {
+        ZStack {
+            bubbles(leading, edge: .leading, at: position)
+            bubbles(trailing, edge: .trailing, at: position)
+        }
+    }
+
+    // MARK: Bubbles
+
+    /// One side's bubbles for the card drawn at `position`. They exist only while that side is open.
+    @ViewBuilder
+    private func bubbles(_ actions: [Action], edge: HorizontalEdge, at position: CGFloat) -> some View {
+        let revealed = edge == .leading ? max(position, 0) : max(-position, 0)
+        if !actions.isEmpty, revealed > 0 {
+            let alignment: Alignment = edge == .leading ? .leading : .trailing
+            // The edge bubble takes the bar once none of the others is out.
+            let taking = !followers(edge, count: actions.count).contains { buds.isOut($0) }
+            // The card is on its way home: `offset` already holds where it is going, the drawn place where it is.
+            let homing = edge == .leading ? offset <= 0 : offset >= 0
+            ZStack(alignment: alignment) {
+                // Furthest in first, so the edge bubble draws over the ones it swallows.
+                ForEach(Array((0..<actions.count).reversed()), id: \.self) { rank in
+                    bubble(actions[rank], rank: rank, count: actions.count, edge: edge, revealed: revealed, taking: taking, homing: homing)
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: alignment)
+            // The bubble a destructive swipe leaves behind is not a button until the card is home, so it can't fire twice.
+            .allowsHitTesting(!leaving)
             .accessibilityHidden(true)
         }
     }
 
-    private func tile(_ action: Action, reveal: CGFloat, expanded: Bool) -> some View {
-        VStack(spacing: 6) {
-            Image(systemName: action.systemImage)
-                .font(.system(size: 20, weight: .semibold))
-                .symbolEffect(.bounce, value: expanded)
-                // The glyph grows in with the reveal, so a short peek shows a small icon, not a cropped one.
-                .scaleEffect(reduceMotion ? 1 : 0.55 + 0.45 * reveal + (expanded ? 0.12 : 0))
-            Text(action.title)
-                .font(.caption.weight(.semibold))
-                .lineLimit(1)
-                .opacity(reduceMotion ? 1 : max(0, (reveal - 0.45) / 0.55))
+    /// One tinted glass bubble. It buds out of the card's edge with the reveal, and while the edge bubble takes the bar
+    /// every other one melts into it. `homing` says the card is springing home, so the content leaves at once.
+    private func bubble(_ action: Action, rank: Int, count: Int, edge: HorizontalEdge, revealed: CGFloat, taking: Bool, homing: Bool) -> some View {
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        let isEdge = rank == 0
+        // Taking the bar, the edge bubble lays out as if it were alone, so it spans the whole gap.
+        let place = placement(rank: rank, count: isEdge && taking ? 1 : count, revealed: revealed)
+        let melted = !isEdge && !buds.isOut(followerID(edge, rank: rank))
+        // Its glyph and label blur away the moment it heads home, and arrive once it is clear of the card.
+        let out = place.shows && !melted && !homing
+        // The color fills in as the bubble leaves the card and drains as it heads home, with its place, so it is all
+        // but gone by the time it melts in. A melted follower drops it at once, under the edge bubble.
+        let color = melted ? 0 : place.color
+        // A full swipe swells the edge glyph a little as it takes the bar.
+        let swells = isEdge && !reduceMotion && (count > 1 ? taking : armed)
+        let inward: CGFloat = edge == .leading ? 1 : -1
+        let shape = RoundedRectangle(cornerRadius: style.cornerRadius, style: .continuous)
+        return Button(role: action.role) { perform(action) } label: {
+            VStack(spacing: 6) {
+                Image(systemName: action.systemImage)
+                    .font(.system(size: 20, weight: .semibold))
+                    .symbolEffect(.bounce, value: isEdge && !reduceMotion ? arms : 0)
+                    .scaleEffect(swells ? 1.12 : 1)
+                Text(action.title)
+                    .font(.caption.weight(.semibold))
+                    .lineLimit(1)
+            }
+            .foregroundStyle(style.tileInk)
+            .pieceBudContent(out: out)
+            .frame(width: style.tileWidth)
+            .frame(width: place.width)
+            .frame(maxHeight: .infinity)
+            // The edge bubble clicks across the bar like a detent as the others melt into it, and hands the room back
+            // the same way as they bud out again.
+            .animation(motion.snap, value: taking)
+            .animation(motion.snap, value: swells)
+            .pieceLiquid(shape, tint: color > 0 ? action.tint.opacity(color) : nil, interactive: false)
+            .animation(motion.morph, value: melted)
+            .contentShape(shape)
         }
-        .foregroundStyle(style.tileInk)
-        .frame(width: style.tileWidth)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .contentShape(.rect)
+        .buttonStyle(PieceLiquidPressStyle())
+        // Home inside the edge bubble, toward the row's edge, while that one takes the bar.
+        .pieceBud(out: !melted, home: CGSize(width: -inward * CGFloat(rank) * (style.tileWidth + style.tileGap) / 2, height: 0))
+        // The reveal's own bud: shrunk inside the card's edge at first, full size in its slot once the row is open.
+        // Driven by the card's place, so it never trails the finger. Under Reduce Motion it waits in its slot and fades.
+        .pieceLiquidScale(reduceMotion ? 1 : PieceLiquid.homeScale + (1 - PieceLiquid.homeScale) * place.progress)
+        .opacity(reduceMotion ? min(1, place.progress * 2) : 1)
+        .offset(x: inward * (place.center - place.width / 2))
     }
+
+    /// Where a bubble sits on its side of the row.
+    private struct Placement {
+        var width: CGFloat
+        /// Its centre's distance from the row's outer edge on that side.
+        var center: CGFloat
+        /// 0 home inside the card's edge, 1 out in its slot.
+        var progress: CGFloat
+        /// How much of its tint shows: none while it is still inside the card, all of it once it is well clear.
+        var color: CGFloat
+        /// Clear enough of the card for its glyph and label, so they never sit on the card's glass.
+        var shows: Bool { color >= 0.75 }
+    }
+
+    /// Where the bubble `rank` places from the edge sits for a side opened `revealed` points. Open, each rests in its slot
+    /// from the row's outer edge, `tileGap` from its neighbours and the card. Opening, it buds out of the card's edge:
+    /// born just inside it, shrunk, where the two are one shape, and drawn out to its slot by the reveal, the edge bubble
+    /// leading and each one further in a step behind. Opened past the slots, they stretch to fill the gap rather than
+    /// open onto bare ground. A row with a `.clear` background has no card to bud from, so its bubbles wait in their slots.
+    private func placement(rank: Int, count: Int, revealed: CGFloat) -> Placement {
+        let gap = style.tileGap
+        let open = (style.tileWidth + gap) * CGFloat(count)
+        guard revealed < open else {
+            let width = (revealed - gap * CGFloat(count)) / CGFloat(count)
+            return Placement(width: width, center: width / 2 + CGFloat(rank) * (width + gap), progress: 1, color: 1)
+        }
+        let width = style.tileWidth
+        let rest = width / 2 + CGFloat(rank) * (width + gap)
+        // With no card there is nothing to bud from: the bubbles wait in their slots and the content slides off them.
+        guard !isClear else { return Placement(width: width, center: rest, progress: 1, color: 1) }
+        let lead = 0.12 * CGFloat(min(rank, 4))
+        let progress = max(0, (revealed / open - lead) / (1 - lead))
+        guard !reduceMotion else { return Placement(width: width, center: rest, progress: progress, color: min(max((progress - 0.3) / 0.4, 0), 1)) }
+        let home = revealed + width * PieceLiquid.homeScale / 2
+        let center = home + (rest - home) * progress
+        // How far its centre is clear of the card's edge, in bubble widths.
+        let clearance = (revealed - center) / width
+        return Placement(width: width, center: center, progress: progress, color: min(max((clearance - 0.05) / 0.3, 0), 1))
+    }
+
+    /// The bubbles behind the edge one on each side. Keyed by place, not by action, so a parent that rebuilds its
+    /// actions on every render keeps them.
+    private func followers(_ edge: HorizontalEdge, count: Int) -> [String] {
+        count < 2 ? [] : (1..<count).map { followerID(edge, rank: $0) }
+    }
+
+    private func followerID(_ edge: HorizontalEdge, rank: Int) -> String {
+        "\(edge == .leading ? "leading" : "trailing")\(rank)"
+    }
+
+    private var followers: [String] { followers(.leading, count: leading.count) + followers(.trailing, count: trailing.count) }
 
     // MARK: Gesture
 
     private var drag: some Gesture {
         DragGesture(minimumDistance: 12)
+            .updating($dragging) { _, active, _ in active = true }
             .onChanged { value in
+                guard !leaving else { return }
                 if dragStart == nil {
                     // Only claim drags that start horizontally; vertical ones belong to the scroll view.
                     guard abs(value.translation.width) > abs(value.translation.height) else { return }
                     dragStart = offset
+                    grabbedAt = value.time
                     // Claiming the shared binding closes whichever row was open.
                     if let open, open.wrappedValue != rowID { open.wrappedValue = rowID }
                 }
                 guard let dragStart else { return }
-                offset = clamp(dragStart + value.translation.width)
+                let next = cardOffset(for: dragStart + value.translation.width)
+                // Directly under the finger. The first 100ms ease onto it on the press spring instead, which takes
+                // over a landing still in flight and the 12pt the gesture waits for, so a grab never jumps.
+                if value.time.timeIntervalSince(grabbedAt) < 0.1 {
+                    withAnimation(PieceMotion(reduceMotion: reduceMotion).press) { offset = next }
+                } else {
+                    offset = next
+                }
                 let nowArmed = fullSwipeAction != nil
-                if nowArmed != armed { armed = nowArmed }
+                if nowArmed != armed {
+                    armed = nowArmed
+                    if nowArmed { arms += 1 }
+                }
+                // Under the finger the bar follows the arm both ways; a bar left over from a full swipe buds its
+                // bubbles back out as soon as the row is grabbed again.
+                if swallowed != nowArmed { swallowed = nowArmed }
             }
             .onEnded { value in
                 guard let start = dragStart else { return }
                 dragStart = nil
+                // The card's own speed, not the finger's: past a limit the band slows it.
+                let x = start + value.translation.width
+                let speed = (cardOffset(for: x + value.velocity.width * 0.01) - cardOffset(for: x)) / 0.01
                 if let action = fullSwipeAction {
-                    armed = false
-                    settle(to: nil)
+                    if action.role == .destructive {
+                        leave(velocity: speed)
+                    } else {
+                        armed = false
+                        settle(to: nil, velocity: speed)
+                    }
                     action.handler()
                     return
                 }
                 let projected = start + value.predictedEndTranslation.width
-                if projected > width(of: leading) / 2 { settle(to: .leading) }
-                else if projected < -width(of: trailing) / 2 { settle(to: .trailing) }
-                else { settle(to: nil) }
+                if projected > width(of: leading) / 2 { settle(to: .leading, velocity: speed) }
+                else if projected < -width(of: trailing) / 2 { settle(to: .trailing, velocity: speed) }
+                else { settle(to: nil, velocity: speed) }
             }
     }
 
-    private func clamp(_ x: CGFloat) -> CGFloat {
-        if x > 0 { return leading.isEmpty ? rubberBand(x) : x }
-        if x < 0 { return trailing.isEmpty ? -rubberBand(-x) : x }
-        return 0
+    /// Where the card sits for a drag that would put it at `x`. It follows 1:1 up to the full-swipe line (or the open
+    /// bubbles, where they reach further), then moves against rubber-band resistance, so arming feels like clicking into
+    /// a detent. A side with no actions resists from the start. Only the card overshoots; the detents stay put.
+    private func cardOffset(for x: CGFloat) -> CGFloat {
+        let actions = x > 0 ? leading : trailing
+        guard !actions.isEmpty else { return PieceMotion.rubberBand(x, limit: 60) }
+        let free = max(fullSwipeThreshold, width(of: actions))
+        return PieceMotion.rubberBand(x, in: -free...free, limit: 80)
     }
-
-    /// Eases the drag toward a 40pt limit when there is nothing to reveal.
-    private func rubberBand(_ x: CGFloat) -> CGFloat { 40 * (1 - 1 / (1 + x / 40)) }
 
     private func width(of actions: [Action]) -> CGFloat { (style.tileWidth + style.tileGap) * CGFloat(actions.count) }
 
+    /// 60% of the row, and never less than two bubbles.
+    private var fullSwipeThreshold: CGFloat { max(rowWidth * 0.6, style.tileWidth * 2) }
+
     /// The action a full swipe would fire, once the drag passes 60% of the row.
     private var fullSwipeAction: Action? {
-        let threshold = max(rowWidth * 0.6, style.tileWidth * 2)
-        if offset > threshold { return leading.first }
-        if offset < -threshold { return trailing.first }
+        if offset > fullSwipeThreshold { return leading.first }
+        if offset < -fullSwipeThreshold { return trailing.first }
         return nil
     }
 
-    private func settle(to edge: HorizontalEdge?, notify: Bool = true) {
+    /// Moves the card to `edge`'s open bubbles, or home. A release passes the card's speed (pt/s) and leaves at it.
+    private func settle(to edge: HorizontalEdge?, velocity: CGFloat? = nil, notify: Bool = true) {
         let target: CGFloat = switch edge {
         case .leading: width(of: leading)
         case .trailing: -width(of: trailing)
         case nil: 0
         }
-        withAnimation(reduceMotion ? .easeOut(duration: 0.2) : .spring(duration: 0.4, bounce: 0.18)) { offset = target }
+        // Opening into the detent, every bubble takes its own slot again.
+        if target != 0 { swallowed = false }
+        withAnimation(landing(at: target, velocity: velocity)) { offset = target }
         guard notify, let open else { return }
         if target == 0, open.wrappedValue == rowID { open.wrappedValue = nil }
         if target != 0, open.wrappedValue != rowID { open.wrappedValue = rowID }
+    }
+
+    /// A released drag settles into the bubbles' detent on the elastic spring, with more give the harder it was flicked.
+    /// Closing comes home firmly. A released pull against a side with no actions rebounds. A tap, the binding or a
+    /// cancelled drag carries no energy, so it snaps open or home with the snap's small give.
+    private func landing(at target: CGFloat, velocity: CGFloat?) -> Animation {
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        guard let velocity else { return motion.snap }
+        let rebounding = target == 0 && (offset > 0 ? leading : trailing).isEmpty
+        let spring = rebounding || target != 0 ? PieceMotion.elastic : Self.closing
+        // An open leaves toward its detent no faster than the spring's own speed over the travel, so even a hard flick
+        // passes it by about 18% at most. More slung the card 50pt past, across the full-swipe line, and a grab during
+        // that overshoot ended up as far from the finger.
+        let reach = (target - offset) * 2 * .pi / spring.duration
+        let carried = target == 0 ? velocity : reach < 0 ? max(velocity, reach) : min(velocity, reach)
+        return motion.settle(velocity: carried, from: offset, to: target, spring: spring)
+    }
+
+    /// A release that closes the row, or carries a destructive one out. No bounce at all: a drag that closes is usually
+    /// flicked home, which would carry a bouncy card well past it and melt its bubbles out through the far side, and a
+    /// card on its way out never comes back for a wobble.
+    private static var closing: Spring { Spring(duration: 0.28, bounce: 0) }
+
+    /// A destructive full swipe carries on out of the row at the card's speed, the edge bubble filling the bar behind
+    /// it, so the caller's removal reads as one motion. A row still here a beat after the card is out (the handler
+    /// asked first) comes back home, the bar melting into the card's edge as it comes.
+    private func leave(velocity: CGFloat) {
+        // Past the edge and the clip's fade beyond it, with its shadow.
+        let target = (offset > 0 ? 1 : -1) * (rowWidth + Self.fade + 24)
+        // Only speed toward the edge carries over, so a finger already easing back never dips the card in first.
+        let outward = target > 0 ? max(velocity, 0) : min(velocity, 0)
+        leaving = true
+        withAnimation(PieceMotion(reduceMotion: reduceMotion).settle(velocity: outward, from: offset, to: target, spring: Self.closing)) {
+            offset = target
+        } completion: {
+            // A removed row keeps rendering its state until its removal ends, so coming home at once would slide the
+            // card back in as the row fades. The beat outlasts a List delete or a default withAnimation removal.
+            Task { @MainActor in
+                try? await Task.sleep(for: .milliseconds(350))
+                leaving = false
+                armed = false
+                settle(to: nil, notify: false)
+            }
+        }
+        if let open, open.wrappedValue == rowID { open.wrappedValue = nil }
     }
 
     private func perform(_ action: Action) {
         settle(to: nil)
         action.handler()
     }
+
+    /// Shows `content` for the card's place as SwiftUI draws it, frame by frame, also while it springs. The bubbles are
+    /// laid out from it, so they bud and melt exactly with the card and are only removed once it is home.
+    private struct Rail<Bubbles: View>: View, Animatable {
+        var position: CGFloat
+        @ViewBuilder let content: (CGFloat) -> Bubbles
+
+        nonisolated var animatableData: CGFloat {
+            get { position }
+            set { position = newValue }
+        }
+
+        var body: some View { content(position) }
+    }
 }
 
 /// Look of a `SwipeActionRow`. Start from `.standard` and change what you need.
 public struct SwipeActionRowStyle: Sendable {
-    /// Row card fill. Adapts to light and dark.
+    /// Unused since the liquid glass refactor: the card is liquid glass, tinted by `background:` when you pass a color.
+    /// Kept so existing code still compiles.
     public var surface: Color = SwipeActionRowStyle.adaptive(0xFFFFFF, 0x1C1C1C)
-    /// Ink for tile glyphs and labels. Dark, so it reads on every light block.
+    /// Ink for bubble glyphs and labels. Dark, so it reads on every tint.
     public var tileInk: Color = Color(red: 0.078, green: 0.078, blue: 0.078)
-    /// Corner radius of the card and the tiles.
+    /// Corner radius of the card and the bubbles.
     public var cornerRadius: CGFloat = 26
-    /// Width of one revealed tile.
+    /// Width of one bubble.
     public var tileWidth: CGFloat = 78
-    /// Gap between the card and the tiles, and between tiles.
+    /// Gap between the card and the bubbles, and between bubbles. The default, 6, sits inside the liquid merge
+    /// distance, so necks hold the open row together as one surface.
     public var tileGap: CGFloat = 6
 
     public init() {}
 
-    /// The house palette: white or charcoal cards, 26pt radius, blocks with dark ink.
+    /// The house palette: neutral glass cards, 26pt radius, tinted bubbles with dark ink.
     public static let standard = SwipeActionRowStyle()
 
     private static func adaptive(_ light: UInt32, _ dark: UInt32) -> Color {
@@ -294,22 +570,12 @@ public struct SwipeActionRowStyle: Sendable {
     }
 }
 
-/// Tiles dip slightly under the finger.
-private struct TilePress: ButtonStyle {
-    let reduceMotion: Bool
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .scaleEffect(configuration.isPressed && !reduceMotion ? 0.94 : 1)
-            .animation(.spring(duration: 0.25, bounce: 0.3), value: configuration.isPressed)
-    }
-}
-
 // MARK: - Example
 
-/// Three rows, with read, snooze and delete as blocks. Nothing around them.
+/// Three rows, with read, snooze and delete as bubbles. Delete removes the row. Nothing around them.
 private struct SwipeActionRowExample: View {
     @State private var open: AnyHashable? = nil
-    private let messages: [(String, String, String, String, Color)] = [
+    @State private var messages: [(String, String, String, String, Color)] = [
         ("MA", "Mara Lindqvist", "Final cut of the launch film", "9:41", Color(red: 0.914, green: 0.835, blue: 0.702)),
         ("JO", "Jonas Okafor", "Studio booking for Thursday", "8:12", Color(red: 0.663, green: 0.863, blue: 0.718)),
         ("PR", "Priya Raman", "Notes from the pricing review", "Mon", Color(red: 0.804, green: 0.722, blue: 1)),
@@ -322,14 +588,16 @@ private struct SwipeActionRowExample: View {
                     id: name,
                     leading: [.init("Read", systemImage: "envelope.open", tint: Color(red: 0.612, green: 0.761, blue: 1)) {}],
                     trailing: [
-                        .init("Delete", systemImage: "trash", tint: Color(red: 1, green: 0, blue: 0), role: .destructive) {},
+                        .init("Delete", systemImage: "trash", tint: Color(red: 1, green: 0, blue: 0), role: .destructive) {
+                            withAnimation { messages.removeAll { $0.1 == name } }
+                        },
                         .init("Snooze", systemImage: "moon.zzz", tint: Color(red: 1, green: 0.851, blue: 0.463)) {},
                     ],
                     open: $open
                 ) {
                     HStack(spacing: 14) {
                         Text(initials)
-                            .font(.system(size: 15, weight: .bold, design: .rounded))
+                            .font(.system(size: 15, weight: .semibold, design: .rounded))
                             .foregroundStyle(Color(red: 0.078, green: 0.078, blue: 0.078))
                             .frame(width: 46, height: 46)
                             .background(color, in: Circle())
@@ -367,6 +635,455 @@ private enum ExampleInk {
 #Preview("Dark") {
     SwipeActionRowExample().preferredColorScheme(.dark)
 }
+
+// MARK: - Piece motion
+//
+// The SwiftPieces motion language: shared spring tokens and gesture physics, with the same values in every
+// piece. Each piece carries a copy of only the parts it uses, so this file stands alone. Generated from
+// registry/foundation/PieceMotion.swift in the SwiftPieces repo; edit it there, not here.
+// swiftpieces-motion: 1.1.0 (core, momentum, rubberBand, pressMath)
+
+/// The SwiftPieces motion language: five spring tiers, and a named role for every moment a piece moves,
+/// each with its Reduce Motion substitute.
+///
+/// Build one from the environment, `PieceMotion(reduceMotion: reduceMotion)`, and pick the role that names
+/// what just happened. Never animate the tracking of a finger: set gesture state directly in `onChanged`, so the
+/// surface stays under the finger, and spring only the release.
+private struct PieceMotion {
+    var reduceMotion = false
+
+    // Tiers. Overshoot and settle times are measured from rest with SwiftUI's Spring.
+    /// No overshoot, 90% in about 90ms. A press arriving under the finger.
+    static var tight: Spring { Spring(duration: 0.14, bounce: 0) }
+    /// About 2.8% overshoot, 90% in about 140ms. Snapping to a detent, page or segment.
+    static var responsive: Spring { Spring(duration: 0.32, bounce: 0.25) }
+    /// About 8.4% overshoot. Visible give: a release, a return from past an edge, a drag settling home.
+    static var elastic: Spring { Spring(duration: 0.42, bounce: 0.38) }
+    /// About 15% overshoot. A resolved action landing. At most once per interaction.
+    static var expressive: Spring { Spring(duration: 0.48, bounce: 0.48) }
+    /// About 1.5% overshoot, unhurried. Opening large surfaces and ambient change.
+    static var calm: Spring { Spring(duration: 0.5, bounce: 0.2) }
+
+    /// Reduce Motion: settles become this short spring with no overshoot.
+    private static var still: Animation { .spring(duration: 0.25, bounce: 0) }
+
+    // Roles.
+    /// Touch-down. Starts on the same frame and never bounces under the finger.
+    var press: Animation { .spring(Self.tight) }
+    /// The finger lifts off a pressed surface, which springs back through rest.
+    var release: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A dragged thing comes to rest. With a gesture's velocity, use `settle(velocity:from:to:)` instead.
+    var settle: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// Lands on a detent, page or segment.
+    var snap: Animation { reduceMotion ? Self.still : .spring(Self.responsive) }
+    /// A number, a chart value or anything else people read moves to its new value. Never overshoots, so it
+    /// never shows a value that isn't true.
+    var value: Animation { reduceMotion ? Self.still : .spring(duration: 0.35, bounce: 0) }
+    /// Comes back from past a limit: a pull beyond the edge, a value pushed against its bound.
+    var rebound: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A shape or container changes size, corner radius or form, with a little give at the end.
+    var morph: Animation { reduceMotion ? Self.still : .spring(duration: 0.4, bounce: 0.2) }
+    /// Something appears, opens or expands. Opening is a little slower than closing.
+    var reveal: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.calm) }
+    /// Something leaves, closes or collapses. Quick and firm, out of the way.
+    var dismiss: Animation { reduceMotion ? .easeIn(duration: 0.18) : .spring(duration: 0.3, bounce: 0.08) }
+    /// A resolved action lands: a check, a sent state, a reaction.
+    var success: Animation { reduceMotion ? .easeOut(duration: 0.24) : .spring(Self.expressive) }
+    /// A refused action. Firm, no wobble; `pieceShake` adds the movement.
+    var error: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.responsive) }
+    /// Slow ambient change. Loops themselves stop under Reduce Motion: check `allowsAmbient`.
+    var ambient: Animation { reduceMotion ? .easeInOut(duration: 0.3) : .spring(Self.calm) }
+
+    /// Loops, drifts, idle breathing and parallax run only when this is true.
+    var allowsAmbient: Bool { !reduceMotion }
+
+    /// A moving transition, or a plain fade under Reduce Motion.
+    func transition(_ transition: AnyTransition) -> AnyTransition {
+        reduceMotion ? .opacity : transition
+    }
+
+    /// For content replaced inside a container that stays put (a label, a glyph, a count): the old content
+    /// blurs out as the new one sharpens in. A fade under Reduce Motion.
+    @MainActor var swap: AnyTransition {
+        reduceMotion ? .opacity : AnyTransition(.blurReplace)
+    }
+}
+
+extension PieceMotion {
+    /// Where a flick at `velocity` (pt/s) coasts to. 0.998 coasts like a scroll view; 0.99 suits detents.
+    nonisolated static func project(_ position: CGFloat, velocity: CGFloat, decelerationRate: CGFloat = 0.99) -> CGFloat {
+        position + velocity / 1000 * decelerationRate / (1 - decelerationRate)
+    }
+
+    /// The candidate closest to `value`.
+    nonisolated static func nearest(_ value: CGFloat, in candidates: [CGFloat]) -> CGFloat {
+        candidates.min { abs($0 - value) < abs($1 - value) } ?? value
+    }
+
+    /// A settle that leaves at the finger's speed (pt/s). One per axis, each on its own `.offset(x:)` / `.offset(y:)`:
+    /// a spring takes one velocity. SwiftUI's own velocity carry-over is unreliable; this always carries it.
+    func settle(velocity: CGFloat, from current: CGFloat, to target: CGFloat, spring: Spring = PieceMotion.elastic) -> Animation {
+        let spring = reduceMotion ? Spring(duration: 0.25, bounce: 0) : spring
+        let distance = target - current
+        guard abs(distance) >= 1 else { return .spring(spring) }
+        // In whole distances per second, capped near the spring's frequency: a hard flick adds give, not a slingshot.
+        // At exactly the frequency a critically damped spring cannot pass its target, so Reduce Motion stops there.
+        let cap = 2 * Double.pi / spring.duration * (reduceMotion ? 1 : 1.5)
+        let relative = min(max(Double(velocity / distance), -cap), cap)
+        return .interpolatingSpring(spring, initialVelocity: relative)
+    }
+}
+
+extension PieceMotion {
+    /// A scroll view's edge resistance for a pull `overshoot` points past a limit; never reaches `limit`.
+    /// About 24 to 40 for thumbs and toggles, 60 to 120 for cards and sheets. Band the total pull, not deltas.
+    nonisolated static func rubberBand(_ overshoot: CGFloat, limit: CGFloat, coefficient: CGFloat = 0.55) -> CGFloat {
+        guard limit > 0, overshoot != 0 else { return 0 }
+        let banded = (1 - 1 / (abs(overshoot) * coefficient / limit + 1)) * limit
+        return overshoot < 0 ? -banded : banded
+    }
+
+    /// `value` inside `range` passes through unchanged; past either end it moves with rubber-band resistance.
+    nonisolated static func rubberBand(_ value: CGFloat, in range: ClosedRange<CGFloat>, limit: CGFloat, coefficient: CGFloat = 0.55) -> CGFloat {
+        if value < range.lowerBound { return range.lowerBound + rubberBand(value - range.lowerBound, limit: limit, coefficient: coefficient) }
+        if value > range.upperBound { return range.upperBound + rubberBand(value - range.upperBound, limit: limit, coefficient: coefficient) }
+        return value
+    }
+}
+
+extension PieceMotion {
+    /// About `depth` points per edge, not a fixed percentage: an icon sinks to 0.92, a pill 0.95, a card 0.985.
+    nonisolated static func pressScale(for size: CGSize, depth: CGFloat = 2.5) -> CGFloat {
+        let side = (max(size.width, 1) * max(size.height, 1)).squareRoot()
+        return min(max(1 - depth * 2 / side, 0.92), 0.985)
+    }
+
+    /// An anchor partway from the center toward the touch, so the press leans into the finger without tipping.
+    nonisolated static func pressAnchor(touch: CGPoint?, in size: CGSize, lean: CGFloat = 0.6) -> UnitPoint {
+        guard let touch, size.width > 0, size.height > 0 else { return .center }
+        let x = min(max(touch.x / size.width, 0), 1)
+        let y = min(max(touch.y / size.height, 0), 1)
+        return UnitPoint(x: 0.5 + (x - 0.5) * lean, y: 0.5 + (y - 0.5) * lean)
+    }
+}
+
+// swiftpieces-motion: end
+
+// MARK: - Piece liquid
+//
+// The SwiftPieces liquid glass language: glass shapes that merge through a neck, bubbles that bud out of
+// and melt back into each other, and the frosted fallback before iOS 26. Each piece carries a copy of only
+// the parts it uses, so this file stands alone. Generated from registry/foundation/PieceLiquid.swift in the
+// SwiftPieces repo; edit it there, not here. The rules are in LIQUID_GLASS.md.
+// swiftpieces-liquid: 1.7.0 (liquid, liquidPress, bud)
+
+/// The liquid glass language: one merge distance, two rest gaps, and the springs a bubble leaves and comes home on.
+///
+/// Glass shapes inside one `PieceLiquidGroup` melt into each other through a neck when they come within `merge`
+/// points. Parts of one control rest `joined`, inside that distance, so the neck holds; separate actions rest
+/// `apart`, outside it, so they only goo while one buds out of, or melts back into, another.
+private enum PieceLiquid {
+    /// Glass shapes closer than this share a neck.
+    static let merge: CGFloat = 20
+    /// The gap between parts of one control (a stepper's buttons, a progress pill and its stop): the neck holds,
+    /// short and smooth, about two thirds of the shapes' height at its waist. Joined parts read best at one height.
+    static let joined: CGFloat = 4
+    /// The gap between separate actions (menu items, confirm and cancel, chips): they rest as their own bubbles.
+    static let apart: CGFloat = 26
+    /// How far a bubble shrinks while it is home inside its parent.
+    static let homeScale: CGFloat = 0.72
+
+    /// A bubble leaving its parent: slow enough that the neck's stretch and snap read.
+    static func split(reduceMotion: Bool) -> Animation {
+        reduceMotion ? .easeOut(duration: 0.2) : .spring(duration: 0.62, bounce: 0.22)
+    }
+
+    /// A bubble going home. No bounce: a bounce would carry it out through the far side of its parent.
+    static func home(reduceMotion: Bool) -> Animation {
+        reduceMotion ? .easeIn(duration: 0.18) : .spring(duration: 0.5, bounce: 0)
+    }
+}
+
+/// A group of glass shapes that merge into one liquid surface. On iOS 26 it is a `GlassEffectContainer`; before
+/// that, and under Reduce Transparency, the shapes draw on their own and simply don't merge. `lift` adds the soft
+/// shadow liquid glass floats on in light mode.
+private struct PieceLiquidGroup<Content: View>: View {
+    var spacing: CGFloat = PieceLiquid.merge
+    var lift = true
+    @ViewBuilder var content: Content
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        container
+            .shadow(color: .black.opacity(lift && colorScheme == .light ? 0.07 : 0), radius: 18, y: 8)
+    }
+
+    @ViewBuilder private var container: some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26, *), !reduceTransparency {
+            GlassEffectContainer(spacing: spacing) { content }
+        } else {
+            content
+        }
+        #else
+        content
+        #endif
+    }
+}
+
+/// One liquid glass shape: Liquid Glass on iOS 26, carrying `tint` as a solid colour and swelling under a press when
+/// `interactive`; a frosted Material with a light rim and a soft shadow before that; a solid fill under Reduce
+/// Transparency.
+///
+/// The tint is painted inside clear glass rather than tinting the glass. Tinted glass in a group bleeds its colour
+/// through every neck as a smear, so a red button would glow into the white pill it is joined to; painted inside,
+/// the colour stays crisp to the shape's edge, the necks between shapes are clear glass, and a tint change animates
+/// like any colour (tinted glass snaps).
+private struct PieceLiquidSurface<S: Shape>: ViewModifier {
+    var shape: S
+    var tint: Color?
+    var interactive: Bool
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.pieceLiquidScale) private var scale
+
+    func body(content: Content) -> some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26, *), !reduceTransparency {
+            // Scaled as two parts, content and outline, about the same centre. A scaleEffect on a glass view inside a
+            // GlassEffectContainer shrinks the glass but leaves what it carries full size, pinned to its corner.
+            content
+                .background { shape.fill(tint ?? .clear) }
+                .scaleEffect(scale)
+                .glassEffect(glass, in: shape.scale(scale))
+        } else {
+            fallback(content).scaleEffect(scale)
+        }
+        #else
+        fallback(content).scaleEffect(scale)
+        #endif
+    }
+
+    #if compiler(>=6.2)
+    @available(iOS 26, *)
+    private var glass: Glass {
+        interactive ? Glass.regular.interactive() : .regular
+    }
+    #endif
+
+    private func fallback(_ content: Content) -> some View {
+        let dark = colorScheme == .dark
+        return content
+            .background {
+                if reduceTransparency {
+                    shape.fill(tint ?? (dark ? Color(white: 0.17) : Color(white: 0.97)))
+                } else {
+                    ZStack {
+                        shape.fill(.regularMaterial)
+                        if let tint { shape.fill(tint.opacity(0.88)) }
+                    }
+                }
+            }
+            .overlay { shape.stroke(Color.white.opacity(dark ? 0.14 : 0.7), lineWidth: 0.5) }
+            .shadow(color: .black.opacity(dark ? 0.32 : 0.08), radius: 10, y: 5)
+    }
+}
+
+private struct PieceLiquidScaleKey: EnvironmentKey {
+    static let defaultValue: CGFloat = 1
+}
+
+private extension EnvironmentValues {
+    /// How much the liquid shapes below are scaled, about their own centres. Nested scales multiply.
+    var pieceLiquidScale: CGFloat {
+        get { self[PieceLiquidScaleKey.self] }
+        set { self[PieceLiquidScaleKey.self] = newValue }
+    }
+}
+
+private extension View {
+    /// Draws this view on a liquid glass `shape`. Put it inside a `PieceLiquidGroup` so it can merge with its neighbours.
+    func pieceLiquid<S: Shape>(_ shape: S, tint: Color? = nil, interactive: Bool = true) -> some View {
+        modifier(PieceLiquidSurface(shape: shape, tint: tint, interactive: interactive))
+    }
+
+    /// Scales the liquid glass shapes in this view, content and outline together, about their own centres. Use it
+    /// instead of `scaleEffect` on a glass view (a press, a lift, a swell): inside a group a plain `scaleEffect` shrinks
+    /// the glass but leaves its content full size and off centre. Animates like any other value.
+    func pieceLiquidScale(_ scale: CGFloat) -> some View {
+        transformEnvironment(\.pieceLiquidScale) { $0 *= scale }
+    }
+}
+
+/// The press for a glass control: the same size-aware sink and lean as `piecePress`, applied through
+/// `pieceLiquidScale` so the glass and what it carries sink together (a plain scaleEffect on glass leaves the content
+/// behind). Put the glass inside what it presses: the label of a button, the view this modifies. Under Reduce Motion
+/// it shades instead of moving.
+private struct PieceLiquidPress: ViewModifier {
+    let pressed: Bool
+    var touch: CGPoint?
+    var depth: CGFloat = 2.5
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.colorScheme) private var colorScheme
+    @State private var size: CGSize = .zero
+    @State private var anchor: UnitPoint = .center
+
+    func body(content: Content) -> some View {
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        let scale = pressed && !reduceMotion ? PieceMotion.pressScale(for: size, depth: depth) : 1
+        // A scale about `anchor` is a scale about the centre plus this shift toward the anchor.
+        let lean = CGSize(width: (anchor.x - 0.5) * size.width * (1 - scale), height: (anchor.y - 0.5) * size.height * (1 - scale))
+        content
+            .onGeometryChange(for: CGSize.self) { $0.size } action: { size = $0 }
+            .brightness(pressed && reduceMotion ? (colorScheme == .dark ? 0.1 : -0.08) : 0)
+            .pieceLiquidScale(scale)
+            .offset(lean)
+            .animation(pressed ? motion.press : motion.release, value: pressed)
+            .onChange(of: pressed) { _, isPressed in
+                if isPressed { anchor = PieceMotion.pressAnchor(touch: touch, in: size) }
+            }
+            .onChange(of: touch) { _, touch in
+                if pressed, let touch { anchor = PieceMotion.pressAnchor(touch: touch, in: size) }
+            }
+    }
+}
+
+/// `PiecePressStyle` for glass buttons: the label (with its `.pieceLiquid` inside) sinks as one.
+private struct PieceLiquidPressStyle: ButtonStyle {
+    var depth: CGFloat = 2.5
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label.pieceLiquidPress(configuration.isPressed, depth: depth)
+    }
+}
+
+private extension View {
+    /// Sinks this view's glass while `pressed`, leaning toward `touch` (in this view's coordinates) when given.
+    func pieceLiquidPress(_ pressed: Bool, touch: CGPoint? = nil, depth: CGFloat = 2.5) -> some View {
+        modifier(PieceLiquidPress(pressed: pressed, touch: touch, depth: depth))
+    }
+}
+
+/// The bud: how a bubble leaves and rejoins its parent, driven explicitly so every bubble shows the whole cycle.
+///
+/// A bubble is born at `home`, inside its parent, where the two glass shapes are one. It springs out to `rest`, and
+/// while it is inside the merge distance a neck holds it to the parent, thinning as it goes, until it snaps free.
+/// Going home it springs back on a spring with no bounce, the neck reaches out and re-forms, and only once it has
+/// melted all the way in is it removed. Both offsets are relative to where the bubble is laid out. Under Reduce
+/// Motion it stays at `rest`: its content fades and its glass closes in place.
+private struct PieceBud: ViewModifier {
+    var out: Bool
+    var rest: CGSize
+    var home: CGSize
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func body(content: Content) -> some View {
+        if reduceMotion {
+            // No travel. Inside a group glass ignores opacity, so the glass closes to nothing in place on the short
+            // Reduce Motion ease while its content fades; the opacity covers a bubble outside a group.
+            content
+                .pieceLiquidScale(out ? 1 : 0.001)
+                .opacity(out ? 1 : 0)
+                .offset(rest)
+        } else {
+            // The glass shrinks through `pieceLiquidScale`, never a plain scaleEffect (see there), then moves.
+            content
+                .pieceLiquidScale(out ? 1 : PieceLiquid.homeScale)
+                .offset(out ? rest : home)
+        }
+    }
+}
+
+/// A bubble's own content, on its own clock: gone the moment the bubble heads home, so it never rides over the
+/// parent's content, and arriving just after the bubble leaves.
+private struct PieceBudContent: ViewModifier {
+    var out: Bool
+
+    func body(content: Content) -> some View {
+        content
+            .blur(radius: out ? 0 : 6)
+            .opacity(out ? 1 : 0)
+            .animation(out ? .easeOut(duration: 0.3).delay(0.1) : .easeOut(duration: 0.14), value: out)
+    }
+}
+
+private extension View {
+    /// Places a bubble at `rest` while `out`, and at `home` (inside its parent, shrunk) while not.
+    func pieceBud(out: Bool, rest: CGSize = .zero, home: CGSize) -> some View {
+        modifier(PieceBud(out: out, rest: rest, home: home))
+    }
+
+    /// Hides a bubble's icon or label while it is home. Put it on the content, inside the glass.
+    func pieceBudContent(out: Bool) -> some View {
+        modifier(PieceBudContent(out: out))
+    }
+}
+
+/// Which bubbles exist and which are out. A bubble is added home with no animation, sent out on the next frame,
+/// and called home before it is removed, so it always melts in rather than fading. Keep one in `@State`.
+@MainActor @Observable
+private final class PieceBuds {
+    private(set) var present: [String] = []
+    private(set) var out: Set<String> = []
+    /// The latest call for each bubble. A bloom or gather that has been overtaken (a bubble sent home while it was
+    /// still waiting to go out, or called out again while melting) leaves that bubble alone.
+    @ObservationIgnored private var turn: [String: Int] = [:]
+
+    func contains(_ id: String) -> Bool { present.contains(id) }
+    func isOut(_ id: String) -> Bool { out.contains(id) }
+
+    private func claim(_ ids: [String]) -> [String: Int] {
+        var mine: [String: Int] = [:]
+        for id in ids {
+            let next = (turn[id] ?? 0) + 1
+            turn[id] = next
+            mine[id] = next
+        }
+        return mine
+    }
+
+    /// Puts bubbles straight out at rest with no motion: a view's first frame, or a state restored.
+    func place(_ ids: [String]) {
+        _ = claim(ids)
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) {
+            for id in ids where !present.contains(id) { present.append(id) }
+            out.formUnion(ids)
+        }
+    }
+
+    /// Adds bubbles home, then sends each out, `stagger` seconds apart, after an optional `delay`.
+    func bloom(_ ids: [String], reduceMotion: Bool, stagger: Double = 0.05, delay: Double = 0) async {
+        let mine = claim(ids)
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) {
+            for id in ids where !present.contains(id) { present.append(id) }
+        }
+        try? await Task.sleep(for: .milliseconds(24 + Int(max(delay, 0) * 1000)))
+        let split = PieceLiquid.split(reduceMotion: reduceMotion)
+        for (i, id) in ids.enumerated() where turn[id] == mine[id] {
+            withAnimation(split.delay(reduceMotion ? 0 : Double(i) * stagger)) { _ = out.insert(id) }
+        }
+    }
+
+    /// Calls bubbles home, last first, then removes them once they have melted in.
+    func gather(_ ids: [String], reduceMotion: Bool, stagger: Double = 0.04) async {
+        let mine = claim(ids)
+        let home = PieceLiquid.home(reduceMotion: reduceMotion)
+        for (i, id) in ids.reversed().enumerated() {
+            withAnimation(home.delay(reduceMotion ? 0 : Double(i) * stagger)) { _ = out.remove(id) }
+        }
+        try? await Task.sleep(for: .milliseconds(Int((0.52 + Double(ids.count) * stagger) * 1000)))
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) { present.removeAll { ids.contains($0) && !out.contains($0) && turn[$0] == mine[$0] } }
+    }
+}
+
+// swiftpieces-liquid: end
 ```
 
 </Tab>

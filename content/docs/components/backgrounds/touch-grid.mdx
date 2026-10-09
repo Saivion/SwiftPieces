@@ -1,28 +1,32 @@
 ---
 title: "Touch Grid"
-description: "A Canvas dot grid that swells and warms into a house block color under the finger, springs back on release, and sends one dissipating ripple out from a tap."
+description: "A Canvas dot grid that swells and warms into the brand red or another house block under the finger, springs back on release, and sends one dissipating ripple out from a tap. Content only, so it carries no glass."
 piece: "TouchGrid"
 category: "backgrounds"
 minIOSVersion: "17.0"
-version: "2.0.1"
+version: "2.2.0"
 tags: ["background","grid","interactive","canvas","haptics","palette"]
 registryDependencies: []
 ---
 
 {/* GENERATED FILE. Edit registry/swift/backgrounds/TouchGrid.swift or TouchGrid.mdx instead. */}
 
-Interactive dot grid. Resting dots are a tonal ramp on `Style.dot` (`.primary` by default, so both color schemes work); under the finger they swell and take on `Style.highlight`, a solid house block.
+Interactive dot grid. Resting dots are a tonal ramp on `Style.dot` (`.primary` by default, so both color schemes work); under the finger they swell and take on `Style.highlight`, a solid house block. It is a surface for content and glass controls to sit on, so it draws no glass and no text of its own.
 
 ## Notes
 
 - Everything is drawn in one `Canvas` inside a `TimelineView` that pauses when nothing is pressed, springing or rippling, so an idle grid costs nothing. A short task clears expired springs and ripples so the timeline can pause again.
-- Release is a damped spring computed per frame (`e^-7t · cos 10t`), so the dots overshoot slightly below their resting size before settling. While dragging the field follows the finger directly.
-- A tap (moved under 8 pt, held under 0.3 s) emits one ripple ring that eases outward and widens as it fades; ripples are capped at three. Reduce Motion disables only the ripple; the highlight and spring remain.
-- The highlight is a tonal ramp on `.primary` (`baseOpacity` up to 0.92) with a 3.2x swell, so it matches any tint and both color schemes.
-- The `.selection` haptic fires at most every 60 ms and only when the finger crosses into a new grid cell.
-- `probe` drives the grid without a finger, for previews, hints, or onboarding.
-- `style:` sets the resting dot color (`.primary` by default) and the block the dots take on as they lift. `.standard` warms into tangerine; `.sky`, `.lilac`, `.sage` and `.butter` use the other blocks, and `.mono` keeps the single-tone ramp.
-- The `#Preview` is the grid alone on the house ground, full bleed; touch it to swell, release to spring back, tap for a ripple.
+- While dragging, the field sits on the finger at every frame. At touch-down its strength swells in on the library's press spring (about 90% in 90 ms, no overshoot), so the dots rise under the finger instead of appearing at full size.
+- On release the field springs back on the library's expressive spring, dipping below resting size before it settles in about 0.8 s (the dots under a full press shrink to about 0.75x for a moment), and coasts on along the finger's last direction like a scroll view decelerating, eased toward half the `radius`, so a flick leaves a short wake. A quick tap lifted mid-swell carries on for a moment before it springs back. A new touch never cuts a lifted field short: it plays out where it was let go while the new one swells under the finger.
+- A tap (moved under 8 pt, held under 0.3 s) emits one ripple ring that eases outward and widens as it fades; ripples are capped at three.
+- Lifted dots swell up to 3.2x and crossfade from the resting ink into the `style` highlight, so a fully lifted dot reads as solid block color.
+- The `.selection` haptic fires at most every 120 ms and only when the finger crosses into a new grid cell, so a quick drag ticks lightly instead of buzzing.
+- A touch the system cancels (a scroll taking over, an alert) lets go like a lift, so the grid never stays pressed.
+- Reduce Motion keeps the swell, the color and the haptic under the finger. The release settles on a short spring without dipping below rest or coasting, and a tap blooms in place, warming the dots around it for about half a second, instead of sending a ring out. `ripples: false` turns the bloom off too.
+- `probe` drives the grid without a finger, for previews, hints, or onboarding. Its releases spring back in place, with no coast.
+- `style:` sets the resting dot color (`.primary` by default) and the block the dots take on as they lift. `.standard` warms into the brand red, `#FF0000`; `.sky`, `.lilac`, `.sage` and `.butter` use the other blocks, and `.mono` keeps the single-tone ramp.
+- The grid is a surface, not a control, so it draws no glass and no text of its own.
+- The `#Preview` is the grid alone on the house ground, full bleed; touch it to swell, release to spring back, flick to see the field coast, tap for a ripple.
 
 ## Usage
 
@@ -38,9 +42,9 @@ TouchGridExample().preferredColorScheme(.light)
 | `dotSize` | Resting dot diameter. |
 | `radius` | Influence radius of the touch. |
 | `baseOpacity` | Opacity of resting dots on `.primary`. |
-| `ripples` | Whether a tap emits a ripple ring. Reduce Motion disables ripples regardless. |
+| `ripples` | Whether a tap emits a ripple ring. Under Reduce Motion a tap blooms in place instead of sending a ring out. |
 | `probe` | Optional programmatic touch point for previews and onboarding hints. Setting it back to `nil` triggers the release spring; a probe held under 0.3 s emits a ripple like a tap. |
-| `style` | Resting dot color and the block color dots take on under the finger. `.standard` (default) warms into tangerine; `.sky`, `.lilac`, `.sage` and `.butter` use the other blocks; `.mono` keeps the original single-tone ramp. |
+| `style` | Resting dot color and the block color dots take on under the finger. `.standard` (default) warms into the brand red; `.sky`, `.lilac`, `.sage` and `.butter` use the other blocks; `.mono` keeps the original single-tone ramp. |
 
 ## Source
 
@@ -51,16 +55,17 @@ TouchGridExample().preferredColorScheme(.light)
 import SwiftUI
 
 /// Interactive dot grid. Resting dots are a tonal ramp on `Style.dot` (`.primary` by default, so both color schemes work);
-/// under the finger they swell and take on `Style.highlight`, a solid house block.
+/// under the finger they swell and take on `Style.highlight`, a solid house block. It is a surface for content and glass
+/// controls to sit on, so it draws no glass and no text of its own.
 ///
 /// - Parameters:
 ///   - spacing: Distance between dots.
 ///   - dotSize: Resting dot diameter.
 ///   - radius: Influence radius of the touch.
 ///   - baseOpacity: Opacity of resting dots on `.primary`.
-///   - ripples: Whether a tap emits a ripple ring. Reduce Motion disables ripples regardless.
+///   - ripples: Whether a tap emits a ripple ring. Under Reduce Motion a tap blooms in place instead of sending a ring out.
 ///   - probe: Optional programmatic touch point for previews and onboarding hints. Setting it back to `nil` triggers the release spring; a probe held under 0.3 s emits a ripple like a tap.
-///   - style: Resting dot color and the block color dots take on under the finger. `.standard` (default) warms into tangerine; `.sky`, `.lilac`, `.sage` and `.butter` use the other blocks; `.mono` keeps the original single-tone ramp.
+///   - style: Resting dot color and the block color dots take on under the finger. `.standard` (default) warms into the brand red; `.sky`, `.lilac`, `.sage` and `.butter` use the other blocks; `.mono` keeps the original single-tone ramp.
 public struct TouchGrid: View {
     /// Dot colors.
     public struct Style: Sendable {
@@ -74,8 +79,8 @@ public struct TouchGrid: View {
             self.highlight = highlight
         }
 
-        /// Tangerine under the finger.
-        public static let standard = Style(highlight: touchGridColor(0xFF5B3A))
+        /// The brand red, `#FF0000`, under the finger.
+        public static let standard = Style(highlight: touchGridColor(0xFF0000))
         /// Sky under the finger.
         public static let sky = Style(highlight: touchGridColor(0x9CC2FF))
         /// Lilac under the finger.
@@ -92,11 +97,12 @@ public struct TouchGrid: View {
 
     @State private var touch: CGPoint? = nil
     @State private var touchStart: Date? = nil
-    @State private var release: Release? = nil
+    @State private var releases: [Release] = []
     @State private var ripples: [Ripple] = []
     @State private var cell = -1
     @State private var lastTick = Date.distantPast
     @State private var settleToken = 0
+    @GestureState private var touching = false     // resets when the system cancels a touch, which skips onEnded
 
     private let spacing: CGFloat
     private let dotSize: CGFloat
@@ -106,11 +112,11 @@ public struct TouchGrid: View {
     private let probe: CGPoint?
     private let style: Style
 
-    private struct Release { let point: CGPoint; let date: Date }
-    private struct Ripple: Identifiable { let id = UUID(); let center: CGPoint; let date: Date }
+    /// A tap's ring, or under Reduce Motion its in-place bloom.
+    private struct Ripple: Identifiable { let id = UUID(); let center: CGPoint; let date: Date; let bloom: Bool }
 
-    private let releaseDuration: TimeInterval = 0.55
     private let rippleDuration: TimeInterval = 1.1
+    private let bloomDuration: TimeInterval = 0.45
 
     public init(
         spacing: CGFloat = 24,
@@ -130,7 +136,7 @@ public struct TouchGrid: View {
         self.probe = probe
     }
 
-    private var active: Bool { touch != nil || release != nil || !ripples.isEmpty }
+    private var active: Bool { touch != nil || !releases.isEmpty || !ripples.isEmpty }
 
     public var body: some View {
         TimelineView(.animation(paused: !active)) { context in
@@ -147,11 +153,17 @@ public struct TouchGrid: View {
             if let point { press(at: point) } else if touch != nil { lift(tapped: touchStart.map { Date().timeIntervalSince($0) < 0.3 } ?? false) }
         }
         .onAppear { if let probe { press(at: probe) } }
-        // Once the last spring and ripple have played out, clear them so the timeline can pause.
+        // A touch the system cancelled (a scroll took over, an alert) never ran onEnded, so let go here. After a normal
+        // lift onEnded has already cleared the touch, so this does nothing.
+        .onChange(of: touching) { _, isTouching in
+            if !isTouching, touch != nil { lift(tapped: false) }
+        }
+        // Once the last spring and ripple have played out, clear them so the timeline can pause. Every release settles
+        // well inside a ripple's run.
         .task(id: settleToken) {
             try? await Task.sleep(for: .seconds(rippleDuration + 0.1))
             guard !Task.isCancelled else { return }
-            release = nil
+            releases.removeAll()
             ripples.removeAll()
         }
         .accessibilityHidden(true)
@@ -161,11 +173,14 @@ public struct TouchGrid: View {
 
     private var drag: some Gesture {
         DragGesture(minimumDistance: 0)
+            .updating($touching) { _, touching, _ in touching = true }
             .onChanged { value in
+                // The field sits on the finger at every frame; only its strength eases in.
                 press(at: value.location)
-                // Low-rate tick when the finger crosses into another grid cell.
+                // Low-rate tick when the finger crosses into another grid cell, at most about eight a second: it is a
+                // texture, not a ruler.
                 let index = Int(value.location.x / spacing) + Int(value.location.y / spacing) * 4096
-                if index != cell, Date().timeIntervalSince(lastTick) > 0.06 {
+                if index != cell, Date().timeIntervalSince(lastTick) > 0.12 {
                     cell = index
                     lastTick = Date()
                 }
@@ -173,21 +188,36 @@ public struct TouchGrid: View {
             .onEnded { value in
                 let moved = hypot(value.translation.width, value.translation.height)
                 let held = touchStart.map { Date().timeIntervalSince($0) } ?? 0
-                lift(tapped: moved < 8 && held < 0.3)
+                lift(tapped: moved < 8 && held < 0.3, velocity: value.velocity)
             }
     }
 
+    /// Moves the finger's field. A field still springing back from an earlier lift keeps playing out where it was,
+    /// so a quick second touch never makes it jump.
     private func press(at point: CGPoint) {
         if touch == nil { touchStart = Date() }
         touch = point
-        release = nil
     }
 
-    private func lift(tapped: Bool) {
+    /// Lets go: the field springs back from the strength it had reached and coasts on along `velocity` (pt/s).
+    /// Probe releases pass none.
+    private func lift(tapped: Bool, velocity: CGSize = .zero) {
         guard let point = touch else { return }
-        release = Release(point: point, date: Date())
-        if tapped, ripplesEnabled, !reduceMotion {
-            ripples.append(Ripple(center: point, date: Date()))
+        let now = Date()
+        let swell = Self.swell(after: touchStart.map { now.timeIntervalSince($0) } ?? 1)
+        // Spent fields go, and at most four play out at once; the oldest has all but settled by then.
+        releases.removeAll { now.timeIntervalSince($0.date) >= $0.duration }
+        releases.append(Release(
+            point: point, date: now, from: swell.level, speed: swell.speed,
+            drift: reduceMotion ? .zero : coast(velocity),
+            // The expressive tier, dipping below rest into the -0.12 clamp: the grid is decoration with nothing to read,
+            // so it springs back with the give it had before. Under Reduce Motion a short settle, with no dip.
+            spring: reduceMotion ? Spring(duration: 0.25, bounce: 0) : PieceMotion.expressive
+        ))
+        if releases.count > 4 { releases.removeFirst() }
+        if tapped, ripplesEnabled {
+            // Under Reduce Motion a tap blooms in place instead of sending a ring across the grid.
+            ripples.append(Ripple(center: point, date: now, bloom: reduceMotion))
             if ripples.count > 3 { ripples.removeFirst() }
         }
         touch = nil
@@ -196,25 +226,51 @@ public struct TouchGrid: View {
         settleToken += 1
     }
 
+    /// How far a lifted field coasts: the finger's projected travel, eased toward half the radius, so a flick leaves
+    /// a short wake and the effect stays near where the finger was.
+    private func coast(_ velocity: CGSize) -> CGSize {
+        let rate = Release.coastRate
+        let travel = CGSize(
+            width: PieceMotion.project(0, velocity: velocity.width, decelerationRate: rate),
+            height: PieceMotion.project(0, velocity: velocity.height, decelerationRate: rate)
+        )
+        let length = hypot(travel.width, travel.height)
+        guard length > 0.5 else { return .zero }
+        let reach = radius * 0.5
+        let scale = reach * CGFloat(tanh(Double(length / reach))) / length
+        return CGSize(width: travel.width * scale, height: travel.height * scale)
+    }
+
     // MARK: Drawing
 
-    /// Strength of the touch field: 1 while pressed, then a damped spring that dips just below zero before settling.
-    private func fieldStrength(now: Date) -> (center: CGPoint, strength: CGFloat)? {
-        if let touch { return (touch, 1) }
-        guard let release else { return nil }
-        let t = now.timeIntervalSince(release.date)
-        guard t < releaseDuration else { return nil }
-        let s = exp(-7 * t) * cos(10 * t)
-        return (release.point, CGFloat(max(s, -0.12)))
+    /// The finger's field swells in on the press spring, about 90% in 90ms with no overshoot, so the dots rise under
+    /// the finger instead of appearing at full size. Strength and its rate per second, `t` seconds after touch-down.
+    private static func swell(after t: TimeInterval) -> (level: Double, speed: Double) {
+        let t = max(t, 0)
+        return (PieceMotion.tight.value(target: 1.0, time: t), PieceMotion.tight.velocity(target: 1.0, time: t))
+    }
+
+    /// Every field on the grid at `now`: each lifted one springing back as it coasts, and the finger's, swelling in.
+    /// They add, like dents in one membrane, and are clamped per dot.
+    private func fields(now: Date) -> [(center: CGPoint, strength: CGFloat)] {
+        var live: [(center: CGPoint, strength: CGFloat)] = releases.compactMap { release in
+            let t = max(now.timeIntervalSince(release.date), 0)
+            return t < release.duration ? release.field(at: t) : nil
+        }
+        if let touch {
+            live.append((touch, CGFloat(touchStart.map { Self.swell(after: now.timeIntervalSince($0)).level } ?? 1)))
+        }
+        return live
     }
 
     private func draw(in graphics: inout GraphicsContext, size: CGSize, now: Date) {
-        let field = fieldStrength(now: now)
-        let liveRipples: [(center: CGPoint, progress: CGFloat)] = ripples.compactMap { ripple in
-            let t = now.timeIntervalSince(ripple.date) / rippleDuration
-            return t < 1 ? (ripple.center, CGFloat(t)) : nil
+        let fields = fields(now: now)
+        let liveRipples: [(center: CGPoint, progress: CGFloat, bloom: Bool)] = ripples.compactMap { ripple in
+            let t = max(now.timeIntervalSince(ripple.date), 0) / (ripple.bloom ? bloomDuration : rippleDuration)
+            return t < 1 ? (ripple.center, CGFloat(t), ripple.bloom) : nil
         }
         let rippleReach = radius * 2.4
+        let bloomReach = radius * 1.6
         let cols = Int(size.width / spacing) + 1
         let rows = Int(size.height / spacing) + 1
 
@@ -222,17 +278,26 @@ public struct TouchGrid: View {
             for col in 0..<cols {
                 let p = CGPoint(x: CGFloat(col) * spacing + spacing / 2, y: CGFloat(row) * spacing + spacing / 2)
                 var lift: CGFloat = 0
+                // Color only: a bloom warms the dots without moving them.
+                var glow: CGFloat = 0
 
-                if let field {
+                for field in fields {
                     let d = hypot(p.x - field.center.x, p.y - field.center.y)
                     let falloff = max(0, 1 - d / radius)
                     lift += falloff * falloff * (3 - 2 * falloff) * field.strength
                 }
                 for ripple in liveRipples {
+                    let d = hypot(p.x - ripple.center.x, p.y - ripple.center.y)
+                    if ripple.bloom {
+                        // Warms in over the first 75ms, then fades out, all in place.
+                        let falloff = max(0, 1 - d / bloomReach)
+                        let envelope = min(ripple.progress * 6, 1) * (1 - ripple.progress) * (1 - ripple.progress)
+                        glow += falloff * falloff * (3 - 2 * falloff) * envelope * 0.8
+                        continue
+                    }
                     // Ring front eases outward; the band fades and widens as it travels.
                     let eased = 1 - pow(1 - ripple.progress, 3)
                     let front = eased * rippleReach
-                    let d = hypot(p.x - ripple.center.x, p.y - ripple.center.y)
                     let band = spacing * (1.2 + eased * 2)
                     let wave = exp(-pow((d - front) / band, 2)) * (1 - ripple.progress)
                     lift += wave * 0.7
@@ -240,7 +305,7 @@ public struct TouchGrid: View {
 
                 lift = min(max(lift, -0.12), 1)
                 let s = dotSize * (1 + lift * 2.2)
-                let rise = max(lift, 0)
+                let rise = min(max(lift, 0) + glow, 1)
                 let rect = CGRect(x: p.x - s / 2, y: p.y - s / 2, width: s, height: s)
                 let dot = Path(ellipseIn: rect)
                 // Resting ink fades out as the block color fades in, so a lifted dot reads as solid highlight.
@@ -249,6 +314,42 @@ public struct TouchGrid: View {
                     graphics.fill(dot, with: .color(style.highlight.opacity(min(1, 0.25 + rise * 0.9))))
                 }
             }
+        }
+    }
+
+    /// A lifted field. It springs back from the strength it had, carrying on a moment if a quick tap was still
+    /// swelling, and coasts along the finger's last direction. It runs on the timeline's clock, so it plays out where
+    /// it was let go even while a new touch lands.
+    private struct Release {
+        /// The deceleration `PieceMotion.project` uses for a detent: the coast lands where the projection said.
+        static let coastRate: CGFloat = 0.99
+
+        let point: CGPoint
+        let date: Date
+        let from: Double
+        let speed: Double
+        let drift: CGSize
+        let spring: Spring
+        /// Seconds until the field is within half a percent of rest.
+        let duration: TimeInterval
+
+        init(point: CGPoint, date: Date, from: Double, speed: Double, drift: CGSize, spring: Spring) {
+            self.point = point
+            self.date = date
+            self.from = from
+            // Capped as `PieceMotion` caps a settle, so a quick tap adds give, not a jolt.
+            let cap = 2 * Double.pi / spring.duration * 1.5 * from
+            self.speed = min(max(speed, -cap), cap)
+            self.drift = drift
+            self.spring = spring
+            duration = from > 0 ? spring.settlingDuration(target: -from, initialVelocity: self.speed, epsilon: 0.005) : 0
+        }
+
+        /// Centre and strength `t` seconds after the lift.
+        func field(at t: TimeInterval) -> (center: CGPoint, strength: CGFloat) {
+            let level = from + spring.value(target: -from, initialVelocity: speed, time: t)
+            let coasted = 1 - pow(Self.coastRate, CGFloat(t * 1000))
+            return (CGPoint(x: point.x + drift.width * coasted, y: point.y + drift.height * coasted), CGFloat(level))
         }
     }
 }
@@ -292,6 +393,106 @@ private struct TouchGridExample: View {
 #Preview("Dark") {
     TouchGridExample().preferredColorScheme(.dark)
 }
+
+// MARK: - Piece motion
+//
+// The SwiftPieces motion language: shared spring tokens and gesture physics, with the same values in every
+// piece. Each piece carries a copy of only the parts it uses, so this file stands alone. Generated from
+// registry/foundation/PieceMotion.swift in the SwiftPieces repo; edit it there, not here.
+// swiftpieces-motion: 1.1.0 (core, momentum)
+
+/// The SwiftPieces motion language: five spring tiers, and a named role for every moment a piece moves,
+/// each with its Reduce Motion substitute.
+///
+/// Build one from the environment, `PieceMotion(reduceMotion: reduceMotion)`, and pick the role that names
+/// what just happened. Never animate the tracking of a finger: set gesture state directly in `onChanged`, so the
+/// surface stays under the finger, and spring only the release.
+private struct PieceMotion {
+    var reduceMotion = false
+
+    // Tiers. Overshoot and settle times are measured from rest with SwiftUI's Spring.
+    /// No overshoot, 90% in about 90ms. A press arriving under the finger.
+    static var tight: Spring { Spring(duration: 0.14, bounce: 0) }
+    /// About 2.8% overshoot, 90% in about 140ms. Snapping to a detent, page or segment.
+    static var responsive: Spring { Spring(duration: 0.32, bounce: 0.25) }
+    /// About 8.4% overshoot. Visible give: a release, a return from past an edge, a drag settling home.
+    static var elastic: Spring { Spring(duration: 0.42, bounce: 0.38) }
+    /// About 15% overshoot. A resolved action landing. At most once per interaction.
+    static var expressive: Spring { Spring(duration: 0.48, bounce: 0.48) }
+    /// About 1.5% overshoot, unhurried. Opening large surfaces and ambient change.
+    static var calm: Spring { Spring(duration: 0.5, bounce: 0.2) }
+
+    /// Reduce Motion: settles become this short spring with no overshoot.
+    private static var still: Animation { .spring(duration: 0.25, bounce: 0) }
+
+    // Roles.
+    /// Touch-down. Starts on the same frame and never bounces under the finger.
+    var press: Animation { .spring(Self.tight) }
+    /// The finger lifts off a pressed surface, which springs back through rest.
+    var release: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A dragged thing comes to rest. With a gesture's velocity, use `settle(velocity:from:to:)` instead.
+    var settle: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// Lands on a detent, page or segment.
+    var snap: Animation { reduceMotion ? Self.still : .spring(Self.responsive) }
+    /// A number, a chart value or anything else people read moves to its new value. Never overshoots, so it
+    /// never shows a value that isn't true.
+    var value: Animation { reduceMotion ? Self.still : .spring(duration: 0.35, bounce: 0) }
+    /// Comes back from past a limit: a pull beyond the edge, a value pushed against its bound.
+    var rebound: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A shape or container changes size, corner radius or form, with a little give at the end.
+    var morph: Animation { reduceMotion ? Self.still : .spring(duration: 0.4, bounce: 0.2) }
+    /// Something appears, opens or expands. Opening is a little slower than closing.
+    var reveal: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.calm) }
+    /// Something leaves, closes or collapses. Quick and firm, out of the way.
+    var dismiss: Animation { reduceMotion ? .easeIn(duration: 0.18) : .spring(duration: 0.3, bounce: 0.08) }
+    /// A resolved action lands: a check, a sent state, a reaction.
+    var success: Animation { reduceMotion ? .easeOut(duration: 0.24) : .spring(Self.expressive) }
+    /// A refused action. Firm, no wobble; `pieceShake` adds the movement.
+    var error: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.responsive) }
+    /// Slow ambient change. Loops themselves stop under Reduce Motion: check `allowsAmbient`.
+    var ambient: Animation { reduceMotion ? .easeInOut(duration: 0.3) : .spring(Self.calm) }
+
+    /// Loops, drifts, idle breathing and parallax run only when this is true.
+    var allowsAmbient: Bool { !reduceMotion }
+
+    /// A moving transition, or a plain fade under Reduce Motion.
+    func transition(_ transition: AnyTransition) -> AnyTransition {
+        reduceMotion ? .opacity : transition
+    }
+
+    /// For content replaced inside a container that stays put (a label, a glyph, a count): the old content
+    /// blurs out as the new one sharpens in. A fade under Reduce Motion.
+    @MainActor var swap: AnyTransition {
+        reduceMotion ? .opacity : AnyTransition(.blurReplace)
+    }
+}
+
+extension PieceMotion {
+    /// Where a flick at `velocity` (pt/s) coasts to. 0.998 coasts like a scroll view; 0.99 suits detents.
+    nonisolated static func project(_ position: CGFloat, velocity: CGFloat, decelerationRate: CGFloat = 0.99) -> CGFloat {
+        position + velocity / 1000 * decelerationRate / (1 - decelerationRate)
+    }
+
+    /// The candidate closest to `value`.
+    nonisolated static func nearest(_ value: CGFloat, in candidates: [CGFloat]) -> CGFloat {
+        candidates.min { abs($0 - value) < abs($1 - value) } ?? value
+    }
+
+    /// A settle that leaves at the finger's speed (pt/s). One per axis, each on its own `.offset(x:)` / `.offset(y:)`:
+    /// a spring takes one velocity. SwiftUI's own velocity carry-over is unreliable; this always carries it.
+    func settle(velocity: CGFloat, from current: CGFloat, to target: CGFloat, spring: Spring = PieceMotion.elastic) -> Animation {
+        let spring = reduceMotion ? Spring(duration: 0.25, bounce: 0) : spring
+        let distance = target - current
+        guard abs(distance) >= 1 else { return .spring(spring) }
+        // In whole distances per second, capped near the spring's frequency: a hard flick adds give, not a slingshot.
+        // At exactly the frequency a critically damped spring cannot pass its target, so Reduce Motion stops there.
+        let cap = 2 * Double.pi / spring.duration * (reduceMotion ? 1 : 1.5)
+        let relative = min(max(Double(velocity / distance), -cap), cap)
+        return .interpolatingSpring(spring, initialVelocity: relative)
+    }
+}
+
+// swiftpieces-motion: end
 ```
 
 </Tab>

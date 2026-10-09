@@ -1,37 +1,39 @@
 ---
 title: "Attachment Tray"
-description: "A horizontal attachment strip for composers, support forms and listings: an add tile opens the photo picker with the remaining limit, each pick lands as its own tile that loads with a live progress ring, downsamples off the main thread into a crisp thumbnail and settles in with a spring, failures turn into a retry tile, the remove badge cancels an in-flight load, duplicates and over-limit picks are caught, and the caller owns every attachment for upload."
+description: "A horizontal attachment strip for composers, support forms and listings: a liquid glass add tile opens the photo picker with the remaining limit, picks drop onto the strip as their own tiles carrying a glass status bubble with a live progress ring, and the remove badge buds out of it; the ring closes before the thumbnail, downsampled off the main thread, develops in place and the bubble melts into the badge, failures flood the bubble red as a retry, the remove badge cancels an in-flight load, duplicates and over-limit picks are caught, and the caller owns every attachment for upload."
 piece: "AttachmentTray"
 category: "media"
 minIOSVersion: "17.0"
-version: "1.0.1"
+version: "1.2.0"
 tags: ["attachments","photos","photos-picker","upload","thumbnails","imageio","composer","media"]
 registryDependencies: []
 ---
 
 {/* GENERATED FILE. Edit registry/swift/media/AttachmentTray.swift or AttachmentTray.mdx instead. */}
 
-A strip of photo and video attachments with an add tile, per-item loading, retry, remove and a limit. The caller owns the attachments. Picks from the built-in add tile are appended for you; anything else (a camera capture, a paste, a drop, a draft restored from disk, your own picker) is added by appending an ``Attachment`` to the binding, and the tray runs the same loading pipeline for it.
+A strip of photo and video attachments with an add tile, per-item loading, retry, remove and a limit. Thumbnails are content; everything you press or read over them is liquid glass. A tile that is loading, failed or uploading carries a status bubble at its centre, joined to the remove badge in its corner. The badge buds out of that bubble when the tile drops onto the strip, and the bubble melts into the badge once the photo has developed. The caller owns the attachments. Picks from the built-in add tile are appended for you; anything else (a camera capture, a paste, a drop, a draft restored from disk, your own picker) is added by appending an ``Attachment`` to the binding, and the tray runs the same loading pipeline for it.
 
 ## Notes
 
+- Thumbnails are content; everything you press or read over them is liquid glass. The add tile is a glass tile with a solid red plus disc. A tile that is loading, failed or uploading carries a glass status bubble at its centre, joined by a liquid neck to the remove badge in its corner: the badge buds out of the bubble a beat after the tile drops onto the strip, and once the photo has developed the bubble melts up into the badge. On iOS 26 this is Liquid Glass; before that, a frosted material; under Reduce Transparency, solid fills.
 - You own the attachments through a `@Binding [AttachmentTray.Attachment]`. Picks from the add tile are appended for you; the tray writes load progress, the thumbnail and the payload back by id, and removes an attachment when its badge is tapped.
 - Anything else goes through the same pipeline by appending an attachment: `Attachment(image:)` for a camera capture or paste, `Attachment(data:)` for a drop or a saved draft, `Attachment(fileURL:)` for a file, `Attachment(item:)` for your own `PhotosPicker`, and `Attachment { progress in ... }` for your own download. For drops, add `.dropDestination(for: Data.self) { items, _ in attachments += items.map { .init(data: $0) }; return true }`.
-- Each tile goes loading, then loaded or failed. The ring spins until the source reports progress (an iCloud download, or your loader setting `totalUnitCount` and `completedUnitCount` on the `Progress` it is given), then fills. Failed tiles show a red Retry disc; tapping it, or calling `attachments[i].retry()`, loads again.
+- Each tile goes loading, then loaded or failed. The ring in the status bubble spins until the source reports progress (an iCloud download, or your loader setting `totalUnitCount` and `completedUnitCount` on the `Progress` it is given), then fills smoothly with no overshoot. When a load finishes the attachment is loaded at once: the payload is set and VoiceOver reads Loaded. A ring that was showing progress fills and holds full for a beat (about 150 ms), then the photo develops under the bubble, settling from a slight zoom inside the tile without ever showing the tile's edge, while the bubble melts into the remove badge on a spring with no bounce. A video's duration badge, a glass capsule, rises in a beat later, and an upload dim you start right away appears with the photo. A failed load floods the bubble red, blurs the ring into a retry arrow and hangs "Retry" under it; tapping the tile, or calling `attachments[i].retry()`, drains the red and swaps the ring back as it loads again.
 - Thumbnails are cut with ImageIO on a background task at the largest tile size times the screen scale, with orientation applied. The full-size image is never decoded, so a 48 MP photo costs a few hundred kilobytes, not a hundred megabytes. A text size change never triggers a reload.
 - Picked images keep their original bytes in `data` (HEIC stays HEIC, nothing is transcoded). `jpegData(maxPixelSize:compressionQuality:)` gives an upload-ready JPEG, downsampled, with location and other metadata removed.
 - Videos (with `matching: .videos` or `.any(of: [.images, .videos])`) are copied to the temporary directory, never loaded into memory. `fileURL` points at the copy, the tile shows a poster frame and a duration badge, and `duration` is set. Delete the copy after upload if you need the space sooner than the system does.
 - Removing a tile cancels its load, including the photo library transfer. A load that finishes after its tile was removed, or after a newer attempt started, is dropped.
-- The picker only allows the remaining count. Photos already in the tray (matched by library identifier, also within one pick) are skipped and their tile pulses into view. Anything past the limit is left out with a warning haptic and one announcement. At the limit the add tile shows "6/6" and disables.
-- Set `uploadProgress` on an attachment to show your upload: the tile dims under a ring while below 1 and shows a check once it reaches 1.
-- Empty, the add tile is wide and shows the title with "Up to 6". With attachments it shrinks to a square with the count. New tiles spring in and the strip scrolls to them; removed tiles shrink away.
+- The picker only allows the remaining count. Photos already in the tray (matched by library identifier, also within one pick) are skipped: the strip glides to their tile, which bumps once as it lands. Anything past the limit is left out with a warning haptic and one announcement. At the limit the add tile shows "6/6" and disables.
+- Set `uploadProgress` on an attachment to show your upload: the status bubble buds back out of the remove badge with the upload ring while the tile dims below 1, and once it reaches 1, a beat after the dim lifts, the bubble lands in the opposite corner as a sage check, whether or not you animate the write. Clearing `uploadProgress` melts the check back into the badge.
+- Empty, the add tile is wide and shows the title with "Up to 6". With attachments its glass narrows to a square with the count: the plus disc travels into place, the title clears out first and the count arrives after it, and later counts roll, never past the number they show. Picks drop onto the strip, settling from just above full size with a little give that dips just inside it (at most 5 pt past each edge, so larger tiles stay inside the strip), and every load starts at once. A first pick into an empty tray drops one after another in pick order, a beat apart (up to five beats, so a big pick never drags). Later picks, and tiles you append yourself, land together, and if the tray already had tiles the strip glides to the newest one. Removed tiles shrink away quickly with their glass and the rest close the gap. Tiles already in the tray when it appears (a restored draft) start with their badges in place.
 - Loaded tiles call `onSelect` when tapped, for example to open a full-screen viewer. Every tile has a context menu with Remove (and Retry when failed).
 - VoiceOver: each tile is one element read as "Photo 2 of 4" with a value such as "Loading, 40%", "Couldn't load", "Uploading, 62%" or "Loaded", and Remove and Retry actions. The add tile reads its title and "3 remaining" or "Limit reached". Adds, skipped picks, removals and failures are announced once, and "All attachments loaded" when the last load finishes.
-- Haptics: a soft impact when picks land, a rigid impact on remove, a warning for skipped picks, an error when a load fails, a selection tick on retry.
+- Haptics: a soft impact when picks land, a rigid impact on remove, a warning for skipped picks, an error when a load fails (one for a batch that fails together, such as when offline), a selection tick on retry. Presses play none.
 - Dynamic Type grows tiles up to 1.5 times `Style.tileSize`; text inside tiles stops growing at the same point so it never outgrows its tile. Right to left, the add tile leads from the right and badges sit top left; thumbnails are never mirrored.
-- Reduce Motion: tiles fade instead of scaling, presses dim instead of dipping, and the spinner is the system indicator.
+- Tiles with a tap action, the add tile and the remove badge sink slightly on press and spring back, centered so scrolling the strip is never disturbed; a pressed tile's glass sinks with it. A tile with nothing to do on tap (still loading, or loaded with no `onSelect`) stays still.
+- Reduce Motion: tiles, the photo and the glass bubbles fade in place instead of budding and moving, picks arrive together, presses dim instead of sinking, a tile picked again flashes brighter instead of bumping, the add tile's plus disc and count crossfade instead of travelling and rolling, and the spinner is the system indicator. The progress ring still closes before the photo shows, and every haptic and announcement stays.
 - Horizontal inset: apply `.contentMargins(.horizontal, 20, for: .scrollContent)` to the tray so tiles line up with your content and still scroll to the screen edge.
-- `Style` sets the tile, label, secondary, badge, signal and uploaded colors, the corner radius, tile size and spacing. `.disabled(true)` dims the add tile and hides the remove badges.
+- `Style` sets the placeholder (`tile`), label and secondary colors, the badges' glass tint (`badge`, clear by default) and ink, the plus disc and retry tint (`signal`) and its ink, the uploaded check's tint, the corner radius, tile size and spacing. `.disabled(true)` dims the add tile, and the remove badges melt into their status bubbles (or thin away where there is none).
 
 ## Usage
 
@@ -64,6 +66,10 @@ import UniformTypeIdentifiers
 import os
 
 /// A strip of photo and video attachments with an add tile, per-item loading, retry, remove and a limit.
+///
+/// Thumbnails are content; everything you press or read over them is liquid glass. A tile that is loading, failed or
+/// uploading carries a status bubble at its centre, joined to the remove badge in its corner. The badge buds out of
+/// that bubble when the tile drops onto the strip, and the bubble melts into the badge once the photo has developed.
 ///
 /// The caller owns the attachments. Picks from the built-in add tile are appended for you; anything else
 /// (a camera capture, a paste, a drop, a draft restored from disk, your own picker) is added by appending an
@@ -186,21 +192,21 @@ public struct AttachmentTray: View {
 
     /// Colors and metrics. `.standard` is the house palette.
     public struct Style: Sendable {
-        /// The add tile and the loading and failed tiles.
+        /// The placeholder under a tile while it loads, or after it fails. The add tile is liquid glass.
         public var tile: Color
-        /// The add glyph's disc, progress rings and labels on tiles.
+        /// Progress rings, the add tile's title and the Retry label.
         public var label: Color
         /// The count on the add tile and the empty-state subtitle.
         public var secondary: Color
-        /// The remove badge and the video duration badge.
+        /// The glass tint of the remove and duration badges. `.clear`, the default, leaves them neutral glass.
         public var badge: Color
-        /// Glyphs and text on `badge`.
+        /// Glyphs and text on the remove and duration badges.
         public var badgeInk: Color
-        /// The retry disc on a failed tile.
+        /// The add tile's plus disc, and the glass tint of a failed tile's retry bubble.
         public var signal: Color
-        /// The glyph on `signal`.
+        /// Glyphs on `signal` and on `uploaded`.
         public var signalInk: Color
-        /// The check glyph (on `badge`) shown once `uploadProgress` reaches 1.
+        /// The glass tint of the check bubble a tile shows once `uploadProgress` reaches 1.
         public var uploaded: Color
         /// Tile corner radius.
         public var cornerRadius: CGFloat
@@ -214,8 +220,8 @@ public struct AttachmentTray: View {
             self.tile = tile ?? adaptive(light: 0xE9E7E1, dark: 0x262626)
             self.label = label ?? adaptive(light: 0x141414, dark: 0xF4F3EF)
             self.secondary = secondary ?? adaptive(light: 0x5C5A56, dark: 0xA6A49F)
-            self.badge = badge ?? adaptive(light: 0x141414, dark: 0x141414)
-            self.badgeInk = badgeInk ?? adaptive(light: 0xF4F3EF, dark: 0xF4F3EF)
+            self.badge = badge ?? .clear
+            self.badgeInk = badgeInk ?? adaptive(light: 0x141414, dark: 0xF4F3EF)
             self.signal = signal ?? adaptive(light: 0xFF0000, dark: 0xFF0000)
             self.signalInk = signalInk ?? adaptive(light: 0x141414, dark: 0x141414)
             self.uploaded = uploaded ?? adaptive(light: 0xA9DCB7, dark: 0xA9DCB7)
@@ -235,13 +241,22 @@ public struct AttachmentTray: View {
     @ScaledMetric(relativeTo: .body) private var typeScale: CGFloat = 1
     @Binding private var attachments: [Attachment]
     @State private var picked: [PhotosPickerItem] = []
-    @State private var pulseID: UUID?
+    /// Bumps per tile, so a tile picked again pulses each time without the next one replaying it.
+    @State private var pulses: [UUID: Int] = [:]
+    /// Each tile's place in a first pick, so that batch drops in one after another.
+    @State private var arrivals: [UUID: Int] = [:]
+    /// Loaded tiles still closing their ring. The payload is already on the attachment; only the photo waits.
+    @State private var closingRings: Set<UUID> = []
     @State private var scrolledID: UUID?
     @State private var addTick = 0
     @State private var removeTick = 0
     @State private var warnTick = 0
     @State private var failTick = 0
+    @State private var lastFailHaptic = Date.distantPast
     @State private var retryTick = 0
+    /// Set once the tray has drawn its first frame. Tiles that arrive after that bud their badges; tiles already there
+    /// when the tray appears (a restored draft) start with them in place.
+    @State private var appeared = false
 
     private let title: LocalizedStringKey
     private let limit: Int
@@ -258,8 +273,15 @@ public struct AttachmentTray: View {
         self.onSelect = onSelect
     }
 
-    private var motion: Animation { reduceMotion ? .smooth(duration: 0.2) : .spring(duration: 0.42, bounce: 0.24) }
+    private var motion: PieceMotion { PieceMotion(reduceMotion: reduceMotion) }
+    /// A first pick drops a beat apart in pick order. From the fifth on they land together, so a big pick never drags.
+    private static let dropBeat = 0.05
+    /// How long after a tile starts dropping its remove badge buds out: once the drop's give has turned.
+    private static let budBeat = 0.18
+    private func dropPlace(_ id: UUID) -> Int { min(arrivals[id] ?? 0, 4) }
     private var side: CGFloat { style.tileSize * min(max(typeScale, 1), 1.5) }
+    /// A drop or a bump reaches at most 5 pt past each edge, inside the strip's 6 pt headroom at any tile size.
+    private var dropScale: CGFloat { 1 + min(0.1, 10 / side) }
     private var remaining: Int { max(limit - attachments.count, 0) }
     private var ids: [UUID] { attachments.map(\.id) }
     private var loadingCount: Int { attachments.filter { if case .loading = $0.phase { true } else { false } }.count }
@@ -277,16 +299,23 @@ public struct AttachmentTray: View {
                         count: attachments.count,
                         side: side,
                         style: style,
-                        isPulsing: pulseID == attachment.id,
+                        pulse: pulses[attachment.id, default: 0],
+                        closing: closingRings.contains(attachment.id),
                         canSelect: onSelect != nil,
+                        arrival: appeared ? Double(dropPlace(attachment.id)) * Self.dropBeat + Self.budBeat : nil,
                         remove: { remove(attachment.id) },
                         retry: { retry(attachment.id) },
                         select: { onSelect?(attachment) }
                     )
                     .id(attachment.id)
-                    .transition(reduceMotion ? .opacity : .asymmetric(
-                        insertion: .scale(scale: 0.6).combined(with: .opacity),
-                        removal: .scale(scale: 0.5).combined(with: .opacity)
+                    // A print dropped onto the strip: it settles from just above with some give, in a first pick a beat
+                    // after the one before it. The give dips inward, so it never reaches past the headroom. Only the
+                    // drawing waits; the tile, and its load, are there at once. Removal is quick and firm.
+                    .transition(.asymmetric(
+                        insertion: motion.transition(.scale(scale: dropScale).combined(with: .opacity))
+                            .animation(motion.cascade(motion.settle, index: dropPlace(attachment.id), step: Self.dropBeat)),
+                        removal: motion.transition(.scale(scale: 0.5).combined(with: .opacity))
+                            .animation(motion.dismiss)
                     ))
                     // One load per attempt. SwiftUI cancels it when the tile leaves (removed, or the tray goes away).
                     .task(id: LoadKey(id: attachment.id, attempt: attachment.attempt)) {
@@ -295,10 +324,11 @@ public struct AttachmentTray: View {
                 }
             }
             .scrollTargetLayout()
-            // Room for the spring overshoot of an inserted or pulsed tile.
+            // Room for a tile dropping in from just above full size, or bumping when it is picked again.
             .padding(.vertical, 6)
         }
         .scrollIndicators(.hidden)
+        .fontWeight(.semibold)
         // A strip is as tall as its tiles, however much height it is offered.
         .fixedSize(horizontal: false, vertical: true)
         .scrollPosition(id: $scrolledID, anchor: .trailing)
@@ -307,7 +337,8 @@ public struct AttachmentTray: View {
             guard !old.isEmpty, let last = new.last, !old.contains(last) else { return }
             reveal(last)
         }
-        .animation(motion, value: ids)
+        // The strip closes a gap, makes room or reshapes the add tile. Tiles coming and going carry their own timing.
+        .animation(motion.snap, value: ids)
         .onChange(of: picked) { _, items in
             guard !items.isEmpty else { return }
             picked = []
@@ -322,6 +353,8 @@ public struct AttachmentTray: View {
         .sensoryFeedback(.warning, trigger: warnTick)
         .sensoryFeedback(.error, trigger: failTick)
         .sensoryFeedback(.selection, trigger: retryTick)
+        // After the first frame's tiles have appeared, so only tiles added from here on bud their badges.
+        .task { appeared = true }
     }
 
     // MARK: Add tile
@@ -340,7 +373,7 @@ public struct AttachmentTray: View {
         ) {
             label
         }
-        .buttonStyle(PressStyle(reduceMotion: reduceMotion))
+        .buttonStyle(PiecePressStyle())
         .disabled(isFull)
         .opacity(isEnabled ? 1 : 0.45)
         .accessibilityLabel(Text(title))
@@ -354,7 +387,10 @@ public struct AttachmentTray: View {
     private func ingest(_ items: [PhotosPickerItem]) {
         let result = Self.merge(items, into: attachments, limit: limit)
         if !result.added.isEmpty {
-            withAnimation(motion) { attachments.append(contentsOf: result.added) }
+            // Only a first pick cascades: nothing glides after it. Into a tray that already has tiles, picks land
+            // together, so the glide to them is never kept waiting by a cascade playing past the trailing edge.
+            arrivals = attachments.isEmpty ? Dictionary(uniqueKeysWithValues: result.added.enumerated().map { ($0.element.id, $0.offset) }) : [:]
+            withAnimation(motion.reveal) { attachments.append(contentsOf: result.added) }
             addTick += 1
         }
         if let first = result.duplicates.first { pulse(first) }
@@ -394,48 +430,47 @@ public struct AttachmentTray: View {
 
     /// Scrolls a tile into view once it can be scrolled to. A scroll view does not scroll to a tile while its insertion
     /// transition is running (and right to left it also re-pins its leading edge as the content grows), so this waits
-    /// for the insertion spring to settle, then glides to the tile.
+    /// for the tile to finish dropping in (tiles added to a tray that has some land together), then glides to it.
     private func reveal(_ id: UUID, settling: Bool = true) {
-        let animation = motion
-        let settle: Duration = settling ? .milliseconds(reduceMotion ? 250 : 450) : .zero
+        let glide = motion.reveal
+        let landing = reduceMotion ? 0.25 : PieceMotion.calm.duration + 0.03
+        let settle: Duration = settling ? .seconds(landing) : .zero
         Task { @MainActor in
             try? await Task.sleep(for: settle)
             scrolledID = nil
-            withAnimation(animation) { scrolledID = id }
+            withAnimation(glide) { scrolledID = id }
         }
     }
 
-    /// Scrolls an existing tile into view (it needs no settling), then gives it a quick bump.
+    /// Scrolls an existing tile into view (it needs no settling), then bumps it once as the glide lands.
     private func pulse(_ id: UUID) {
         reveal(id, settling: false)
-        let animation = motion
         Task { @MainActor in
             try? await Task.sleep(for: .milliseconds(380))
-            withAnimation(.spring(duration: 0.25, bounce: 0.5)) { pulseID = id }
-            try? await Task.sleep(for: .milliseconds(320))
-            withAnimation(animation) { if pulseID == id { pulseID = nil } }
+            guard attachments.contains(where: { $0.id == id }) else { return }
+            pulses[id, default: 0] += 1
         }
     }
 
     private func remove(_ id: UUID) {
         guard let index = attachments.firstIndex(where: { $0.id == id }) else { return }
         let kind = attachments[index].kind
-        withAnimation(motion) { _ = attachments.remove(at: index) }
+        withAnimation(motion.dismiss) { _ = attachments.remove(at: index) }
         removeTick += 1
         announce(kind == .video ? String(localized: "Removed video \(index + 1)") : String(localized: "Removed photo \(index + 1)"))
     }
 
     private func retry(_ id: UUID) {
         guard let index = attachments.firstIndex(where: { $0.id == id }) else { return }
-        withAnimation(motion) { attachments[index].retry() }
+        withAnimation(motion.snap) { attachments[index].retry() }
         retryTick += 1
     }
 
     /// Writes into the attachment by id, only if it is still there and still on the same attempt.
-    private func update(_ id: UUID, attempt: Int, animated: Bool = true, _ change: (inout Attachment) -> Void) {
+    private func update(_ id: UUID, attempt: Int, animation: Animation? = nil, _ change: (inout Attachment) -> Void) {
         guard let index = attachments.firstIndex(where: { $0.id == id }), attachments[index].attempt == attempt else { return }
-        if animated {
-            withAnimation(motion) { change(&attachments[index]) }
+        if let animation {
+            withAnimation(animation) { change(&attachments[index]) }
         } else {
             change(&attachments[index])
         }
@@ -461,7 +496,7 @@ public struct AttachmentTray: View {
                 let fraction = progress.totalUnitCount > 0 ? min(max(progress.fractionCompleted, 0), 1) : 0
                 if fraction > 0.005, abs(fraction - shown) >= 0.02 {
                     shown = fraction
-                    update(id, attempt: attempt, animated: false) { attachment in
+                    update(id, attempt: attempt) { attachment in
                         if case .loading = attachment.phase { attachment.phase = .loading(progress: fraction) }
                     }
                 }
@@ -481,7 +516,13 @@ public struct AttachmentTray: View {
             }
             // Removed, or retried by the caller, while the result was on its way: drop it.
             guard !Task.isCancelled else { return }
-            update(id, attempt: attempt) { attachment in
+            poll.cancel()
+            // A ring with progress holds full for a beat and the photo develops over it, so a ring partway round, or one
+            // the poll has only just filled, is never cut short. Only the drawing waits: the payload and phase land now.
+            let latest = attachments.first(where: { $0.id == id && $0.attempt == attempt })
+            let closes = if let latest, case .loading(_?) = latest.phase { true } else { false }
+            if closes { closingRings.insert(id) }
+            update(id, attempt: attempt, animation: closes ? nil : motion.reveal) { attachment in
                 attachment.phase = .loaded
                 attachment.thumbnail = output.thumbnail
                 attachment.data = output.data
@@ -494,16 +535,25 @@ public struct AttachmentTray: View {
                 // The payload is on the attachment now. A UIImage or byte source is not kept twice.
                 if case .item = attachment.source {} else if case .loader = attachment.source {} else { attachment.source = nil }
             }
+            if closes {
+                // Cut short if the tile is removed meanwhile, so the set never keeps an id.
+                try? await Task.sleep(for: .milliseconds(150))
+                withAnimation(motion.reveal) { _ = closingRings.remove(id) }
+            }
         } catch {
             guard !Task.isCancelled, !(error is CancellationError) else { return }
             let reason = error.localizedDescription
             var failed = false
-            update(id, attempt: attempt) { attachment in
+            update(id, attempt: attempt, animation: motion.error) { attachment in
                 attachment.phase = .failed(reason: reason)
                 failed = true
             }
             guard failed, let index = attachments.firstIndex(where: { $0.id == id }) else { return }
-            failTick += 1
+            // A batch failing together (offline, say) plays one error haptic, not one per tile.
+            if Date.now.timeIntervalSince(lastFailHaptic) > 0.3 {
+                lastFailHaptic = .now
+                failTick += 1
+            }
             announce(attachments[index].kind == .video ? String(localized: "Video \(index + 1) couldn't be loaded") : String(localized: "Photo \(index + 1) couldn't be loaded"))
         }
     }
@@ -515,7 +565,9 @@ public struct AttachmentTray: View {
 
 // MARK: - Add tile
 
-/// Wide with the title while the tray is empty; a square with the count once there is something in it.
+/// A liquid glass tile: wide with the title while the tray is empty, a square with the count once there is something
+/// in it. One layout turns from a row into a column, so the plus disc travels and shrinks into place instead of fading
+/// out and back in, while the glass reshapes around it. Under Reduce Motion it crossfades instead.
 private struct AddTileLabel: View {
     let title: LocalizedStringKey
     let count: Int
@@ -523,45 +575,65 @@ private struct AddTileLabel: View {
     let side: CGFloat
     let style: AttachmentTray.Style
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     var body: some View {
+        let isEmpty = count == 0
         let isFull = count >= limit
-        Group {
-            if count == 0 {
-                HStack(spacing: 12) {
-                    PlusDisc(diameter: side * 0.46, style: style)
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        let layout = isEmpty ? AnyLayout(HStackLayout(spacing: 12)) : AnyLayout(VStackLayout(spacing: side * 0.07))
+        let disc = side * (isEmpty ? 0.46 : 0.4)
+        // The words clear out while the tile reshapes, and the new ones arrive once the disc has moved.
+        let words = AnyTransition.asymmetric(
+            insertion: motion.swap.animation(motion.cascade(motion.reveal, index: 1, step: 0.12)),
+            removal: motion.swap.animation(motion.dismiss)
+        )
+        // No lift: the strip's headroom is 6 pt, and a wide shadow would be cut off at its edge.
+        PieceLiquidGroup(lift: false) {
+            layout {
+                // Drawn at the wide size and scaled, so the plus glyph shrinks with its disc.
+                PlusDisc(diameter: side * 0.46, style: style)
+                    .scaleEffect(disc / (side * 0.46))
+                    .frame(width: disc, height: disc)
+                    .opacity(isFull ? 0.25 : 1)
+                    // Reduce Motion: a new disc per shape, so it fades in place rather than travelling. It holds no state.
+                    .id(reduceMotion ? AnyHashable(isEmpty) : AnyHashable(0))
+                    .transition(.opacity)
+                if isEmpty {
                     VStack(alignment: .leading, spacing: 2) {
                         Text(title)
                             .font(.subheadline.weight(.semibold))
                             .foregroundStyle(style.label)
                         Text("Up to \(limit)")
-                            .font(.caption)
+                            .font(.caption.weight(.semibold))
                             .foregroundStyle(style.secondary)
                     }
                     .lineLimit(2)
                     .minimumScaleFactor(0.8)
                     .multilineTextAlignment(.leading)
-                }
-                .padding(.leading, side * 0.2)
-                .padding(.trailing, side * 0.3)
-                .transition(.opacity)
-            } else {
-                VStack(spacing: side * 0.07) {
-                    PlusDisc(diameter: side * 0.4, style: style)
-                        .opacity(isFull ? 0.25 : 1)
+                    .transition(words)
+                } else {
                     Text(verbatim: "\(count)/\(limit)")
                         .font(.caption.weight(.semibold).monospacedDigit())
                         .foregroundStyle(isFull ? style.label : style.secondary)
                         .lineLimit(1)
                         .minimumScaleFactor(0.7)
+                        .contentTransition(reduceMotion ? .opacity : .numericText(value: Double(count)))
+                        // A count is read, so it rolls on `value`, never past the number it shows, whatever moves the strip.
+                        .animation(motion.value, value: count)
+                        .transition(words)
                 }
-                .frame(width: side)
-                .transition(.opacity)
             }
+            .padding(.leading, isEmpty ? side * 0.2 : 0)
+            .padding(.trailing, isEmpty ? side * 0.3 : 0)
+            .frame(width: isEmpty ? nil : side, height: side)
+            // Tiles stop growing at 1.5x; text inside them stops at the same point so it never outgrows its tile.
+            .dynamicTypeSize(...DynamicTypeSize.accessibility2)
+            // A title fading out where it stood never shows past the narrowing tile.
+            .clipShape(.rect(cornerRadius: style.cornerRadius, style: .continuous))
+            // The picker's button sinks the tile itself, so the glass does not swell under the press as well.
+            .pieceLiquid(RoundedRectangle(cornerRadius: style.cornerRadius, style: .continuous), interactive: false)
         }
-        .frame(height: side)
-        // Tiles stop growing at 1.5x; text inside them stops at the same point so it never outgrows its tile.
-        .dynamicTypeSize(...DynamicTypeSize.accessibility2)
-        .background(style.tile, in: .rect(cornerRadius: style.cornerRadius, style: .continuous))
         .contentShape(.rect(cornerRadius: style.cornerRadius, style: .continuous))
     }
 }
@@ -576,7 +648,7 @@ private struct PlusDisc: View {
             .frame(width: diameter, height: diameter)
             .overlay {
                 Image(systemName: "plus")
-                    .font(.system(size: diameter * 0.44, weight: .bold))
+                    .font(.system(size: diameter * 0.44, weight: .semibold))
                     .foregroundStyle(style.signalInk)
             }
     }
@@ -584,54 +656,101 @@ private struct PlusDisc: View {
 
 // MARK: - Tile
 
+/// A thumbnail with liquid glass chrome floating over it. While the tile loads, retries or uploads, a status bubble
+/// sits at its centre (the ring, the retry arrow on signal, the upload ring), joined to the remove badge in the
+/// corner. The badge buds out of the status bubble when the tile drops onto the strip, and the bubble melts into the
+/// badge once the photo has developed. A finished upload carries the bubble to the opposite corner as a sage check.
 private struct TileView: View {
     let attachment: AttachmentTray.Attachment
     let position: Int
     let count: Int
     let side: CGFloat
     let style: AttachmentTray.Style
-    let isPulsing: Bool
+    let pulse: Int
+    let closing: Bool
     let canSelect: Bool
+    /// Seconds until the remove badge buds out of a tile just dropped onto the strip; `nil` for a tile already there.
+    let arrival: Double?
     let remove: () -> Void
     let retry: () -> Void
     let select: () -> Void
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.isEnabled) private var isEnabled
+    @Environment(\.layoutDirection) private var layoutDirection
+    /// The status bubble ("status") and the remove badge ("remove").
+    @State private var buds = PieceBuds()
+    /// While a dropped tile waits to bud its badge, changes wait with it.
+    @State private var arriving = false
+    /// The status bubble rests in the corner as the uploaded check. Changed only while the bubble is wanted, so one
+    /// melting home never turns back toward the centre on its way.
+    @State private var checked = false
+    /// The tile's press, so the glass over it sinks with it.
+    @State private var pressed = false
+
+    private enum Status: Equatable { case ring(Double?), retry, upload(Double), uploaded }
+
+    /// The status bubble. Shrunk at home in the badge it is about the badge's own size, so it melts in without
+    /// showing past it.
+    private let bubble: CGFloat = 30
+    private let ringSide: CGFloat = 18
+    private let badge: CGFloat = 22
+    private let badgeInset: CGFloat = 4
 
     private var shape: RoundedRectangle { RoundedRectangle(cornerRadius: style.cornerRadius, style: .continuous) }
     private var isFailed: Bool { if case .failed = attachment.phase { true } else { false } }
+    /// Loaded and drawn: the ring has closed and the photo is showing. The badges and the upload dim wait for this.
+    private var developed: Bool { attachment.isLoaded && !closing }
     private var tapAction: (() -> Void)? {
         if isFailed { return retry }
         if attachment.isLoaded, canSelect { return select }
         return nil
     }
+    private var motion: PieceMotion { PieceMotion(reduceMotion: reduceMotion) }
+
+    /// What the status bubble shows. One ring runs from loading through its closing beat, so it fills to full rather
+    /// than being swapped, and stays full while the bubble melts home.
+    private var status: Status {
+        switch attachment.phase {
+        case .loading(let progress): return .ring(progress)
+        case .failed: return .retry
+        case .loaded:
+            guard developed, let upload = attachment.uploadProgress else { return .ring(1) }
+            return upload >= 1 ? .uploaded : .upload(max(upload, 0))
+        }
+    }
+    private var wantsStatus: Bool { !developed || attachment.uploadProgress != nil }
+    private var wanted: [String] { (wantsStatus ? ["status"] : []) + (isEnabled ? ["remove"] : []) }
+
+    // Where the bubbles rest, from the tile's centre, in the left-to-right space the chrome is laid out in.
+    /// From the centre to a corner badge's centre, along each axis.
+    private var cornerReach: CGFloat { side / 2 - badgeInset - badge / 2 }
+    private var trailing: CGFloat { layoutDirection == .rightToLeft ? -1 : 1 }
+    private var removeAt: CGSize { CGSize(width: trailing * cornerReach, height: -cornerReach) }
+    private var statusAt: CGSize { checked ? CGSize(width: trailing * cornerReach, height: cornerReach) : .zero }
 
     var body: some View {
+        // Reduce Motion holds a picked-again tile still, so it flashes brighter instead of bumping.
+        let flash = reduceMotion ? 0.2 : 0
         // Always a button, so a tile keeps its identity (and does not re-run its transition) when it gains or loses a tap action.
         Button { tapAction?() } label: { face }
-        .buttonStyle(PressStyle(reduceMotion: reduceMotion, isActive: tapAction != nil))
-        .overlay(alignment: .topTrailing) {
-            if isEnabled {
-                Button(action: remove) {
-                    Circle()
-                        .fill(style.badge)
-                        .frame(width: 22, height: 22)
-                        .overlay {
-                            Image(systemName: "xmark")
-                                .font(.system(size: 9, weight: .heavy))
-                                .foregroundStyle(style.badgeInk)
-                        }
-                        .padding(4)
-                        // The badge is small; its hit area is the full 44pt corner of the tile.
-                        .frame(width: 44, height: 44, alignment: .topTrailing)
-                        .contentShape(.rect)
-                }
-                .buttonStyle(PressStyle(reduceMotion: reduceMotion))
-                .transition(.opacity)
+        .buttonStyle(TilePressStyle(isActive: tapAction != nil, pressed: $pressed))
+        .keyframeAnimator(initialValue: 0.0, trigger: pulse) { tile, glow in
+            tile.brightness(glow)
+        } keyframes: { _ in
+            KeyframeTrack {
+                CubicKeyframe(flash, duration: 0.1)
+                CubicKeyframe(flash, duration: 0.3)
+                CubicKeyframe(0, duration: 0.4)
             }
         }
-        .scaleEffect(isPulsing && !reduceMotion ? 1.08 : 1)
+        .overlay { chrome }
+        .overlay(alignment: .bottomLeading) { durationBadge }
+        // The tile and its glass sink together, so the status bubble never floats free of a pressed tile.
+        .piecePress(pressed)
+        // One bump when the tile is picked again: a counter, so each repeat pick plays it once. At most 5 pt past
+        // each edge, so a large tile stays inside the strip's headroom.
+        .piecePop(trigger: pulse, amount: min(0.06, 10 / side))
         .contextMenu {
             if isFailed {
                 Button(String(localized: "Retry"), systemImage: "arrow.clockwise", action: retry)
@@ -647,82 +766,188 @@ private struct TileView: View {
             if isFailed { Button(String(localized: "Retry"), action: retry) }
             if isEnabled { Button(String(localized: "Remove"), action: remove) }
         }
+        .onAppear { arrive() }
+        .onChange(of: wanted) { _, _ in
+            if !arriving { reconcile() }
+        }
+        // The finished upload carries the bubble to its corner a beat after the dim lifts, however the progress was written.
+        .onChange(of: status == .uploaded) { _, isUploaded in
+            guard wantsStatus else { return }
+            withAnimation(motion.cascade(motion.success, index: 1, step: 0.1)) { checked = isUploaded }
+        }
     }
 
+    /// The thumbnail and what belongs to it: the placeholder, the developing photo, the Retry label and the upload dim.
     private var face: some View {
         ZStack {
-            style.tile
-            switch attachment.phase {
-            case .loading(let progress):
-                LoadingRing(progress: progress, color: style.label, diameter: side * 0.3)
-                    .transition(.opacity)
-            case .failed:
-                VStack(spacing: side * 0.07) {
-                    Circle()
-                        .fill(style.signal)
-                        .frame(width: side * 0.3, height: side * 0.3)
-                        .overlay {
-                            Image(systemName: "arrow.clockwise")
-                                .font(.system(size: side * 0.14, weight: .bold))
-                                .foregroundStyle(style.signalInk)
-                        }
-                    Text("Retry")
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(style.label)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.7)
-                }
-                .transition(.opacity)
-            case .loaded:
-                if let thumbnail = attachment.thumbnail {
-                    Image(uiImage: thumbnail)
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: side, height: side)
-                        .transition(reduceMotion ? .opacity : .asymmetric(insertion: .scale(scale: 1.14).combined(with: .opacity), removal: .opacity))
-                }
+            if developed, let thumbnail = attachment.thumbnail {
+                // The photo develops: it settles from a slight zoom inside the tile, never smaller than it. On `value`,
+                // which never overshoots, since a dip below full size would show the tile's edge.
+                Image(uiImage: thumbnail)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: side, height: side)
+                    .transition(motion.transition(.asymmetric(insertion: .scale(scale: 1.14).combined(with: .opacity), removal: .opacity)).animation(motion.value))
+            }
+            if isFailed {
+                // A slot the size of the status bubble, with the label hanging just under it at any text size.
+                Color.clear
+                    .frame(width: bubble, height: bubble)
+                    .overlay(alignment: .bottom) {
+                        Text("Retry")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(style.label)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.7)
+                            .frame(width: side - 12)
+                            .alignmentGuide(.bottom) { $0[.top] - 5 }
+                    }
+                    .transition(motion.swap)
             }
             uploadLayer
         }
         .frame(width: side, height: side)
+        // Behind the stack, not in it: a ZStack draws a leaving face below its siblings, so an opaque tile in the
+        // stack would hide the outgoing photo and flash an empty tile before the next one arrives.
+        .background(style.tile)
         .dynamicTypeSize(...DynamicTypeSize.accessibility2)
         .clipShape(shape)
-        .overlay(alignment: .bottomLeading) {
-            if attachment.kind == .video, let duration = attachment.duration, attachment.isLoaded {
+    }
+
+    @ViewBuilder
+    private var uploadLayer: some View {
+        if developed, let upload = attachment.uploadProgress, upload < 1 {
+            Color.black.opacity(0.4)
+                .transition(.opacity)
+        }
+    }
+
+    /// The glass over the thumbnail, laid out from the tile's centre in left-to-right space; the offsets above are
+    /// worked out for the reading direction, so the badge sits top leading in a right-to-left strip.
+    private var chrome: some View {
+        // No lift: over a photo the glass needs no shadow, and the strip's headroom would cut one off.
+        PieceLiquidGroup(lift: false) {
+            ZStack {
+                if buds.contains("status") { statusBubble }
+                // Last, so the status bubble melting home slips under the badge.
+                if buds.contains("remove") { removeBadge }
+            }
+            .frame(width: side, height: side)
+        }
+        .environment(\.layoutDirection, .leftToRight)
+    }
+
+    private var statusBubble: some View {
+        let out = buds.isOut("status")
+        // Tinted only while it says something, and only while out: drained by the time it melts into the badge.
+        let tint: Color? = !out ? nil : checked ? style.uploaded : status == .retry ? style.signal : nil
+        let size = checked ? badge : bubble
+        return ZStack { statusContent }
+            .pieceBudContent(out: out)
+            .frame(width: size, height: size)
+            .pieceLiquid(.circle, tint: tint, interactive: false)
+            .pieceBud(out: out, rest: statusAt, home: removeAt)
+    }
+
+    /// The ring, the retry arrow or the check. A new kind blurs in over the old; a ring that only moves keeps going.
+    @ViewBuilder
+    private var statusContent: some View {
+        // Its own beat, so the swap reads however the attachment was written.
+        let swap = motion.swap.animation(motion.snap)
+        switch status {
+        case .ring(let progress):
+            LoadingRing(progress: progress, color: style.label, diameter: ringSide)
+                .transition(swap)
+        case .upload(let progress):
+            LoadingRing(progress: progress, color: style.label, diameter: ringSide)
+                .transition(swap)
+        case .retry:
+            Image(systemName: "arrow.clockwise")
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(style.signalInk)
+                .transition(swap)
+        case .uploaded:
+            Image(systemName: "checkmark")
+                .font(.system(size: 10, weight: .semibold))
+                .foregroundStyle(style.signalInk)
+                .transition(swap)
+        }
+    }
+
+    private var removeBadge: some View {
+        let out = buds.isOut("remove")
+        // With no status bubble to melt into (the tray disabled on a loaded tile) the badge thins away as it shrinks
+        // home, rather than leaving a bead of glass on the photo.
+        let parent = buds.isOut("status")
+        return Button(action: remove) {
+            Image(systemName: "xmark")
+                .font(.system(size: 10, weight: .semibold))
+                .foregroundStyle(style.badgeInk)
+                .pieceBudContent(out: out)
+                .frame(width: badge, height: badge)
+                .pieceLiquid(.circle, tint: out && style.badge != .clear ? style.badge : nil, interactive: false)
+                // The badge is small; its hit area is the 44 pt around it.
+                .frame(width: 44, height: 44)
+                .contentShape(.rect)
+        }
+        // The liquid press, so the mark sinks with its glass.
+        .buttonStyle(PieceLiquidPressStyle())
+        .opacity(out || parent ? 1 : 0)
+        .animation(out ? .easeOut(duration: 0.16) : .easeIn(duration: 0.36), value: out)
+        .pieceBud(out: out, rest: removeAt, home: parent ? statusAt : removeAt)
+    }
+
+    /// A video's length on a glass capsule. It is in its own group, apart from the status bubble, so it never necks
+    /// with the check in the opposite corner.
+    @ViewBuilder
+    private var durationBadge: some View {
+        if attachment.kind == .video, let duration = attachment.duration, developed {
+            PieceLiquidGroup(lift: false) {
                 Text(Duration.seconds(duration.rounded()).formatted(.time(pattern: .minuteSecond)))
                     .font(.caption2.weight(.semibold).monospacedDigit())
                     .foregroundStyle(style.badgeInk)
                     .padding(.horizontal, 6)
                     .padding(.vertical, 3)
-                    .background(style.badge, in: .capsule)
-                    .padding(6)
-                    .transition(.opacity)
+                    .pieceLiquid(.capsule, tint: style.badge == .clear ? nil : style.badge, interactive: false)
             }
-        }
-        .overlay(alignment: .bottomTrailing) {
-            if attachment.isLoaded, let upload = attachment.uploadProgress, upload >= 1 {
-                Circle()
-                    .fill(style.badge)
-                    .frame(width: 22, height: 22)
-                    .overlay {
-                        Image(systemName: "checkmark")
-                            .font(.system(size: 10, weight: .heavy))
-                            .foregroundStyle(style.uploaded)
-                    }
-                    .padding(4)
-                    .transition(reduceMotion ? .opacity : .scale(scale: 0.4).combined(with: .opacity))
-            }
+            .padding(6)
+            // The poster's own caption, not a control: it rises in a beat after the poster develops, with the poster
+            // as its parent rather than any glass.
+            .transition(.asymmetric(
+                insertion: motion.transition(.opacity.combined(with: .offset(y: 4))).animation(motion.cascade(motion.reveal, index: 1, step: 0.12)),
+                removal: .opacity
+            ))
         }
     }
 
-    @ViewBuilder
-    private var uploadLayer: some View {
-        if attachment.isLoaded, let upload = attachment.uploadProgress, upload < 1 {
-            ZStack {
-                Color.black.opacity(0.4)
-                LoadingRing(progress: max(upload, 0), color: .white, diameter: side * 0.3)
-            }
-            .transition(.opacity)
+    /// A tile dropped onto the strip lands with its status bubble, and a beat later the remove badge buds out of it.
+    /// Anything else (the tray appearing with tiles in it) starts with every bubble in place.
+    private func arrive() {
+        checked = status == .uploaded
+        guard let arrival, wantsStatus, isEnabled else {
+            buds.place(wanted)
+            return
+        }
+        buds.place(["status"])
+        arriving = true
+        Task {
+            try? await Task.sleep(for: .seconds(arrival))
+            arriving = false
+            reconcile()
+        }
+    }
+
+    /// Buds out what is wanted and not out yet, then calls home what is out and no longer wanted. A load that finished
+    /// during the arrival beat buds the badge and melts the bubble into it in one move.
+    private func reconcile() {
+        let now = wanted
+        let blooming = now.filter { !buds.isOut($0) }
+        let gathering = ["status", "remove"].filter { buds.isOut($0) && !now.contains($0) }
+        // A status bubble coming back (a new upload) starts from what it shows now, never from an old check.
+        if blooming.contains("status") { checked = status == .uploaded }
+        Task {
+            if !blooming.isEmpty { await buds.bloom(blooming, reduceMotion: reduceMotion) }
+            if !gathering.isEmpty { await buds.gather(gathering, reduceMotion: reduceMotion) }
         }
     }
 
@@ -770,7 +995,9 @@ private struct LoadingRing: View {
                     .trim(from: 0, to: max(progress, 0.02))
                     .stroke(color, style: StrokeStyle(lineWidth: line, lineCap: .round))
                     .rotationEffect(.degrees(-90))
-                    .animation(.smooth(duration: 0.3), value: progress)
+                    // Progress is data: a smooth follow, no overshoot, a little longer than the 120 ms poll so steps
+                    // read as one fill. The last stretch closes fast, so the ring is full before the photo covers it.
+                    .animation(progress >= 1 ? .spring(PieceMotion.tight) : .smooth(duration: 0.3), value: progress)
             } else if reduceMotion {
                 ProgressView().tint(color).controlSize(.small)
             } else {
@@ -787,17 +1014,17 @@ private struct LoadingRing: View {
     }
 }
 
-/// A quick dip on press that springs back, like a native tile.
-private struct PressStyle: ButtonStyle {
-    let reduceMotion: Bool
+/// Reports the tile's press, only while the tile has something to do when tapped. The tile draws the press itself,
+/// so the glass over it sinks with it.
+private struct TilePressStyle: ButtonStyle {
     var isActive = true
+    @Binding var pressed: Bool
 
     func makeBody(configuration: Configuration) -> some View {
-        let pressed = configuration.isPressed && isActive
-        return configuration.label
-            .scaleEffect(pressed && !reduceMotion ? 0.94 : 1)
-            .opacity(pressed && reduceMotion ? 0.7 : 1)
-            .animation(.spring(duration: 0.3, bounce: 0.35), value: configuration.isPressed)
+        configuration.label
+            .onChange(of: configuration.isPressed) { _, isPressed in
+                pressed = isPressed && isActive
+            }
     }
 }
 
@@ -1051,6 +1278,500 @@ private enum ExamplePhoto {
     AttachmentTrayExample()
         .preferredColorScheme(.dark)
 }
+
+// MARK: - Piece motion
+//
+// The SwiftPieces motion language: shared spring tokens and gesture physics, with the same values in every
+// piece. Each piece carries a copy of only the parts it uses, so this file stands alone. Generated from
+// registry/foundation/PieceMotion.swift in the SwiftPieces repo; edit it there, not here.
+// swiftpieces-motion: 1.1.0 (core, follow, pressMath, press, pressStyle, pop)
+
+/// The SwiftPieces motion language: five spring tiers, and a named role for every moment a piece moves,
+/// each with its Reduce Motion substitute.
+///
+/// Build one from the environment, `PieceMotion(reduceMotion: reduceMotion)`, and pick the role that names
+/// what just happened. Never animate the tracking of a finger: set gesture state directly in `onChanged`, so the
+/// surface stays under the finger, and spring only the release.
+private struct PieceMotion {
+    var reduceMotion = false
+
+    // Tiers. Overshoot and settle times are measured from rest with SwiftUI's Spring.
+    /// No overshoot, 90% in about 90ms. A press arriving under the finger.
+    static var tight: Spring { Spring(duration: 0.14, bounce: 0) }
+    /// About 2.8% overshoot, 90% in about 140ms. Snapping to a detent, page or segment.
+    static var responsive: Spring { Spring(duration: 0.32, bounce: 0.25) }
+    /// About 8.4% overshoot. Visible give: a release, a return from past an edge, a drag settling home.
+    static var elastic: Spring { Spring(duration: 0.42, bounce: 0.38) }
+    /// About 15% overshoot. A resolved action landing. At most once per interaction.
+    static var expressive: Spring { Spring(duration: 0.48, bounce: 0.48) }
+    /// About 1.5% overshoot, unhurried. Opening large surfaces and ambient change.
+    static var calm: Spring { Spring(duration: 0.5, bounce: 0.2) }
+
+    /// Reduce Motion: settles become this short spring with no overshoot.
+    private static var still: Animation { .spring(duration: 0.25, bounce: 0) }
+
+    // Roles.
+    /// Touch-down. Starts on the same frame and never bounces under the finger.
+    var press: Animation { .spring(Self.tight) }
+    /// The finger lifts off a pressed surface, which springs back through rest.
+    var release: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A dragged thing comes to rest. With a gesture's velocity, use `settle(velocity:from:to:)` instead.
+    var settle: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// Lands on a detent, page or segment.
+    var snap: Animation { reduceMotion ? Self.still : .spring(Self.responsive) }
+    /// A number, a chart value or anything else people read moves to its new value. Never overshoots, so it
+    /// never shows a value that isn't true.
+    var value: Animation { reduceMotion ? Self.still : .spring(duration: 0.35, bounce: 0) }
+    /// Comes back from past a limit: a pull beyond the edge, a value pushed against its bound.
+    var rebound: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A shape or container changes size, corner radius or form, with a little give at the end.
+    var morph: Animation { reduceMotion ? Self.still : .spring(duration: 0.4, bounce: 0.2) }
+    /// Something appears, opens or expands. Opening is a little slower than closing.
+    var reveal: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.calm) }
+    /// Something leaves, closes or collapses. Quick and firm, out of the way.
+    var dismiss: Animation { reduceMotion ? .easeIn(duration: 0.18) : .spring(duration: 0.3, bounce: 0.08) }
+    /// A resolved action lands: a check, a sent state, a reaction.
+    var success: Animation { reduceMotion ? .easeOut(duration: 0.24) : .spring(Self.expressive) }
+    /// A refused action. Firm, no wobble; `pieceShake` adds the movement.
+    var error: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.responsive) }
+    /// Slow ambient change. Loops themselves stop under Reduce Motion: check `allowsAmbient`.
+    var ambient: Animation { reduceMotion ? .easeInOut(duration: 0.3) : .spring(Self.calm) }
+
+    /// Loops, drifts, idle breathing and parallax run only when this is true.
+    var allowsAmbient: Bool { !reduceMotion }
+
+    /// A moving transition, or a plain fade under Reduce Motion.
+    func transition(_ transition: AnyTransition) -> AnyTransition {
+        reduceMotion ? .opacity : transition
+    }
+
+    /// For content replaced inside a container that stays put (a label, a glyph, a count): the old content
+    /// blurs out as the new one sharpens in. A fade under Reduce Motion.
+    @MainActor var swap: AnyTransition {
+        reduceMotion ? .opacity : AnyTransition(.blurReplace)
+    }
+}
+
+extension PieceMotion {
+    /// Follow-through: rank 0 leads, each later rank arrives a beat later on a slightly looser spring. Safe to reverse.
+    func follow(_ spring: Spring = PieceMotion.elastic, rank: Int) -> Animation {
+        guard !reduceMotion else { return .spring(duration: 0.25, bounce: 0) }
+        let k = Double(min(max(rank, 0), 6))
+        return .spring(duration: spring.duration + 0.04 * k, bounce: min(spring.bounce + 0.02 * k, 0.55))
+    }
+
+    /// One-shot entrances only: item `index` waits 30ms per place, capped at the seventh. Exits go together.
+    func cascade(_ animation: Animation, index: Int, step: Double = 0.03) -> Animation {
+        guard !reduceMotion, index > 0 else { return animation }
+        return animation.delay(step * Double(min(index, 7)))
+    }
+}
+
+extension PieceMotion {
+    /// About `depth` points per edge, not a fixed percentage: an icon sinks to 0.92, a pill 0.95, a card 0.985.
+    nonisolated static func pressScale(for size: CGSize, depth: CGFloat = 2.5) -> CGFloat {
+        let side = (max(size.width, 1) * max(size.height, 1)).squareRoot()
+        return min(max(1 - depth * 2 / side, 0.92), 0.985)
+    }
+
+    /// An anchor partway from the center toward the touch, so the press leans into the finger without tipping.
+    nonisolated static func pressAnchor(touch: CGPoint?, in size: CGSize, lean: CGFloat = 0.6) -> UnitPoint {
+        guard let touch, size.width > 0, size.height > 0 else { return .center }
+        let x = min(max(touch.x / size.width, 0), 1)
+        let y = min(max(touch.y / size.height, 0), 1)
+        return UnitPoint(x: 0.5 + (x - 0.5) * lean, y: 0.5 + (y - 0.5) * lean)
+    }
+}
+
+/// Sinks on touch-down, leaning toward the touch if given, and springs back from the same lean. Under Reduce
+/// Motion it shades instead of moving (darker in light mode, lighter in dark), without turning transparent.
+private struct PiecePress: ViewModifier {
+    let pressed: Bool
+    var touch: CGPoint?
+    var depth: CGFloat = 2.5
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.colorScheme) private var colorScheme
+    @State private var size: CGSize = .zero
+    @State private var anchor: UnitPoint = .center
+
+    func body(content: Content) -> some View {
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        let scale = pressed && !reduceMotion ? PieceMotion.pressScale(for: size, depth: depth) : 1
+        content
+            .onGeometryChange(for: CGSize.self) { $0.size } action: { size = $0 }
+            .brightness(pressed && reduceMotion ? (colorScheme == .dark ? 0.1 : -0.08) : 0)
+            .scaleEffect(scale, anchor: anchor)
+            .animation(pressed ? motion.press : motion.release, value: pressed)
+            .onChange(of: pressed) { _, isPressed in
+                if isPressed { anchor = PieceMotion.pressAnchor(touch: touch, in: size) }
+            }
+            .onChange(of: touch) { _, touch in
+                if pressed, let touch { anchor = PieceMotion.pressAnchor(touch: touch, in: size) }
+            }
+    }
+}
+
+private extension View {
+    /// Sinks this view while `pressed`, leaning toward `touch` (in this view's coordinates) when given.
+    func piecePress(_ pressed: Bool, touch: CGPoint? = nil, depth: CGFloat = 2.5) -> some View {
+        modifier(PiecePress(pressed: pressed, touch: touch, depth: depth))
+    }
+}
+
+/// Only the press, centered: for chips, rows and tiles, and anything in scrolling content.
+private struct PiecePressStyle: ButtonStyle {
+    var depth: CGFloat = 2.5
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label.piecePress(configuration.isPressed, depth: depth)
+    }
+}
+
+/// Anticipation, overshoot, settle: dips, swells past full size and lands each time `trigger` changes. Under
+/// Reduce Motion it stays still (same view, no identity change) and the color or symbol carries the meaning.
+private struct PiecePop: ViewModifier {
+    let trigger: AnyHashable
+    var amount: CGFloat = 0.08
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func body(content: Content) -> some View {
+        let amount = reduceMotion ? 0 : amount
+        content.keyframeAnimator(initialValue: CGFloat(1), trigger: trigger) { view, scale in
+            view.scaleEffect(scale)
+        } keyframes: { _ in
+            KeyframeTrack {
+                CubicKeyframe(1 - amount * 0.4, duration: 0.08)
+                SpringKeyframe(1 + amount, duration: 0.14, spring: Spring(duration: 0.18, bounce: 0))
+                SpringKeyframe(1, duration: 0.42, spring: PieceMotion.expressive)
+            }
+        }
+    }
+}
+
+private extension View {
+    /// Pops each time `trigger` changes. Use a counter, never a Bool that can flip back before it fires.
+    func piecePop(trigger: some Hashable & Sendable, amount: CGFloat = 0.08) -> some View {
+        modifier(PiecePop(trigger: AnyHashable(trigger), amount: amount))
+    }
+}
+
+// swiftpieces-motion: end
+
+// MARK: - Piece liquid
+//
+// The SwiftPieces liquid glass language: glass shapes that merge through a neck, bubbles that bud out of
+// and melt back into each other, and the frosted fallback before iOS 26. Each piece carries a copy of only
+// the parts it uses, so this file stands alone. Generated from registry/foundation/PieceLiquid.swift in the
+// SwiftPieces repo; edit it there, not here. The rules are in LIQUID_GLASS.md.
+// swiftpieces-liquid: 1.7.0 (liquid, liquidPress, bud)
+
+/// The liquid glass language: one merge distance, two rest gaps, and the springs a bubble leaves and comes home on.
+///
+/// Glass shapes inside one `PieceLiquidGroup` melt into each other through a neck when they come within `merge`
+/// points. Parts of one control rest `joined`, inside that distance, so the neck holds; separate actions rest
+/// `apart`, outside it, so they only goo while one buds out of, or melts back into, another.
+private enum PieceLiquid {
+    /// Glass shapes closer than this share a neck.
+    static let merge: CGFloat = 20
+    /// The gap between parts of one control (a stepper's buttons, a progress pill and its stop): the neck holds,
+    /// short and smooth, about two thirds of the shapes' height at its waist. Joined parts read best at one height.
+    static let joined: CGFloat = 4
+    /// The gap between separate actions (menu items, confirm and cancel, chips): they rest as their own bubbles.
+    static let apart: CGFloat = 26
+    /// How far a bubble shrinks while it is home inside its parent.
+    static let homeScale: CGFloat = 0.72
+
+    /// A bubble leaving its parent: slow enough that the neck's stretch and snap read.
+    static func split(reduceMotion: Bool) -> Animation {
+        reduceMotion ? .easeOut(duration: 0.2) : .spring(duration: 0.62, bounce: 0.22)
+    }
+
+    /// A bubble going home. No bounce: a bounce would carry it out through the far side of its parent.
+    static func home(reduceMotion: Bool) -> Animation {
+        reduceMotion ? .easeIn(duration: 0.18) : .spring(duration: 0.5, bounce: 0)
+    }
+}
+
+/// A group of glass shapes that merge into one liquid surface. On iOS 26 it is a `GlassEffectContainer`; before
+/// that, and under Reduce Transparency, the shapes draw on their own and simply don't merge. `lift` adds the soft
+/// shadow liquid glass floats on in light mode.
+private struct PieceLiquidGroup<Content: View>: View {
+    var spacing: CGFloat = PieceLiquid.merge
+    var lift = true
+    @ViewBuilder var content: Content
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        container
+            .shadow(color: .black.opacity(lift && colorScheme == .light ? 0.07 : 0), radius: 18, y: 8)
+    }
+
+    @ViewBuilder private var container: some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26, *), !reduceTransparency {
+            GlassEffectContainer(spacing: spacing) { content }
+        } else {
+            content
+        }
+        #else
+        content
+        #endif
+    }
+}
+
+/// One liquid glass shape: Liquid Glass on iOS 26, carrying `tint` as a solid colour and swelling under a press when
+/// `interactive`; a frosted Material with a light rim and a soft shadow before that; a solid fill under Reduce
+/// Transparency.
+///
+/// The tint is painted inside clear glass rather than tinting the glass. Tinted glass in a group bleeds its colour
+/// through every neck as a smear, so a red button would glow into the white pill it is joined to; painted inside,
+/// the colour stays crisp to the shape's edge, the necks between shapes are clear glass, and a tint change animates
+/// like any colour (tinted glass snaps).
+private struct PieceLiquidSurface<S: Shape>: ViewModifier {
+    var shape: S
+    var tint: Color?
+    var interactive: Bool
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.pieceLiquidScale) private var scale
+
+    func body(content: Content) -> some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26, *), !reduceTransparency {
+            // Scaled as two parts, content and outline, about the same centre. A scaleEffect on a glass view inside a
+            // GlassEffectContainer shrinks the glass but leaves what it carries full size, pinned to its corner.
+            content
+                .background { shape.fill(tint ?? .clear) }
+                .scaleEffect(scale)
+                .glassEffect(glass, in: shape.scale(scale))
+        } else {
+            fallback(content).scaleEffect(scale)
+        }
+        #else
+        fallback(content).scaleEffect(scale)
+        #endif
+    }
+
+    #if compiler(>=6.2)
+    @available(iOS 26, *)
+    private var glass: Glass {
+        interactive ? Glass.regular.interactive() : .regular
+    }
+    #endif
+
+    private func fallback(_ content: Content) -> some View {
+        let dark = colorScheme == .dark
+        return content
+            .background {
+                if reduceTransparency {
+                    shape.fill(tint ?? (dark ? Color(white: 0.17) : Color(white: 0.97)))
+                } else {
+                    ZStack {
+                        shape.fill(.regularMaterial)
+                        if let tint { shape.fill(tint.opacity(0.88)) }
+                    }
+                }
+            }
+            .overlay { shape.stroke(Color.white.opacity(dark ? 0.14 : 0.7), lineWidth: 0.5) }
+            .shadow(color: .black.opacity(dark ? 0.32 : 0.08), radius: 10, y: 5)
+    }
+}
+
+private struct PieceLiquidScaleKey: EnvironmentKey {
+    static let defaultValue: CGFloat = 1
+}
+
+private extension EnvironmentValues {
+    /// How much the liquid shapes below are scaled, about their own centres. Nested scales multiply.
+    var pieceLiquidScale: CGFloat {
+        get { self[PieceLiquidScaleKey.self] }
+        set { self[PieceLiquidScaleKey.self] = newValue }
+    }
+}
+
+private extension View {
+    /// Draws this view on a liquid glass `shape`. Put it inside a `PieceLiquidGroup` so it can merge with its neighbours.
+    func pieceLiquid<S: Shape>(_ shape: S, tint: Color? = nil, interactive: Bool = true) -> some View {
+        modifier(PieceLiquidSurface(shape: shape, tint: tint, interactive: interactive))
+    }
+
+    /// Scales the liquid glass shapes in this view, content and outline together, about their own centres. Use it
+    /// instead of `scaleEffect` on a glass view (a press, a lift, a swell): inside a group a plain `scaleEffect` shrinks
+    /// the glass but leaves its content full size and off centre. Animates like any other value.
+    func pieceLiquidScale(_ scale: CGFloat) -> some View {
+        transformEnvironment(\.pieceLiquidScale) { $0 *= scale }
+    }
+}
+
+/// The press for a glass control: the same size-aware sink and lean as `piecePress`, applied through
+/// `pieceLiquidScale` so the glass and what it carries sink together (a plain scaleEffect on glass leaves the content
+/// behind). Put the glass inside what it presses: the label of a button, the view this modifies. Under Reduce Motion
+/// it shades instead of moving.
+private struct PieceLiquidPress: ViewModifier {
+    let pressed: Bool
+    var touch: CGPoint?
+    var depth: CGFloat = 2.5
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.colorScheme) private var colorScheme
+    @State private var size: CGSize = .zero
+    @State private var anchor: UnitPoint = .center
+
+    func body(content: Content) -> some View {
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        let scale = pressed && !reduceMotion ? PieceMotion.pressScale(for: size, depth: depth) : 1
+        // A scale about `anchor` is a scale about the centre plus this shift toward the anchor.
+        let lean = CGSize(width: (anchor.x - 0.5) * size.width * (1 - scale), height: (anchor.y - 0.5) * size.height * (1 - scale))
+        content
+            .onGeometryChange(for: CGSize.self) { $0.size } action: { size = $0 }
+            .brightness(pressed && reduceMotion ? (colorScheme == .dark ? 0.1 : -0.08) : 0)
+            .pieceLiquidScale(scale)
+            .offset(lean)
+            .animation(pressed ? motion.press : motion.release, value: pressed)
+            .onChange(of: pressed) { _, isPressed in
+                if isPressed { anchor = PieceMotion.pressAnchor(touch: touch, in: size) }
+            }
+            .onChange(of: touch) { _, touch in
+                if pressed, let touch { anchor = PieceMotion.pressAnchor(touch: touch, in: size) }
+            }
+    }
+}
+
+/// `PiecePressStyle` for glass buttons: the label (with its `.pieceLiquid` inside) sinks as one.
+private struct PieceLiquidPressStyle: ButtonStyle {
+    var depth: CGFloat = 2.5
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label.pieceLiquidPress(configuration.isPressed, depth: depth)
+    }
+}
+
+private extension View {
+    /// Sinks this view's glass while `pressed`, leaning toward `touch` (in this view's coordinates) when given.
+    func pieceLiquidPress(_ pressed: Bool, touch: CGPoint? = nil, depth: CGFloat = 2.5) -> some View {
+        modifier(PieceLiquidPress(pressed: pressed, touch: touch, depth: depth))
+    }
+}
+
+/// The bud: how a bubble leaves and rejoins its parent, driven explicitly so every bubble shows the whole cycle.
+///
+/// A bubble is born at `home`, inside its parent, where the two glass shapes are one. It springs out to `rest`, and
+/// while it is inside the merge distance a neck holds it to the parent, thinning as it goes, until it snaps free.
+/// Going home it springs back on a spring with no bounce, the neck reaches out and re-forms, and only once it has
+/// melted all the way in is it removed. Both offsets are relative to where the bubble is laid out. Under Reduce
+/// Motion it stays at `rest`: its content fades and its glass closes in place.
+private struct PieceBud: ViewModifier {
+    var out: Bool
+    var rest: CGSize
+    var home: CGSize
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func body(content: Content) -> some View {
+        if reduceMotion {
+            // No travel. Inside a group glass ignores opacity, so the glass closes to nothing in place on the short
+            // Reduce Motion ease while its content fades; the opacity covers a bubble outside a group.
+            content
+                .pieceLiquidScale(out ? 1 : 0.001)
+                .opacity(out ? 1 : 0)
+                .offset(rest)
+        } else {
+            // The glass shrinks through `pieceLiquidScale`, never a plain scaleEffect (see there), then moves.
+            content
+                .pieceLiquidScale(out ? 1 : PieceLiquid.homeScale)
+                .offset(out ? rest : home)
+        }
+    }
+}
+
+/// A bubble's own content, on its own clock: gone the moment the bubble heads home, so it never rides over the
+/// parent's content, and arriving just after the bubble leaves.
+private struct PieceBudContent: ViewModifier {
+    var out: Bool
+
+    func body(content: Content) -> some View {
+        content
+            .blur(radius: out ? 0 : 6)
+            .opacity(out ? 1 : 0)
+            .animation(out ? .easeOut(duration: 0.3).delay(0.1) : .easeOut(duration: 0.14), value: out)
+    }
+}
+
+private extension View {
+    /// Places a bubble at `rest` while `out`, and at `home` (inside its parent, shrunk) while not.
+    func pieceBud(out: Bool, rest: CGSize = .zero, home: CGSize) -> some View {
+        modifier(PieceBud(out: out, rest: rest, home: home))
+    }
+
+    /// Hides a bubble's icon or label while it is home. Put it on the content, inside the glass.
+    func pieceBudContent(out: Bool) -> some View {
+        modifier(PieceBudContent(out: out))
+    }
+}
+
+/// Which bubbles exist and which are out. A bubble is added home with no animation, sent out on the next frame,
+/// and called home before it is removed, so it always melts in rather than fading. Keep one in `@State`.
+@MainActor @Observable
+private final class PieceBuds {
+    private(set) var present: [String] = []
+    private(set) var out: Set<String> = []
+    /// The latest call for each bubble. A bloom or gather that has been overtaken (a bubble sent home while it was
+    /// still waiting to go out, or called out again while melting) leaves that bubble alone.
+    @ObservationIgnored private var turn: [String: Int] = [:]
+
+    func contains(_ id: String) -> Bool { present.contains(id) }
+    func isOut(_ id: String) -> Bool { out.contains(id) }
+
+    private func claim(_ ids: [String]) -> [String: Int] {
+        var mine: [String: Int] = [:]
+        for id in ids {
+            let next = (turn[id] ?? 0) + 1
+            turn[id] = next
+            mine[id] = next
+        }
+        return mine
+    }
+
+    /// Puts bubbles straight out at rest with no motion: a view's first frame, or a state restored.
+    func place(_ ids: [String]) {
+        _ = claim(ids)
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) {
+            for id in ids where !present.contains(id) { present.append(id) }
+            out.formUnion(ids)
+        }
+    }
+
+    /// Adds bubbles home, then sends each out, `stagger` seconds apart, after an optional `delay`.
+    func bloom(_ ids: [String], reduceMotion: Bool, stagger: Double = 0.05, delay: Double = 0) async {
+        let mine = claim(ids)
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) {
+            for id in ids where !present.contains(id) { present.append(id) }
+        }
+        try? await Task.sleep(for: .milliseconds(24 + Int(max(delay, 0) * 1000)))
+        let split = PieceLiquid.split(reduceMotion: reduceMotion)
+        for (i, id) in ids.enumerated() where turn[id] == mine[id] {
+            withAnimation(split.delay(reduceMotion ? 0 : Double(i) * stagger)) { _ = out.insert(id) }
+        }
+    }
+
+    /// Calls bubbles home, last first, then removes them once they have melted in.
+    func gather(_ ids: [String], reduceMotion: Bool, stagger: Double = 0.04) async {
+        let mine = claim(ids)
+        let home = PieceLiquid.home(reduceMotion: reduceMotion)
+        for (i, id) in ids.reversed().enumerated() {
+            withAnimation(home.delay(reduceMotion ? 0 : Double(i) * stagger)) { _ = out.remove(id) }
+        }
+        try? await Task.sleep(for: .milliseconds(Int((0.52 + Double(ids.count) * stagger) * 1000)))
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) { present.removeAll { ids.contains($0) && !out.contains($0) && turn[$0] == mine[$0] } }
+    }
+}
+
+// swiftpieces-liquid: end
 ```
 
 </Tab>

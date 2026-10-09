@@ -20,7 +20,7 @@ type Menu = { label: string; href: string; items: MenuItem[]; /** Paths that lig
 
 /**
  * The bar is split by what you came to do. Library is what you take and install (free pieces, and
- * Pro's screens and templates); Create is the tools you use in the browser, where new features land;
+ * Pro's screens, flows and templates); Create is the tools you use in the browser, where new features land;
  * Resources is how to learn it and who backs it. Pro stays a direct link. At most five items a menu.
  */
 const menus: Menu[] = [
@@ -30,6 +30,7 @@ const menus: Menu[] = [
     items: [
       { label: "Components", href: "/components", desc: "Single-file SwiftUI pieces with live previews", icon: "components" },
       { label: "Screens", href: pro.screens, desc: "Finished screens, themed by one design system", icon: "screens", badge: "Pro" },
+      { label: "Flows", href: pro.flows, desc: "Whole journeys, from first run to settings", icon: "flows", badge: "Pro" },
       { label: "Templates", href: pro.templates, desc: "Complete apps as Xcode projects", icon: "templates", badge: "Pro" },
     ],
   },
@@ -49,7 +50,7 @@ const menus: Menu[] = [
     items: [
       { label: "Docs", href: "/docs/introduction", desc: "Install, the CLI and every piece's API", icon: "docs" },
       { label: "Guides", href: "/docs/guides", desc: "SwiftUI techniques, step by step", icon: "guides" },
-      { label: "MCP and agents", href: "/docs/mcp", desc: "Let your coding agent add pieces", icon: "mcp" },
+      { label: "MCP and Agents", href: "/docs/mcp", desc: "Let your coding agent add pieces", icon: "mcp" },
       { label: "Changelog", href: "/docs/changelog", desc: "Every new piece and fix", icon: "changelog" },
       { label: "Sponsors", href: "/sponsors", desc: "The people who keep it free", icon: "sponsors", tone: "text-accent" },
     ],
