@@ -1,10 +1,10 @@
 ---
 title: "Toast"
-description: "A single toast card with a solid color tile for its kind, a bold message with an optional detail line, a signal-colored action such as Undo, and a thin timer that pauses while touched; placed inside the safe area so it clears the Dynamic Island and rides above the keyboard."
+description: "A single liquid glass toast. A glass card carries the message, an optional detail line; as it lands, a tile bubble tinted for its kind buds out of its leading end with a countdown ring that drains around its glyph and pauses while touched, and an action such as Undo buds out of its trailing end as a signal bubble, both joined to the card by liquid necks. Placed inside the safe area so it clears the Dynamic Island and rides above the keyboard."
 piece: "Toast"
 category: "sheets"
 minIOSVersion: "17.0"
-version: "2.0.1"
+version: "2.3.0"
 tags: ["toast","notification","undo","feedback","haptic"]
 registryDependencies: []
 ---
@@ -15,14 +15,19 @@ Presents one transient toast on the top or bottom edge.
 
 ## Notes
 
-- Single instance by design. Presenting again while visible does nothing.
-- The toast is a solid card: ink in light mode, raised grey in dark mode. A color tile marks its kind (`.info` sky, `.success` sage, `.warning` butter, `.error` tangerine) and bounces on arrival with a matching haptic.
-- `detail` adds a quieter second line. The action is a signal-colored capsule that flashes a check, runs the handler, then dismisses.
-- The countdown is a `.task` on the toast and is cancelled the moment the toast leaves; touching the toast pauses it (the thin bar freezes and the card presses in) and releasing resumes from where it stopped. Swipe toward the edge to dismiss.
+- Single instance by design. Presenting again while visible does nothing. Every touch, release, action and new toast starts a fresh run of the countdown, and only the latest run can dismiss, so a timer left over from an earlier toast never closes a newer one.
+- The toast is liquid glass, in three parts that rest joined: a glass card with the message and the detail, a round tile bubble at its leading end, and the action bubble at its trailing end, each held to the card by a liquid neck. The tile is tinted for its kind: `.success` sage, `.warning` and `.error` butter, and `.info` clear glass. All text is semibold.
+- It arrives calmly from its edge, landing with a slight give, with the message already in place, so it can be read at once. As it settles the tile buds out of the card's leading end and then the action out of its trailing end, each pulling a neck as it springs to its place, with the kind's haptic (success, warning, error, or a soft tap for info). Both bubbles keep their place in the layout while they are inside the card, so the card never resizes. It leaves faster and firmer than it came, all in one piece, and slides all the way out past its edge. The presentation animation is scoped to the toast, so changes the host makes in the same transaction keep their own animation.
+- `detail` adds a quieter second line. The action is a signal bubble: tapping it swaps the title for a check, pops the bubble with a light haptic, runs the handler, then dismisses a beat later. It still dismisses if the handler takes the view away first (switching tabs, pushing a screen), so the action never comes back live.
+- The countdown is a `.task` on the toast and is cancelled the moment the toast leaves. Touching the toast pauses it: the thin bar freezes and the toast sinks toward your finger. Releasing resumes from where it stopped, and so does a touch the system interrupts, such as an incoming call.
+- Swipe toward the edge to dismiss. The toast stays under your finger that way and gives with rubber-band resistance the other way. A swipe that would carry past 40 points leaves at the toast's own speed; anything shorter springs back at the speed you let go, with a little give past its resting place. Grabbing it again while it springs back takes it over from where it is, without a jump.
+- On iOS 26 the parts are Liquid Glass and the necks between them are real; before that they are frosted glass with a light rim. With Reduce Transparency they are solid, so the toast reads the same over any content.
+- With Reduce Motion the toast fades in and out, the bubbles fade in where they rest instead of budding, the press dims instead of sinking, and the action's pop is off. Haptics, the tile's tint and the check still say what happened.
 - Placement reads the safe area of the view it is applied to: at the top it clears the Dynamic Island, at the bottom it rises with the keyboard. Apply the modifier to a view that does not ignore safe areas.
-- Colors live in `Toast.Appearance` (passed as `appearance:`), because `Toast.Style` already names the kind. The card is opaque, so it reads the same with Reduce Transparency.
+- Colors live in `Toast.Appearance` (passed as `appearance:`), because `Toast.Style` already names the kind. `surface` and `info` default to `.clear`, which leaves them neutral glass; any other color tints that glass.
 - The message and detail are posted as a VoiceOver announcement on appear; the action button is a real button with its own label.
 - For stacked, queued alerts with a notifications feed, see the Notifications screen (toast stack) in SwiftPieces Pro.
+- **v2.3:** the countdown is a ring around the tile's glyph rather than a line under the card: it drains clockwise from the top on a faint track, holds while the toast is touched and once the action has run, and resumes with what is left. It is a clock, so it keeps running under Reduce Motion.
 
 ## Usage
 
@@ -35,13 +40,13 @@ ToastExample()
 | Parameter | Description |
 | --- | --- |
 | `isPresented` | Shows the toast while `true`; the timer, swipe, and action set it back to `false`. |
-| `message` | Text to show, in bold. Keep it to one line. |
+| `message` | Text to show. Keep it to one line. |
 | `detail` | Optional quieter second line, such as where the item went. |
 | `systemImage` | Optional SF Symbol; defaults to a symbol that matches `style`. |
-| `style` | The kind of toast, which picks the tile color and default symbol: `.info`, `.success`, `.warning`, or `.error`. |
+| `style` | The kind of toast, which picks the tile bubble's tint and default symbol: `.info`, `.success`, `.warning`, or `.error`. |
 | `duration` | Seconds before it dismisses on its own. The countdown pauses while the toast is touched. |
 | `position` | `.top` or `.bottom` edge to slide in from. |
-| `action` | Optional trailing button (for example Undo). Tapping it flashes a check, runs the handler, then dismisses. |
+| `action` | Optional trailing button (for example Undo), a signal glass bubble joined to the card. Tapping it swaps its title for a check, runs the handler, then dismisses a beat later. |
 | `appearance` | Colors and corner radius. Defaults to the SwiftPieces house palette, adapting to light and dark. |
 
 ## Source
@@ -56,13 +61,13 @@ import SwiftUI
 ///
 /// - Parameters:
 ///   - isPresented: Shows the toast while `true`; the timer, swipe, and action set it back to `false`.
-///   - message: Text to show, in bold. Keep it to one line.
+///   - message: Text to show. Keep it to one line.
 ///   - detail: Optional quieter second line, such as where the item went.
 ///   - systemImage: Optional SF Symbol; defaults to a symbol that matches `style`.
-///   - style: The kind of toast, which picks the tile color and default symbol: `.info`, `.success`, `.warning`, or `.error`.
+///   - style: The kind of toast, which picks the tile bubble's tint and default symbol: `.info`, `.success`, `.warning`, or `.error`.
 ///   - duration: Seconds before it dismisses on its own. The countdown pauses while the toast is touched.
 ///   - position: `.top` or `.bottom` edge to slide in from.
-///   - action: Optional trailing button (for example Undo). Tapping it flashes a check, runs the handler, then dismisses.
+///   - action: Optional trailing button (for example Undo), a signal glass bubble joined to the card. Tapping it swaps its title for a check, runs the handler, then dismisses a beat later.
 ///   - appearance: Colors and corner radius. Defaults to the SwiftPieces house palette, adapting to light and dark.
 public extension View {
     func toast(isPresented: Binding<Bool>, message: String, detail: String? = nil, systemImage: String? = nil, style: Toast.Style = .info, duration: Double = 3, position: Toast.Position = .top, action: Toast.Action? = nil, appearance: Toast.Appearance = .standard) -> some View {
@@ -70,7 +75,7 @@ public extension View {
     }
 }
 
-/// Toast modifier. Single instance: presenting again while visible restarts the countdown.
+/// Toast modifier. Single instance: presenting again while visible does nothing.
 public struct Toast: ViewModifier {
     public enum Style {
         case info, success, warning, error
@@ -98,40 +103,41 @@ public struct Toast: ViewModifier {
         }
     }
 
-    /// Colors and shape. `.standard` is the house palette: an ink card in light mode, a raised card in dark mode, color tiles per kind and a signal action.
+    /// Colors and shape. `.standard` is the house palette: a neutral glass card, a tile bubble tinted for its kind (sage
+    /// for success, butter for warnings and errors, clear glass for info) and a signal action bubble.
     public struct Appearance: Sendable {
-        /// The toast card.
+        /// The glass tint of the card. `.clear`, the default, leaves it neutral glass.
         public var surface: Color
-        /// Message text and timer.
+        /// Message text, the timer, and the glyph on a clear tile bubble.
         public var label: Color
         /// Detail text.
         public var secondaryLabel: Color
-        /// Glyphs and text on tiles and the action.
+        /// Glyphs and text on tinted bubbles.
         public var ink: Color
-        /// Tile for `.info`.
+        /// The tile bubble's tint for `.info`. `.clear`, the default, leaves it neutral glass.
         public var info: Color
-        /// Tile for `.success`.
+        /// The tile bubble's tint for `.success`.
         public var success: Color
-        /// Tile for `.warning`.
+        /// The tile bubble's tint for `.warning`.
         public var warning: Color
-        /// Tile for `.error`.
+        /// The tile bubble's tint for `.error`.
         public var error: Color
-        /// The action button fill.
+        /// The action bubble's tint.
         public var action: Color
         /// Card corner radius.
         public var cornerRadius: CGFloat
 
         /// Pass only what you want to change; `nil` keeps the house palette value.
         public init(surface: Color? = nil, label: Color? = nil, secondaryLabel: Color? = nil, ink: Color? = nil, info: Color? = nil, success: Color? = nil, warning: Color? = nil, error: Color? = nil, action: Color? = nil, cornerRadius: CGFloat = 22) {
-            self.surface = surface ?? adaptive(light: 0x141414, dark: 0x2A2A2A)
-            self.label = label ?? adaptive(light: 0xF4F3EF, dark: 0xF4F3EF)
-            self.secondaryLabel = secondaryLabel ?? adaptive(light: 0xA6A49F, dark: 0xA6A49F)
+            self.surface = surface ?? .clear
+            self.label = label ?? adaptive(light: 0x141414, dark: 0xF4F3EF)
+            self.secondaryLabel = secondaryLabel ?? adaptive(light: 0x5C5A56, dark: 0xA6A49F)
             self.ink = ink ?? adaptive(light: 0x141414, dark: 0x141414)
-            self.info = info ?? adaptive(light: 0x9CC2FF, dark: 0x9CC2FF)
+            self.info = info ?? .clear
             self.success = success ?? adaptive(light: 0xA9DCB7, dark: 0xA9DCB7)
             self.warning = warning ?? adaptive(light: 0xFFD976, dark: 0xFFD976)
-            self.error = error ?? adaptive(light: 0xFF5B3A, dark: 0xFF5B3A)
-            self.action = action ?? adaptive(light: 0xFF5B3A, dark: 0xFF5B3A)
+            self.error = error ?? adaptive(light: 0xFFD976, dark: 0xFFD976)
+            self.action = action ?? adaptive(light: 0xFF0000, dark: 0xFF0000)
             self.cornerRadius = cornerRadius
         }
 
@@ -154,11 +160,20 @@ public struct Toast: ViewModifier {
 
     @State private var phase: Phase = .entering
     @State private var dragOffset: CGFloat = 0
+    @State private var touchPoint: CGPoint?        // where the current touch began, for the press lean
+    @State private var grabbedAt: Date?             // when the current touch began, so its first moments ease onto the finger
+    @State private var flick: CGFloat = 0           // the card's speed when a swipe commits, carried into the exit
+    @State private var travel: CGFloat = 0          // the padded card's height: how far the entrance slides it
+    @GestureState private var touching = false      // resets when the system cancels a touch, which skips onEnded
     @State private var elapsed: Double = 0          // countdown consumed before the current run
     @State private var resumedAt: Date = .now       // when the current run started
-    @State private var runToken = 0                 // restarts the countdown task
+    @State private var runToken = 0                 // one per run of the countdown; only the latest may dismiss
     @State private var commitTick = 0
     @State private var arriveTick = 0
+    @State private var actionTick = 0
+    /// The tile and action bubbles: home inside the card's ends until it lands, then out, joined to it.
+    @State private var buds = PieceBuds()
+    @State private var actionWidth: CGFloat = 0
 
     private let message: String
     private let detail: String?
@@ -183,24 +198,39 @@ public struct Toast: ViewModifier {
 
     private var edge: Edge { position == .top ? .top : .bottom }
 
+    /// The tile bubble's side, and the height of the action bubble: the house size for round controls.
+    private let bubble: CGFloat = 52
+
     public func body(content: Content) -> some View {
+        let motion = PieceMotion(reduceMotion: reduceMotion)
         content
             .overlay {
                 // The reader sits inside the content's safe area, so its insets are whatever the
                 // content did not already consume: the Dynamic Island at the top, the keyboard at the bottom.
                 GeometryReader { proxy in
-                    if isPresented {
-                        toast
-                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: position == .top ? .top : .bottom)
-                            .padding(.top, position == .top ? proxy.safeAreaInsets.top + 8 : 0)
-                            .padding(.bottom, position == .bottom ? proxy.safeAreaInsets.bottom + 8 : 0)
-                            .padding(.horizontal, 16)
-                            .transition(reduceMotion ? .opacity : .move(edge: edge).combined(with: .scale(scale: 0.92, anchor: position == .top ? .top : .bottom)).combined(with: .opacity))
+                    let exit = exitDistance(in: proxy)
+                    ZStack {
+                        if isPresented {
+                            toast
+                                .padding(.top, position == .top ? proxy.safeAreaInsets.top + 8 : 0)
+                                .padding(.bottom, position == .bottom ? proxy.safeAreaInsets.bottom + 8 : 0)
+                                .padding(.horizontal, 16)
+                                // The entrance slides this view in by its own height; the exit starts from it too.
+                                .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { travel = $0 }
+                                .transition(motion.transition(.asymmetric(
+                                    insertion: .move(edge: edge).combined(with: .scale(scale: 0.96, anchor: position == .top ? .top : .bottom)).combined(with: .opacity),
+                                    removal: .offset(y: position == .top ? -exit : exit).combined(with: .opacity)
+                                )))
+                        }
                     }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: position == .top ? .top : .bottom)
+                    // Scoped to the toast, so whatever the host changes in the same transaction keeps its own
+                    // animation. It arrives calmly and leaves quicker.
+                    .animation(isPresented ? motion.reveal : exitAnimation(motion, distance: exit), value: isPresented)
                 }
             }
-            .animation(reduceMotion ? .easeInOut(duration: 0.2) : .spring(duration: 0.5, bounce: 0.25), value: isPresented)
             .sensoryFeedback(.impact(flexibility: .soft), trigger: commitTick)
+            .sensoryFeedback(.impact(weight: .light), trigger: actionTick)
             .sensoryFeedback(trigger: arriveTick) { _, _ in
                 switch style {
                 case .success: .success
@@ -212,103 +242,192 @@ public struct Toast: ViewModifier {
     }
 
     private var toast: some View {
-        label
-            .background(appearance.surface, in: .rect(cornerRadius: appearance.cornerRadius, style: .continuous))
-            .overlay(alignment: .bottom) { timerBar.padding(.horizontal, 22).padding(.bottom, 5) }
-            .shadow(color: .black.opacity(0.22), radius: 24, y: 10)
-            .frame(maxWidth: 520)
-            .offset(y: dragOffset)
-            .scaleEffect(phase == .touched && !reduceMotion ? 0.97 : 1)
-            .animation(.spring(duration: 0.3, bounce: 0.2), value: phase)
-            .gesture(touchAndSwipe)
-            .task(id: runToken) { await countdown() }
-            .onAppear {
-                elapsed = 0
-                dragOffset = 0
-                phase = .entering
-                arriveTick += 1
-                AccessibilityNotification.Announcement(detail.map { "\(message). \($0)" } ?? message).post()
-            }
-            .onDisappear { phase = .entering }
-            .accessibilityElement(children: .contain)
-    }
-
-    private var label: some View {
-        HStack(spacing: 12) {
-            Image(systemName: systemImage ?? style.symbol)
-                .font(.body.weight(.bold))
-                .foregroundStyle(appearance.ink)
-                .symbolEffect(.bounce, value: arriveTick)
-                .frame(width: 40, height: 40)
-                .background(appearance.tile(for: style), in: .rect(cornerRadius: 12, style: .continuous))
-                .accessibilityHidden(true)
-            VStack(alignment: .leading, spacing: 1) {
-                Text(message)
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(appearance.label)
-                    .lineLimit(2)
-                if let detail {
-                    Text(detail)
-                        .font(.footnote)
-                        .foregroundStyle(appearance.secondaryLabel)
-                        .lineLimit(1)
-                }
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .accessibilityElement(children: .combine)
-            if let action {
-                Button {
-                    guard phase != .actioned, phase != .dismissing else { return }
-                    phase = .actioned
-                    action.handler()
-                    Task {
-                        try? await Task.sleep(for: .milliseconds(420))
-                        dismiss()
-                    }
-                } label: {
-                    ZStack {
-                        Text(action.title).opacity(phase == .actioned ? 0 : 1)
-                        Image(systemName: "checkmark").fontWeight(.heavy).opacity(phase == .actioned ? 1 : 0)
-                            .scaleEffect(phase == .actioned || reduceMotion ? 1 : 0.4)
-                    }
-                    .font(.subheadline.weight(.bold))
-                    .foregroundStyle(appearance.ink)
-                    .padding(.horizontal, 16)
-                    .frame(minWidth: 64, minHeight: 40)
-                    .background(appearance.action, in: .capsule)
-                    .frame(minHeight: 44)
-                    .contentShape(.capsule)
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel(action.title)
+        // Parts of one control, so the bubbles rest joined to the card and liquid necks hold them to it.
+        PieceLiquidGroup {
+            HStack(spacing: PieceLiquid.joined) {
+                tileSlot
+                // Above the bubbles, so one at home sits under the card and melts into it rather than over its text.
+                card.zIndex(1)
+                if let action { actionSlot(action) }
             }
         }
-        .padding(.leading, 10)
-        .padding(.trailing, action == nil ? 16 : 10)
-        .padding(.vertical, 10)
+        .frame(maxWidth: 520)
+        .fontWeight(.semibold)
+        // Sinks toward the finger while held (dims under Reduce Motion). Before the offset, so it presses the toast
+        // where it is and the drag itself is never animated.
+        .piecePress(phase == .touched, touch: touchPoint)
+        .offset(y: dragOffset)
+        .gesture(touchAndSwipe)
+        // A touch the system cancelled (a call, an alert, the back swipe) never ran onEnded, so let go here.
+        // After a normal release onEnded has already cleared the grab and moved the phase on, so this does nothing.
+        .onChange(of: touching) { _, isTouching in
+            guard !isTouching else { return }
+            grabbedAt = nil
+            if phase == .touched { letGo(speed: 0) }
+        }
+        .task(id: runToken) { await countdown() }
+        .task { await land() }
+        .onAppear {
+            elapsed = 0
+            resumedAt = .now
+            dragOffset = 0
+            flick = 0
+            phase = .entering
+            buds = PieceBuds()  // this toast's own bubbles, home until it lands
+            runToken += 1  // this toast's own countdown, so a timer left over from the last one can't dismiss it
+            AccessibilityNotification.Announcement(detail.map { "\(message). \($0)" } ?? message).post()
+        }
+        .accessibilityElement(children: .contain)
     }
 
-    /// Two-point line that drains left to right; frozen while touched.
-    private var timerBar: some View {
+    /// The glass card: the message, an optional detail line and the timer. The words arrive with the card, so they can
+    /// be read at once.
+    private var card: some View {
+        VStack(alignment: .leading, spacing: 1) {
+            Text(message)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(appearance.label)
+                .lineLimit(2)
+            if let detail {
+                Text(detail)
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(appearance.secondaryLabel)
+                    .lineLimit(1)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 16)
+        // Tight enough that two lines sit at the bubbles' height: the tile, the card and the action share one height
+        // and one centre line, so both necks curve the same way.
+        .padding(.vertical, 6)
+        .frame(minHeight: bubble)
+        .pieceLiquid(RoundedRectangle(cornerRadius: appearance.cornerRadius, style: .continuous), tint: appearance.surface == .clear ? nil : appearance.surface, interactive: false)
+        .accessibilityElement(children: .combine)
+    }
+
+    /// The tile bubble's place. It keeps its width while the bubble is inside the card, so the card never resizes.
+    private var tileSlot: some View {
+        Color.clear
+            .frame(width: bubble, height: bubble)
+            .overlay {
+                if buds.contains("tile") { tile }
+            }
+    }
+
+    /// A round bubble tinted for the kind, with its glyph. Home is just inside the card's leading end, shrunk, where the
+    /// two are one shape.
+    private var tile: some View {
+        let out = buds.isOut("tile")
+        let tint = appearance.tile(for: style)
+        let clear = tint == .clear
+        return ZStack {
+            // The time left: a ring around the glyph that drains clockwise from the top.
+            timerRing(color: clear ? appearance.label : appearance.ink)
+                .padding(5)
+            Image(systemName: systemImage ?? style.symbol)
+                .font(.body.weight(.semibold))
+                .foregroundStyle(clear ? appearance.label : appearance.ink)
+        }
+            .pieceBudContent(out: out)
+            .frame(width: bubble, height: bubble)
+            // Its tint drains as it melts, so it never sits colored over the card's words.
+            .pieceLiquid(.circle, tint: out && !clear ? tint : nil, interactive: false)
+            .pieceBud(out: out, home: CGSize(width: bubble / 2 + PieceLiquid.joined + bubble * PieceLiquid.homeScale / 2, height: 0))
+            .accessibilityHidden(true)
+    }
+
+    /// The action bubble's place, sized by its title, so the card keeps its width while the bubble is inside it.
+    private func actionSlot(_ action: Action) -> some View {
+        Text(action.title)
+            .font(.subheadline.weight(.semibold))
+            .padding(.horizontal, 18)
+            .frame(minWidth: 64, minHeight: bubble)
+            .hidden()
+            .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { actionWidth = $0 }
+            .overlay {
+                if buds.contains("action") { actionButton(action) }
+            }
+    }
+
+    /// A signal capsule. Home is just inside the card's trailing end. Tapped, its title blurs into a check and it pops.
+    private func actionButton(_ action: Action) -> some View {
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        let out = buds.isOut("action")
+        return Button {
+            guard phase != .actioned, phase != .dismissing else { return }
+            withAnimation(motion.snap) { phase = .actioned }
+            actionTick += 1
+            action.handler()
+            runToken += 1  // the countdown now holds the check for a beat, then dismisses
+        } label: {
+            ZStack {
+                // Holds the capsule at the title's width, so the swap never reflows the message.
+                Text(action.title).hidden()
+                if phase == .actioned {
+                    Image(systemName: "checkmark").transition(motion.swap)
+                } else {
+                    Text(action.title).transition(motion.swap)
+                }
+            }
+            .font(.subheadline.weight(.semibold))
+            .foregroundStyle(appearance.ink)
+            .pieceBudContent(out: out)
+            .padding(.horizontal, 18)
+            .frame(minWidth: 64, minHeight: bubble)
+            .contentShape(.capsule)
+            .pieceLiquid(.capsule, tint: out ? appearance.action : nil, interactive: false)
+            .pieceLiquidPop(trigger: actionTick)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(action.title)
+        .pieceBud(out: out, home: CGSize(width: -(actionWidth / 2 + PieceLiquid.joined + actionWidth * PieceLiquid.homeScale / 2), height: 0))
+    }
+
+    /// The countdown: a ring that drains clockwise from the top, on a faint track. It holds while touched and once
+    /// the action has run, and it is a clock, so it keeps running under Reduce Motion.
+    private func timerRing(color: Color) -> some View {
         TimelineView(.animation(paused: phase == .touched || phase == .actioned)) { context in
             let consumed = phase == .touched ? elapsed : elapsed + context.date.timeIntervalSince(resumedAt)
             let remaining = max(0, 1 - consumed / duration)
-            GeometryReader { proxy in
-                Capsule()
-                    .fill(appearance.label.opacity(0.28))
-                    .frame(width: proxy.size.width * remaining)
+            ZStack {
+                Circle().stroke(color.opacity(0.14), lineWidth: 2.5)
+                Circle()
+                    .trim(from: 0, to: remaining)
+                    .stroke(color.opacity(0.62), style: StrokeStyle(lineWidth: 2.5, lineCap: .round))
+                    .rotationEffect(.degrees(-90))
             }
         }
-        .frame(height: 2)
         .accessibilityHidden(true)
     }
 
+    /// Dismisses when the time left runs out, or a beat after the action's check appears. Every touch, release,
+    /// action and new toast starts a new run, and only the latest run may dismiss.
     private func countdown() async {
-        guard phase != .touched, phase != .actioned else { return }
-        resumedAt = .now
-        try? await Task.sleep(for: .seconds(max(0, duration - elapsed)))
-        guard !Task.isCancelled else { return }
+        let run = runToken
+        switch phase {
+        case .touched, .dismissing:
+            return
+        case .actioned:
+            // The handler has run, so this hold always ends in a dismiss, even when the view leaves first and
+            // cancels it (the action switched tabs or pushed a screen). A toast that came back with its action live
+            // could run the handler twice. Only a newer run (a new toast) takes over.
+            try? await Task.sleep(for: .milliseconds(420))
+            guard run == runToken else { return }
+        case .entering, .idle:
+            // Exactly what the bar shows is left.
+            try? await Task.sleep(for: .seconds(max(0, duration - elapsed - Date.now.timeIntervalSince(resumedAt))))
+            guard !Task.isCancelled, run == runToken else { return }
+        }
         dismiss()
+    }
+
+    /// The kind's haptic and the bubbles budding out of the card, timed to the card settling rather than the start of
+    /// its slide: the tile out of its leading end, then the action out of its trailing end.
+    private func land() async {
+        try? await Task.sleep(for: .milliseconds(250))
+        guard !Task.isCancelled else { return }
+        arriveTick += 1
+        await buds.bloom(action == nil ? ["tile"] : ["tile", "action"], reduceMotion: reduceMotion)
     }
 
     private func dismiss() {
@@ -317,30 +436,80 @@ public struct Toast: ViewModifier {
         isPresented = false
     }
 
-    /// One gesture does the pause and the swipe: any touch pauses the countdown,
-    /// movement toward the edge is free, movement away is rubber-banded.
+    /// How far the card goes on its way out: until it and its shadow are past the edge, from wherever the drag left it.
+    /// At the top the strip between the overlay and the top of the window (the status bar, a navigation bar) is
+    /// measured. At the bottom the shadow allowance spans the home indicator, and a tab bar or the keyboard covers the card.
+    private func exitDistance(in proxy: GeometryProxy) -> CGFloat {
+        let shadowReach: CGFloat = 34  // past the glass's soft lift: its 18-point radius plus its 8-point drop, with room to spare
+        let past = position == .top
+            ? max(proxy.frame(in: .global).minY, 0) + travel + dragOffset
+            : travel - dragOffset
+        return max(past + shadowReach, shadowReach)
+    }
+
+    /// The way out. A swipe leaves at the card's own speed; the timer, the action and the host use the plain dismiss.
+    private func exitAnimation(_ motion: PieceMotion, distance: CGFloat) -> Animation {
+        guard !reduceMotion, flick != 0 else { return motion.dismiss }
+        // Firm like the dismiss role, with no overshoot at all, started at the flick's speed over the distance the
+        // exit covers.
+        return motion.settle(velocity: flick, from: 0, to: position == .top ? -distance : distance, spring: Spring(duration: 0.28, bounce: 0))
+    }
+
+    /// The card's offset for a vertical drag of `t`: 1:1 toward its edge, rubber-banded away from it.
+    private func offset(for t: CGFloat) -> CGFloat {
+        let free: ClosedRange<CGFloat> = position == .top ? -CGFloat.infinity...0 : 0...CGFloat.infinity
+        return PieceMotion.rubberBand(t, in: free, limit: 60)
+    }
+
+    /// One gesture does the pause and the swipe: any touch pauses the countdown and presses the card, which
+    /// stays under the finger toward its edge and gives with rubber-band resistance away from it.
     private var touchAndSwipe: some Gesture {
         DragGesture(minimumDistance: 0)
+            .updating($touching) { _, state, _ in state = true }
             .onChanged { value in
                 if phase == .idle || phase == .entering {
                     elapsed += Date.now.timeIntervalSince(resumedAt)
                     phase = .touched
+                    touchPoint = value.startLocation
+                    runToken += 1  // stops the running countdown; the release starts one for what is left
                 }
-                let t = value.translation.height
-                dragOffset = position == .top ? min(t, 0) + max(t, 0) * 0.15 : max(t, 0) + min(t, 0) * 0.15
+                let start = grabbedAt ?? value.time
+                grabbedAt = start
+                let y = offset(for: value.translation.height)
+                // Under the finger. The first 100ms ease onto it on the press spring instead, so a grab while the
+                // card is still springing home takes it over from where it is drawn rather than jumping.
+                if value.time.timeIntervalSince(start) < 0.1 {
+                    withAnimation(PieceMotion(reduceMotion: reduceMotion).press) { dragOffset = y }
+                } else {
+                    dragOffset = y
+                }
             }
             .onEnded { value in
+                grabbedAt = nil
                 guard phase == .touched else { return }
+                let t = value.translation.height
+                // The card's own speed, not the finger's: pulled away from the edge, the band slows it.
+                let speed = (offset(for: t + value.velocity.height * 0.01) - offset(for: t)) / 0.01
                 let away = position == .top ? -value.predictedEndTranslation.height : value.predictedEndTranslation.height
                 if away > 40 {
+                    // Carried into the exit only toward the edge, so a flick already turning back never dips in first.
+                    flick = position == .top ? min(speed, 0) : max(speed, 0)
                     commitTick += 1
                     dismiss()
                 } else {
-                    withAnimation(.spring(duration: 0.35, bounce: 0.25)) { dragOffset = 0 }
-                    phase = .idle
-                    runToken += 1
+                    letGo(speed: speed)
                 }
             }
+    }
+
+    /// The touch ends without a swipe, or the system cancels it: the card springs home at `speed` and the
+    /// countdown resumes with what is left.
+    private func letGo(speed: CGFloat) {
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        withAnimation(motion.settle(velocity: speed, from: dragOffset, to: 0)) { dragOffset = 0 }
+        phase = .idle
+        resumedAt = .now  // before the bar redraws, so it resumes exactly where it froze
+        runToken += 1
     }
 }
 
@@ -381,6 +550,478 @@ private struct ToastExample: View {
     ToastExample()
         .preferredColorScheme(.dark)
 }
+
+// MARK: - Piece motion
+//
+// The SwiftPieces motion language: shared spring tokens and gesture physics, with the same values in every
+// piece. Each piece carries a copy of only the parts it uses, so this file stands alone. Generated from
+// registry/foundation/PieceMotion.swift in the SwiftPieces repo; edit it there, not here.
+// swiftpieces-motion: 1.1.0 (core, momentum, rubberBand, pressMath, press)
+
+/// The SwiftPieces motion language: five spring tiers, and a named role for every moment a piece moves,
+/// each with its Reduce Motion substitute.
+///
+/// Build one from the environment, `PieceMotion(reduceMotion: reduceMotion)`, and pick the role that names
+/// what just happened. Never animate the tracking of a finger: set gesture state directly in `onChanged`, so the
+/// surface stays under the finger, and spring only the release.
+private struct PieceMotion {
+    var reduceMotion = false
+
+    // Tiers. Overshoot and settle times are measured from rest with SwiftUI's Spring.
+    /// No overshoot, 90% in about 90ms. A press arriving under the finger.
+    static var tight: Spring { Spring(duration: 0.14, bounce: 0) }
+    /// About 2.8% overshoot, 90% in about 140ms. Snapping to a detent, page or segment.
+    static var responsive: Spring { Spring(duration: 0.32, bounce: 0.25) }
+    /// About 8.4% overshoot. Visible give: a release, a return from past an edge, a drag settling home.
+    static var elastic: Spring { Spring(duration: 0.42, bounce: 0.38) }
+    /// About 15% overshoot. A resolved action landing. At most once per interaction.
+    static var expressive: Spring { Spring(duration: 0.48, bounce: 0.48) }
+    /// About 1.5% overshoot, unhurried. Opening large surfaces and ambient change.
+    static var calm: Spring { Spring(duration: 0.5, bounce: 0.2) }
+
+    /// Reduce Motion: settles become this short spring with no overshoot.
+    private static var still: Animation { .spring(duration: 0.25, bounce: 0) }
+
+    // Roles.
+    /// Touch-down. Starts on the same frame and never bounces under the finger.
+    var press: Animation { .spring(Self.tight) }
+    /// The finger lifts off a pressed surface, which springs back through rest.
+    var release: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A dragged thing comes to rest. With a gesture's velocity, use `settle(velocity:from:to:)` instead.
+    var settle: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// Lands on a detent, page or segment.
+    var snap: Animation { reduceMotion ? Self.still : .spring(Self.responsive) }
+    /// A number, a chart value or anything else people read moves to its new value. Never overshoots, so it
+    /// never shows a value that isn't true.
+    var value: Animation { reduceMotion ? Self.still : .spring(duration: 0.35, bounce: 0) }
+    /// Comes back from past a limit: a pull beyond the edge, a value pushed against its bound.
+    var rebound: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A shape or container changes size, corner radius or form, with a little give at the end.
+    var morph: Animation { reduceMotion ? Self.still : .spring(duration: 0.4, bounce: 0.2) }
+    /// Something appears, opens or expands. Opening is a little slower than closing.
+    var reveal: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.calm) }
+    /// Something leaves, closes or collapses. Quick and firm, out of the way.
+    var dismiss: Animation { reduceMotion ? .easeIn(duration: 0.18) : .spring(duration: 0.3, bounce: 0.08) }
+    /// A resolved action lands: a check, a sent state, a reaction.
+    var success: Animation { reduceMotion ? .easeOut(duration: 0.24) : .spring(Self.expressive) }
+    /// A refused action. Firm, no wobble; `pieceShake` adds the movement.
+    var error: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.responsive) }
+    /// Slow ambient change. Loops themselves stop under Reduce Motion: check `allowsAmbient`.
+    var ambient: Animation { reduceMotion ? .easeInOut(duration: 0.3) : .spring(Self.calm) }
+
+    /// Loops, drifts, idle breathing and parallax run only when this is true.
+    var allowsAmbient: Bool { !reduceMotion }
+
+    /// A moving transition, or a plain fade under Reduce Motion.
+    func transition(_ transition: AnyTransition) -> AnyTransition {
+        reduceMotion ? .opacity : transition
+    }
+
+    /// For content replaced inside a container that stays put (a label, a glyph, a count): the old content
+    /// blurs out as the new one sharpens in. A fade under Reduce Motion.
+    @MainActor var swap: AnyTransition {
+        reduceMotion ? .opacity : AnyTransition(.blurReplace)
+    }
+}
+
+extension PieceMotion {
+    /// Where a flick at `velocity` (pt/s) coasts to. 0.998 coasts like a scroll view; 0.99 suits detents.
+    nonisolated static func project(_ position: CGFloat, velocity: CGFloat, decelerationRate: CGFloat = 0.99) -> CGFloat {
+        position + velocity / 1000 * decelerationRate / (1 - decelerationRate)
+    }
+
+    /// The candidate closest to `value`.
+    nonisolated static func nearest(_ value: CGFloat, in candidates: [CGFloat]) -> CGFloat {
+        candidates.min { abs($0 - value) < abs($1 - value) } ?? value
+    }
+
+    /// A settle that leaves at the finger's speed (pt/s). One per axis, each on its own `.offset(x:)` / `.offset(y:)`:
+    /// a spring takes one velocity. SwiftUI's own velocity carry-over is unreliable; this always carries it.
+    func settle(velocity: CGFloat, from current: CGFloat, to target: CGFloat, spring: Spring = PieceMotion.elastic) -> Animation {
+        let spring = reduceMotion ? Spring(duration: 0.25, bounce: 0) : spring
+        let distance = target - current
+        guard abs(distance) >= 1 else { return .spring(spring) }
+        // In whole distances per second, capped near the spring's frequency: a hard flick adds give, not a slingshot.
+        // At exactly the frequency a critically damped spring cannot pass its target, so Reduce Motion stops there.
+        let cap = 2 * Double.pi / spring.duration * (reduceMotion ? 1 : 1.5)
+        let relative = min(max(Double(velocity / distance), -cap), cap)
+        return .interpolatingSpring(spring, initialVelocity: relative)
+    }
+}
+
+extension PieceMotion {
+    /// A scroll view's edge resistance for a pull `overshoot` points past a limit; never reaches `limit`.
+    /// About 24 to 40 for thumbs and toggles, 60 to 120 for cards and sheets. Band the total pull, not deltas.
+    nonisolated static func rubberBand(_ overshoot: CGFloat, limit: CGFloat, coefficient: CGFloat = 0.55) -> CGFloat {
+        guard limit > 0, overshoot != 0 else { return 0 }
+        let banded = (1 - 1 / (abs(overshoot) * coefficient / limit + 1)) * limit
+        return overshoot < 0 ? -banded : banded
+    }
+
+    /// `value` inside `range` passes through unchanged; past either end it moves with rubber-band resistance.
+    nonisolated static func rubberBand(_ value: CGFloat, in range: ClosedRange<CGFloat>, limit: CGFloat, coefficient: CGFloat = 0.55) -> CGFloat {
+        if value < range.lowerBound { return range.lowerBound + rubberBand(value - range.lowerBound, limit: limit, coefficient: coefficient) }
+        if value > range.upperBound { return range.upperBound + rubberBand(value - range.upperBound, limit: limit, coefficient: coefficient) }
+        return value
+    }
+}
+
+extension PieceMotion {
+    /// About `depth` points per edge, not a fixed percentage: an icon sinks to 0.92, a pill 0.95, a card 0.985.
+    nonisolated static func pressScale(for size: CGSize, depth: CGFloat = 2.5) -> CGFloat {
+        let side = (max(size.width, 1) * max(size.height, 1)).squareRoot()
+        return min(max(1 - depth * 2 / side, 0.92), 0.985)
+    }
+
+    /// An anchor partway from the center toward the touch, so the press leans into the finger without tipping.
+    nonisolated static func pressAnchor(touch: CGPoint?, in size: CGSize, lean: CGFloat = 0.6) -> UnitPoint {
+        guard let touch, size.width > 0, size.height > 0 else { return .center }
+        let x = min(max(touch.x / size.width, 0), 1)
+        let y = min(max(touch.y / size.height, 0), 1)
+        return UnitPoint(x: 0.5 + (x - 0.5) * lean, y: 0.5 + (y - 0.5) * lean)
+    }
+}
+
+/// Sinks on touch-down, leaning toward the touch if given, and springs back from the same lean. Under Reduce
+/// Motion it shades instead of moving (darker in light mode, lighter in dark), without turning transparent.
+private struct PiecePress: ViewModifier {
+    let pressed: Bool
+    var touch: CGPoint?
+    var depth: CGFloat = 2.5
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.colorScheme) private var colorScheme
+    @State private var size: CGSize = .zero
+    @State private var anchor: UnitPoint = .center
+
+    func body(content: Content) -> some View {
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        let scale = pressed && !reduceMotion ? PieceMotion.pressScale(for: size, depth: depth) : 1
+        content
+            .onGeometryChange(for: CGSize.self) { $0.size } action: { size = $0 }
+            .brightness(pressed && reduceMotion ? (colorScheme == .dark ? 0.1 : -0.08) : 0)
+            .scaleEffect(scale, anchor: anchor)
+            .animation(pressed ? motion.press : motion.release, value: pressed)
+            .onChange(of: pressed) { _, isPressed in
+                if isPressed { anchor = PieceMotion.pressAnchor(touch: touch, in: size) }
+            }
+            .onChange(of: touch) { _, touch in
+                if pressed, let touch { anchor = PieceMotion.pressAnchor(touch: touch, in: size) }
+            }
+    }
+}
+
+private extension View {
+    /// Sinks this view while `pressed`, leaning toward `touch` (in this view's coordinates) when given.
+    func piecePress(_ pressed: Bool, touch: CGPoint? = nil, depth: CGFloat = 2.5) -> some View {
+        modifier(PiecePress(pressed: pressed, touch: touch, depth: depth))
+    }
+}
+
+// swiftpieces-motion: end
+
+// MARK: - Piece liquid
+//
+// The SwiftPieces liquid glass language: glass shapes that merge through a neck, bubbles that bud out of
+// and melt back into each other, and the frosted fallback before iOS 26. Each piece carries a copy of only
+// the parts it uses, so this file stands alone. Generated from registry/foundation/PieceLiquid.swift in the
+// SwiftPieces repo; edit it there, not here. The rules are in LIQUID_GLASS.md.
+// swiftpieces-liquid: 1.7.0 (liquid, liquidPop, bud)
+
+/// The liquid glass language: one merge distance, two rest gaps, and the springs a bubble leaves and comes home on.
+///
+/// Glass shapes inside one `PieceLiquidGroup` melt into each other through a neck when they come within `merge`
+/// points. Parts of one control rest `joined`, inside that distance, so the neck holds; separate actions rest
+/// `apart`, outside it, so they only goo while one buds out of, or melts back into, another.
+private enum PieceLiquid {
+    /// Glass shapes closer than this share a neck.
+    static let merge: CGFloat = 20
+    /// The gap between parts of one control (a stepper's buttons, a progress pill and its stop): the neck holds,
+    /// short and smooth, about two thirds of the shapes' height at its waist. Joined parts read best at one height.
+    static let joined: CGFloat = 4
+    /// The gap between separate actions (menu items, confirm and cancel, chips): they rest as their own bubbles.
+    static let apart: CGFloat = 26
+    /// How far a bubble shrinks while it is home inside its parent.
+    static let homeScale: CGFloat = 0.72
+
+    /// A bubble leaving its parent: slow enough that the neck's stretch and snap read.
+    static func split(reduceMotion: Bool) -> Animation {
+        reduceMotion ? .easeOut(duration: 0.2) : .spring(duration: 0.62, bounce: 0.22)
+    }
+
+    /// A bubble going home. No bounce: a bounce would carry it out through the far side of its parent.
+    static func home(reduceMotion: Bool) -> Animation {
+        reduceMotion ? .easeIn(duration: 0.18) : .spring(duration: 0.5, bounce: 0)
+    }
+}
+
+/// A group of glass shapes that merge into one liquid surface. On iOS 26 it is a `GlassEffectContainer`; before
+/// that, and under Reduce Transparency, the shapes draw on their own and simply don't merge. `lift` adds the soft
+/// shadow liquid glass floats on in light mode.
+private struct PieceLiquidGroup<Content: View>: View {
+    var spacing: CGFloat = PieceLiquid.merge
+    var lift = true
+    @ViewBuilder var content: Content
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        container
+            .shadow(color: .black.opacity(lift && colorScheme == .light ? 0.07 : 0), radius: 18, y: 8)
+    }
+
+    @ViewBuilder private var container: some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26, *), !reduceTransparency {
+            GlassEffectContainer(spacing: spacing) { content }
+        } else {
+            content
+        }
+        #else
+        content
+        #endif
+    }
+}
+
+/// One liquid glass shape: Liquid Glass on iOS 26, carrying `tint` as a solid colour and swelling under a press when
+/// `interactive`; a frosted Material with a light rim and a soft shadow before that; a solid fill under Reduce
+/// Transparency.
+///
+/// The tint is painted inside clear glass rather than tinting the glass. Tinted glass in a group bleeds its colour
+/// through every neck as a smear, so a red button would glow into the white pill it is joined to; painted inside,
+/// the colour stays crisp to the shape's edge, the necks between shapes are clear glass, and a tint change animates
+/// like any colour (tinted glass snaps).
+private struct PieceLiquidSurface<S: Shape>: ViewModifier {
+    var shape: S
+    var tint: Color?
+    var interactive: Bool
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.pieceLiquidScale) private var scale
+
+    func body(content: Content) -> some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26, *), !reduceTransparency {
+            // Scaled as two parts, content and outline, about the same centre. A scaleEffect on a glass view inside a
+            // GlassEffectContainer shrinks the glass but leaves what it carries full size, pinned to its corner.
+            content
+                .background { shape.fill(tint ?? .clear) }
+                .scaleEffect(scale)
+                .glassEffect(glass, in: shape.scale(scale))
+        } else {
+            fallback(content).scaleEffect(scale)
+        }
+        #else
+        fallback(content).scaleEffect(scale)
+        #endif
+    }
+
+    #if compiler(>=6.2)
+    @available(iOS 26, *)
+    private var glass: Glass {
+        interactive ? Glass.regular.interactive() : .regular
+    }
+    #endif
+
+    private func fallback(_ content: Content) -> some View {
+        let dark = colorScheme == .dark
+        return content
+            .background {
+                if reduceTransparency {
+                    shape.fill(tint ?? (dark ? Color(white: 0.17) : Color(white: 0.97)))
+                } else {
+                    ZStack {
+                        shape.fill(.regularMaterial)
+                        if let tint { shape.fill(tint.opacity(0.88)) }
+                    }
+                }
+            }
+            .overlay { shape.stroke(Color.white.opacity(dark ? 0.14 : 0.7), lineWidth: 0.5) }
+            .shadow(color: .black.opacity(dark ? 0.32 : 0.08), radius: 10, y: 5)
+    }
+}
+
+private struct PieceLiquidScaleKey: EnvironmentKey {
+    static let defaultValue: CGFloat = 1
+}
+
+private extension EnvironmentValues {
+    /// How much the liquid shapes below are scaled, about their own centres. Nested scales multiply.
+    var pieceLiquidScale: CGFloat {
+        get { self[PieceLiquidScaleKey.self] }
+        set { self[PieceLiquidScaleKey.self] = newValue }
+    }
+}
+
+private extension View {
+    /// Draws this view on a liquid glass `shape`. Put it inside a `PieceLiquidGroup` so it can merge with its neighbours.
+    func pieceLiquid<S: Shape>(_ shape: S, tint: Color? = nil, interactive: Bool = true) -> some View {
+        modifier(PieceLiquidSurface(shape: shape, tint: tint, interactive: interactive))
+    }
+
+    /// Scales the liquid glass shapes in this view, content and outline together, about their own centres. Use it
+    /// instead of `scaleEffect` on a glass view (a press, a lift, a swell): inside a group a plain `scaleEffect` shrinks
+    /// the glass but leaves its content full size and off centre. Animates like any other value.
+    func pieceLiquidScale(_ scale: CGFloat) -> some View {
+        transformEnvironment(\.pieceLiquidScale) { $0 *= scale }
+    }
+}
+
+/// `piecePop` for glass: dips, swells past full size and lands each time `trigger` changes, on the same timings,
+/// through `pieceLiquidScale` so the glass and what it carries pop together. Driven from state rather than a
+/// keyframe animator, since the liquid scale can't be set from inside one. Still under Reduce Motion.
+private struct PieceLiquidPop: ViewModifier {
+    let trigger: AnyHashable
+    var amount: CGFloat = 0.08
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var scale: CGFloat = 1
+    @State private var run = 0
+
+    func body(content: Content) -> some View {
+        content
+            .pieceLiquidScale(scale)
+            .onChange(of: trigger) { _, _ in
+                guard !reduceMotion else { return }
+                run += 1
+                let mine = run
+                withAnimation(.easeInOut(duration: 0.08)) { scale = 1 - amount * 0.4 }
+                Task { @MainActor in
+                    try? await Task.sleep(for: .milliseconds(80))
+                    guard run == mine else { return }
+                    withAnimation(.spring(duration: 0.18, bounce: 0)) { scale = 1 + amount }
+                    try? await Task.sleep(for: .milliseconds(140))
+                    guard run == mine else { return }
+                    withAnimation(.spring(PieceMotion.expressive)) { scale = 1 }
+                }
+            }
+    }
+}
+
+private extension View {
+    /// Pops this view's glass each time `trigger` changes. Use a counter, never a Bool that can flip back before it fires.
+    func pieceLiquidPop(trigger: some Hashable & Sendable, amount: CGFloat = 0.08) -> some View {
+        modifier(PieceLiquidPop(trigger: AnyHashable(trigger), amount: amount))
+    }
+}
+
+/// The bud: how a bubble leaves and rejoins its parent, driven explicitly so every bubble shows the whole cycle.
+///
+/// A bubble is born at `home`, inside its parent, where the two glass shapes are one. It springs out to `rest`, and
+/// while it is inside the merge distance a neck holds it to the parent, thinning as it goes, until it snaps free.
+/// Going home it springs back on a spring with no bounce, the neck reaches out and re-forms, and only once it has
+/// melted all the way in is it removed. Both offsets are relative to where the bubble is laid out. Under Reduce
+/// Motion it stays at `rest`: its content fades and its glass closes in place.
+private struct PieceBud: ViewModifier {
+    var out: Bool
+    var rest: CGSize
+    var home: CGSize
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func body(content: Content) -> some View {
+        if reduceMotion {
+            // No travel. Inside a group glass ignores opacity, so the glass closes to nothing in place on the short
+            // Reduce Motion ease while its content fades; the opacity covers a bubble outside a group.
+            content
+                .pieceLiquidScale(out ? 1 : 0.001)
+                .opacity(out ? 1 : 0)
+                .offset(rest)
+        } else {
+            // The glass shrinks through `pieceLiquidScale`, never a plain scaleEffect (see there), then moves.
+            content
+                .pieceLiquidScale(out ? 1 : PieceLiquid.homeScale)
+                .offset(out ? rest : home)
+        }
+    }
+}
+
+/// A bubble's own content, on its own clock: gone the moment the bubble heads home, so it never rides over the
+/// parent's content, and arriving just after the bubble leaves.
+private struct PieceBudContent: ViewModifier {
+    var out: Bool
+
+    func body(content: Content) -> some View {
+        content
+            .blur(radius: out ? 0 : 6)
+            .opacity(out ? 1 : 0)
+            .animation(out ? .easeOut(duration: 0.3).delay(0.1) : .easeOut(duration: 0.14), value: out)
+    }
+}
+
+private extension View {
+    /// Places a bubble at `rest` while `out`, and at `home` (inside its parent, shrunk) while not.
+    func pieceBud(out: Bool, rest: CGSize = .zero, home: CGSize) -> some View {
+        modifier(PieceBud(out: out, rest: rest, home: home))
+    }
+
+    /// Hides a bubble's icon or label while it is home. Put it on the content, inside the glass.
+    func pieceBudContent(out: Bool) -> some View {
+        modifier(PieceBudContent(out: out))
+    }
+}
+
+/// Which bubbles exist and which are out. A bubble is added home with no animation, sent out on the next frame,
+/// and called home before it is removed, so it always melts in rather than fading. Keep one in `@State`.
+@MainActor @Observable
+private final class PieceBuds {
+    private(set) var present: [String] = []
+    private(set) var out: Set<String> = []
+    /// The latest call for each bubble. A bloom or gather that has been overtaken (a bubble sent home while it was
+    /// still waiting to go out, or called out again while melting) leaves that bubble alone.
+    @ObservationIgnored private var turn: [String: Int] = [:]
+
+    func contains(_ id: String) -> Bool { present.contains(id) }
+    func isOut(_ id: String) -> Bool { out.contains(id) }
+
+    private func claim(_ ids: [String]) -> [String: Int] {
+        var mine: [String: Int] = [:]
+        for id in ids {
+            let next = (turn[id] ?? 0) + 1
+            turn[id] = next
+            mine[id] = next
+        }
+        return mine
+    }
+
+    /// Puts bubbles straight out at rest with no motion: a view's first frame, or a state restored.
+    func place(_ ids: [String]) {
+        _ = claim(ids)
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) {
+            for id in ids where !present.contains(id) { present.append(id) }
+            out.formUnion(ids)
+        }
+    }
+
+    /// Adds bubbles home, then sends each out, `stagger` seconds apart, after an optional `delay`.
+    func bloom(_ ids: [String], reduceMotion: Bool, stagger: Double = 0.05, delay: Double = 0) async {
+        let mine = claim(ids)
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) {
+            for id in ids where !present.contains(id) { present.append(id) }
+        }
+        try? await Task.sleep(for: .milliseconds(24 + Int(max(delay, 0) * 1000)))
+        let split = PieceLiquid.split(reduceMotion: reduceMotion)
+        for (i, id) in ids.enumerated() where turn[id] == mine[id] {
+            withAnimation(split.delay(reduceMotion ? 0 : Double(i) * stagger)) { _ = out.insert(id) }
+        }
+    }
+
+    /// Calls bubbles home, last first, then removes them once they have melted in.
+    func gather(_ ids: [String], reduceMotion: Bool, stagger: Double = 0.04) async {
+        let mine = claim(ids)
+        let home = PieceLiquid.home(reduceMotion: reduceMotion)
+        for (i, id) in ids.reversed().enumerated() {
+            withAnimation(home.delay(reduceMotion ? 0 : Double(i) * stagger)) { _ = out.remove(id) }
+        }
+        try? await Task.sleep(for: .milliseconds(Int((0.52 + Double(ids.count) * stagger) * 1000)))
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) { present.removeAll { ids.contains($0) && !out.contains($0) && turn[$0] == mine[$0] } }
+    }
+}
+
+// swiftpieces-liquid: end
 ```
 
 </Tab>

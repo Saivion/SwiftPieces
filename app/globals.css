@@ -27,6 +27,9 @@
   --pv-bg: #121212; --pv-surface: #1c1c1c; --pv-raised: #262626; --pv-line: rgba(255,255,255,0.08);
   --pv-text: #f4f3ef; --pv-muted: #a6a49f; --pv-subtle: #6f6d69;
   --pv-field: #262626; --pv-control: #3a3a3a; --pv-trough: #2a2a2a; --pv-band: #4a4029;
+  --pv-shadow: 1;
+  /* Liquid glass in the previews (components/previews/piece-liquid.tsx): a translucent body, so the stage shows through. */
+  --pv-glass: rgba(38,38,41,0.62); --pv-glass-solid: #2a2a2d; --pv-glass-shade: rgba(0,0,0,0.24); --pv-glass-light: #3a3a3a; --pv-glass-rim: rgba(255,255,255,0.16); --pv-glass-lift: rgba(0,0,0,0.45); --pv-glass-edge: rgba(255,255,255,0.12);
   --footer-word: #232326;   /* the giant SWIFTPIECES word in the footer */
   --footer-slot: #101012;    /* the footer wordmark's outlined SWIFT: its faint fill */
   --footer-dash: rgba(255, 255, 255, 0.3); /* ...and its dashed outline */
@@ -75,23 +78,26 @@
 .frame-hover:hover > svg[viewBox="0 0 9 9"] { color: var(--accent); }
 /* A Pro frame (the App Library's way into the Pro apps): on hover it fills with the animated Pro
    halftone from its corner, as every Pro card does (components/apps/pro-unlock.tsx), and its dashes
-   and crosses take the Pro badge's colours, blue into orange. */
-/* The Pro badge (components/ui/pro-badge.tsx), identical to Pro's navbar badge: quiet on purpose. A
-   1px ring fading from the palette's blue to its orange, a barely-there wash of the same two, and the
-   word in a muted blend of both. Mixed with the foreground, so it reads in light and dark alike. */
+   and crosses take the Pro palette's blue into orange. */
+/* The Pro badge (components/ui/pro-badge.tsx), identical to Pro's navbar badge: red into pink into blue. */
 .pro-badge {
-  --pb-a: var(--pro-c3);
-  --pb-b: var(--pro-c2);
-  --pb-ink-a: color-mix(in srgb, var(--pb-a) 60%, var(--foreground));
-  --pb-ink-b: color-mix(in srgb, var(--pb-b) 60%, var(--foreground));
+  /* The Pro palette, as the Pro text has it but without the orange: brand red (#ff0000) leading into pink and blue.
+     A tinted badge, never solid: a 1px ring of the three, a faint wash of them, and the crown and word in the same
+     colours, a little of the foreground mixed into the ink so it reads in light and dark alike. */
+  --pb-a: var(--pro-c1);
+  --pb-m: var(--pro-pink, #ff8fb8);
+  --pb-b: var(--pro-c3);
+  --pb-ink-a: color-mix(in srgb, var(--pb-a) 80%, var(--foreground));
+  --pb-ink-m: color-mix(in srgb, var(--pb-m) 70%, var(--foreground));
+  --pb-ink-b: color-mix(in srgb, var(--pb-b) 75%, var(--foreground));
   border: 1px solid transparent;
   background:
-    linear-gradient(100deg, color-mix(in srgb, var(--pb-a) 12%, var(--background)), color-mix(in srgb, var(--pb-b) 12%, var(--background))) padding-box,
-    linear-gradient(100deg, color-mix(in srgb, var(--pb-a) 55%, transparent), color-mix(in srgb, var(--pb-b) 55%, transparent)) border-box;
+    linear-gradient(100deg, color-mix(in srgb, var(--pb-a) 12%, var(--background)), color-mix(in srgb, var(--pb-m) 12%, var(--background)), color-mix(in srgb, var(--pb-b) 12%, var(--background))) padding-box,
+    linear-gradient(100deg, color-mix(in srgb, var(--pb-a) 60%, transparent), color-mix(in srgb, var(--pb-m) 55%, transparent), color-mix(in srgb, var(--pb-b) 55%, transparent)) border-box;
   transition: filter .3s;
 }
 .pro-badge span {
-  background-image: linear-gradient(100deg, var(--pb-ink-a), var(--pb-ink-b));
+  background-image: linear-gradient(100deg, var(--pb-ink-a), var(--pb-ink-m), var(--pb-ink-b));
   -webkit-background-clip: text; background-clip: text; color: transparent;
 }
 .pro-badge:hover, a:hover .pro-badge { filter: saturate(1.4) brightness(1.03); }
@@ -432,6 +438,9 @@ html.light .frame-row > *::before { --dash: rgb(0 0 0 / 0.2); }
   --pv-bg: #121212; --pv-surface: #1c1c1c; --pv-raised: #262626; --pv-line: rgba(255,255,255,0.08);
   --pv-text: #f4f3ef; --pv-muted: #a6a49f; --pv-subtle: #6f6d69;
   --pv-field: #262626; --pv-control: #3a3a3a; --pv-trough: #2a2a2a; --pv-band: #4a4029;
+  --pv-shadow: 1;
+  /* Liquid glass in the previews (components/previews/piece-liquid.tsx): a translucent body, so the stage shows through. */
+  --pv-glass: rgba(38,38,41,0.62); --pv-glass-solid: #2a2a2d; --pv-glass-shade: rgba(0,0,0,0.24); --pv-glass-light: #3a3a3a; --pv-glass-rim: rgba(255,255,255,0.16); --pv-glass-lift: rgba(0,0,0,0.45); --pv-glass-edge: rgba(255,255,255,0.12);
   --scrub-line: #f4f3ef; --scrub-surface: #1c1c1c; --scrub-raised: #262626;
 }
 /* The terminal on the CLI stage: lines land one by one after the command is typed. */
@@ -545,6 +554,9 @@ html.light {
   --pv-bg: #f3f2ee; --pv-surface: #ffffff; --pv-raised: #ffffff; --pv-line: rgba(0,0,0,0.08);
   --pv-text: #141414; --pv-muted: #5c5a56; --pv-subtle: #8b8984;
   --pv-field: #ebe9e3; --pv-control: #dcd9d1; --pv-trough: #e3e1db; --pv-band: #f7e7b4;
+  /* Card shadows on paper run at about a third of their dark strength, as the Swift pieces do (dark uses 3x). */
+  --pv-shadow: 0.36;
+  --pv-glass: rgba(255,255,255,0.55); --pv-glass-solid: #fdfdfb; --pv-glass-shade: rgba(0,0,0,0.10); --pv-glass-light: #ffffff; --pv-glass-rim: rgba(255,255,255,0.9); --pv-glass-lift: rgba(0,0,0,0.10); --pv-glass-edge: rgba(0,0,0,0.10);
   /* Scrub Chart's colours are registered properties (initial values are dark), so set them here. */
   --scrub-line: #141414; --scrub-surface: #ffffff; --scrub-raised: #f1efea;
 }
@@ -875,3 +887,24 @@ html.light .offer-cells > *::before, html.light .offer-cells > *::after, html.li
 @media (min-width: 1024px) {
   .offer-seam::before { top: 0; bottom: 0; left: 0; width: 1px; background: linear-gradient(180deg, transparent 3px, var(--dash) 3px 7px, transparent 7px) 0 0 / 1px 10px repeat-y; }
 }
+
+/* Liquid glass previews: a letter of a MorphText arriving (components/previews/piece-liquid.tsx). */
+@keyframes pv-lq-in {
+  from { opacity: 0; filter: blur(6px); transform: translateY(30%) scale(0.6); }
+  to { opacity: 1; filter: blur(0); transform: none; }
+}
+.pv-lq-in { display: inline-block; animation: pv-lq-in 420ms cubic-bezier(0.22, 1.2, 0.36, 1) both; }
+/* ...and a letter it replaces leaving where it stood. */
+@keyframes pv-lq-out {
+  from { opacity: 1; filter: blur(0); transform: none; }
+  to { opacity: 0; filter: blur(6px); transform: translateY(-30%) scale(0.6); }
+}
+.pv-lq-out { display: inline-block; animation: pv-lq-out 240ms ease-in both; }
+@media (prefers-reduced-motion: reduce) { .pv-lq-in, .pv-lq-out { animation: none; } .pv-lq-out { opacity: 0; } }
+
+/* Liquid glass in the previews: each group draws its glass through the filter for the site theme (piece-liquid.tsx). */
+.pv-glass-pass { filter: var(--pv-goo-dark) var(--pv-goo-lift); }
+html.light .pv-glass-pass { filter: var(--pv-goo-light) var(--pv-goo-lift); }
+/* Always-dark islands (the landing iPhones, the carousel, the terminal) keep dark glass in light mode too: their glass
+   colours are dark (.stage-dark), so the material lookup must be the dark one, or the glass turns milky grey. */
+.stage-dark .pv-glass-pass, html.light .stage-dark .pv-glass-pass { filter: var(--pv-goo-dark) var(--pv-goo-lift); }

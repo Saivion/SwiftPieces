@@ -14,6 +14,8 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "registry:build": "tsx scripts/build-registry.ts",
+    "motion:sync": "tsx scripts/sync-motion.ts",
+    "motion:check": "tsx scripts/sync-motion.ts --check",
     "swift:typecheck": "bash scripts/typecheck-swift.sh",
     "previews:record": "tsx scripts/record-previews.ts",
     "bundle:check": "bash scripts/check-bundle-size.sh",

@@ -62,6 +62,8 @@ GEMINI.md
 .aider*
 .codex
 .github/copilot-instructions.md
+.github/agents/liquid-glass.agent.md
+LIQUID_GLASS.md
 .vscode
 .idea
 *.swp

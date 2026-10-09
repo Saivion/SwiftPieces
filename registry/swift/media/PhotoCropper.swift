@@ -1,9 +1,9 @@
 // swiftpieces:
 // title: Photo Cropper
-// description: "A crop step for profile photos, posts and listings that keeps the picked photo covering a frame of the chosen aspect at every zoom and offset, pinches around the fingers while it pans, rubber-bands past its limits and springs back with a red flash on the frame and a rigid tick at a zoom limit, morphs between circle, square, 4:5, 16:9 and the photo's own shape without losing the subject, turns a quarter at a time, fades in a rule-of-thirds grid under the finger, and renders the crop off the main thread at the original's full resolution together with its pixel rect and rotation for cropping again on a server."
+// description: "A crop step for profile photos, posts and listings that keeps the picked photo covering a frame of the chosen aspect at every zoom and offset, pinches around the fingers while it pans, rubber-bands past its limits and springs back with a red flash on the frame and a rigid tick at a zoom limit, morphs between circle, square, 4:5, 16:9 and the photo's own shape without losing the subject as a red liquid glass puck stretches along the aspect chips' glass track, turns a quarter at a time, fades in a rule-of-thirds grid under the finger, floats its zoom level over the photo on glass, and renders the crop off the main thread at the original's full resolution together with its pixel rect and rotation for cropping again on a server."
 // category: media
 // minIOSVersion: "17.0"
-// version: "1.0.1"
+// version: "1.2.0"
 // added: "2026-09-29"
 // tags: [crop, photo, avatar, pinch-zoom, rotate, aspect-ratio, image, editor]
 
@@ -11,6 +11,10 @@ import SwiftUI
 import UIKit
 
 /// A crop step for a picked photo: the photo under a frame of the chosen aspect, with pinch, pan, rotate and aspect chips.
+///
+/// The photo is content; the controls around it are liquid glass. The aspect chips sit on one glass track, with a
+/// red puck under the selected one that stretches between picks. Rotate and Reset rest joined as one pair of tools,
+/// apart from Cancel and the red Choose capsule, and the zoom level floats over the photo on glass while you pinch.
 ///
 /// The photo always covers the frame. It can't be zoomed out or dragged so far that an empty edge stays in the
 /// frame: past a limit it resists and springs back on release. The framing is stored relative to the photo (zoom
@@ -211,15 +215,17 @@ public struct PhotoCropper: View {
         public var scrim: Color
         /// The frame's edge, its corner marks and the thirds grid.
         public var edge: Color
-        /// Choose, the selected aspect's glyph and the frame's flash at a zoom limit.
+        /// The glass tint of Choose and of the selected aspect's puck, and the frame's flash at a zoom limit.
         public var accent: Color
-        /// Text and the spinner on `accent`.
+        /// Text, glyphs and the spinner on `accent`.
         public var accentInk: Color
-        /// Aspect chips and the rotate button.
+        /// Unused since the liquid glass refactor: the chips, Rotate, Reset and Cancel are neutral liquid glass. Kept so
+        /// existing code still compiles.
         public var control: Color
-        /// The selected aspect chip.
+        /// Unused since the liquid glass refactor: the selected chip is marked by a puck of glass tinted with `accent`.
+        /// Kept so existing code still compiles.
         public var selectedControl: Color
-        /// Titles, Cancel and Reset.
+        /// Cancel, Reset and Rotate, and the title of a selected chip when the photo can't be opened.
         public var label: Color
         /// Unselected chip titles and outlines.
         public var secondaryLabel: Color
@@ -257,6 +263,8 @@ public struct PhotoCropper: View {
     @Environment(\.displayScale) private var displayScale
     @ScaledMetric(relativeTo: .caption) private var glyphSide: CGFloat = 18
     @ScaledMetric(relativeTo: .body) private var buttonSide: CGFloat = 44
+    /// The track's rim around the chips: the puck sits this far inside it, concentric.
+    private let chipInset: CGFloat = 4
 
     /// Owned when no framing is bound.
     @State private var ownFraming: Framing
@@ -270,6 +278,13 @@ public struct PhotoCropper: View {
     /// Where Reset goes: the photo filling the starting aspect.
     @State private var rest: Framing
     @State private var live: LiveGesture?
+    /// The last gesture's landing, while it may still be moving.
+    @State private var landing: Landing?
+    /// A held key has met an edge or a zoom limit and ticked; its repeats stay quiet.
+    @State private var heldAtLimit = false
+    /// Where each layout of the chip row moves its puck.
+    @Namespace private var fittedChips
+    @Namespace private var scrollingChips
     @State private var showsGrid = false
     @State private var showsReadout = false
     @State private var gridTask: Task<Void, Never>?
@@ -329,9 +344,10 @@ public struct PhotoCropper: View {
     }
 
     private var interactive: Bool { isEnabled && phase == .editing && display != nil && !failed }
-    private var settleMotion: Animation { reduceMotion ? .easeInOut(duration: 0.2) : .spring(duration: 0.4, bounce: 0) }
-    private var morphMotion: Animation { reduceMotion ? .easeInOut(duration: 0.2) : .spring(duration: 0.46, bounce: 0) }
-    private var turnMotion: Animation? { reduceMotion ? nil : .spring(duration: 0.5, bounce: 0) }
+    /// Every move of the photo that isn't a gesture's landing (double tap, steps, aspect, turns, Reset) lands on
+    /// `value`, never `morph`: the framing is the crop you'll get, so it never overshoots, and the photo never swings
+    /// past the frame's edge or dips below filling it.
+    private var motion: PieceMotion { PieceMotion(reduceMotion: reduceMotion) }
 
     /// The chips shown: `aspects` without repeats, with the current aspect added at the front when it's missing.
     private var chips: [Aspect] {
@@ -351,19 +367,24 @@ public struct PhotoCropper: View {
             toolbar
         }
         .background(style.background)
+        .fontWeight(.semibold)
         .opacity(isEnabled ? 1 : 0.45)
         // The on-screen copy is cut for about twice the canvas, so it stays sharp while zoomed. A much larger canvas
         // (rotation, a resized window) cuts it again; the current copy stays up meanwhile.
         .task(id: DisplayRequest(image: ObjectIdentifier(image), longSide: displayLongSide)) { await prepare(longSide: displayLongSide) }
         .onChange(of: ObjectIdentifier(image)) { _, _ in photoChanged() }
         .onChange(of: framing.quarterTurns) { _, new in followTurns(to: new) }
+        // Anything else that moves the photo ends the landing: there's nothing left to catch.
+        .onChange(of: framing) { _, new in
+            if let landing, landing.to != new { self.landing = nil }
+        }
         .onDisappear {
             // A render is dropped when the cropper goes away; your `onCrop` is never cut off once it has the crop.
             if phase == .rendering, !delivering { renderTask?.cancel() }
             gridTask?.cancel()
         }
         .sensoryFeedback(.selection, trigger: aspectTick)
-        .sensoryFeedback(.impact(weight: .light), trigger: rotateTick)
+        .sensoryFeedback(.impact(weight: SensoryFeedback.Weight.light), trigger: rotateTick)
         .sensoryFeedback(.impact(flexibility: .rigid), trigger: limitTick)
         .sensoryFeedback(.impact(flexibility: .soft, intensity: 0.7), trigger: resetTick)
         .sensoryFeedback(.success, trigger: successTick)
@@ -380,22 +401,28 @@ public struct PhotoCropper: View {
             ZStack(alignment: .topLeading) {
                 if let display, !failed {
                     photo(display, shown: shown, layout: layout, dimmed: true)
+                        .transition(.opacity)
+                        .id(turnCopy)
+                    // The mask is part of the copy, so under Reduce Motion each frame fades with the photo that covers it.
                     photo(display, shown: shown, layout: layout, dimmed: false)
                         .mask { CropFrameShape(size: layout.frame.size, radius: layout.radius) }
+                        .transition(.opacity)
+                        .id(turnCopy)
                 } else {
                     // A quiet placeholder while the on-screen copy is cut: the frame, faintly filled.
                     CropFrameShape(size: layout.frame.size, radius: layout.radius)
                         .fill(style.edge.opacity(0.07))
                 }
                 frameMarks(layout)
+                    .transition(.opacity)
+                    .id(turnCopy)
                 if failed {
                     failure(in: layout)
                 } else if display == nil {
                     CropPreparing(tint: style.edge.opacity(0.7))
                         .position(x: layout.frame.midX, y: layout.frame.midY)
                 }
-                readout(shown, in: layout)
-                noticeView(in: layout)
+                hud(shown, in: layout)
                 CropGestureLayer(isEnabled: interactive) { event in handle(event, in: layout) }
                     .frame(width: size.width, height: size.height)
             }
@@ -430,13 +457,13 @@ public struct PhotoCropper: View {
         }
         // A hardware keyboard: arrows move, + and - zoom. Return and Escape are Choose and Cancel.
         .focusable(interactive)
-        .onKeyPress(.upArrow) { keyNudge(x: 0, y: -1) }
-        .onKeyPress(.downArrow) { keyNudge(x: 0, y: 1) }
-        .onKeyPress(.leftArrow) { keyNudge(x: -1, y: 0) }
-        .onKeyPress(.rightArrow) { keyNudge(x: 1, y: 0) }
+        .onKeyPress(.upArrow, phases: [.down, .repeat]) { keyNudge(x: 0, y: -1, $0) }
+        .onKeyPress(.downArrow, phases: [.down, .repeat]) { keyNudge(x: 0, y: 1, $0) }
+        .onKeyPress(.leftArrow, phases: [.down, .repeat]) { keyNudge(x: -1, y: 0, $0) }
+        .onKeyPress(.rightArrow, phases: [.down, .repeat]) { keyNudge(x: 1, y: 0, $0) }
         .onKeyPress(characters: CharacterSet(charactersIn: "+=-_")) { press in
             guard interactive else { return .ignored }
-            zoomStep(in: press.characters == "+" || press.characters == "=")
+            zoomStep(in: press.characters == "+" || press.characters == "=", repeating: press.phase == .repeat)
             return .handled
         }
     }
@@ -467,8 +494,11 @@ public struct PhotoCropper: View {
             ))
             .frame(width: layout.canvas.width, height: layout.canvas.height, alignment: .topLeading)
             .allowsHitTesting(false)
-            .transition(.opacity)
     }
+
+    /// Under Reduce Motion a quarter turn crossfades to the turned photo and frame instead of swinging round: nothing
+    /// morphs, so no corner of either frame is ever left without its photo.
+    private var turnCopy: Int { reduceMotion ? shownTurns : 0 }
 
     /// The frame's edge, corner marks and the thirds grid. The edge and marks flash red at a zoom limit.
     private func frameMarks(_ layout: CropLayout) -> some View {
@@ -488,19 +518,35 @@ public struct PhotoCropper: View {
         .allowsHitTesting(false)
     }
 
-    /// The zoom level while pinching, just above the frame (or inside its top edge when there's no room).
+    /// The zoom level and the notice: liquid glass floating over the photo. The well is dark in both appearances, so
+    /// its glass is the dark glass, with the frame's paper ink.
+    private func hud(_ shown: Framing, in layout: CropLayout) -> some View {
+        PieceLiquidGroup(lift: false) {
+            ZStack(alignment: .topLeading) {
+                readout(shown, in: layout)
+                noticeView(in: layout)
+            }
+            .frame(width: layout.canvas.width, height: layout.canvas.height, alignment: .topLeading)
+        }
+        .environment(\.colorScheme, .dark)
+        .allowsHitTesting(false)
+    }
+
+    /// The zoom level while pinching, just above the frame (or inside its top edge when there's no room). It has no
+    /// glass to bud from: it settles down into place as the fingers land and lifts away after them. Under Reduce
+    /// Motion it only fades.
     private func readout(_ shown: Framing, in layout: CropLayout) -> some View {
         let y = layout.frame.minY >= 42 ? layout.frame.minY - 21 : layout.frame.minY + 21
         return Text(zoomText(shown.zoom))
             .font(.footnote.weight(.semibold).monospacedDigit())
             .foregroundStyle(style.edge)
             .padding(.horizontal, 10)
-            .padding(.vertical, 4)
-            .background(Color(red: 0.078, green: 0.078, blue: 0.078).opacity(0.72), in: .capsule)
+            .padding(.vertical, 5)
             .fixedSize()
-            .position(x: layout.frame.midX, y: y)
+            .pieceLiquid(.capsule, interactive: false)
+            .offset(y: showsReadout || reduceMotion ? 0 : -4)
             .opacity(showsReadout ? 1 : 0)
-            .allowsHitTesting(false)
+            .position(x: layout.frame.midX, y: y)
     }
 
     @ViewBuilder
@@ -508,7 +554,7 @@ public struct PhotoCropper: View {
         if let notice {
             HStack(spacing: 8) {
                 Image(systemName: "exclamationmark")
-                    .font(.caption.weight(.heavy))
+                    .font(.caption.weight(.semibold))
                     .foregroundStyle(style.accentInk)
                     .frame(width: 22, height: 22)
                     .background(style.accent, in: .circle)
@@ -520,12 +566,13 @@ public struct PhotoCropper: View {
             .padding(.leading, 6)
             .padding(.trailing, 12)
             .padding(.vertical, 6)
-            .background(Color(red: 0.078, green: 0.078, blue: 0.078).opacity(0.86), in: .capsule)
+            // A capsule on one line; a wrapped notice keeps its corners rather than swelling into a lozenge.
+            .pieceLiquid(RoundedRectangle(cornerRadius: 17, style: .continuous), interactive: false)
             .frame(maxWidth: max(layout.canvas.width - 32, 120))
             .fixedSize(horizontal: false, vertical: true)
             .position(x: layout.canvas.width / 2, y: max(layout.canvas.height - 34, 34))
-            .transition(.opacity)
-            .allowsHitTesting(false)
+            // A notice arrives on its own, like a toast: it rises in from the bottom of the well and sinks away.
+            .transition(motion.transition(.opacity.combined(with: .offset(y: 12))))
         }
     }
 
@@ -533,7 +580,7 @@ public struct PhotoCropper: View {
     private func failure(in layout: CropLayout) -> some View {
         VStack(spacing: 10) {
             Image(systemName: "exclamationmark")
-                .font(.body.weight(.heavy))
+                .font(.body.weight(.semibold))
                 .foregroundStyle(style.accentInk)
                 .frame(width: 36, height: 36)
                 .background(style.accent, in: .circle)
@@ -549,9 +596,10 @@ public struct PhotoCropper: View {
 
     // MARK: Toolbar
 
-    /// Always its full height: the photo's well takes whatever is left.
+    /// Always its full height: the photo's well takes whatever is left. The chips and the buttons are separate groups of
+    /// glass, so the track and the buttons under it never neck.
     private var toolbar: some View {
-        VStack(spacing: 6) {
+        VStack(spacing: 10) {
             if !chips.isEmpty { chipRow }
             actionRow
         }
@@ -563,11 +611,13 @@ public struct PhotoCropper: View {
     /// Centred when the chips fit, a scrolling row when they don't. Chips stop growing at the second accessibility
     /// size, so the photo keeps its room.
     private var chipRow: some View {
+        // Each layout moves its own puck, so the one waiting to be measured never claims it.
         ViewThatFits(in: .horizontal) {
-            HStack(spacing: 4) { chipViews }
+            chipTrack(in: fittedChips, lift: true)
                 .padding(.horizontal, 16)
             ScrollView(.horizontal) {
-                HStack(spacing: 4) { chipViews }
+                // No lift: the scroll view would cut a wide shadow off at its edges.
+                chipTrack(in: scrollingChips, lift: false)
             }
             .contentMargins(.horizontal, 16, for: .scrollContent)
             .scrollIndicators(.hidden)
@@ -576,88 +626,134 @@ public struct PhotoCropper: View {
         .opacity(failed ? 0.4 : 1)
     }
 
-    private var chipViews: some View {
-        ForEach(chips) { aspect in
-            chip(aspect)
+    /// The chips on one glass track, with the selected chip under a puck of tinted glass behind the chips' pictures and
+    /// names, so it passes under them on its way.
+    private func chipTrack(in row: Namespace.ID, lift: Bool) -> some View {
+        PieceLiquidGroup(lift: lift) {
+            HStack(spacing: 0) {
+                ForEach(chips) { aspect in
+                    chip(aspect, in: row)
+                }
+            }
+            .padding(chipInset)
+            .background {
+                ZStack {
+                    Color.clear
+                        .pieceLiquid(Capsule(), interactive: false)
+                    puck(in: row)
+                }
+            }
         }
     }
 
-    /// An aspect chip: a small picture of the frame over its name. Selected, the picture turns solid red on a raised block.
-    private func chip(_ aspect: Aspect) -> some View {
+    /// The selected chip's puck: two tinted shapes on one chip. One lands on `snap` and the other a beat behind, so
+    /// between picks they stretch into one liquid puck along the track and gather as the second arrives; at rest they
+    /// are one. Under Reduce Motion one puck fades over to the chip you pick instead of travelling.
+    @ViewBuilder
+    private func puck(in row: Namespace.ID) -> some View {
+        // A photo that can't be opened has no live selection: the puck drains into the track.
+        let tint = failed ? nil : style.accent
+        if reduceMotion {
+            Color.clear
+                .pieceLiquid(Capsule(), tint: tint, interactive: false)
+                .matchedGeometryEffect(id: framing.aspect.id, in: row, isSource: false)
+                .id(framing.aspect.id)
+                .transition(.opacity.animation(motion.snap))
+        } else {
+            ForEach(0..<2, id: \.self) { rank in
+                Color.clear
+                    .pieceLiquid(Capsule(), tint: tint, interactive: false)
+                    .matchedGeometryEffect(id: framing.aspect.id, in: row, isSource: false)
+                    .animation(rank == 0 ? motion.snap : motion.follow(PieceMotion.responsive, rank: 3), value: framing.aspect)
+            }
+        }
+    }
+
+    /// An aspect chip: a small picture of the frame over its name. Selected, the puck slides under it and the picture
+    /// turns solid ink on the red glass.
+    private func chip(_ aspect: Aspect, in row: Namespace.ID) -> some View {
         let selected = aspect == framing.aspect
+        let lit = selected && !failed
         return Button { select(aspect) } label: {
             VStack(spacing: 4) {
-                CropAspectGlyph(ratio: glyphRatio(aspect), isCircle: aspect.isCircle, filled: selected, color: selected && !failed ? style.accent : style.secondaryLabel, side: glyphSide)
+                CropAspectGlyph(ratio: glyphRatio(aspect), isCircle: aspect.isCircle, filled: selected, color: lit ? style.accentInk : style.secondaryLabel, side: glyphSide)
                 Text(title(for: aspect))
                     .font(.caption.weight(.semibold))
                     .lineLimit(1)
             }
-            .foregroundStyle(selected ? style.label : style.secondaryLabel)
+            .foregroundStyle(lit ? style.accentInk : selected ? style.label : style.secondaryLabel)
             .padding(.horizontal, 10)
             .padding(.vertical, 7)
             .frame(minWidth: 58, minHeight: 44)
-            .background {
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .fill(style.selectedControl)
-                    .opacity(selected ? 1 : 0)
-            }
-            .contentShape(.rect(cornerRadius: 12, style: .continuous))
+            // Where the puck goes when this chip is selected.
+            .matchedGeometryEffect(id: aspect.id, in: row, isSource: true)
+            .contentShape(.capsule)
         }
-        .buttonStyle(CropPressStyle(reduceMotion: reduceMotion))
+        .buttonStyle(PiecePressStyle())
         .disabled(!interactive)
-        .animation(.smooth(duration: 0.2), value: selected)
+        .animation(motion.snap, value: selected)
         .accessibilityLabel(accessibilityTitle(for: aspect))
         .accessibilityAddTraits(selected ? .isSelected : [])
     }
 
-    /// One row at most sizes; at large text sizes Choose takes its own full-width row, and at the largest Cancel does too.
+    /// One row at most sizes; at large text sizes Choose takes its own full-width row, and at the largest Cancel does
+    /// too. Separate actions never come closer than the merge distance, so they never neck; Rotate and Reset rest
+    /// joined, as one pair of tools for the crop.
     private var actionRow: some View {
-        ViewThatFits(in: .horizontal) {
-            HStack(spacing: 4) {
-                if onCancel != nil {
-                    cancelButton
-                    Spacer(minLength: 8)
+        PieceLiquidGroup {
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: 0) {
+                    if onCancel != nil {
+                        cancelButton()
+                        Spacer(minLength: PieceLiquid.merge)
+                    }
+                    tools
+                    Spacer(minLength: PieceLiquid.merge)
+                    chooseButton(fullWidth: false)
                 }
-                rotateButton
-                resetButton
-                Spacer(minLength: 8)
-                chooseButton(fullWidth: false)
-            }
-            VStack(spacing: 8) {
-                HStack(spacing: 4) {
-                    rotateButton
-                    resetButton
-                    Spacer(minLength: 8)
-                    if onCancel != nil { cancelButton }
+                VStack(spacing: PieceLiquid.apart) {
+                    HStack(spacing: 0) {
+                        tools
+                        Spacer(minLength: PieceLiquid.merge)
+                        if onCancel != nil { cancelButton() }
+                    }
+                    chooseButton(fullWidth: true)
                 }
-                chooseButton(fullWidth: true)
-            }
-            VStack(spacing: 4) {
-                HStack(spacing: 4) {
-                    rotateButton
-                    resetButton
-                    Spacer(minLength: 0)
-                }
-                chooseButton(fullWidth: true)
-                if onCancel != nil {
-                    cancelButton
-                        .frame(maxWidth: .infinity)
+                VStack(spacing: PieceLiquid.apart) {
+                    HStack(spacing: 0) {
+                        tools
+                        Spacer(minLength: 0)
+                    }
+                    chooseButton(fullWidth: true)
+                    if onCancel != nil {
+                        cancelButton(fullWidth: true)
+                    }
                 }
             }
+            .padding(.horizontal, 12)
         }
-        .padding(.horizontal, 12)
     }
 
-    private var cancelButton: some View {
+    private var tools: some View {
+        HStack(spacing: PieceLiquid.joined) {
+            rotateButton
+            resetButton
+        }
+    }
+
+    private func cancelButton(fullWidth: Bool = false) -> some View {
         Button(action: cancel) {
             Text(messages.cancel)
-                .font(.body)
+                .font(.body.weight(.semibold))
                 .foregroundStyle(style.label)
-                .padding(.horizontal, 8)
-                .frame(minWidth: 44, minHeight: 44)
-                .contentShape(.rect)
+                .lineLimit(1)
+                .padding(.horizontal, 14)
+                .frame(maxWidth: fullWidth ? .infinity : nil, minHeight: buttonSide)
+                .frame(minWidth: 44)
+                .pieceLiquid(.capsule, interactive: false)
+                .contentShape(.capsule)
         }
-        .buttonStyle(CropPressStyle(reduceMotion: reduceMotion, dims: true))
+        .buttonStyle(PieceLiquidPressStyle())
         .keyboardShortcut(.cancelAction)
     }
 
@@ -665,14 +761,14 @@ public struct PhotoCropper: View {
         Button(action: rotate) {
             Image(systemName: "rotate.left")
                 .font(.body.weight(.semibold))
-                .foregroundStyle(style.label)
+                // The glyph dims rather than the glass, which stays whole in its group.
+                .foregroundStyle(failed ? style.secondaryLabel.opacity(0.55) : style.label)
                 .frame(width: buttonSide, height: buttonSide)
-                .background(style.control, in: .circle)
+                .pieceLiquid(.circle, interactive: false)
                 .contentShape(.circle)
         }
-        .buttonStyle(CropPressStyle(reduceMotion: reduceMotion))
+        .buttonStyle(PieceLiquidPressStyle())
         .disabled(!interactive)
-        .opacity(failed ? 0.4 : 1)
         .keyboardShortcut("r", modifiers: .command)
         .accessibilityLabel(messages.rotate)
     }
@@ -681,44 +777,48 @@ public struct PhotoCropper: View {
         let enabled = interactive && canReset
         return Button(action: reset) {
             Text(messages.reset)
-                .font(.body)
+                .font(.body.weight(.semibold))
                 .foregroundStyle(enabled ? style.label : style.secondaryLabel.opacity(0.55))
-                .padding(.horizontal, 10)
-                .frame(minWidth: 44, minHeight: 44)
-                .contentShape(.rect)
+                .lineLimit(1)
+                .padding(.horizontal, 14)
+                .frame(minWidth: 44, minHeight: buttonSide)
+                .pieceLiquid(.capsule, interactive: false)
+                .contentShape(.capsule)
         }
-        .buttonStyle(CropPressStyle(reduceMotion: reduceMotion, dims: true))
+        .buttonStyle(PieceLiquidPressStyle())
         .disabled(!enabled)
-        .animation(.smooth(duration: 0.2), value: enabled)
+        .animation(motion.snap, value: enabled)
     }
 
     private func chooseButton(fullWidth: Bool) -> some View {
-        // A photo that can't be opened can't be chosen: the capsule turns neutral rather than a washed-out red.
+        // A photo that can't be opened can't be chosen: the glass drains to neutral rather than a washed-out red.
         let available = !failed
         return Button(action: choose) {
             ZStack {
+                // Kept in the layout while it is away, so the capsule holds its width through the render. It blurs out
+                // as the spinner arrives and back in when the check makes way.
                 Text(messages.choose)
                     .lineLimit(1)
                     .opacity(phase == .editing ? 1 : 0)
+                    .blur(radius: phase == .editing || reduceMotion ? 0 : 6)
                 if phase == .rendering {
                     ProgressView()
                         .tint(style.accentInk)
-                        .transition(.opacity)
+                        .transition(motion.swap)
                 } else if phase == .done {
                     Image(systemName: "checkmark")
-                        .fontWeight(.bold)
-                        .transition(reduceMotion ? .opacity : .scale(scale: 0.4).combined(with: .opacity))
+                        .transition(motion.swap)
                 }
             }
             .font(.body.weight(.semibold))
             .foregroundStyle(available ? style.accentInk : style.secondaryLabel)
-            .padding(.horizontal, 22)
+            .padding(.horizontal, 18)
             .padding(.vertical, 10)
-            .frame(maxWidth: fullWidth ? .infinity : nil, minHeight: 44)
-            .background(available ? style.accent : style.control, in: .capsule)
+            .frame(maxWidth: fullWidth ? .infinity : nil, minHeight: buttonSide)
+            .pieceLiquid(.capsule, tint: available ? style.accent : nil, interactive: false)
             .contentShape(.capsule)
         }
-        .buttonStyle(CropPressStyle(reduceMotion: reduceMotion))
+        .buttonStyle(PieceLiquidPressStyle())
         // Not `.disabled` while busy, which would dim the spinner; `choose()` ignores taps then.
         .allowsHitTesting(phase == .editing)
         .disabled(display == nil || failed)
@@ -801,15 +901,30 @@ public struct PhotoCropper: View {
         var pastLimit = false
     }
 
+    /// A gesture's landing: enough to say where the photo is drawn at any moment until it comes to rest.
+    private struct Landing {
+        var from: Framing
+        var to: Framing
+        var spring: Spring
+        /// In whole landings per second, as the spring starts.
+        var velocity: Double
+        var start: CFTimeInterval
+    }
+
     private func handle(_ event: CropTouchEvent, in layout: CropLayout) {
         switch event {
         case .touchDown:
             touchBegan()
-        case .touchUp:
+            // A finger that comes down while the photo is still landing stops it where it is, like a hand on a sliding
+            // print or a scroll view, instead of letting it run on under the finger.
+            if live == nil, let caught = caughtLanding() { grab(caught, in: layout) }
+        case .touchUp(let idle):
             touchEnded()
+            // A finger that only held the photo lets it go where it stopped, or springs it back from past an edge.
+            if idle, let gesture = live { settle(gesture, velocity: .zero, in: layout) }
         case .began:
-            let start = clamped(framing, in: layout)
-            live = LiveGesture(zoom: start.zoom, center: CropMath.rotate(start.center, turns: layout.turns), anchor: CGPoint(x: layout.frame.midX, y: layout.frame.midY))
+            // A pan or pinch carries on from a finger that already holds the photo, or takes it from where it's drawn.
+            if live == nil { grab(caughtLanding() ?? clamped(framing, in: layout), in: layout) }
             flashTask?.cancel()
             flashing = false
         case .pan(let delta):
@@ -844,6 +959,16 @@ public struct PhotoCropper: View {
         }
     }
 
+    /// Takes hold of the photo at `start`, where it is drawn, so the fingers carry it from there, band and all.
+    private func grab(_ start: Framing, in layout: CropLayout) {
+        let zoom = rubberZoom(start.zoom, layout, inverse: true)
+        let center = rubberCenter(CropMath.rotate(start.center, turns: layout.turns), zoom: start.zoom, in: layout, inverse: true)
+        live = LiveGesture(zoom: zoom, center: center, anchor: CGPoint(x: layout.frame.midX, y: layout.frame.midY), pastLimit: zoom < 0.999 || zoom > layout.maxZoom + 0.001)
+        landing = nil
+        // The press spring takes the landing over from where it is drawn, so the photo stops without a jump.
+        if start != framing { withAnimation(motion.press) { framing = start } }
+    }
+
     /// Writes the gesture's framing with the rubber band applied: past a limit the photo follows less and less.
     private func show(_ gesture: LiveGesture, in layout: CropLayout) {
         let zoom = rubberZoom(gesture.zoom, layout)
@@ -857,10 +982,13 @@ public struct PhotoCropper: View {
     }
 
     /// Springs back inside the limits: zoom about the last pinch centre, then a short coast from the release speed.
+    /// A pan leaves at the photo's own speed, so a flick carries on into the coast without a hitch; a pinch past a
+    /// limit comes back from rest. Neither overshoots: the photo lands exactly where it's going.
     private func settle(_ gesture: LiveGesture, velocity: CGPoint, in layout: CropLayout) {
         let shownZoom = rubberZoom(gesture.zoom, layout)
         let zoom = min(max(shownZoom, 1), layout.maxZoom)
-        var r = rubberCenter(gesture.center, zoom: shownZoom, in: layout)
+        let shown = rubberCenter(gesture.center, zoom: shownZoom, in: layout)
+        var r = shown
         let from = layout.perUnit(shownZoom), to = layout.perUnit(zoom)
         let dx = gesture.anchor.x - layout.frame.midX, dy = gesture.anchor.y - layout.frame.midY
         r.x += dx / from.width - dx / to.width
@@ -871,18 +999,60 @@ public struct PhotoCropper: View {
         next.zoom = zoom
         next.center = CropMath.unrotate(r, turns: layout.turns)
         next = clamped(next, in: layout)
-        let travel = hypot((next.center.x - framing.center.x) * to.width, (next.center.y - framing.center.y) * to.height)
-        let motion: Animation = reduceMotion ? .easeInOut(duration: 0.2) : .spring(duration: min(0.55, 0.32 + Double(travel) / 1600), bounce: 0)
+
+        // The photo's path on screen. It moves against the centre: as the photo slides left, the frame sees further right.
+        let end = CropMath.rotate(next.center, turns: layout.turns)
+        let path = CGPoint(x: (shown.x - end.x) * to.width, y: (shown.y - end.y) * to.height)
+        let travel = hypot(path.x, path.y)
+        // The photo's own speed, a frame ahead: the finger's, slowed by the band past an edge.
+        let tick: CGFloat = 1 / 120
+        let ahead = rubberCenter(CGPoint(x: gesture.center.x - velocity.x * tick / from.width, y: gesture.center.y - velocity.y * tick / from.height), zoom: shownZoom, in: layout)
+        let speed = CGPoint(x: (shown.x - ahead.x) * from.width / tick, y: (shown.y - ahead.y) * from.height / tick)
+        let coast = Spring(duration: min(0.55, 0.32 + Double(travel) / 1600), bounce: 0)
+        // The spring `motion.settle` runs: the coast, or the short still spring under Reduce Motion.
+        let spring = reduceMotion ? Spring(duration: 0.25, bounce: 0) : coast
+        // One effect places the photo, so zoom and centre land on one spring with one speed: the part along the path.
+        // A free flick lands along its own line and keeps all of it; an axis an edge stops lands without its share.
+        // No faster than the spring's own frequency, past which a spring without bounce runs through its target: a
+        // free flick is slower already, and a flick into an edge arrives fast and stops there, never past it.
+        let reach = travel * 2 * .pi / spring.duration
+        let along = travel >= 1 && zoom == shownZoom ? min(max((speed.x * path.x + speed.y * path.y) / travel, -reach), reach) : 0
+        // Kept so a grab before it lands can catch the photo where it is: the spring and starting speed `settle` uses.
+        landing = Landing(from: framing, to: next, spring: spring, velocity: travel >= 1 ? Double(along / travel) : 0, start: CACurrentMediaTime())
         // Both in one animated transaction, so the photo springs back from where the rubber band left it.
-        withAnimation(motion) {
+        withAnimation(motion.settle(velocity: along, from: 0, to: travel, spring: coast)) {
             live = nil
             framing = next
         }
     }
 
+    /// Where the landing photo is drawn right now, if it's still moving and nothing else has moved it since.
+    private func caughtLanding() -> Framing? {
+        guard let landing, landing.to == framing, landing.from != landing.to else { return nil }
+        let elapsed = CACurrentMediaTime() - landing.start
+        guard elapsed < landing.spring.settlingDuration else { return nil }
+        let progress = CGFloat(landing.spring.value(target: 1.0, initialVelocity: landing.velocity, time: elapsed))
+        let from = landing.from, to = landing.to
+        var caught = to
+        caught.zoom = from.zoom + (to.zoom - from.zoom) * progress
+        caught.center = CGPoint(x: from.center.x + (to.center.x - from.center.x) * progress, y: from.center.y + (to.center.y - from.center.y) * progress)
+        return caught
+    }
+
+    /// Keeps a zoom or move that leaves the frame alone as a landing, so a finger can stop the photo partway through
+    /// it. It mirrors the spring `motion.value` runs, from rest; a retargeted move differs a little, which a catch
+    /// shows as a short glide, never a jump. Aspect changes and turns aren't kept: the frame can't stop partway.
+    private func keepMove(from: Framing, to target: Framing) {
+        let spring = reduceMotion ? Spring(duration: 0.25, bounce: 0) : Spring(duration: 0.35, bounce: 0)
+        landing = Landing(from: from, to: target, spring: spring, velocity: 0, start: CACurrentMediaTime())
+    }
+
     /// Double tap: fill the frame again, or zoom to 2.5x about the tapped point.
     private func doubleTap(at location: CGPoint, in layout: CropLayout) {
-        guard interactive, live == nil else { return }
+        // A double tap arrives only while no pan or pinch runs, so a gesture here is a finger that caught the photo on
+        // the way down. The zoom takes over from where that finger holds it.
+        guard interactive else { return }
+        let drawn = caughtLanding() ?? (live == nil ? clamped(framing, in: layout) : framing)
         let current = clamped(framing, in: layout)
         let target = current.zoom > 1.05 ? 1 : min(2.5, layout.maxZoom)
         guard abs(target - current.zoom) > 0.001 else {
@@ -897,25 +1067,36 @@ public struct PhotoCropper: View {
         var next = current
         next.zoom = target
         next.center = CropMath.unrotate(r, turns: layout.turns)
-        withAnimation(reduceMotion ? .easeInOut(duration: 0.2) : .spring(duration: 0.42, bounce: 0)) { framing = clamped(next, in: layout) }
+        next = clamped(next, in: layout)
+        withAnimation(motion.value) {
+            live = nil
+            framing = next
+        }
+        keepMove(from: drawn, to: next)
         showReadout()
     }
 
-    private func rubberZoom(_ zoom: CGFloat, _ layout: CropLayout) -> CGFloat {
-        if zoom > layout.maxZoom { return layout.maxZoom * pow(zoom / layout.maxZoom, 0.3) }
-        if zoom < 1 { return pow(max(zoom, 0.01), 0.3) }
+    /// The zoom as shown: past 1 and the maximum it resists more and more. `inverse` gives the pinch that shows `zoom`.
+    private func rubberZoom(_ zoom: CGFloat, _ layout: CropLayout, inverse: Bool = false) -> CGFloat {
+        let power: CGFloat = inverse ? 1 / 0.3 : 0.3
+        if zoom > layout.maxZoom { return layout.maxZoom * pow(zoom / layout.maxZoom, power) }
+        if zoom < 1 { return pow(max(zoom, 0.01), power) }
         return zoom
     }
 
     /// The centre as shown: inside the limits it follows exactly, past them it resists like a scroll view's edge.
-    private func rubberCenter(_ center: CGPoint, zoom: CGFloat, in layout: CropLayout) -> CGPoint {
+    /// `inverse` gives the centre the fingers would have set to show `center`.
+    private func rubberCenter(_ center: CGPoint, zoom: CGFloat, in layout: CropLayout, inverse: Bool = false) -> CGPoint {
         let half = layout.half(zoom)
+        func band(_ overshoot: CGFloat, _ span: CGFloat) -> CGFloat {
+            inverse ? CropMath.unrubber(overshoot, span: span) : CropMath.rubber(overshoot, span: span)
+        }
         func axis(_ value: CGFloat, _ half: CGFloat) -> CGFloat {
             let low = half >= 0.5 ? 0.5 : half
             let high = half >= 0.5 ? 0.5 : 1 - half
             let span = max(half * 2, 0.0001)
-            if value < low { return low - CropMath.rubber(low - value, span: span) }
-            if value > high { return high + CropMath.rubber(value - high, span: span) }
+            if value < low { return low - band(low - value, span) }
+            if value > high { return high + band(value - high, span) }
             return value
         }
         return CGPoint(x: axis(center.x, half.width), y: axis(center.y, half.height))
@@ -936,25 +1117,22 @@ public struct PhotoCropper: View {
         }
     }
 
+    /// The grid arrives with the finger, on the press beat, and leaves without fuss. Both are fades, so they stay
+    /// under Reduce Motion.
     private func setGrid(_ visible: Bool) {
         guard showsGrid != visible || (!visible && showsReadout) else { return }
-        if reduceMotion {
+        withAnimation(visible ? motion.press : motion.dismiss) {
             showsGrid = visible
             if !visible { showsReadout = false }
-        } else {
-            withAnimation(.easeOut(duration: visible ? 0.15 : 0.3)) {
-                showsGrid = visible
-                if !visible { showsReadout = false }
-            }
         }
     }
 
     private func showReadout() {
         guard !showsReadout else { return }
-        if reduceMotion { showsReadout = true } else { withAnimation(.easeOut(duration: 0.15)) { showsReadout = true } }
+        withAnimation(motion.press) { showsReadout = true }
     }
 
-    /// A zoom limit: the frame flashes red for an instant, with a rigid tick.
+    /// A zoom limit: the frame flashes red for an instant, with a rigid tick, then lets the red go.
     private func flashLimit() {
         limitTick += 1
         flashTask?.cancel()
@@ -962,7 +1140,7 @@ public struct PhotoCropper: View {
         flashTask = Task {
             try? await Task.sleep(for: .milliseconds(140))
             guard !Task.isCancelled else { return }
-            withAnimation(.easeOut(duration: 0.4)) { flashing = false }
+            withAnimation(motion.dismiss) { flashing = false }
         }
     }
 
@@ -973,7 +1151,7 @@ public struct PhotoCropper: View {
         var next = framing
         next.aspect = aspect
         next = clamped(next, in: restingLayout(for: next))
-        withAnimation(morphMotion) { framing = next }
+        withAnimation(motion.value) { framing = next }
         aspectTick += 1
     }
 
@@ -982,7 +1160,9 @@ public struct PhotoCropper: View {
         var next = framing
         next.quarterTurns = (framing.quarterTurns + 1) & 3
         next = clamped(next, in: restingLayout(for: next))
-        withAnimation(turnMotion) {
+        // On `value`, which never overshoots, as the turn needs: the frame's corners stay on the photo only while the
+        // angle travels one way between quarter turns.
+        withAnimation(motion.value) {
             shownTurns += 1
             framing = next
         }
@@ -1002,10 +1182,13 @@ public struct PhotoCropper: View {
     private func reset() {
         guard interactive, canReset else { return }
         let target = clamped(rest, in: restingLayout(for: rest))
-        withAnimation(turnMotion ?? morphMotion) {
+        let sameFrame = target.aspect == framing.aspect && target.quarterTurns == framing.quarterTurns
+        let drawn = caughtLanding() ?? clamped(framing, in: restingLayout(for: framing))
+        withAnimation(motion.value) {
             shownTurns += CropMath.shortestTurn(from: shownTurns, to: target.quarterTurns)
             framing = target
         }
+        if sameFrame { keepMove(from: drawn, to: target) }
         resetTick += 1
         announce(String(localized: "Crop reset", comment: "Photo cropper announcement after Reset"))
     }
@@ -1028,7 +1211,7 @@ public struct PhotoCropper: View {
         let limit = maxOutputDimension
         let onCrop = self.onCrop
         phase = .rendering
-        withAnimation(.smooth(duration: 0.2)) { notice = nil }
+        withAnimation(motion.dismiss) { notice = nil }
         renderTask = Task {
             let started = ContinuousClock.now
             let work = Task.detached(priority: .userInitiated) {
@@ -1050,41 +1233,49 @@ public struct PhotoCropper: View {
             delivering = false
             successTick += 1
             announce(String(localized: "Photo cropped", comment: "Photo cropper announcement when the crop is done"))
-            withAnimation(reduceMotion ? .easeInOut(duration: 0.2) : .spring(duration: 0.35, bounce: 0.3)) { phase = .done }
+            // The check lands with a little give; a beat later it gets out of the way of the label.
+            withAnimation(motion.success) { phase = .done }
             try? await Task.sleep(for: .seconds(0.9))
-            withAnimation(.smooth(duration: 0.25)) { phase = .editing }
+            withAnimation(motion.dismiss) { phase = .editing }
         }
     }
 
     private func showNotice(_ text: String) {
-        withAnimation(.smooth(duration: 0.25)) { notice = text }
+        withAnimation(motion.reveal) { notice = text }
         announce(text)
         noticeTask?.cancel()
         noticeTask = Task {
             try? await Task.sleep(for: .seconds(3.5))
             guard !Task.isCancelled else { return }
-            withAnimation(.smooth(duration: 0.3)) { notice = nil }
+            withAnimation(motion.dismiss) { notice = nil }
         }
     }
 
-    /// VoiceOver and keyboard zoom: a step in or out about the frame's centre.
-    private func zoomStep(in inward: Bool) {
+    /// VoiceOver and keyboard zoom: a step in or out about the frame's centre. A held key flashes once at a limit,
+    /// not on every repeat.
+    private func zoomStep(in inward: Bool, repeating: Bool = false) {
         guard interactive else { return }
         let layout = restingLayout(for: framing)
         let current = clamped(framing, in: layout)
         let target = inward ? min(current.zoom * 1.25, layout.maxZoom) : max(current.zoom / 1.25, 1)
         guard abs(target - current.zoom) > 0.001 else {
-            flashLimit()
+            if !(repeating && heldAtLimit) { flashLimit() }
+            heldAtLimit = true
             return
         }
+        heldAtLimit = false
+        let drawn = caughtLanding() ?? current
         var next = current
         next.zoom = target
-        withAnimation(settleMotion) { framing = clamped(next, in: layout) }
+        next = clamped(next, in: layout)
+        withAnimation(motion.value) { framing = next }
+        keepMove(from: drawn, to: next)
     }
 
-    /// Moves the frame over the photo by a fifth of what it shows, as the photo appears on screen.
+    /// Moves the frame over the photo by a fifth of what it shows, as the photo appears on screen. A held key ticks
+    /// once at the edge, not on every repeat.
     @discardableResult
-    private func nudge(x: CGFloat, y: CGFloat, announcing: Bool = false) -> Bool {
+    private func nudge(x: CGFloat, y: CGFloat, announcing: Bool = false, repeating: Bool = false) -> Bool {
         guard interactive else { return false }
         let layout = restingLayout(for: framing)
         let current = clamped(framing, in: layout)
@@ -1096,17 +1287,21 @@ public struct PhotoCropper: View {
         next.center = CropMath.unrotate(r, turns: layout.turns)
         next = clamped(next, in: layout)
         guard hypot(next.center.x - current.center.x, next.center.y - current.center.y) > 0.0005 else {
-            limitTick += 1
+            if !(repeating && heldAtLimit) { limitTick += 1 }
+            heldAtLimit = true
             if announcing { announce(String(localized: "Edge of the photo", comment: "Photo cropper VoiceOver announcement when the frame can't move further")) }
             return false
         }
-        withAnimation(settleMotion) { framing = next }
+        heldAtLimit = false
+        let drawn = caughtLanding() ?? current
+        withAnimation(motion.value) { framing = next }
+        keepMove(from: drawn, to: next)
         return true
     }
 
-    private func keyNudge(x: CGFloat, y: CGFloat) -> KeyPress.Result {
+    private func keyNudge(x: CGFloat, y: CGFloat, _ press: KeyPress) -> KeyPress.Result {
         guard interactive else { return .ignored }
-        nudge(x: x, y: y)
+        nudge(x: x, y: y, repeating: press.phase == .repeat)
         return .handled
     }
 
@@ -1114,7 +1309,7 @@ public struct PhotoCropper: View {
     private func followTurns(to quarterTurns: Int) {
         let step = CropMath.shortestTurn(from: shownTurns, to: quarterTurns)
         guard step != 0 else { return }
-        withAnimation(turnMotion) { shownTurns += step }
+        withAnimation(motion.value) { shownTurns += step }
     }
 
     private func photoChanged() {
@@ -1125,6 +1320,7 @@ public struct PhotoCropper: View {
         displaySource = nil
         failed = false
         live = nil
+        landing = nil
         if external == nil {
             var transaction = Transaction()
             transaction.disablesAnimations = true
@@ -1168,7 +1364,7 @@ public struct PhotoCropper: View {
         if displaySource == source {
             display = copy
         } else {
-            withAnimation(reduceMotion ? nil : .easeOut(duration: 0.25)) { display = copy }
+            withAnimation(motion.reveal) { display = copy }
             displaySource = source
         }
     }
@@ -1311,6 +1507,12 @@ nonisolated private enum CropMath {
         (1 - 1 / (overshoot * 0.55 / span + 1)) * span
     }
 
+    /// The inverse of `rubber`: the overshoot that shows as `banded`.
+    static func unrubber(_ banded: CGFloat, span: CGFloat) -> CGFloat {
+        let shown = min(banded, span * 0.999)
+        return shown / (0.55 * (1 - shown / span))
+    }
+
     /// The crop in whole pixels of the upright photo, for a framing inside its limits. Fixed ratios stay exact to the pixel.
     static func cropRect(_ framing: PhotoCropper.Framing, in layout: CropLayout) -> CGRect {
         let turned = layout.rotated
@@ -1451,7 +1653,7 @@ private struct CropGridLines: Shape {
     }
 }
 
-/// A chip's small picture of its frame: outlined, or solid red when selected.
+/// A chip's small picture of its frame: outlined, or solid when selected.
 private struct CropAspectGlyph: View {
     let ratio: CGFloat
     let isCircle: Bool
@@ -1480,6 +1682,7 @@ private struct CropAspectGlyph: View {
 /// A small spinner, shown only when preparing takes more than a moment.
 private struct CropPreparing: View {
     let tint: Color
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var visible = false
 
     var body: some View {
@@ -1488,21 +1691,8 @@ private struct CropPreparing: View {
             .opacity(visible ? 1 : 0)
             .task {
                 try? await Task.sleep(for: .milliseconds(400))
-                withAnimation(.easeOut(duration: 0.2)) { visible = true }
+                withAnimation(PieceMotion(reduceMotion: reduceMotion).reveal) { visible = true }
             }
-    }
-}
-
-/// A quick dip on press that springs back. Text buttons dim instead.
-private struct CropPressStyle: ButtonStyle {
-    let reduceMotion: Bool
-    var dims = false
-
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .scaleEffect(configuration.isPressed && !reduceMotion && !dims ? 0.94 : 1)
-            .opacity(configuration.isPressed && (dims || reduceMotion) ? 0.55 : 1)
-            .animation(.spring(duration: 0.25, bounce: 0.3), value: configuration.isPressed)
     }
 }
 
@@ -1512,8 +1702,8 @@ private struct CropPressStyle: ButtonStyle {
 private enum CropTouchEvent {
     /// The first finger came down.
     case touchDown
-    /// The last finger lifted.
-    case touchUp
+    /// The last finger lifted. `idle` when no pan or pinch is running, so no `ended` follows.
+    case touchUp(idle: Bool)
     /// A pan or pinch started.
     case began
     case pan(CGPoint)
@@ -1560,6 +1750,9 @@ private final class CropTouchView: UIView, UIGestureRecognizerDelegate {
         pan.addTarget(self, action: #selector(panned(_:)))
         pinch.addTarget(self, action: #selector(pinched(_:)))
         doubleTap.numberOfTapsRequired = 2
+        // A lifted finger is reported at once, not after the double tap gives up waiting for a second tap, so a
+        // finger that stopped the photo lets it go as it lifts.
+        doubleTap.delaysTouchesEnded = false
         doubleTap.addTarget(self, action: #selector(doubleTapped(_:)))
         for recognizer in [pan, pinch, doubleTap] as [UIGestureRecognizer] {
             recognizer.delegate = self
@@ -1577,7 +1770,7 @@ private final class CropTouchView: UIView, UIGestureRecognizerDelegate {
         for recognizer in [pan, pinch, doubleTap] as [UIGestureRecognizer] { recognizer.isEnabled = enabled }
         if !enabled, !down.isEmpty {
             down.removeAll()
-            onEvent?(.touchUp)
+            onEvent?(.touchUp(idle: active == 0))
         }
     }
 
@@ -1602,7 +1795,7 @@ private final class CropTouchView: UIView, UIGestureRecognizerDelegate {
     private func lift(_ touches: Set<UITouch>) {
         guard !down.isEmpty else { return }
         for touch in touches { down.remove(ObjectIdentifier(touch)) }
-        if down.isEmpty { onEvent?(.touchUp) }
+        if down.isEmpty { onEvent?(.touchUp(idle: active == 0)) }
     }
 
     @objc private func panned(_ recognizer: UIPanGestureRecognizer) {
@@ -1889,3 +2082,376 @@ private enum PhotoCropperSample {
     PhotoCropperExample()
         .preferredColorScheme(.dark)
 }
+
+// MARK: - Piece motion
+//
+// The SwiftPieces motion language: shared spring tokens and gesture physics, with the same values in every
+// piece. Each piece carries a copy of only the parts it uses, so this file stands alone. Generated from
+// registry/foundation/PieceMotion.swift in the SwiftPieces repo; edit it there, not here.
+// swiftpieces-motion: 1.1.0 (core, follow, momentum, pressMath, press, pressStyle)
+
+/// The SwiftPieces motion language: five spring tiers, and a named role for every moment a piece moves,
+/// each with its Reduce Motion substitute.
+///
+/// Build one from the environment, `PieceMotion(reduceMotion: reduceMotion)`, and pick the role that names
+/// what just happened. Never animate the tracking of a finger: set gesture state directly in `onChanged`, so the
+/// surface stays under the finger, and spring only the release.
+private struct PieceMotion {
+    var reduceMotion = false
+
+    // Tiers. Overshoot and settle times are measured from rest with SwiftUI's Spring.
+    /// No overshoot, 90% in about 90ms. A press arriving under the finger.
+    static var tight: Spring { Spring(duration: 0.14, bounce: 0) }
+    /// About 2.8% overshoot, 90% in about 140ms. Snapping to a detent, page or segment.
+    static var responsive: Spring { Spring(duration: 0.32, bounce: 0.25) }
+    /// About 8.4% overshoot. Visible give: a release, a return from past an edge, a drag settling home.
+    static var elastic: Spring { Spring(duration: 0.42, bounce: 0.38) }
+    /// About 15% overshoot. A resolved action landing. At most once per interaction.
+    static var expressive: Spring { Spring(duration: 0.48, bounce: 0.48) }
+    /// About 1.5% overshoot, unhurried. Opening large surfaces and ambient change.
+    static var calm: Spring { Spring(duration: 0.5, bounce: 0.2) }
+
+    /// Reduce Motion: settles become this short spring with no overshoot.
+    private static var still: Animation { .spring(duration: 0.25, bounce: 0) }
+
+    // Roles.
+    /// Touch-down. Starts on the same frame and never bounces under the finger.
+    var press: Animation { .spring(Self.tight) }
+    /// The finger lifts off a pressed surface, which springs back through rest.
+    var release: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A dragged thing comes to rest. With a gesture's velocity, use `settle(velocity:from:to:)` instead.
+    var settle: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// Lands on a detent, page or segment.
+    var snap: Animation { reduceMotion ? Self.still : .spring(Self.responsive) }
+    /// A number, a chart value or anything else people read moves to its new value. Never overshoots, so it
+    /// never shows a value that isn't true.
+    var value: Animation { reduceMotion ? Self.still : .spring(duration: 0.35, bounce: 0) }
+    /// Comes back from past a limit: a pull beyond the edge, a value pushed against its bound.
+    var rebound: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A shape or container changes size, corner radius or form, with a little give at the end.
+    var morph: Animation { reduceMotion ? Self.still : .spring(duration: 0.4, bounce: 0.2) }
+    /// Something appears, opens or expands. Opening is a little slower than closing.
+    var reveal: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.calm) }
+    /// Something leaves, closes or collapses. Quick and firm, out of the way.
+    var dismiss: Animation { reduceMotion ? .easeIn(duration: 0.18) : .spring(duration: 0.3, bounce: 0.08) }
+    /// A resolved action lands: a check, a sent state, a reaction.
+    var success: Animation { reduceMotion ? .easeOut(duration: 0.24) : .spring(Self.expressive) }
+    /// A refused action. Firm, no wobble; `pieceShake` adds the movement.
+    var error: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.responsive) }
+    /// Slow ambient change. Loops themselves stop under Reduce Motion: check `allowsAmbient`.
+    var ambient: Animation { reduceMotion ? .easeInOut(duration: 0.3) : .spring(Self.calm) }
+
+    /// Loops, drifts, idle breathing and parallax run only when this is true.
+    var allowsAmbient: Bool { !reduceMotion }
+
+    /// A moving transition, or a plain fade under Reduce Motion.
+    func transition(_ transition: AnyTransition) -> AnyTransition {
+        reduceMotion ? .opacity : transition
+    }
+
+    /// For content replaced inside a container that stays put (a label, a glyph, a count): the old content
+    /// blurs out as the new one sharpens in. A fade under Reduce Motion.
+    @MainActor var swap: AnyTransition {
+        reduceMotion ? .opacity : AnyTransition(.blurReplace)
+    }
+}
+
+extension PieceMotion {
+    /// Follow-through: rank 0 leads, each later rank arrives a beat later on a slightly looser spring. Safe to reverse.
+    func follow(_ spring: Spring = PieceMotion.elastic, rank: Int) -> Animation {
+        guard !reduceMotion else { return .spring(duration: 0.25, bounce: 0) }
+        let k = Double(min(max(rank, 0), 6))
+        return .spring(duration: spring.duration + 0.04 * k, bounce: min(spring.bounce + 0.02 * k, 0.55))
+    }
+
+    /// One-shot entrances only: item `index` waits 30ms per place, capped at the seventh. Exits go together.
+    func cascade(_ animation: Animation, index: Int, step: Double = 0.03) -> Animation {
+        guard !reduceMotion, index > 0 else { return animation }
+        return animation.delay(step * Double(min(index, 7)))
+    }
+}
+
+extension PieceMotion {
+    /// Where a flick at `velocity` (pt/s) coasts to. 0.998 coasts like a scroll view; 0.99 suits detents.
+    nonisolated static func project(_ position: CGFloat, velocity: CGFloat, decelerationRate: CGFloat = 0.99) -> CGFloat {
+        position + velocity / 1000 * decelerationRate / (1 - decelerationRate)
+    }
+
+    /// The candidate closest to `value`.
+    nonisolated static func nearest(_ value: CGFloat, in candidates: [CGFloat]) -> CGFloat {
+        candidates.min { abs($0 - value) < abs($1 - value) } ?? value
+    }
+
+    /// A settle that leaves at the finger's speed (pt/s). One per axis, each on its own `.offset(x:)` / `.offset(y:)`:
+    /// a spring takes one velocity. SwiftUI's own velocity carry-over is unreliable; this always carries it.
+    func settle(velocity: CGFloat, from current: CGFloat, to target: CGFloat, spring: Spring = PieceMotion.elastic) -> Animation {
+        let spring = reduceMotion ? Spring(duration: 0.25, bounce: 0) : spring
+        let distance = target - current
+        guard abs(distance) >= 1 else { return .spring(spring) }
+        // In whole distances per second, capped near the spring's frequency: a hard flick adds give, not a slingshot.
+        // At exactly the frequency a critically damped spring cannot pass its target, so Reduce Motion stops there.
+        let cap = 2 * Double.pi / spring.duration * (reduceMotion ? 1 : 1.5)
+        let relative = min(max(Double(velocity / distance), -cap), cap)
+        return .interpolatingSpring(spring, initialVelocity: relative)
+    }
+}
+
+extension PieceMotion {
+    /// About `depth` points per edge, not a fixed percentage: an icon sinks to 0.92, a pill 0.95, a card 0.985.
+    nonisolated static func pressScale(for size: CGSize, depth: CGFloat = 2.5) -> CGFloat {
+        let side = (max(size.width, 1) * max(size.height, 1)).squareRoot()
+        return min(max(1 - depth * 2 / side, 0.92), 0.985)
+    }
+
+    /// An anchor partway from the center toward the touch, so the press leans into the finger without tipping.
+    nonisolated static func pressAnchor(touch: CGPoint?, in size: CGSize, lean: CGFloat = 0.6) -> UnitPoint {
+        guard let touch, size.width > 0, size.height > 0 else { return .center }
+        let x = min(max(touch.x / size.width, 0), 1)
+        let y = min(max(touch.y / size.height, 0), 1)
+        return UnitPoint(x: 0.5 + (x - 0.5) * lean, y: 0.5 + (y - 0.5) * lean)
+    }
+}
+
+/// Sinks on touch-down, leaning toward the touch if given, and springs back from the same lean. Under Reduce
+/// Motion it shades instead of moving (darker in light mode, lighter in dark), without turning transparent.
+private struct PiecePress: ViewModifier {
+    let pressed: Bool
+    var touch: CGPoint?
+    var depth: CGFloat = 2.5
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.colorScheme) private var colorScheme
+    @State private var size: CGSize = .zero
+    @State private var anchor: UnitPoint = .center
+
+    func body(content: Content) -> some View {
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        let scale = pressed && !reduceMotion ? PieceMotion.pressScale(for: size, depth: depth) : 1
+        content
+            .onGeometryChange(for: CGSize.self) { $0.size } action: { size = $0 }
+            .brightness(pressed && reduceMotion ? (colorScheme == .dark ? 0.1 : -0.08) : 0)
+            .scaleEffect(scale, anchor: anchor)
+            .animation(pressed ? motion.press : motion.release, value: pressed)
+            .onChange(of: pressed) { _, isPressed in
+                if isPressed { anchor = PieceMotion.pressAnchor(touch: touch, in: size) }
+            }
+            .onChange(of: touch) { _, touch in
+                if pressed, let touch { anchor = PieceMotion.pressAnchor(touch: touch, in: size) }
+            }
+    }
+}
+
+private extension View {
+    /// Sinks this view while `pressed`, leaning toward `touch` (in this view's coordinates) when given.
+    func piecePress(_ pressed: Bool, touch: CGPoint? = nil, depth: CGFloat = 2.5) -> some View {
+        modifier(PiecePress(pressed: pressed, touch: touch, depth: depth))
+    }
+}
+
+/// Only the press, centered: for chips, rows and tiles, and anything in scrolling content.
+private struct PiecePressStyle: ButtonStyle {
+    var depth: CGFloat = 2.5
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label.piecePress(configuration.isPressed, depth: depth)
+    }
+}
+
+// swiftpieces-motion: end
+
+// MARK: - Piece liquid
+//
+// The SwiftPieces liquid glass language: glass shapes that merge through a neck, bubbles that bud out of
+// and melt back into each other, and the frosted fallback before iOS 26. Each piece carries a copy of only
+// the parts it uses, so this file stands alone. Generated from registry/foundation/PieceLiquid.swift in the
+// SwiftPieces repo; edit it there, not here. The rules are in LIQUID_GLASS.md.
+// swiftpieces-liquid: 1.7.0 (liquid, liquidPress)
+
+/// The liquid glass language: one merge distance, two rest gaps, and the springs a bubble leaves and comes home on.
+///
+/// Glass shapes inside one `PieceLiquidGroup` melt into each other through a neck when they come within `merge`
+/// points. Parts of one control rest `joined`, inside that distance, so the neck holds; separate actions rest
+/// `apart`, outside it, so they only goo while one buds out of, or melts back into, another.
+private enum PieceLiquid {
+    /// Glass shapes closer than this share a neck.
+    static let merge: CGFloat = 20
+    /// The gap between parts of one control (a stepper's buttons, a progress pill and its stop): the neck holds,
+    /// short and smooth, about two thirds of the shapes' height at its waist. Joined parts read best at one height.
+    static let joined: CGFloat = 4
+    /// The gap between separate actions (menu items, confirm and cancel, chips): they rest as their own bubbles.
+    static let apart: CGFloat = 26
+    /// How far a bubble shrinks while it is home inside its parent.
+    static let homeScale: CGFloat = 0.72
+
+    /// A bubble leaving its parent: slow enough that the neck's stretch and snap read.
+    static func split(reduceMotion: Bool) -> Animation {
+        reduceMotion ? .easeOut(duration: 0.2) : .spring(duration: 0.62, bounce: 0.22)
+    }
+
+    /// A bubble going home. No bounce: a bounce would carry it out through the far side of its parent.
+    static func home(reduceMotion: Bool) -> Animation {
+        reduceMotion ? .easeIn(duration: 0.18) : .spring(duration: 0.5, bounce: 0)
+    }
+}
+
+/// A group of glass shapes that merge into one liquid surface. On iOS 26 it is a `GlassEffectContainer`; before
+/// that, and under Reduce Transparency, the shapes draw on their own and simply don't merge. `lift` adds the soft
+/// shadow liquid glass floats on in light mode.
+private struct PieceLiquidGroup<Content: View>: View {
+    var spacing: CGFloat = PieceLiquid.merge
+    var lift = true
+    @ViewBuilder var content: Content
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        container
+            .shadow(color: .black.opacity(lift && colorScheme == .light ? 0.07 : 0), radius: 18, y: 8)
+    }
+
+    @ViewBuilder private var container: some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26, *), !reduceTransparency {
+            GlassEffectContainer(spacing: spacing) { content }
+        } else {
+            content
+        }
+        #else
+        content
+        #endif
+    }
+}
+
+/// One liquid glass shape: Liquid Glass on iOS 26, carrying `tint` as a solid colour and swelling under a press when
+/// `interactive`; a frosted Material with a light rim and a soft shadow before that; a solid fill under Reduce
+/// Transparency.
+///
+/// The tint is painted inside clear glass rather than tinting the glass. Tinted glass in a group bleeds its colour
+/// through every neck as a smear, so a red button would glow into the white pill it is joined to; painted inside,
+/// the colour stays crisp to the shape's edge, the necks between shapes are clear glass, and a tint change animates
+/// like any colour (tinted glass snaps).
+private struct PieceLiquidSurface<S: Shape>: ViewModifier {
+    var shape: S
+    var tint: Color?
+    var interactive: Bool
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.pieceLiquidScale) private var scale
+
+    func body(content: Content) -> some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26, *), !reduceTransparency {
+            // Scaled as two parts, content and outline, about the same centre. A scaleEffect on a glass view inside a
+            // GlassEffectContainer shrinks the glass but leaves what it carries full size, pinned to its corner.
+            content
+                .background { shape.fill(tint ?? .clear) }
+                .scaleEffect(scale)
+                .glassEffect(glass, in: shape.scale(scale))
+        } else {
+            fallback(content).scaleEffect(scale)
+        }
+        #else
+        fallback(content).scaleEffect(scale)
+        #endif
+    }
+
+    #if compiler(>=6.2)
+    @available(iOS 26, *)
+    private var glass: Glass {
+        interactive ? Glass.regular.interactive() : .regular
+    }
+    #endif
+
+    private func fallback(_ content: Content) -> some View {
+        let dark = colorScheme == .dark
+        return content
+            .background {
+                if reduceTransparency {
+                    shape.fill(tint ?? (dark ? Color(white: 0.17) : Color(white: 0.97)))
+                } else {
+                    ZStack {
+                        shape.fill(.regularMaterial)
+                        if let tint { shape.fill(tint.opacity(0.88)) }
+                    }
+                }
+            }
+            .overlay { shape.stroke(Color.white.opacity(dark ? 0.14 : 0.7), lineWidth: 0.5) }
+            .shadow(color: .black.opacity(dark ? 0.32 : 0.08), radius: 10, y: 5)
+    }
+}
+
+private struct PieceLiquidScaleKey: EnvironmentKey {
+    static let defaultValue: CGFloat = 1
+}
+
+private extension EnvironmentValues {
+    /// How much the liquid shapes below are scaled, about their own centres. Nested scales multiply.
+    var pieceLiquidScale: CGFloat {
+        get { self[PieceLiquidScaleKey.self] }
+        set { self[PieceLiquidScaleKey.self] = newValue }
+    }
+}
+
+private extension View {
+    /// Draws this view on a liquid glass `shape`. Put it inside a `PieceLiquidGroup` so it can merge with its neighbours.
+    func pieceLiquid<S: Shape>(_ shape: S, tint: Color? = nil, interactive: Bool = true) -> some View {
+        modifier(PieceLiquidSurface(shape: shape, tint: tint, interactive: interactive))
+    }
+
+    /// Scales the liquid glass shapes in this view, content and outline together, about their own centres. Use it
+    /// instead of `scaleEffect` on a glass view (a press, a lift, a swell): inside a group a plain `scaleEffect` shrinks
+    /// the glass but leaves its content full size and off centre. Animates like any other value.
+    func pieceLiquidScale(_ scale: CGFloat) -> some View {
+        transformEnvironment(\.pieceLiquidScale) { $0 *= scale }
+    }
+}
+
+/// The press for a glass control: the same size-aware sink and lean as `piecePress`, applied through
+/// `pieceLiquidScale` so the glass and what it carries sink together (a plain scaleEffect on glass leaves the content
+/// behind). Put the glass inside what it presses: the label of a button, the view this modifies. Under Reduce Motion
+/// it shades instead of moving.
+private struct PieceLiquidPress: ViewModifier {
+    let pressed: Bool
+    var touch: CGPoint?
+    var depth: CGFloat = 2.5
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.colorScheme) private var colorScheme
+    @State private var size: CGSize = .zero
+    @State private var anchor: UnitPoint = .center
+
+    func body(content: Content) -> some View {
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        let scale = pressed && !reduceMotion ? PieceMotion.pressScale(for: size, depth: depth) : 1
+        // A scale about `anchor` is a scale about the centre plus this shift toward the anchor.
+        let lean = CGSize(width: (anchor.x - 0.5) * size.width * (1 - scale), height: (anchor.y - 0.5) * size.height * (1 - scale))
+        content
+            .onGeometryChange(for: CGSize.self) { $0.size } action: { size = $0 }
+            .brightness(pressed && reduceMotion ? (colorScheme == .dark ? 0.1 : -0.08) : 0)
+            .pieceLiquidScale(scale)
+            .offset(lean)
+            .animation(pressed ? motion.press : motion.release, value: pressed)
+            .onChange(of: pressed) { _, isPressed in
+                if isPressed { anchor = PieceMotion.pressAnchor(touch: touch, in: size) }
+            }
+            .onChange(of: touch) { _, touch in
+                if pressed, let touch { anchor = PieceMotion.pressAnchor(touch: touch, in: size) }
+            }
+    }
+}
+
+/// `PiecePressStyle` for glass buttons: the label (with its `.pieceLiquid` inside) sinks as one.
+private struct PieceLiquidPressStyle: ButtonStyle {
+    var depth: CGFloat = 2.5
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label.pieceLiquidPress(configuration.isPressed, depth: depth)
+    }
+}
+
+private extension View {
+    /// Sinks this view's glass while `pressed`, leaning toward `touch` (in this view's coordinates) when given.
+    func pieceLiquidPress(_ pressed: Bool, touch: CGPoint? = nil, depth: CGFloat = 2.5) -> some View {
+        modifier(PieceLiquidPress(pressed: pressed, touch: touch, depth: depth))
+    }
+}
+
+// swiftpieces-liquid: end

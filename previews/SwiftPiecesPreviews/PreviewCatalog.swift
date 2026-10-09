@@ -6,14 +6,14 @@ import SwiftUI
 enum PreviewCatalog {
     static let names: [String] = [
         "TextReveal", "GlassText", "Silk",
-        "TouchGrid", "GlassSurface", "GlassActionMenu", "GlassSegments", "ElasticButton",
+        "TouchGrid", "GlassSurface", "GlassActionMenu", "GlassSegments", "GlassModeBar", "GlassQuickAdd", "ElasticButton",
         "CommitButton", "HoldToConfirm", "FanStack", "TimerDial", "ExpandingTrack", "ScrubStepper",
         "FilterRail", "SecureEntry", "FlipCard", "ParallaxCard", "MotionCard", "SwipeDeck",
         "SwipeActionRow", "DepthCarousel", "TaskRow", "StatusTimeline", "StretchHeader", "TrackingTabs",
         "FloatingDock", "Toast", "ConfirmSheet", "PermissionSheet", "ReactionToggle",
         "RatingScrub", "StatusMorph", "SkeletonLoader", "OutcomeScreen", "DragToDismiss", "ScrubChart",
         "RingBreakdown", "LiveStat", "Odometer", "PhotoViewer", "StoryStrip", "StreamingReply",
-        "ThinkingState", "PromptChips", "CodeBlock",
+        "ThinkingState", "PromptChips", "SourceStack",
         "AssistantOrb", "ThoughtOrb",
         // everyday inputs, text and lists
         "RangeSlider", "DateRangePicker", "TokenField", "AmountField", "FormField", "ExpandableText", "PagedList",
@@ -44,6 +44,10 @@ enum PreviewCatalog {
             Stage { GlassActionMenuLoop() }
         case "GlassSegments":
             Stage { GlassSegmentsLoop() }
+        case "GlassModeBar":
+            Stage { GlassModeBarLoop() }
+        case "GlassQuickAdd":
+            Stage { GlassQuickAddLoop() }
         case "ElasticButton":
             Stage { ElasticButtonDemo() }
         case "CommitButton":
@@ -125,8 +129,8 @@ enum PreviewCatalog {
             Stage { ThinkingStateLoop() }
         case "PromptChips":
             Stage { PromptChipsLoop() }
-        case "CodeBlock":
-            Stage { CodeBlockLoop() }
+        case "SourceStack":
+            Stage { SourceStackLoop() }
         // orbs
         case "AssistantOrb":
             Stage(dark: true) { AssistantOrbLoop() }
@@ -204,7 +208,7 @@ private struct TextRevealLoop: View {
         let palette = TextRevealPaletteTG.self
         VStack(alignment: .leading, spacing: 16) {
             TextReveal("Plan the week in one calm glance.", trigger: replay, highlights: ["one calm glance"])
-                .font(.system(size: 40, weight: .bold))
+                .font(.system(size: 40, weight: .semibold))
                 .tracking(-1.3)
                 .foregroundStyle(palette.text)
             TextReveal("Three priorities, two open loops and a clear Monday.", preset: .blur, delay: 0.45, trigger: replay)
@@ -244,7 +248,7 @@ private struct GlassTextDemo: View {
     var body: some View {
         TimelineView(.animation(paused: reduceMotion)) { context in
             let t = context.date.timeIntervalSinceReferenceDate
-            GlassText("07:30", font: .systemFont(ofSize: 112, weight: .heavy), scalesWithDynamicType: false)
+            GlassText("07:30", font: .systemFont(ofSize: 112, weight: .semibold), scalesWithDynamicType: false)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background { GlassTextBlocksTG(t: t).clipped() }
         }
@@ -278,7 +282,7 @@ private struct GlassTextBlocksTG: View {
 
 private enum GlassTextPaletteTG {
     static let sky = Color(red: 0.612, green: 0.761, blue: 1)
-    static let tangerine = Color(red: 1, green: 0.357, blue: 0.227)
+    static let tangerine = Color(red: 1, green: 0, blue: 0)
     static let butter = Color(red: 1, green: 0.851, blue: 0.463)
     static let lilac = Color(red: 0.804, green: 0.722, blue: 1)
 }
@@ -293,8 +297,9 @@ private struct GlassSurfaceLoop: View {
     var body: some View {
         let ink = Color(red: 0.078, green: 0.078, blue: 0.078)
         TimelineView(.animation(paused: reduceMotion)) { context in
-            GlassSurface.Group(spacing: 8) {
-                HStack(spacing: 12) {
+            // The house rest: parts of one control 6pt apart in a 20pt group, so the necks hold.
+            GlassSurface.Group(spacing: 20) {
+                HStack(spacing: 6) {
                     Button {} label: {
                         Image(systemName: "chevron.left")
                             .font(.title3.weight(.semibold))
@@ -307,7 +312,7 @@ private struct GlassSurfaceLoop: View {
                             .font(.title.weight(.semibold))
                             .frame(width: 190, height: 76)
                     }
-                    .glassSurface(.capsule, tint: Color(red: 1, green: 0.357, blue: 0.227), interactive: true)
+                    .glassSurface(.capsule, tint: Color(red: 1, green: 0, blue: 0), interactive: true)
                     .accessibilityLabel("Play")
                     Button {} label: {
                         Image(systemName: "chevron.right")
@@ -385,6 +390,108 @@ private enum GlassActionMenuPaletteTG {
 }
 
 /// The component alone: the picker centred on the stage, cycling through its options.
+/// Quick add folding up into its menu, then a Task capture that fills in and saves, on the house ground.
+private struct GlassQuickAddLoop: View {
+    @State private var stage: GlassQuickAddStage = .closed
+    @State private var text = ""
+    @State private var save = 0
+    private static func hex(_ v: UInt32) -> Color { Color(red: Double((v >> 16) & 0xFF) / 255, green: Double((v >> 8) & 0xFF) / 255, blue: Double(v & 0xFF) / 255) }
+    private let kinds: [GlassQuickAddKind] = [
+        .init(id: "note", systemImage: "note.text", title: "Note", prompt: "Write it down", tint: hex(0x9CC2FF)),
+        .init(id: "task", systemImage: "checkmark", title: "Task", prompt: "What needs doing?", options: ["Today", "Tomorrow", "Flag"], tint: hex(0xFFD976)),
+        .init(id: "link", systemImage: "link", title: "Link", prompt: "Paste a link", options: ["Read later"], tint: hex(0xCDB8FF)),
+        .init(id: "reminder", systemImage: "bell", title: "Reminder", prompt: "Remind me to…", options: ["9:00", "13:00", "18:00"], tint: hex(0xA9DCB7)),
+    ]
+
+    var body: some View {
+        GlassQuickAdd(kinds: kinds, stage: $stage, text: $text, saveTrigger: save) { _, _, _ in }
+            .padding(20)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+            .padding(.bottom, 120)
+            .background(GlassSegmentsStyle.adaptive(light: 0xF3F2EE, dark: 0x121212))
+            .task {
+                while !Task.isCancelled {
+                    try? await Task.sleep(for: .seconds(1.0))
+                    stage = .menu
+                    try? await Task.sleep(for: .seconds(1.2))
+                    stage = .capture("task")
+                    try? await Task.sleep(for: .seconds(0.5))
+                    for character in "Call the bakery" {
+                        text.append(character)
+                        try? await Task.sleep(for: .milliseconds(50))
+                    }
+                    try? await Task.sleep(for: .seconds(0.7))
+                    save += 1
+                    try? await Task.sleep(for: .seconds(2.4))
+                }
+            }
+    }
+}
+
+/// The mode bar turning into voice, timer and photo controls in turn, on the house ground.
+private struct GlassModeBarLoop: View {
+    @Environment(\.colorScheme) private var colorScheme
+    @State private var mode: String?
+
+    private let modes: [GlassModeBarMode] = [
+        .init(id: "text", systemImage: "textformat", title: "Text"),
+        .init(id: "voice", systemImage: "mic", title: "Voice"),
+        .init(id: "photo", systemImage: "photo", title: "Photo"),
+        .init(id: "timer", systemImage: "timer", title: "Timer"),
+    ]
+
+    var body: some View {
+        let ink = colorScheme == .dark ? Color(red: 0.957, green: 0.953, blue: 0.937) : Color(red: 0.078, green: 0.078, blue: 0.078)
+        GlassModeBar(modes: modes, selection: $mode) { mode in
+            // Each mode's controls span the whole inside of the capsule.
+            switch mode.id {
+            case "voice":
+                HStack(spacing: 12) {
+                    HStack(spacing: 0) {
+                        ForEach(0..<28, id: \.self) { i in
+                            Capsule().fill(Color(red: 1, green: 0, blue: 0)).frame(width: 3, height: 6 + 18 * abs(sin(Double(i) * 0.9))).frame(maxWidth: .infinity)
+                        }
+                    }
+                    Text("0:07").monospacedDigit().foregroundStyle(ink)
+                }
+            case "photo":
+                HStack(spacing: 6) {
+                    ForEach([Color(red: 0.612, green: 0.761, blue: 1), Color(red: 1, green: 0.851, blue: 0.463), Color(red: 0.663, green: 0.863, blue: 0.718), Color(red: 0.804, green: 0.722, blue: 1), Color(red: 0.914, green: 0.835, blue: 0.702)], id: \.self) { tint in
+                        RoundedRectangle(cornerRadius: 8, style: .continuous).fill(tint).frame(maxWidth: .infinity).frame(height: 38)
+                    }
+                }
+            case "timer":
+                HStack(spacing: 8) {
+                    ForEach(["5m", "15m", "25m", "45m"], id: \.self) { label in
+                        Text(label).foregroundStyle(ink).frame(maxWidth: .infinity).frame(height: 34)
+                            .background(ink.opacity(label == "15m" ? 0.18 : 0.08), in: .capsule)
+                    }
+                }
+            default:
+                HStack(spacing: 0) {
+                    ForEach(["bold", "italic", "underline", "strikethrough", "list.bullet"], id: \.self) { symbol in
+                        Image(systemName: symbol).frame(maxWidth: .infinity)
+                    }
+                }
+                .foregroundStyle(ink)
+            }
+        }
+        .padding(.horizontal, 20)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(GlassSegmentsStyle.adaptive(light: 0xF3F2EE, dark: 0x121212))
+        .task {
+            while !Task.isCancelled {
+                for next in ["voice", "timer", "photo"] {
+                    try? await Task.sleep(for: .seconds(0.8))
+                    mode = next
+                    try? await Task.sleep(for: .seconds(1.9))
+                    mode = nil
+                }
+            }
+        }
+    }
+}
+
 private struct GlassSegmentsLoop: View {
     enum Period: String, CaseIterable { case day, week, month, year }
     @State private var period: Period = .week
@@ -394,7 +501,20 @@ private struct GlassSegmentsLoop: View {
             .frame(maxWidth: 350)
             .padding(.horizontal, 24)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(GlassSegmentsStyle.adaptive(light: 0xF3F2EE, dark: 0x121212))
+            // Glass shows what is behind it: the control floats over colour blocks, as on the site.
+            .background {
+                GeometryReader { proxy in
+                    let w = proxy.size.width, h = proxy.size.height
+                    ZStack {
+                        Color(red: 0.804, green: 0.722, blue: 1)
+                        Circle().fill(Color(red: 1, green: 0.851, blue: 0.463)).frame(width: w * 0.8).position(x: w * 0.82, y: h * 0.36)
+                        RoundedRectangle(cornerRadius: 40, style: .continuous).fill(Color(red: 0.663, green: 0.863, blue: 0.718))
+                            .frame(width: w * 0.8, height: h * 0.34).rotationEffect(.degrees(-8)).position(x: w * 0.18, y: h * 0.66)
+                        Capsule().fill(Color(red: 0.612, green: 0.761, blue: 1)).frame(width: w * 0.9, height: 64).position(x: w * 0.58, y: h * 0.56)
+                    }
+                }
+                .ignoresSafeArea()
+            }
             .task {
                 while !Task.isCancelled {
                     try? await Task.sleep(for: .seconds(1.8))
@@ -500,7 +620,8 @@ private struct FanStackLoop: View {
     var body: some View {
         ControlsStage(width: nil) {
             FanStack(
-                names: ["Priya Raman", "Jonas Weber", "Amara Diallo", "Leo Brandt", "Sofia Marin", "Kenji Sato"],
+                // Five people, as the docs example: fanned at 52pt they span 364pt, inside a 393pt screen.
+                names: ["Priya Raman", "Jonas Weber", "Amara Diallo", "Leo Brandt", "Sofia Marin"],
                 size: 52,
                 max: 3,
                 isFanned: $fanned,
@@ -686,8 +807,8 @@ private struct SecureEntryLoop: View {
 /// House palette for the cards and media scenes (FREE-V2 §3).
 private enum CardsMediaPalette {
     static let ink = Color(red: 0.078, green: 0.078, blue: 0.078)
-    static let signal = Color(red: 1, green: 0.357, blue: 0.227)
-    static let tangerine = Color(red: 1, green: 0.357, blue: 0.227)
+    static let signal = Color(red: 1, green: 0, blue: 0)
+    static let tangerine = Color(red: 1, green: 0, blue: 0)
     static let sky = Color(red: 0.612, green: 0.761, blue: 1)
     static let butter = Color(red: 1, green: 0.851, blue: 0.463)
     static let sage = Color(red: 0.663, green: 0.863, blue: 0.718)
@@ -707,13 +828,13 @@ private struct FlipCardLoop: View {
                         .overlay(alignment: .topLeading) {
                             VStack(alignment: .leading, spacing: 0) {
                                 HStack {
-                                    Text("PORTUGUESE").font(.caption2.weight(.bold)).tracking(1)
+                                    Text("PORTUGUESE").font(.caption2.weight(.semibold)).tracking(1)
                                     Spacer()
                                     Text("3 / 12").font(.system(.caption, design: .monospaced).weight(.semibold))
                                 }
                                 Spacer()
-                                Text("Saudade").font(.system(size: 46, weight: .bold)).tracking(-1.8).lineLimit(1).minimumScaleFactor(0.6)
-                                Text("noun  ·  sow-DAH-jee").font(.subheadline.weight(.medium)).opacity(0.62)
+                                Text("Saudade").font(.system(size: 46, weight: .semibold)).tracking(-1.8).lineLimit(1).minimumScaleFactor(0.6)
+                                Text("noun  ·  sow-DAH-jee").font(.subheadline.weight(.semibold)).opacity(0.62)
                             }
                             .foregroundStyle(P.ink)
                             .padding(22)
@@ -723,10 +844,10 @@ private struct FlipCardLoop: View {
                         .fill(P.sky)
                         .overlay(alignment: .topLeading) {
                             VStack(alignment: .leading, spacing: 10) {
-                                Text("MEANING").font(.caption2.weight(.bold)).tracking(1)
-                                Text("A deep longing for someone or something far away.").font(.system(size: 22, weight: .bold)).tracking(-0.6).minimumScaleFactor(0.7)
+                                Text("MEANING").font(.caption2.weight(.semibold)).tracking(1)
+                                Text("A deep longing for someone or something far away.").font(.system(size: 22, weight: .semibold)).tracking(-0.6).minimumScaleFactor(0.7)
                                 Spacer(minLength: 0)
-                                Text("Often heard in fado songs").font(.subheadline.weight(.medium)).opacity(0.62)
+                                Text("Often heard in fado songs").font(.subheadline.weight(.semibold)).opacity(0.62)
                             }
                             .foregroundStyle(P.ink)
                             .padding(22)
@@ -739,36 +860,44 @@ private struct FlipCardLoop: View {
 
 private struct MotionCardLoop: View {
     @State private var tilt = CGSize(width: 0.4, height: -0.25)
-    private typealias P = CardsMediaPalette
+    /// The tear line, as a fraction of the ticket's height; the notches are cut clean through the card on it.
+    private let tear: CGFloat = 0.64
     var body: some View {
-        MotionCard(attitude: tilt) {
+        MotionCard(attitude: tilt, style: .init(notchRadius: 11, notchPosition: tear)) {
+            VStack(alignment: .leading, spacing: 0) {
                 VStack(alignment: .leading, spacing: 0) {
                     HStack {
-                        Text("ADMIT ONE").font(.caption2.weight(.bold)).tracking(1.2)
+                        Text("ADMIT ONE").font(.caption2.weight(.semibold)).tracking(1.2)
                         Spacer()
                         Text("No. 0418").font(.system(.caption, design: .monospaced).weight(.semibold))
                     }
-                    Spacer(minLength: 12)
-                    Text("Late Show").font(.system(size: 40, weight: .bold)).tracking(-1.6)
-                    Text("Sat 14 Nov  ·  Screen 3").font(.subheadline.weight(.medium)).opacity(0.62)
-                    HStack(spacing: 8) {
-                        Circle().fill(P.ground).frame(width: 22, height: 22).offset(x: -11)
-                        Rectangle().frame(height: 1.5).opacity(0.25)
-                        Circle().fill(P.ground).frame(width: 22, height: 22).offset(x: 11)
-                    }
-                    .padding(.horizontal, -22)
-                    .padding(.vertical, 6)
-                    HStack(alignment: .firstTextBaseline, spacing: 24) {
-                        ForEach([("ROW", "F"), ("SEAT", "12"), ("DOORS", "21:40")], id: \.0) { label, value in
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(label).font(.caption2.weight(.bold)).tracking(1).opacity(0.62)
-                                Text(value).font(.system(size: 30, weight: .light)).monospacedDigit()
-                            }
+                    Spacer(minLength: 8)
+                    Text("Late Show").font(.system(size: 40, weight: .semibold)).tracking(-1.6).lineLimit(1).minimumScaleFactor(0.6)
+                    Text("Sat 14 Nov  ·  Screen 3").font(.subheadline.weight(.semibold)).opacity(0.62).lineLimit(1)
+                }
+                .padding([.horizontal, .top], 22)
+                .padding(.bottom, 16)
+                .frame(height: 244 * tear, alignment: .top)
+                HStack(alignment: .firstTextBaseline, spacing: 24) {
+                    ForEach([("ROW", "F"), ("SEAT", "12"), ("DOORS", "21:40")], id: \.0) { label, value in
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(label).font(.caption2.weight(.semibold)).tracking(1).opacity(0.62)
+                            Text(value).font(.system(size: 30, weight: .semibold)).monospacedDigit()
                         }
                     }
                 }
-                .padding(22)
-                .frame(width: 330, height: 244)
+                .padding(.horizontal, 22)
+                .frame(maxHeight: .infinity)
+            }
+            .frame(width: 330, height: 244, alignment: .topLeading)
+            .overlay(alignment: .top) {
+                MotionCardTearLine()
+                    .stroke(style: StrokeStyle(lineWidth: 1.5, dash: [4, 5]))
+                    .frame(height: 1.5)
+                    .opacity(0.3)
+                    .padding(.horizontal, 19)
+                    .offset(y: 244 * tear - 0.75)
+            }
         }
         .task {
             while !Task.isCancelled {
@@ -778,6 +907,12 @@ private struct MotionCardLoop: View {
                 }
             }
         }
+    }
+}
+
+private struct MotionCardTearLine: Shape {
+    func path(in rect: CGRect) -> Path {
+        Path { $0.move(to: CGPoint(x: 0, y: rect.midY)); $0.addLine(to: CGPoint(x: rect.maxX, y: rect.midY)) }
     }
 }
 
@@ -840,7 +975,7 @@ private struct ParallaxArtwork: View {
         ZStack(alignment: .topLeading) {
             sky
             Circle().fill(sun).frame(width: 190, height: 190).offset(x: 196, y: 10)
-            Text(word).font(.system(size: 128, weight: .black)).tracking(-6).foregroundStyle(CardsMediaPalette.ink).fixedSize().offset(x: -8, y: 24)
+            Text(word).font(.system(size: 128, weight: .semibold)).tracking(-6).foregroundStyle(CardsMediaPalette.ink).fixedSize().offset(x: -8, y: 24)
         }
         .frame(width: 400, height: 340)
         .clipped()
@@ -871,32 +1006,33 @@ private struct SwipeDeckLoop: View {
         SwipeDeck(items: $recipes, swipe: $command) { _, recipe in
             recipes.append(recipe)
         } card: { recipe in
-                RoundedRectangle(cornerRadius: 34, style: .continuous)
-                    .fill(recipe.fill)
-                    .overlay {
-                        VStack(alignment: .leading, spacing: 0) {
-                            HStack {
-                                Text("TONIGHT").font(.caption2.weight(.bold)).tracking(1.2)
-                                Spacer()
-                                Text("\(recipe.minutes) min").font(.system(.caption, design: .monospaced).weight(.semibold))
-                            }
-                            Spacer()
-                            ZStack {
-                                Circle().fill(P.ink)
-                                Circle().fill(recipe.bowl).padding(22)
-                                Circle().fill(recipe.fill).frame(width: 26, height: 26).offset(x: 14, y: -10)
-                                Circle().fill(recipe.fill).frame(width: 14, height: 14).offset(x: -18, y: 14)
-                            }
-                            .frame(width: 132, height: 132)
-                            .frame(maxWidth: .infinity)
-                            Spacer()
-                            Text(recipe.title).font(.system(size: 32, weight: .bold)).tracking(-1.2).lineLimit(2).minimumScaleFactor(0.7)
-                            Text(recipe.detail).font(.subheadline.weight(.medium)).opacity(0.62).padding(.top, 2)
+            let shape = RoundedRectangle(cornerRadius: 34, style: .continuous)
+            shape
+                .fill(recipe.fill)
+                .overlay(alignment: .topTrailing) {
+                    // A plate of colour cropped by the corner: the card's one shape.
+                    Circle().fill(recipe.bowl).frame(width: 220, height: 220).offset(x: 64, y: -70)
+                }
+                .overlay {
+                    VStack(alignment: .leading, spacing: 0) {
+                        Text("TONIGHT").font(.caption2.weight(.semibold)).tracking(1.2)
+                        Spacer(minLength: 8)
+                        HStack(alignment: .firstTextBaseline, spacing: 6) {
+                            Text("\(recipe.minutes)").font(.system(size: 132, weight: .semibold)).tracking(-7).monospacedDigit()
+                            Text("min").font(.headline.weight(.semibold))
                         }
-                        .foregroundStyle(P.ink)
-                        .padding(22)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.5)
+                        Rectangle().fill(P.ink.opacity(0.18)).frame(height: 1).padding(.top, 4)
+                        Text(recipe.title).font(.system(size: 29, weight: .semibold)).tracking(-1).lineLimit(1).minimumScaleFactor(0.6).padding(.top, 16)
+                        Text(recipe.detail).font(.subheadline.weight(.semibold)).opacity(0.62).padding(.top, 2)
                     }
-            }
+                    .foregroundStyle(P.ink)
+                    .padding(22)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                }
+                .clipShape(shape)
+        }
         .frame(width: 300, height: 390)
         .task {
             let directions: [Edge] = [.trailing, .leading, .top]
@@ -928,9 +1064,9 @@ private struct PhotoViewerPrintArt: View {
                 Circle().fill(print.shape).frame(width: w * 0.62, height: w * 0.62).offset(x: w * 0.3, y: w * 0.16)
                 Rectangle().fill(CardsMediaPalette.ink).frame(width: w * 0.46, height: w * 0.1).offset(x: w * 0.08, y: w * 0.62)
                 VStack(alignment: .leading, spacing: 0) {
-                    Text("No. 0\(print.id + 1)").font(.system(size: w * 0.05, weight: .bold, design: .monospaced))
+                    Text("No. 0\(print.id + 1)").font(.system(size: w * 0.05, weight: .semibold, design: .monospaced))
                     Spacer()
-                    Text(print.title).font(.system(size: w * 0.26, weight: .black)).tracking(-w * 0.012).lineLimit(1)
+                    Text(print.title).font(.system(size: w * 0.26, weight: .semibold)).tracking(-w * 0.012).lineLimit(1)
                 }
                 .foregroundStyle(CardsMediaPalette.ink)
                 .padding(w * 0.07)
@@ -994,20 +1130,33 @@ private struct StoryStripLoop: View {
             slide.fill.animation(.smooth(duration: 0.35), value: current)
             VStack(alignment: .leading, spacing: 10) {
                 Spacer()
-                Text(slide.meta).font(.caption.weight(.bold)).tracking(1.2)
+                Text(slide.meta).font(.caption.weight(.semibold)).tracking(1.2)
                 if let figure = slide.figure {
-                    Text(figure).font(.system(size: 96, weight: .light)).tracking(-4).minimumScaleFactor(0.5).lineLimit(1)
+                    Text(figure).font(.system(size: 96, weight: .semibold)).tracking(-4).minimumScaleFactor(0.5).lineLimit(1)
                 }
                 Text(slide.headline)
-                    .font(.system(size: slide.figure == nil ? 44 : 28, weight: .bold))
-                    .tracking(slide.figure == nil ? -1.8 : -1)
+                    .font(.system(size: slide.figure == nil ? 34 : 26, weight: .semibold))
+                    .tracking(slide.figure == nil ? -1.2 : -0.8)
                     .fixedSize(horizontal: false, vertical: true)
             }
             .foregroundStyle(P.ink)
             .padding(24)
-            .padding(.bottom, 20)
+            .padding(.bottom, 12)
             .id(current)
             .transition(.opacity)
+            HStack(spacing: 8) {
+                Text("MA")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(slide.fill)
+                    .frame(width: 28, height: 28)
+                    .background(P.ink, in: Circle())
+                Text("Mara")
+                Text("2h").opacity(0.55)
+            }
+            .font(.subheadline.weight(.semibold))
+            .foregroundStyle(P.ink)
+            .padding(.horizontal, 12)
+            .padding(.top, 12 + 3 + 12)
             StoryStrip(count: slides.count, current: $current, duration: 1.8, isPaused: $paused, tint: P.ink, style: StoryStrip.Style(ink: slide.fill)) {
                 Task {
                     try? await Task.sleep(for: .seconds(0.6))
@@ -1016,7 +1165,7 @@ private struct StoryStripLoop: View {
             }
         }
         .frame(width: 330, height: 560)
-        .clipShape(.rect(cornerRadius: 34, style: .continuous))
+        .clipShape(.rect(cornerRadius: 20, style: .continuous))
     }
 }
 
@@ -1035,8 +1184,8 @@ private enum LAPalette {
     static let text = adaptive(0x141414, 0xF4F3EF)
     static let muted = adaptive(0x5C5A56, 0xA6A49F)
     static let ink = Color(red: 0.078, green: 0.078, blue: 0.078)
-    static let signal = Color(red: 1, green: 0.357, blue: 0.227)
-    static let tangerine = Color(red: 1, green: 0.357, blue: 0.227)
+    static let signal = Color(red: 1, green: 0, blue: 0)
+    static let tangerine = Color(red: 1, green: 0, blue: 0)
     static let sky = Color(red: 0.612, green: 0.761, blue: 1)
     static let butter = Color(red: 1, green: 0.851, blue: 0.463)
     static let sage = Color(red: 0.663, green: 0.863, blue: 0.718)
@@ -1078,7 +1227,7 @@ private struct SwipeActionRowLoop: View {
                     ) {
                         HStack(spacing: 14) {
                             Text(initials)
-                                .font(.system(size: 15, weight: .bold, design: .rounded))
+                                .font(.system(size: 15, weight: .semibold, design: .rounded))
                                 .foregroundStyle(LAPalette.ink)
                                 .frame(width: 46, height: 46)
                                 .background(color, in: Circle())
@@ -1136,13 +1285,13 @@ private struct DepthCarouselLoop: View {
                         .offset(x: 150 + phase * 40, y: 64)
                     VStack(alignment: .leading, spacing: 0) {
                         HStack {
-                            Text(trip.country.uppercased()).font(.caption.weight(.bold)).tracking(1.2)
+                            Text(trip.country.uppercased()).font(.caption.weight(.semibold)).tracking(1.2)
                             Spacer()
-                            Text("\(trip.nights) NIGHTS").font(.caption.weight(.bold)).tracking(1.2)
+                            Text("\(trip.nights) NIGHTS").font(.caption.weight(.semibold)).tracking(1.2)
                         }
                         Spacer()
-                        Text(trip.id).font(.system(size: 44, weight: .bold)).tracking(-1.8)
-                        Text(trip.dates).font(.subheadline.weight(.medium)).opacity(0.7)
+                        Text(trip.id).font(.system(size: 44, weight: .semibold)).tracking(-1.8)
+                        Text(trip.dates).font(.subheadline.weight(.semibold)).opacity(0.7)
                     }
                     .foregroundStyle(LAPalette.ink)
                     .padding(22)
@@ -1223,14 +1372,14 @@ private enum NDP {
     }
     static let ground = c(0xF3F2EE, 0x121212), surface = c(0xFFFFFF, 0x1C1C1C), raised = c(0xFFFFFF, 0x262626)
     static let muted = c(0x5C5A56, 0xA6A49F), ink = c(0x141414, 0x141414)
-    static let tangerine = c(0xFF5B3A, 0xFF5B3A), sky = c(0x9CC2FF, 0x9CC2FF), butter = c(0xFFD976, 0xFFD976)
-    static let sage = c(0xA9DCB7, 0xA9DCB7), lilac = c(0xCDB8FF, 0xCDB8FF), sand = c(0xE9D5B3, 0xE9D5B3), signal = c(0xFF5B3A, 0xFF5B3A)
+    static let tangerine = c(0xFF0000, 0xFF0000), sky = c(0x9CC2FF, 0x9CC2FF), butter = c(0xFFD976, 0xFFD976)
+    static let sage = c(0xA9DCB7, 0xA9DCB7), lilac = c(0xCDB8FF, 0xCDB8FF), sand = c(0xE9D5B3, 0xE9D5B3), signal = c(0xFF0000, 0xFF0000)
     static func meta(_ text: String) -> some View {
         Text(text.uppercased()).font(.system(size: 12, weight: .semibold)).tracking(1.2).foregroundStyle(muted)
     }
 }
 
-/// The header itself: sage block hero with a butter disc, eyebrow and heavy title over plain placeholder content,
+/// The header itself: sage block hero with a butter disc, eyebrow and semibold title over plain placeholder content,
 /// scrolled so the meta row pins and the solid bar fades in, then returned.
 private struct StretchHeaderLoop: View {
     @State private var progress: CGFloat = 0
@@ -1244,9 +1393,7 @@ private struct StretchHeaderLoop: View {
                             Circle().fill(NDP.butter).frame(width: 180).offset(x: 50, y: -40)
                         }
                     } subtitle: {
-                        NDP.meta("5.4 mi · 1,000 ft up · 3.5 hours")
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.horizontal, 20).padding(.vertical, 14)
+                        StretchHeaderStats(["5.4 mi", "1,000 ft up", "3.5 hours"])
                     }
                     // Plain placeholder content, only so there is something to scroll.
                     VStack(spacing: 12) {
@@ -1394,7 +1541,7 @@ private struct ConfirmSheetLoop: View {
     }
 }
 
-/// Replays the present choreography (tile bounce, staggered benefit tiles) by re-identifying the view.
+/// The notification preview sheet; replays the present choreography (the banners dropping in) by re-identifying the view.
 private struct PermissionSheetLoop: View {
     @State private var generation = 0
     var body: some View {
@@ -1403,9 +1550,9 @@ private struct PermissionSheetLoop: View {
             title: "Turn on notifications",
             message: "We only send what matters, and you can change this any time.",
             benefits: [
-                .init(symbol: "clock.fill", text: "A nudge 30 minutes before things are due"),
-                .init(symbol: "person.2.fill", text: "Replies from people you share lists with"),
-                .init(symbol: "moon.fill", text: "Nothing between 10 PM and 7 AM"),
+                .init(symbol: "clock.fill", text: "Design review in 30 minutes"),
+                .init(symbol: "person.2.fill", text: "Mara replied to Groceries"),
+                .init(symbol: "moon.fill", text: "Quiet hours from 10 PM to 7 AM"),
             ],
             allowTitle: "Allow notifications",
             request: { try? await Task.sleep(for: .seconds(1)); return true },
@@ -1413,11 +1560,12 @@ private struct PermissionSheetLoop: View {
             onSkip: {}
         )
         .id(generation)
-        .frame(width: 380)
+        .fixedSize(horizontal: false, vertical: true)
+        .frame(width: 370)
         .background(PermissionSheet.Style.standard.surface, in: .rect(cornerRadius: 34, style: .continuous))
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(inputsSheetsColor(0xF3F2EE, 0x121212))
-        .task { while !Task.isCancelled { try? await Task.sleep(for: .seconds(3)); generation += 1 } }
+        .task { while !Task.isCancelled { try? await Task.sleep(for: .seconds(6.5)); generation += 1 } }
     }
 }
 
@@ -1524,7 +1672,7 @@ private struct SkeletonLoaderLoop: View {
                     let item = items[index]
                     HStack(spacing: 18) {
                         Text(item.0)
-                            .font(.system(size: 21, design: .rounded).weight(.bold))
+                            .font(.system(size: 21, design: .rounded).weight(.semibold))
                             .foregroundStyle(RatingScrub.Style.blockInk)
                             .frame(width: 92, height: 76)
                             .background(item.3, in: .rect(cornerRadius: 24, style: .continuous))
@@ -1654,7 +1802,7 @@ private struct DragToDismissScene: View {
         return VStack(alignment: .leading, spacing: 0) {
             HStack {
                 Text("BOARDING PASS")
-                    .font(.caption.weight(.bold))
+                    .font(.caption.weight(.semibold))
                     .tracking(1)
                 Spacer()
                 Text("Group 2")
@@ -1664,7 +1812,7 @@ private struct DragToDismissScene: View {
                     .background(bmColor(0x9CC2FF), in: .capsule)
             }
             Text("SFO\n\(Text("to LIS").foregroundStyle(ink.opacity(0.55)))")
-                .font(.system(size: 56, weight: .bold))
+                .font(.system(size: 56, weight: .semibold))
                 .tracking(-2.4)
                 .padding(.top, 28)
             HStack(alignment: .firstTextBaseline, spacing: 28) {
@@ -1699,8 +1847,8 @@ private struct DragToDismissScene: View {
 
     private static func field(_ label: String, _ value: String) -> some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(label).font(.caption2.weight(.bold)).tracking(1).opacity(0.6)
-            Text(value).font(.system(size: 30, weight: .light)).monospacedDigit().tracking(-0.8)
+            Text(label).font(.caption2.weight(.semibold)).tracking(1).opacity(0.6)
+            Text(value).font(.system(size: 30, weight: .semibold)).monospacedDigit().tracking(-0.8)
         }
     }
 }
@@ -1799,7 +1947,7 @@ private struct OdometerLoop: View {
 
     var body: some View {
         Odometer(value: balance, format: .currency(code: "USD"), isLoading: loading)
-            .font(.system(size: 48, weight: .light))
+            .font(.system(size: 48, weight: .semibold))
             .frame(minHeight: 60)
             .padding(24)
             .task {
@@ -1889,17 +2037,17 @@ private struct PromptChipsLoop: View {
     var body: some View {
         LAStage(alignment: .center) {
             PromptChips(
-                ["Summarize this page", "Draft a reply to Mara", "Find action items", "Plan my week"],
-                symbols: ["text.alignleft", "arrowshape.turn.up.left", "checklist", "calendar"],
+                ["Summarize", "Draft a reply", "Action items", "Plan my week", "Translate", "Make it shorter"],
+                symbols: ["text.alignleft", "arrowshape.turn.up.left", "checklist", "calendar", "globe", "arrow.down.right.and.arrow.up.left"],
+                layout: .grid(columns: 2),
                 selection: $selection
             ) { _ in }
             .id(cycle)
-            .frame(height: 60, alignment: .top)
         }
         .task {
             while !Task.isCancelled {
                 try? await Task.sleep(for: .seconds(2))
-                selection = "Draft a reply to Mara"
+                selection = "Draft a reply"
                 try? await Task.sleep(for: .seconds(1.4))
                 selection = nil
                 cycle += 1
@@ -1908,36 +2056,24 @@ private struct PromptChipsLoop: View {
     }
 }
 
-private struct CodeBlockLoop: View {
-    private static let source = [
-        "/// Greets someone by name.",
-        "func greet(_ name: String) -> String {",
-        "    // Interpolation keeps it simple.",
-        "    return \"Hello, \\(name)!\"",
-        "}",
-        "",
-        "let names = [\"Mara\", \"Jonas\"]",
-        "names.prefix(2).map(greet)",
+private struct SourceStackLoop: View {
+    @State private var expanded = false
+    private let sources: [SourceStack.Source] = [
+        .init(title: "Why the old trams still run", site: "The Lisbon Review", detail: "2 days ago"),
+        .init(title: "Tram 28, stop by stop", site: "Tram Notes", detail: "Updated May"),
+        .init(title: "How the funiculars climb", site: "Hill & Harbour"),
+        .init(title: "A short history of the tram", site: "City Rails Journal", detail: "2019")
     ]
-    @State private var shown = 1
-    @State private var streaming = true
 
     var body: some View {
         LAStage(alignment: .center) {
-            CodeBlock(Self.source.prefix(shown).joined(separator: "\n"), showsLineNumbers: true, collapseAfter: nil, isStreaming: streaming, title: "Greeter.swift")
+            SourceStack(sources, isExpanded: $expanded, alignment: .center) { _ in }
                 .padding(20)
         }
         .task {
             while !Task.isCancelled {
-                try? await Task.sleep(for: .milliseconds(380))
-                if shown < Self.source.count {
-                    shown += 1
-                } else if streaming {
-                    streaming = false
-                    try? await Task.sleep(for: .seconds(2.2))
-                    shown = 1
-                    streaming = true
-                }
+                try? await Task.sleep(for: .seconds(expanded ? 2.6 : 1.2))
+                expanded.toggle()
             }
         }
     }
@@ -1950,7 +2086,7 @@ private struct AssistantOrbLoop: View {
         VStack(spacing: 24) {
             AssistantOrb(size: 180, palette: .siri)
             Text("Thinking")
-                .font(.subheadline.weight(.medium))
+                .font(.subheadline.weight(.semibold))
                 .foregroundStyle(.secondary)
         }
     }
@@ -2268,7 +2404,7 @@ private struct PagedListScene: View {
 nonisolated private struct PagedListSceneItem: Identifiable, Sendable {
     let id: Int
     static let merchants = ["Juniper Coffee", "Riverside Books", "Northline Transit", "Maison Bakery", "Studio Nine", "Fieldhouse Gym", "Almanac Market", "Sprig Florist"]
-    static let tiles: [UInt32] = [0xFFD976, 0x9CC2FF, 0xA9DCB7, 0xCDB8FF, 0xE9D5B3, 0xFF5B3A]
+    static let tiles: [UInt32] = [0xFFD976, 0x9CC2FF, 0xA9DCB7, 0xCDB8FF, 0xE9D5B3, 0xFF0000]
     var merchant: String { Self.merchants[id % Self.merchants.count] }
     var amount: Double { Double((id * 37) % 90) + 4.5 }
 }
@@ -2293,7 +2429,7 @@ private struct PagedListSceneRow: View {
             }
             Spacer(minLength: 8)
             Text(item.amount, format: .currency(code: "USD"))
-                .font(.body.weight(.medium))
+                .font(.body.weight(.semibold))
                 .monospacedDigit()
                 .foregroundStyle(bmColor(light: 0x141414, dark: 0xF4F3EF))
         }
@@ -2345,7 +2481,7 @@ private struct IndexScrubberScene: View {
                             }
                         } header: {
                             Text(group.title)
-                                .font(.subheadline.weight(.bold))
+                                .font(.subheadline.weight(.semibold))
                                 .foregroundStyle(bmColor(light: 0x5C5A56, dark: 0xA6A49F))
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .padding(.horizontal, 24)
@@ -2373,34 +2509,24 @@ private struct IndexScrubberScene: View {
 private struct DragSelectGridScene: View {
     private struct Shot: Identifiable {
         let id: Int
-        let tint: Color
-        let symbol: String
+        let kind: Int
+        let way: Int
+        let duration: String?
     }
 
     private static let base: Set<Int> = [1, 2, 13]
-    private static let shots: [Shot] = {
-        let tints: [UInt32] = [0xFF0000, 0x9CC2FF, 0xFFD976, 0xA9DCB7, 0xCDB8FF, 0xE9D5B3]
-        let symbols = ["sun.max", "leaf", "moon", "cup.and.saucer", "cloud", "drop"]
-        var out: [Shot] = []
-        for i in 0..<40 {
-            let hex: UInt32 = tints[(i * 7 + i / 5) % tints.count]
-            let tint = Color(red: Double((hex >> 16) & 0xFF) / 255, green: Double((hex >> 8) & 0xFF) / 255, blue: Double(hex & 0xFF) / 255)
-            out.append(Shot(id: i, tint: tint, symbol: symbols[(i * 5 + i / 4) % symbols.count]))
-        }
-        return out
-    }()
+    /// Seven prints a cycle against the columns, so no scene lines up with itself; the same library as the site.
+    private static let shots: [Shot] = (0..<40).map { i in
+        let order = [0, 4, 1, 2, 5, 3, 1]
+        return Shot(id: i, kind: order[i % order.count], way: (i / order.count + i) % 3, duration: i % 7 == 3 ? String(format: "0:%02d", (12 + i) % 60) : nil)
+    }
 
     @State private var selection = DragSelectGridScene.base
     @State private var isSelecting = true
 
     var body: some View {
         DragSelectGrid(Self.shots, selection: $selection, isSelecting: $isSelecting, minimumCellWidth: 84) { shot, _ in
-            ZStack {
-                shot.tint
-                Image(systemName: shot.symbol)
-                    .font(.system(size: 24, weight: .medium))
-                    .foregroundStyle(Color(red: 0x14 / 255, green: 0x14 / 255, blue: 0x14 / 255).opacity(0.7))
-            }
+            DragSelectScenePrint(kind: shot.kind, way: shot.way, duration: shot.duration)
         }
         .contentMargins(.horizontal, 14, for: .scrollContent)
         .contentMargins(.vertical, 14, for: .scrollContent)
@@ -2428,6 +2554,71 @@ private struct DragSelectGridScene: View {
                 try? await Task.sleep(for: .seconds(1.0))
                 selection.remove(2)
                 try? await Task.sleep(for: .seconds(1.8))
+            }
+        }
+    }
+}
+
+/// A flat scene in the house blocks standing in for a photo: hills, a sunset, a portrait, a night sky, an arch or fields.
+private struct DragSelectScenePrint: View {
+    let kind: Int
+    let way: Int
+    let duration: String?
+
+    private static func hex(_ value: UInt32) -> Color {
+        Color(red: Double((value >> 16) & 0xFF) / 255, green: Double((value >> 8) & 0xFF) / 255, blue: Double(value & 0xFF) / 255)
+    }
+    private static let red = hex(0xFF0000), sky = hex(0x9CC2FF), butter = hex(0xFFD976), sage = hex(0xA9DCB7)
+    private static let lilac = hex(0xCDB8FF), sand = hex(0xE9D5B3), ink = hex(0x141414), dusk = hex(0x262626)
+
+    var body: some View {
+        Canvas { context, size in
+            let unit = max(size.width, size.height) / 100
+            context.translateBy(x: (size.width - unit * 100) / 2, y: (size.height - unit * 100) / 2)
+            context.scaleBy(x: unit, y: unit)
+            func fill(_ path: Path, _ color: Color, _ opacity: Double = 1) { context.fill(path, with: .color(color.opacity(opacity))) }
+            func circle(_ x: CGFloat, _ y: CGFloat, _ r: CGFloat) -> Path { Path(ellipseIn: CGRect(x: x - r, y: y - r, width: r * 2, height: r * 2)) }
+            func oval(_ x: CGFloat, _ y: CGFloat, _ rx: CGFloat, _ ry: CGFloat) -> Path { Path(ellipseIn: CGRect(x: x - rx, y: y - ry, width: rx * 2, height: ry * 2)) }
+            func band(_ y: CGFloat, _ rise: CGFloat) -> Path {
+                Path {
+                    $0.move(to: CGPoint(x: 0, y: y)); $0.addQuadCurve(to: CGPoint(x: 100, y: y), control: CGPoint(x: 50, y: y - rise))
+                    $0.addLine(to: CGPoint(x: 100, y: 100)); $0.addLine(to: CGPoint(x: 0, y: 100)); $0.closeSubpath()
+                }
+            }
+            let all = Path(CGRect(x: 0, y: 0, width: 100, height: 100))
+            switch kind {
+            case 0:
+                let c = [[Self.sky, Self.butter, Self.sage, Self.lilac], [Self.sand, Self.red, Self.butter, Self.sage], [Self.lilac, Self.butter, Self.sky, Self.sand]][way]
+                fill(all, c[0]); fill(circle(70, 32, 13), c[1]); fill(oval(82, 104, 64, 34), c[3]); fill(oval(22, 108, 70, 38), c[2])
+            case 1:
+                let c = [[Self.butter, Self.red, Self.sky], [Self.lilac, Self.butter, Self.sky], [Self.sand, Self.red, Self.lilac]][way]
+                fill(all, c[0]); fill(circle(50, 62, 20), c[1]); fill(Path(CGRect(x: 0, y: 62, width: 100, height: 38)), c[2])
+                fill(Path(roundedRect: CGRect(x: 38, y: 70, width: 24, height: 3), cornerRadius: 1.5), c[1], 0.7)
+                fill(Path(roundedRect: CGRect(x: 44, y: 78, width: 12, height: 3), cornerRadius: 1.5), c[1], 0.5)
+            case 2:
+                let c = [[Self.lilac, Self.ink], [Self.sage, Self.dusk], [Self.butter, Self.ink]][way]
+                fill(all, c[0]); fill(circle(50, 42, 15), c[1]); fill(oval(50, 106, 36, 34), c[1])
+            case 3:
+                fill(all, Self.dusk); fill(circle(66, 32, 12), Self.butter)
+                for (x, y, r) in [(24.0, 22.0, 1.6), (38, 40, 1.2), (16, 46, 1)] { fill(circle(x, y, r), .white, 0.9) }
+                fill(oval(30, 106, 72, 30), Self.hex(0x1C1C1C))
+            case 4:
+                let c = [[Self.sand, Self.sky], [Self.red, Self.butter], [Self.sage, Self.lilac]][way]
+                fill(all, c[0]); fill(Path(CGRect(x: 30, y: 52, width: 40, height: 48)), c[1]); fill(circle(50, 52, 20), c[1]); fill(circle(58, 50, 6), c[0], 0.5)
+            default:
+                let c = [[Self.sky, Self.butter, Self.sage, Self.red], [Self.lilac, Self.sand, Self.butter, Self.sky], [Self.butter, Self.sage, Self.sky, Self.red]][way]
+                fill(all, c[0]); fill(circle(74, 28, 9), c[3]); fill(band(52, 20), c[1]); fill(band(74, 24), c[2])
+            }
+        }
+        .overlay(alignment: .bottomLeading) {
+            if let duration {
+                Text(duration)
+                    .font(.caption.weight(.semibold))
+                    .monospacedDigit()
+                    .foregroundStyle(.white)
+                    .padding(8)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(LinearGradient(colors: [.black.opacity(0.45), .clear], startPoint: .bottom, endPoint: .top))
             }
         }
     }
@@ -2657,7 +2848,7 @@ private struct PictureHeadlineScene: View {
             alignment: .center,
             trigger: replay
         )
-        .font(.system(size: 40, weight: .bold))
+        .font(.system(size: 40, weight: .semibold))
         .tracking(-1.2)
         .foregroundStyle(bmColor(light: 0x141414, dark: 0xF4F3EF))
         .padding(.horizontal, 24)
@@ -3152,7 +3343,7 @@ private struct SpotlightTourScene: View {
             }
             Spacer(minLength: 0)
             Image(systemName: "plus")
-                .font(.title3.weight(.bold))
+                .font(.title3.weight(.semibold))
                 .foregroundStyle(bmColor(light: 0xF4F3EF, dark: 0x141414))
                 .frame(width: 56, height: 56)
                 .background(bmColor(light: 0x141414, dark: 0xF4F3EF), in: .circle)

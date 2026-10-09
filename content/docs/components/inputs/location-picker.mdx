@@ -1,36 +1,38 @@
 ---
 title: "Location Picker"
-description: "A map picker for delivery, rides, events and listings: drag the map under a fixed red pin that lifts while the map moves and drops with a small bounce when it settles, the address under it is looked up after a short pause with stale answers cancelled and recent ones cached, a floating card shows the street and locality (a dropped pin with coordinates where there is no address, Retry when the lookup fails), the locate button asks for location only when tapped and flies to you, and Confirm hands back the coordinate with its address."
+description: "A map picker for delivery, rides, events and listings: drag the map under a fixed red pin that lifts while the map moves and, when it settles, drops and presses into place with a light tap, the address under it is looked up after a short pause with stale answers cancelled and recent ones cached. The chrome over the map is liquid glass: a floating glass card shows the street and locality, morphing letter by letter as it changes (a dropped pin with coordinates where there is no address, and a Retry bubble that pinches off its end when the lookup fails), the glass locate button asks for location only when tapped and flies to you, and the red Confirm capsule buds down out of the card once the spot has its answer and melts back into it while the map moves."
 piece: "LocationPicker"
 category: "inputs"
 minIOSVersion: "17.0"
-version: "1.0.1"
+version: "1.2.0"
 tags: ["location","map","pin","mapkit","geocoding","delivery","address","corelocation"]
 registryDependencies: []
 ---
 
 {/* GENERATED FILE. Edit registry/swift/inputs/LocationPicker.swift or LocationPicker.mdx instead. */}
 
-A map you drag under a fixed pin to choose an exact spot, with the address of wherever the pin lands. The pin stays in the middle of the visible map. While the map moves it lifts and its shadow spreads; when the map settles it drops with a small bounce, `selection` is set to the coordinate, and the address is looked up after a short pause. A newer settle cancels the lookup in flight, so an address never lands on the wrong spot, and recent answers are cached by position (about 5 m), so nudging back costs no request. Location permission is only requested when the locate button is tapped. ```swift @State private var place: LocationPicker.Place? LocationPicker(selection: $place, initialCenter: store.coordinate) { place in order.dropOff = place } ```
+A map you drag under a fixed pin to choose an exact spot, with the address of wherever the pin lands. The pin stays in the middle of the visible map. While the map moves it lifts and its shadow spreads; when the map settles it drops and presses into place, `selection` is set to the coordinate, and the address is looked up after a short pause. A newer settle cancels the lookup in flight, so an address never lands on the wrong spot, and recent answers are cached by position (about 5 m), so nudging back costs no request. Location permission is only requested when the locate button is tapped. ```swift @State private var place: LocationPicker.Place? LocationPicker(selection: $place, initialCenter: store.coordinate) { place in order.dropOff = place } ```
 
 ## Notes
 
 - The picker takes the size it is given, at least 320 pt tall: full screen, in a sheet, or `.frame(height: 340).clipShape(.rect(cornerRadius: 26))` inside a form. Bind `selection`, and pass `onConfirm` for the Confirm button. Add `NSLocationWhenInUseUsageDescription` to your Info.plist for the locate button. Full screen, the map already runs under the status bar and the home indicator while the card and the locate button stay clear of them, so leave out `.ignoresSafeArea()`, which would push both under the system bars.
-- The pin stays in the middle of the map the card leaves visible. While the map moves it lifts 12 pt, its shadow spreads and a small mark stays on the exact spot; when the map settles it drops with a small bounce and a light tap. Only a real change of the spot under the pin lifts it, so the camera reports MapKit sends on appear, on rotation and on resize do nothing.
+- The pin stays in the middle of the map the card leaves visible. While the map moves it lifts 12 pt, its shadow spreads and a small mark stays on the exact spot. Picked up by your drag, it springs about a point past its lift and settles; a flight (locate, a VoiceOver move, a new selection) lifts it on a short spring. When the map settles it drops on a spring that never overshoots, so the tip stops on the spot instead of sinking through it, then gives a little from the tip as it meets the ground and springs back into shape, with a light tap on that beat. Only a real change of the spot under the pin lifts it, so the camera reports MapKit sends on appear, on rotation and on resize do nothing.
 - `selection` is set when the pin settles (coordinate only) and again when the address arrives. Its coordinate is always where the pin points; the address is the nearest one found. Setting `selection` from outside, a search result or a saved place, moves the map there, and a place that already has an address is shown without a lookup.
 - The address is looked up 300 ms after the map settles. A new settle, or leaving the screen, cancels the lookup in flight and its request, and an answer for a spot that is no longer under the pin is dropped. Answers are cached per picker by position rounded to about 5 m (the 40 most recent), so nudging back to a known spot sends nothing, which also keeps clear of the geocoder's rate limit.
 - iOS 26 uses `MKReverseGeocodingRequest`, reading the street and postal code from the map item's placemark (dynamically, as Address Field does) with `MKAddressRepresentations` as the fallback. iOS 17 to 25 uses `CLGeocoder`, kept in a deprecated function that only runs below iOS 26, so the file builds without warnings on both.
-- The card has one state per moment: the last address dimmed with "Locating…" while the map moves, loading lines while the address is on its way, street and locality once found, "Dropped pin" with the coordinates where there is no address (open water), and "Couldn't find the address" with the coordinates and Retry when the lookup fails (offline, throttled). Every state keeps the same two lines, and the map's center only moves when the card grows, so nothing jumps as the text changes.
-- Confirm is a red capsule. While the map moves its label dims and it is disabled. Tapped while the address is on its way, it spins and waits for it (up to four seconds), then hands over the place; after a failed lookup it hands over the coordinate alone. Return confirms with a hardware keyboard. Leave out `onConfirm` to hide it and read `selection` yourself.
-- The locate button asks for When In Use permission on its first tap, never on appear. It spins while finding you, flies the camera to you, and fills in once the pin sits on you; a fix from the last minute is used at once. With approximate location the map shows the area the fix covers instead of a street. When access is denied the arrow is slashed and a tap explains and offers Settings; when it is restricted a tap explains. Dragging works the same without permission.
+- The card is a floating liquid glass panel. It has one state per moment: the last address (or "Dropped pin" until one has been found) dimmed with "Locating…" from the moment the map moves until the next address arrives (the "Locating…" line breathes once the pin is down), loading lines only for the first lookup and for Retry, street and locality once found, "Dropped pin" with the coordinates where there is no address (open water), and "Couldn't find the address" with the coordinates when the lookup fails (offline, throttled). Every state keeps the same two lines, and the readout changes once per move: each line morphs letter by letter as the address arrives, so letters the old and new lines share hold still and a nudge along a street moves only the house number (a line too long to fit shrinks to fit and blurs across instead). The card keeps its tallest size and the map's center only moves when it grows, so nothing jumps as the text changes.
+- When the lookup fails, a glass Retry bubble pinches off the card's trailing end: the card gives up that width and Retry springs out of its end, joined to it by a liquid neck. It melts back into the card when tapped or when the map moves.
+- Confirm is a red glass capsule resting apart below the card. It buds down out of the card once the spot under the pin has its answer (its address, no address, or a failed lookup), born inside the card and pulling a liquid neck that thins and snaps as it springs to its place, and melts back up into the card on a spring with no bounce, its red draining as it goes, the moment the map moves. Its place keeps its height while it is away, so the card and the map's center never move. A Retry keeps it out; tapped while that lookup runs, it spins and waits for the address (up to four seconds), then hands over the place; after a failed lookup it hands over the coordinate alone. Return confirms with a hardware keyboard. Leave out `onConfirm` to hide it and read `selection` yourself.
+- The locate button asks for When In Use permission on its first tap, never on appear. It spins while finding you, flies the camera to you, and fills in once the pin sits on you; a fix from the last minute is used at once. When your location can't be found it shakes once, on the beat of the error haptic. Camera flights take longer the farther they go: about 0.55 s for a VoiceOver nudge or zoom, up to 1.2 s across town. With approximate location the map shows the area the fix covers instead of a street. When access is denied the arrow is slashed and a tap explains and offers Settings; when it is restricted a tap explains. Dragging works the same without permission.
 - Where the map starts: the place in `selection`, else `initialCenter`, else the person's location when the app already has permission, else central Lisbon.
-- MapKit's logo and legal notice stay visible above the card: the card insets the map's safe area, which is also where MapKit puts the camera's center.
+- MapKit's logo and legal notice stay visible above the card: the card and Confirm's place inset the map's safe area, which is also where MapKit puts the camera's center.
 - VoiceOver: the address readout is one element, "Selected location", with the address, "Dropped pin" and the coordinates, "Locating" or "Finding the address" as its value. Its actions move the map a quarter of the visible span north, south, east or west, zoom in and out, use your location and retry. After the map settles from a move the new address is announced. The pin is decorative and hidden; the locate button reads its state.
-- Haptics: a light tap when the pin drops, success when Confirm hands over the place, a selection tick on Retry, and an error when Retry or locating fails. Nothing while panning, and nothing for a lookup that fails on its own.
-- Dynamic Type: the card's text grows and wraps up to accessibility sizes, Retry moves under the text, Confirm stays full width, and the locate button grows up to 64 pt. Right to left, the card mirrors and the locate button sits top left; the map is never mirrored.
-- Reduce Motion: the pin dims instead of lifting, the camera jumps instead of flying, the loading lines hold still, and buttons dim instead of dipping when pressed.
+- Haptics: a light tap as the pin meets the ground (at once if the map moves again before it lands, so every settle gets one), success when Confirm hands over the place, a selection tick on Retry, and an error when Retry or locating fails. Nothing while panning, and nothing for a lookup that fails on its own.
+- Dynamic Type: the card's text grows and wraps up to accessibility sizes (where it no longer morphs), Retry stays joined to the card's end, Confirm stays full width, and the locate button grows up to 64 pt. Right to left, the card mirrors and the locate button sits top left; the map is never mirrored.
+- Motion: Retry, Confirm and the locate button sink a couple of points under the finger and spring back with a little bounce, and the locate arrow blurs into its filled form, as the spinner and Confirm's label do into each other. The card changes its text in place without moving, and the map's own panning and zooming stay MapKit's. The pin and the map are content and stay as they are; only the chrome over them is glass.
+- Reduce Motion: the pin dims instead of lifting and lands without the press, its tap playing as the map settles; the camera jumps instead of flying; Confirm and Retry fade in and out where they rest instead of budding, and the readout cross-fades instead of morphing; the loading lines and "Locating…" still breathe in opacity, so a lookup never looks frozen; buttons shift brightness instead of dipping when pressed; and a failed locate blinks the glyph instead of shaking. Haptics and announcements are unchanged. Reduce Transparency draws the glass solid.
 - The map pans and zooms but doesn't rotate or tilt, so north stays up. A drag that starts on the map pans it, inside a `ScrollView` or a `Form` too; in a sheet, the grabber still dismisses.
-- `Style` sets the card surface, label, secondary label, field, the pin and its ink, Confirm and its ink, the card's corner radius, points of interest (off by default, so the streets and the pin read first) and the muted map (on by default). `Messages` replaces any line, for example `confirm: "Deliver here"`. `Geocoder` swaps MapKit for your own backend, or a fixed answer for previews and tests.
+- `Style` sets the glass tint of the card, Retry and the locate button (`surface`, neutral glass by default), label, secondary label, the loading bars (`field`), the pin and its ink, Confirm's tint and its ink, the card's corner radius, points of interest (off by default, so the streets and the pin read first) and the muted map (on by default). `Messages` replaces any line, for example `confirm: "Deliver here"`. `Geocoder` swaps MapKit for your own backend, or a fixed answer for previews and tests.
 
 ## Usage
 
@@ -65,7 +67,7 @@ import SwiftUI
 /// A map you drag under a fixed pin to choose an exact spot, with the address of wherever the pin lands.
 ///
 /// The pin stays in the middle of the visible map. While the map moves it lifts and its shadow spreads; when the
-/// map settles it drops with a small bounce, `selection` is set to the coordinate, and the address is looked up
+/// map settles it drops and presses into place, `selection` is set to the coordinate, and the address is looked up
 /// after a short pause. A newer settle cancels the lookup in flight, so an address never lands on the wrong spot,
 /// and recent answers are cached by position (about 5 m), so nudging back costs no request. Location permission is
 /// only requested when the locate button is tapped.
@@ -224,19 +226,19 @@ public struct LocationPicker: View {
 
     /// Colors and shape. `.standard` is the house palette.
     public struct Style: Sendable {
-        /// The address card and the locate button.
+        /// The glass tint of the address card, Retry and the locate button. `.clear`, the default, leaves them neutral glass.
         public var surface: Color
         /// The address and glyphs.
         public var label: Color
         /// The locality line, coordinates and "Locating".
         public var secondaryLabel: Color
-        /// Loading bars, the Retry button and Confirm while the map moves.
+        /// The loading bars while the first address loads.
         public var field: Color
         /// The pin's head: the one accent on the map.
         public var pin: Color
         /// The pin's centre dot and stem, and the mark at the exact spot.
         public var pinInk: Color
-        /// The Confirm button.
+        /// The glass tint of the Confirm button.
         public var confirm: Color
         /// Text and the spinner on `confirm`.
         public var confirmInk: Color
@@ -250,7 +252,7 @@ public struct LocationPicker: View {
 
         /// Pass only what you want to change; `nil` keeps the house palette value.
         public init(surface: Color? = nil, label: Color? = nil, secondaryLabel: Color? = nil, field: Color? = nil, pin: Color? = nil, pinInk: Color? = nil, confirm: Color? = nil, confirmInk: Color? = nil, cornerRadius: CGFloat = 26, showsPointsOfInterest: Bool = false, mutesMap: Bool = true) {
-            self.surface = surface ?? pickerColor(light: 0xFFFFFF, dark: 0x262626)
+            self.surface = surface ?? .clear
             self.label = label ?? pickerColor(light: 0x141414, dark: 0xF4F3EF)
             self.secondaryLabel = secondaryLabel ?? pickerColor(light: 0x5C5A56, dark: 0xA6A49F)
             self.field = field ?? pickerColor(light: 0xE9E7E1, dark: 0x3A3A3A)
@@ -315,7 +317,7 @@ public struct LocationPicker: View {
     @State private var isMoving = false
     /// The coordinate under the pin when the map last settled.
     @State private var settled: CLLocationCoordinate2D?
-    /// The last address shown, kept dimmed on the card while the map moves.
+    /// The last address shown, kept dimmed on the card while the map moves and while the next address loads.
     @State private var lastTitle: String?
     @State private var lookupKey: LookupKey?
     @State private var attempt = 0
@@ -324,16 +326,32 @@ public struct LocationPicker: View {
     @State private var locateTask: Task<Void, Never>?
     /// Where a locate flight is heading, so the button can fill in once the pin lands on the person.
     @State private var locateTarget: CLLocationCoordinate2D?
+    /// True from a flight's start (locate, VoiceOver, a new selection) until the camera next stops, so the pin it
+    /// lifts rises on a snap; only a person moving the map lifts it with give.
+    @State private var flying = false
     @State private var isAtUser = false
     @State private var alert: LocationAlert?
     /// The value this picker last wrote to `selection`, so its own writes are not taken for outside changes.
     @State private var written: Place?
-    /// Announce the next address: the map was moved by the person, not by appearing.
+    /// Announce the next address: the map was moved by the person, not by appearing. The card also holds its moving
+    /// readout through that lookup instead of showing loading lines.
     @State private var announcesNext = false
     @State private var didAppear = false
-    /// The card's tallest height so far. The map's center sits above it, and only grows, so the map never shifts as the card's text changes.
+    /// The card's tallest height so far, with Confirm's place under it. The map's center sits above it, and only
+    /// grows, so the map never shifts as the card's text changes or as Confirm buds and melts.
     @State private var cardHeight: CGFloat = 0
+    /// The glass card's own tallest height, so it keeps its size as the readout changes.
+    @State private var panelHeight: CGFloat = 0
+    /// Confirm and Retry: out while they can act, melted into the card while they can't.
+    @State private var buds = PieceBuds()
+    /// Retry's width, which the card gives up while Retry is out, and Confirm's height, which its place keeps.
+    @State private var retryWidth: CGFloat = 80
+    @State private var confirmHeight: CGFloat = 50
+    /// Counts drops onto a new spot. `dropsFelt` catches up as the pin meets the ground, which plays the tap.
     @State private var dropTick = 0
+    @State private var dropsFelt = 0
+    /// Counts failed locate attempts, which shake the locate button on the beat of the error haptic.
+    @State private var locateFails = 0
     @State private var confirmTick = 0
     @State private var retryTick = 0
     @State private var failTick = 0
@@ -359,10 +377,26 @@ public struct LocationPicker: View {
         self._position = State(initialValue: .region(MKCoordinateRegion(center: center, latitudinalMeters: self.span, longitudinalMeters: self.span)))
     }
 
-    private var motion: Animation { reduceMotion ? .easeInOut(duration: 0.2) : .smooth(duration: 0.3) }
+    private var motion: PieceMotion { PieceMotion(reduceMotion: reduceMotion) }
     /// The map's center sits in the middle of what the card leaves visible.
     private var mapBottomInset: CGFloat { cardHeight > 0 ? cardHeight + 12 : 0 }
     private var confirmEnabled: Bool { !isMoving && settled != nil && isEnabled }
+    /// Confirm buds out of the card once the spot under the pin has its answer (an address, no address, or a failed
+    /// lookup) and melts back into it while the map moves. A Retry, or a Confirm already waiting, keeps it out.
+    private var confirmShown: Bool {
+        guard onConfirm != nil, !isMoving, settled != nil else { return false }
+        switch phase {
+        case .resolved, .failed: return true
+        case .resolving: return lookupKey?.isRetry == true || confirmPending
+        case .idle: return false
+        }
+    }
+    /// The bubbles that should be out: Retry while a lookup has failed and the map is still, and Confirm.
+    private var shownBuds: [String] {
+        (phase == .failed && !isMoving ? ["retry"] : []) + (confirmShown ? ["confirm"] : [])
+    }
+    /// The glass tint of the card, Retry and the locate button: `nil` for the default neutral glass.
+    private var surfaceTint: Color? { style.surface == .clear ? nil : style.surface }
     private var mapStyle: MapStyle {
         .standard(elevation: .flat, emphasis: style.mutesMap ? .muted : .automatic, pointsOfInterest: style.showsPointsOfInterest ? .all : .excludingAll)
     }
@@ -370,7 +404,7 @@ public struct LocationPicker: View {
     public var body: some View {
         map
             .overlay {
-                PickerPin(isLifted: isMoving, style: style)
+                PickerPin(isLifted: isMoving, byHand: !flying, drops: dropTick, style: style)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .padding(.bottom, mapBottomInset)
                     .allowsHitTesting(false)
@@ -378,18 +412,30 @@ public struct LocationPicker: View {
             }
             .overlay(alignment: .topTrailing) {
                 if showsLocationButton {
-                    locateButton
+                    // Its own glass: it sits too far from the card to ever merge with it.
+                    PieceLiquidGroup { locateButton }
                         .padding(12)
                 }
             }
             .overlay(alignment: .bottom) { card }
             .frame(minHeight: 320)
-            .animation(motion, value: phase)
-            .animation(motion, value: isMoving)
-            .sensoryFeedback(.impact(weight: .light), trigger: dropTick)
+            // When both change in one update the first listed wins. An address arriving fades in unhurried; a lookup
+            // starting clears the old state quickly. The card answers the map starting and stopping with a snap.
+            .animation(phase == .resolving ? motion.dismiss : motion.reveal, value: phase)
+            .animation(motion.snap, value: isMoving)
+            .fontWeight(.semibold)
+            .sensoryFeedback(.impact(weight: .light), trigger: dropsFelt)
             .sensoryFeedback(.success, trigger: confirmTick)
             .sensoryFeedback(.selection, trigger: retryTick)
             .sensoryFeedback(.error, trigger: failTick)
+            // The drop's tap lands as the pin meets the ground, not as it starts to fall. Reduce Motion has no fall.
+            .task(id: dropTick) {
+                guard dropsFelt != dropTick else { return }
+                if !reduceMotion {
+                    do { try await Task.sleep(for: .seconds(PickerPin.contact)) } catch { return }
+                }
+                dropsFelt = dropTick
+            }
             // One lookup per settle. A new key (the map moved, or Retry) cancels the one in flight.
             .task(id: lookupKey) { await lookUp() }
             // A Confirm tapped while the address is on its way waits for it, but not forever.
@@ -401,7 +447,18 @@ public struct LocationPicker: View {
                 deliver()
             }
             .onChange(of: selection) { _, new in selectionChanged(to: new) }
-            .onChange(of: dynamicTypeSize) { _, _ in cardHeight = 0 }
+            .onChange(of: dynamicTypeSize) { _, _ in
+                cardHeight = 0
+                panelHeight = 0
+            }
+            // Retry and Confirm bud out of the card as they become useful and melt back into it as they stop being so.
+            .onChange(of: shownBuds) { old, new in
+                let leaving = old.filter { !new.contains($0) }, arriving = new.filter { !old.contains($0) }
+                Task {
+                    if !leaving.isEmpty { await buds.gather(leaving, reduceMotion: reduceMotion) }
+                    if !arriving.isEmpty { await buds.bloom(arriving, reduceMotion: reduceMotion) }
+                }
+            }
             .onAppear(perform: appear)
             .onDisappear {
                 locateTask?.cancel()
@@ -439,26 +496,19 @@ public struct LocationPicker: View {
 
     // MARK: Card
 
+    /// The glass over the map's bottom edge: the address card, Retry joined to its end while a lookup has failed, and
+    /// Confirm resting apart below it. Confirm's place keeps its height while Confirm is away, so the map's center
+    /// never moves as it buds and melts.
     private var card: some View {
-        let shape = RoundedRectangle(cornerRadius: style.cornerRadius, style: .continuous)
-        // At accessibility sizes Retry moves under the text, so the address keeps the width.
-        let row = dynamicTypeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 8)) : AnyLayout(HStackLayout(alignment: .center, spacing: 12))
-        return VStack(alignment: .leading, spacing: 14) {
-            row {
-                readout
-                if case .failed = phase, !isMoving {
-                    retryButton
-                        .transition(.opacity)
+        PieceLiquidGroup {
+            VStack(spacing: PieceLiquid.apart) {
+                // Above Confirm, so Confirm at home sits under it on the frosted glass before iOS 26, which doesn't merge.
+                panel.zIndex(1)
+                if onConfirm != nil {
+                    confirmSlot
                 }
             }
-            if onConfirm != nil {
-                confirmButton
-            }
         }
-        .padding(16)
-        .frame(maxWidth: .infinity, minHeight: cardHeight, alignment: .top)
-        .background(style.surface, in: shape)
-        .shadow(color: .black.opacity(0.16), radius: 22, y: 8)
         .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { height in
             if height > cardHeight + 0.5 { cardHeight = height }
         }
@@ -468,6 +518,24 @@ public struct LocationPicker: View {
         .dynamicTypeSize(...DynamicTypeSize.accessibility3)
     }
 
+    /// The address card, a glass panel that keeps its tallest size so nothing jumps as the text changes. While Retry
+    /// is out the card gives up that much of its width at the trailing end, so Retry pinches off it on a liquid neck.
+    private var panel: some View {
+        let shape = RoundedRectangle(cornerRadius: style.cornerRadius, style: .continuous)
+        return readout
+            .padding(16)
+            .frame(maxWidth: .infinity, minHeight: panelHeight, alignment: .topLeading)
+            .pieceLiquid(shape, tint: surfaceTint, interactive: false)
+            .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { height in
+                if height > panelHeight + 0.5 { panelHeight = height }
+            }
+            .padding(.trailing, buds.isOut("retry") ? retryWidth + PieceLiquid.joined : 0)
+            // Behind the card, so Retry at home sits under it on the frosted glass before iOS 26.
+            .background(alignment: .trailing) {
+                if buds.contains("retry") { retryButton }
+            }
+    }
+
     /// Street and locality, or the moving, loading, no-address and failed states. Every state keeps the same two
     /// lines, so the card never jumps.
     private var readout: some View {
@@ -475,22 +543,16 @@ public struct LocationPicker: View {
         return VStack(alignment: .leading, spacing: 2) {
             switch display {
             case .loading:
-                bar(font: .title3.weight(.bold), height: titleBar, fraction: 0.62)
-                bar(font: .subheadline, height: subtitleBar, fraction: 0.4)
+                bar(font: .title3.weight(.semibold), height: titleBar, fraction: 0.62)
+                bar(font: .subheadline.weight(.semibold), height: subtitleBar, fraction: 0.4)
             case let .text(title, subtitle, dimmed):
-                Text(title)
-                    .font(.title3.weight(.bold))
+                line(title, font: .title3.weight(.semibold), large: large, shrinks: true)
                     .foregroundStyle(style.label)
                     .opacity(dimmed ? 0.35 : 1)
-                    .lineLimit(large ? 3 : 1)
-                    .minimumScaleFactor(large ? 1 : 0.8)
-                    .contentTransition(.opacity)
-                Text(subtitle)
-                    .font(.subheadline)
-                    .monospacedDigit()
+                line(subtitle, font: .subheadline.weight(.semibold).monospacedDigit(), large: large, shrinks: false)
                     .foregroundStyle(style.secondaryLabel)
-                    .lineLimit(large ? 3 : 1)
-                    .contentTransition(.opacity)
+                    // "Locating…" breathes once the pin is down and the lookup runs; it holds steady while the map moves.
+                    .modifier(PickerPulse(isActive: dimmed && !isMoving))
             }
         }
         .multilineTextAlignment(.leading)
@@ -511,6 +573,29 @@ public struct LocationPicker: View {
             }
             if phase == .failed {
                 Button(messages.retry) { retry() }
+            }
+        }
+    }
+
+    /// One line of the readout. It morphs letter by letter as it changes, so a nudge along a street moves only the
+    /// house number. A line too long for the card, or any line at accessibility sizes, shrinks or wraps instead,
+    /// which a morph can't, and blurs across.
+    @ViewBuilder
+    private func line(_ text: String, font: Font, large: Bool, shrinks: Bool) -> some View {
+        let plain = ZStack(alignment: .leading) {
+            Text(text)
+                .font(font)
+                .lineLimit(large ? 3 : 1)
+                .minimumScaleFactor(shrinks && !large ? 0.8 : 1)
+                .id(text)
+                .transition(motion.swap)
+        }
+        if large {
+            plain
+        } else {
+            ViewThatFits(in: .horizontal) {
+                PieceMorphText(text: text, font: font)
+                plain
             }
         }
     }
@@ -542,7 +627,15 @@ public struct LocationPicker: View {
             return .text(lastTitle ?? messages.droppedPin, messages.locating, dimmed: true)
         }
         switch phase {
-        case .idle, .resolving:
+        case .idle:
+            return .loading
+        case .resolving:
+            // What the card showed while the map moved (the last address, or "Dropped pin" before one was found) stays
+            // dimmed until the next address arrives, so the readout changes once per move. Loading lines only stand in
+            // for the first lookup, which no move preceded, and for Retry, where the old street would mislead.
+            if lookupKey?.isRetry != true, let held = lastTitle ?? (announcesNext ? messages.droppedPin : nil) {
+                return .text(held, messages.locating, dimmed: true)
+            }
             return .loading
         case .resolved(let place):
             if let title = place.title {
@@ -569,50 +662,86 @@ public struct LocationPicker: View {
         }
     }
 
+    /// Retry pinches off the card's trailing end when a lookup fails, joined to it by a liquid neck, and melts back in
+    /// when it is tapped or the map moves.
     private var retryButton: some View {
-        Button(action: retry) {
+        let out = buds.isOut("retry")
+        return Button(action: retry) {
             Text(messages.retry)
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(style.label)
-                .padding(.horizontal, 14)
-                .padding(.vertical, 8)
-                .background(style.field, in: .capsule)
+                .lineLimit(1)
+                .pieceBudContent(out: out)
+                .padding(.horizontal, 16)
                 .frame(minHeight: 44)
-                .contentShape(.rect)
+                .pieceLiquid(.capsule, tint: surfaceTint, interactive: false)
+                .contentShape(.capsule)
         }
-        .buttonStyle(PickerPressStyle(scale: 0.94))
+        .buttonStyle(LiquidPressStyle())
+        .fixedSize()
+        .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { retryWidth = $0 }
+        .disabled(!out)
+        // Home is just inside the card's end, which reaches back over this place as Retry melts in.
+        .pieceBud(out: out, home: CGSize(width: retryWidth * (1 - PieceLiquid.homeScale) / 2 - 8, height: 0))
+        .accessibilityHidden(!out)
         .accessibilityHint(String(localized: "Looks up the address again.", comment: "Location picker: VoiceOver hint of Retry"))
     }
 
+    /// Confirm's place under the card: as tall as Confirm, so it keeps the card and the map's center where they are
+    /// while Confirm is away.
+    private var confirmSlot: some View {
+        Text(messages.confirm)
+            .font(.headline)
+            .lineLimit(2)
+            .multilineTextAlignment(.center)
+            .padding(.horizontal, 20)
+            .padding(.vertical, 12)
+            .frame(maxWidth: .infinity, minHeight: 50)
+            .hidden()
+            .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { confirmHeight = $0 }
+            .overlay {
+                if buds.contains("confirm") { confirmButton }
+            }
+    }
+
+    /// The red Confirm capsule. It buds down out of the card once the spot has its answer and melts back up into it
+    /// while the map moves, its red draining as it goes so it never sits over the address.
     private var confirmButton: some View {
-        Button(action: confirm) {
+        let out = buds.isOut("confirm")
+        let home = confirmHeight / 2 + PieceLiquid.apart + confirmHeight * PieceLiquid.homeScale / 2
+        return Button(action: confirm) {
             ZStack {
+                // Keeps the capsule's size while the spinner stands in for the label.
                 Text(messages.confirm)
                     .lineLimit(2)
-                    .multilineTextAlignment(.center)
-                    .opacity(confirmPending ? 0 : 1)
+                    .hidden()
                 if confirmPending {
                     ProgressView()
                         .tint(style.confirmInk)
-                        .transition(.opacity)
+                        .transition(motion.swap)
+                } else {
+                    Text(messages.confirm)
+                        .lineLimit(2)
+                        .multilineTextAlignment(.center)
+                        .transition(motion.swap)
                 }
             }
             .font(.headline)
             .foregroundStyle(isEnabled ? style.confirmInk : style.secondaryLabel)
-            // While the map moves the label dims and the capsule stays solid: no washed-out red.
-            .opacity(isMoving ? 0.35 : 1)
+            .pieceBudContent(out: out)
             .padding(.horizontal, 20)
             .padding(.vertical, 12)
             .frame(maxWidth: .infinity, minHeight: 50)
-            .background(isEnabled ? style.confirm : style.field, in: .capsule)
+            .pieceLiquid(.capsule, tint: out && isEnabled ? style.confirm : nil, interactive: false)
             .contentShape(.capsule)
         }
-        .buttonStyle(PickerPressStyle(scale: 0.97))
-        .disabled(!confirmEnabled)
+        .buttonStyle(LiquidPressStyle())
+        .disabled(!confirmEnabled || !out)
         // Return confirms with a hardware keyboard.
         .keyboardShortcut(.defaultAction)
-        .animation(.smooth(duration: 0.25), value: confirmEnabled)
-        .animation(.smooth(duration: 0.2), value: confirmPending)
+        .animation(motion.snap, value: confirmPending)
+        .pieceBud(out: out, home: CGSize(width: 0, height: -home))
+        .accessibilityHidden(!out)
         .accessibilityValue(confirmPending ? String(localized: "Waiting for the address", comment: "Location picker: VoiceOver value of Confirm while the address loads") : "")
     }
 
@@ -620,29 +749,43 @@ public struct LocationPicker: View {
 
     private var locateButton: some View {
         let denied = locator.status == .denied || locator.status == .restricted
+        // Reduce Motion has no shake, so a failed locate blinks the glyph once instead, after it swaps back in.
+        let blink = reduceMotion ? 0.3 : 1
         return Button(action: locate) {
             ZStack {
                 if isLocating {
                     ProgressView()
                         .tint(style.label)
-                        .transition(.opacity)
+                        .transition(motion.swap)
                 } else {
-                    Image(systemName: denied ? "location.slash" : isAtUser ? "location.fill" : "location")
+                    let symbol = denied ? "location.slash" : isAtUser ? "location.fill" : "location"
+                    // One glyph blurs out as the next sharpens in.
+                    Image(systemName: symbol)
                         .font(.body.weight(.semibold))
                         .foregroundStyle(denied ? style.secondaryLabel : style.label)
-                        .contentTransition(.symbolEffect(.replace))
-                        .transition(.opacity)
+                        .id(symbol)
+                        .transition(motion.swap)
                 }
             }
+            .keyframeAnimator(initialValue: 1.0, trigger: locateFails) { glyph, level in
+                glyph.opacity(level)
+            } keyframes: { _ in
+                LinearKeyframe(1, duration: 0.2)
+                SpringKeyframe(blink, duration: 0.12, spring: PieceMotion.tight)
+                SpringKeyframe(1, spring: PieceMotion.calm)
+            }
             .frame(width: min(max(buttonSize, 44), 64), height: min(max(buttonSize, 44), 64))
-            .background(style.surface, in: .circle)
-            .shadow(color: .black.opacity(0.16), radius: 10, y: 4)
+            .pieceLiquid(.circle, tint: surfaceTint, interactive: false)
             .contentShape(.circle)
         }
-        .buttonStyle(PickerPressStyle(scale: 0.9))
+        .buttonStyle(LiquidPressStyle())
+        // A locate that finds nothing shakes the button once, on the beat of the error haptic.
+        .pieceShake(trigger: locateFails, distance: 6)
         .opacity(isEnabled ? 1 : 0.5)
         .dynamicTypeSize(...DynamicTypeSize.accessibility2)
-        .animation(.smooth(duration: 0.2), value: isLocating)
+        .animation(motion.snap, value: isLocating)
+        // The arrow fills in as the pin lands on the person: a transition only plays inside an animation.
+        .animation(motion.snap, value: isAtUser)
         .accessibilityLabel(messages.useMyLocation)
         .accessibilityValue(isLocating ? String(localized: "Finding your location", comment: "Location picker: VoiceOver value of the locate button while locating") : denied ? messages.locationOff : "")
         .accessibilityHint(String(localized: "Moves the map to where you are.", comment: "Location picker: VoiceOver hint of the locate button"))
@@ -665,6 +808,7 @@ public struct LocationPicker: View {
             if moved, settled != nil, !isMoving { beginMoving() }
             return
         }
+        flying = false
         guard moved else {
             if isMoving { isMoving = false }
             return
@@ -673,6 +817,8 @@ public struct LocationPicker: View {
     }
 
     private func beginMoving() {
+        // A drop still in the air is felt now, so every settle keeps its one tap.
+        if dropsFelt != dropTick { dropsFelt = dropTick }
         isMoving = true
         announcesNext = true
         lookupKey = nil
@@ -695,7 +841,7 @@ public struct LocationPicker: View {
             resolve(known.pinned(at: center), announce: !first)
             return
         }
-        withAnimation(motion) { phase = .resolving }
+        phase = .resolving
         write(Place(coordinate: center))
         lookupKey = LookupKey(latitude: center.latitude, longitude: center.longitude, attempt: attempt)
     }
@@ -714,7 +860,7 @@ public struct LocationPicker: View {
             resolve(place, announce: announcesNext)
         } catch {
             guard !Task.isCancelled, !(error is CancellationError), key == lookupKey else { return }
-            withAnimation(motion) { phase = .failed }
+            phase = .failed
             if key.isRetry { failTick += 1 }
             if announcesNext { announce(messages.lookupFailed) }
             finishPendingConfirm()
@@ -722,7 +868,7 @@ public struct LocationPicker: View {
     }
 
     private func resolve(_ place: Place, announce shouldAnnounce: Bool) {
-        withAnimation(motion) { phase = .resolved(place) }
+        phase = .resolved(place)
         if let title = place.title { lastTitle = title }
         write(place)
         if shouldAnnounce {
@@ -737,7 +883,7 @@ public struct LocationPicker: View {
         retryTick += 1
         attempt += 1
         announcesNext = true
-        withAnimation(motion) { phase = .resolving }
+        phase = .resolving
         lookupKey = LookupKey(latitude: settled.latitude, longitude: settled.longitude, attempt: attempt, isRetry: true)
     }
 
@@ -797,11 +943,25 @@ public struct LocationPicker: View {
         } else {
             target = .region(MKCoordinateRegion(center: center, latitudinalMeters: span, longitudinalMeters: span))
         }
+        flying = true
         if reduceMotion {
             position = target
         } else {
-            withAnimation(.smooth(duration: 0.7)) { position = target }
+            // MapKit flies the camera. No bounce, so the map never carries past the spot and back under the pin.
+            withAnimation(.smooth(duration: flightDuration(to: center, distance: distance))) { position = target }
         }
+    }
+
+    /// Seconds for a flight, growing with how far it moves the map: about 0.55 s for a VoiceOver nudge or zoom, up to
+    /// 1.2 s across town, so a long one stays readable. A 2x zoom step counts as a quarter screen, about as far as it
+    /// moves what is on screen, so a zoom takes as long as a nudge.
+    private func flightDuration(to center: CLLocationCoordinate2D, distance: CLLocationDistance?) -> Double {
+        guard let camera = tracked.camera, let span = tracked.region?.span, span.latitudeDelta > 0, span.longitudeDelta > 0 else { return 0.7 }
+        var east = abs(center.longitude - camera.centerCoordinate.longitude)
+        if east > 180 { east = 360 - east }
+        let screens = hypot((center.latitude - camera.centerCoordinate.latitude) / span.latitudeDelta, east / span.longitudeDelta)
+        let zoomScreens = distance.map { 0.25 * abs(log2(max($0, 1) / max(camera.distance, 1))) } ?? 0
+        return min(0.5 + 0.18 * log2(1 + screens + zoomScreens), 1.2)
     }
 
     /// Moves the map by a quarter of the visible span: VoiceOver's way to drag it.
@@ -863,6 +1023,7 @@ public struct LocationPicker: View {
         guard let location = await locator.currentLocation() else {
             if !Task.isCancelled {
                 failTick += 1
+                locateFails += 1
                 announce(messages.locationUnavailable)
             }
             return
@@ -898,13 +1059,48 @@ public struct LocationPicker: View {
     }
 }
 
+/// The press for a glass control: it sinks about `depth` points a side and springs back through rest, the glass and
+/// what it carries together. It scales through `pieceLiquidScale`, never a scaleEffect, which would shrink only the
+/// glass's outline. Under Reduce Motion it shades instead, darker in light mode and lighter in dark.
+private struct LiquidPressStyle: ButtonStyle {
+    var depth: CGFloat = 2.5
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label.modifier(LiquidPress(pressed: configuration.isPressed, depth: depth))
+    }
+}
+
+private struct LiquidPress: ViewModifier {
+    let pressed: Bool
+    var depth: CGFloat = 2.5
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.colorScheme) private var colorScheme
+    @State private var size: CGSize = .zero
+
+    func body(content: Content) -> some View {
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        content
+            .onGeometryChange(for: CGSize.self) { $0.size } action: { size = $0 }
+            .pieceLiquidScale(pressed && !reduceMotion ? PieceMotion.pressScale(for: size, depth: depth) : 1)
+            .brightness(pressed && reduceMotion ? (colorScheme == .dark ? 0.1 : -0.08) : 0)
+            .animation(pressed ? motion.press : motion.release, value: pressed)
+    }
+}
+
 // MARK: - Pin
 
 /// The pin over the map's center. The tip of the stem is the exact spot and sits at the center of this view, on a
 /// small mark that stays put while the pin lifts.
 private struct PickerPin: View {
     let isLifted: Bool
+    /// The person is moving the map, so the lift carries the gesture's give. A flight lifts it on a snap.
+    let byHand: Bool
+    /// Counts drops onto a new spot. Each one presses the pin into the ground as it lands.
+    let drops: Int
     let style: LocationPicker.Style
+
+    /// Seconds from the start of a drop until the tip meets the ground. The press and the tap land on it.
+    static let contact = 0.09
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
@@ -914,8 +1110,12 @@ private struct PickerPin: View {
     private let lift: CGFloat = 12
 
     var body: some View {
+        let motion = PieceMotion(reduceMotion: reduceMotion)
         let lifted = isLifted && !reduceMotion
         let height = head + stem
+        // Copied out for the keyframes. Reduce Motion keeps the same view and presses by nothing.
+        let give: CGFloat = reduceMotion ? 0 : 0.06
+        let contact = Self.contact
         ZStack {
             // The shadow on the ground spreads and fades as the pin rises.
             Ellipse()
@@ -944,12 +1144,25 @@ private struct PickerPin: View {
                     .shadow(color: .black.opacity(0.24), radius: 2, y: 1)
             }
             .frame(width: head, height: height, alignment: .top)
+            // As the tip meets the ground the pin gives a little from the tip, wider and shorter by the same factor,
+            // and springs back into shape: pressed into place, never sinking through the spot.
+            .keyframeAnimator(initialValue: CGFloat(0), trigger: drops) { pin, squash in
+                pin.scaleEffect(x: 1 + squash, y: 1 / (1 + squash), anchor: .bottom)
+            } keyframes: { _ in
+                KeyframeTrack {
+                    LinearKeyframe(0, duration: contact)
+                    SpringKeyframe(give, duration: 0.07, spring: PieceMotion.tight)
+                    SpringKeyframe(0, duration: 0.4, spring: PieceMotion.elastic)
+                }
+            }
             .offset(y: -height / 2 - (lifted ? lift : 0))
             // Reduce Motion: the pin dims while the map moves instead of lifting.
             .opacity(isLifted && reduceMotion ? 0.55 : 1)
         }
         .frame(width: head * 2, height: (height + lift) * 2 + 8)
-        .animation(reduceMotion ? .easeInOut(duration: 0.2) : isLifted ? .spring(duration: 0.24, bounce: 0) : .spring(duration: 0.45, bounce: 0.5), value: isLifted)
+        // Picked up by the person's drag, it springs a point past its lift and settles; a flight lifts it on a snap.
+        // Drops on the press spring, which never overshoots, so the tip stops on the spot.
+        .animation(isLifted ? (byHand ? motion.release : motion.snap) : reduceMotion ? motion.snap : motion.press, value: isLifted)
     }
 }
 
@@ -961,41 +1174,24 @@ private final class PickerCamera {
     var region: MKCoordinateRegion?
 }
 
-/// The loading bars' gentle breathing. Still under Reduce Motion.
+/// A gentle breath in opacity while `isActive`: the loading lines, and "Locating…" while the address is on its
+/// way. It keeps breathing under Reduce Motion, as it only fades, so a lookup never looks frozen.
 private struct PickerPulse: ViewModifier {
+    var isActive = true
+
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var dimmed = false
 
     func body(content: Content) -> some View {
         content
             .opacity(dimmed ? 0.45 : 1)
-            .onAppear {
-                guard !reduceMotion else { return }
-                withAnimation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true)) { dimmed = true }
+            .onChange(of: isActive, initial: true) { _, active in
+                if active {
+                    withAnimation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true)) { dimmed = true }
+                } else if dimmed {
+                    withAnimation(PieceMotion(reduceMotion: reduceMotion).snap) { dimmed = false }
+                }
             }
-    }
-}
-
-/// A quick dip on press that springs back; a dim instead under Reduce Motion.
-private struct PickerPressStyle: ButtonStyle {
-    var scale: CGFloat
-
-    func makeBody(configuration: Configuration) -> some View {
-        PickerPressBody(configuration: configuration, scale: scale)
-    }
-}
-
-private struct PickerPressBody: View {
-    let configuration: ButtonStyleConfiguration
-    let scale: CGFloat
-
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-
-    var body: some View {
-        configuration.label
-            .scaleEffect(configuration.isPressed && !reduceMotion ? scale : 1)
-            .opacity(configuration.isPressed && reduceMotion ? 0.7 : 1)
-            .animation(.spring(duration: 0.3, bounce: 0.35), value: configuration.isPressed)
     }
 }
 
@@ -1359,6 +1555,423 @@ private struct LocationPickerExample: View {
     LocationPickerExample()
         .preferredColorScheme(.dark)
 }
+
+// MARK: - Piece motion
+//
+// The SwiftPieces motion language: shared spring tokens and gesture physics, with the same values in every
+// piece. Each piece carries a copy of only the parts it uses, so this file stands alone. Generated from
+// registry/foundation/PieceMotion.swift in the SwiftPieces repo; edit it there, not here.
+// swiftpieces-motion: 1.1.0 (core, pressMath, shake)
+
+/// The SwiftPieces motion language: five spring tiers, and a named role for every moment a piece moves,
+/// each with its Reduce Motion substitute.
+///
+/// Build one from the environment, `PieceMotion(reduceMotion: reduceMotion)`, and pick the role that names
+/// what just happened. Never animate the tracking of a finger: set gesture state directly in `onChanged`, so the
+/// surface stays under the finger, and spring only the release.
+private struct PieceMotion {
+    var reduceMotion = false
+
+    // Tiers. Overshoot and settle times are measured from rest with SwiftUI's Spring.
+    /// No overshoot, 90% in about 90ms. A press arriving under the finger.
+    static var tight: Spring { Spring(duration: 0.14, bounce: 0) }
+    /// About 2.8% overshoot, 90% in about 140ms. Snapping to a detent, page or segment.
+    static var responsive: Spring { Spring(duration: 0.32, bounce: 0.25) }
+    /// About 8.4% overshoot. Visible give: a release, a return from past an edge, a drag settling home.
+    static var elastic: Spring { Spring(duration: 0.42, bounce: 0.38) }
+    /// About 15% overshoot. A resolved action landing. At most once per interaction.
+    static var expressive: Spring { Spring(duration: 0.48, bounce: 0.48) }
+    /// About 1.5% overshoot, unhurried. Opening large surfaces and ambient change.
+    static var calm: Spring { Spring(duration: 0.5, bounce: 0.2) }
+
+    /// Reduce Motion: settles become this short spring with no overshoot.
+    private static var still: Animation { .spring(duration: 0.25, bounce: 0) }
+
+    // Roles.
+    /// Touch-down. Starts on the same frame and never bounces under the finger.
+    var press: Animation { .spring(Self.tight) }
+    /// The finger lifts off a pressed surface, which springs back through rest.
+    var release: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A dragged thing comes to rest. With a gesture's velocity, use `settle(velocity:from:to:)` instead.
+    var settle: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// Lands on a detent, page or segment.
+    var snap: Animation { reduceMotion ? Self.still : .spring(Self.responsive) }
+    /// A number, a chart value or anything else people read moves to its new value. Never overshoots, so it
+    /// never shows a value that isn't true.
+    var value: Animation { reduceMotion ? Self.still : .spring(duration: 0.35, bounce: 0) }
+    /// Comes back from past a limit: a pull beyond the edge, a value pushed against its bound.
+    var rebound: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A shape or container changes size, corner radius or form, with a little give at the end.
+    var morph: Animation { reduceMotion ? Self.still : .spring(duration: 0.4, bounce: 0.2) }
+    /// Something appears, opens or expands. Opening is a little slower than closing.
+    var reveal: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.calm) }
+    /// Something leaves, closes or collapses. Quick and firm, out of the way.
+    var dismiss: Animation { reduceMotion ? .easeIn(duration: 0.18) : .spring(duration: 0.3, bounce: 0.08) }
+    /// A resolved action lands: a check, a sent state, a reaction.
+    var success: Animation { reduceMotion ? .easeOut(duration: 0.24) : .spring(Self.expressive) }
+    /// A refused action. Firm, no wobble; `pieceShake` adds the movement.
+    var error: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.responsive) }
+    /// Slow ambient change. Loops themselves stop under Reduce Motion: check `allowsAmbient`.
+    var ambient: Animation { reduceMotion ? .easeInOut(duration: 0.3) : .spring(Self.calm) }
+
+    /// Loops, drifts, idle breathing and parallax run only when this is true.
+    var allowsAmbient: Bool { !reduceMotion }
+
+    /// A moving transition, or a plain fade under Reduce Motion.
+    func transition(_ transition: AnyTransition) -> AnyTransition {
+        reduceMotion ? .opacity : transition
+    }
+
+    /// For content replaced inside a container that stays put (a label, a glyph, a count): the old content
+    /// blurs out as the new one sharpens in. A fade under Reduce Motion.
+    @MainActor var swap: AnyTransition {
+        reduceMotion ? .opacity : AnyTransition(.blurReplace)
+    }
+}
+
+extension PieceMotion {
+    /// About `depth` points per edge, not a fixed percentage: an icon sinks to 0.92, a pill 0.95, a card 0.985.
+    nonisolated static func pressScale(for size: CGSize, depth: CGFloat = 2.5) -> CGFloat {
+        let side = (max(size.width, 1) * max(size.height, 1)).squareRoot()
+        return min(max(1 - depth * 2 / side, 0.92), 0.985)
+    }
+
+    /// An anchor partway from the center toward the touch, so the press leans into the finger without tipping.
+    nonisolated static func pressAnchor(touch: CGPoint?, in size: CGSize, lean: CGFloat = 0.6) -> UnitPoint {
+        guard let touch, size.width > 0, size.height > 0 else { return .center }
+        let x = min(max(touch.x / size.width, 0), 1)
+        let y = min(max(touch.y / size.height, 0), 1)
+        return UnitPoint(x: 0.5 + (x - 0.5) * lean, y: 0.5 + (y - 0.5) * lean)
+    }
+}
+
+/// A short decaying side-to-side shake for refused input, each time `trigger` changes. Under Reduce Motion it stays
+/// still (same view, no identity change): pair it with a color or message change and the error haptic.
+private struct PieceShake: ViewModifier {
+    let trigger: AnyHashable
+    var distance: CGFloat = 8
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func body(content: Content) -> some View {
+        let distance = reduceMotion ? 0 : distance
+        content.keyframeAnimator(initialValue: CGFloat(0), trigger: trigger) { view, x in
+            view.offset(x: x)
+        } keyframes: { _ in
+            KeyframeTrack {
+                CubicKeyframe(-distance, duration: 0.06)
+                CubicKeyframe(distance * 0.75, duration: 0.07)
+                CubicKeyframe(-distance * 0.5, duration: 0.07)
+                CubicKeyframe(distance * 0.25, duration: 0.06)
+                SpringKeyframe(0, duration: 0.12, spring: Spring(duration: 0.18, bounce: 0))
+            }
+        }
+    }
+}
+
+private extension View {
+    /// Shakes this view side to side once each time `trigger` changes, for input that was refused.
+    func pieceShake(trigger: some Hashable & Sendable, distance: CGFloat = 8) -> some View {
+        modifier(PieceShake(trigger: AnyHashable(trigger), distance: distance))
+    }
+}
+
+// swiftpieces-motion: end
+
+// MARK: - Piece liquid
+//
+// The SwiftPieces liquid glass language: glass shapes that merge through a neck, bubbles that bud out of
+// and melt back into each other, and the frosted fallback before iOS 26. Each piece carries a copy of only
+// the parts it uses, so this file stands alone. Generated from registry/foundation/PieceLiquid.swift in the
+// SwiftPieces repo; edit it there, not here. The rules are in LIQUID_GLASS.md.
+// swiftpieces-liquid: 1.7.0 (liquid, bud, morphText)
+
+/// The liquid glass language: one merge distance, two rest gaps, and the springs a bubble leaves and comes home on.
+///
+/// Glass shapes inside one `PieceLiquidGroup` melt into each other through a neck when they come within `merge`
+/// points. Parts of one control rest `joined`, inside that distance, so the neck holds; separate actions rest
+/// `apart`, outside it, so they only goo while one buds out of, or melts back into, another.
+private enum PieceLiquid {
+    /// Glass shapes closer than this share a neck.
+    static let merge: CGFloat = 20
+    /// The gap between parts of one control (a stepper's buttons, a progress pill and its stop): the neck holds,
+    /// short and smooth, about two thirds of the shapes' height at its waist. Joined parts read best at one height.
+    static let joined: CGFloat = 4
+    /// The gap between separate actions (menu items, confirm and cancel, chips): they rest as their own bubbles.
+    static let apart: CGFloat = 26
+    /// How far a bubble shrinks while it is home inside its parent.
+    static let homeScale: CGFloat = 0.72
+
+    /// A bubble leaving its parent: slow enough that the neck's stretch and snap read.
+    static func split(reduceMotion: Bool) -> Animation {
+        reduceMotion ? .easeOut(duration: 0.2) : .spring(duration: 0.62, bounce: 0.22)
+    }
+
+    /// A bubble going home. No bounce: a bounce would carry it out through the far side of its parent.
+    static func home(reduceMotion: Bool) -> Animation {
+        reduceMotion ? .easeIn(duration: 0.18) : .spring(duration: 0.5, bounce: 0)
+    }
+}
+
+/// A group of glass shapes that merge into one liquid surface. On iOS 26 it is a `GlassEffectContainer`; before
+/// that, and under Reduce Transparency, the shapes draw on their own and simply don't merge. `lift` adds the soft
+/// shadow liquid glass floats on in light mode.
+private struct PieceLiquidGroup<Content: View>: View {
+    var spacing: CGFloat = PieceLiquid.merge
+    var lift = true
+    @ViewBuilder var content: Content
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        container
+            .shadow(color: .black.opacity(lift && colorScheme == .light ? 0.07 : 0), radius: 18, y: 8)
+    }
+
+    @ViewBuilder private var container: some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26, *), !reduceTransparency {
+            GlassEffectContainer(spacing: spacing) { content }
+        } else {
+            content
+        }
+        #else
+        content
+        #endif
+    }
+}
+
+/// One liquid glass shape: Liquid Glass on iOS 26, carrying `tint` as a solid colour and swelling under a press when
+/// `interactive`; a frosted Material with a light rim and a soft shadow before that; a solid fill under Reduce
+/// Transparency.
+///
+/// The tint is painted inside clear glass rather than tinting the glass. Tinted glass in a group bleeds its colour
+/// through every neck as a smear, so a red button would glow into the white pill it is joined to; painted inside,
+/// the colour stays crisp to the shape's edge, the necks between shapes are clear glass, and a tint change animates
+/// like any colour (tinted glass snaps).
+private struct PieceLiquidSurface<S: Shape>: ViewModifier {
+    var shape: S
+    var tint: Color?
+    var interactive: Bool
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.pieceLiquidScale) private var scale
+
+    func body(content: Content) -> some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26, *), !reduceTransparency {
+            // Scaled as two parts, content and outline, about the same centre. A scaleEffect on a glass view inside a
+            // GlassEffectContainer shrinks the glass but leaves what it carries full size, pinned to its corner.
+            content
+                .background { shape.fill(tint ?? .clear) }
+                .scaleEffect(scale)
+                .glassEffect(glass, in: shape.scale(scale))
+        } else {
+            fallback(content).scaleEffect(scale)
+        }
+        #else
+        fallback(content).scaleEffect(scale)
+        #endif
+    }
+
+    #if compiler(>=6.2)
+    @available(iOS 26, *)
+    private var glass: Glass {
+        interactive ? Glass.regular.interactive() : .regular
+    }
+    #endif
+
+    private func fallback(_ content: Content) -> some View {
+        let dark = colorScheme == .dark
+        return content
+            .background {
+                if reduceTransparency {
+                    shape.fill(tint ?? (dark ? Color(white: 0.17) : Color(white: 0.97)))
+                } else {
+                    ZStack {
+                        shape.fill(.regularMaterial)
+                        if let tint { shape.fill(tint.opacity(0.88)) }
+                    }
+                }
+            }
+            .overlay { shape.stroke(Color.white.opacity(dark ? 0.14 : 0.7), lineWidth: 0.5) }
+            .shadow(color: .black.opacity(dark ? 0.32 : 0.08), radius: 10, y: 5)
+    }
+}
+
+private struct PieceLiquidScaleKey: EnvironmentKey {
+    static let defaultValue: CGFloat = 1
+}
+
+private extension EnvironmentValues {
+    /// How much the liquid shapes below are scaled, about their own centres. Nested scales multiply.
+    var pieceLiquidScale: CGFloat {
+        get { self[PieceLiquidScaleKey.self] }
+        set { self[PieceLiquidScaleKey.self] = newValue }
+    }
+}
+
+private extension View {
+    /// Draws this view on a liquid glass `shape`. Put it inside a `PieceLiquidGroup` so it can merge with its neighbours.
+    func pieceLiquid<S: Shape>(_ shape: S, tint: Color? = nil, interactive: Bool = true) -> some View {
+        modifier(PieceLiquidSurface(shape: shape, tint: tint, interactive: interactive))
+    }
+
+    /// Scales the liquid glass shapes in this view, content and outline together, about their own centres. Use it
+    /// instead of `scaleEffect` on a glass view (a press, a lift, a swell): inside a group a plain `scaleEffect` shrinks
+    /// the glass but leaves its content full size and off centre. Animates like any other value.
+    func pieceLiquidScale(_ scale: CGFloat) -> some View {
+        transformEnvironment(\.pieceLiquidScale) { $0 *= scale }
+    }
+}
+
+/// The bud: how a bubble leaves and rejoins its parent, driven explicitly so every bubble shows the whole cycle.
+///
+/// A bubble is born at `home`, inside its parent, where the two glass shapes are one. It springs out to `rest`, and
+/// while it is inside the merge distance a neck holds it to the parent, thinning as it goes, until it snaps free.
+/// Going home it springs back on a spring with no bounce, the neck reaches out and re-forms, and only once it has
+/// melted all the way in is it removed. Both offsets are relative to where the bubble is laid out. Under Reduce
+/// Motion it stays at `rest`: its content fades and its glass closes in place.
+private struct PieceBud: ViewModifier {
+    var out: Bool
+    var rest: CGSize
+    var home: CGSize
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func body(content: Content) -> some View {
+        if reduceMotion {
+            // No travel. Inside a group glass ignores opacity, so the glass closes to nothing in place on the short
+            // Reduce Motion ease while its content fades; the opacity covers a bubble outside a group.
+            content
+                .pieceLiquidScale(out ? 1 : 0.001)
+                .opacity(out ? 1 : 0)
+                .offset(rest)
+        } else {
+            // The glass shrinks through `pieceLiquidScale`, never a plain scaleEffect (see there), then moves.
+            content
+                .pieceLiquidScale(out ? 1 : PieceLiquid.homeScale)
+                .offset(out ? rest : home)
+        }
+    }
+}
+
+/// A bubble's own content, on its own clock: gone the moment the bubble heads home, so it never rides over the
+/// parent's content, and arriving just after the bubble leaves.
+private struct PieceBudContent: ViewModifier {
+    var out: Bool
+
+    func body(content: Content) -> some View {
+        content
+            .blur(radius: out ? 0 : 6)
+            .opacity(out ? 1 : 0)
+            .animation(out ? .easeOut(duration: 0.3).delay(0.1) : .easeOut(duration: 0.14), value: out)
+    }
+}
+
+private extension View {
+    /// Places a bubble at `rest` while `out`, and at `home` (inside its parent, shrunk) while not.
+    func pieceBud(out: Bool, rest: CGSize = .zero, home: CGSize) -> some View {
+        modifier(PieceBud(out: out, rest: rest, home: home))
+    }
+
+    /// Hides a bubble's icon or label while it is home. Put it on the content, inside the glass.
+    func pieceBudContent(out: Bool) -> some View {
+        modifier(PieceBudContent(out: out))
+    }
+}
+
+/// Which bubbles exist and which are out. A bubble is added home with no animation, sent out on the next frame,
+/// and called home before it is removed, so it always melts in rather than fading. Keep one in `@State`.
+@MainActor @Observable
+private final class PieceBuds {
+    private(set) var present: [String] = []
+    private(set) var out: Set<String> = []
+    /// The latest call for each bubble. A bloom or gather that has been overtaken (a bubble sent home while it was
+    /// still waiting to go out, or called out again while melting) leaves that bubble alone.
+    @ObservationIgnored private var turn: [String: Int] = [:]
+
+    func contains(_ id: String) -> Bool { present.contains(id) }
+    func isOut(_ id: String) -> Bool { out.contains(id) }
+
+    private func claim(_ ids: [String]) -> [String: Int] {
+        var mine: [String: Int] = [:]
+        for id in ids {
+            let next = (turn[id] ?? 0) + 1
+            turn[id] = next
+            mine[id] = next
+        }
+        return mine
+    }
+
+    /// Puts bubbles straight out at rest with no motion: a view's first frame, or a state restored.
+    func place(_ ids: [String]) {
+        _ = claim(ids)
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) {
+            for id in ids where !present.contains(id) { present.append(id) }
+            out.formUnion(ids)
+        }
+    }
+
+    /// Adds bubbles home, then sends each out, `stagger` seconds apart, after an optional `delay`.
+    func bloom(_ ids: [String], reduceMotion: Bool, stagger: Double = 0.05, delay: Double = 0) async {
+        let mine = claim(ids)
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) {
+            for id in ids where !present.contains(id) { present.append(id) }
+        }
+        try? await Task.sleep(for: .milliseconds(24 + Int(max(delay, 0) * 1000)))
+        let split = PieceLiquid.split(reduceMotion: reduceMotion)
+        for (i, id) in ids.enumerated() where turn[id] == mine[id] {
+            withAnimation(split.delay(reduceMotion ? 0 : Double(i) * stagger)) { _ = out.insert(id) }
+        }
+    }
+
+    /// Calls bubbles home, last first, then removes them once they have melted in.
+    func gather(_ ids: [String], reduceMotion: Bool, stagger: Double = 0.04) async {
+        let mine = claim(ids)
+        let home = PieceLiquid.home(reduceMotion: reduceMotion)
+        for (i, id) in ids.reversed().enumerated() {
+            withAnimation(home.delay(reduceMotion ? 0 : Double(i) * stagger)) { _ = out.remove(id) }
+        }
+        try? await Task.sleep(for: .milliseconds(Int((0.52 + Double(ids.count) * stagger) * 1000)))
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) { present.removeAll { ids.contains($0) && !out.contains($0) && turn[$0] == mine[$0] } }
+    }
+}
+
+/// A label that changes letter by letter: letters both strings share hold still, the rest blur out and the new ones
+/// blur in a few milliseconds apart. Under Reduce Motion it cross-fades. VoiceOver reads the whole string.
+private struct PieceMorphText: View {
+    var text: String
+    var font: Font = .body.weight(.semibold)
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        let glyphs = Array(text)
+        HStack(spacing: 0) {
+            ForEach(glyphs.indices, id: \.self) { i in
+                Text(String(glyphs[i]))
+                    .id("\(i)\(glyphs[i])")
+                    .transition(transition(i))
+            }
+        }
+        .font(font)
+        .fixedSize()
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(text)
+    }
+
+    private func transition(_ i: Int) -> AnyTransition {
+        guard !reduceMotion else { return .opacity }
+        return AnyTransition(.blurReplace(.downUp)).combined(with: .scale(scale: 0.6, anchor: .bottom))
+            .animation(.spring(duration: 0.42, bounce: 0.3).delay(Double(i) * 0.022))
+    }
+}
+
+// swiftpieces-liquid: end
 ```
 
 </Tab>

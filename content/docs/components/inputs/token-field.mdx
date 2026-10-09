@@ -1,32 +1,34 @@
 ---
 title: "Token Field"
-description: "A tag and recipient field where committed entries become solid color chips with dark ink that wrap across lines while the text field takes the rest of the last line, return, comma or a paste of a whole list commits trimmed tokens with duplicate, limit and validation checks, backspace on an empty field highlights the last chip and a second press removes it, and an inline suggestion list filters as you type."
+description: "A liquid glass tag and recipient field where each committed entry buds out of the glass input as a glass chip, born where it was typed while the input slides on, and chips wrap across lines resting apart while the input takes the rest of the last line. Return, comma or a paste of a whole list commits trimmed tokens with duplicate, limit and validation checks; backspace on an empty input highlights the last chip in the brand red and a second press melts it back into the input; and a glass suggestion list buds out of the input and filters as you type."
 piece: "TokenField"
 category: "inputs"
 minIOSVersion: "17.0"
-version: "1.0.1"
+version: "1.2.0"
 tags: ["tokens","tags","chips","recipients","flow-layout","autocomplete","form"]
 registryDependencies: []
 ---
 
 {/* GENERATED FILE. Edit registry/swift/inputs/TokenField.swift or TokenField.mdx instead. */}
 
-Wrapping token entry bound to an array of strings: tags, skills, recipients.
+Wrapping liquid glass token entry bound to an array of strings: tags, skills, recipients. The input is a glass capsule and every token a glass chip beside it, resting apart. A committed token buds out of the input where it was typed; a removed one melts back into it. Suggestions bud out of the input as a glass list.
 
 ## Notes
 
-- Chips and the input sit in a private wrapping `Layout`: leading-aligned rows, spacing that scales with Dynamic Type, and the input taking the rest of the last line. When that is narrower than the input's minimum (88pt, scaled) or its typed text, the input wraps to a new full-width line. A chip wider than the field truncates in the middle.
+- The input is a liquid glass capsule and every token a glass chip beside it. They sit in a private wrapping `Layout`: leading-aligned rows that rest apart, outside the distance at which glass melts together, with the input taking the rest of the last line. When that is narrower than the input's minimum (88pt, scaled) or its typed text, the input wraps to a new full-width line, and grows taller as wrapped text needs. A chip wider than the field truncates in the middle.
 - Return, comma (including the full-width `，` and `、`) and pasted line breaks commit the trimmed text by default. `separators` adds `.semicolon` and `.space` for recipient lists. Pasting `a, b, c` adds three tokens in one animated change.
-- Every entry is checked in order: `maxTokens`, then duplicates (case-insensitive, the first spelling is kept and the existing chip is highlighted), then `validate`. Rejected entries stay in the input so they can be fixed, with a damped shake, an error ring and an `.error` haptic.
-- Backspace on an empty input highlights the last chip with a soft impact; a second backspace removes it with a rigid impact. Tapping a chip highlights it the same way. A zero-width space kept in front of the typed text makes this reliable on the software keyboard, where iOS reports no key event for backspace on an empty field. It is never shown or committed.
-- The input uses a vertical-axis `TextField`, so return inserts a line break the field turns into a commit and the keyboard stays up between tokens. Valid text left in the input is committed quietly when the field loses focus.
-- Suggestions appear under the field while typing, matched case- and diacritic-insensitively, prefix matches first, at most five, with the matched run in bold and a dot in the color the chip will take. Tokens already added are left out.
-- Each token keeps the same chip color wherever it appears, picked from its text, so removing one never recolors the rest. Pass a single color in `Style.chips` for uniform chips.
-- At `maxTokens` the input stops accepting text and shows a quiet count such as `5/5`. Backspace still removes.
+- A committed token buds out of the input as a glass chip: it is born inside the input, under the text it was typed as, and springs out to its place while the input slides on to make room, the neck between them stretching until it snaps. Several tokens from one paste bud out one after another. The reflowing chips and the input move on a short spring with a little give; on a field wider than 400pt (landscape, iPad), where a wrap travels most of the line, they move without overshoot so nothing crosses the field's edge. Chips added from outside bud out of the input's leading end the same way.
+- Every entry is checked in order: `maxTokens`, then duplicates (case-insensitive, the first spelling is kept), then `validate`. Entries refused by `validate` or past the limit stay in the input so they can be fixed: the field shakes once, the input takes the `Style.error` tint (butter) and an `.error` haptic plays on the same beat. A duplicate leaves the input and points at the chip already there instead: that chip lifts into its highlight and swells once with the `.error` haptic, every time, even when it is already highlighted, and the field stays still. The swell takes only the room the lift leaves before the next chip; one too long to swell at all dims for a beat instead. Each commit plays one haptic: `.selection` when everything was added, `.error` when anything was refused, even if other parts of the paste were added.
+- Backspace on an empty input highlights the last chip with a soft impact: it takes the `Style.selection` tint, the brand red, and lifts 4% on a short spring. A second backspace removes it with a rigid impact: the chip leaves the flow at once, so its neighbors and the input reflow into its place, and it melts back into the input from where it was, its tint draining as it goes. Tapping a chip highlights it the same way. The remove glyph on each chip sinks slightly under the finger and springs back with a little bounce. A zero-width space kept in front of the typed text makes this reliable on the software keyboard, where iOS reports no key event for backspace on an empty field. It is never shown or committed.
+- The input uses a vertical-axis `TextField`, so return inserts a line break the field turns into a commit and the keyboard stays up between tokens. Valid text left in the input is committed quietly, with no haptic, when the field loses focus.
+- Suggestions appear while typing, matched case- and diacritic-insensitively, prefix matches first, at most five, with the matched run in full ink and the rest quieter. Tokens already added are left out. The list is a glass panel that buds out of the input, shrunk inside it, and rests apart below the field, opening room for itself as it comes and closing it as it melts home, so whatever sits below moves with it. While you type its rows refine in place on a short spring with no overshoot, so the text you read never wobbles, and a row sinks slightly under the finger.
+- `Style.chips` tints chips by their text, so a token keeps its tint wherever it appears and removing one never recolors the rest; the house palette leaves every chip neutral glass. A tinted chip's suggestion row shows a dot in its tint.
+- At `maxTokens` the input stops accepting text and shows a quiet count such as `5/5`. A keystroke there meets a bound rather than an error: a light impact, and the count swells and rebounds, with no shake or error haptic on every key. While the input still holds text, such as entries kept past the limit, the count is hidden, so the ring dims for a beat instead. Backspace still removes.
+- Typing never waits on motion. An edit never animates the input or its text, even when it changes the suggestions, clears the error tint or wraps the input to a new line; only a commit or a removal moves the input, along with the chips.
 - Tapping anywhere in the field that is not a chip focuses the input. Keyboard type, capitalization and content type pass through: apply `.keyboardType(.emailAddress)` and friends to the `TokenField`.
 - VoiceOver: each chip is one element read as "Swift, token" with a Remove action; the input's label carries the placeholder and the token count; adds, removals and rejections are announced.
-- `Style` sets the field, chip colors, ink, label, placeholder, error, corner radius and minimum height. `.disabled(true)` dims the field and disables removal.
-- Reduce Motion: no shake or scale; chips and the suggestion list fade.
+- `Style` sets the input's and list's glass tint, chip tints, ink, label, placeholder, the error and selection tints, the list's corner radius and the field's minimum height. All text is semibold. `.disabled(true)` dims the field and disables removal.
+- Reduce Motion: chips and the suggestion list open and close where they rest instead of budding and melting, and chips reflow on a short spring with no bounce. A highlighted chip changes tint without lifting, and a duplicate dims its chip for a beat instead of swelling it. A refused entry plays its haptic and dims the ring for a beat instead of shaking, so a refusal while the error tint is already showing still shows on screen. A keystroke at the limit dims the count for a beat instead of swelling it, or the ring while the input holds text, as with motion on. A pressed remove glyph or suggestion row fades instead of sinking. Reduce Transparency draws the glass as solid shapes.
 
 ## Usage
 
@@ -39,13 +41,13 @@ TokenFieldExample()
 | Parameter | Description |
 | --- | --- |
 | `placeholder` | Shown in the input while it is empty, and the input's accessibility label. |
-| `tokens` | Bound tokens, in order. Changes from outside animate in and out like typed ones. |
+| `tokens` | Bound tokens, in order. Changes from outside bud in and melt out like typed ones. |
 | `suggestions` | Candidates listed under the field while typing, matched case- and diacritic-insensitively (prefix matches first, then contains), excluding tokens already added. |
-| `maxTokens` | Upper limit. When reached the input stops accepting text and shows a quiet count such as "5/5"; backspace still removes. |
+| `maxTokens` | Upper limit. When reached the input stops accepting text and shows a quiet count such as "5/5", which bumps when a keystroke is refused; backspace still removes. |
 | `allowsDuplicates` | When `false`, an entry that matches an existing token case-insensitively is not added; the existing chip is highlighted instead and the first spelling is kept. |
 | `separators` | Keys and characters that commit the typed text. `.standard` is return, comma and pasted line breaks. Full-width commas and semicolons count as their ASCII forms. |
 | `style` | Colors and field metrics. Defaults to the SwiftPieces house palette, adapting to light and dark. |
-| `validate` | Accepts or rejects a trimmed entry (for example an email check). A rejected entry stays in the input, the field shakes and an error haptic plays. |
+| `validate` | Accepts or rejects a trimmed entry (for example an email check). A rejected entry stays in the input, the field shakes, the input takes the error tint and an error haptic plays. |
 
 ## Source
 
@@ -55,17 +57,20 @@ TokenFieldExample()
 ```swift title="TokenField.swift"
 import SwiftUI
 
-/// Wrapping token entry bound to an array of strings: tags, skills, recipients.
+/// Wrapping liquid glass token entry bound to an array of strings: tags, skills, recipients.
+///
+/// The input is a glass capsule and every token a glass chip beside it, resting apart. A committed token buds out of
+/// the input where it was typed; a removed one melts back into it. Suggestions bud out of the input as a glass list.
 ///
 /// - Parameters:
 ///   - placeholder: Shown in the input while it is empty, and the input's accessibility label.
-///   - tokens: Bound tokens, in order. Changes from outside animate in and out like typed ones.
+///   - tokens: Bound tokens, in order. Changes from outside bud in and melt out like typed ones.
 ///   - suggestions: Candidates listed under the field while typing, matched case- and diacritic-insensitively (prefix matches first, then contains), excluding tokens already added.
-///   - maxTokens: Upper limit. When reached the input stops accepting text and shows a quiet count such as "5/5"; backspace still removes.
+///   - maxTokens: Upper limit. When reached the input stops accepting text and shows a quiet count such as "5/5", which bumps when a keystroke is refused; backspace still removes.
 ///   - allowsDuplicates: When `false`, an entry that matches an existing token case-insensitively is not added; the existing chip is highlighted instead and the first spelling is kept.
 ///   - separators: Keys and characters that commit the typed text. `.standard` is return, comma and pasted line breaks. Full-width commas and semicolons count as their ASCII forms.
 ///   - style: Colors and field metrics. Defaults to the SwiftPieces house palette, adapting to light and dark.
-///   - validate: Accepts or rejects a trimmed entry (for example an email check). A rejected entry stays in the input, the field shakes and an error haptic plays.
+///   - validate: Accepts or rejects a trimmed entry (for example an email check). A rejected entry stays in the input, the field shakes, the input takes the error tint and an error haptic plays.
 public struct TokenField: View {
     /// What commits the typed text into a token.
     public struct Separators: OptionSet, Sendable {
@@ -89,31 +94,34 @@ public struct TokenField: View {
 
     /// Colors and metrics. `.standard` is the house palette.
     public struct Style: Sendable {
-        /// The field block and the suggestion list.
+        /// The glass tint of the input and the suggestion list. `.clear`, the default, leaves them neutral glass.
         public var field: Color
-        /// Chip blocks. A token keeps the same color wherever it appears (picked from its text), so one color gives uniform chips.
+        /// Glass tints for chips. A token keeps the same tint wherever it appears (picked from its text). `[.clear]`, the default, leaves every chip neutral glass.
         public var chips: [Color]
-        /// Text and the remove glyph on chips.
+        /// Text and the remove glyph on tinted glass.
         public var ink: Color
-        /// Typed text, suggestions, the focus ring and the highlighted chip.
+        /// Typed text, suggestions, chip text on neutral glass and the focus ring.
         public var label: Color
-        /// Placeholder and the limit count.
+        /// Placeholder, the limit count and the unmatched part of a suggestion.
         public var placeholder: Color
-        /// Ring shown after a rejected entry.
+        /// The input's tint after a rejected entry.
         public var error: Color
-        /// Field corner radius. Chips use a smaller radius that follows it.
+        /// The tint of a highlighted chip, armed for removal.
+        public var selection: Color
+        /// Corner radius of the suggestion list. The chips and the input are capsules.
         public var cornerRadius: CGFloat
-        /// Minimum field height.
+        /// Minimum height of the field. Its chips and input are centred in it.
         public var minHeight: CGFloat
 
         /// Pass only what you want to change; `nil` keeps the house palette value.
-        public init(field: Color? = nil, chips: [Color]? = nil, ink: Color? = nil, label: Color? = nil, placeholder: Color? = nil, error: Color? = nil, cornerRadius: CGFloat = 18, minHeight: CGFloat = 56) {
-            self.field = field ?? adaptive(light: 0xE9E7E1, dark: 0x262626)
-            self.chips = (chips?.isEmpty == false ? chips : nil) ?? [0x9CC2FF, 0xFFD976, 0xA9DCB7, 0xCDB8FF, 0xE9D5B3].map { adaptive(light: $0, dark: $0) }
+        public init(field: Color? = nil, chips: [Color]? = nil, ink: Color? = nil, label: Color? = nil, placeholder: Color? = nil, error: Color? = nil, selection: Color? = nil, cornerRadius: CGFloat = 18, minHeight: CGFloat = 56) {
+            self.field = field ?? .clear
+            self.chips = (chips?.isEmpty == false ? chips : nil) ?? [.clear]
             self.ink = ink ?? adaptive(light: 0x141414, dark: 0x141414)
             self.label = label ?? adaptive(light: 0x141414, dark: 0xF4F3EF)
             self.placeholder = placeholder ?? adaptive(light: 0x5C5A56, dark: 0xA6A49F)
-            self.error = error ?? adaptive(light: 0xFF5B3A, dark: 0xFF5B3A)
+            self.error = error ?? adaptive(light: 0xFFD976, dark: 0xFFD976)
+            self.selection = selection ?? adaptive(light: 0xFF0000, dark: 0xFF0000)
             self.cornerRadius = cornerRadius
             self.minHeight = max(minHeight, 44)
         }
@@ -126,14 +134,19 @@ public struct TokenField: View {
             for scalar in text.lowercased().unicodeScalars { hash = (hash &* 33) &+ UInt64(scalar.value) }
             return chips[Int(hash % UInt64(chips.count))]
         }
+
+        /// A chip's glass tint: none for `.clear`, so the house chips stay neutral glass.
+        func tint(for text: String) -> Color? {
+            let color = chip(for: text)
+            return color == .clear ? nil : color
+        }
     }
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.isEnabled) private var isEnabled
     @FocusState private var isFocused: Bool
-    @ScaledMetric(relativeTo: .subheadline) private var chipHeight: CGFloat = 34
+    @ScaledMetric(relativeTo: .subheadline) private var chipHeight: CGFloat = 40
     @ScaledMetric(relativeTo: .body) private var minInputWidth: CGFloat = 88
-    @ScaledMetric(relativeTo: .body) private var spacing: CGFloat = 6
     @Binding private var tokens: [String]
     /// Raw input text. Always starts with `sentinel`; see `fieldChanged`.
     @State private var fieldText = TokenField.sentinel
@@ -146,6 +159,32 @@ public struct TokenField: View {
     @State private var armTick = 0
     @State private var removeTick = 0
     @State private var rejectTick = 0
+    @State private var limitBump = 0
+    /// A duplicate's swell on the highlighted chip, from 0 to 1 and back.
+    @State private var swellBeat: CGFloat = 0
+    /// Dims the ring for a beat, for a refusal with nothing else to show on screen.
+    @State private var ringBeat = 0
+    /// The width chips flow in. A wrap travels most of it, so a wide field reflows without overshoot.
+    @State private var flowWidth: CGFloat = 0
+    /// Chips out at their place, and the suggestion list: a chip is home inside the input until it buds out.
+    @State private var buds = PieceBuds()
+    /// Where each chip was born: the middle of the text it was typed as, and the input it was typed into. Its home
+    /// until it is out.
+    @State private var births: [String: Birth] = [:]
+    /// Where the next commit is born, set just before it writes the tokens.
+    @State private var birth: Birth?
+    /// Chips removed from the flow, melting back into the input from where they were.
+    @State private var melts: [Melt] = []
+    @State private var meltCount = 0
+    /// Frames in the field's space: each chip's, the input's, and the whole field's.
+    @State private var frames: [String: CGRect] = [:]
+    @State private var inputFrame: CGRect = .zero
+    @State private var flowFrame: CGRect = .zero
+    /// The typed text's width, so a commit is born under it.
+    @State private var draftWidth: CGFloat = 0
+    /// The list's last rows, kept while it melts home after the matches clear.
+    @State private var shownMatches: [String] = []
+    @State private var listHeight: CGFloat = 0
 
     private let placeholder: String
     private let suggestions: [String]
@@ -154,6 +193,8 @@ public struct TokenField: View {
     private let separators: Separators
     private let style: Style
     private let validate: (String) -> Bool
+    /// Chips are separate entries, so they rest outside the merge distance and only goo while one buds or melts.
+    private let spacing = PieceLiquid.apart
 
     /// A zero-width space kept in front of the typed text. iOS gives no callback for backspace on an empty
     /// software-keyboard field (`onKeyPress(.delete)` only sees hardware keys), but with this character in
@@ -164,6 +205,28 @@ public struct TokenField: View {
     private struct Item: Identifiable {
         let id: String
         let text: String
+    }
+
+    /// Where a chip is born: under the text it was typed as, inside the input as it was then.
+    private struct Birth {
+        let point: CGPoint
+        let input: CGRect
+
+        /// The centre of a chip `width` wide at home: under the text, but shrunk inside the input's ends.
+        func home(width: CGFloat) -> CGPoint {
+            let half = width * PieceLiquid.homeScale / 2 + 2
+            let x = input.width > half * 2 ? min(max(point.x, input.minX + half), input.maxX - half) : input.midX
+            return CGPoint(x: x, y: point.y)
+        }
+    }
+
+    /// A removed chip, drawn over the flow where it was until it has melted into the input.
+    private struct Melt: Identifiable {
+        let id: String
+        let token: String
+        let text: String
+        let frame: CGRect
+        let tint: Color?
     }
 
     public init(_ placeholder: String, tokens: Binding<[String]>, suggestions: [String] = [], maxTokens: Int? = nil, allowsDuplicates: Bool = false, separators: Separators = .standard, style: Style = .standard, validate: @escaping (String) -> Bool = { _ in true }) {
@@ -177,66 +240,86 @@ public struct TokenField: View {
         self.validate = validate
     }
 
-    private var motion: Animation { reduceMotion ? .smooth(duration: 0.2) : .spring(duration: 0.4, bounce: 0.2) }
+    private var motion: PieceMotion { PieceMotion(reduceMotion: reduceMotion) }
     private var draft: String { Self.strip(fieldText) }
     private var isFull: Bool { maxTokens.map { tokens.count >= $0 } ?? false }
+    private var fieldTint: Color? { style.field == .clear ? nil : style.field }
 
     public var body: some View {
+        let motion = self.motion
         let matches = self.matches
-        VStack(alignment: .leading, spacing: 8) {
-            field
-            if !matches.isEmpty {
+        // Read here, so this body observes the bubbles: the reads below sit in closures (the flow's ForEach, the list, the melts) that are not re-run on
+        // their own when a bubble changes, which would let one appear without its bud.
+        let _ = (buds.present, buds.out)
+        PieceLiquidGroup {
+            VStack(alignment: .leading, spacing: 0) {
+                // Over the list, so the list at home sits under the input and melts into it.
+                field.zIndex(1)
                 suggestionList(matches)
-                    .transition(reduceMotion ? .opacity : .move(edge: .top).combined(with: .opacity))
+                    // Rows refine in place as you type, on `value`, which never overshoots: they are text being read,
+                    // and typing stays calm. Scoped to the list, so the field, caret and typed text never ride along
+                    // when a keystroke changes the matches.
+                    .animation(motion.value, value: matches)
             }
+            // Behind the flow, so a removed chip slips under the chips it crosses and ends under the input.
+            .background(alignment: .topLeading) { meltLayer }
+            .coordinateSpace(.named("tokenField"))
         }
+        .fontWeight(.semibold)
         .opacity(isEnabled ? 1 : 0.45)
-        .animation(motion, value: matches)
         .sensoryFeedback(.selection, trigger: addTick)
         .sensoryFeedback(.impact(flexibility: .soft, intensity: 0.6), trigger: armTick)
         .sensoryFeedback(.impact(flexibility: .rigid, intensity: 0.8), trigger: removeTick)
         .sensoryFeedback(.error, trigger: rejectTick)
+        .sensoryFeedback(.impact(weight: .light, intensity: 0.7), trigger: limitBump)
+        .onAppear { buds.place(Self.ids(for: tokens)) }
         .onChange(of: fieldText) { old, new in fieldChanged(from: old, to: new) }
         .onChange(of: isFocused) { _, focused in
             guard !focused else { return }
             selectedID = nil
             commitOnBlur()
         }
-        .onChange(of: tokens) { _, new in
-            if let selectedID, !Self.ids(for: new).contains(selectedID) { self.selectedID = nil }
+        .onChange(of: tokens) { old, new in tokensChanged(from: old, to: new) }
+        .onChange(of: matches) { old, new in
+            if !new.isEmpty { shownMatches = new }
+            guard old.isEmpty != new.isEmpty else { return }
+            Task {
+                if new.isEmpty {
+                    await buds.gather(["list"], reduceMotion: reduceMotion)
+                } else {
+                    await buds.bloom(["list"], reduceMotion: reduceMotion)
+                }
+            }
         }
     }
 
     // MARK: Field
 
     private var field: some View {
-        let shape = RoundedRectangle(cornerRadius: style.cornerRadius, style: .continuous)
+        let motion = self.motion
         return FlowLayout(spacing: spacing, lineSpacing: spacing) {
             ForEach(items) { item in
                 chip(item)
-                    .transition(reduceMotion ? .opacity : .asymmetric(
-                        insertion: .scale(scale: 0.6, anchor: .trailing).combined(with: .opacity),
-                        removal: .scale(scale: 0.5).combined(with: .opacity)
-                    ))
+                    // A chip buds in and melts out on its own, so the flow only moves the rest.
+                    .transition(.identity)
             }
             input
                 .layoutValue(key: FlowFill.self, value: minInputWidth)
         }
-        .animation(motion, value: tokens)
-        .padding(10)
+        // A reflow overshoots by a share of how far it travels. On a phone that stays inside the gaps; on a wider field
+        // (landscape, iPad) a wrap crosses most of the line, so it lands without overshoot instead.
+        .animation(flowWidth > 400 ? motion.value : motion.snap, value: tokens)
+        .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { flowWidth = $0 }
         .frame(maxWidth: .infinity, minHeight: style.minHeight, alignment: .leading)
-        .background(style.field, in: shape)
-        .overlay {
-            shape.strokeBorder(isInvalid ? style.error : style.label, lineWidth: 2)
-                .opacity(isFocused || isInvalid ? 1 : 0)
-        }
-        .contentShape(shape)
+        .onGeometryChange(for: CGRect.self) { $0.frame(in: .named("tokenField")) } action: { flowFrame = $0 }
+        .contentShape(.rect)
         // Tapping anywhere that is not a chip puts the caret in the input.
         .onTapGesture { if isEnabled { isFocused = true } }
-        .modifier(Shake(count: reduceMotion ? 0 : CGFloat(shakeCount)))
-        .animation(.linear(duration: 0.45), value: shakeCount)
-        .animation(.smooth(duration: 0.2), value: isFocused)
-        .animation(.smooth(duration: 0.2), value: isInvalid)
+        // Chips reflow inside the field's own space, so when a change from outside resizes the field and its parent
+        // moves it (a centered stack), they move with the field instead of sliding across its edge.
+        .geometryGroup()
+        // An entry refused back into the input shakes the field once, on the beat of the error haptic.
+        .pieceShake(trigger: shakeCount)
         .accessibilityElement(children: .contain)
     }
 
@@ -255,8 +338,42 @@ public struct TokenField: View {
         }
     }
 
+    /// A token's text and remove glyph, padded to its capsule.
+    private func chipFace(_ text: String) -> some View {
+        HStack(spacing: 0) {
+            Text(text)
+                .font(.subheadline.weight(.semibold))
+                .lineLimit(1)
+                .truncationMode(.middle)
+            Image(systemName: "xmark")
+                .font(.caption2.weight(.semibold))
+                .frame(width: 28)
+        }
+        .padding(.leading, 14)
+        .padding(.trailing, 4)
+        .frame(minHeight: chipHeight)
+    }
+
+    /// A glass chip. Born home inside the input, under the text it was typed as, it buds out to its place in the flow;
+    /// highlighted, it takes the selection tint and lifts.
     private func chip(_ item: Item) -> some View {
         let isSelected = selectedID == item.id
+        let still = reduceMotion
+        let gap = spacing
+        let out = buds.isOut(item.id)
+        let frame = frames[item.id]
+        let home = frame.flatMap { frame in births[item.id].map { birth in
+            let point = birth.home(width: frame.width)
+            return CGSize(width: point.x - frame.midX, height: point.y - frame.midY)
+        } } ?? .zero
+        let tint = isSelected ? style.selection : style.tint(for: item.text)
+        // A duplicate swells its chip every time, so one that is already highlighted, where the lift has nothing left
+        // to do, still answers. The swell takes only the room the lift leaves before the spacing, up to 4%, so a long
+        // recipient never slides under its neighbor or past the field's edge. Reduce Motion, and a chip too long to
+        // swell, dim its label for a beat instead.
+        let width = max(frame?.width ?? 1, 1)
+        let room = min(max(gap - width * 0.02, 0) * 2 / (width * 1.04), 0.04)
+        let swells = !still && room > 0.004
         return HStack(spacing: 0) {
             Text(item.text)
                 .font(.subheadline.weight(.semibold))
@@ -264,21 +381,31 @@ public struct TokenField: View {
                 .truncationMode(.middle)
             Button { remove(id: item.id) } label: {
                 Image(systemName: "xmark")
-                    .font(.caption2.weight(.heavy))
+                    .font(.caption2.weight(.semibold))
                     .frame(width: 28, height: chipHeight)
                     // The glyph is small; the hit area grows to at least 44pt around it.
                     .contentShape(.rect.inset(by: -8))
             }
-            .buttonStyle(.plain)
+            .buttonStyle(InkPressStyle())
             .disabled(!isEnabled)
         }
-        .foregroundStyle(isSelected ? style.field : style.ink)
-        .padding(.leading, 12)
-        .padding(.trailing, 3)
+        .foregroundStyle(tint == nil ? style.label : style.ink)
+        .opacity(isSelected && !swells ? 1 - Double(swellBeat) * 0.5 : 1)
+        .pieceBudContent(out: out)
+        .padding(.leading, 14)
+        .padding(.trailing, 4)
         .frame(minHeight: chipHeight)
-        .background(isSelected ? style.label : style.chip(for: item.text), in: .rect(cornerRadius: min(style.cornerRadius - 6, chipHeight / 2), style: .continuous))
-        .scaleEffect(isSelected && !reduceMotion ? 1.04 : 1)
-        .animation(.spring(duration: 0.25, bounce: 0.3), value: isSelected)
+        // A tinted chip passes its tint only while out, so it drains as it melts into the input.
+        .pieceLiquid(.capsule, tint: out ? tint : nil, interactive: false)
+        .pieceLiquidScale(isSelected && swells ? 1 + swellBeat * room : 1)
+        // A highlighted chip lifts slightly. It answers a tap or a key, so it snaps rather than settling elastically.
+        .pieceLiquidScale(isSelected && !reduceMotion ? 1.04 : 1)
+        .animation(motion.snap, value: isSelected)
+        // A chip just added waits one layout pass, closed to nothing (glass ignores opacity), for its place to be
+        // measured, so it starts from its home.
+        .pieceLiquidScale(frame == nil && !out ? 0.001 : 1)
+        .pieceBud(out: out, home: home)
+        .onGeometryChange(for: CGRect.self) { $0.frame(in: .named("tokenField")) } action: { frames[item.id] = $0 }
         .contentShape(.rect)
         .onTapGesture {
             guard isEnabled else { return }
@@ -291,45 +418,115 @@ public struct TokenField: View {
         .accessibilityAction(named: "Remove") { remove(id: item.id) }
     }
 
-    /// The input sizes from a hidden copy of its text, so the flow layout can ask for its natural width
-    /// and wrap it to a new line when the rest of the current line is too narrow.
+    /// Removed chips, where they were in the flow, melting into the input's leading end.
+    private var meltLayer: some View {
+        ZStack(alignment: .topLeading) {
+            ForEach(melts) { melt in
+                let out = buds.isOut(melt.id)
+                let home = CGPoint(x: inputFrame.minX + min(melt.frame.width * PieceLiquid.homeScale / 2 + 4, inputFrame.width / 2), y: inputFrame.midY)
+                chipFace(melt.text)
+                    .foregroundStyle(melt.tint == nil ? style.label : style.ink)
+                    .pieceBudContent(out: out)
+                    .pieceLiquid(.capsule, tint: out ? melt.tint : nil, interactive: false)
+                    .fixedSize()
+                    .pieceBud(out: out, home: CGSize(width: home.x - melt.frame.midX, height: home.y - melt.frame.midY))
+                    .position(x: melt.frame.midX, y: melt.frame.midY)
+            }
+        }
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
+    }
+
+    /// The input is a glass capsule that takes the rest of the chips' last line. It sizes from a hidden copy of its
+    /// text, so the flow layout can ask for its natural width and wrap it to a new line when the rest of the current
+    /// line is too narrow.
     private var input: some View {
         let showsCount = isFull && draft.isEmpty
         let hint = showsCount ? "\(tokens.count)/\(maxTokens ?? 0)" : placeholder
+        let still = reduceMotion
+        let motion = self.motion
+        let tint = isInvalid ? style.error : fieldTint
+        let ink = tint == nil ? style.label : style.ink
+        // A capsule while it holds one line, rounding off as wrapped text grows it.
+        let shape = RoundedRectangle(cornerRadius: chipHeight / 2, style: .continuous)
         return Text(draft.isEmpty ? hint : draft)
-            .font(.body)
+            .font(.body.weight(.semibold))
             .lineLimit(draft.isEmpty ? 1 : 4)
+            .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { draftWidth = $0 }
             .padding(.trailing, 6)
             .hidden()
             .frame(maxWidth: .infinity, minHeight: chipHeight, alignment: .leading)
             .overlay(alignment: .leading) {
                 ZStack(alignment: .leading) {
-                    if draft.isEmpty {
-                        Text(hint)
-                            .font(showsCount ? .body.monospacedDigit() : .body)
-                            .foregroundStyle(style.placeholder)
-                            .lineLimit(1)
-                            .allowsHitTesting(false)
-                            .accessibilityHidden(true)
-                    }
+                    // Hidden rather than removed while typing: a refused keystroke renders once with its character
+                    // before the field puts the text back, and a removed hint would lose the bump it triggers.
+                    Text(hint)
+                        .font(showsCount ? .body.weight(.semibold).monospacedDigit() : .body.weight(.semibold))
+                        .foregroundStyle(tint == nil ? style.placeholder : style.ink.opacity(0.6))
+                        .lineLimit(1)
+                        // A keystroke refused at the limit pushes the count against its bound and it rebounds. Reduce
+                        // Motion dims it for a beat instead.
+                        .keyframeAnimator(initialValue: CGFloat(1), trigger: limitBump) { content, scale in
+                            content
+                                .scaleEffect(still ? 1 : scale, anchor: .leading)
+                                .opacity(still ? 1 - Double(max(scale - 1, 0)) * 3 : 1)
+                        } keyframes: { _ in
+                            SpringKeyframe(1.12, duration: 0.1, spring: PieceMotion.tight)
+                            SpringKeyframe(1, duration: 0.3, spring: PieceMotion.elastic)
+                        }
+                        .opacity(draft.isEmpty ? 1 : 0)
+                        .allowsHitTesting(false)
+                        .accessibilityHidden(true)
                     // Vertical axis: return inserts a line break we can see and handle in `fieldChanged`,
                     // instead of `onSubmit`, which ends editing and drops the keyboard between tokens.
                     TextField("", text: $fieldText, axis: .vertical)
-                        .font(.body)
+                        .font(.body.weight(.semibold))
                         .lineLimit(1...4)
-                        .foregroundStyle(style.label)
-                        .tint(style.label)
+                        .foregroundStyle(ink)
+                        .tint(ink)
                         .focused($isFocused)
                         .onSubmit(commitTyped)
                         .accessibilityLabel(inputLabel)
                 }
             }
+            .padding(.horizontal, 16)
+            // The ring is the glass's own content: glass drawn over a separate ring would blur it. It sits a few
+            // points in from the edge, so chips budding from the field meet clean glass and their necks never cut it.
+            .overlay {
+                RoundedRectangle(cornerRadius: max(chipHeight / 2 - 3, 0), style: .continuous)
+                    .strokeBorder(ink, lineWidth: 2)
+                    .padding(3)
+                    .opacity(isFocused || isInvalid ? 1 : 0)
+                    // A refusal with nothing else on screen dims the ring for a beat, even when it was already showing:
+                    // a refused entry under Reduce Motion, which has no shake, or a keystroke at the limit while the
+                    // input holds text, which hides the count.
+                    .keyframeAnimator(initialValue: 1.0, trigger: ringBeat) { ring, level in
+                        ring.opacity(level)
+                    } keyframes: { _ in
+                        SpringKeyframe(0.2, duration: 0.1, spring: PieceMotion.tight)
+                        SpringKeyframe(1, spring: PieceMotion.calm)
+                    }
+                    .animation(isInvalid ? motion.error : motion.dismiss, value: isInvalid)
+                    .animation(motion.snap, value: isFocused)
+                    .allowsHitTesting(false)
+            }
+            // Scoped to the glass, so the keystroke that clears an error never animates the typed text. The first
+            // listed wins when both change in one update, so an error keeps its own role.
+            .animation(isInvalid ? motion.error : motion.dismiss) { glass in
+                glass.pieceLiquid(shape, tint: tint, interactive: false)
+            }
+            .onGeometryChange(for: CGRect.self) { $0.frame(in: .named("tokenField")) } action: { inputFrame = $0 }
     }
 
     private var inputLabel: String {
         let count = tokens.count
         if let maxTokens { return "\(placeholder), \(count) of \(maxTokens) tokens" }
         return "\(placeholder), \(count) \(count == 1 ? "token" : "tokens")"
+    }
+
+    /// Where a commit made now is born: the middle of the typed text, inside the input.
+    private var typedCenter: CGPoint {
+        CGPoint(x: inputFrame.minX + 16 + min(draftWidth, max(inputFrame.width - 32, 0)) / 2, y: inputFrame.midY)
     }
 
     // MARK: Suggestions
@@ -348,39 +545,72 @@ public struct TokenField: View {
         return Array((prefix + contains).prefix(5))
     }
 
-    private func suggestionList(_ matches: [String]) -> some View {
-        let query = draft.trimmingCharacters(in: .whitespaces)
-        return VStack(alignment: .leading, spacing: 0) {
-            ForEach(matches, id: \.self) { candidate in
-                Button { commitSuggestion(candidate) } label: {
-                    HStack(spacing: 12) {
-                        Circle().fill(style.chip(for: candidate)).frame(width: 10, height: 10)
-                        Text(Self.highlight(query, in: candidate))
-                            .font(.body)
-                            .foregroundStyle(style.label)
-                            .multilineTextAlignment(.leading)
+    /// A glass list that buds out of the input, shrunk inside it, and rests apart below the field, opening room for
+    /// itself as it comes and closing it as it melts home, so whatever sits below moves with it.
+    @ViewBuilder private func suggestionList(_ matches: [String]) -> some View {
+        if buds.contains("list") {
+            let out = buds.isOut("list")
+            let rows = matches.isEmpty ? shownMatches : matches
+            let query = draft.trimmingCharacters(in: .whitespaces)
+            // Home: the list's centre on the input's, shrunk until it fits inside it.
+            let width = max(flowFrame.width, 1)
+            let center = CGPoint(x: width / 2, y: flowFrame.maxY + listHeight / 2)
+            let fit = min(1, inputFrame.width * 0.8 / (width * PieceLiquid.homeScale), inputFrame.height * 0.8 / max(listHeight * PieceLiquid.homeScale, 1))
+            VStack(alignment: .leading, spacing: 0) {
+                ForEach(rows, id: \.self) { candidate in
+                    Button { commitSuggestion(candidate) } label: {
+                        HStack(spacing: 12) {
+                            if let tint = style.tint(for: candidate) {
+                                Circle().fill(tint).frame(width: 10, height: 10)
+                            } else {
+                                Image(systemName: "plus")
+                                    .font(.caption.weight(.semibold))
+                                    .foregroundStyle(style.placeholder)
+                                    .frame(width: 10)
+                            }
+                            Text(highlight(query, in: candidate))
+                                .font(.body.weight(.semibold))
+                                .multilineTextAlignment(.leading)
+                        }
+                        .padding(.horizontal, 16)
+                        .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                        .contentShape(.rect)
                     }
-                    .padding(.horizontal, 16)
-                    .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
-                    .contentShape(.rect)
+                    // A full-width row sinks only slightly, so its mark and text barely shift.
+                    .buttonStyle(InkPressStyle(depth: 1.5))
+                    .accessibilityLabel(candidate)
+                    .accessibilityHint("Adds as a token")
                 }
-                .buttonStyle(.plain)
-                .accessibilityLabel(candidate)
-                .accessibilityHint("Adds as a token")
             }
+            .pieceBudContent(out: out)
+            .padding(.vertical, 4)
+            .frame(maxWidth: .infinity)
+            .pieceLiquid(RoundedRectangle(cornerRadius: style.cornerRadius, style: .continuous), tint: out ? fieldTint : nil, interactive: false)
+            .fixedSize(horizontal: false, vertical: true)
+            .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { listHeight = $0 }
+            .pieceLiquidScale(out || reduceMotion ? 1 : fit)
+            // Closed to nothing until its height is known (glass ignores opacity), so its first home is inside the input.
+            .pieceLiquidScale(listHeight == 0 ? 0.001 : 1)
+            .pieceBud(out: out, home: CGSize(width: inputFrame.midX - center.x, height: inputFrame.midY - center.y))
+            .padding(.top, out ? spacing : 0)
+            .frame(height: out ? nil : 0, alignment: .top)
         }
-        .padding(.vertical, 4)
-        .background(style.field, in: .rect(cornerRadius: style.cornerRadius - 2, style: .continuous))
     }
 
-    /// The matched run in bold, the rest regular.
-    private static func highlight(_ query: String, in candidate: String) -> AttributedString {
+    /// The matched run in full ink, the rest of the candidate quieter.
+    private func highlight(_ query: String, in candidate: String) -> AttributedString {
         guard let range = candidate.range(of: query, options: [.caseInsensitive, .diacriticInsensitive], locale: .current) else {
-            return AttributedString(candidate)
+            var whole = AttributedString(candidate)
+            whole.foregroundColor = style.label
+            return whole
         }
+        var before = AttributedString(String(candidate[..<range.lowerBound]))
         var match = AttributedString(String(candidate[range]))
-        match.font = .body.weight(.bold)
-        return AttributedString(String(candidate[..<range.lowerBound])) + match + AttributedString(String(candidate[range.upperBound...]))
+        var after = AttributedString(String(candidate[range.upperBound...]))
+        before.foregroundColor = style.placeholder
+        match.foregroundColor = style.label
+        after.foregroundColor = style.placeholder
+        return before + match + after
     }
 
     // MARK: Editing
@@ -421,15 +651,19 @@ public struct TokenField: View {
             setDraft(body) // Keeps the sentinel in front if the caret was moved before it.
             return
         }
-        isInvalid = false
         selectedID = nil
         let inserted = body.count - oldBody.count
 
+        // At the limit typing meets a bound, not an error: a light tap and the count bumps, with no shake or error
+        // haptic on every keystroke. The count only shows in an empty input, so with text still in it (entries kept
+        // past the limit) the ring dims instead. The text is put back unchanged, so an error tint already showing stays.
         if isFull, inserted > 0 {
-            reject()
+            limitBump += 1
+            if !oldBody.isEmpty { ringBeat += 1 }
             setDraft(oldBody)
             return
         }
+        isInvalid = false
 
         // A single inserted line break is the return key; more text arriving at once is a paste or dictation.
         let isPaste = inserted > 1
@@ -491,26 +725,29 @@ public struct TokenField: View {
             added.append(token)
         }
         if !added.isEmpty {
-            withAnimation(motion) { tokens = next }
-            addTick += 1
+            // The new chips are born under the text they were typed as, before the input moves on.
+            birth = Birth(point: typedCenter, input: inputFrame)
+            withAnimation(motion.snap) { tokens = next }
             announce(added.count == 1 ? "Added \(added[0])" : "Added \(added.count) tokens")
         }
         guard feedback else { return leftovers }
+        // A duplicate leaves the input and points at the chip already there, which lifts into its highlight and
+        // swells. The field stays still, so only one thing moves.
         if let duplicate {
             selectedID = Self.ids(for: next)[duplicate]
+            swell()
             announce("\(next[duplicate]) is already added")
         }
+        // Entries kept in the input to fix shake the field once. Reduce Motion has no shake, so the ring dims instead.
         if !leftovers.isEmpty {
             isInvalid = true
+            shakeCount += 1
+            if reduceMotion { ringBeat += 1 }
             announce(isFull ? "Limit reached" : "Not added: \(leftovers.joined(separator: ", "))")
         }
-        if duplicate != nil || !leftovers.isEmpty { reject() }
+        // One haptic per commit, on the beat of the shake or the swell: any refusal outranks the additions it came with.
+        if duplicate != nil || !leftovers.isEmpty { rejectTick += 1 } else if !added.isEmpty { addTick += 1 }
         return leftovers
-    }
-
-    private func reject() {
-        shakeCount += 1
-        rejectTick += 1
     }
 
     /// First press highlights the last chip, second press removes the highlighted one.
@@ -528,11 +765,62 @@ public struct TokenField: View {
     private func remove(id: String) {
         guard let index = Self.ids(for: tokens).firstIndex(of: id) else { return }
         let text = tokens[index]
-        withAnimation(motion) { _ = tokens.remove(at: index) }
+        // The chip leaves the flow at once and melts into the input from where it was, so the rest reflow on their own.
+        melt(id, text: text)
+        withAnimation(motion.snap) { _ = tokens.remove(at: index) }
         selectedID = nil
         isInvalid = false
         removeTick += 1
         announce("Removed \(text)")
+    }
+
+    /// Chips leave and arrive. New ones bud out of the input, born under the text they were typed as (or inside the
+    /// input, for a change from outside); removed ones melt back into it.
+    private func tokensChanged(from old: [String], to new: [String]) {
+        let before = Self.ids(for: old), after = Self.ids(for: new)
+        if let selectedID, !after.contains(selectedID) { self.selectedID = nil }
+        for (id, text) in zip(before, old) where !after.contains(id) && !melts.contains(where: { $0.token == id }) {
+            melt(id, text: text)
+        }
+        let gone = before.filter { !after.contains($0) }
+        if !gone.isEmpty {
+            // Their own bubbles have left the flow; this only clears them from the model.
+            Task { await buds.gather(gone, reduceMotion: reduceMotion) }
+            for id in gone {
+                births[id] = nil
+                frames[id] = nil
+            }
+        }
+        let added = after.filter { !before.contains($0) }
+        guard !added.isEmpty else { return }
+        let born = birth ?? Birth(point: CGPoint(x: inputFrame.minX, y: inputFrame.midY), input: inputFrame)
+        birth = nil
+        for id in added { births[id] = born }
+        Task { await buds.bloom(added, reduceMotion: reduceMotion) }
+    }
+
+    /// Draws a removed chip where it was and melts it into the input once the flow has laid out without it.
+    private func melt(_ id: String, text: String) {
+        guard let frame = frames[id] else { return }
+        meltCount += 1
+        let ghost = Melt(id: "melt\(meltCount)", token: id, text: text, frame: frame, tint: selectedID == id ? style.selection : style.tint(for: text))
+        melts.append(ghost)
+        buds.place([ghost.id])
+        Task {
+            // A frame for the flow to settle, so home is where the input now sits.
+            try? await Task.sleep(for: .milliseconds(24))
+            await buds.gather([ghost.id], reduceMotion: reduceMotion)
+            melts.removeAll { $0.id == ghost.id }
+        }
+    }
+
+    /// A duplicate's swell: out on the tight spring, back on the responsive one.
+    private func swell() {
+        Task {
+            withAnimation(.spring(PieceMotion.tight)) { swellBeat = 1 }
+            try? await Task.sleep(for: .milliseconds(100))
+            withAnimation(.spring(PieceMotion.responsive)) { swellBeat = 0 }
+        }
     }
 
     private func announce(_ message: String) {
@@ -621,19 +909,18 @@ private struct FlowLayout: Layout {
     }
 }
 
-/// Damped sideways shake: four cycles that decay to rest over one unit of `count`.
-private struct Shake: GeometryEffect {
-    var count: CGFloat
+// MARK: - Ink press
 
-    nonisolated var animatableData: CGFloat {
-        get { count }
-        set { count = newValue }
-    }
+/// The shared piece press for labels that are only ink: the remove glyph and a suggestion row's text. Under Reduce
+/// Motion the press shifts brightness, which near-black or near-white ink can't show, so these also fade while held.
+private struct InkPressStyle: ButtonStyle {
+    var depth: CGFloat = 2.5
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    nonisolated func effectValue(size: CGSize) -> ProjectionTransform {
-        let t = count - count.rounded(.down)
-        let x = sin(t * .pi * 4) * 7 * (1 - t)
-        return ProjectionTransform(CGAffineTransform(translationX: x, y: 0))
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .opacity(configuration.isPressed && reduceMotion ? 0.5 : 1)
+            .piecePress(configuration.isPressed, depth: depth)
     }
 }
 
@@ -687,6 +974,429 @@ private struct TokenFieldExample: View {
     TokenFieldExample()
         .preferredColorScheme(.dark)
 }
+
+// MARK: - Piece motion
+//
+// The SwiftPieces motion language: shared spring tokens and gesture physics, with the same values in every
+// piece. Each piece carries a copy of only the parts it uses, so this file stands alone. Generated from
+// registry/foundation/PieceMotion.swift in the SwiftPieces repo; edit it there, not here.
+// swiftpieces-motion: 1.1.0 (core, pressMath, press, shake)
+
+/// The SwiftPieces motion language: five spring tiers, and a named role for every moment a piece moves,
+/// each with its Reduce Motion substitute.
+///
+/// Build one from the environment, `PieceMotion(reduceMotion: reduceMotion)`, and pick the role that names
+/// what just happened. Never animate the tracking of a finger: set gesture state directly in `onChanged`, so the
+/// surface stays under the finger, and spring only the release.
+private struct PieceMotion {
+    var reduceMotion = false
+
+    // Tiers. Overshoot and settle times are measured from rest with SwiftUI's Spring.
+    /// No overshoot, 90% in about 90ms. A press arriving under the finger.
+    static var tight: Spring { Spring(duration: 0.14, bounce: 0) }
+    /// About 2.8% overshoot, 90% in about 140ms. Snapping to a detent, page or segment.
+    static var responsive: Spring { Spring(duration: 0.32, bounce: 0.25) }
+    /// About 8.4% overshoot. Visible give: a release, a return from past an edge, a drag settling home.
+    static var elastic: Spring { Spring(duration: 0.42, bounce: 0.38) }
+    /// About 15% overshoot. A resolved action landing. At most once per interaction.
+    static var expressive: Spring { Spring(duration: 0.48, bounce: 0.48) }
+    /// About 1.5% overshoot, unhurried. Opening large surfaces and ambient change.
+    static var calm: Spring { Spring(duration: 0.5, bounce: 0.2) }
+
+    /// Reduce Motion: settles become this short spring with no overshoot.
+    private static var still: Animation { .spring(duration: 0.25, bounce: 0) }
+
+    // Roles.
+    /// Touch-down. Starts on the same frame and never bounces under the finger.
+    var press: Animation { .spring(Self.tight) }
+    /// The finger lifts off a pressed surface, which springs back through rest.
+    var release: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A dragged thing comes to rest. With a gesture's velocity, use `settle(velocity:from:to:)` instead.
+    var settle: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// Lands on a detent, page or segment.
+    var snap: Animation { reduceMotion ? Self.still : .spring(Self.responsive) }
+    /// A number, a chart value or anything else people read moves to its new value. Never overshoots, so it
+    /// never shows a value that isn't true.
+    var value: Animation { reduceMotion ? Self.still : .spring(duration: 0.35, bounce: 0) }
+    /// Comes back from past a limit: a pull beyond the edge, a value pushed against its bound.
+    var rebound: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A shape or container changes size, corner radius or form, with a little give at the end.
+    var morph: Animation { reduceMotion ? Self.still : .spring(duration: 0.4, bounce: 0.2) }
+    /// Something appears, opens or expands. Opening is a little slower than closing.
+    var reveal: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.calm) }
+    /// Something leaves, closes or collapses. Quick and firm, out of the way.
+    var dismiss: Animation { reduceMotion ? .easeIn(duration: 0.18) : .spring(duration: 0.3, bounce: 0.08) }
+    /// A resolved action lands: a check, a sent state, a reaction.
+    var success: Animation { reduceMotion ? .easeOut(duration: 0.24) : .spring(Self.expressive) }
+    /// A refused action. Firm, no wobble; `pieceShake` adds the movement.
+    var error: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.responsive) }
+    /// Slow ambient change. Loops themselves stop under Reduce Motion: check `allowsAmbient`.
+    var ambient: Animation { reduceMotion ? .easeInOut(duration: 0.3) : .spring(Self.calm) }
+
+    /// Loops, drifts, idle breathing and parallax run only when this is true.
+    var allowsAmbient: Bool { !reduceMotion }
+
+    /// A moving transition, or a plain fade under Reduce Motion.
+    func transition(_ transition: AnyTransition) -> AnyTransition {
+        reduceMotion ? .opacity : transition
+    }
+
+    /// For content replaced inside a container that stays put (a label, a glyph, a count): the old content
+    /// blurs out as the new one sharpens in. A fade under Reduce Motion.
+    @MainActor var swap: AnyTransition {
+        reduceMotion ? .opacity : AnyTransition(.blurReplace)
+    }
+}
+
+extension PieceMotion {
+    /// About `depth` points per edge, not a fixed percentage: an icon sinks to 0.92, a pill 0.95, a card 0.985.
+    nonisolated static func pressScale(for size: CGSize, depth: CGFloat = 2.5) -> CGFloat {
+        let side = (max(size.width, 1) * max(size.height, 1)).squareRoot()
+        return min(max(1 - depth * 2 / side, 0.92), 0.985)
+    }
+
+    /// An anchor partway from the center toward the touch, so the press leans into the finger without tipping.
+    nonisolated static func pressAnchor(touch: CGPoint?, in size: CGSize, lean: CGFloat = 0.6) -> UnitPoint {
+        guard let touch, size.width > 0, size.height > 0 else { return .center }
+        let x = min(max(touch.x / size.width, 0), 1)
+        let y = min(max(touch.y / size.height, 0), 1)
+        return UnitPoint(x: 0.5 + (x - 0.5) * lean, y: 0.5 + (y - 0.5) * lean)
+    }
+}
+
+/// Sinks on touch-down, leaning toward the touch if given, and springs back from the same lean. Under Reduce
+/// Motion it shades instead of moving (darker in light mode, lighter in dark), without turning transparent.
+private struct PiecePress: ViewModifier {
+    let pressed: Bool
+    var touch: CGPoint?
+    var depth: CGFloat = 2.5
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.colorScheme) private var colorScheme
+    @State private var size: CGSize = .zero
+    @State private var anchor: UnitPoint = .center
+
+    func body(content: Content) -> some View {
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        let scale = pressed && !reduceMotion ? PieceMotion.pressScale(for: size, depth: depth) : 1
+        content
+            .onGeometryChange(for: CGSize.self) { $0.size } action: { size = $0 }
+            .brightness(pressed && reduceMotion ? (colorScheme == .dark ? 0.1 : -0.08) : 0)
+            .scaleEffect(scale, anchor: anchor)
+            .animation(pressed ? motion.press : motion.release, value: pressed)
+            .onChange(of: pressed) { _, isPressed in
+                if isPressed { anchor = PieceMotion.pressAnchor(touch: touch, in: size) }
+            }
+            .onChange(of: touch) { _, touch in
+                if pressed, let touch { anchor = PieceMotion.pressAnchor(touch: touch, in: size) }
+            }
+    }
+}
+
+private extension View {
+    /// Sinks this view while `pressed`, leaning toward `touch` (in this view's coordinates) when given.
+    func piecePress(_ pressed: Bool, touch: CGPoint? = nil, depth: CGFloat = 2.5) -> some View {
+        modifier(PiecePress(pressed: pressed, touch: touch, depth: depth))
+    }
+}
+
+/// A short decaying side-to-side shake for refused input, each time `trigger` changes. Under Reduce Motion it stays
+/// still (same view, no identity change): pair it with a color or message change and the error haptic.
+private struct PieceShake: ViewModifier {
+    let trigger: AnyHashable
+    var distance: CGFloat = 8
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func body(content: Content) -> some View {
+        let distance = reduceMotion ? 0 : distance
+        content.keyframeAnimator(initialValue: CGFloat(0), trigger: trigger) { view, x in
+            view.offset(x: x)
+        } keyframes: { _ in
+            KeyframeTrack {
+                CubicKeyframe(-distance, duration: 0.06)
+                CubicKeyframe(distance * 0.75, duration: 0.07)
+                CubicKeyframe(-distance * 0.5, duration: 0.07)
+                CubicKeyframe(distance * 0.25, duration: 0.06)
+                SpringKeyframe(0, duration: 0.12, spring: Spring(duration: 0.18, bounce: 0))
+            }
+        }
+    }
+}
+
+private extension View {
+    /// Shakes this view side to side once each time `trigger` changes, for input that was refused.
+    func pieceShake(trigger: some Hashable & Sendable, distance: CGFloat = 8) -> some View {
+        modifier(PieceShake(trigger: AnyHashable(trigger), distance: distance))
+    }
+}
+
+// swiftpieces-motion: end
+
+// MARK: - Piece liquid
+//
+// The SwiftPieces liquid glass language: glass shapes that merge through a neck, bubbles that bud out of
+// and melt back into each other, and the frosted fallback before iOS 26. Each piece carries a copy of only
+// the parts it uses, so this file stands alone. Generated from registry/foundation/PieceLiquid.swift in the
+// SwiftPieces repo; edit it there, not here. The rules are in LIQUID_GLASS.md.
+// swiftpieces-liquid: 1.7.0 (liquid, bud)
+
+/// The liquid glass language: one merge distance, two rest gaps, and the springs a bubble leaves and comes home on.
+///
+/// Glass shapes inside one `PieceLiquidGroup` melt into each other through a neck when they come within `merge`
+/// points. Parts of one control rest `joined`, inside that distance, so the neck holds; separate actions rest
+/// `apart`, outside it, so they only goo while one buds out of, or melts back into, another.
+private enum PieceLiquid {
+    /// Glass shapes closer than this share a neck.
+    static let merge: CGFloat = 20
+    /// The gap between parts of one control (a stepper's buttons, a progress pill and its stop): the neck holds,
+    /// short and smooth, about two thirds of the shapes' height at its waist. Joined parts read best at one height.
+    static let joined: CGFloat = 4
+    /// The gap between separate actions (menu items, confirm and cancel, chips): they rest as their own bubbles.
+    static let apart: CGFloat = 26
+    /// How far a bubble shrinks while it is home inside its parent.
+    static let homeScale: CGFloat = 0.72
+
+    /// A bubble leaving its parent: slow enough that the neck's stretch and snap read.
+    static func split(reduceMotion: Bool) -> Animation {
+        reduceMotion ? .easeOut(duration: 0.2) : .spring(duration: 0.62, bounce: 0.22)
+    }
+
+    /// A bubble going home. No bounce: a bounce would carry it out through the far side of its parent.
+    static func home(reduceMotion: Bool) -> Animation {
+        reduceMotion ? .easeIn(duration: 0.18) : .spring(duration: 0.5, bounce: 0)
+    }
+}
+
+/// A group of glass shapes that merge into one liquid surface. On iOS 26 it is a `GlassEffectContainer`; before
+/// that, and under Reduce Transparency, the shapes draw on their own and simply don't merge. `lift` adds the soft
+/// shadow liquid glass floats on in light mode.
+private struct PieceLiquidGroup<Content: View>: View {
+    var spacing: CGFloat = PieceLiquid.merge
+    var lift = true
+    @ViewBuilder var content: Content
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        container
+            .shadow(color: .black.opacity(lift && colorScheme == .light ? 0.07 : 0), radius: 18, y: 8)
+    }
+
+    @ViewBuilder private var container: some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26, *), !reduceTransparency {
+            GlassEffectContainer(spacing: spacing) { content }
+        } else {
+            content
+        }
+        #else
+        content
+        #endif
+    }
+}
+
+/// One liquid glass shape: Liquid Glass on iOS 26, carrying `tint` as a solid colour and swelling under a press when
+/// `interactive`; a frosted Material with a light rim and a soft shadow before that; a solid fill under Reduce
+/// Transparency.
+///
+/// The tint is painted inside clear glass rather than tinting the glass. Tinted glass in a group bleeds its colour
+/// through every neck as a smear, so a red button would glow into the white pill it is joined to; painted inside,
+/// the colour stays crisp to the shape's edge, the necks between shapes are clear glass, and a tint change animates
+/// like any colour (tinted glass snaps).
+private struct PieceLiquidSurface<S: Shape>: ViewModifier {
+    var shape: S
+    var tint: Color?
+    var interactive: Bool
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.pieceLiquidScale) private var scale
+
+    func body(content: Content) -> some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26, *), !reduceTransparency {
+            // Scaled as two parts, content and outline, about the same centre. A scaleEffect on a glass view inside a
+            // GlassEffectContainer shrinks the glass but leaves what it carries full size, pinned to its corner.
+            content
+                .background { shape.fill(tint ?? .clear) }
+                .scaleEffect(scale)
+                .glassEffect(glass, in: shape.scale(scale))
+        } else {
+            fallback(content).scaleEffect(scale)
+        }
+        #else
+        fallback(content).scaleEffect(scale)
+        #endif
+    }
+
+    #if compiler(>=6.2)
+    @available(iOS 26, *)
+    private var glass: Glass {
+        interactive ? Glass.regular.interactive() : .regular
+    }
+    #endif
+
+    private func fallback(_ content: Content) -> some View {
+        let dark = colorScheme == .dark
+        return content
+            .background {
+                if reduceTransparency {
+                    shape.fill(tint ?? (dark ? Color(white: 0.17) : Color(white: 0.97)))
+                } else {
+                    ZStack {
+                        shape.fill(.regularMaterial)
+                        if let tint { shape.fill(tint.opacity(0.88)) }
+                    }
+                }
+            }
+            .overlay { shape.stroke(Color.white.opacity(dark ? 0.14 : 0.7), lineWidth: 0.5) }
+            .shadow(color: .black.opacity(dark ? 0.32 : 0.08), radius: 10, y: 5)
+    }
+}
+
+private struct PieceLiquidScaleKey: EnvironmentKey {
+    static let defaultValue: CGFloat = 1
+}
+
+private extension EnvironmentValues {
+    /// How much the liquid shapes below are scaled, about their own centres. Nested scales multiply.
+    var pieceLiquidScale: CGFloat {
+        get { self[PieceLiquidScaleKey.self] }
+        set { self[PieceLiquidScaleKey.self] = newValue }
+    }
+}
+
+private extension View {
+    /// Draws this view on a liquid glass `shape`. Put it inside a `PieceLiquidGroup` so it can merge with its neighbours.
+    func pieceLiquid<S: Shape>(_ shape: S, tint: Color? = nil, interactive: Bool = true) -> some View {
+        modifier(PieceLiquidSurface(shape: shape, tint: tint, interactive: interactive))
+    }
+
+    /// Scales the liquid glass shapes in this view, content and outline together, about their own centres. Use it
+    /// instead of `scaleEffect` on a glass view (a press, a lift, a swell): inside a group a plain `scaleEffect` shrinks
+    /// the glass but leaves its content full size and off centre. Animates like any other value.
+    func pieceLiquidScale(_ scale: CGFloat) -> some View {
+        transformEnvironment(\.pieceLiquidScale) { $0 *= scale }
+    }
+}
+
+/// The bud: how a bubble leaves and rejoins its parent, driven explicitly so every bubble shows the whole cycle.
+///
+/// A bubble is born at `home`, inside its parent, where the two glass shapes are one. It springs out to `rest`, and
+/// while it is inside the merge distance a neck holds it to the parent, thinning as it goes, until it snaps free.
+/// Going home it springs back on a spring with no bounce, the neck reaches out and re-forms, and only once it has
+/// melted all the way in is it removed. Both offsets are relative to where the bubble is laid out. Under Reduce
+/// Motion it stays at `rest`: its content fades and its glass closes in place.
+private struct PieceBud: ViewModifier {
+    var out: Bool
+    var rest: CGSize
+    var home: CGSize
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func body(content: Content) -> some View {
+        if reduceMotion {
+            // No travel. Inside a group glass ignores opacity, so the glass closes to nothing in place on the short
+            // Reduce Motion ease while its content fades; the opacity covers a bubble outside a group.
+            content
+                .pieceLiquidScale(out ? 1 : 0.001)
+                .opacity(out ? 1 : 0)
+                .offset(rest)
+        } else {
+            // The glass shrinks through `pieceLiquidScale`, never a plain scaleEffect (see there), then moves.
+            content
+                .pieceLiquidScale(out ? 1 : PieceLiquid.homeScale)
+                .offset(out ? rest : home)
+        }
+    }
+}
+
+/// A bubble's own content, on its own clock: gone the moment the bubble heads home, so it never rides over the
+/// parent's content, and arriving just after the bubble leaves.
+private struct PieceBudContent: ViewModifier {
+    var out: Bool
+
+    func body(content: Content) -> some View {
+        content
+            .blur(radius: out ? 0 : 6)
+            .opacity(out ? 1 : 0)
+            .animation(out ? .easeOut(duration: 0.3).delay(0.1) : .easeOut(duration: 0.14), value: out)
+    }
+}
+
+private extension View {
+    /// Places a bubble at `rest` while `out`, and at `home` (inside its parent, shrunk) while not.
+    func pieceBud(out: Bool, rest: CGSize = .zero, home: CGSize) -> some View {
+        modifier(PieceBud(out: out, rest: rest, home: home))
+    }
+
+    /// Hides a bubble's icon or label while it is home. Put it on the content, inside the glass.
+    func pieceBudContent(out: Bool) -> some View {
+        modifier(PieceBudContent(out: out))
+    }
+}
+
+/// Which bubbles exist and which are out. A bubble is added home with no animation, sent out on the next frame,
+/// and called home before it is removed, so it always melts in rather than fading. Keep one in `@State`.
+@MainActor @Observable
+private final class PieceBuds {
+    private(set) var present: [String] = []
+    private(set) var out: Set<String> = []
+    /// The latest call for each bubble. A bloom or gather that has been overtaken (a bubble sent home while it was
+    /// still waiting to go out, or called out again while melting) leaves that bubble alone.
+    @ObservationIgnored private var turn: [String: Int] = [:]
+
+    func contains(_ id: String) -> Bool { present.contains(id) }
+    func isOut(_ id: String) -> Bool { out.contains(id) }
+
+    private func claim(_ ids: [String]) -> [String: Int] {
+        var mine: [String: Int] = [:]
+        for id in ids {
+            let next = (turn[id] ?? 0) + 1
+            turn[id] = next
+            mine[id] = next
+        }
+        return mine
+    }
+
+    /// Puts bubbles straight out at rest with no motion: a view's first frame, or a state restored.
+    func place(_ ids: [String]) {
+        _ = claim(ids)
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) {
+            for id in ids where !present.contains(id) { present.append(id) }
+            out.formUnion(ids)
+        }
+    }
+
+    /// Adds bubbles home, then sends each out, `stagger` seconds apart, after an optional `delay`.
+    func bloom(_ ids: [String], reduceMotion: Bool, stagger: Double = 0.05, delay: Double = 0) async {
+        let mine = claim(ids)
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) {
+            for id in ids where !present.contains(id) { present.append(id) }
+        }
+        try? await Task.sleep(for: .milliseconds(24 + Int(max(delay, 0) * 1000)))
+        let split = PieceLiquid.split(reduceMotion: reduceMotion)
+        for (i, id) in ids.enumerated() where turn[id] == mine[id] {
+            withAnimation(split.delay(reduceMotion ? 0 : Double(i) * stagger)) { _ = out.insert(id) }
+        }
+    }
+
+    /// Calls bubbles home, last first, then removes them once they have melted in.
+    func gather(_ ids: [String], reduceMotion: Bool, stagger: Double = 0.04) async {
+        let mine = claim(ids)
+        let home = PieceLiquid.home(reduceMotion: reduceMotion)
+        for (i, id) in ids.reversed().enumerated() {
+            withAnimation(home.delay(reduceMotion ? 0 : Double(i) * stagger)) { _ = out.remove(id) }
+        }
+        try? await Task.sleep(for: .milliseconds(Int((0.52 + Double(ids.count) * stagger) * 1000)))
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) { present.removeAll { ids.contains($0) && !out.contains($0) && turn[$0] == mine[$0] } }
+    }
+}
+
+// swiftpieces-liquid: end
 ```
 
 </Tab>

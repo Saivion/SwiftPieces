@@ -14,7 +14,7 @@ export const categories = {
   feedback: { slug: "feedback", title: "Feedback", folder: "Feedback", description: "Reactions, ratings, status morphs, skeletons and outcomes." },
   motion: { slug: "motion", title: "Motion", folder: "Motion", description: "Gesture modifiers with real physics." },
   data: { slug: "data", title: "Data", folder: "Data", description: "Scrubbable charts, rings, streak heatmaps, live stats and odometers." },
-  ai: { slug: "ai", title: "AI", folder: "AI", description: "Streaming replies, thinking states, prompt chips and code." },
+  ai: { slug: "ai", title: "AI", folder: "AI", description: "Streaming replies, thinking states, prompt chips and answer sources." },
   media: { slug: "media", title: "Media", folder: "Media", description: "Photo viewing and cropping, story playback, attachments and link previews." },
 } as const;
 

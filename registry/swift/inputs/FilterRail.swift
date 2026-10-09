@@ -1,50 +1,54 @@
 // swiftpieces:
 // title: Filter Rail
-// description: A scrolling rail of filter chips with optional counts where one solid indicator glides between single-select picks, multi-select picks light up as color blocks with dark ink and gather at the leading edge behind a counting Clear chip, the chosen chip scrolls into view, and edges fade only when content overflows.
+// description: A scrolling rail of liquid glass filter chips with optional counts, resting apart as their own bubbles. Single-select marks the pick with a brand red glass puck that stretches between chips, its leading edge first, melting into each chip it crosses while every label turns to dark ink exactly under its edge; multi-select picks take the red tint with a check, file to the leading edge, and a counting Clear chip buds out of the first pick and melts back into the rail when cleared; the chosen chip scrolls into view, and edges fade only when content overflows.
 // category: inputs
 // pro: command-palette
 // minIOSVersion: "17.0"
-// version: "2.0.1"
-// tags: [chips, filter, scroll, selection, matched-geometry]
+// version: "2.2.0"
+// tags: [chips, filter, scroll, selection, indicator]
 
 import SwiftUI
 
-/// Horizontal chip rail bound to a `Set` of selected titles.
+/// Horizontal rail of liquid glass chips bound to a `Set` of selected titles.
+///
+/// The chips are glass bubbles resting apart. Single-select marks the pick with a tinted glass puck that stretches
+/// between chips and melts into each one it crosses; multi-select tints each pick, and a Clear chip buds out of the
+/// first pick to clear them all.
 ///
 /// - Parameters:
 ///   - options: Chip titles, in order.
 ///   - selection: Selected titles. Single-select keeps exactly one once anything is chosen.
-///   - allowsMultiple: Allow several chips at once. Selected chips move to the leading edge and a Clear chip appears.
+///   - allowsMultiple: Allow several chips at once. Selected chips move to the leading edge and a Clear chip buds out of the first.
 ///   - counts: Optional result count per title, shown after the chip title and read by VoiceOver.
 ///   - style: Colors and chip height. Defaults to the SwiftPieces house palette, adapting to light and dark.
 public struct FilterRail: View {
     /// Colors and metrics. `.standard` is the house palette.
     public struct Style: Sendable {
-        /// Unselected chip fill.
+        /// The glass tint of unselected chips. `.clear`, the default, leaves them neutral glass.
         public var chip: Color
         /// Unselected chip text.
         public var label: Color
         /// Counts on unselected chips.
         public var secondaryLabel: Color
-        /// The single-select indicator that glides between chips.
+        /// The glass tint of the single-select puck that travels between chips.
         public var indicator: Color
-        /// Text on the single-select indicator.
+        /// Text on the single-select puck.
         public var onIndicator: Color
-        /// Multi-select blocks, assigned by option position so a chip keeps its color.
+        /// Glass tints of multi-select picks, assigned by option position so a chip keeps its color. The house palette is the one brand red: a pick is a selection.
         public var blocks: [Color]
-        /// Text on multi-select blocks.
+        /// Text on multi-select picks.
         public var ink: Color
         /// Visible chip height. The tap target stays at least 44pt.
         public var chipHeight: CGFloat
 
         /// Pass only what you want to change; `nil` keeps the house palette value.
         public init(chip: Color? = nil, label: Color? = nil, secondaryLabel: Color? = nil, indicator: Color? = nil, onIndicator: Color? = nil, blocks: [Color]? = nil, ink: Color? = nil, chipHeight: CGFloat = 40) {
-            self.chip = chip ?? adaptive(light: 0xE9E7E1, dark: 0x262626)
+            self.chip = chip ?? .clear
             self.label = label ?? adaptive(light: 0x141414, dark: 0xF4F3EF)
             self.secondaryLabel = secondaryLabel ?? adaptive(light: 0x5C5A56, dark: 0xA6A49F)
-            self.indicator = indicator ?? adaptive(light: 0x141414, dark: 0xF4F3EF)
-            self.onIndicator = onIndicator ?? adaptive(light: 0xF4F3EF, dark: 0x141414)
-            self.blocks = (blocks?.isEmpty == false ? blocks : nil) ?? [0xFF5B3A, 0x9CC2FF, 0xFFD976, 0xA9DCB7, 0xCDB8FF, 0xE9D5B3].map { adaptive(light: $0, dark: $0) }
+            self.indicator = indicator ?? adaptive(light: 0xFF0000, dark: 0xFF0000)
+            self.onIndicator = onIndicator ?? adaptive(light: 0x141414, dark: 0x141414)
+            self.blocks = (blocks?.isEmpty == false ? blocks : nil) ?? [adaptive(light: 0xFF0000, dark: 0xFF0000)]
             self.ink = ink ?? adaptive(light: 0x141414, dark: 0x141414)
             self.chipHeight = chipHeight
         }
@@ -53,18 +57,39 @@ public struct FilterRail: View {
     }
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.colorScheme) private var colorScheme
     @Environment(\.isEnabled) private var isEnabled
-    @Namespace private var rail
     @Binding private var selection: Set<String>
     @State private var scrolled: RailID?
     @State private var contentFrame: CGRect = .zero
     @State private var containerWidth: CGFloat = 0
+    /// Chip frames in the rail's content, so the puck can travel between them.
+    @State private var frames: [String: CGRect] = [:]
+    /// The chip that draws the puck itself. At rest the puck is part of its chip, so it follows the chip's own layout.
+    @State private var resting: String?
+    /// The puck is traveling, drawn over the rail instead of by a chip.
+    @State private var flying = false
+    /// Counts trips, so only the latest one's landing hands the puck back to a chip.
+    @State private var flight = 0
+    /// The puck's edges in points on the rail, each sprung on its own. At rest they sit under the resting chip.
+    @State private var lowerEdge: CGFloat = 0
+    @State private var upperEdge: CGFloat = 0
+    /// The selected chip is held down, so the puck sinks with it.
+    @State private var puckPressed = false
+    /// Multi-select's Clear chip: out at the rail's leading edge while anything is picked, melted into the first chip otherwise.
+    @State private var buds = PieceBuds()
+    @State private var clearWidth: CGFloat = 0
 
     private let options: [String]
     private let allowsMultiple: Bool
     private let counts: [String: Int]
     private let style: Style
     private let inset: CGFloat = 16
+    /// Chips are separate actions, so they rest outside the merge distance and only goo while the puck crosses them.
+    private let spacing = PieceLiquid.apart
+    /// How far above and below the rail the glass's shadows may draw. The scroll view doesn't clip them, and the edge
+    /// fades reach this far, so they are never cut into a band.
+    private let lift: CGFloat = 40
 
     private enum RailID: Hashable { case clear, option(String) }
 
@@ -74,6 +99,7 @@ public struct FilterRail: View {
         self.allowsMultiple = allowsMultiple
         self.counts = counts
         self.style = style
+        self._resting = State(initialValue: allowsMultiple ? nil : options.first(where: selection.wrappedValue.contains))
     }
 
     /// Multi-select keeps chosen chips first, in their original order.
@@ -82,31 +108,82 @@ public struct FilterRail: View {
         return options.filter(selection.contains) + options.filter { !selection.contains($0) }
     }
 
-    private var motion: Animation { reduceMotion ? .smooth(duration: 0.15) : .snappy }
+    /// Single-select's puck sits on the first selected option, so a set holding several still gets one puck.
+    private var puckOption: String? { allowsMultiple ? nil : options.first(where: selection.contains) }
     private var hidesLeading: Bool { contentFrame.minX < inset - 1 }
     private var hidesTrailing: Bool { contentFrame.maxX > containerWidth - inset + 1 }
+    /// The room the Clear chip takes at the leading edge: its width and a gap while anything is picked, none otherwise.
+    private var clearSlot: CGFloat { allowsMultiple && !selection.isEmpty ? clearWidth + spacing : 0 }
 
     public var body: some View {
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        let first = ordered.first
+        // Read here, so this body observes the bubbles: the reads below sit in closures (the puck's edges, the Clear chip's room) that are not re-run on
+        // their own when a bubble changes, which would let one appear without its bud.
+        let _ = (buds.present, buds.out)
         ScrollView(.horizontal) {
-            HStack(spacing: 6) {
-                if allowsMultiple && !selection.isEmpty {
-                    clearChip
-                        .id(RailID.clear)
-                        .transition(.scale(scale: 0.6).combined(with: .opacity))
-                }
-                ForEach(ordered, id: \.self) { option in
-                    Chip(title: option, count: counts[option], isSelected: selection.contains(option), showsCheck: allowsMultiple, glides: !allowsMultiple, fill: blockColor(for: option), style: style, namespace: rail) {
-                        toggle(option)
+            PieceLiquidGroup {
+                outline { lower, upper in
+                HStack(spacing: 0) {
+                    if allowsMultiple {
+                        // The Clear chip's room. It opens as the first pick lands and closes as the rail clears, on the
+                        // pick's own spring, so the chips make room for the chip budding out of them and close over it.
+                        // The chip stays mounted, home inside the first chip while nothing is picked: glass inserted
+                        // into a scroll view stays unseen until its first animation ends, so a chip added there would
+                        // pop in at rest instead of budding.
+                        Color.clear
+                            .frame(width: clearSlot, height: 44)
+                            .overlay(alignment: .leading) { clearChip }
+                            .id(RailID.clear)
                     }
-                    .id(RailID.option(option))
+                    ForEach(ordered, id: \.self) { option in
+                        let isSelected = selection.contains(option)
+                        // While the puck travels, each label is cut where the puck covers it, which draws that part in its own ink.
+                        let cut = flying ? frames[option].map { (lower - $0.minX)...max(upper - $0.minX, lower - $0.minX) } : nil
+                        Chip(title: option, count: counts[option], isSelected: isSelected, multiple: allowsMultiple, holdsPuck: !allowsMultiple && option == resting, cut: cut, fill: blockColor(for: option), style: style) {
+                            toggle(option)
+                        } onPress: { isPressed in
+                            puckPressed = isPressed && option == puckOption
+                        }
+                        .onGeometryChange(for: CGRect.self) { $0.frame(in: .named("railContent")) } action: { frame in
+                            frames[option] = frame
+                            // The puck keeps to its chip through layout changes: resting edges move with it, a trip retargets.
+                            if option == resting { placeEdges(on: frame) } else if flying && option == puckOption { fly(to: option) }
+                        }
+                        // The gap before each chip but the first, so the Clear chip's room can open ahead of them all.
+                        .padding(.leading, option == first ? 0 : spacing)
+                        .id(RailID.option(option))
+                        // Multi-select: picks lead as they file to the front, and the rest make room a beat after.
+                        .animation(motion.follow(PieceMotion.responsive, rank: isSelected ? 0 : 2), value: selection)
+                        // A long trip carries a chip's give into the gap. Earlier picks draw over later ones, so a pick
+                        // filing forward tucks under the chip it lands behind; the rest keep the rail's order, so a chip
+                        // going back tucks under the next one.
+                        .zIndex(allowsMultiple && isSelected ? -Double(options.firstIndex(of: option) ?? 0) - 1 : 0)
+                    }
+                }
+                // Natural widths whatever the glass container proposes, so no chip ever truncates to fit.
+                .fixedSize(horizontal: true, vertical: false)
+                .scrollTargetLayout()
+                .coordinateSpace(.named("railContent"))
+                }
+                .overlay(alignment: .topLeading) {
+                    if !allowsMultiple { puck(motion: motion) }
                 }
             }
-            .scrollTargetLayout()
             .onGeometryChange(for: CGRect.self) { $0.frame(in: .named("rail")) } action: { contentFrame = $0 }
+            .background(alignment: .leading) {
+                // The Clear chip's width, measured whether or not it shows, so its room opens to the right size.
+                if allowsMultiple {
+                    clearFace(count: max(selection.count, 1))
+                        .hidden()
+                        .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { clearWidth = $0 }
+                }
+            }
         }
         .coordinateSpace(.named("rail"))
         .scrollIndicators(.hidden)
         .contentMargins(.horizontal, inset, for: .scrollContent)
+        .scrollClipDisabled()
         .scrollPosition(id: $scrolled, anchor: allowsMultiple ? .leading : .center)
         .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { containerWidth = $0 }
         .mask {
@@ -118,39 +195,182 @@ public struct FilterRail: View {
                 LinearGradient(colors: [.black, .clear], startPoint: .leading, endPoint: .trailing)
                     .frame(width: hidesTrailing ? 28 : 0)
             }
-            .animation(.smooth(duration: 0.2), value: hidesLeading)
-            .animation(.smooth(duration: 0.2), value: hidesTrailing)
+            .animation(hidesLeading ? motion.reveal : motion.dismiss, value: hidesLeading)
+            .animation(hidesTrailing ? motion.reveal : motion.dismiss, value: hidesTrailing)
+            // Sideways only: above and below, the shadows show in full.
+            .padding(.vertical, -lift)
         }
+        .fontWeight(.semibold)
         .opacity(isEnabled ? 1 : 0.4)
         .sensoryFeedback(.selection, trigger: selection)
-        .onChange(of: selection) { _, new in
-            withAnimation(motion) {
-                scrolled = allowsMultiple ? (new.isEmpty ? nil : .clear) : new.first.map(RailID.option)
+        .onAppear {
+            if allowsMultiple && !selection.isEmpty { buds.place(["clear"]) }
+        }
+        .onChange(of: selection) { old, new in
+            // The rail follows a beat behind the pick on a calmer spring, so the scroll and the puck don't stack.
+            withAnimation(motion.follow(PieceMotion.calm, rank: 1)) {
+                scrolled = allowsMultiple ? (new.isEmpty ? nil : .clear) : puckOption.map(RailID.option)
+            }
+            guard allowsMultiple, old.isEmpty != new.isEmpty else { return }
+            Task {
+                if new.isEmpty {
+                    await buds.gather(["clear"], reduceMotion: reduceMotion)
+                } else {
+                    await buds.bloom(["clear"], reduceMotion: reduceMotion)
+                }
+            }
+        }
+        .onChange(of: puckOption) { old, new in
+            puckPressed = false
+            // Only a move between chips travels. A first pick, or a rail left with none, changes on the chip itself.
+            if let new, old != nil { fly(to: new) } else { rest(on: new, animation: motion.snap) }
+        }
+    }
+
+    /// Shows how many filters are on; tapping clears them all. A glass bubble at the rail's leading edge whose home is
+    /// just inside the leading end of the first chip: it buds out of the first pick, and melts into whichever chip
+    /// slides back to the front as the rail clears.
+    private var clearChip: some View {
+        let out = buds.isOut("clear")
+        let home = clearSlot + clearWidth * PieceLiquid.homeScale / 2 - clearWidth / 2
+        return Button {
+            // The picks let go together, and the Clear chip melts back into the rail with them.
+            withAnimation(PieceMotion(reduceMotion: reduceMotion).dismiss) { selection.removeAll() }
+        } label: {
+            clearFace(count: selection.count)
+                .pieceBudContent(out: out)
+                .pieceLiquid(.capsule, interactive: false)
+                .frame(minHeight: 44)
+                .contentShape(.rect)
+        }
+        .buttonStyle(PieceLiquidPressStyle())
+        .fixedSize()
+        .pieceBud(out: out, home: CGSize(width: home, height: 0))
+        // At home it is part of the first chip: not a control, and not read.
+        .allowsHitTesting(out)
+        .accessibilityHidden(!out)
+        .accessibilityLabel("Clear \(selection.count) filters")
+    }
+
+    /// The Clear chip's content: a cross and the number of picks, which rolls as it changes.
+    private func clearFace(count: Int) -> some View {
+        HStack(spacing: 6) {
+            Image(systemName: "xmark")
+                .font(.caption.weight(.semibold))
+            Text("\(count)")
+                .font(.subheadline.weight(.semibold).monospacedDigit())
+                .contentTransition(.numericText(value: Double(count)))
+                // A count: it rolls without overshoot, whatever spring the pick itself lands on.
+                .animation(PieceMotion(reduceMotion: reduceMotion).value, value: count)
+        }
+        .foregroundStyle(style.label)
+        .padding(.horizontal, 14)
+        .frame(height: style.chipHeight)
+    }
+
+    /// Single-select, while the puck travels: the puck as tinted glass between its live edges, merging with each chip
+    /// it crosses, carrying every label in its own ink cut to its outline, while each chip's label is cut away under
+    /// it, so a label turns exactly under the puck's edge as it passes. At rest it is gone, its chip drawing it
+    /// instead, so a trip starts from where it rests. Held down with the selected chip, it sinks or shades exactly as
+    /// the chip does, so handing it back mid-press doesn't show.
+    @ViewBuilder private func puck(motion: PieceMotion) -> some View {
+        if flying, let option = puckOption, let chip = frames[option] {
+            let sunk = puckPressed
+            let scale = sunk && !reduceMotion ? PieceMotion.pressScale(for: chip.size) : 1
+            let shade: Double = sunk && reduceMotion ? (colorScheme == .dark ? 0.1 : -0.08) : 0
+            outline { lower, upper in
+                // The labels are the glass's own content: glass drawn over separate labels would blur them.
+                labelRow(color: style.onIndicator, countColor: style.onIndicator.opacity(0.62))
+                    .offset(x: -lower)
+                    .frame(width: max(upper - lower, 0), height: style.chipHeight, alignment: .leading)
+                    .clipShape(.capsule)
+                    .pieceLiquid(.capsule, tint: style.indicator, interactive: false)
+                    .brightness(shade)
+                    .pieceLiquidScale(scale)
+                    .animation(sunk ? motion.press : motion.release, value: sunk)
+                    .offset(x: lower)
+                    .frame(height: 44)
+            }
+            .allowsHitTesting(false)
+            .accessibilityHidden(true)
+        }
+    }
+
+    /// The puck's live edges, in points on the rail. An edge's give past the first or last chip stops at the rail's
+    /// end, so the puck squashes against the end with its round cap intact instead of being cut flat by the scroll view.
+    private func outline<Content: View>(@ViewBuilder _ content: @escaping (CGFloat, CGFloat) -> Content) -> some View {
+        let end = contentFrame.width
+        return PuckEdge(value: lowerEdge) { lower in
+            PuckEdge(value: upperEdge) { upper in
+                content(max(lower, 0), min(upper, end))
             }
         }
     }
 
-    /// Shows how many filters are on; tapping clears them all.
-    private var clearChip: some View {
-        Button {
-            withAnimation(motion) { selection.removeAll() }
-        } label: {
-            HStack(spacing: 6) {
-                Image(systemName: "xmark")
-                    .font(.caption.weight(.bold))
-                Text("\(selection.count)")
-                    .font(.subheadline.weight(.semibold).monospacedDigit())
-                    .contentTransition(.numericText(value: Double(selection.count)))
+    /// Every chip's label in one ink, laid out exactly as the rail lays out its chips.
+    private func labelRow(color: Color, countColor: Color) -> some View {
+        HStack(spacing: spacing) {
+            ForEach(options, id: \.self) { option in
+                ChipFace(title: option, count: counts[option], check: false, color: color, countColor: countColor, height: style.chipHeight)
             }
-            .foregroundStyle(style.onIndicator)
-            .padding(.horizontal, 14)
-            .frame(height: style.chipHeight)
-            .background(style.indicator, in: Capsule())
-            .frame(minHeight: 44)
-            .contentShape(.rect)
         }
-        .buttonStyle(Press())
-        .accessibilityLabel("Clear \(selection.count) filters")
+        .fixedSize()
+    }
+
+    /// Moves the puck to `option` edge by edge. The edge facing the new chip leads on the snap spring and the far edge
+    /// follows a beat later on a looser one, so the puck stretches toward the pick (by about an eighth of the jump)
+    /// and gathers in on it, melting into each chip it crosses on the way. A tap puts no energy in, so neither edge is
+    /// elastic: the puck lands with a little give, the leading edge about 3% of the jump past its mark and the far
+    /// edge about 4%, and settles without wobbling. The edges travel in points, so the pace stays even across chips of
+    /// different widths. Each edge changes in its own transaction and animates in its own `PuckEdge`, so each keeps
+    /// its spring, and a pick made while one is landing retargets both. The puck lifts off its chip for the trip and
+    /// goes back to the new one once the far edge settles. Under Reduce Motion both edges share one short spring with
+    /// no overshoot, so the puck slides without stretching.
+    private func fly(to option: String) {
+        // With either end unmeasured there is no path to travel, so the pick changes on its chip.
+        guard let target = frames[option], flying || resting.flatMap({ frames[$0] }) != nil else { return rest(on: option) }
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        flight += 1
+        let trip = flight
+        // The resting chip lets go of the puck on the same frame the overlay shows it, at the same place.
+        withTransaction(Self.instant) {
+            resting = nil
+            flying = true
+        }
+        // Measured on screen rather than by index, so the edge facing the pick leads in right-to-left layouts too.
+        let rightward = target.midX > (lowerEdge + upperEdge) / 2
+        let lead = motion.snap, trail = motion.follow(PieceMotion.responsive, rank: 2)
+        // The far edge settles last, so its landing hands the puck to the chip, unless a newer trip has begun.
+        let land = { if flight == trip { rest(on: option) } }
+        withAnimation(rightward ? lead : trail, completionCriteria: .removed) { upperEdge = target.maxX } completion: { if !rightward { land() } }
+        withAnimation(rightward ? trail : lead, completionCriteria: .removed) { lowerEdge = target.minX } completion: { if rightward { land() } }
+    }
+
+    /// Gives the puck to `option`'s chip (or to none) and sets the edges under it, so the next trip starts there.
+    /// `animation` covers a chip taking or dropping the puck in place; a landing swaps with none, since the
+    /// traveling puck and the chip draw it the same.
+    private func rest(on option: String?, animation: Animation? = nil) {
+        flight += 1
+        if let frame = option.flatMap({ frames[$0] }) { placeEdges(on: frame) }
+        withTransaction(animation.map { Transaction(animation: $0) } ?? Self.instant) {
+            resting = option
+            flying = false
+        }
+    }
+
+    /// Sets the puck's edges on `frame` with no animation.
+    private func placeEdges(on frame: CGRect) {
+        withTransaction(Self.instant) {
+            lowerEdge = frame.minX
+            upperEdge = frame.maxX
+        }
+    }
+
+    /// A change that must not animate, even under an `.animation` modifier.
+    private static var instant: Transaction {
+        var transaction = Transaction(animation: nil)
+        transaction.disablesAnimations = true
+        return transaction
     }
 
     private func blockColor(for option: String) -> Color {
@@ -159,7 +379,8 @@ public struct FilterRail: View {
     }
 
     private func toggle(_ option: String) {
-        withAnimation(motion) {
+        // The write lands at once; the puck, the tints and the scroll each animate from it on their own springs.
+        withAnimation(PieceMotion(reduceMotion: reduceMotion).snap) {
             if !allowsMultiple {
                 selection = [option]
             } else if selection.contains(option) {
@@ -175,68 +396,118 @@ public struct FilterRail: View {
         let title: String
         let count: Int?
         let isSelected: Bool
-        let showsCheck: Bool
-        let glides: Bool
+        /// Multi-select marks a pick on the chip itself; single-select leaves it to the rail's puck.
+        let multiple: Bool
+        /// Single-select: the puck rests on this chip, which takes its tint and ink as the traveling puck draws them.
+        let holdsPuck: Bool
+        /// While the puck travels over this chip, the stretch it covers, in the chip's own points: its label is cut
+        /// away there, where the puck draws it in its own ink.
+        let cut: ClosedRange<CGFloat>?
         let fill: Color
         let style: Style
-        let namespace: Namespace.ID
         let action: () -> Void
-
-        private var foreground: Color {
-            guard isSelected else { return style.label }
-            return glides ? style.onIndicator : style.ink
-        }
+        let onPress: (Bool) -> Void
 
         var body: some View {
+            let picked = multiple && isSelected
+            let ink: Color? = holdsPuck ? style.onIndicator : picked ? style.ink : nil
+            // Glass tinted only with meaning: the puck's red where it rests, a pick's tint, neutral otherwise.
+            let tint: Color? = holdsPuck ? style.indicator : picked ? fill : style.chip == .clear ? nil : style.chip
             Button(action: action) {
-                HStack(spacing: 6) {
-                    if showsCheck && isSelected {
-                        Image(systemName: "checkmark")
-                            .font(.caption.weight(.heavy))
-                            .transition(.scale.combined(with: .opacity))
-                    }
-                    Text(title)
-                        .font(.subheadline.weight(.semibold))
-                        .lineLimit(1)
-                    if let count {
-                        Text(count.formatted())
-                            .font(.footnote.weight(.medium).monospacedDigit())
-                            .foregroundStyle(isSelected ? foreground.opacity(0.62) : style.secondaryLabel)
-                    }
-                }
-                .foregroundStyle(foreground)
-                .padding(.horizontal, 16)
-                .frame(height: style.chipHeight)
-                .background {
-                    Capsule().fill(style.chip)
-                    if isSelected {
-                        if glides {
-                            // Single-select: one shared capsule slides from the old chip to the new one.
-                            Capsule().fill(style.indicator).matchedGeometryEffect(id: "indicator", in: namespace)
+                ChipFace(title: title, count: count, check: picked, color: ink ?? style.label, countColor: ink?.opacity(0.62) ?? style.secondaryLabel, height: style.chipHeight)
+                    .mask {
+                        if let cut {
+                            PuckShape(lower: cut.lowerBound, upper: cut.upperBound, height: style.chipHeight, inverted: true).fill(style: FillStyle(eoFill: true))
                         } else {
-                            Capsule().fill(fill).transition(.scale(scale: 0.85).combined(with: .opacity))
+                            Rectangle()
                         }
                     }
-                }
-                .frame(minHeight: 44)
-                .contentShape(.rect)
-                .animation(reduceMotion ? .smooth(duration: 0.15) : .snappy, value: isSelected)
+                    // The tint comes on as the press springs back, so a pick clicks on in one motion.
+                    .pieceLiquid(.capsule, tint: tint, interactive: false)
+                    .frame(minHeight: 44)
+                    .contentShape(.rect)
+                    .animation(PieceMotion(reduceMotion: reduceMotion).snap, value: picked)
             }
-            .buttonStyle(Press())
+            .buttonStyle(ChipPress(onPress: onPress))
             .accessibilityLabel(title)
             .accessibilityValue(count.map { "\($0) results" } ?? "")
             .accessibilityAddTraits(isSelected ? .isSelected : [])
         }
     }
 
-    private struct Press: ButtonStyle {
+    /// A chip's content. The rail's chips and the puck's label rows both draw through this, so the ink lines up exactly.
+    private struct ChipFace: View {
         @Environment(\.accessibilityReduceMotion) private var reduceMotion
+        let title: String
+        let count: Int?
+        let check: Bool
+        let color: Color
+        let countColor: Color
+        let height: CGFloat
+
+        var body: some View {
+            HStack(spacing: 6) {
+                if check {
+                    Image(systemName: "checkmark")
+                        .font(.caption.weight(.semibold))
+                        // A glyph arriving inside the glass blurs in, and blurs out as the pick lets go.
+                        .transition(PieceMotion(reduceMotion: reduceMotion).swap)
+                }
+                Text(title)
+                    .font(.subheadline.weight(.semibold))
+                    .lineLimit(1)
+                if let count {
+                    Text(count.formatted())
+                        .font(.footnote.weight(.semibold).monospacedDigit())
+                        .foregroundStyle(countColor)
+                }
+            }
+            .foregroundStyle(color)
+            .padding(.horizontal, 16)
+            .frame(height: height)
+        }
+    }
+
+    /// The shared glass press, the chip's glass and label sinking together, reported so the puck can sink with the
+    /// selected chip. A cancelled touch reports the release too.
+    private struct ChipPress: ButtonStyle {
+        let onPress: (Bool) -> Void
 
         func makeBody(configuration: Configuration) -> some View {
             configuration.label
-                .scaleEffect(configuration.isPressed && !reduceMotion ? 0.96 : 1)
-                .animation(configuration.isPressed ? .smooth(duration: 0.1) : .spring(duration: 0.35, bounce: 0.3), value: configuration.isPressed)
+                .pieceLiquidPress(configuration.isPressed)
+                .onChange(of: configuration.isPressed) { _, isPressed in onPress(isPressed) }
         }
+    }
+}
+
+/// One edge of the puck, animated on its own: SwiftUI interpolates `value` frame by frame and rebuilds the content
+/// with it. Two nested give the two edges separate springs; one shape holding both would animate them as one value.
+private struct PuckEdge<Content: View>: View, Animatable {
+    var value: CGFloat
+    @ViewBuilder let content: (CGFloat) -> Content
+
+    nonisolated var animatableData: CGFloat {
+        get { value }
+        set { value = newValue }
+    }
+
+    var body: some View { content(value) }
+}
+
+/// A capsule between two edges, in points from the rail's leading end, centered in the row. `inverted` adds the
+/// whole rect around it, so an even-odd fill draws everything but the capsule.
+private struct PuckShape: Shape {
+    var lower: CGFloat
+    var upper: CGFloat
+    var height: CGFloat
+    var inverted = false
+
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        if inverted { path.addRect(rect) }
+        path.addPath(Capsule().path(in: CGRect(x: rect.minX + lower, y: rect.midY - height / 2, width: max(upper - lower, 0), height: height)))
+        return path
     }
 }
 
@@ -250,7 +521,7 @@ private func adaptive(light: UInt32, dark: UInt32) -> Color {
 
 // MARK: - Example
 
-/// Two rails: single-select with the gliding indicator, and multi-select with counts and color blocks.
+/// Two rails: single-select with the traveling puck, and multi-select with counts and a Clear chip.
 private struct FilterRailExample: View {
     @State private var sort: Set<String> = ["Recent"]
     @State private var genres: Set<String> = ["Jazz", "Ambient"]
@@ -274,3 +545,425 @@ private struct FilterRailExample: View {
     FilterRailExample()
         .preferredColorScheme(.dark)
 }
+
+// MARK: - Piece motion
+//
+// The SwiftPieces motion language: shared spring tokens and gesture physics, with the same values in every
+// piece. Each piece carries a copy of only the parts it uses, so this file stands alone. Generated from
+// registry/foundation/PieceMotion.swift in the SwiftPieces repo; edit it there, not here.
+// swiftpieces-motion: 1.1.0 (core, follow, pressMath)
+
+/// The SwiftPieces motion language: five spring tiers, and a named role for every moment a piece moves,
+/// each with its Reduce Motion substitute.
+///
+/// Build one from the environment, `PieceMotion(reduceMotion: reduceMotion)`, and pick the role that names
+/// what just happened. Never animate the tracking of a finger: set gesture state directly in `onChanged`, so the
+/// surface stays under the finger, and spring only the release.
+private struct PieceMotion {
+    var reduceMotion = false
+
+    // Tiers. Overshoot and settle times are measured from rest with SwiftUI's Spring.
+    /// No overshoot, 90% in about 90ms. A press arriving under the finger.
+    static var tight: Spring { Spring(duration: 0.14, bounce: 0) }
+    /// About 2.8% overshoot, 90% in about 140ms. Snapping to a detent, page or segment.
+    static var responsive: Spring { Spring(duration: 0.32, bounce: 0.25) }
+    /// About 8.4% overshoot. Visible give: a release, a return from past an edge, a drag settling home.
+    static var elastic: Spring { Spring(duration: 0.42, bounce: 0.38) }
+    /// About 15% overshoot. A resolved action landing. At most once per interaction.
+    static var expressive: Spring { Spring(duration: 0.48, bounce: 0.48) }
+    /// About 1.5% overshoot, unhurried. Opening large surfaces and ambient change.
+    static var calm: Spring { Spring(duration: 0.5, bounce: 0.2) }
+
+    /// Reduce Motion: settles become this short spring with no overshoot.
+    private static var still: Animation { .spring(duration: 0.25, bounce: 0) }
+
+    // Roles.
+    /// Touch-down. Starts on the same frame and never bounces under the finger.
+    var press: Animation { .spring(Self.tight) }
+    /// The finger lifts off a pressed surface, which springs back through rest.
+    var release: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A dragged thing comes to rest. With a gesture's velocity, use `settle(velocity:from:to:)` instead.
+    var settle: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// Lands on a detent, page or segment.
+    var snap: Animation { reduceMotion ? Self.still : .spring(Self.responsive) }
+    /// A number, a chart value or anything else people read moves to its new value. Never overshoots, so it
+    /// never shows a value that isn't true.
+    var value: Animation { reduceMotion ? Self.still : .spring(duration: 0.35, bounce: 0) }
+    /// Comes back from past a limit: a pull beyond the edge, a value pushed against its bound.
+    var rebound: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A shape or container changes size, corner radius or form, with a little give at the end.
+    var morph: Animation { reduceMotion ? Self.still : .spring(duration: 0.4, bounce: 0.2) }
+    /// Something appears, opens or expands. Opening is a little slower than closing.
+    var reveal: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.calm) }
+    /// Something leaves, closes or collapses. Quick and firm, out of the way.
+    var dismiss: Animation { reduceMotion ? .easeIn(duration: 0.18) : .spring(duration: 0.3, bounce: 0.08) }
+    /// A resolved action lands: a check, a sent state, a reaction.
+    var success: Animation { reduceMotion ? .easeOut(duration: 0.24) : .spring(Self.expressive) }
+    /// A refused action. Firm, no wobble; `pieceShake` adds the movement.
+    var error: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.responsive) }
+    /// Slow ambient change. Loops themselves stop under Reduce Motion: check `allowsAmbient`.
+    var ambient: Animation { reduceMotion ? .easeInOut(duration: 0.3) : .spring(Self.calm) }
+
+    /// Loops, drifts, idle breathing and parallax run only when this is true.
+    var allowsAmbient: Bool { !reduceMotion }
+
+    /// A moving transition, or a plain fade under Reduce Motion.
+    func transition(_ transition: AnyTransition) -> AnyTransition {
+        reduceMotion ? .opacity : transition
+    }
+
+    /// For content replaced inside a container that stays put (a label, a glyph, a count): the old content
+    /// blurs out as the new one sharpens in. A fade under Reduce Motion.
+    @MainActor var swap: AnyTransition {
+        reduceMotion ? .opacity : AnyTransition(.blurReplace)
+    }
+}
+
+extension PieceMotion {
+    /// Follow-through: rank 0 leads, each later rank arrives a beat later on a slightly looser spring. Safe to reverse.
+    func follow(_ spring: Spring = PieceMotion.elastic, rank: Int) -> Animation {
+        guard !reduceMotion else { return .spring(duration: 0.25, bounce: 0) }
+        let k = Double(min(max(rank, 0), 6))
+        return .spring(duration: spring.duration + 0.04 * k, bounce: min(spring.bounce + 0.02 * k, 0.55))
+    }
+
+    /// One-shot entrances only: item `index` waits 30ms per place, capped at the seventh. Exits go together.
+    func cascade(_ animation: Animation, index: Int, step: Double = 0.03) -> Animation {
+        guard !reduceMotion, index > 0 else { return animation }
+        return animation.delay(step * Double(min(index, 7)))
+    }
+}
+
+extension PieceMotion {
+    /// About `depth` points per edge, not a fixed percentage: an icon sinks to 0.92, a pill 0.95, a card 0.985.
+    nonisolated static func pressScale(for size: CGSize, depth: CGFloat = 2.5) -> CGFloat {
+        let side = (max(size.width, 1) * max(size.height, 1)).squareRoot()
+        return min(max(1 - depth * 2 / side, 0.92), 0.985)
+    }
+
+    /// An anchor partway from the center toward the touch, so the press leans into the finger without tipping.
+    nonisolated static func pressAnchor(touch: CGPoint?, in size: CGSize, lean: CGFloat = 0.6) -> UnitPoint {
+        guard let touch, size.width > 0, size.height > 0 else { return .center }
+        let x = min(max(touch.x / size.width, 0), 1)
+        let y = min(max(touch.y / size.height, 0), 1)
+        return UnitPoint(x: 0.5 + (x - 0.5) * lean, y: 0.5 + (y - 0.5) * lean)
+    }
+}
+
+// swiftpieces-motion: end
+
+// MARK: - Piece liquid
+//
+// The SwiftPieces liquid glass language: glass shapes that merge through a neck, bubbles that bud out of
+// and melt back into each other, and the frosted fallback before iOS 26. Each piece carries a copy of only
+// the parts it uses, so this file stands alone. Generated from registry/foundation/PieceLiquid.swift in the
+// SwiftPieces repo; edit it there, not here. The rules are in LIQUID_GLASS.md.
+// swiftpieces-liquid: 1.7.0 (liquid, liquidPress, bud)
+
+/// The liquid glass language: one merge distance, two rest gaps, and the springs a bubble leaves and comes home on.
+///
+/// Glass shapes inside one `PieceLiquidGroup` melt into each other through a neck when they come within `merge`
+/// points. Parts of one control rest `joined`, inside that distance, so the neck holds; separate actions rest
+/// `apart`, outside it, so they only goo while one buds out of, or melts back into, another.
+private enum PieceLiquid {
+    /// Glass shapes closer than this share a neck.
+    static let merge: CGFloat = 20
+    /// The gap between parts of one control (a stepper's buttons, a progress pill and its stop): the neck holds,
+    /// short and smooth, about two thirds of the shapes' height at its waist. Joined parts read best at one height.
+    static let joined: CGFloat = 4
+    /// The gap between separate actions (menu items, confirm and cancel, chips): they rest as their own bubbles.
+    static let apart: CGFloat = 26
+    /// How far a bubble shrinks while it is home inside its parent.
+    static let homeScale: CGFloat = 0.72
+
+    /// A bubble leaving its parent: slow enough that the neck's stretch and snap read.
+    static func split(reduceMotion: Bool) -> Animation {
+        reduceMotion ? .easeOut(duration: 0.2) : .spring(duration: 0.62, bounce: 0.22)
+    }
+
+    /// A bubble going home. No bounce: a bounce would carry it out through the far side of its parent.
+    static func home(reduceMotion: Bool) -> Animation {
+        reduceMotion ? .easeIn(duration: 0.18) : .spring(duration: 0.5, bounce: 0)
+    }
+}
+
+/// A group of glass shapes that merge into one liquid surface. On iOS 26 it is a `GlassEffectContainer`; before
+/// that, and under Reduce Transparency, the shapes draw on their own and simply don't merge. `lift` adds the soft
+/// shadow liquid glass floats on in light mode.
+private struct PieceLiquidGroup<Content: View>: View {
+    var spacing: CGFloat = PieceLiquid.merge
+    var lift = true
+    @ViewBuilder var content: Content
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        container
+            .shadow(color: .black.opacity(lift && colorScheme == .light ? 0.07 : 0), radius: 18, y: 8)
+    }
+
+    @ViewBuilder private var container: some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26, *), !reduceTransparency {
+            GlassEffectContainer(spacing: spacing) { content }
+        } else {
+            content
+        }
+        #else
+        content
+        #endif
+    }
+}
+
+/// One liquid glass shape: Liquid Glass on iOS 26, carrying `tint` as a solid colour and swelling under a press when
+/// `interactive`; a frosted Material with a light rim and a soft shadow before that; a solid fill under Reduce
+/// Transparency.
+///
+/// The tint is painted inside clear glass rather than tinting the glass. Tinted glass in a group bleeds its colour
+/// through every neck as a smear, so a red button would glow into the white pill it is joined to; painted inside,
+/// the colour stays crisp to the shape's edge, the necks between shapes are clear glass, and a tint change animates
+/// like any colour (tinted glass snaps).
+private struct PieceLiquidSurface<S: Shape>: ViewModifier {
+    var shape: S
+    var tint: Color?
+    var interactive: Bool
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.pieceLiquidScale) private var scale
+
+    func body(content: Content) -> some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26, *), !reduceTransparency {
+            // Scaled as two parts, content and outline, about the same centre. A scaleEffect on a glass view inside a
+            // GlassEffectContainer shrinks the glass but leaves what it carries full size, pinned to its corner.
+            content
+                .background { shape.fill(tint ?? .clear) }
+                .scaleEffect(scale)
+                .glassEffect(glass, in: shape.scale(scale))
+        } else {
+            fallback(content).scaleEffect(scale)
+        }
+        #else
+        fallback(content).scaleEffect(scale)
+        #endif
+    }
+
+    #if compiler(>=6.2)
+    @available(iOS 26, *)
+    private var glass: Glass {
+        interactive ? Glass.regular.interactive() : .regular
+    }
+    #endif
+
+    private func fallback(_ content: Content) -> some View {
+        let dark = colorScheme == .dark
+        return content
+            .background {
+                if reduceTransparency {
+                    shape.fill(tint ?? (dark ? Color(white: 0.17) : Color(white: 0.97)))
+                } else {
+                    ZStack {
+                        shape.fill(.regularMaterial)
+                        if let tint { shape.fill(tint.opacity(0.88)) }
+                    }
+                }
+            }
+            .overlay { shape.stroke(Color.white.opacity(dark ? 0.14 : 0.7), lineWidth: 0.5) }
+            .shadow(color: .black.opacity(dark ? 0.32 : 0.08), radius: 10, y: 5)
+    }
+}
+
+private struct PieceLiquidScaleKey: EnvironmentKey {
+    static let defaultValue: CGFloat = 1
+}
+
+private extension EnvironmentValues {
+    /// How much the liquid shapes below are scaled, about their own centres. Nested scales multiply.
+    var pieceLiquidScale: CGFloat {
+        get { self[PieceLiquidScaleKey.self] }
+        set { self[PieceLiquidScaleKey.self] = newValue }
+    }
+}
+
+private extension View {
+    /// Draws this view on a liquid glass `shape`. Put it inside a `PieceLiquidGroup` so it can merge with its neighbours.
+    func pieceLiquid<S: Shape>(_ shape: S, tint: Color? = nil, interactive: Bool = true) -> some View {
+        modifier(PieceLiquidSurface(shape: shape, tint: tint, interactive: interactive))
+    }
+
+    /// Scales the liquid glass shapes in this view, content and outline together, about their own centres. Use it
+    /// instead of `scaleEffect` on a glass view (a press, a lift, a swell): inside a group a plain `scaleEffect` shrinks
+    /// the glass but leaves its content full size and off centre. Animates like any other value.
+    func pieceLiquidScale(_ scale: CGFloat) -> some View {
+        transformEnvironment(\.pieceLiquidScale) { $0 *= scale }
+    }
+}
+
+/// The press for a glass control: the same size-aware sink and lean as `piecePress`, applied through
+/// `pieceLiquidScale` so the glass and what it carries sink together (a plain scaleEffect on glass leaves the content
+/// behind). Put the glass inside what it presses: the label of a button, the view this modifies. Under Reduce Motion
+/// it shades instead of moving.
+private struct PieceLiquidPress: ViewModifier {
+    let pressed: Bool
+    var touch: CGPoint?
+    var depth: CGFloat = 2.5
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.colorScheme) private var colorScheme
+    @State private var size: CGSize = .zero
+    @State private var anchor: UnitPoint = .center
+
+    func body(content: Content) -> some View {
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        let scale = pressed && !reduceMotion ? PieceMotion.pressScale(for: size, depth: depth) : 1
+        // A scale about `anchor` is a scale about the centre plus this shift toward the anchor.
+        let lean = CGSize(width: (anchor.x - 0.5) * size.width * (1 - scale), height: (anchor.y - 0.5) * size.height * (1 - scale))
+        content
+            .onGeometryChange(for: CGSize.self) { $0.size } action: { size = $0 }
+            .brightness(pressed && reduceMotion ? (colorScheme == .dark ? 0.1 : -0.08) : 0)
+            .pieceLiquidScale(scale)
+            .offset(lean)
+            .animation(pressed ? motion.press : motion.release, value: pressed)
+            .onChange(of: pressed) { _, isPressed in
+                if isPressed { anchor = PieceMotion.pressAnchor(touch: touch, in: size) }
+            }
+            .onChange(of: touch) { _, touch in
+                if pressed, let touch { anchor = PieceMotion.pressAnchor(touch: touch, in: size) }
+            }
+    }
+}
+
+/// `PiecePressStyle` for glass buttons: the label (with its `.pieceLiquid` inside) sinks as one.
+private struct PieceLiquidPressStyle: ButtonStyle {
+    var depth: CGFloat = 2.5
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label.pieceLiquidPress(configuration.isPressed, depth: depth)
+    }
+}
+
+private extension View {
+    /// Sinks this view's glass while `pressed`, leaning toward `touch` (in this view's coordinates) when given.
+    func pieceLiquidPress(_ pressed: Bool, touch: CGPoint? = nil, depth: CGFloat = 2.5) -> some View {
+        modifier(PieceLiquidPress(pressed: pressed, touch: touch, depth: depth))
+    }
+}
+
+/// The bud: how a bubble leaves and rejoins its parent, driven explicitly so every bubble shows the whole cycle.
+///
+/// A bubble is born at `home`, inside its parent, where the two glass shapes are one. It springs out to `rest`, and
+/// while it is inside the merge distance a neck holds it to the parent, thinning as it goes, until it snaps free.
+/// Going home it springs back on a spring with no bounce, the neck reaches out and re-forms, and only once it has
+/// melted all the way in is it removed. Both offsets are relative to where the bubble is laid out. Under Reduce
+/// Motion it stays at `rest`: its content fades and its glass closes in place.
+private struct PieceBud: ViewModifier {
+    var out: Bool
+    var rest: CGSize
+    var home: CGSize
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func body(content: Content) -> some View {
+        if reduceMotion {
+            // No travel. Inside a group glass ignores opacity, so the glass closes to nothing in place on the short
+            // Reduce Motion ease while its content fades; the opacity covers a bubble outside a group.
+            content
+                .pieceLiquidScale(out ? 1 : 0.001)
+                .opacity(out ? 1 : 0)
+                .offset(rest)
+        } else {
+            // The glass shrinks through `pieceLiquidScale`, never a plain scaleEffect (see there), then moves.
+            content
+                .pieceLiquidScale(out ? 1 : PieceLiquid.homeScale)
+                .offset(out ? rest : home)
+        }
+    }
+}
+
+/// A bubble's own content, on its own clock: gone the moment the bubble heads home, so it never rides over the
+/// parent's content, and arriving just after the bubble leaves.
+private struct PieceBudContent: ViewModifier {
+    var out: Bool
+
+    func body(content: Content) -> some View {
+        content
+            .blur(radius: out ? 0 : 6)
+            .opacity(out ? 1 : 0)
+            .animation(out ? .easeOut(duration: 0.3).delay(0.1) : .easeOut(duration: 0.14), value: out)
+    }
+}
+
+private extension View {
+    /// Places a bubble at `rest` while `out`, and at `home` (inside its parent, shrunk) while not.
+    func pieceBud(out: Bool, rest: CGSize = .zero, home: CGSize) -> some View {
+        modifier(PieceBud(out: out, rest: rest, home: home))
+    }
+
+    /// Hides a bubble's icon or label while it is home. Put it on the content, inside the glass.
+    func pieceBudContent(out: Bool) -> some View {
+        modifier(PieceBudContent(out: out))
+    }
+}
+
+/// Which bubbles exist and which are out. A bubble is added home with no animation, sent out on the next frame,
+/// and called home before it is removed, so it always melts in rather than fading. Keep one in `@State`.
+@MainActor @Observable
+private final class PieceBuds {
+    private(set) var present: [String] = []
+    private(set) var out: Set<String> = []
+    /// The latest call for each bubble. A bloom or gather that has been overtaken (a bubble sent home while it was
+    /// still waiting to go out, or called out again while melting) leaves that bubble alone.
+    @ObservationIgnored private var turn: [String: Int] = [:]
+
+    func contains(_ id: String) -> Bool { present.contains(id) }
+    func isOut(_ id: String) -> Bool { out.contains(id) }
+
+    private func claim(_ ids: [String]) -> [String: Int] {
+        var mine: [String: Int] = [:]
+        for id in ids {
+            let next = (turn[id] ?? 0) + 1
+            turn[id] = next
+            mine[id] = next
+        }
+        return mine
+    }
+
+    /// Puts bubbles straight out at rest with no motion: a view's first frame, or a state restored.
+    func place(_ ids: [String]) {
+        _ = claim(ids)
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) {
+            for id in ids where !present.contains(id) { present.append(id) }
+            out.formUnion(ids)
+        }
+    }
+
+    /// Adds bubbles home, then sends each out, `stagger` seconds apart, after an optional `delay`.
+    func bloom(_ ids: [String], reduceMotion: Bool, stagger: Double = 0.05, delay: Double = 0) async {
+        let mine = claim(ids)
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) {
+            for id in ids where !present.contains(id) { present.append(id) }
+        }
+        try? await Task.sleep(for: .milliseconds(24 + Int(max(delay, 0) * 1000)))
+        let split = PieceLiquid.split(reduceMotion: reduceMotion)
+        for (i, id) in ids.enumerated() where turn[id] == mine[id] {
+            withAnimation(split.delay(reduceMotion ? 0 : Double(i) * stagger)) { _ = out.insert(id) }
+        }
+    }
+
+    /// Calls bubbles home, last first, then removes them once they have melted in.
+    func gather(_ ids: [String], reduceMotion: Bool, stagger: Double = 0.04) async {
+        let mine = claim(ids)
+        let home = PieceLiquid.home(reduceMotion: reduceMotion)
+        for (i, id) in ids.reversed().enumerated() {
+            withAnimation(home.delay(reduceMotion ? 0 : Double(i) * stagger)) { _ = out.remove(id) }
+        }
+        try? await Task.sleep(for: .milliseconds(Int((0.52 + Double(ids.count) * stagger) * 1000)))
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) { present.removeAll { ids.contains($0) && !out.contains($0) && turn[$0] == mine[$0] } }
+    }
+}
+
+// swiftpieces-liquid: end

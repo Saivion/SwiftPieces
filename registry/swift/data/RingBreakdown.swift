@@ -1,8 +1,8 @@
 // swiftpieces:
 // title: Ring Breakdown
-// description: A composition ring of solid color blocks with rounded seams that you scrub by dragging around it, with a haptic at each slice boundary, a radial lift for the selected slice while the rest step back to the surface, a light display-scale center figure, and legend rows that turn into the slice's block.
+// description: A composition ring of solid color blocks with rounded seams that you scrub by dragging around it, with a haptic at each slice boundary and a radial lift for the selected slice while the rest step back to the surface, around a semibold center figure under a liquid glass label pill whose name morphs letter by letter and out of which the selected slice's share buds as a tinted chip, above a legend of glass chips resting apart that take the slice's tint when picked.
 // category: data
-// version: "2.0.1"
+// version: "2.2.0"
 // pro: spending-ring
 // minIOSVersion: "17.0"
 // tags: [chart, ring, donut, breakdown, scrub, legend, budget]
@@ -11,6 +11,10 @@ import SwiftUI
 
 /// Ring chart with scrub-to-select, a lifted slice, and a built-in legend.
 ///
+/// The ring is content; its chrome is liquid glass. In the center a glass pill names the selection, morphing letter
+/// by letter, and the selected slice's share buds out of it as a chip tinted with the slice's color, resting joined
+/// to it. The legend rows are glass chips resting apart; the picked one takes its slice's tint.
+///
 /// - Parameters:
 ///   - slices: Parts of the whole, drawn clockwise from the top. Labels must be unique.
 ///   - thickness: Ring thickness in points.
@@ -18,7 +22,7 @@ import SwiftUI
 ///   - format: Number format for the center value and legend, for example `.number` or `.currency(code: "USD")`. Defaults to `.number`.
 ///   - showsLegend: Show the tappable legend rows below the ring.
 ///   - selection: Optional binding to the selected slice id, for driving selection from outside.
-///   - style: Slice blocks, ink, and surface colors. Defaults to `.standard`: tangerine, sky, butter, sage, lilac, and sand.
+///   - style: Slice blocks, ink, and surface colors. Defaults to `.standard`: red, sky, butter, sage, lilac, and sand.
 public struct RingBreakdown<Format: FormatStyle>: View where Format.FormatInput == Double, Format.FormatOutput == String {
     /// Colors for the ring and legend. See `RingBreakdownStyle`.
     public typealias Style = RingBreakdownStyle
@@ -38,8 +42,17 @@ public struct RingBreakdown<Format: FormatStyle>: View where Format.FormatInput 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @ScaledMetric(relativeTo: .title) private var numeralScale: CGFloat = 1
     @State private var sweep: CGFloat = 0
+    /// Whether the last sweep revealed data, so data landing in an empty ring sweeps it in again.
+    @State private var sweptData = false
     @State private var internalSelection: Slice.ID?
     @State private var tapInHole = false
+    /// Selection changes made here: scrub, hole tap, legend and VoiceOver. One tick each.
+    @State private var selectionTicks = 0
+    /// The share chip: out of the center pill while a slice is selected, melted back into it otherwise.
+    @State private var buds = PieceBuds()
+    @State private var shareWidth: CGFloat = 0
+    /// What the share chip last showed, kept while it melts home after the selection clears.
+    @State private var shownShare = Share()
 
     private let slices: [Slice]
     private let thickness: CGFloat
@@ -63,6 +76,12 @@ public struct RingBreakdown<Format: FormatStyle>: View where Format.FormatInput 
         self.init(slices: slices, thickness: thickness, tint: tint, format: .number.precision(.fractionLength(0...1)), showsLegend: showsLegend, selection: selection, style: style)
     }
 
+    /// The selected slice's share and its color, as the center chip shows them.
+    private struct Share: Equatable {
+        var value: Double = 0
+        var color: Color = .clear
+    }
+
     // MARK: Derived
 
     private var selected: Slice.ID? {
@@ -73,6 +92,11 @@ public struct RingBreakdown<Format: FormatStyle>: View where Format.FormatInput 
     }
     private var total: Double { slices.map(\.value).reduce(0, +) }
     private var current: Slice? { slices.first { $0.id == selected } }
+    /// The selected slice's share, or nil while nothing is selected or the ring is empty.
+    private var share: Share? {
+        guard let current, total > 0 else { return nil }
+        return Share(value: current.value / total, color: color(for: slices.firstIndex { $0.id == current.id } ?? 0))
+    }
 
     /// Start and end angles per slice, clockwise from twelve o'clock.
     private var arcs: [(slice: Slice, start: Angle, end: Angle)] {
@@ -95,53 +119,147 @@ public struct RingBreakdown<Format: FormatStyle>: View where Format.FormatInput 
     // MARK: Body
 
     public var body: some View {
-        VStack(spacing: 20) {
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        return VStack(spacing: 20) {
             ring
                 .aspectRatio(1, contentMode: .fit)
             if showsLegend { legend }
         }
-        .animation(.spring(duration: 0.4, bounce: 0.22), value: selected)
-        .sensoryFeedback(.selection, trigger: selected)
-        .task(id: slices) {
-            selected = nil
-            if reduceMotion { sweep = 1; return }
-            sweep = 0
-            try? await Task.sleep(for: .milliseconds(16))
-            withAnimation(.easeInOut(duration: 0.9)) { sweep = 1 }
+        .fontWeight(.semibold)
+        // New values slide the seams to their new angles on the value spring, with no overshoot: a bouncing seam would
+        // show a share the data never had. Inside the selection's snap, so the seams keep it when a parent changes the
+        // data and the selection together.
+        .animation(motion.value, value: slices)
+        // The selected wedge, the readout and the selected row land together; what steps back follows (`stepBack`).
+        .animation(motion.snap, value: selected)
+        .sensoryFeedback(.selection, trigger: selectionTicks)
+        .onAppear {
+            // Once: a return to the screen leaves the ring as it was.
+            if sweep == 0 { sweepIn() }
         }
+        .onChange(of: total > 0) { _, hasData in
+            // Data landing in an empty ring sweeps it in; data that only changes morphs instead.
+            if !hasData { sweptData = false } else if !sweptData { sweepIn() }
+        }
+        .onChange(of: slices) { _, slices in
+            // A refresh keeps the selection while its slice is still there.
+            if let selected, !slices.contains(where: { $0.id == selected }) { self.selected = nil }
+        }
+        // The share buds out of the center pill when a slice is selected and melts back in when the selection clears.
+        // Moving between slices keeps it out: it rolls its figure and takes the new slice's tint instead.
+        .onAppear {
+            if let share {
+                shownShare = share
+                buds.place(["share"])
+            }
+        }
+        .onChange(of: share) { old, new in
+            if let new { shownShare = new }
+            guard (old == nil) != (new == nil) else { return }
+            Task {
+                if new != nil { await buds.bloom(["share"], reduceMotion: reduceMotion) } else { await buds.gather(["share"], reduceMotion: reduceMotion) }
+            }
+        }
+    }
+
+    /// Sweeps the ring in clockwise from the top. Under Reduce Motion it fades in whole instead.
+    private func sweepIn() {
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        sweptData = total > 0
+        var still = Transaction()
+        still.disablesAnimations = true
+        withTransaction(still) { sweep = 0 }
+        Task {
+            // A frame later, so the sweep starts from the empty pose.
+            try? await Task.sleep(for: .milliseconds(16))
+            withAnimation(motion.reduceMotion ? motion.reveal : Self.sweepPace) { sweep = 1 }
+        }
+    }
+
+    /// The ring's signature entrance, slower than `reveal` so a full turn reads as a sweep rather than a flash. A
+    /// spring with no bounce: it leaves at once and eases into the last slice, and the trim never passes a full turn.
+    private static var sweepPace: Animation { .spring(duration: 0.7, bounce: 0) }
+
+    /// Wedges and rows stepping back follow the selected one a beat later on a calmer spring, so a selection reads as
+    /// one wedge sliding out rather than everything swapping at once. Coming back, they land with it.
+    private func stepBack(_ stepped: Bool) -> Animation {
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        return stepped ? motion.follow(PieceMotion.calm, rank: 1) : motion.snap
+    }
+
+    /// Every selection change made here goes through this, so each one ticks once. A parent setting `selection`, or
+    /// data clearing it, stays silent.
+    private func select(_ id: Slice.ID?) {
+        guard id != selected else { return }
+        let shown = current?.id
+        selected = id
+        // Only a change that took and shows ticks: a parent's binding may refuse the write (a `.constant` would
+        // otherwise tick on every scrub frame), and an id the data lacks already draws as no selection.
+        if current?.id != shown { selectionTicks += 1 }
+    }
+
+    /// Digits roll straight to the new value; under Reduce Motion they crossfade.
+    private func rolling(_ value: Double) -> ContentTransition {
+        reduceMotion ? .opacity : .numericText(value: value)
     }
 
     private var ring: some View {
         GeometryReader { proxy in
             let side = min(proxy.size.width, proxy.size.height)
             let center = CGPoint(x: proxy.size.width / 2, y: proxy.size.height / 2)
+            let motion = PieceMotion(reduceMotion: reduceMotion)
+            // An id the data lacks draws as no selection, not as every wedge stepped back.
+            let anySelected = current != nil
+            // A slice that arrives opens from the seam between its neighbors and one that leaves folds back into
+            // it, on the data's spring, so the ring never holds more than the whole. Into an empty ring, `sweepIn` instead.
+            let arrival: AnyTransition = sweptData ? .modifier(active: RingWedgeGrowth(growth: 0), identity: RingWedgeGrowth(growth: 1)) : .identity
             ZStack {
                 ForEach(Array(arcs.enumerated()), id: \.element.slice.id) { index, arc in
                     let isSelected = arc.slice.id == selected
+                    let stepped = anySelected && !isSelected
                     let mid = (arc.start.radians + arc.end.radians) / 2
                     let lift: CGFloat = isSelected && !reduceMotion ? 6 : 0
-                    // Filled and stroked with a round join, so every seam gets a soft corner.
-                    let fill = selected == nil || isSelected ? color(for: index) : style.rest
-                    RingSlice(start: arc.start, end: arc.end, thickness: thickness - style.cornerRadius * 2, gap: style.gap + style.cornerRadius * 2, inset: style.cornerRadius)
-                        .fill(fill)
-                        .stroke(fill, style: StrokeStyle(lineWidth: style.cornerRadius * 2, lineJoin: .round))
-                        .compositingGroup()
-                        .shadow(color: .black.opacity(isSelected ? 0.18 : 0), radius: 12, y: 6)
-                        .offset(x: cos(mid) * lift, y: sin(mid) * lift)
-                        .zIndex(isSelected ? 1 : 0)
+                    let fill = stepped ? style.rest : color(for: index)
+                    // Where that seam falls within this wedge: where the slices before it end without it.
+                    let others = total - arc.slice.value
+                    let pivot = others > 0 ? min((arc.start.degrees + 90) / 360 * total / others, 1) : 0
+                    RingWedgeGrowthReader { growth in
+                        // Filled and stroked with a round join, so every seam gets a soft corner.
+                        RingSlice(start: arc.start, end: arc.end, thickness: thickness - style.cornerRadius * 2, gap: style.gap + style.cornerRadius * 2, inset: style.cornerRadius, growth: growth, pivot: pivot)
+                            .fill(.foreground)
+                            .stroke(.foreground, style: StrokeStyle(lineWidth: style.cornerRadius * 2, lineJoin: .round))
+                    }
+                    // Only the color steps back: the seams keep the data's spring.
+                    .animation(stepBack(stepped)) { $0.foregroundStyle(fill) }
+                    .compositingGroup()
+                    // The selected wedge leads: it pulls out with visible give and lifts its shadow. Dropping back is
+                    // firm, on the snap. Only the lift and its shadow, so the seams never take the bounce.
+                    .animation(isSelected ? motion.follow(PieceMotion.elastic, rank: 0) : motion.snap) { wedge in
+                        wedge
+                            .shadow(color: .black.opacity(isSelected ? 0.18 : 0), radius: 12, y: 6)
+                            .offset(x: cos(mid) * lift, y: sin(mid) * lift)
+                    }
+                    .zIndex(isSelected ? 1 : 0)
+                    .transition(arrival)
                 }
-                centerReadout
-                    .frame(width: (side - thickness * 2) * 0.8)
             }
             .frame(width: side, height: side)
             .position(center)
             .mask {
-                // Sweeps in clockwise from the top on appear.
+                // Sweeps in clockwise from the top on first appearance (`sweepIn`).
                 Circle()
-                    .trim(from: 0, to: sweep)
+                    .trim(from: 0, to: reduceMotion ? 1 : sweep)
                     .stroke(style: StrokeStyle(lineWidth: side))
                     .frame(width: side, height: side)
                     .rotationEffect(.degrees(-90))
+                    .position(center)
+            }
+            .opacity(reduceMotion ? sweep : 1)
+            // Outside the sweep's mask: glass under a mask would not draw as glass. It is simply there while the ring
+            // sweeps in around it, and the hole's taps still reach the ring's gesture.
+            .overlay {
+                centerReadout
+                    .frame(width: (side - thickness * 2) * 0.8)
                     .position(center)
             }
             .contentShape(Circle().size(width: side, height: side).offset(x: center.x - side / 2, y: center.y - side / 2))
@@ -153,39 +271,77 @@ public struct RingBreakdown<Format: FormatStyle>: View where Format.FormatInput 
         .accessibilityAdjustableAction { direction in
             let index = slices.firstIndex { $0.id == selected } ?? -1
             let next = direction == .increment ? min(index + 1, slices.count - 1) : max(index - 1, 0)
-            if slices.indices.contains(next) { selected = slices[next].id }
+            if slices.indices.contains(next) { select(slices[next].id) }
         }
     }
 
     private var centerReadout: some View {
         let value = current?.value ?? total
         let parts = Self.splitDecimals(format.format(value))
-        return VStack(spacing: 4) {
-            Text((current?.label ?? "Total").uppercased())
-                .font(.system(size: 12, weight: .semibold))
-                .tracking(1.2)
-                .foregroundStyle(style.muted)
-                .contentTransition(.opacity)
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        return VStack(spacing: 8) {
+            labelPill
+            // A readout: whatever moves it (the selection's snap, new data), the figure rolls without overshoot. A
+            // change with no animation stays instant.
             Text("\(Text(parts.whole))\(Text(parts.fraction).foregroundStyle(style.muted))")
-                .font(.system(size: 34 * numeralScale, weight: .light))
+                .font(.system(size: 34 * numeralScale, weight: .semibold))
                 .tracking(-0.8)
                 .monospacedDigit()
-                .contentTransition(.numericText(value: value))
-            if let current, total > 0 {
-                Text(current.value / total, format: .percent.precision(.fractionLength(0)))
-                    .font(.system(size: 13, weight: .bold))
-                    .monospacedDigit()
-                    .foregroundStyle(style.ink)
-                    .padding(.horizontal, 10)
-                    .frame(minHeight: 24)
-                    .background(color(for: slices.firstIndex { $0.id == current.id } ?? 0), in: Capsule())
-                    .contentTransition(.numericText(value: current.value / total))
-                    .transition(.opacity.combined(with: .scale(scale: 0.8)))
-            }
+                .contentTransition(rolling(value))
+                .transaction { if $0.animation != nil { $0.animation = motion.value } }
+                .lineLimit(1)
+                .minimumScaleFactor(0.5)
         }
-        .lineLimit(1)
-        .minimumScaleFactor(0.5)
         .multilineTextAlignment(.center)
+    }
+
+    /// The selection's name on a glass pill, morphing letter by letter, with the selected slice's share budding out of
+    /// its trailing end. While the share is out the pair slides over, so it stays centered in the hole.
+    private var labelPill: some View {
+        let gap = PieceLiquid.joined
+        let shift = buds.isOut("share") ? -(gap + shareWidth) / 2 : 0
+        return PieceLiquidGroup {
+            PieceMorphText(text: (current?.label ?? "Total").uppercased(), font: .system(size: 12, weight: .semibold))
+                .tracking(1.2)
+                .foregroundStyle(style.muted)
+                .padding(.horizontal, 12)
+                .frame(height: 28)
+                .pieceLiquid(Capsule(), interactive: false)
+                // Its own glass shape beside the pill, not the pill's content, so the two melt through a neck. Behind,
+                // so the share melting home slips under the name.
+                .background(alignment: .trailing) {
+                    // The guide sits outside the condition: on a view inside an `if` it would be ignored.
+                    ZStack {
+                        if buds.contains("share") { shareChip }
+                    }
+                    .alignmentGuide(.trailing) { d in d[.leading] - gap }
+                }
+        }
+        .offset(x: shift)
+    }
+
+    /// The share, tinted with its slice's color and joined to the pill by a neck. It is born just inside the pill's
+    /// end, springs out with visible give, and its figure arrives just after; moving between slices it rolls the
+    /// figure and recolors in place. Going home its figure blurs off and its tint drains, so it melts in as clear glass.
+    private var shareChip: some View {
+        let out = buds.isOut("share")
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        let home = -(PieceLiquid.joined + shareWidth * (1 + PieceLiquid.homeScale) / 2)
+        return Text(shownShare.value, format: .percent.precision(.fractionLength(0)))
+            .font(.system(size: 13, weight: .semibold))
+            .monospacedDigit()
+            .contentTransition(rolling(shownShare.value))
+            // The share is a figure too; the glass around it resizes and recolors with the snap's give.
+            .transaction { if $0.animation != nil { $0.animation = motion.value } }
+            .foregroundStyle(style.ink)
+            .lineLimit(1)
+            .fixedSize()
+            .pieceBudContent(out: out)
+            .padding(.horizontal, 10)
+            .frame(height: 28)
+            .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { shareWidth = $0 }
+            .pieceLiquid(Capsule(), tint: out ? shownShare.color : nil, interactive: false)
+            .pieceBud(out: out, home: CGSize(width: home, height: 0))
     }
 
     /// Splits a formatted number at its decimal separator, so the fraction can be dimmed.
@@ -196,35 +352,45 @@ public struct RingBreakdown<Format: FormatStyle>: View where Format.FormatInput 
         return (String(text[..<range.lowerBound]), String(text[range.lowerBound...]))
     }
 
+    /// The legend: one glass chip per slice, resting apart. The picked chip takes its slice's tint with ink on it, and
+    /// the others' text steps back a beat later while their glass stays whole.
     private var legend: some View {
-        VStack(spacing: 2) {
-            ForEach(Array(slices.enumerated()), id: \.element.id) { index, slice in
-                let isSelected = slice.id == selected
-                Button {
-                    selected = isSelected ? nil : slice.id
-                } label: {
-                    HStack(spacing: 12) {
-                        RoundedRectangle(cornerRadius: 5, style: .continuous)
-                            .fill(isSelected ? style.ink : color(for: index))
-                            .frame(width: 14, height: 14)
-                        Text(slice.label).font(.body.weight(isSelected ? .bold : .medium))
-                        Spacer(minLength: 8)
-                        Text(slice.value, format: format).font(.body.weight(.medium)).monospacedDigit()
-                        Text(total > 0 ? slice.value / total : 0, format: .percent.precision(.fractionLength(0)))
-                            .font(.system(.subheadline, design: .monospaced))
-                            .foregroundStyle(isSelected ? style.ink.opacity(0.7) : style.muted)
-                            .frame(width: 44, alignment: .trailing)
+        // As on the ring, an id the data lacks dims nothing.
+        let anySelected = current != nil
+        return PieceLiquidGroup {
+            VStack(spacing: PieceLiquid.apart) {
+                ForEach(Array(slices.enumerated()), id: \.element.id) { index, slice in
+                    let isSelected = slice.id == selected
+                    let stepped = anySelected && !isSelected
+                    Button {
+                        select(isSelected ? nil : slice.id)
+                    } label: {
+                        HStack(spacing: 12) {
+                            RoundedRectangle(cornerRadius: 5, style: .continuous)
+                                .fill(isSelected ? style.ink : color(for: index))
+                                .frame(width: 14, height: 14)
+                            Text(slice.label).font(.body.weight(.semibold))
+                            Spacer(minLength: 8)
+                            Text(slice.value, format: format).font(.body.weight(.semibold)).monospacedDigit()
+                            Text(total > 0 ? slice.value / total : 0, format: .percent.precision(.fractionLength(0)))
+                                .font(.system(.subheadline, design: .monospaced, weight: .semibold))
+                                .foregroundStyle(isSelected ? style.ink.opacity(0.7) : style.muted)
+                                .frame(width: 44, alignment: .trailing)
+                        }
+                        .foregroundStyle(isSelected ? style.ink : style.text)
+                        .opacity(stepped ? 0.62 : 1)
+                        .padding(.horizontal, 16)
+                        .frame(minHeight: 44)
+                        .contentShape(Capsule())
+                        .pieceLiquid(Capsule(), tint: isSelected ? color(for: index) : nil, interactive: false)
+                        // Keyed on the selection, so a tapped chip lands with its wedge, not on the press's bouncier release.
+                        .animation(stepBack(stepped), value: selected)
                     }
-                    .foregroundStyle(isSelected ? style.ink : style.text)
-                    .padding(.horizontal, 14)
-                    .frame(minHeight: 48)
-                    .background(isSelected ? color(for: index) : .clear, in: .rect(cornerRadius: 18, style: .continuous))
-                    .opacity(selected == nil || isSelected ? 1 : 0.62)
-                    .contentShape(.rect(cornerRadius: 18, style: .continuous))
+                    // A light press: chips are dense targets carrying text.
+                    .buttonStyle(PieceLiquidPressStyle(depth: 1.5))
+                    .accessibilityValue(format.format(slice.value))
+                    .accessibilityAddTraits(isSelected ? .isSelected : [])
                 }
-                .buttonStyle(.plain)
-                .accessibilityValue(format.format(slice.value))
-                .accessibilityAddTraits(isSelected ? .isSelected : [])
             }
         }
     }
@@ -243,11 +409,11 @@ public struct RingBreakdown<Format: FormatStyle>: View where Format.FormatInput 
                 var degrees = atan2(dy, dx) * 180 / .pi
                 if degrees < -90 { degrees += 360 }
                 if let hit = arcs.first(where: { degrees >= $0.start.degrees && degrees < $0.end.degrees }) ?? arcs.last {
-                    selected = hit.slice.id
+                    select(hit.slice.id)
                 }
             }
             .onEnded { _ in
-                if tapInHole { selected = nil }
+                if tapInHole { select(nil) }
                 tapInHole = false
             }
     }
@@ -258,11 +424,28 @@ public struct RingBreakdown<Format: FormatStyle>: View where Format.FormatInput 
         var thickness: CGFloat
         var gap: CGFloat
         var inset: CGFloat = 0
+        /// How much of the arc is drawn while the wedge arrives or leaves, opening from `pivot`, a fraction of the arc.
+        var growth: Double = 1
+        var pivot: Double = 0
+
+        /// Both edges and the growth animate, so new values slide the seams around the ring instead of redrawing
+        /// it, and a wedge arriving or leaving moves with the seams beside it.
+        var animatableData: AnimatablePair<AnimatablePair<Double, Double>, Double> {
+            get { AnimatablePair(AnimatablePair(start.radians, end.radians), growth) }
+            set {
+                start = .radians(newValue.first.first)
+                end = .radians(newValue.first.second)
+                growth = newValue.second
+            }
+        }
 
         func path(in rect: CGRect) -> Path {
             let center = CGPoint(x: rect.midX, y: rect.midY)
             let outer = min(rect.width, rect.height) / 2 - inset
             let inner = max(outer - thickness, 1)
+            let span = (end.radians - start.radians) * (1 - growth)
+            let start = Angle(radians: self.start.radians + span * pivot)
+            let end = Angle(radians: self.end.radians - span * (1 - pivot))
             // Same gap in points at both radii, so the seams stay parallel.
             let outerInset = Angle(radians: Double(gap / 2 / outer))
             let innerInset = Angle(radians: Double(gap / 2 / inner))
@@ -276,17 +459,45 @@ public struct RingBreakdown<Format: FormatStyle>: View where Format.FormatInput 
     }
 }
 
+/// Drives a wedge's growth while it is inserted or removed, read by `RingWedgeGrowthReader`.
+private struct RingWedgeGrowth: ViewModifier {
+    let growth: Double
+
+    func body(content: Content) -> some View {
+        content.environment(\.ringWedgeGrowth, growth)
+    }
+}
+
+/// Hands its wedge the growth, so the shape animates it with its seams.
+private struct RingWedgeGrowthReader<Content: View>: View {
+    @Environment(\.ringWedgeGrowth) private var growth
+    @ViewBuilder let content: (Double) -> Content
+
+    var body: some View { content(growth) }
+}
+
+private struct RingWedgeGrowthKey: EnvironmentKey {
+    static let defaultValue: Double = 1
+}
+
+extension EnvironmentValues {
+    fileprivate var ringWedgeGrowth: Double {
+        get { self[RingWedgeGrowthKey.self] }
+        set { self[RingWedgeGrowthKey.self] = newValue }
+    }
+}
+
 /// Colors and seams for `RingBreakdown`, built from the Free house palette.
 public struct RingBreakdownStyle: Sendable {
-    /// Slice fills in order; they repeat past the last one.
+    /// Slice fills in order; they repeat past the last one. The share chip and a picked legend chip take them as glass tints.
     public var blocks: [Color]
     /// Fill of unselected slices while one is selected, one solid step off the surface.
     public var rest: Color
-    /// Text on blocks.
+    /// Text on blocks and on tinted glass.
     public var ink: Color
-    /// Primary text off the blocks.
+    /// Primary text off the blocks: the figure and the legend on clear glass.
     public var text: Color
-    /// Meta labels and dimmed decimals.
+    /// The center pill's name, the legend shares, and dimmed decimals.
     public var muted: Color
     /// Gap between slices in points.
     public var gap: CGFloat
@@ -305,7 +516,7 @@ public struct RingBreakdownStyle: Sendable {
 
     /// The six house blocks with ink, on white or charcoal. Copy it and change one property to customize.
     public static let standard = RingBreakdownStyle(
-        blocks: [0xFF5B3A, 0x9CC2FF, 0xFFD976, 0xA9DCB7, 0xCDB8FF, 0xE9D5B3].map { adaptive($0, $0) },
+        blocks: [0xFF0000, 0x9CC2FF, 0xFFD976, 0xA9DCB7, 0xCDB8FF, 0xE9D5B3].map { adaptive($0, $0) },
         rest: adaptive(0xE9E7E1, 0x2E2E2E),
         ink: adaptive(0x141414, 0x141414),
         text: adaptive(0x141414, 0xF4F3EF),
@@ -347,3 +558,487 @@ private struct RingBreakdownExample: View {
 #Preview("Dark") {
     RingBreakdownExample().preferredColorScheme(.dark)
 }
+
+#Preview("Live data") {
+    RingBreakdownLiveExample()
+}
+
+/// New values in place, to show the seams sliding, the figure rolling and the selection staying. Every other month
+/// adds Gifts, which opens from the seam at the top, and the next one folds it away again.
+private struct RingBreakdownLiveExample: View {
+    private typealias Slice = RingBreakdown<FloatingPointFormatStyle<Double>.Currency>.Slice
+    @State private var month = 0
+    @State private var selection: String? = "Food"
+
+    var body: some View {
+        VStack(spacing: 24) {
+            RingBreakdown(slices: slices, format: .currency(code: "USD").precision(.fractionLength(0)), selection: $selection)
+            Button("Next month") { month += 1 }
+                .buttonStyle(.bordered)
+                .tint(RingBreakdownStyle.standard.text)
+        }
+        .padding(28)
+        .frame(maxHeight: .infinity)
+        .background(RingBreakdownStyle.adaptive(0xF3F2EE, 0x121212))
+    }
+
+    private var slices: [Slice] {
+        let base: [(String, Double)] = [("Housing", 1450), ("Food", 620), ("Transport", 310), ("Leisure", 270), ("Other", 150)]
+        var slices = base.enumerated().map { index, item in
+            Slice(label: item.0, value: index == 0 ? item.1 : item.1 * (0.6 + 0.8 * abs(sin(Double(month * 7 + index * 3)))))
+        }
+        if month % 2 == 1 { slices.append(Slice(label: "Gifts", value: 220)) }
+        return slices
+    }
+}
+
+// MARK: - Piece motion
+//
+// The SwiftPieces motion language: shared spring tokens and gesture physics, with the same values in every
+// piece. Each piece carries a copy of only the parts it uses, so this file stands alone. Generated from
+// registry/foundation/PieceMotion.swift in the SwiftPieces repo; edit it there, not here.
+// swiftpieces-motion: 1.1.0 (core, follow, pressMath)
+
+/// The SwiftPieces motion language: five spring tiers, and a named role for every moment a piece moves,
+/// each with its Reduce Motion substitute.
+///
+/// Build one from the environment, `PieceMotion(reduceMotion: reduceMotion)`, and pick the role that names
+/// what just happened. Never animate the tracking of a finger: set gesture state directly in `onChanged`, so the
+/// surface stays under the finger, and spring only the release.
+private struct PieceMotion {
+    var reduceMotion = false
+
+    // Tiers. Overshoot and settle times are measured from rest with SwiftUI's Spring.
+    /// No overshoot, 90% in about 90ms. A press arriving under the finger.
+    static var tight: Spring { Spring(duration: 0.14, bounce: 0) }
+    /// About 2.8% overshoot, 90% in about 140ms. Snapping to a detent, page or segment.
+    static var responsive: Spring { Spring(duration: 0.32, bounce: 0.25) }
+    /// About 8.4% overshoot. Visible give: a release, a return from past an edge, a drag settling home.
+    static var elastic: Spring { Spring(duration: 0.42, bounce: 0.38) }
+    /// About 15% overshoot. A resolved action landing. At most once per interaction.
+    static var expressive: Spring { Spring(duration: 0.48, bounce: 0.48) }
+    /// About 1.5% overshoot, unhurried. Opening large surfaces and ambient change.
+    static var calm: Spring { Spring(duration: 0.5, bounce: 0.2) }
+
+    /// Reduce Motion: settles become this short spring with no overshoot.
+    private static var still: Animation { .spring(duration: 0.25, bounce: 0) }
+
+    // Roles.
+    /// Touch-down. Starts on the same frame and never bounces under the finger.
+    var press: Animation { .spring(Self.tight) }
+    /// The finger lifts off a pressed surface, which springs back through rest.
+    var release: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A dragged thing comes to rest. With a gesture's velocity, use `settle(velocity:from:to:)` instead.
+    var settle: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// Lands on a detent, page or segment.
+    var snap: Animation { reduceMotion ? Self.still : .spring(Self.responsive) }
+    /// A number, a chart value or anything else people read moves to its new value. Never overshoots, so it
+    /// never shows a value that isn't true.
+    var value: Animation { reduceMotion ? Self.still : .spring(duration: 0.35, bounce: 0) }
+    /// Comes back from past a limit: a pull beyond the edge, a value pushed against its bound.
+    var rebound: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A shape or container changes size, corner radius or form, with a little give at the end.
+    var morph: Animation { reduceMotion ? Self.still : .spring(duration: 0.4, bounce: 0.2) }
+    /// Something appears, opens or expands. Opening is a little slower than closing.
+    var reveal: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.calm) }
+    /// Something leaves, closes or collapses. Quick and firm, out of the way.
+    var dismiss: Animation { reduceMotion ? .easeIn(duration: 0.18) : .spring(duration: 0.3, bounce: 0.08) }
+    /// A resolved action lands: a check, a sent state, a reaction.
+    var success: Animation { reduceMotion ? .easeOut(duration: 0.24) : .spring(Self.expressive) }
+    /// A refused action. Firm, no wobble; `pieceShake` adds the movement.
+    var error: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.responsive) }
+    /// Slow ambient change. Loops themselves stop under Reduce Motion: check `allowsAmbient`.
+    var ambient: Animation { reduceMotion ? .easeInOut(duration: 0.3) : .spring(Self.calm) }
+
+    /// Loops, drifts, idle breathing and parallax run only when this is true.
+    var allowsAmbient: Bool { !reduceMotion }
+
+    /// A moving transition, or a plain fade under Reduce Motion.
+    func transition(_ transition: AnyTransition) -> AnyTransition {
+        reduceMotion ? .opacity : transition
+    }
+
+    /// For content replaced inside a container that stays put (a label, a glyph, a count): the old content
+    /// blurs out as the new one sharpens in. A fade under Reduce Motion.
+    @MainActor var swap: AnyTransition {
+        reduceMotion ? .opacity : AnyTransition(.blurReplace)
+    }
+}
+
+extension PieceMotion {
+    /// Follow-through: rank 0 leads, each later rank arrives a beat later on a slightly looser spring. Safe to reverse.
+    func follow(_ spring: Spring = PieceMotion.elastic, rank: Int) -> Animation {
+        guard !reduceMotion else { return .spring(duration: 0.25, bounce: 0) }
+        let k = Double(min(max(rank, 0), 6))
+        return .spring(duration: spring.duration + 0.04 * k, bounce: min(spring.bounce + 0.02 * k, 0.55))
+    }
+
+    /// One-shot entrances only: item `index` waits 30ms per place, capped at the seventh. Exits go together.
+    func cascade(_ animation: Animation, index: Int, step: Double = 0.03) -> Animation {
+        guard !reduceMotion, index > 0 else { return animation }
+        return animation.delay(step * Double(min(index, 7)))
+    }
+}
+
+extension PieceMotion {
+    /// About `depth` points per edge, not a fixed percentage: an icon sinks to 0.92, a pill 0.95, a card 0.985.
+    nonisolated static func pressScale(for size: CGSize, depth: CGFloat = 2.5) -> CGFloat {
+        let side = (max(size.width, 1) * max(size.height, 1)).squareRoot()
+        return min(max(1 - depth * 2 / side, 0.92), 0.985)
+    }
+
+    /// An anchor partway from the center toward the touch, so the press leans into the finger without tipping.
+    nonisolated static func pressAnchor(touch: CGPoint?, in size: CGSize, lean: CGFloat = 0.6) -> UnitPoint {
+        guard let touch, size.width > 0, size.height > 0 else { return .center }
+        let x = min(max(touch.x / size.width, 0), 1)
+        let y = min(max(touch.y / size.height, 0), 1)
+        return UnitPoint(x: 0.5 + (x - 0.5) * lean, y: 0.5 + (y - 0.5) * lean)
+    }
+}
+
+// swiftpieces-motion: end
+
+// MARK: - Piece liquid
+//
+// The SwiftPieces liquid glass language: glass shapes that merge through a neck, bubbles that bud out of
+// and melt back into each other, and the frosted fallback before iOS 26. Each piece carries a copy of only
+// the parts it uses, so this file stands alone. Generated from registry/foundation/PieceLiquid.swift in the
+// SwiftPieces repo; edit it there, not here. The rules are in LIQUID_GLASS.md.
+// swiftpieces-liquid: 1.7.0 (liquid, liquidPress, bud, morphText)
+
+/// The liquid glass language: one merge distance, two rest gaps, and the springs a bubble leaves and comes home on.
+///
+/// Glass shapes inside one `PieceLiquidGroup` melt into each other through a neck when they come within `merge`
+/// points. Parts of one control rest `joined`, inside that distance, so the neck holds; separate actions rest
+/// `apart`, outside it, so they only goo while one buds out of, or melts back into, another.
+private enum PieceLiquid {
+    /// Glass shapes closer than this share a neck.
+    static let merge: CGFloat = 20
+    /// The gap between parts of one control (a stepper's buttons, a progress pill and its stop): the neck holds,
+    /// short and smooth, about two thirds of the shapes' height at its waist. Joined parts read best at one height.
+    static let joined: CGFloat = 4
+    /// The gap between separate actions (menu items, confirm and cancel, chips): they rest as their own bubbles.
+    static let apart: CGFloat = 26
+    /// How far a bubble shrinks while it is home inside its parent.
+    static let homeScale: CGFloat = 0.72
+
+    /// A bubble leaving its parent: slow enough that the neck's stretch and snap read.
+    static func split(reduceMotion: Bool) -> Animation {
+        reduceMotion ? .easeOut(duration: 0.2) : .spring(duration: 0.62, bounce: 0.22)
+    }
+
+    /// A bubble going home. No bounce: a bounce would carry it out through the far side of its parent.
+    static func home(reduceMotion: Bool) -> Animation {
+        reduceMotion ? .easeIn(duration: 0.18) : .spring(duration: 0.5, bounce: 0)
+    }
+}
+
+/// A group of glass shapes that merge into one liquid surface. On iOS 26 it is a `GlassEffectContainer`; before
+/// that, and under Reduce Transparency, the shapes draw on their own and simply don't merge. `lift` adds the soft
+/// shadow liquid glass floats on in light mode.
+private struct PieceLiquidGroup<Content: View>: View {
+    var spacing: CGFloat = PieceLiquid.merge
+    var lift = true
+    @ViewBuilder var content: Content
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        container
+            .shadow(color: .black.opacity(lift && colorScheme == .light ? 0.07 : 0), radius: 18, y: 8)
+    }
+
+    @ViewBuilder private var container: some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26, *), !reduceTransparency {
+            GlassEffectContainer(spacing: spacing) { content }
+        } else {
+            content
+        }
+        #else
+        content
+        #endif
+    }
+}
+
+/// One liquid glass shape: Liquid Glass on iOS 26, carrying `tint` as a solid colour and swelling under a press when
+/// `interactive`; a frosted Material with a light rim and a soft shadow before that; a solid fill under Reduce
+/// Transparency.
+///
+/// The tint is painted inside clear glass rather than tinting the glass. Tinted glass in a group bleeds its colour
+/// through every neck as a smear, so a red button would glow into the white pill it is joined to; painted inside,
+/// the colour stays crisp to the shape's edge, the necks between shapes are clear glass, and a tint change animates
+/// like any colour (tinted glass snaps).
+private struct PieceLiquidSurface<S: Shape>: ViewModifier {
+    var shape: S
+    var tint: Color?
+    var interactive: Bool
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.pieceLiquidScale) private var scale
+
+    func body(content: Content) -> some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26, *), !reduceTransparency {
+            // Scaled as two parts, content and outline, about the same centre. A scaleEffect on a glass view inside a
+            // GlassEffectContainer shrinks the glass but leaves what it carries full size, pinned to its corner.
+            content
+                .background { shape.fill(tint ?? .clear) }
+                .scaleEffect(scale)
+                .glassEffect(glass, in: shape.scale(scale))
+        } else {
+            fallback(content).scaleEffect(scale)
+        }
+        #else
+        fallback(content).scaleEffect(scale)
+        #endif
+    }
+
+    #if compiler(>=6.2)
+    @available(iOS 26, *)
+    private var glass: Glass {
+        interactive ? Glass.regular.interactive() : .regular
+    }
+    #endif
+
+    private func fallback(_ content: Content) -> some View {
+        let dark = colorScheme == .dark
+        return content
+            .background {
+                if reduceTransparency {
+                    shape.fill(tint ?? (dark ? Color(white: 0.17) : Color(white: 0.97)))
+                } else {
+                    ZStack {
+                        shape.fill(.regularMaterial)
+                        if let tint { shape.fill(tint.opacity(0.88)) }
+                    }
+                }
+            }
+            .overlay { shape.stroke(Color.white.opacity(dark ? 0.14 : 0.7), lineWidth: 0.5) }
+            .shadow(color: .black.opacity(dark ? 0.32 : 0.08), radius: 10, y: 5)
+    }
+}
+
+private struct PieceLiquidScaleKey: EnvironmentKey {
+    static let defaultValue: CGFloat = 1
+}
+
+private extension EnvironmentValues {
+    /// How much the liquid shapes below are scaled, about their own centres. Nested scales multiply.
+    var pieceLiquidScale: CGFloat {
+        get { self[PieceLiquidScaleKey.self] }
+        set { self[PieceLiquidScaleKey.self] = newValue }
+    }
+}
+
+private extension View {
+    /// Draws this view on a liquid glass `shape`. Put it inside a `PieceLiquidGroup` so it can merge with its neighbours.
+    func pieceLiquid<S: Shape>(_ shape: S, tint: Color? = nil, interactive: Bool = true) -> some View {
+        modifier(PieceLiquidSurface(shape: shape, tint: tint, interactive: interactive))
+    }
+
+    /// Scales the liquid glass shapes in this view, content and outline together, about their own centres. Use it
+    /// instead of `scaleEffect` on a glass view (a press, a lift, a swell): inside a group a plain `scaleEffect` shrinks
+    /// the glass but leaves its content full size and off centre. Animates like any other value.
+    func pieceLiquidScale(_ scale: CGFloat) -> some View {
+        transformEnvironment(\.pieceLiquidScale) { $0 *= scale }
+    }
+}
+
+/// The press for a glass control: the same size-aware sink and lean as `piecePress`, applied through
+/// `pieceLiquidScale` so the glass and what it carries sink together (a plain scaleEffect on glass leaves the content
+/// behind). Put the glass inside what it presses: the label of a button, the view this modifies. Under Reduce Motion
+/// it shades instead of moving.
+private struct PieceLiquidPress: ViewModifier {
+    let pressed: Bool
+    var touch: CGPoint?
+    var depth: CGFloat = 2.5
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.colorScheme) private var colorScheme
+    @State private var size: CGSize = .zero
+    @State private var anchor: UnitPoint = .center
+
+    func body(content: Content) -> some View {
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        let scale = pressed && !reduceMotion ? PieceMotion.pressScale(for: size, depth: depth) : 1
+        // A scale about `anchor` is a scale about the centre plus this shift toward the anchor.
+        let lean = CGSize(width: (anchor.x - 0.5) * size.width * (1 - scale), height: (anchor.y - 0.5) * size.height * (1 - scale))
+        content
+            .onGeometryChange(for: CGSize.self) { $0.size } action: { size = $0 }
+            .brightness(pressed && reduceMotion ? (colorScheme == .dark ? 0.1 : -0.08) : 0)
+            .pieceLiquidScale(scale)
+            .offset(lean)
+            .animation(pressed ? motion.press : motion.release, value: pressed)
+            .onChange(of: pressed) { _, isPressed in
+                if isPressed { anchor = PieceMotion.pressAnchor(touch: touch, in: size) }
+            }
+            .onChange(of: touch) { _, touch in
+                if pressed, let touch { anchor = PieceMotion.pressAnchor(touch: touch, in: size) }
+            }
+    }
+}
+
+/// `PiecePressStyle` for glass buttons: the label (with its `.pieceLiquid` inside) sinks as one.
+private struct PieceLiquidPressStyle: ButtonStyle {
+    var depth: CGFloat = 2.5
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label.pieceLiquidPress(configuration.isPressed, depth: depth)
+    }
+}
+
+private extension View {
+    /// Sinks this view's glass while `pressed`, leaning toward `touch` (in this view's coordinates) when given.
+    func pieceLiquidPress(_ pressed: Bool, touch: CGPoint? = nil, depth: CGFloat = 2.5) -> some View {
+        modifier(PieceLiquidPress(pressed: pressed, touch: touch, depth: depth))
+    }
+}
+
+/// The bud: how a bubble leaves and rejoins its parent, driven explicitly so every bubble shows the whole cycle.
+///
+/// A bubble is born at `home`, inside its parent, where the two glass shapes are one. It springs out to `rest`, and
+/// while it is inside the merge distance a neck holds it to the parent, thinning as it goes, until it snaps free.
+/// Going home it springs back on a spring with no bounce, the neck reaches out and re-forms, and only once it has
+/// melted all the way in is it removed. Both offsets are relative to where the bubble is laid out. Under Reduce
+/// Motion it stays at `rest`: its content fades and its glass closes in place.
+private struct PieceBud: ViewModifier {
+    var out: Bool
+    var rest: CGSize
+    var home: CGSize
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func body(content: Content) -> some View {
+        if reduceMotion {
+            // No travel. Inside a group glass ignores opacity, so the glass closes to nothing in place on the short
+            // Reduce Motion ease while its content fades; the opacity covers a bubble outside a group.
+            content
+                .pieceLiquidScale(out ? 1 : 0.001)
+                .opacity(out ? 1 : 0)
+                .offset(rest)
+        } else {
+            // The glass shrinks through `pieceLiquidScale`, never a plain scaleEffect (see there), then moves.
+            content
+                .pieceLiquidScale(out ? 1 : PieceLiquid.homeScale)
+                .offset(out ? rest : home)
+        }
+    }
+}
+
+/// A bubble's own content, on its own clock: gone the moment the bubble heads home, so it never rides over the
+/// parent's content, and arriving just after the bubble leaves.
+private struct PieceBudContent: ViewModifier {
+    var out: Bool
+
+    func body(content: Content) -> some View {
+        content
+            .blur(radius: out ? 0 : 6)
+            .opacity(out ? 1 : 0)
+            .animation(out ? .easeOut(duration: 0.3).delay(0.1) : .easeOut(duration: 0.14), value: out)
+    }
+}
+
+private extension View {
+    /// Places a bubble at `rest` while `out`, and at `home` (inside its parent, shrunk) while not.
+    func pieceBud(out: Bool, rest: CGSize = .zero, home: CGSize) -> some View {
+        modifier(PieceBud(out: out, rest: rest, home: home))
+    }
+
+    /// Hides a bubble's icon or label while it is home. Put it on the content, inside the glass.
+    func pieceBudContent(out: Bool) -> some View {
+        modifier(PieceBudContent(out: out))
+    }
+}
+
+/// Which bubbles exist and which are out. A bubble is added home with no animation, sent out on the next frame,
+/// and called home before it is removed, so it always melts in rather than fading. Keep one in `@State`.
+@MainActor @Observable
+private final class PieceBuds {
+    private(set) var present: [String] = []
+    private(set) var out: Set<String> = []
+    /// The latest call for each bubble. A bloom or gather that has been overtaken (a bubble sent home while it was
+    /// still waiting to go out, or called out again while melting) leaves that bubble alone.
+    @ObservationIgnored private var turn: [String: Int] = [:]
+
+    func contains(_ id: String) -> Bool { present.contains(id) }
+    func isOut(_ id: String) -> Bool { out.contains(id) }
+
+    private func claim(_ ids: [String]) -> [String: Int] {
+        var mine: [String: Int] = [:]
+        for id in ids {
+            let next = (turn[id] ?? 0) + 1
+            turn[id] = next
+            mine[id] = next
+        }
+        return mine
+    }
+
+    /// Puts bubbles straight out at rest with no motion: a view's first frame, or a state restored.
+    func place(_ ids: [String]) {
+        _ = claim(ids)
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) {
+            for id in ids where !present.contains(id) { present.append(id) }
+            out.formUnion(ids)
+        }
+    }
+
+    /// Adds bubbles home, then sends each out, `stagger` seconds apart, after an optional `delay`.
+    func bloom(_ ids: [String], reduceMotion: Bool, stagger: Double = 0.05, delay: Double = 0) async {
+        let mine = claim(ids)
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) {
+            for id in ids where !present.contains(id) { present.append(id) }
+        }
+        try? await Task.sleep(for: .milliseconds(24 + Int(max(delay, 0) * 1000)))
+        let split = PieceLiquid.split(reduceMotion: reduceMotion)
+        for (i, id) in ids.enumerated() where turn[id] == mine[id] {
+            withAnimation(split.delay(reduceMotion ? 0 : Double(i) * stagger)) { _ = out.insert(id) }
+        }
+    }
+
+    /// Calls bubbles home, last first, then removes them once they have melted in.
+    func gather(_ ids: [String], reduceMotion: Bool, stagger: Double = 0.04) async {
+        let mine = claim(ids)
+        let home = PieceLiquid.home(reduceMotion: reduceMotion)
+        for (i, id) in ids.reversed().enumerated() {
+            withAnimation(home.delay(reduceMotion ? 0 : Double(i) * stagger)) { _ = out.remove(id) }
+        }
+        try? await Task.sleep(for: .milliseconds(Int((0.52 + Double(ids.count) * stagger) * 1000)))
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) { present.removeAll { ids.contains($0) && !out.contains($0) && turn[$0] == mine[$0] } }
+    }
+}
+
+/// A label that changes letter by letter: letters both strings share hold still, the rest blur out and the new ones
+/// blur in a few milliseconds apart. Under Reduce Motion it cross-fades. VoiceOver reads the whole string.
+private struct PieceMorphText: View {
+    var text: String
+    var font: Font = .body.weight(.semibold)
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        let glyphs = Array(text)
+        HStack(spacing: 0) {
+            ForEach(glyphs.indices, id: \.self) { i in
+                Text(String(glyphs[i]))
+                    .id("\(i)\(glyphs[i])")
+                    .transition(transition(i))
+            }
+        }
+        .font(font)
+        .fixedSize()
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(text)
+    }
+
+    private func transition(_ i: Int) -> AnyTransition {
+        guard !reduceMotion else { return .opacity }
+        return AnyTransition(.blurReplace(.downUp)).combined(with: .scale(scale: 0.6, anchor: .bottom))
+            .animation(.spring(duration: 0.42, bounce: 0.3).delay(Double(i) * 0.022))
+    }
+}
+
+// swiftpieces-liquid: end

@@ -1,55 +1,69 @@
 // swiftpieces:
 // title: Parallax Card
-// description: An image card whose picture drifts slower than the scroll while a solid caption block drifts slower still, so the card reads in layers. Press lifts it with a deeper shadow and nudges the trailing glyph, and the caption is composed from eyebrow, title, metadata, and trailing glyph slots.
+// description: An image card whose picture drifts slower than the scroll while a liquid glass caption panel drifts slower still, so the card reads in layers. The trailing glyph is a glass bubble joined to the panel by a liquid neck; a press lifts the card with a deeper shadow and the bubble leans toward its arrow, thinning the neck. The caption is composed from eyebrow, title, metadata, and trailing glyph slots.
 // category: cards
 // minIOSVersion: "17.0"
-// version: "2.0.0"
+// version: "2.2.0"
 // pro: hero-expand
 // tags: [card, parallax, image, scroll, press, caption]
 
 import SwiftUI
 
-/// Image card with two-layer scroll parallax, press-to-lift, and a slotted caption.
+/// Image card with two-layer scroll parallax, press-to-lift, and a slotted liquid glass caption.
+///
+/// The caption is a glass panel inset over the bottom of the picture, and the trailing glyph a round glass bubble
+/// resting joined to it, so a liquid neck holds the two together as one surface.
 ///
 /// - Parameters:
 ///   - image: The picture to show, scaled to fill.
 ///   - eyebrow: Optional small uppercase line above the title, for a category or date.
 ///   - title: Title drawn in the caption.
 ///   - metadata: Optional short facts shown in a dot-separated row under the title.
-///   - trailingSymbol: Optional SF Symbol drawn in a circle at the caption's trailing end, for example "arrow.up.right".
+///   - trailingSymbol: Optional SF Symbol drawn in a glass bubble joined to the caption's trailing end, for example "arrow.up.right".
 ///   - height: Card height.
 ///   - parallax: How far the image drifts, as a fraction of `height` on each side. The caption drifts at a third of that. 0 disables the effect.
 ///   - cornerRadius: Corner radius of the card.
-///   - style: Caption treatment and colors. `.standard` is a butter caption block with dark ink; `.scrim` puts white text over a darkened bottom edge.
+///   - style: Caption treatment and colors. `.standard` is a neutral glass panel whose ink follows the appearance; `.scrim` puts white text over a darkened bottom edge.
 ///   - action: Optional tap handler. When set, the card lifts on press and reads as a button.
 public struct ParallaxCard: View {
     /// How the caption sits on the picture, and its colors.
     public struct Style: Sendable {
         /// Caption treatment.
         public enum Caption: Sendable {
-            /// A solid, inset block that drifts over the picture.
+            /// An inset liquid glass panel that drifts over the picture.
             case block
-            /// White text over a bottom scrim, for busy photos that should stay edge to edge.
+            /// White text over a bottom scrim, for busy photos that should stay edge to edge. The trailing bubble is
+            /// dark glass.
             case scrim
         }
 
         /// Caption treatment.
         public var caption: Caption
-        /// Fill of the caption block. Ignored for `.scrim`.
+        /// The glass tint of the caption panel and its trailing bubble. `.clear`, the default, leaves them neutral
+        /// glass; pass a colour only when it means something, with `captionInk` set to an ink that reads on it.
+        /// Ignored for `.scrim`.
         public var captionFill: Color
-        /// Text color in the caption block. Ignored for `.scrim`, which is always white.
+        /// Text and glyph color in the caption panel. The default follows the appearance, dark in light mode and near
+        /// white in dark, as text on neutral glass does. Ignored for `.scrim`, which is always white.
         public var captionInk: Color
         /// Resting shadow strength in light mode; dark mode uses about three times this.
         public var shadowOpacity: Double
 
-        public init(caption: Caption = .block, captionFill: Color = Color(red: 1, green: 0.851, blue: 0.463), captionInk: Color = Color(red: 0.078, green: 0.078, blue: 0.078), shadowOpacity: Double = 0.12) {
+        public init(
+            caption: Caption = .block,
+            captionFill: Color = .clear,
+            captionInk: Color = Color(uiColor: UIColor { @Sendable traits in
+                traits.userInterfaceStyle == .dark ? UIColor(red: 0.957, green: 0.953, blue: 0.937, alpha: 1) : UIColor(red: 0.078, green: 0.078, blue: 0.078, alpha: 1)
+            }),
+            shadowOpacity: Double = 0.12
+        ) {
             self.caption = caption
             self.captionFill = captionFill
             self.captionInk = captionInk
             self.shadowOpacity = shadowOpacity
         }
 
-        /// House default: a butter caption block with dark ink.
+        /// House default: a neutral glass panel with ink that follows the appearance.
         public static let standard = Style()
         /// White caption over a bottom scrim.
         public static let scrim = Style(caption: .scrim)
@@ -87,10 +101,9 @@ public struct ParallaxCard: View {
     public var body: some View {
         if let action {
             Button(action: action) { card }
-                .buttonStyle(Lift(scales: !reduceMotion, shadow: shadow))
+                .buttonStyle(Lift())
         } else {
             card
-                .shadow(color: .black.opacity(shadow), radius: 16, y: 10)
         }
     }
 
@@ -120,11 +133,13 @@ public struct ParallaxCard: View {
             }
             .overlay(alignment: .bottom) {
                 if style.caption == .scrim {
-                    // The scrim is tallest when the card is centered and tightens as it leaves the viewport.
+                    // The scrim is tallest when the card is centered and tightens as it leaves the viewport. Squaring the
+                    // progress eases it through the center instead of turning there on a sharp corner.
                     LinearGradient(colors: [.clear, .black.opacity(0.72)], startPoint: .top, endPoint: .bottom)
                         .frame(height: height * 0.6)
                         .visualEffect { content, proxy in
-                            content.scaleEffect(y: tightens ? 1.3 - 0.4 * abs(Self.progress(proxy)) : 1, anchor: .bottom)
+                            let progress = Self.progress(proxy)
+                            return content.scaleEffect(y: tightens ? 1.3 - 0.4 * progress * progress : 1, anchor: .bottom)
                         }
                         .accessibilityHidden(true)
                 }
@@ -136,12 +151,19 @@ public struct ParallaxCard: View {
                     }
             }
             .clipShape(.rect(cornerRadius: cornerRadius, style: .continuous))
+            .modifier(PressShade())
+            // Cast by the card's outline alone: the glass caption draws in its own layer and would take the card's
+            // shadow as a dark halo over the picture.
+            .background { CardShadow(cornerRadius: cornerRadius, strength: shadow) }
+            .fontWeight(.semibold)
             .accessibilityElement(children: .combine)
     }
 
-    /// The caption slots, as a solid block or as white text over the scrim. Reads the press state from the button style.
+    /// The caption slots, on a glass panel or as white text over the scrim, with the trailing glyph in a glass bubble
+    /// joined to them. Reads the press state from the button style.
     private struct Caption: View {
         @Environment(\.accessibilityReduceMotion) private var reduceMotion
+        @Environment(\.colorScheme) private var colorScheme
         @Environment(\.parallaxCardPressed) private var pressed
         let eyebrow: String?
         let title: String
@@ -152,67 +174,118 @@ public struct ParallaxCard: View {
 
         var body: some View {
             let block = style.caption == .block
-            HStack(alignment: .center, spacing: 12) {
-                VStack(alignment: .leading, spacing: 3) {
-                    if let eyebrow {
-                        Text(eyebrow.uppercased())
-                            .font(.caption2.weight(.bold))
-                            .tracking(1)
-                            .opacity(block ? 0.62 : 0.8)
+            let tint = block && style.captionFill != .clear ? style.captionFill : nil
+            PieceLiquidGroup {
+                // The panel and the bubble rest joined, so a liquid neck holds them together as one surface.
+                HStack(alignment: .center, spacing: block ? PieceLiquid.joined : 12) {
+                    if block {
+                        slots(block: true)
+                            .padding(16)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            // Concentric with the card: its corner less the inset.
+                            .pieceLiquid(RoundedRectangle(cornerRadius: max(cornerRadius - 10, 12), style: .continuous), tint: tint, interactive: false)
+                    } else {
+                        // Over the scrim the text stays on the picture; only the bubble is glass.
+                        slots(block: false)
+                            .frame(maxWidth: .infinity, alignment: .leading)
                     }
-                    Text(title)
-                        .font(.system(.title2, weight: .bold))
-                        .tracking(-0.6)
-                        .lineLimit(2)
-                    if !metadata.isEmpty {
-                        HStack(spacing: 6) {
-                            ForEach(Array(metadata.enumerated()), id: \.offset) { index, item in
-                                if index > 0 {
-                                    Circle().frame(width: 3, height: 3).opacity(0.6)
-                                }
-                                Text(item)
-                            }
-                        }
-                        .font(.subheadline.weight(.medium))
-                        .opacity(block ? 0.62 : 0.85)
-                        .lineLimit(1)
+                    if let trailingSymbol {
+                        bubble(trailingSymbol, tint: tint)
                     }
-                }
-                Spacer(minLength: 0)
-                if let trailingSymbol {
-                    Image(systemName: trailingSymbol)
-                        .font(.subheadline.weight(.bold))
-                        .foregroundStyle(block ? style.captionFill : .black)
-                        .offset(x: pressed && !reduceMotion ? 2 : 0, y: pressed && !reduceMotion ? -2 : 0)
-                        .frame(width: 44, height: 44)
-                        .background(block ? style.captionInk : .white, in: Circle())
-                        .accessibilityHidden(true)
                 }
             }
             .foregroundStyle(block ? style.captionInk : .white)
-            .padding(block ? 16 : 20)
-            .background {
-                if block {
-                    RoundedRectangle(cornerRadius: max(cornerRadius - 10, 12), style: .continuous)
-                        .fill(style.captionFill)
+            .padding(block ? 10 : 20)
+            // Over the scrim the bubble is dark glass, so the white arrow reads on the fallback material too.
+            .environment(\.colorScheme, block ? colorScheme : .dark)
+        }
+
+        private func slots(block: Bool) -> some View {
+            VStack(alignment: .leading, spacing: 3) {
+                if let eyebrow {
+                    Text(eyebrow.uppercased())
+                        .font(.caption2.weight(.semibold))
+                        .tracking(1)
+                        .opacity(block ? 0.62 : 0.8)
+                }
+                Text(title)
+                    .font(.system(.title2, weight: .semibold))
+                    .tracking(-0.6)
+                    .lineLimit(2)
+                if !metadata.isEmpty {
+                    HStack(spacing: 6) {
+                        ForEach(Array(metadata.enumerated()), id: \.offset) { index, item in
+                            if index > 0 {
+                                Circle().frame(width: 3, height: 3).opacity(0.6)
+                            }
+                            Text(item)
+                        }
+                    }
+                    .font(.subheadline.weight(.semibold))
+                    .opacity(block ? 0.62 : 0.85)
+                    .lineLimit(1)
                 }
             }
-            .padding(block ? 10 : 0)
+        }
+
+        /// The trailing glyph on a round glass bubble. Pressed, the bubble leans 2pt toward its arrow, so the neck to the
+        /// panel thins as if the arrow were pulling it out.
+        private func bubble(_ symbol: String, tint: Color?) -> some View {
+            let motion = PieceMotion(reduceMotion: reduceMotion)
+            let lean: CGFloat = pressed && !reduceMotion ? 2 : 0
+            return Image(systemName: symbol)
+                .font(.subheadline.weight(.semibold))
+                .frame(width: 44, height: 44)
+                .pieceLiquid(.circle, tint: tint, interactive: false)
+                .offset(x: lean, y: -lean)
+                // The bubble follows the card one rank behind on whichever spring the card is on: the tight press going
+                // down, so it never bounces under the finger, and the elastic release coming back.
+                .animation(pressed ? motion.follow(PieceMotion.tight, rank: 1) : motion.follow(rank: 1), value: pressed)
+                .accessibilityHidden(true)
         }
     }
 
-    /// Press-to-lift: the card grows to 1.02, its shadow deepens, and the trailing glyph nudges toward its arrow, then everything springs back.
+    /// Reduce Motion: a pressed card keeps its size and dims instead (brightens in dark mode, where the shadow barely
+    /// shows). On the card, not its shadow, which stays dark. Reads the press from the button style.
+    private struct PressShade: ViewModifier {
+        @Environment(\.accessibilityReduceMotion) private var reduceMotion
+        @Environment(\.colorScheme) private var colorScheme
+        @Environment(\.parallaxCardPressed) private var pressed
+
+        func body(content: Content) -> some View {
+            content.brightness(pressed && reduceMotion ? (colorScheme == .dark ? 0.1 : -0.08) : 0)
+        }
+    }
+
+    /// The card's shadow, from its outline. Pressed, it deepens and spreads; it reads the press from the button style.
+    private struct CardShadow: View {
+        let cornerRadius: CGFloat
+        let strength: Double
+        @Environment(\.parallaxCardPressed) private var pressed
+
+        var body: some View {
+            // A point inside the card's edge, so the fill casting the shadow never darkens the picture's antialiased rim.
+            RoundedRectangle(cornerRadius: max(cornerRadius - 1, 0), style: .continuous)
+                .fill(.black)
+                .padding(1)
+                .shadow(color: .black.opacity(pressed ? min(strength * 1.8, 1) : strength), radius: pressed ? 26 : 16, y: pressed ? 16 : 10)
+        }
+    }
+
+    /// Press-to-lift: the card rises to 1.02 instead of sinking, its shadow deepens, and the trailing bubble leans toward
+    /// its arrow a beat later, then everything springs back. It follows `isPressed`, so a scroll that takes over the
+    /// touch settles the card the same way and nothing stays lifted.
     private struct Lift: ButtonStyle {
-        let scales: Bool
-        let shadow: Double
+        @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
         func makeBody(configuration: Configuration) -> some View {
+            let motion = PieceMotion(reduceMotion: reduceMotion)
             let pressed = configuration.isPressed
             configuration.label
+                // The shade and the shadow read this; under Reduce Motion the card keeps its size.
                 .environment(\.parallaxCardPressed, pressed)
-                .scaleEffect(pressed && scales ? 1.02 : 1)
-                .shadow(color: .black.opacity(pressed ? min(shadow * 1.8, 1) : shadow), radius: pressed ? 26 : 16, y: pressed ? 16 : 10)
-                .animation(pressed ? .smooth(duration: 0.15) : .spring(duration: 0.4, bounce: 0.25), value: pressed)
+                .scaleEffect(pressed && !reduceMotion ? 1.02 : 1)
+                .animation(pressed ? motion.press : motion.release, value: pressed)
         }
     }
 }
@@ -230,7 +303,7 @@ fileprivate extension EnvironmentValues {
 
 // MARK: - Example
 
-/// Walking routes: each picture is a flat color composition with a cropped giant word, and each caption a different block.
+/// Walking routes: each picture is a flat color composition with a cropped giant word, under a neutral glass caption.
 private struct ParallaxCardExample: View {
     @Environment(\.colorScheme) private var colorScheme
     @State private var art: [Int: Image] = [:]
@@ -241,7 +314,6 @@ private struct ParallaxCardExample: View {
         let facts: [String]
         let sky: Color
         let sun: Color
-        let caption: Color
     }
 
     private static let ink = Color(red: 0.078, green: 0.078, blue: 0.078)
@@ -253,10 +325,10 @@ private struct ParallaxCardExample: View {
     private static let sand = Color(red: 0.914, green: 0.835, blue: 0.702)
 
     private let walks = [
-        Walk(name: "Alfama at dusk", word: "ALFAMA", facts: ["3.2 km", "1 h 10 min"], sky: sky, sun: tangerine, caption: butter),
-        Walk(name: "River to Belém", word: "BELÉM", facts: ["6.8 km", "2 h"], sky: sage, sun: butter, caption: lilac),
-        Walk(name: "Graça viewpoints", word: "GRAÇA", facts: ["2.1 km", "45 min"], sky: lilac, sun: sky, caption: sand),
-        Walk(name: "Chiado bookshops", word: "CHIADO", facts: ["1.6 km", "40 min"], sky: tangerine, sun: sand, caption: sage)
+        Walk(name: "Alfama at dusk", word: "ALFAMA", facts: ["3.2 km", "1 h 10 min"], sky: sky, sun: tangerine),
+        Walk(name: "River to Belém", word: "BELÉM", facts: ["6.8 km", "2 h"], sky: sage, sun: butter),
+        Walk(name: "Graça viewpoints", word: "GRAÇA", facts: ["2.1 km", "45 min"], sky: lilac, sun: sky),
+        Walk(name: "Chiado bookshops", word: "CHIADO", facts: ["1.6 km", "40 min"], sky: tangerine, sun: sand)
     ]
 
     var body: some View {
@@ -269,8 +341,7 @@ private struct ParallaxCardExample: View {
                         title: walk.name,
                         metadata: walk.facts,
                         trailingSymbol: "arrow.up.right",
-                        height: 250,
-                        style: ParallaxCard.Style(captionFill: walk.caption)
+                        height: 250
                     ) {}
                 }
             }
@@ -304,7 +375,7 @@ private struct ParallaxCardExample: View {
                     .frame(width: 190, height: 190)
                     .offset(x: 196, y: 10)
                 Text(word)
-                    .font(.system(size: 128, weight: .black))
+                    .font(.system(size: 128, weight: .semibold))
                     .tracking(-6)
                     .foregroundStyle(ink)
                     .fixedSize()
@@ -325,3 +396,242 @@ private struct ParallaxCardExample: View {
     ParallaxCardExample()
         .preferredColorScheme(.dark)
 }
+
+// MARK: - Piece motion
+//
+// The SwiftPieces motion language: shared spring tokens and gesture physics, with the same values in every
+// piece. Each piece carries a copy of only the parts it uses, so this file stands alone. Generated from
+// registry/foundation/PieceMotion.swift in the SwiftPieces repo; edit it there, not here.
+// swiftpieces-motion: 1.1.0 (core, follow)
+
+/// The SwiftPieces motion language: five spring tiers, and a named role for every moment a piece moves,
+/// each with its Reduce Motion substitute.
+///
+/// Build one from the environment, `PieceMotion(reduceMotion: reduceMotion)`, and pick the role that names
+/// what just happened. Never animate the tracking of a finger: set gesture state directly in `onChanged`, so the
+/// surface stays under the finger, and spring only the release.
+private struct PieceMotion {
+    var reduceMotion = false
+
+    // Tiers. Overshoot and settle times are measured from rest with SwiftUI's Spring.
+    /// No overshoot, 90% in about 90ms. A press arriving under the finger.
+    static var tight: Spring { Spring(duration: 0.14, bounce: 0) }
+    /// About 2.8% overshoot, 90% in about 140ms. Snapping to a detent, page or segment.
+    static var responsive: Spring { Spring(duration: 0.32, bounce: 0.25) }
+    /// About 8.4% overshoot. Visible give: a release, a return from past an edge, a drag settling home.
+    static var elastic: Spring { Spring(duration: 0.42, bounce: 0.38) }
+    /// About 15% overshoot. A resolved action landing. At most once per interaction.
+    static var expressive: Spring { Spring(duration: 0.48, bounce: 0.48) }
+    /// About 1.5% overshoot, unhurried. Opening large surfaces and ambient change.
+    static var calm: Spring { Spring(duration: 0.5, bounce: 0.2) }
+
+    /// Reduce Motion: settles become this short spring with no overshoot.
+    private static var still: Animation { .spring(duration: 0.25, bounce: 0) }
+
+    // Roles.
+    /// Touch-down. Starts on the same frame and never bounces under the finger.
+    var press: Animation { .spring(Self.tight) }
+    /// The finger lifts off a pressed surface, which springs back through rest.
+    var release: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A dragged thing comes to rest. With a gesture's velocity, use `settle(velocity:from:to:)` instead.
+    var settle: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// Lands on a detent, page or segment.
+    var snap: Animation { reduceMotion ? Self.still : .spring(Self.responsive) }
+    /// A number, a chart value or anything else people read moves to its new value. Never overshoots, so it
+    /// never shows a value that isn't true.
+    var value: Animation { reduceMotion ? Self.still : .spring(duration: 0.35, bounce: 0) }
+    /// Comes back from past a limit: a pull beyond the edge, a value pushed against its bound.
+    var rebound: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A shape or container changes size, corner radius or form, with a little give at the end.
+    var morph: Animation { reduceMotion ? Self.still : .spring(duration: 0.4, bounce: 0.2) }
+    /// Something appears, opens or expands. Opening is a little slower than closing.
+    var reveal: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.calm) }
+    /// Something leaves, closes or collapses. Quick and firm, out of the way.
+    var dismiss: Animation { reduceMotion ? .easeIn(duration: 0.18) : .spring(duration: 0.3, bounce: 0.08) }
+    /// A resolved action lands: a check, a sent state, a reaction.
+    var success: Animation { reduceMotion ? .easeOut(duration: 0.24) : .spring(Self.expressive) }
+    /// A refused action. Firm, no wobble; `pieceShake` adds the movement.
+    var error: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.responsive) }
+    /// Slow ambient change. Loops themselves stop under Reduce Motion: check `allowsAmbient`.
+    var ambient: Animation { reduceMotion ? .easeInOut(duration: 0.3) : .spring(Self.calm) }
+
+    /// Loops, drifts, idle breathing and parallax run only when this is true.
+    var allowsAmbient: Bool { !reduceMotion }
+
+    /// A moving transition, or a plain fade under Reduce Motion.
+    func transition(_ transition: AnyTransition) -> AnyTransition {
+        reduceMotion ? .opacity : transition
+    }
+
+    /// For content replaced inside a container that stays put (a label, a glyph, a count): the old content
+    /// blurs out as the new one sharpens in. A fade under Reduce Motion.
+    @MainActor var swap: AnyTransition {
+        reduceMotion ? .opacity : AnyTransition(.blurReplace)
+    }
+}
+
+extension PieceMotion {
+    /// Follow-through: rank 0 leads, each later rank arrives a beat later on a slightly looser spring. Safe to reverse.
+    func follow(_ spring: Spring = PieceMotion.elastic, rank: Int) -> Animation {
+        guard !reduceMotion else { return .spring(duration: 0.25, bounce: 0) }
+        let k = Double(min(max(rank, 0), 6))
+        return .spring(duration: spring.duration + 0.04 * k, bounce: min(spring.bounce + 0.02 * k, 0.55))
+    }
+
+    /// One-shot entrances only: item `index` waits 30ms per place, capped at the seventh. Exits go together.
+    func cascade(_ animation: Animation, index: Int, step: Double = 0.03) -> Animation {
+        guard !reduceMotion, index > 0 else { return animation }
+        return animation.delay(step * Double(min(index, 7)))
+    }
+}
+
+// swiftpieces-motion: end
+
+// MARK: - Piece liquid
+//
+// The SwiftPieces liquid glass language: glass shapes that merge through a neck, bubbles that bud out of
+// and melt back into each other, and the frosted fallback before iOS 26. Each piece carries a copy of only
+// the parts it uses, so this file stands alone. Generated from registry/foundation/PieceLiquid.swift in the
+// SwiftPieces repo; edit it there, not here. The rules are in LIQUID_GLASS.md.
+// swiftpieces-liquid: 1.7.0 (liquid)
+
+/// The liquid glass language: one merge distance, two rest gaps, and the springs a bubble leaves and comes home on.
+///
+/// Glass shapes inside one `PieceLiquidGroup` melt into each other through a neck when they come within `merge`
+/// points. Parts of one control rest `joined`, inside that distance, so the neck holds; separate actions rest
+/// `apart`, outside it, so they only goo while one buds out of, or melts back into, another.
+private enum PieceLiquid {
+    /// Glass shapes closer than this share a neck.
+    static let merge: CGFloat = 20
+    /// The gap between parts of one control (a stepper's buttons, a progress pill and its stop): the neck holds,
+    /// short and smooth, about two thirds of the shapes' height at its waist. Joined parts read best at one height.
+    static let joined: CGFloat = 4
+    /// The gap between separate actions (menu items, confirm and cancel, chips): they rest as their own bubbles.
+    static let apart: CGFloat = 26
+    /// How far a bubble shrinks while it is home inside its parent.
+    static let homeScale: CGFloat = 0.72
+
+    /// A bubble leaving its parent: slow enough that the neck's stretch and snap read.
+    static func split(reduceMotion: Bool) -> Animation {
+        reduceMotion ? .easeOut(duration: 0.2) : .spring(duration: 0.62, bounce: 0.22)
+    }
+
+    /// A bubble going home. No bounce: a bounce would carry it out through the far side of its parent.
+    static func home(reduceMotion: Bool) -> Animation {
+        reduceMotion ? .easeIn(duration: 0.18) : .spring(duration: 0.5, bounce: 0)
+    }
+}
+
+/// A group of glass shapes that merge into one liquid surface. On iOS 26 it is a `GlassEffectContainer`; before
+/// that, and under Reduce Transparency, the shapes draw on their own and simply don't merge. `lift` adds the soft
+/// shadow liquid glass floats on in light mode.
+private struct PieceLiquidGroup<Content: View>: View {
+    var spacing: CGFloat = PieceLiquid.merge
+    var lift = true
+    @ViewBuilder var content: Content
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        container
+            .shadow(color: .black.opacity(lift && colorScheme == .light ? 0.07 : 0), radius: 18, y: 8)
+    }
+
+    @ViewBuilder private var container: some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26, *), !reduceTransparency {
+            GlassEffectContainer(spacing: spacing) { content }
+        } else {
+            content
+        }
+        #else
+        content
+        #endif
+    }
+}
+
+/// One liquid glass shape: Liquid Glass on iOS 26, carrying `tint` as a solid colour and swelling under a press when
+/// `interactive`; a frosted Material with a light rim and a soft shadow before that; a solid fill under Reduce
+/// Transparency.
+///
+/// The tint is painted inside clear glass rather than tinting the glass. Tinted glass in a group bleeds its colour
+/// through every neck as a smear, so a red button would glow into the white pill it is joined to; painted inside,
+/// the colour stays crisp to the shape's edge, the necks between shapes are clear glass, and a tint change animates
+/// like any colour (tinted glass snaps).
+private struct PieceLiquidSurface<S: Shape>: ViewModifier {
+    var shape: S
+    var tint: Color?
+    var interactive: Bool
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.pieceLiquidScale) private var scale
+
+    func body(content: Content) -> some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26, *), !reduceTransparency {
+            // Scaled as two parts, content and outline, about the same centre. A scaleEffect on a glass view inside a
+            // GlassEffectContainer shrinks the glass but leaves what it carries full size, pinned to its corner.
+            content
+                .background { shape.fill(tint ?? .clear) }
+                .scaleEffect(scale)
+                .glassEffect(glass, in: shape.scale(scale))
+        } else {
+            fallback(content).scaleEffect(scale)
+        }
+        #else
+        fallback(content).scaleEffect(scale)
+        #endif
+    }
+
+    #if compiler(>=6.2)
+    @available(iOS 26, *)
+    private var glass: Glass {
+        interactive ? Glass.regular.interactive() : .regular
+    }
+    #endif
+
+    private func fallback(_ content: Content) -> some View {
+        let dark = colorScheme == .dark
+        return content
+            .background {
+                if reduceTransparency {
+                    shape.fill(tint ?? (dark ? Color(white: 0.17) : Color(white: 0.97)))
+                } else {
+                    ZStack {
+                        shape.fill(.regularMaterial)
+                        if let tint { shape.fill(tint.opacity(0.88)) }
+                    }
+                }
+            }
+            .overlay { shape.stroke(Color.white.opacity(dark ? 0.14 : 0.7), lineWidth: 0.5) }
+            .shadow(color: .black.opacity(dark ? 0.32 : 0.08), radius: 10, y: 5)
+    }
+}
+
+private struct PieceLiquidScaleKey: EnvironmentKey {
+    static let defaultValue: CGFloat = 1
+}
+
+private extension EnvironmentValues {
+    /// How much the liquid shapes below are scaled, about their own centres. Nested scales multiply.
+    var pieceLiquidScale: CGFloat {
+        get { self[PieceLiquidScaleKey.self] }
+        set { self[PieceLiquidScaleKey.self] = newValue }
+    }
+}
+
+private extension View {
+    /// Draws this view on a liquid glass `shape`. Put it inside a `PieceLiquidGroup` so it can merge with its neighbours.
+    func pieceLiquid<S: Shape>(_ shape: S, tint: Color? = nil, interactive: Bool = true) -> some View {
+        modifier(PieceLiquidSurface(shape: shape, tint: tint, interactive: interactive))
+    }
+
+    /// Scales the liquid glass shapes in this view, content and outline together, about their own centres. Use it
+    /// instead of `scaleEffect` on a glass view (a press, a lift, a swell): inside a group a plain `scaleEffect` shrinks
+    /// the glass but leaves its content full size and off centre. Animates like any other value.
+    func pieceLiquidScale(_ scale: CGFloat) -> some View {
+        transformEnvironment(\.pieceLiquidScale) { $0 *= scale }
+    }
+}
+
+// swiftpieces-liquid: end

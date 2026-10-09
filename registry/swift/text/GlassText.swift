@@ -1,9 +1,9 @@
 // swiftpieces:
 // title: Glass Text
-// description: Liquid Glass rendered on the actual glyph outlines of a string, one or several lines, with a specular Material fallback below iOS 26, a solid fill under Reduce Transparency and Dynamic Type scaling.
+// description: Liquid Glass rendered on the actual glyph outlines of a string, one or several lines, set in the house semibold by default, with a specular frosted fallback below iOS 26, a solid fill under Reduce Transparency and Dynamic Type scaling.
 // category: text
 // minIOSVersion: "17.0"
-// version: "2.0.0"
+// version: "2.2.0"
 // pro: glass-paywall-screen
 // tags: [text, glass, coretext, display, numerals]
 
@@ -11,12 +11,13 @@ import SwiftUI
 import CoreText
 
 /// Liquid Glass applied to text outlines via Core Text glyph paths.
-/// The glyph path is built once per string and font, then handed to `glassEffect(_:in:)` as a shape.
+/// The glyph path is built from the string and font when the view's body runs, then handed to `glassEffect(_:in:)` as a shape.
+/// Its subject is glass itself, so it draws its glass directly rather than on a liquid group's shapes.
 /// Split the string with `\n` for a stacked display title; lines use tight display leading.
 ///
 /// - Parameters:
 ///   - text: The string to render. `\n` starts a new line.
-///   - font: The `UIFont` used to build glyph paths. Its point size is scaled with Dynamic Type, relative to `.largeTitle`.
+///   - font: The `UIFont` used to build glyph paths: system semibold, the house weight, by default. Its point size is scaled with Dynamic Type, relative to `.largeTitle`.
 ///   - tint: Optional glass tint. The Material fallback blends it in at `style.fallbackTintAmount`.
 ///   - scalesWithDynamicType: Set false to pin the point size.
 ///   - style: Line alignment and leading, fallback specular strength, depth shadow and the Reduce Transparency fill.
@@ -66,7 +67,7 @@ public struct GlassText: View {
 
     public init(
         _ text: String,
-        font: UIFont = .systemFont(ofSize: 64, weight: .black),
+        font: UIFont = .systemFont(ofSize: 64, weight: .semibold),
         tint: Color? = nil,
         scalesWithDynamicType: Bool = true,
         style: Style = .standard
@@ -81,29 +82,45 @@ public struct GlassText: View {
     public var body: some View {
         // Cap the scale so accessibility sizes do not push a display word off screen.
         let scale = scalesWithDynamicType ? min(typeScale, 1.6) : 1
+        // A new string takes the old one's place at once, with no transition of its own: a crossfade of two copies
+        // dims the letters that did not change, and on glass it doubles them. The letters stay still; the backdrop moves.
         let shape = GlyphShape(text: text, font: font.withSize(font.pointSize * scale), alignment: style.alignment, leading: style.leading)
 
         Group {
             if reduceTransparency {
                 shape.fill(style.solidFill.map(AnyShapeStyle.init) ?? AnyShapeStyle(.primary))
-            } else if #available(iOS 26, *) {
-                Color.clear
-                    .glassEffect(tint.map { Glass.regular.tint($0) } ?? .regular, in: shape)
-                    .shadow(color: .black.opacity(style.shadow), radius: 18, y: 10)
             } else {
-                fallback(shape)
+                glass(shape)
             }
         }
         .frame(width: shape.size.width, height: shape.size.height)
+        // The glyphs come from `font` (the house semibold by default), not from the environment. The root still states
+        // the house weight, as every piece that sets type does.
+        .fontWeight(.semibold)
         .accessibilityElement()
         .accessibilityLabel(text.replacingOccurrences(of: "\n", with: " "))
         .accessibilityAddTraits(.isStaticText)
     }
 
-    /// Material glyphs with a light falling from the top, a specular rim and a soft lift.
+    /// Liquid Glass on the glyph outlines on iOS 26, built with the iOS 26 SDK; the frosted fallback everywhere else.
+    @ViewBuilder private func glass(_ shape: GlyphShape) -> some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26, *) {
+            Color.clear
+                .glassEffect(tint.map { Glass.regular.tint($0) } ?? .regular, in: shape) // liquid: native
+                .shadow(color: .black.opacity(style.shadow), radius: 18, y: 10)
+        } else {
+            fallback(shape)
+        }
+        #else
+        fallback(shape)
+        #endif
+    }
+
+    /// Frosted glyphs with a light falling from the top, a specular rim and a soft lift.
     private func fallback(_ shape: GlyphShape) -> some View {
         ZStack {
-            shape.fill(.ultraThinMaterial)
+            shape.fill(.ultraThinMaterial) // liquid: native
             if let tint { shape.fill(tint.opacity(style.fallbackTintAmount)) }
             shape.fill(
                 LinearGradient(
@@ -174,26 +191,40 @@ private struct GlyphShape: Shape {
 // MARK: - Example
 
 /// The component alone: glass numerals over plain color blocks that drift underneath, so the glass
-/// has something to bend. The blocks fill the stage; nothing else sits on them.
+/// has something to bend. The blocks fill the stage; nothing else sits on them. Only the backdrop runs on the
+/// clock, so the glass is never rebuilt per frame.
 private struct GlassTextExample: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    /// When the drift began. Set on appear, and again when Reduce Motion turns off, so it always starts from rest.
+    @State private var start: Date?
 
     var body: some View {
-        TimelineView(.animation(paused: reduceMotion)) { context in
-            let t = context.date.timeIntervalSinceReferenceDate
-            GlassText("07:30", font: .systemFont(ofSize: 112, weight: .heavy), scalesWithDynamicType: false)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background { GlassTextBlocks(t: t).clipped() }
-        }
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        GlassText("07:30", font: .systemFont(ofSize: 120, weight: .semibold), scalesWithDynamicType: false)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background {
+                TimelineView(.animation(paused: !motion.allowsAmbient)) { context in
+                    let elapsed = start.map { max(context.date.timeIntervalSince($0), 0) } ?? 0
+                    // Under Reduce Motion the blocks hold their rest pose.
+                    GlassTextBlocks(t: motion.allowsAmbient ? elapsed : 0).clipped()
+                }
+            }
+            .onAppear { start = .now }
+            .onChange(of: reduceMotion) { start = .now }
     }
 }
 
 /// Plain shapes in the house blocks: a sky field, a tangerine sun, a butter bar and a lilac slab.
+/// At `t` zero they sit in their rest pose.
 private struct GlassTextBlocks: View {
     let t: TimeInterval
 
     var body: some View {
-        let drift = CGFloat(sin(t * 0.5))
+        // Ease the sway's clock, not its amplitude: its rate rises on a smoothstep over two seconds, so the drift
+        // starts from rest, never outruns its own loop and joins it without a kink.
+        let ramp = min(t / 2, 1)
+        let phase = t < 2 ? ramp * ramp * ramp * (2 - ramp) : t - 1
+        let drift = CGFloat(sin(phase * 0.5))
         ZStack {
             GlassTextPalette.sky.ignoresSafeArea()
             Circle()
@@ -229,3 +260,78 @@ private enum GlassTextPalette {
     GlassTextExample()
         .preferredColorScheme(.dark)
 }
+
+// MARK: - Piece motion
+//
+// The SwiftPieces motion language: shared spring tokens and gesture physics, with the same values in every
+// piece. Each piece carries a copy of only the parts it uses, so this file stands alone. Generated from
+// registry/foundation/PieceMotion.swift in the SwiftPieces repo; edit it there, not here.
+// swiftpieces-motion: 1.1.0 (core)
+
+/// The SwiftPieces motion language: five spring tiers, and a named role for every moment a piece moves,
+/// each with its Reduce Motion substitute.
+///
+/// Build one from the environment, `PieceMotion(reduceMotion: reduceMotion)`, and pick the role that names
+/// what just happened. Never animate the tracking of a finger: set gesture state directly in `onChanged`, so the
+/// surface stays under the finger, and spring only the release.
+private struct PieceMotion {
+    var reduceMotion = false
+
+    // Tiers. Overshoot and settle times are measured from rest with SwiftUI's Spring.
+    /// No overshoot, 90% in about 90ms. A press arriving under the finger.
+    static var tight: Spring { Spring(duration: 0.14, bounce: 0) }
+    /// About 2.8% overshoot, 90% in about 140ms. Snapping to a detent, page or segment.
+    static var responsive: Spring { Spring(duration: 0.32, bounce: 0.25) }
+    /// About 8.4% overshoot. Visible give: a release, a return from past an edge, a drag settling home.
+    static var elastic: Spring { Spring(duration: 0.42, bounce: 0.38) }
+    /// About 15% overshoot. A resolved action landing. At most once per interaction.
+    static var expressive: Spring { Spring(duration: 0.48, bounce: 0.48) }
+    /// About 1.5% overshoot, unhurried. Opening large surfaces and ambient change.
+    static var calm: Spring { Spring(duration: 0.5, bounce: 0.2) }
+
+    /// Reduce Motion: settles become this short spring with no overshoot.
+    private static var still: Animation { .spring(duration: 0.25, bounce: 0) }
+
+    // Roles.
+    /// Touch-down. Starts on the same frame and never bounces under the finger.
+    var press: Animation { .spring(Self.tight) }
+    /// The finger lifts off a pressed surface, which springs back through rest.
+    var release: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A dragged thing comes to rest. With a gesture's velocity, use `settle(velocity:from:to:)` instead.
+    var settle: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// Lands on a detent, page or segment.
+    var snap: Animation { reduceMotion ? Self.still : .spring(Self.responsive) }
+    /// A number, a chart value or anything else people read moves to its new value. Never overshoots, so it
+    /// never shows a value that isn't true.
+    var value: Animation { reduceMotion ? Self.still : .spring(duration: 0.35, bounce: 0) }
+    /// Comes back from past a limit: a pull beyond the edge, a value pushed against its bound.
+    var rebound: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A shape or container changes size, corner radius or form, with a little give at the end.
+    var morph: Animation { reduceMotion ? Self.still : .spring(duration: 0.4, bounce: 0.2) }
+    /// Something appears, opens or expands. Opening is a little slower than closing.
+    var reveal: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.calm) }
+    /// Something leaves, closes or collapses. Quick and firm, out of the way.
+    var dismiss: Animation { reduceMotion ? .easeIn(duration: 0.18) : .spring(duration: 0.3, bounce: 0.08) }
+    /// A resolved action lands: a check, a sent state, a reaction.
+    var success: Animation { reduceMotion ? .easeOut(duration: 0.24) : .spring(Self.expressive) }
+    /// A refused action. Firm, no wobble; `pieceShake` adds the movement.
+    var error: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.responsive) }
+    /// Slow ambient change. Loops themselves stop under Reduce Motion: check `allowsAmbient`.
+    var ambient: Animation { reduceMotion ? .easeInOut(duration: 0.3) : .spring(Self.calm) }
+
+    /// Loops, drifts, idle breathing and parallax run only when this is true.
+    var allowsAmbient: Bool { !reduceMotion }
+
+    /// A moving transition, or a plain fade under Reduce Motion.
+    func transition(_ transition: AnyTransition) -> AnyTransition {
+        reduceMotion ? .opacity : transition
+    }
+
+    /// For content replaced inside a container that stays put (a label, a glyph, a count): the old content
+    /// blurs out as the new one sharpens in. A fade under Reduce Motion.
+    @MainActor var swap: AnyTransition {
+        reduceMotion ? .opacity : AnyTransition(.blurReplace)
+    }
+}
+
+// swiftpieces-motion: end

@@ -1,10 +1,10 @@
 ---
 title: "Follow Scroll"
-description: "A chat, log and live-feed scroll container that opens on the newest item and stays pinned to it while the reader is at the bottom, but never yanks them away once they scroll up to read; items that arrive below are counted into a floating Liquid Glass pill that jumps back to the latest, older items loaded at the top keep the visible row exactly where it was, and keyboard, rotation, growing rows and removals all hold the reader's place."
+description: "A chat, log and live-feed scroll container that opens on the newest item and stays pinned to it while the reader is at the bottom, but never yanks them away once they scroll up to read; items that arrive below are counted into a liquid glass pill that buds up out of the bottom edge on a neck, jumps back to the latest and melts back down into the edge once the reader is caught up, older items loaded at the top keep the visible row exactly where it was while a glass spinner buds down from the top edge, and keyboard, rotation, growing rows and removals all hold the reader's place."
 piece: "FollowScroll"
 category: "lists"
 minIOSVersion: "17.0"
-version: "1.0.1"
+version: "1.2.0"
 tags: ["chat","feed","log","scroll","auto-scroll","new-messages","pagination","liquid-glass"]
 registryDependencies: []
 ---
@@ -16,21 +16,22 @@ Colors and metrics for `FollowScroll`. `.standard` is the house palette.
 ## Notes
 
 - Opens on the newest item and, while the reader is within `followThreshold` (48pt) of the bottom, scrolls each new item into view with a short smooth scroll. Many items arriving in one update scroll once.
-- Once the reader scrolls up, new items never move the content. They are counted into a floating pill at the bottom, such as "3 new", with a red dot and a down arrow. Tapping it (or ⌘↓ on a hardware keyboard) jumps to the latest and clears the count; scrolling back down by hand clears it too. Items removed before they are seen drop out of the count.
-- More than most of a screen above the latest with nothing new, the pill shows as a compact round jump button. Turn it off with `Style(showsJumpButton: false)`.
+- Once the reader scrolls up, new items never move the content. They are counted into a liquid glass pill at the bottom, such as "3 new", with a red dot and a down arrow. Tapping it (or ⌘↓ on a hardware keyboard) jumps to the latest and clears the count; scrolling back down by hand clears it too. Items removed before they are seen drop out of the count.
+- The pill buds out of the scroll view's bottom edge, the edge the rows slip under (the screen's bottom, or the top of a composer). Just past that edge lies a hidden glass lip: the pill is born inside it, rises through the edge pulling a liquid neck that snaps just clear of it, and settles with a small give above the safe area. When the reader is caught up it melts back down into the edge on a spring with no bounce, keeping the count it had, its label blurring away first so nothing rides it down. Each new count rolls the number and eases the pill's width without overshoot, so a busy feed never keeps it wobbling and the count never shows a number that isn't true.
+- More than three quarters of a screen above the latest with nothing new, the pill shows as a compact round jump button, and it stays until the reader is back within about 60% of a screen, so it never flickers at the line. When news arrives it changes form rather than being swapped, with a slight give: the same arrow slides over as the red dot grows in just behind it, and the count opens beside it. Turn it off with `Style(showsJumpButton: false)`.
 - `alwaysFollow` jumps to the bottom for chosen items even when scrolled up. Pass `\.isMine` so the reader's own sent message always comes into view.
-- `onReachTop` loads older items when the reader nears the top (within about three quarters of a screen). Prepend them to `items` before it returns: the rows on screen stay exactly where they are, including when the reader is resting on the very top edge. A small spinner floats at the top while it runs. It never runs twice at once, it runs again while a short list still reaches the top, and a call that adds nothing is not repeated until the reader scrolls away and back, so an exhausted history or a failed request never loops.
+- `onReachTop` loads older items when the reader nears the top (within about three quarters of a screen). Prepend them to `items` before it returns: the rows on screen stay exactly where they are, including when the reader is resting on the very top edge. A small glass bubble with a spinner buds down out of the top edge while it runs and melts back up into it when it is done. It never runs twice at once, it runs again while a short list still reaches the top, and a call that adds nothing is not repeated until the reader scrolls away and back, so an exhausted history or a failed request never loops.
 - Stays pinned to the bottom when the container changes size while following: the keyboard (for a composer in `safeAreaInset(edge: .bottom)`), rotation, or the last row growing as text streams into it. Scrolled up, the reader's place holds through all of these.
 - Replacing the whole array (another conversation, a new filter) starts again at the latest with the count cleared. Removing the newest items is not treated as a reset.
 - Only a scroll by the reader leaves the bottom: rows inserted above, lazy rows re-measuring and resizes never do. On iOS 18 and later a finger on the content also holds back any automatic scroll until the gesture ends.
 - `isFollowing` (optional binding) reflects whether the view is pinned, for a "Live" badge or a toolbar button; set it to `true` to jump to the latest.
 - `empty` is shown centered while there are no items. Rows are laid out in a `LazyVStack`, so long threads and logs stay cheap.
 - Tracking: iOS 18 and later read `onScrollGeometryChange` and `onScrollPhaseChange`; iOS 17 measures the content in the scroll view's coordinate space. Both feed the same logic, and position is held through `scrollPosition(id:anchor:)` on the bottom-most row.
-- Pill: Liquid Glass on iOS 26 (`glassEffect(.regular.interactive())`), a material with a soft shadow earlier, and a solid surface under Reduce Transparency.
+- Pill and spinner: Liquid Glass on iOS 26 (interactive on the pill), a frosted material with a light rim and a soft shadow earlier, and the solid `Style.surface` under Reduce Transparency. All text and glyphs are semibold. On iOS 26 the interactive glass gives the press; elsewhere the pill sinks slightly under the finger and springs back.
 - VoiceOver: the pill is a button read as its label ("3 new") with the hint "Jump to latest"; the scroll view offers a "Jump to latest" action while scrolled up; new items that arrive while scrolled up are announced once per burst with the final count.
 - Localization: `newItemLabel` gives the pill text and the announcement. The default is a localized "3 new" through `String(localized:)`; add plural variants in your String Catalog, or pass your own. The pill mirrors in right-to-left layouts.
 - Dynamic Type: the pill and its dot scale, the label wraps to two lines at the largest sizes, and the hit area never drops below 44pt.
-- Reduce Motion: jumps are instant instead of scrolling, and the pill fades rather than scaling in.
+- Reduce Motion: jumps are instant instead of scrolling, the pill and the spinner fade in and out in place instead of budding and melting, the red dot fades instead of growing and the arrow keeps its size, the count crossfades instead of rolling, and where the pill is not Liquid Glass a press dims it instead of sinking it. In either mode rows never pick up an animation, and the corrections that keep the bottom glued (keyboard, rotation, a growing row) and the prepend restore are instant.
 - Haptics: a light tap when the pill first appears with news, and a soft one when you jump. Nothing fires for each new item.
 - `Style` sets the pill's label, signal dot and ink, the Reduce Transparency surface, the spinner color, row spacing, horizontal and vertical padding, the follow threshold and whether the compact jump button shows.
 
@@ -57,7 +58,8 @@ public struct FollowScrollStyle: Sendable {
     public var signal: Color
     /// The arrow on the signal dot.
     public var signalInk: Color
-    /// Pill fill under Reduce Transparency before iOS 26. On iOS 26 the pill is Liquid Glass; earlier it is a material.
+    /// The pill and spinner fill under Reduce Transparency. Otherwise they are liquid glass: Liquid Glass on iOS 26, a
+    /// frosted material before.
     public var surface: Color
     /// The spinner shown while `onReachTop` loads.
     public var muted: Color
@@ -92,9 +94,10 @@ public struct FollowScrollStyle: Sendable {
 /// A scroll container for chats, live logs and activity feeds that follows the newest item, the way a reader expects.
 ///
 /// It opens at the bottom. While the reader is at (or within `followThreshold` of) the latest item, new items scroll into
-/// view. Once they scroll up to read, new items never move the content: they are counted into a floating pill such as
-/// "3 new" that jumps back down, and scrolling down by hand clears it too. Older items prepended at the top (for example
-/// from `onReachTop`) keep the visible row in place.
+/// view. Once they scroll up to read, new items never move the content: they are counted into a liquid glass pill such
+/// as "3 new" that buds up out of the bottom edge and jumps back down, and scrolling down by hand clears it too. Once the
+/// reader is caught up it melts back into the edge. Older items prepended at the top (for example from `onReachTop`)
+/// keep the visible row in place.
 ///
 /// ```swift
 /// FollowScroll(messages, alwaysFollow: { $0.isMine }) { message in
@@ -134,6 +137,10 @@ public struct FollowScroll<Item: Identifiable, Row: View, Empty: View>: View {
     @State private var isLoadingOlder = false
     @State private var pillArrivedTick = 0
     @State private var jumpTick = 0
+    /// The jump pill and the older-items spinner: each buds out of its edge of the scroll view and melts back into it.
+    @State private var buds = PieceBuds()
+    /// The count the pill shows. It keeps its last value while the pill melts away, so the pill leaves in the form it had.
+    @State private var shownCount = 0
 
     private let items: [Item]
     private let isFollowingBinding: Binding<Bool>?
@@ -164,8 +171,22 @@ public struct FollowScroll<Item: Identifiable, Row: View, Empty: View>: View {
     }
 
     private var edges: Edges { Edges(count: items.count, first: items.first?.id, last: items.last?.id) }
-    private var motion: Animation { reduceMotion ? .easeInOut(duration: 0.2) : .spring(duration: 0.42, bounce: 0.22) }
+    private var motion: PieceMotion { PieceMotion(reduceMotion: reduceMotion) }
     private var jumpTitle: String { String(localized: "Jump to latest", comment: "FollowScroll: button and VoiceOver action that scrolls to the newest item.") }
+
+    /// The pill is up while the reader is away from the latest with news below, or far enough up for the jump button.
+    private var pillShows: Bool {
+        !following && !items.isEmpty && (!unread.isEmpty || (style.showsJumpButton && farFromBottom))
+    }
+
+    /// Whether the glass is Liquid Glass, which swells under a press by itself. Drawn without it (before iOS 26, or solid
+    /// under Reduce Transparency), the pill sinks under the finger instead.
+    private var glassPresses: Bool {
+        #if compiler(>=6.2)
+        if #available(iOS 26, *) { return !reduceTransparency }
+        #endif
+        return false
+    }
 
     public var body: some View {
         ScrollViewReader { proxy in
@@ -190,12 +211,18 @@ public struct FollowScroll<Item: Identifiable, Row: View, Empty: View>: View {
         }
         .task(id: loadRequest) { await loadOlder() }
         .onChange(of: isLoadingOlder) { _, loading in if !loading { olderLoadFinished() } }
+        // Each bubble follows only the latest change: a pill that comes and goes in quick succession never ends up
+        // out of step with the state that shows it.
+        .task(id: pillShows) { await settle("pill", out: pillShows) }
+        .task(id: isLoadingOlder) { await settle("older", out: isLoadingOlder) }
+        // The count is held while the pill is up, so it keeps it as it melts away.
+        .onChange(of: pillShows ? unread.count : -1) { _, count in if count >= 0 { shownCount = count } }
         .onAppear {
             tracker.first = items.first?.id
             tracker.tail = Array(items.suffix(FollowScrollTracker<Item.ID>.tailLength).map(\.id))
         }
         .onDisappear { tracker.cancel() }
-        .sensoryFeedback(.impact(weight: .light, intensity: 0.55), trigger: pillArrivedTick)
+        .sensoryFeedback(.impact(weight: SensoryFeedback.Weight.light, intensity: 0.55), trigger: pillArrivedTick)
         .sensoryFeedback(.impact(flexibility: .soft, intensity: 0.7), trigger: jumpTick)
     }
 
@@ -221,34 +248,51 @@ public struct FollowScroll<Item: Identifiable, Row: View, Empty: View>: View {
 
     // MARK: Pill
 
+    /// The jump pill: neutral liquid glass that buds up out of the bottom edge as the reader leaves the latest and melts
+    /// back down into it once they are caught up.
     private func pill(_ proxy: ScrollViewProxy) -> some View {
-        let count = unread.count
-        let shows = !following && !items.isEmpty && (count > 0 || (style.showsJumpButton && farFromBottom))
-        return ZStack {
-            if shows {
-                Button { jumpFromPill(proxy) } label: { pillLabel(count) }
-                    .buttonStyle(PillPress(reduceMotion: reduceMotion))
-                    .keyboardShortcut(.downArrow, modifiers: .command)
-                    .accessibilityLabel(count > 0 ? newItemLabel(count) : jumpTitle)
-                    .accessibilityHint(count > 0 ? jumpTitle : "")
-                    .transition(reduceMotion ? .opacity : .scale(scale: 0.6, anchor: .bottom).combined(with: .opacity).combined(with: .offset(y: 12)))
-            }
+        let shows = pillShows
+        // Melting away, it keeps the count it had, so it leaves in the form it had.
+        let count = shows ? unread.count : shownCount
+        let out = buds.isOut("pill")
+        return FollowScrollEdgeBud(edge: .bottom, present: buds.contains("pill"), out: out) {
+            Button { jumpFromPill(proxy) } label: { pillLabel(count, out: out) }
+                .buttonStyle(PillPress(glassPresses: glassPresses))
+                .keyboardShortcut(.downArrow, modifiers: .command)
+                // On its way home it no longer answers, and VoiceOver no longer finds it.
+                .allowsHitTesting(shows)
+                .accessibilityHidden(!shows)
+                .accessibilityLabel(count > 0 ? newItemLabel(count) : jumpTitle)
+                .accessibilityHint(count > 0 ? jumpTitle : "")
         }
         .padding(.horizontal, 16)
-        .padding(.bottom, 12)
-        .animation(motion, value: shows)
-        .animation(motion, value: count)
+        // Around the edge bud, which centres the pill, so it widens and narrows about its centre. News reaching a pill
+        // already up changes its form with the morph's slight give. After that a new count only eases the width and
+        // rolls the number, with no overshoot, so a busy feed never keeps the pill wobbling or shows a count that
+        // isn't true.
+        .animation(motion.morph, value: count > 0)
+        .animation(motion.value, value: count)
+        .fontWeight(.semibold)
     }
 
-    private func pillLabel(_ count: Int) -> some View {
-        HStack(spacing: 10) {
-            if count > 0 {
-                Image(systemName: "arrow.down")
-                    .font(.system(size: dotSize * 0.46, weight: .bold))
-                    .foregroundStyle(style.signalInk)
-                    .frame(width: dotSize, height: dotSize)
-                    .background(style.signal, in: .circle)
-                    .transition(.scale(scale: 0.3).combined(with: .opacity))
+    /// One pill that changes form: news grows the signal dot behind the same arrow and opens the count beside it,
+    /// instead of swapping the compact button for another view.
+    private func pillLabel(_ count: Int, out: Bool) -> some View {
+        let hasNews = count > 0
+        return HStack(spacing: 10) {
+            Image(systemName: "arrow.down")
+                .font(.system(size: dotSize * 0.54, weight: .semibold))
+                .foregroundStyle(hasNews ? style.signalInk : style.label)
+                .scaleEffect(hasNews && !reduceMotion ? 0.85 : 1)
+                .frame(width: dotSize, height: dotSize)
+                .background {
+                    // Decoration, so it grows in just behind the pill's change of form, on the calm spring: the pill's
+                    // morph is the change, and the dot only gives slightly behind it. Under Reduce Motion it fades.
+                    Circle()
+                        .fill(style.signal)
+                        .animation(motion.follow(PieceMotion.calm, rank: 1)) { $0.scaleEffect(hasNews || reduceMotion ? 1 : 0.3).opacity(hasNews ? 1 : 0) }
+                }
+            if hasNews {
                 Text(newItemLabel(count))
                     .font(.subheadline.weight(.semibold))
                     .monospacedDigit()
@@ -257,32 +301,43 @@ public struct FollowScroll<Item: Identifiable, Row: View, Empty: View>: View {
                     .lineLimit(2)
                     .multilineTextAlignment(.leading)
                     .fixedSize(horizontal: false, vertical: true)
-                    .transition(.opacity)
-            } else {
-                Image(systemName: "arrow.down")
-                    .font(.subheadline.weight(.bold))
-                    .foregroundStyle(style.label)
-                    .transition(.opacity)
+                    .transition(motion.swap)
             }
         }
-        .padding(.leading, count > 0 ? (pillHeight - dotSize) / 2 : 0)
-        .padding(.trailing, count > 0 ? 16 : 0)
-        .padding(.vertical, count > 0 ? (pillHeight - dotSize) / 2 : 0)
+        // Gone the moment the pill heads home, so nothing rides it down into the edge.
+        .pieceBudContent(out: out)
+        .padding(.leading, hasNews ? (pillHeight - dotSize) / 2 : 0)
+        .padding(.trailing, hasNews ? 16 : 0)
+        .padding(.vertical, hasNews ? (pillHeight - dotSize) / 2 : 0)
         .frame(minWidth: pillHeight, minHeight: pillHeight)
-        .modifier(PillSurface(fill: style.surface, reduceTransparency: reduceTransparency))
+        // Neutral glass: the signal dot says there is news. Under Reduce Transparency it is the style's solid surface.
+        .pieceLiquid(.capsule, tint: reduceTransparency ? style.surface : nil)
         .contentShape(.capsule)
     }
 
-    @ViewBuilder private var olderSpinner: some View {
-        if isLoadingOlder {
+    /// While older items load, a small glass bubble with a spinner buds down out of the top edge, and melts back up into
+    /// it once they have landed.
+    private var olderSpinner: some View {
+        let out = buds.isOut("older")
+        return FollowScrollEdgeBud(edge: .top, present: buds.contains("older"), out: out) {
             ProgressView()
                 .controlSize(.small)
                 .tint(style.muted)
+                .pieceBudContent(out: out)
                 .frame(width: 36, height: 36)
-                .modifier(PillSurface(fill: style.surface, reduceTransparency: reduceTransparency))
-                .padding(.top, 8)
-                .transition(.opacity)
+                .pieceLiquid(.circle, tint: reduceTransparency ? style.surface : nil, interactive: false)
+                .accessibilityHidden(!isLoadingOlder)
                 .accessibilityLabel(String(localized: "Loading earlier items", comment: "FollowScroll: spinner while older items load."))
+        }
+    }
+
+    /// Buds a bubble out, or melts it home, to match `out`. Run from `.task(id:)`, so only the latest change acts.
+    private func settle(_ id: String, out: Bool) async {
+        if out {
+            guard !buds.isOut(id) else { return }
+            await buds.bloom([id], reduceMotion: reduceMotion)
+        } else if buds.contains(id) {
+            await buds.gather([id], reduceMotion: reduceMotion)
         }
     }
 
@@ -329,7 +384,9 @@ public struct FollowScroll<Item: Identifiable, Row: View, Empty: View>: View {
             scheduleJump(proxy, animated: false)
         }
 
-        let far = new.toBottom > new.visible * 0.75
+        // Shows past three quarters of a screen and hides back under 60%, so a reader resting near the line doesn't
+        // see the jump button come and go.
+        let far = new.toBottom > new.visible * (farFromBottom ? 0.6 : 0.75)
         if far != farFromBottom, !following || !far { farFromBottom = far }
 
         if onReachTop != nil, !items.isEmpty {
@@ -461,6 +518,8 @@ public struct FollowScroll<Item: Identifiable, Row: View, Empty: View>: View {
             if anchorID == last { proxy.scrollTo(last, anchor: .bottom) } else { anchorID = last }
         }
         if smooth {
+            // A scroll, not a spring with give: bounce 0, since an overshoot past the bottom would be clamped and
+            // corrected. `jumpDuration` outlasts it, so the jump's own motion never reads as the reader scrolling up.
             withAnimation(.smooth(duration: 0.4)) { scroll() } completion: { settleAfterJump(proxy) }
         } else {
             var transaction = Transaction()
@@ -486,9 +545,10 @@ public struct FollowScroll<Item: Identifiable, Row: View, Empty: View>: View {
             return
         }
         tracker.firstBeforeLoad = tracker.first
-        withAnimation(.easeOut(duration: 0.2)) { isLoadingOlder = true }
+        // The spinner buds out of the top edge and melts back on its own springs.
+        isLoadingOlder = true
         await onReachTop()
-        withAnimation(.easeOut(duration: 0.2)) { isLoadingOlder = false }
+        isLoadingOlder = false
     }
 
     /// Runs in the update that applies whatever the loader prepended (it changes `items` before returning), so the
@@ -634,35 +694,76 @@ private struct BottomAnchored: ViewModifier {
     }
 }
 
-// MARK: - Pill surface
+// MARK: - Edge bud
 
-/// Liquid Glass on iOS 26; a material (or a solid surface under Reduce Transparency) with a soft shadow before.
-private struct PillSurface: ViewModifier {
-    let fill: Color
-    let reduceTransparency: Bool
+/// A glass bubble that buds out of the scroll view's top or bottom edge and melts back into it.
+///
+/// The edge is the scroll view's own, where its rows slip out of sight: under the home indicator or a bar, or against
+/// whatever sits beside it. Just past it, clipped out of sight, lies a glass lip. At home the bubble sits inside the lip,
+/// shrunk and wholly past the edge, so the two are one shape. Going out it rises through the edge pulling a neck from
+/// the lip, which thins and snaps just clear of the edge, and it comes to rest a bubble of its own, clear of the safe
+/// area. Going home the neck reaches back out for it and it sinks in. Everything past the edge is clipped, so only the
+/// bubble and its neck ever show.
+private struct FollowScrollEdgeBud<Bubble: View>: View {
+    let edge: VerticalEdge
+    let present: Bool
+    let out: Bool
+    @ViewBuilder let bubble: Bubble
+    @State private var size: CGSize = .zero
 
-    func body(content: Content) -> some View {
-        if #available(iOS 26.0, *) {
-            content.glassEffect(.regular.interactive(), in: .capsule)
-        } else if reduceTransparency {
-            content
-                .background(fill, in: .capsule)
-                .shadow(color: .black.opacity(0.16), radius: 14, y: 6)
-        } else {
-            content
-                .background(.regularMaterial, in: .capsule)
-                .shadow(color: .black.opacity(0.14), radius: 14, y: 6)
+    /// How far the bubble rests inside the safe area.
+    private let inset: CGFloat = 16
+    /// How far past the edge the lip lies: close enough that a neck reaches up through the edge as the bubble leaves
+    /// (it snaps about 10pt clear of it, inside the merge distance), far enough that nothing of the lip ever shows.
+    private let lipGap: CGFloat = 10
+    private let lipHeight: CGFloat = 44
+
+    var body: some View {
+        GeometryReader { proxy in
+            let safe = edge == .bottom ? proxy.safeAreaInsets.bottom : proxy.safeAreaInsets.top
+            // The bubble's resting distance from the edge.
+            let rest = inset + safe
+            // Toward the edge: down for the bottom edge, up for the top.
+            let toward: CGFloat = edge == .bottom ? 1 : -1
+            // Until the bubble has been measured once, a house-size bubble stands in, so its first bloom still starts
+            // out of sight.
+            let measured = size.height > 0 ? size : CGSize(width: 44, height: 44)
+            // Home is shrunk and wholly past the edge, inside the lip.
+            let home = toward * (rest + measured.height * (1 + PieceLiquid.homeScale) / 2)
+            PieceLiquidGroup {
+                ZStack(alignment: edge == .bottom ? .bottom : .top) {
+                    if present {
+                        Color.clear
+                            .frame(width: measured.width + PieceLiquid.merge * 2, height: lipHeight)
+                            .pieceLiquid(.capsule, interactive: false)
+                            .offset(y: toward * (rest + lipGap + lipHeight))
+                            .allowsHitTesting(false)
+                            .accessibilityHidden(true)
+                        bubble
+                            .onGeometryChange(for: CGSize.self) { $0.size } action: { size = $0 }
+                            .pieceBud(out: out, home: CGSize(width: 0, height: home))
+                    }
+                }
+            }
+            .padding(edge == .bottom ? .bottom : .top, rest)
+            .frame(width: proxy.size.width, height: proxy.size.height, alignment: edge == .bottom ? .bottom : .top)
+            .clipped()
         }
+        .ignoresSafeArea(.container, edges: edge == .bottom ? .bottom : .top)
     }
 }
 
+/// Interactive Liquid Glass gives the press by itself, so nothing is added on top. Where the pill is drawn without it,
+/// it sinks under the finger instead (and dims under Reduce Motion).
 private struct PillPress: ButtonStyle {
-    let reduceMotion: Bool
+    let glassPresses: Bool
 
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .scaleEffect(configuration.isPressed && !reduceMotion ? 0.94 : 1)
-            .animation(.spring(duration: 0.25, bounce: 0.35), value: configuration.isPressed)
+    @ViewBuilder func makeBody(configuration: Configuration) -> some View {
+        if glassPresses {
+            configuration.label
+        } else {
+            configuration.label.pieceLiquidPress(configuration.isPressed)
+        }
     }
 }
 
@@ -697,6 +798,8 @@ private struct FollowScrollExample: View {
                 .background(message.isMine ? adaptive(light: 0xFF0000, dark: 0xFF0000) : adaptive(light: 0xE9D5B3, dark: 0xE9D5B3), in: .rect(cornerRadius: 18, style: .continuous))
                 .frame(maxWidth: .infinity, alignment: message.isMine ? .trailing : .leading)
         }
+        // The house type: one weight for every string. The piece sets it on its own pill; rows are yours.
+        .fontWeight(.semibold)
         .background(adaptive(light: 0xF3F2EE, dark: 0x121212))
         .task {
             while !Task.isCancelled {
@@ -716,6 +819,428 @@ private struct FollowScrollExample: View {
     FollowScrollExample()
         .preferredColorScheme(.dark)
 }
+
+// MARK: - Piece motion
+//
+// The SwiftPieces motion language: shared spring tokens and gesture physics, with the same values in every
+// piece. Each piece carries a copy of only the parts it uses, so this file stands alone. Generated from
+// registry/foundation/PieceMotion.swift in the SwiftPieces repo; edit it there, not here.
+// swiftpieces-motion: 1.1.0 (core, follow, pressMath)
+
+/// The SwiftPieces motion language: five spring tiers, and a named role for every moment a piece moves,
+/// each with its Reduce Motion substitute.
+///
+/// Build one from the environment, `PieceMotion(reduceMotion: reduceMotion)`, and pick the role that names
+/// what just happened. Never animate the tracking of a finger: set gesture state directly in `onChanged`, so the
+/// surface stays under the finger, and spring only the release.
+private struct PieceMotion {
+    var reduceMotion = false
+
+    // Tiers. Overshoot and settle times are measured from rest with SwiftUI's Spring.
+    /// No overshoot, 90% in about 90ms. A press arriving under the finger.
+    static var tight: Spring { Spring(duration: 0.14, bounce: 0) }
+    /// About 2.8% overshoot, 90% in about 140ms. Snapping to a detent, page or segment.
+    static var responsive: Spring { Spring(duration: 0.32, bounce: 0.25) }
+    /// About 8.4% overshoot. Visible give: a release, a return from past an edge, a drag settling home.
+    static var elastic: Spring { Spring(duration: 0.42, bounce: 0.38) }
+    /// About 15% overshoot. A resolved action landing. At most once per interaction.
+    static var expressive: Spring { Spring(duration: 0.48, bounce: 0.48) }
+    /// About 1.5% overshoot, unhurried. Opening large surfaces and ambient change.
+    static var calm: Spring { Spring(duration: 0.5, bounce: 0.2) }
+
+    /// Reduce Motion: settles become this short spring with no overshoot.
+    private static var still: Animation { .spring(duration: 0.25, bounce: 0) }
+
+    // Roles.
+    /// Touch-down. Starts on the same frame and never bounces under the finger.
+    var press: Animation { .spring(Self.tight) }
+    /// The finger lifts off a pressed surface, which springs back through rest.
+    var release: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A dragged thing comes to rest. With a gesture's velocity, use `settle(velocity:from:to:)` instead.
+    var settle: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// Lands on a detent, page or segment.
+    var snap: Animation { reduceMotion ? Self.still : .spring(Self.responsive) }
+    /// A number, a chart value or anything else people read moves to its new value. Never overshoots, so it
+    /// never shows a value that isn't true.
+    var value: Animation { reduceMotion ? Self.still : .spring(duration: 0.35, bounce: 0) }
+    /// Comes back from past a limit: a pull beyond the edge, a value pushed against its bound.
+    var rebound: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A shape or container changes size, corner radius or form, with a little give at the end.
+    var morph: Animation { reduceMotion ? Self.still : .spring(duration: 0.4, bounce: 0.2) }
+    /// Something appears, opens or expands. Opening is a little slower than closing.
+    var reveal: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.calm) }
+    /// Something leaves, closes or collapses. Quick and firm, out of the way.
+    var dismiss: Animation { reduceMotion ? .easeIn(duration: 0.18) : .spring(duration: 0.3, bounce: 0.08) }
+    /// A resolved action lands: a check, a sent state, a reaction.
+    var success: Animation { reduceMotion ? .easeOut(duration: 0.24) : .spring(Self.expressive) }
+    /// A refused action. Firm, no wobble; `pieceShake` adds the movement.
+    var error: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.responsive) }
+    /// Slow ambient change. Loops themselves stop under Reduce Motion: check `allowsAmbient`.
+    var ambient: Animation { reduceMotion ? .easeInOut(duration: 0.3) : .spring(Self.calm) }
+
+    /// Loops, drifts, idle breathing and parallax run only when this is true.
+    var allowsAmbient: Bool { !reduceMotion }
+
+    /// A moving transition, or a plain fade under Reduce Motion.
+    func transition(_ transition: AnyTransition) -> AnyTransition {
+        reduceMotion ? .opacity : transition
+    }
+
+    /// For content replaced inside a container that stays put (a label, a glyph, a count): the old content
+    /// blurs out as the new one sharpens in. A fade under Reduce Motion.
+    @MainActor var swap: AnyTransition {
+        reduceMotion ? .opacity : AnyTransition(.blurReplace)
+    }
+}
+
+extension PieceMotion {
+    /// Follow-through: rank 0 leads, each later rank arrives a beat later on a slightly looser spring. Safe to reverse.
+    func follow(_ spring: Spring = PieceMotion.elastic, rank: Int) -> Animation {
+        guard !reduceMotion else { return .spring(duration: 0.25, bounce: 0) }
+        let k = Double(min(max(rank, 0), 6))
+        return .spring(duration: spring.duration + 0.04 * k, bounce: min(spring.bounce + 0.02 * k, 0.55))
+    }
+
+    /// One-shot entrances only: item `index` waits 30ms per place, capped at the seventh. Exits go together.
+    func cascade(_ animation: Animation, index: Int, step: Double = 0.03) -> Animation {
+        guard !reduceMotion, index > 0 else { return animation }
+        return animation.delay(step * Double(min(index, 7)))
+    }
+}
+
+extension PieceMotion {
+    /// About `depth` points per edge, not a fixed percentage: an icon sinks to 0.92, a pill 0.95, a card 0.985.
+    nonisolated static func pressScale(for size: CGSize, depth: CGFloat = 2.5) -> CGFloat {
+        let side = (max(size.width, 1) * max(size.height, 1)).squareRoot()
+        return min(max(1 - depth * 2 / side, 0.92), 0.985)
+    }
+
+    /// An anchor partway from the center toward the touch, so the press leans into the finger without tipping.
+    nonisolated static func pressAnchor(touch: CGPoint?, in size: CGSize, lean: CGFloat = 0.6) -> UnitPoint {
+        guard let touch, size.width > 0, size.height > 0 else { return .center }
+        let x = min(max(touch.x / size.width, 0), 1)
+        let y = min(max(touch.y / size.height, 0), 1)
+        return UnitPoint(x: 0.5 + (x - 0.5) * lean, y: 0.5 + (y - 0.5) * lean)
+    }
+}
+
+// swiftpieces-motion: end
+
+// MARK: - Piece liquid
+//
+// The SwiftPieces liquid glass language: glass shapes that merge through a neck, bubbles that bud out of
+// and melt back into each other, and the frosted fallback before iOS 26. Each piece carries a copy of only
+// the parts it uses, so this file stands alone. Generated from registry/foundation/PieceLiquid.swift in the
+// SwiftPieces repo; edit it there, not here. The rules are in LIQUID_GLASS.md.
+// swiftpieces-liquid: 1.7.0 (liquid, liquidPress, bud)
+
+/// The liquid glass language: one merge distance, two rest gaps, and the springs a bubble leaves and comes home on.
+///
+/// Glass shapes inside one `PieceLiquidGroup` melt into each other through a neck when they come within `merge`
+/// points. Parts of one control rest `joined`, inside that distance, so the neck holds; separate actions rest
+/// `apart`, outside it, so they only goo while one buds out of, or melts back into, another.
+private enum PieceLiquid {
+    /// Glass shapes closer than this share a neck.
+    static let merge: CGFloat = 20
+    /// The gap between parts of one control (a stepper's buttons, a progress pill and its stop): the neck holds,
+    /// short and smooth, about two thirds of the shapes' height at its waist. Joined parts read best at one height.
+    static let joined: CGFloat = 4
+    /// The gap between separate actions (menu items, confirm and cancel, chips): they rest as their own bubbles.
+    static let apart: CGFloat = 26
+    /// How far a bubble shrinks while it is home inside its parent.
+    static let homeScale: CGFloat = 0.72
+
+    /// A bubble leaving its parent: slow enough that the neck's stretch and snap read.
+    static func split(reduceMotion: Bool) -> Animation {
+        reduceMotion ? .easeOut(duration: 0.2) : .spring(duration: 0.62, bounce: 0.22)
+    }
+
+    /// A bubble going home. No bounce: a bounce would carry it out through the far side of its parent.
+    static func home(reduceMotion: Bool) -> Animation {
+        reduceMotion ? .easeIn(duration: 0.18) : .spring(duration: 0.5, bounce: 0)
+    }
+}
+
+/// A group of glass shapes that merge into one liquid surface. On iOS 26 it is a `GlassEffectContainer`; before
+/// that, and under Reduce Transparency, the shapes draw on their own and simply don't merge. `lift` adds the soft
+/// shadow liquid glass floats on in light mode.
+private struct PieceLiquidGroup<Content: View>: View {
+    var spacing: CGFloat = PieceLiquid.merge
+    var lift = true
+    @ViewBuilder var content: Content
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        container
+            .shadow(color: .black.opacity(lift && colorScheme == .light ? 0.07 : 0), radius: 18, y: 8)
+    }
+
+    @ViewBuilder private var container: some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26, *), !reduceTransparency {
+            GlassEffectContainer(spacing: spacing) { content }
+        } else {
+            content
+        }
+        #else
+        content
+        #endif
+    }
+}
+
+/// One liquid glass shape: Liquid Glass on iOS 26, carrying `tint` as a solid colour and swelling under a press when
+/// `interactive`; a frosted Material with a light rim and a soft shadow before that; a solid fill under Reduce
+/// Transparency.
+///
+/// The tint is painted inside clear glass rather than tinting the glass. Tinted glass in a group bleeds its colour
+/// through every neck as a smear, so a red button would glow into the white pill it is joined to; painted inside,
+/// the colour stays crisp to the shape's edge, the necks between shapes are clear glass, and a tint change animates
+/// like any colour (tinted glass snaps).
+private struct PieceLiquidSurface<S: Shape>: ViewModifier {
+    var shape: S
+    var tint: Color?
+    var interactive: Bool
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.pieceLiquidScale) private var scale
+
+    func body(content: Content) -> some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26, *), !reduceTransparency {
+            // Scaled as two parts, content and outline, about the same centre. A scaleEffect on a glass view inside a
+            // GlassEffectContainer shrinks the glass but leaves what it carries full size, pinned to its corner.
+            content
+                .background { shape.fill(tint ?? .clear) }
+                .scaleEffect(scale)
+                .glassEffect(glass, in: shape.scale(scale))
+        } else {
+            fallback(content).scaleEffect(scale)
+        }
+        #else
+        fallback(content).scaleEffect(scale)
+        #endif
+    }
+
+    #if compiler(>=6.2)
+    @available(iOS 26, *)
+    private var glass: Glass {
+        interactive ? Glass.regular.interactive() : .regular
+    }
+    #endif
+
+    private func fallback(_ content: Content) -> some View {
+        let dark = colorScheme == .dark
+        return content
+            .background {
+                if reduceTransparency {
+                    shape.fill(tint ?? (dark ? Color(white: 0.17) : Color(white: 0.97)))
+                } else {
+                    ZStack {
+                        shape.fill(.regularMaterial)
+                        if let tint { shape.fill(tint.opacity(0.88)) }
+                    }
+                }
+            }
+            .overlay { shape.stroke(Color.white.opacity(dark ? 0.14 : 0.7), lineWidth: 0.5) }
+            .shadow(color: .black.opacity(dark ? 0.32 : 0.08), radius: 10, y: 5)
+    }
+}
+
+private struct PieceLiquidScaleKey: EnvironmentKey {
+    static let defaultValue: CGFloat = 1
+}
+
+private extension EnvironmentValues {
+    /// How much the liquid shapes below are scaled, about their own centres. Nested scales multiply.
+    var pieceLiquidScale: CGFloat {
+        get { self[PieceLiquidScaleKey.self] }
+        set { self[PieceLiquidScaleKey.self] = newValue }
+    }
+}
+
+private extension View {
+    /// Draws this view on a liquid glass `shape`. Put it inside a `PieceLiquidGroup` so it can merge with its neighbours.
+    func pieceLiquid<S: Shape>(_ shape: S, tint: Color? = nil, interactive: Bool = true) -> some View {
+        modifier(PieceLiquidSurface(shape: shape, tint: tint, interactive: interactive))
+    }
+
+    /// Scales the liquid glass shapes in this view, content and outline together, about their own centres. Use it
+    /// instead of `scaleEffect` on a glass view (a press, a lift, a swell): inside a group a plain `scaleEffect` shrinks
+    /// the glass but leaves its content full size and off centre. Animates like any other value.
+    func pieceLiquidScale(_ scale: CGFloat) -> some View {
+        transformEnvironment(\.pieceLiquidScale) { $0 *= scale }
+    }
+}
+
+/// The press for a glass control: the same size-aware sink and lean as `piecePress`, applied through
+/// `pieceLiquidScale` so the glass and what it carries sink together (a plain scaleEffect on glass leaves the content
+/// behind). Put the glass inside what it presses: the label of a button, the view this modifies. Under Reduce Motion
+/// it shades instead of moving.
+private struct PieceLiquidPress: ViewModifier {
+    let pressed: Bool
+    var touch: CGPoint?
+    var depth: CGFloat = 2.5
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.colorScheme) private var colorScheme
+    @State private var size: CGSize = .zero
+    @State private var anchor: UnitPoint = .center
+
+    func body(content: Content) -> some View {
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        let scale = pressed && !reduceMotion ? PieceMotion.pressScale(for: size, depth: depth) : 1
+        // A scale about `anchor` is a scale about the centre plus this shift toward the anchor.
+        let lean = CGSize(width: (anchor.x - 0.5) * size.width * (1 - scale), height: (anchor.y - 0.5) * size.height * (1 - scale))
+        content
+            .onGeometryChange(for: CGSize.self) { $0.size } action: { size = $0 }
+            .brightness(pressed && reduceMotion ? (colorScheme == .dark ? 0.1 : -0.08) : 0)
+            .pieceLiquidScale(scale)
+            .offset(lean)
+            .animation(pressed ? motion.press : motion.release, value: pressed)
+            .onChange(of: pressed) { _, isPressed in
+                if isPressed { anchor = PieceMotion.pressAnchor(touch: touch, in: size) }
+            }
+            .onChange(of: touch) { _, touch in
+                if pressed, let touch { anchor = PieceMotion.pressAnchor(touch: touch, in: size) }
+            }
+    }
+}
+
+/// `PiecePressStyle` for glass buttons: the label (with its `.pieceLiquid` inside) sinks as one.
+private struct PieceLiquidPressStyle: ButtonStyle {
+    var depth: CGFloat = 2.5
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label.pieceLiquidPress(configuration.isPressed, depth: depth)
+    }
+}
+
+private extension View {
+    /// Sinks this view's glass while `pressed`, leaning toward `touch` (in this view's coordinates) when given.
+    func pieceLiquidPress(_ pressed: Bool, touch: CGPoint? = nil, depth: CGFloat = 2.5) -> some View {
+        modifier(PieceLiquidPress(pressed: pressed, touch: touch, depth: depth))
+    }
+}
+
+/// The bud: how a bubble leaves and rejoins its parent, driven explicitly so every bubble shows the whole cycle.
+///
+/// A bubble is born at `home`, inside its parent, where the two glass shapes are one. It springs out to `rest`, and
+/// while it is inside the merge distance a neck holds it to the parent, thinning as it goes, until it snaps free.
+/// Going home it springs back on a spring with no bounce, the neck reaches out and re-forms, and only once it has
+/// melted all the way in is it removed. Both offsets are relative to where the bubble is laid out. Under Reduce
+/// Motion it stays at `rest`: its content fades and its glass closes in place.
+private struct PieceBud: ViewModifier {
+    var out: Bool
+    var rest: CGSize
+    var home: CGSize
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func body(content: Content) -> some View {
+        if reduceMotion {
+            // No travel. Inside a group glass ignores opacity, so the glass closes to nothing in place on the short
+            // Reduce Motion ease while its content fades; the opacity covers a bubble outside a group.
+            content
+                .pieceLiquidScale(out ? 1 : 0.001)
+                .opacity(out ? 1 : 0)
+                .offset(rest)
+        } else {
+            // The glass shrinks through `pieceLiquidScale`, never a plain scaleEffect (see there), then moves.
+            content
+                .pieceLiquidScale(out ? 1 : PieceLiquid.homeScale)
+                .offset(out ? rest : home)
+        }
+    }
+}
+
+/// A bubble's own content, on its own clock: gone the moment the bubble heads home, so it never rides over the
+/// parent's content, and arriving just after the bubble leaves.
+private struct PieceBudContent: ViewModifier {
+    var out: Bool
+
+    func body(content: Content) -> some View {
+        content
+            .blur(radius: out ? 0 : 6)
+            .opacity(out ? 1 : 0)
+            .animation(out ? .easeOut(duration: 0.3).delay(0.1) : .easeOut(duration: 0.14), value: out)
+    }
+}
+
+private extension View {
+    /// Places a bubble at `rest` while `out`, and at `home` (inside its parent, shrunk) while not.
+    func pieceBud(out: Bool, rest: CGSize = .zero, home: CGSize) -> some View {
+        modifier(PieceBud(out: out, rest: rest, home: home))
+    }
+
+    /// Hides a bubble's icon or label while it is home. Put it on the content, inside the glass.
+    func pieceBudContent(out: Bool) -> some View {
+        modifier(PieceBudContent(out: out))
+    }
+}
+
+/// Which bubbles exist and which are out. A bubble is added home with no animation, sent out on the next frame,
+/// and called home before it is removed, so it always melts in rather than fading. Keep one in `@State`.
+@MainActor @Observable
+private final class PieceBuds {
+    private(set) var present: [String] = []
+    private(set) var out: Set<String> = []
+    /// The latest call for each bubble. A bloom or gather that has been overtaken (a bubble sent home while it was
+    /// still waiting to go out, or called out again while melting) leaves that bubble alone.
+    @ObservationIgnored private var turn: [String: Int] = [:]
+
+    func contains(_ id: String) -> Bool { present.contains(id) }
+    func isOut(_ id: String) -> Bool { out.contains(id) }
+
+    private func claim(_ ids: [String]) -> [String: Int] {
+        var mine: [String: Int] = [:]
+        for id in ids {
+            let next = (turn[id] ?? 0) + 1
+            turn[id] = next
+            mine[id] = next
+        }
+        return mine
+    }
+
+    /// Puts bubbles straight out at rest with no motion: a view's first frame, or a state restored.
+    func place(_ ids: [String]) {
+        _ = claim(ids)
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) {
+            for id in ids where !present.contains(id) { present.append(id) }
+            out.formUnion(ids)
+        }
+    }
+
+    /// Adds bubbles home, then sends each out, `stagger` seconds apart, after an optional `delay`.
+    func bloom(_ ids: [String], reduceMotion: Bool, stagger: Double = 0.05, delay: Double = 0) async {
+        let mine = claim(ids)
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) {
+            for id in ids where !present.contains(id) { present.append(id) }
+        }
+        try? await Task.sleep(for: .milliseconds(24 + Int(max(delay, 0) * 1000)))
+        let split = PieceLiquid.split(reduceMotion: reduceMotion)
+        for (i, id) in ids.enumerated() where turn[id] == mine[id] {
+            withAnimation(split.delay(reduceMotion ? 0 : Double(i) * stagger)) { _ = out.insert(id) }
+        }
+    }
+
+    /// Calls bubbles home, last first, then removes them once they have melted in.
+    func gather(_ ids: [String], reduceMotion: Bool, stagger: Double = 0.04) async {
+        let mine = claim(ids)
+        let home = PieceLiquid.home(reduceMotion: reduceMotion)
+        for (i, id) in ids.reversed().enumerated() {
+            withAnimation(home.delay(reduceMotion ? 0 : Double(i) * stagger)) { _ = out.remove(id) }
+        }
+        try? await Task.sleep(for: .milliseconds(Int((0.52 + Double(ids.count) * stagger) * 1000)))
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) { present.removeAll { ids.contains($0) && !out.contains($0) && turn[$0] == mine[$0] } }
+    }
+}
+
+// swiftpieces-liquid: end
 ```
 
 </Tab>

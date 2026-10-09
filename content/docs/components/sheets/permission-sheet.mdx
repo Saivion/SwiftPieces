@@ -1,10 +1,10 @@
 ---
 title: "Permission Sheet"
-description: "A pre-permission sheet with a solid icon tile that bounces on present and turns into a check when granted, a heavy left-aligned headline, benefit rows on their own color tiles that stagger in, a signal-colored request button that spins while the system asks, and a denied result that swaps the copy and routes the button to Settings."
+description: "A pre-permission sheet that previews what it brings as a fanned stack of notification banners, each a tinted app tile, a line and now, that drop in one after another and deal the next to the front while it waits. A centred title and message sit under it, the request is a signal glass capsule whose label morphs through Requesting to Allowed as the stack pops and Not now melts into it, and a denial greys the stack out, swaps the copy and routes the button to Settings. Without benefits it leads with an icon tile."
 piece: "PermissionSheet"
 category: "sheets"
 minIOSVersion: "17.0"
-version: "2.0.1"
+version: "3.0.0"
 tags: ["permission","onboarding","sheet","async","haptic"]
 registryDependencies: []
 ---
@@ -15,11 +15,18 @@ Explains a permission, runs the real request, and reacts to the result.
 
 ## Notes
 
-- Present it in a `.sheet` with `.presentationBackground(PermissionSheet.Style.standard.surface)`; it also works inline in any container. The tile symbol bounces on each presentation and benefit rows stagger in once, each on its own color tile.
-- `request` is your real permission call (for example `UNUserNotificationCenter.requestAuthorization`). The signal-colored button spins until it returns; `true` turns the tile and button sage with a check and a `.success` haptic, then calls `onGranted` about a second later so you can dismiss.
-- A denial crossfades the title and message through a blur, hides the benefit rows, turns the tile sand with a gear, plays `.warning`, and turns the button into a solid "Open Settings" via `UIApplication.openSettingsURLString`.
-- `Style` sets the surface, labels, tiles, benefit tile colors, action color and tile radius.
-- Under Reduce Motion rows appear immediately, the copy swap skips the blur and the bounce is skipped.
+- The sheet previews what the permission brings. Your `benefits` become a fanned stack of notification banners above the title: each is a solid card with its symbol on a tinted app tile (butter, sage and lilac in order by default), its line, and "now". The two behind the front banner sit a little smaller, lower and a shade darker, so their edges read as separate cards. Keep each line short, like a notification ("Design review in 30 minutes"). Without benefits the sheet leads with the icon tile instead.
+- Present it in a `.sheet` with `.presentationBackground(PermissionSheet.Style.standard.surface)`, sized to its content (the example measures it for a `.height` detent); it also works inline in any container. The title and message are centred under the stack. About 0.3 s in, once a sheet has settled, the banners drop in from above, the front one first and the rest 90ms apart behind it.
+- While the sheet waits for an answer, the stack deals its next banner to the front every 2.6 s on the settle spring, so each benefit gets read. It stops once the request is tapped, and never runs under Reduce Motion. VoiceOver reads the whole stack as one element listing every benefit.
+- `request` is your real permission call (for example `UNUserNotificationCenter.requestAuthorization`). The request is a signal glass capsule that sinks under the finger; a tap brings in a spinner and morphs its label letter by letter to Requesting until the call returns. Nothing waits on an animation: the button's action and enabled state change the moment the answer arrives.
+- `true` pops the stack and plays `.success`, morphs the button to Allowed with a check on sage glass while the Not now capsule melts up into it (its place keeps its size, so the button never shifts), then calls `onGranted` about a second later so you can dismiss. Without benefits the tile turns sage with a check instead.
+- A denial stays calm, with no shake: the stack greys out to half strength, which reads as notifications off, and `.warning` plays. The title and message lift away through a blur and the denied copy rises into their place, and the button morphs to Open Settings on glass the label's color and opens `UIApplication.openSettingsURLString`. Without benefits the tile turns sand with a gear.
+- Requesting, Allowed, Open Settings and "now" go through `String(localized:)`.
+- `Style` sets the surface, labels, the icon tile's colors, the banners' tile tints (`benefitTiles`, or `[.clear]` for neutral tiles), the action color and the tile radius.
+- On iOS 26 the request and Not now are Liquid Glass and melt into each other through the neck; before that they are frosted glass with a light rim, and with Reduce Transparency they are solid.
+- Under Reduce Motion nothing drops, blurs, bounces or pops: the banners fade in already stacked and are never dealt, the labels and the two copies crossfade in place, Not now fades where it rests, and the capsules dim while pressed instead of sinking. Haptics are unchanged.
+- At accessibility text sizes the button's label is plain text that can wrap, and changes with a blur instead of the letter morph.
+- **v3:** redesigned around a preview of the notifications themselves. The benefit rows became the banner stack, and the copy is centred under it. The public API is unchanged.
 - For a full multi-step onboarding flow, see the Onboarding screen in SwiftPieces Pro.
 
 ## Usage
@@ -35,14 +42,14 @@ PermissionSheetExample()
 | `systemImage` | SF Symbol shown in the icon tile. |
 | `title` | Headline. |
 | `message` | One or two sentences of context. |
-| `benefits` | Rows that stagger in below the message, each on its own color tile. |
+| `benefits` | What the permission brings, previewed as a stack of notification banners above the title, each its symbol on a tinted tile and its line. Keep each line short, like a notification. Without benefits the sheet leads with the icon tile. |
 | `allowTitle` | Primary button title. |
 | `deniedTitle` | Headline shown after the request returns `false`. |
 | `deniedMessage` | Copy shown after a denial, above the "Open Settings" button. |
 | `style` | Colors and tile shape. Defaults to the SwiftPieces house palette, adapting to light and dark. |
-| `request` | Async permission request; return `true` when granted. The button spins until it returns. |
+| `request` | Async permission request; return `true` when granted. The button spins and reads Requesting until it returns. |
 | `onGranted` | Called about a second after a grant, once the tile has turned into a check. Dismiss the sheet here. |
-| `onSkip` | Secondary handler. Omit to hide the "Not now" button. |
+| `onSkip` | Secondary handler. Omit to hide the "Not now" capsule. |
 
 ## Source
 
@@ -58,14 +65,14 @@ import SwiftUI
 ///   - systemImage: SF Symbol shown in the icon tile.
 ///   - title: Headline.
 ///   - message: One or two sentences of context.
-///   - benefits: Rows that stagger in below the message, each on its own color tile.
+///   - benefits: What the permission brings, previewed as a stack of notification banners above the title, each its symbol on a tinted tile and its line. Keep each line short, like a notification. Without benefits the sheet leads with the icon tile.
 ///   - allowTitle: Primary button title.
 ///   - deniedTitle: Headline shown after the request returns `false`.
 ///   - deniedMessage: Copy shown after a denial, above the "Open Settings" button.
 ///   - style: Colors and tile shape. Defaults to the SwiftPieces house palette, adapting to light and dark.
-///   - request: Async permission request; return `true` when granted. The button spins until it returns.
+///   - request: Async permission request; return `true` when granted. The button spins and reads Requesting until it returns.
 ///   - onGranted: Called about a second after a grant, once the tile has turned into a check. Dismiss the sheet here.
-///   - onSkip: Secondary handler. Omit to hide the "Not now" button.
+///   - onSkip: Secondary handler. Omit to hide the "Not now" capsule.
 public struct PermissionSheet: View {
     public struct Benefit: Identifiable {
         public let id = UUID()
@@ -82,23 +89,23 @@ public struct PermissionSheet: View {
     public struct Style: Sendable {
         /// Suggested sheet background, for `.presentationBackground(style.surface)`.
         public var surface: Color
-        /// Headline and benefit text.
+        /// Headline and banner text, glyphs on clear banner tiles, and the request button's glass after a denial.
         public var label: Color
-        /// Message and "Not now".
+        /// Message, and the title of the "Not now" capsule.
         public var secondaryLabel: Color
-        /// Glyphs and text on solid blocks and on the primary button.
+        /// Glyphs and text on solid blocks and tinted glass.
         public var ink: Color
         /// The icon tile before a result.
         public var tile: Color
-        /// The icon tile and button after a grant.
+        /// The icon tile and the request button's glass after a grant.
         public var success: Color
         /// The icon tile after a denial.
         public var denied: Color
-        /// Benefit tiles, assigned in order and repeated.
+        /// The banners' app tiles, assigned in order and repeated: butter, sage and lilac by default. Pass `[.clear]` for neutral tiles.
         public var benefitTiles: [Color]
-        /// The primary button fill.
+        /// The request button's glass tint.
         public var action: Color
-        /// Corner radius of the big icon tile; buttons and benefit tiles scale from it.
+        /// Corner radius of the big icon tile.
         public var cornerRadius: CGFloat
 
         /// Pass only what you want to change; `nil` keeps the house palette value.
@@ -110,8 +117,8 @@ public struct PermissionSheet: View {
             self.tile = tile ?? adaptive(light: 0x9CC2FF, dark: 0x9CC2FF)
             self.success = success ?? adaptive(light: 0xA9DCB7, dark: 0xA9DCB7)
             self.denied = denied ?? adaptive(light: 0xE9D5B3, dark: 0xE9D5B3)
-            self.benefitTiles = (benefitTiles?.isEmpty == false ? benefitTiles : nil) ?? [0xFFD976, 0xCDB8FF, 0xA9DCB7].map { adaptive(light: $0, dark: $0) }
-            self.action = action ?? adaptive(light: 0xFF5B3A, dark: 0xFF5B3A)
+            self.benefitTiles = (benefitTiles?.isEmpty == false ? benefitTiles : nil) ?? [adaptive(light: 0xFFD976, dark: 0xFFD976), adaptive(light: 0xA9DCB7, dark: 0xA9DCB7), adaptive(light: 0xCDB8FF, dark: 0xCDB8FF)]
+            self.action = action ?? adaptive(light: 0xFF0000, dark: 0xFF0000)
             self.cornerRadius = cornerRadius
         }
 
@@ -126,6 +133,16 @@ public struct PermissionSheet: View {
     @State private var phase: Phase = .idle
     @State private var revealed = false
     @State private var presentTick = 0
+    @State private var grants = 0
+    /// The Not now capsule, which melts into the request button on a grant.
+    @State private var buds = PieceBuds()
+    /// The benefit banner at the front of the stack.
+    @State private var front = 0
+    @State private var skipHeight: CGFloat = 56
+
+    /// The sheet's rhythm. On present the rows follow the tile in one beat apart. When the answer comes back the
+    /// card turns over from the top: the tile, then the old copy and rows leave, then the button, then the new copy.
+    private let beat: Double = 0.07
 
     private let systemImage: String
     private let title: String
@@ -167,108 +184,245 @@ public struct PermissionSheet: View {
 
     private var tileFill: Color { phase == .granted ? style.success : (phase == .denied ? style.denied : style.tile) }
     private var tileSymbol: String { phase == .granted ? "checkmark" : (phase == .denied ? "gearshape.fill" : systemImage) }
-    private var buttonTitle: String { phase == .denied ? "Open Settings" : (phase == .granted ? "Allowed" : allowTitle) }
+    private var buttonTitle: String {
+        switch phase {
+        case .idle: allowTitle
+        case .requesting: String(localized: "Requesting", comment: "Permission sheet button while the system permission prompt is up")
+        case .granted: String(localized: "Allowed", comment: "Permission sheet button once the permission is granted")
+        case .denied: String(localized: "Open Settings", comment: "Permission sheet button after a denial, which opens the app's settings")
+        }
+    }
+    private var buttonTint: Color { phase == .granted ? style.success : (phase == .denied ? style.label : style.action) }
+    private var buttonInk: Color { phase == .denied ? style.surface : style.ink }
 
     public var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Image(systemName: tileSymbol)
-                .font(.system(size: 30, weight: .bold))
-                .foregroundStyle(style.ink)
-                .contentTransition(.symbolEffect(.replace))
-                .symbolEffect(.bounce.down, options: reduceMotion ? .speed(100) : .default, value: presentTick)
-                .frame(width: 76, height: 76)
-                .background(tileFill, in: .rect(cornerRadius: style.cornerRadius, style: .continuous))
-                .scaleEffect(phase == .granted && !reduceMotion ? 1.06 : 1)
-                .animation(.spring(duration: 0.45, bounce: 0.35), value: phase)
-                .accessibilityHidden(true)
-
-            ZStack(alignment: .topLeading) {
-                copy(title: title, message: message, shown: phase != .denied)
-                copy(title: deniedTitle, message: deniedMessage, shown: phase == .denied)
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        VStack(alignment: .center, spacing: 0) {
+            // The lead: a preview of what the permission brings, as a stack of notification banners, or the icon tile
+            // when there are no benefits to show.
+            if benefits.isEmpty {
+                tile
+            } else {
+                stack
             }
-            .animation(.smooth(duration: 0.35), value: phase)
-            .padding(.top, 22)
 
-            if !benefits.isEmpty, phase != .denied {
-                VStack(alignment: .leading, spacing: 10) {
-                    ForEach(Array(benefits.enumerated()), id: \.element.id) { offset, benefit in
-                        row(benefit, tile: style.benefitTiles[offset % style.benefitTiles.count])
-                            .opacity(revealed ? 1 : 0)
-                            .offset(y: revealed || reduceMotion ? 0 : 14)
-                            .animation(reduceMotion ? nil : .spring(duration: 0.5, bounce: 0.2).delay(0.15 + 0.08 * Double(offset)), value: revealed)
-                    }
-                }
-                .padding(.top, 22)
-                .transition(.opacity)
+            ZStack(alignment: .top) {
+                copy(title: title, message: message, shown: phase != .denied, away: -6)
+                copy(title: deniedTitle, message: deniedMessage, shown: phase == .denied, away: 6)
             }
+            .padding(.top, benefits.isEmpty ? 18 : 20)
 
             Spacer(minLength: 24)
 
-            VStack(spacing: 4) {
-                Button {
-                    if phase == .denied {
-                        if let url = URL(string: UIApplication.openSettingsURLString) { openURL(url) }
-                    } else {
-                        Task { await run() }
-                    }
-                } label: {
-                    ZStack {
-                        HStack(spacing: 8) {
-                            if phase == .granted { Image(systemName: "checkmark").fontWeight(.heavy) }
-                            Text(buttonTitle).contentTransition(.opacity)
-                        }
-                        .opacity(phase == .requesting ? 0 : 1)
-                        ProgressView().tint(phase == .denied ? style.surface : style.ink).opacity(phase == .requesting ? 1 : 0)
-                    }
-                    .font(.headline)
-                    .foregroundStyle(phase == .denied ? style.surface : style.ink)
-                    .frame(maxWidth: .infinity, minHeight: 56)
-                    .background(phase == .granted ? style.success : (phase == .denied ? style.label : style.action), in: .rect(cornerRadius: 18, style: .continuous))
-                    .contentShape(.rect(cornerRadius: 18, style: .continuous))
-                }
-                .buttonStyle(Press())
-                .disabled(phase == .requesting || phase == .granted)
-                .accessibilityLabel(phase == .requesting ? "Requesting" : buttonTitle)
-
-                if let onSkip, phase != .granted {
-                    Button(action: onSkip) {
-                        Text("Not now")
-                            .font(.body.weight(.semibold))
-                            .foregroundStyle(style.secondaryLabel)
-                            .frame(maxWidth: .infinity, minHeight: 44)
-                            .contentShape(.rect)
-                    }
-                    .buttonStyle(.plain)
-                    .disabled(phase == .requesting)
+            // Separate actions, so they rest apart: Not now only goos while it melts into the request button.
+            PieceLiquidGroup {
+                VStack(spacing: PieceLiquid.apart) {
+                    // Above Not now, so Not now at home sits under it and melts in rather than over its label.
+                    requestButton.zIndex(1)
+                    if onSkip != nil { skipSlot }
                 }
             }
-            .animation(.smooth(duration: 0.25), value: phase)
         }
         .padding(24)
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity)
+        .fontWeight(.semibold)
         .sensoryFeedback(.success, trigger: phase) { _, new in new == .granted }
         .sensoryFeedback(.warning, trigger: phase) { _, new in new == .denied }
         .onAppear {
-            revealed = true
+            if onSkip != nil { buds.place(["skip"]) }
+        }
+        .task {
+            // A sheet is still sliding up when this appears, so the banners drop in once it has settled.
+            try? await Task.sleep(for: .milliseconds(300))
+            guard !Task.isCancelled else { return }
             presentTick += 1
+            withAnimation(motion.reveal) { revealed = true }
+        }
+        .task(id: phase) {
+            // While the sheet waits for an answer, the stack deals its next banner to the front every few seconds, so
+            // each benefit gets read. Paused under Reduce Motion and once there is an answer.
+            guard phase == .idle, benefits.count > 1, motion.allowsAmbient else { return }
+            try? await Task.sleep(for: .seconds(1.2))
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(2.6))
+                guard !Task.isCancelled, phase == .idle else { return }
+                withAnimation(motion.settle) { front = (front + 1) % benefits.count }
+            }
         }
     }
 
-    /// Title and message; the two copies crossfade through a blur so a denial reads as the same sheet changing its mind.
-    private func copy(title: String, message: String, shown: Bool) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
+    /// The icon tile, for a sheet without benefits. It turns to its next face the moment the answer comes back, and a
+    /// grant lands with a pop on the haptic's beat. A denial only changes face: no shake, nothing celebratory.
+    private var tile: some View {
+        Image(systemName: tileSymbol)
+            .font(.system(size: 30, weight: .semibold))
+            .foregroundStyle(style.ink)
+            .contentTransition(.symbolEffect(.replace))
+            .symbolEffect(.bounce.down, options: reduceMotion ? .speed(100) : .default, value: presentTick)
+            .frame(width: 72, height: 72)
+            .background(tileFill, in: .rect(cornerRadius: style.cornerRadius, style: .continuous))
+            .animation(PieceMotion(reduceMotion: reduceMotion).morph, value: phase)
+            .piecePop(trigger: grants)
+            .accessibilityHidden(true)
+    }
+
+    /// The benefits as a fanned stack of notification banners, the first in front. They drop in one after another as
+    /// the sheet settles, the next is dealt to the front every few seconds, a grant pops the stack, and a denial greys
+    /// it out: notifications off.
+    private var stack: some View {
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        let count = benefits.count
+        let fan: CGFloat = 12
+        return ZStack(alignment: .top) {
+            ForEach(benefits.indices, id: \.self) { index in
+                let rank = (index - front + count) % count
+                banner(index)
+                    // Behind the front banner, each is a little smaller and lower, so the edges of two show.
+                    .scaleEffect(reduceMotion ? 1 : 1 - 0.06 * CGFloat(min(rank, 3)), anchor: .top)
+                    .offset(y: revealed ? CGFloat(min(rank, 2)) * fan : (reduceMotion ? 0 : -28))
+                    // The ones behind sit a shade darker, so the fanned edges read as separate cards.
+                    .brightness(-0.035 * Double(min(rank, 2)))
+                    .opacity(!revealed || rank > 2 ? 0 : 1)
+                    .zIndex(Double(count - rank))
+                    // Arriving, the front banner lands first and the rest follow it in behind; dealt, they settle with
+                    // a little give.
+                    .animation(motion.cascade(motion.reveal, index: rank, step: 0.09), value: revealed)
+                    .animation(motion.settle, value: front)
+            }
+        }
+        .padding(.bottom, CGFloat(min(count - 1, 2)) * fan)
+        .saturation(phase == .denied ? 0 : 1)
+        .opacity(phase == .denied ? 0.5 : 1)
+        .animation(motion.cascade(motion.morph, index: 1, step: beat), value: phase)
+        .piecePop(trigger: grants)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(benefits.map(\.text).joined(separator: ". ")))
+    }
+
+    /// One benefit as a notification banner: a tinted app tile, the line, and "now", on a solid card.
+    private func banner(_ index: Int) -> some View {
+        let benefit = benefits[index]
+        let tint = style.benefitTiles[index % style.benefitTiles.count]
+        let clear = tint == .clear
+        return HStack(alignment: .center, spacing: 12) {
+            Image(systemName: benefit.symbol)
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundStyle(clear ? style.label : style.ink)
+                .frame(width: 38, height: 38)
+                .background(clear ? style.label.opacity(0.08) : tint, in: .rect(cornerRadius: 10, style: .continuous))
+            Text(benefit.text)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(style.label)
+                .lineLimit(2)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            Text("now", comment: "Time on the notification preview banners in the permission sheet")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(style.secondaryLabel)
+        }
+        .padding(12)
+        .frame(minHeight: 64)
+        // Solid, like a notification on the lock screen: the banners behind never show through the one in front.
+        .background(bannerFill, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .overlay { RoundedRectangle(cornerRadius: 22, style: .continuous).strokeBorder(style.label.opacity(0.06), lineWidth: 1) }
+        .shadow(color: .black.opacity(0.06), radius: 10, y: 4)
+    }
+
+    /// The banners' card: a step off the sheet's surface, so it reads as its own layer in both appearances.
+    private var bannerFill: Color { adaptive(light: 0xF6F5F2, dark: 0x2A2A2A) }
+
+    /// The request on a capsule of glass. Its label morphs letter by letter to Requesting with a spinner, then to
+    /// Allowed with a check as the glass turns sage, or to Open Settings on glass the label's color.
+    private var requestButton: some View {
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        return Button {
+            if phase == .denied {
+                if let url = URL(string: UIApplication.openSettingsURLString) { openURL(url) }
+            } else {
+                Task { await run() }
+            }
+        } label: {
+            HStack(spacing: 8) {
+                switch phase {
+                case .requesting: ProgressView().tint(buttonInk).transition(motion.swap)
+                case .granted: Image(systemName: "checkmark").transition(motion.swap)
+                default: EmptyView()
+                }
+                PermissionSheetLabel(text: buttonTitle, font: .headline.weight(.semibold))
+            }
+            .font(.headline.weight(.semibold))
+            .foregroundStyle(buttonInk)
+            .padding(.horizontal, 20)
+            .frame(maxWidth: .infinity, minHeight: 56)
+            .contentShape(.capsule)
+            .pieceLiquid(.capsule, tint: buttonTint, interactive: false)
+            // A tap answers at once with the spinner. A result reaches the button's look two beats after the
+            // tile. Only the look: its action and enabled state change at once, and its place moves with the
+            // card, so it never trails its own container.
+            .animation(phase == .requesting ? motion.morph : motion.cascade(motion.morph, index: 2, step: beat), value: phase)
+        }
+        .buttonStyle(PieceLiquidPressStyle())
+        .disabled(phase == .requesting || phase == .granted)
+        .accessibilityLabel(buttonTitle)
+    }
+
+    /// Not now's place under the request button. It keeps its size while Not now is inside the button, so the button
+    /// just tapped never shifts.
+    private var skipSlot: some View {
+        skipLabel(out: true)
+            .hidden()
+            .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { skipHeight = $0 }
+            .overlay {
+                if let onSkip, buds.contains("skip") { skipButton(onSkip) }
+            }
+    }
+
+    private func skipLabel(out: Bool) -> some View {
+        Text("Not now")
+            .font(.headline.weight(.semibold))
+            .foregroundStyle(style.secondaryLabel)
+            .pieceBudContent(out: out)
+            .padding(.horizontal, 20)
+            .frame(maxWidth: .infinity, minHeight: 56)
+    }
+
+    /// A neutral glass capsule. On a grant it melts up into the request button, just inside its lower end, shrunk.
+    private func skipButton(_ onSkip: @escaping () -> Void) -> some View {
+        let out = buds.isOut("skip")
+        return Button(action: onSkip) {
+            skipLabel(out: out)
+                .contentShape(.capsule)
+                .pieceLiquid(.capsule, interactive: false)
+        }
+        .buttonStyle(PieceLiquidPressStyle())
+        .disabled(phase == .requesting || phase == .granted)
+        .accessibilityHidden(phase == .granted)
+        .pieceBud(out: out, home: CGSize(width: 0, height: -(skipHeight / 2 + PieceLiquid.apart + skipHeight * PieceLiquid.homeScale / 2)))
+    }
+
+    /// Title and message. A denial turns the card over: the old copy lifts away through a blur a beat after the tile,
+    /// and the denied copy rises into its place once the old one has mostly gone, so the two never blur together.
+    /// Both stay in the stack, so the sheet keeps its height, and VoiceOver reads only the one shown.
+    private func copy(title: String, message: String, shown: Bool, away: CGFloat) -> some View {
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        return VStack(alignment: .center, spacing: 8) {
             Text(title)
-                .font(.system(size: titleSize, weight: .bold))
+                .font(.system(size: titleSize, weight: .semibold))
                 .tracking(-0.8)
                 .foregroundStyle(style.label)
             Text(message)
-                .font(.body)
+                .font(.body.weight(.semibold))
                 .foregroundStyle(style.secondaryLabel)
         }
+        .multilineTextAlignment(.center)
         .fixedSize(horizontal: false, vertical: true)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .opacity(shown ? 1 : 0)
-        .blur(radius: shown || reduceMotion ? 0 : 6)
+        .frame(maxWidth: .infinity, alignment: .center)
+        // The delay is scoped to the look, so the copy never trails a card that moves or resizes around it.
+        .animation(shown ? motion.cascade(motion.reveal, index: 3, step: beat) : motion.cascade(motion.dismiss, index: 1, step: beat)) { content in
+            content
+                .opacity(shown ? 1 : 0)
+                .blur(radius: shown || reduceMotion ? 0 : 6)
+                .offset(y: shown || reduceMotion ? 0 : away)
+        }
         .accessibilityElement(children: .combine)
         .accessibilityHidden(!shown)
     }
@@ -277,36 +431,38 @@ public struct PermissionSheet: View {
         guard phase == .idle else { return }
         phase = .requesting
         let granted = await request()
-        withAnimation { phase = granted ? .granted : .denied }
+        // The answer comes back: the haptic, the lead's new face and a grant's pop share this beat.
+        withAnimation(PieceMotion(reduceMotion: reduceMotion).morph) {
+            phase = granted ? .granted : .denied
+            if granted { grants += 1 }
+        }
         guard granted else { return }
+        // Not now is no longer a choice, so it melts into the button that made it.
+        if buds.contains("skip") {
+            Task { await buds.gather(["skip"], reduceMotion: reduceMotion) }
+        }
         try? await Task.sleep(for: .seconds(0.9))
         onGranted()
     }
+}
 
-    private func row(_ benefit: Benefit, tile: Color) -> some View {
-        HStack(spacing: 14) {
-            Image(systemName: benefit.symbol)
-                .font(.body.weight(.semibold))
-                .foregroundStyle(style.ink)
-                .frame(width: 44, height: 44)
-                .background(tile, in: .rect(cornerRadius: 12, style: .continuous))
-                .accessibilityHidden(true)
-            Text(benefit.text)
-                .font(.body.weight(.medium))
-                .foregroundStyle(style.label)
-                .fixedSize(horizontal: false, vertical: true)
-                .frame(maxWidth: .infinity, alignment: .leading)
-        }
-    }
+/// A label that morphs letter by letter when it changes. At accessibility text sizes it is plain text that can wrap,
+/// and blurs from the old words to the new instead.
+private struct PermissionSheetLabel: View {
+    let text: String
+    let font: Font
+    @Environment(\.dynamicTypeSize) private var typeSize
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    private struct Press: ButtonStyle {
-        @Environment(\.accessibilityReduceMotion) private var reduceMotion
-
-        func makeBody(configuration: Configuration) -> some View {
-            configuration.label
-                .scaleEffect(configuration.isPressed && !reduceMotion ? 0.97 : 1)
-                .brightness(configuration.isPressed ? -0.04 : 0)
-                .animation(configuration.isPressed ? .smooth(duration: 0.1) : .spring(duration: 0.35, bounce: 0.3), value: configuration.isPressed)
+    var body: some View {
+        if typeSize.isAccessibilitySize {
+            Text(text)
+                .font(font)
+                .multilineTextAlignment(.center)
+                .id(text)
+                .transition(PieceMotion(reduceMotion: reduceMotion).swap)
+        } else {
+            PieceMorphText(text: text, font: font)
         }
     }
 }
@@ -321,9 +477,11 @@ private func adaptive(light: UInt32, dark: UInt32) -> Color {
 
 // MARK: - Example
 
-/// The sheet alone, presented over the plain ground.
+/// The sheet alone, presented over the plain ground. `granted: false` plays the denied answer.
 private struct PermissionSheetExample: View {
+    var granted = true
     @State private var showing = true
+    @State private var height: CGFloat = 360
 
     var body: some View {
         Color.clear
@@ -335,16 +493,20 @@ private struct PermissionSheetExample: View {
                     title: "Turn on notifications",
                     message: "We only send what matters, and you can change this any time.",
                     benefits: [
-                        .init(symbol: "clock.fill", text: "A nudge 30 minutes before things are due"),
-                        .init(symbol: "person.2.fill", text: "Replies from people you share lists with"),
-                        .init(symbol: "moon.fill", text: "Nothing between 10 PM and 7 AM"),
+                        .init(symbol: "clock.fill", text: "Design review in 30 minutes"),
+                        .init(symbol: "person.2.fill", text: "Mara replied to Groceries"),
+                        .init(symbol: "moon.fill", text: "Quiet hours from 10 PM to 7 AM"),
                     ],
                     allowTitle: "Allow notifications",
-                    request: { try? await Task.sleep(for: .seconds(1)); return true },
+                    request: { try? await Task.sleep(for: .seconds(1)); return granted },
                     onGranted: { showing = false },
                     onSkip: { showing = false }
                 )
-                .presentationDetents([.large])
+                // Fitted to its content: the banner stack, the copy and the actions, not a full-height sheet.
+                .fixedSize(horizontal: false, vertical: true)
+                .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { height = $0 }
+                .presentationDetents([.height(height)])
+                .presentationDragIndicator(.visible)
                 .presentationCornerRadius(34)
                 .presentationBackground(PermissionSheet.Style.standard.surface)
             }
@@ -359,6 +521,489 @@ private struct PermissionSheetExample: View {
     PermissionSheetExample()
         .preferredColorScheme(.dark)
 }
+
+#Preview("Denied") {
+    PermissionSheetExample(granted: false)
+}
+
+// MARK: - Piece motion
+//
+// The SwiftPieces motion language: shared spring tokens and gesture physics, with the same values in every
+// piece. Each piece carries a copy of only the parts it uses, so this file stands alone. Generated from
+// registry/foundation/PieceMotion.swift in the SwiftPieces repo; edit it there, not here.
+// swiftpieces-motion: 1.1.0 (core, follow, pressMath, pop)
+
+/// The SwiftPieces motion language: five spring tiers, and a named role for every moment a piece moves,
+/// each with its Reduce Motion substitute.
+///
+/// Build one from the environment, `PieceMotion(reduceMotion: reduceMotion)`, and pick the role that names
+/// what just happened. Never animate the tracking of a finger: set gesture state directly in `onChanged`, so the
+/// surface stays under the finger, and spring only the release.
+private struct PieceMotion {
+    var reduceMotion = false
+
+    // Tiers. Overshoot and settle times are measured from rest with SwiftUI's Spring.
+    /// No overshoot, 90% in about 90ms. A press arriving under the finger.
+    static var tight: Spring { Spring(duration: 0.14, bounce: 0) }
+    /// About 2.8% overshoot, 90% in about 140ms. Snapping to a detent, page or segment.
+    static var responsive: Spring { Spring(duration: 0.32, bounce: 0.25) }
+    /// About 8.4% overshoot. Visible give: a release, a return from past an edge, a drag settling home.
+    static var elastic: Spring { Spring(duration: 0.42, bounce: 0.38) }
+    /// About 15% overshoot. A resolved action landing. At most once per interaction.
+    static var expressive: Spring { Spring(duration: 0.48, bounce: 0.48) }
+    /// About 1.5% overshoot, unhurried. Opening large surfaces and ambient change.
+    static var calm: Spring { Spring(duration: 0.5, bounce: 0.2) }
+
+    /// Reduce Motion: settles become this short spring with no overshoot.
+    private static var still: Animation { .spring(duration: 0.25, bounce: 0) }
+
+    // Roles.
+    /// Touch-down. Starts on the same frame and never bounces under the finger.
+    var press: Animation { .spring(Self.tight) }
+    /// The finger lifts off a pressed surface, which springs back through rest.
+    var release: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A dragged thing comes to rest. With a gesture's velocity, use `settle(velocity:from:to:)` instead.
+    var settle: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// Lands on a detent, page or segment.
+    var snap: Animation { reduceMotion ? Self.still : .spring(Self.responsive) }
+    /// A number, a chart value or anything else people read moves to its new value. Never overshoots, so it
+    /// never shows a value that isn't true.
+    var value: Animation { reduceMotion ? Self.still : .spring(duration: 0.35, bounce: 0) }
+    /// Comes back from past a limit: a pull beyond the edge, a value pushed against its bound.
+    var rebound: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A shape or container changes size, corner radius or form, with a little give at the end.
+    var morph: Animation { reduceMotion ? Self.still : .spring(duration: 0.4, bounce: 0.2) }
+    /// Something appears, opens or expands. Opening is a little slower than closing.
+    var reveal: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.calm) }
+    /// Something leaves, closes or collapses. Quick and firm, out of the way.
+    var dismiss: Animation { reduceMotion ? .easeIn(duration: 0.18) : .spring(duration: 0.3, bounce: 0.08) }
+    /// A resolved action lands: a check, a sent state, a reaction.
+    var success: Animation { reduceMotion ? .easeOut(duration: 0.24) : .spring(Self.expressive) }
+    /// A refused action. Firm, no wobble; `pieceShake` adds the movement.
+    var error: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.responsive) }
+    /// Slow ambient change. Loops themselves stop under Reduce Motion: check `allowsAmbient`.
+    var ambient: Animation { reduceMotion ? .easeInOut(duration: 0.3) : .spring(Self.calm) }
+
+    /// Loops, drifts, idle breathing and parallax run only when this is true.
+    var allowsAmbient: Bool { !reduceMotion }
+
+    /// A moving transition, or a plain fade under Reduce Motion.
+    func transition(_ transition: AnyTransition) -> AnyTransition {
+        reduceMotion ? .opacity : transition
+    }
+
+    /// For content replaced inside a container that stays put (a label, a glyph, a count): the old content
+    /// blurs out as the new one sharpens in. A fade under Reduce Motion.
+    @MainActor var swap: AnyTransition {
+        reduceMotion ? .opacity : AnyTransition(.blurReplace)
+    }
+}
+
+extension PieceMotion {
+    /// Follow-through: rank 0 leads, each later rank arrives a beat later on a slightly looser spring. Safe to reverse.
+    func follow(_ spring: Spring = PieceMotion.elastic, rank: Int) -> Animation {
+        guard !reduceMotion else { return .spring(duration: 0.25, bounce: 0) }
+        let k = Double(min(max(rank, 0), 6))
+        return .spring(duration: spring.duration + 0.04 * k, bounce: min(spring.bounce + 0.02 * k, 0.55))
+    }
+
+    /// One-shot entrances only: item `index` waits 30ms per place, capped at the seventh. Exits go together.
+    func cascade(_ animation: Animation, index: Int, step: Double = 0.03) -> Animation {
+        guard !reduceMotion, index > 0 else { return animation }
+        return animation.delay(step * Double(min(index, 7)))
+    }
+}
+
+extension PieceMotion {
+    /// About `depth` points per edge, not a fixed percentage: an icon sinks to 0.92, a pill 0.95, a card 0.985.
+    nonisolated static func pressScale(for size: CGSize, depth: CGFloat = 2.5) -> CGFloat {
+        let side = (max(size.width, 1) * max(size.height, 1)).squareRoot()
+        return min(max(1 - depth * 2 / side, 0.92), 0.985)
+    }
+
+    /// An anchor partway from the center toward the touch, so the press leans into the finger without tipping.
+    nonisolated static func pressAnchor(touch: CGPoint?, in size: CGSize, lean: CGFloat = 0.6) -> UnitPoint {
+        guard let touch, size.width > 0, size.height > 0 else { return .center }
+        let x = min(max(touch.x / size.width, 0), 1)
+        let y = min(max(touch.y / size.height, 0), 1)
+        return UnitPoint(x: 0.5 + (x - 0.5) * lean, y: 0.5 + (y - 0.5) * lean)
+    }
+}
+
+/// Anticipation, overshoot, settle: dips, swells past full size and lands each time `trigger` changes. Under
+/// Reduce Motion it stays still (same view, no identity change) and the color or symbol carries the meaning.
+private struct PiecePop: ViewModifier {
+    let trigger: AnyHashable
+    var amount: CGFloat = 0.08
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func body(content: Content) -> some View {
+        let amount = reduceMotion ? 0 : amount
+        content.keyframeAnimator(initialValue: CGFloat(1), trigger: trigger) { view, scale in
+            view.scaleEffect(scale)
+        } keyframes: { _ in
+            KeyframeTrack {
+                CubicKeyframe(1 - amount * 0.4, duration: 0.08)
+                SpringKeyframe(1 + amount, duration: 0.14, spring: Spring(duration: 0.18, bounce: 0))
+                SpringKeyframe(1, duration: 0.42, spring: PieceMotion.expressive)
+            }
+        }
+    }
+}
+
+private extension View {
+    /// Pops each time `trigger` changes. Use a counter, never a Bool that can flip back before it fires.
+    func piecePop(trigger: some Hashable & Sendable, amount: CGFloat = 0.08) -> some View {
+        modifier(PiecePop(trigger: AnyHashable(trigger), amount: amount))
+    }
+}
+
+// swiftpieces-motion: end
+
+// MARK: - Piece liquid
+//
+// The SwiftPieces liquid glass language: glass shapes that merge through a neck, bubbles that bud out of
+// and melt back into each other, and the frosted fallback before iOS 26. Each piece carries a copy of only
+// the parts it uses, so this file stands alone. Generated from registry/foundation/PieceLiquid.swift in the
+// SwiftPieces repo; edit it there, not here. The rules are in LIQUID_GLASS.md.
+// swiftpieces-liquid: 1.7.0 (liquid, liquidPress, bud, morphText)
+
+/// The liquid glass language: one merge distance, two rest gaps, and the springs a bubble leaves and comes home on.
+///
+/// Glass shapes inside one `PieceLiquidGroup` melt into each other through a neck when they come within `merge`
+/// points. Parts of one control rest `joined`, inside that distance, so the neck holds; separate actions rest
+/// `apart`, outside it, so they only goo while one buds out of, or melts back into, another.
+private enum PieceLiquid {
+    /// Glass shapes closer than this share a neck.
+    static let merge: CGFloat = 20
+    /// The gap between parts of one control (a stepper's buttons, a progress pill and its stop): the neck holds,
+    /// short and smooth, about two thirds of the shapes' height at its waist. Joined parts read best at one height.
+    static let joined: CGFloat = 4
+    /// The gap between separate actions (menu items, confirm and cancel, chips): they rest as their own bubbles.
+    static let apart: CGFloat = 26
+    /// How far a bubble shrinks while it is home inside its parent.
+    static let homeScale: CGFloat = 0.72
+
+    /// A bubble leaving its parent: slow enough that the neck's stretch and snap read.
+    static func split(reduceMotion: Bool) -> Animation {
+        reduceMotion ? .easeOut(duration: 0.2) : .spring(duration: 0.62, bounce: 0.22)
+    }
+
+    /// A bubble going home. No bounce: a bounce would carry it out through the far side of its parent.
+    static func home(reduceMotion: Bool) -> Animation {
+        reduceMotion ? .easeIn(duration: 0.18) : .spring(duration: 0.5, bounce: 0)
+    }
+}
+
+/// A group of glass shapes that merge into one liquid surface. On iOS 26 it is a `GlassEffectContainer`; before
+/// that, and under Reduce Transparency, the shapes draw on their own and simply don't merge. `lift` adds the soft
+/// shadow liquid glass floats on in light mode.
+private struct PieceLiquidGroup<Content: View>: View {
+    var spacing: CGFloat = PieceLiquid.merge
+    var lift = true
+    @ViewBuilder var content: Content
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        container
+            .shadow(color: .black.opacity(lift && colorScheme == .light ? 0.07 : 0), radius: 18, y: 8)
+    }
+
+    @ViewBuilder private var container: some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26, *), !reduceTransparency {
+            GlassEffectContainer(spacing: spacing) { content }
+        } else {
+            content
+        }
+        #else
+        content
+        #endif
+    }
+}
+
+/// One liquid glass shape: Liquid Glass on iOS 26, carrying `tint` as a solid colour and swelling under a press when
+/// `interactive`; a frosted Material with a light rim and a soft shadow before that; a solid fill under Reduce
+/// Transparency.
+///
+/// The tint is painted inside clear glass rather than tinting the glass. Tinted glass in a group bleeds its colour
+/// through every neck as a smear, so a red button would glow into the white pill it is joined to; painted inside,
+/// the colour stays crisp to the shape's edge, the necks between shapes are clear glass, and a tint change animates
+/// like any colour (tinted glass snaps).
+private struct PieceLiquidSurface<S: Shape>: ViewModifier {
+    var shape: S
+    var tint: Color?
+    var interactive: Bool
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.pieceLiquidScale) private var scale
+
+    func body(content: Content) -> some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26, *), !reduceTransparency {
+            // Scaled as two parts, content and outline, about the same centre. A scaleEffect on a glass view inside a
+            // GlassEffectContainer shrinks the glass but leaves what it carries full size, pinned to its corner.
+            content
+                .background { shape.fill(tint ?? .clear) }
+                .scaleEffect(scale)
+                .glassEffect(glass, in: shape.scale(scale))
+        } else {
+            fallback(content).scaleEffect(scale)
+        }
+        #else
+        fallback(content).scaleEffect(scale)
+        #endif
+    }
+
+    #if compiler(>=6.2)
+    @available(iOS 26, *)
+    private var glass: Glass {
+        interactive ? Glass.regular.interactive() : .regular
+    }
+    #endif
+
+    private func fallback(_ content: Content) -> some View {
+        let dark = colorScheme == .dark
+        return content
+            .background {
+                if reduceTransparency {
+                    shape.fill(tint ?? (dark ? Color(white: 0.17) : Color(white: 0.97)))
+                } else {
+                    ZStack {
+                        shape.fill(.regularMaterial)
+                        if let tint { shape.fill(tint.opacity(0.88)) }
+                    }
+                }
+            }
+            .overlay { shape.stroke(Color.white.opacity(dark ? 0.14 : 0.7), lineWidth: 0.5) }
+            .shadow(color: .black.opacity(dark ? 0.32 : 0.08), radius: 10, y: 5)
+    }
+}
+
+private struct PieceLiquidScaleKey: EnvironmentKey {
+    static let defaultValue: CGFloat = 1
+}
+
+private extension EnvironmentValues {
+    /// How much the liquid shapes below are scaled, about their own centres. Nested scales multiply.
+    var pieceLiquidScale: CGFloat {
+        get { self[PieceLiquidScaleKey.self] }
+        set { self[PieceLiquidScaleKey.self] = newValue }
+    }
+}
+
+private extension View {
+    /// Draws this view on a liquid glass `shape`. Put it inside a `PieceLiquidGroup` so it can merge with its neighbours.
+    func pieceLiquid<S: Shape>(_ shape: S, tint: Color? = nil, interactive: Bool = true) -> some View {
+        modifier(PieceLiquidSurface(shape: shape, tint: tint, interactive: interactive))
+    }
+
+    /// Scales the liquid glass shapes in this view, content and outline together, about their own centres. Use it
+    /// instead of `scaleEffect` on a glass view (a press, a lift, a swell): inside a group a plain `scaleEffect` shrinks
+    /// the glass but leaves its content full size and off centre. Animates like any other value.
+    func pieceLiquidScale(_ scale: CGFloat) -> some View {
+        transformEnvironment(\.pieceLiquidScale) { $0 *= scale }
+    }
+}
+
+/// The press for a glass control: the same size-aware sink and lean as `piecePress`, applied through
+/// `pieceLiquidScale` so the glass and what it carries sink together (a plain scaleEffect on glass leaves the content
+/// behind). Put the glass inside what it presses: the label of a button, the view this modifies. Under Reduce Motion
+/// it shades instead of moving.
+private struct PieceLiquidPress: ViewModifier {
+    let pressed: Bool
+    var touch: CGPoint?
+    var depth: CGFloat = 2.5
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.colorScheme) private var colorScheme
+    @State private var size: CGSize = .zero
+    @State private var anchor: UnitPoint = .center
+
+    func body(content: Content) -> some View {
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        let scale = pressed && !reduceMotion ? PieceMotion.pressScale(for: size, depth: depth) : 1
+        // A scale about `anchor` is a scale about the centre plus this shift toward the anchor.
+        let lean = CGSize(width: (anchor.x - 0.5) * size.width * (1 - scale), height: (anchor.y - 0.5) * size.height * (1 - scale))
+        content
+            .onGeometryChange(for: CGSize.self) { $0.size } action: { size = $0 }
+            .brightness(pressed && reduceMotion ? (colorScheme == .dark ? 0.1 : -0.08) : 0)
+            .pieceLiquidScale(scale)
+            .offset(lean)
+            .animation(pressed ? motion.press : motion.release, value: pressed)
+            .onChange(of: pressed) { _, isPressed in
+                if isPressed { anchor = PieceMotion.pressAnchor(touch: touch, in: size) }
+            }
+            .onChange(of: touch) { _, touch in
+                if pressed, let touch { anchor = PieceMotion.pressAnchor(touch: touch, in: size) }
+            }
+    }
+}
+
+/// `PiecePressStyle` for glass buttons: the label (with its `.pieceLiquid` inside) sinks as one.
+private struct PieceLiquidPressStyle: ButtonStyle {
+    var depth: CGFloat = 2.5
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label.pieceLiquidPress(configuration.isPressed, depth: depth)
+    }
+}
+
+private extension View {
+    /// Sinks this view's glass while `pressed`, leaning toward `touch` (in this view's coordinates) when given.
+    func pieceLiquidPress(_ pressed: Bool, touch: CGPoint? = nil, depth: CGFloat = 2.5) -> some View {
+        modifier(PieceLiquidPress(pressed: pressed, touch: touch, depth: depth))
+    }
+}
+
+/// The bud: how a bubble leaves and rejoins its parent, driven explicitly so every bubble shows the whole cycle.
+///
+/// A bubble is born at `home`, inside its parent, where the two glass shapes are one. It springs out to `rest`, and
+/// while it is inside the merge distance a neck holds it to the parent, thinning as it goes, until it snaps free.
+/// Going home it springs back on a spring with no bounce, the neck reaches out and re-forms, and only once it has
+/// melted all the way in is it removed. Both offsets are relative to where the bubble is laid out. Under Reduce
+/// Motion it stays at `rest`: its content fades and its glass closes in place.
+private struct PieceBud: ViewModifier {
+    var out: Bool
+    var rest: CGSize
+    var home: CGSize
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func body(content: Content) -> some View {
+        if reduceMotion {
+            // No travel. Inside a group glass ignores opacity, so the glass closes to nothing in place on the short
+            // Reduce Motion ease while its content fades; the opacity covers a bubble outside a group.
+            content
+                .pieceLiquidScale(out ? 1 : 0.001)
+                .opacity(out ? 1 : 0)
+                .offset(rest)
+        } else {
+            // The glass shrinks through `pieceLiquidScale`, never a plain scaleEffect (see there), then moves.
+            content
+                .pieceLiquidScale(out ? 1 : PieceLiquid.homeScale)
+                .offset(out ? rest : home)
+        }
+    }
+}
+
+/// A bubble's own content, on its own clock: gone the moment the bubble heads home, so it never rides over the
+/// parent's content, and arriving just after the bubble leaves.
+private struct PieceBudContent: ViewModifier {
+    var out: Bool
+
+    func body(content: Content) -> some View {
+        content
+            .blur(radius: out ? 0 : 6)
+            .opacity(out ? 1 : 0)
+            .animation(out ? .easeOut(duration: 0.3).delay(0.1) : .easeOut(duration: 0.14), value: out)
+    }
+}
+
+private extension View {
+    /// Places a bubble at `rest` while `out`, and at `home` (inside its parent, shrunk) while not.
+    func pieceBud(out: Bool, rest: CGSize = .zero, home: CGSize) -> some View {
+        modifier(PieceBud(out: out, rest: rest, home: home))
+    }
+
+    /// Hides a bubble's icon or label while it is home. Put it on the content, inside the glass.
+    func pieceBudContent(out: Bool) -> some View {
+        modifier(PieceBudContent(out: out))
+    }
+}
+
+/// Which bubbles exist and which are out. A bubble is added home with no animation, sent out on the next frame,
+/// and called home before it is removed, so it always melts in rather than fading. Keep one in `@State`.
+@MainActor @Observable
+private final class PieceBuds {
+    private(set) var present: [String] = []
+    private(set) var out: Set<String> = []
+    /// The latest call for each bubble. A bloom or gather that has been overtaken (a bubble sent home while it was
+    /// still waiting to go out, or called out again while melting) leaves that bubble alone.
+    @ObservationIgnored private var turn: [String: Int] = [:]
+
+    func contains(_ id: String) -> Bool { present.contains(id) }
+    func isOut(_ id: String) -> Bool { out.contains(id) }
+
+    private func claim(_ ids: [String]) -> [String: Int] {
+        var mine: [String: Int] = [:]
+        for id in ids {
+            let next = (turn[id] ?? 0) + 1
+            turn[id] = next
+            mine[id] = next
+        }
+        return mine
+    }
+
+    /// Puts bubbles straight out at rest with no motion: a view's first frame, or a state restored.
+    func place(_ ids: [String]) {
+        _ = claim(ids)
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) {
+            for id in ids where !present.contains(id) { present.append(id) }
+            out.formUnion(ids)
+        }
+    }
+
+    /// Adds bubbles home, then sends each out, `stagger` seconds apart, after an optional `delay`.
+    func bloom(_ ids: [String], reduceMotion: Bool, stagger: Double = 0.05, delay: Double = 0) async {
+        let mine = claim(ids)
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) {
+            for id in ids where !present.contains(id) { present.append(id) }
+        }
+        try? await Task.sleep(for: .milliseconds(24 + Int(max(delay, 0) * 1000)))
+        let split = PieceLiquid.split(reduceMotion: reduceMotion)
+        for (i, id) in ids.enumerated() where turn[id] == mine[id] {
+            withAnimation(split.delay(reduceMotion ? 0 : Double(i) * stagger)) { _ = out.insert(id) }
+        }
+    }
+
+    /// Calls bubbles home, last first, then removes them once they have melted in.
+    func gather(_ ids: [String], reduceMotion: Bool, stagger: Double = 0.04) async {
+        let mine = claim(ids)
+        let home = PieceLiquid.home(reduceMotion: reduceMotion)
+        for (i, id) in ids.reversed().enumerated() {
+            withAnimation(home.delay(reduceMotion ? 0 : Double(i) * stagger)) { _ = out.remove(id) }
+        }
+        try? await Task.sleep(for: .milliseconds(Int((0.52 + Double(ids.count) * stagger) * 1000)))
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) { present.removeAll { ids.contains($0) && !out.contains($0) && turn[$0] == mine[$0] } }
+    }
+}
+
+/// A label that changes letter by letter: letters both strings share hold still, the rest blur out and the new ones
+/// blur in a few milliseconds apart. Under Reduce Motion it cross-fades. VoiceOver reads the whole string.
+private struct PieceMorphText: View {
+    var text: String
+    var font: Font = .body.weight(.semibold)
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        let glyphs = Array(text)
+        HStack(spacing: 0) {
+            ForEach(glyphs.indices, id: \.self) { i in
+                Text(String(glyphs[i]))
+                    .id("\(i)\(glyphs[i])")
+                    .transition(transition(i))
+            }
+        }
+        .font(font)
+        .fixedSize()
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(text)
+    }
+
+    private func transition(_ i: Int) -> AnyTransition {
+        guard !reduceMotion else { return .opacity }
+        return AnyTransition(.blurReplace(.downUp)).combined(with: .scale(scale: 0.6, anchor: .bottom))
+            .animation(.spring(duration: 0.42, bounce: 0.3).delay(Double(i) * 0.022))
+    }
+}
+
+// swiftpieces-liquid: end
 ```
 
 </Tab>

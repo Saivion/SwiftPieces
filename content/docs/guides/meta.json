@@ -4,6 +4,7 @@
   "pages": [
     "index",
     "swiftui-animations",
+    "swiftui-motion",
     "swiftui-buttons",
     "swiftui-cards",
     "swiftui-haptics",

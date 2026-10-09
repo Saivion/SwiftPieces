@@ -1,13 +1,18 @@
 "use client";
-import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode, type RefObject } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type RefObject } from "react";
 import { font, ground, signal } from "./palette";
+import { curve, follow, ms, reduced as prefersReduced, roles, springValue, t, tiers } from "./piece-motion";
+import { BudContent, Liquid, LiquidGroup, liquid } from "./piece-liquid";
 
 /*
  * Activity Heatmap: twenty weeks of practice as rounded day cells in solid steps from a pale red mix up to
- * pure red, under the current streak. The weeks fill in with a wave, a finger runs along today's row week by
- * week (the day under it lifts and the callout follows), stops on today, and today fills in with a pop as
- * the streak rolls from 11 to 12 days. The data is the Swift example's, on Thursday, October 1, 2026.
- * Sizes are authored in px against the 560 px docs stage and converted to `cqw`.
+ * pure red, under the current streak on its glass chip. The empty tiles and today's ring are there at once and
+ * the shades grow into them in a wave. A finger runs along today's row week by week: the day under it is
+ * plucked up as a glass tile tinted with its shade, its glass callout buds out of it on a liquid neck, and both
+ * glide from day to day; it stops on today, and today fills in (kicked up off its tile under the lift) as the
+ * streak rolls from 11 to 12 days. Let go, the callout melts back into the day. The data is the Swift example's,
+ * on Thursday, October 1, 2026. Sizes are authored in px against the 560 px docs stage and converted to `cqw`;
+ * the liquid groups take one stage px as their point.
  */
 
 type Step = { ms: number; finger: readonly [column: number, row: number] | null; todayDone: boolean; note: string };
@@ -30,8 +35,6 @@ const steps: readonly Step[] = [
 ];
 
 const u = (px: number) => `${(px / 5.6).toFixed(3)}cqw`;
-const spring = "cubic-bezier(0.34, 1.45, 0.64, 1)";
-const ease = "cubic-bezier(0.22, 1, 0.36, 1)";
 
 // Geometry at the 560 px stage.
 const WEEKS = 20;
@@ -44,8 +47,11 @@ const CELL = STRIDE - GAP;
 const RADIUS = 5;
 const HEADER = 24;
 const GRID_X = LEFT + LABELS;
-const SUMMARY_H = 78;
-const TOP = (420 - (SUMMARY_H + 22 + HEADER + 7 * STRIDE - GAP + 12 + 15)) / 2;
+const SUMMARY_H = 96;
+/** The legend chip's height and its gap under the grid. */
+const LEGEND_H = 24;
+const LEGEND_GAP = 10;
+const TOP = (420 - (SUMMARY_H + 22 + HEADER + 7 * STRIDE - GAP + LEGEND_GAP + LEGEND_H)) / 2;
 const GRID_Y = TOP + SUMMARY_H + 22 + HEADER;
 const TODAY_INDEX = 19 * 7 + 4; // Thursday in the last week
 
@@ -53,6 +59,56 @@ const TODAY_INDEX = 19 * 7 + 4; // Thursday in the last week
 const MIX = { light: [20, 40, 60], dark: [45, 62, 80] } as const;
 const shade = (level: number, tone: "light" | "dark") =>
   level <= 0 ? ground.field : level >= 4 ? signal.fill : `color-mix(in srgb, ${signal.fill} ${MIX[tone][level - 1]}%, ${ground.bg})`;
+
+// ---------------------------------------------------------------- Motion
+
+/** The entrance wave, as Swift's: how far the newest week lags the oldest, and each row the one above it. */
+const WAVE_SPREAD = 450;
+const WAVE_ROW_STEP = 22;
+/** The lifted day's rise, a clear pluck. */
+const RAISE = 1.32;
+/** The callout's size; it rests a neck's width from the lifted day. */
+const CALLOUT = { w: 128, h: 50 } as const;
+/** One stage px as the liquid groups' point. */
+const UNIT = u(1);
+/** A changed day's kick, in cell sizes per second, on the rebound spring (Swift's `popKick`). */
+const POP_KICK = 7.6;
+
+let growCache: { easing: string; ms: number } | null = null;
+/**
+ * A shade growing into its tile: the reveal spring held at full size once it first gets there, as Swift clamps
+ * it, so no shade ever reads larger than its tile. Runs until that first arrival.
+ */
+function grow() {
+  if (growCache) return growCache;
+  const s = roles.reveal;
+  let end = 0.05;
+  while (end < 2 && springValue(s, end) < 1) end += 0.002;
+  const linear = curve("value").easing.startsWith("linear(");
+  const n = 40;
+  const easing = linear
+    ? `linear(${Array.from({ length: n + 1 }, (_, k) => (k === 0 ? "0" : k === n ? "1" : Math.min(springValue(s, (k / n) * end), 1).toFixed(4))).join(", ")})`
+    : "cubic-bezier(0.22, 1, 0.36, 1)";
+  growCache = { easing, ms: Math.round(end * 1000) };
+  return growCache;
+}
+
+/**
+ * A changed day kicked up off its tile and settling on the rebound spring, its neighbours still: it swells about
+ * 25% within 80ms, dips about 2% under its size and settles, as Swift's `pop`. Sampled for Web Animations.
+ */
+function popFrames(): Keyframe[] {
+  const s = roles.rebound;
+  const w = (2 * Math.PI) / s.duration;
+  const z = 1 - s.bounce;
+  const wd = w * Math.sqrt(1 - z * z);
+  const total = ms("rebound") / 1000;
+  return Array.from({ length: 41 }, (_, k) => {
+    const time = (k / 40) * total;
+    const x = (POP_KICK * Math.exp(-z * w * time) * Math.sin(wd * time)) / wd;
+    return { transform: `scale(${(1 + x).toFixed(4)})` };
+  });
+}
 
 // ---------------------------------------------------------------- Data
 
@@ -109,17 +165,17 @@ const MONTHS = (() => {
   for (let c = 0; c < WEEKS; c++) {
     for (let r = 0; r < 7 && c * 7 + r <= TODAY_INDEX; r++) {
       if (dayOf(c * 7 + r).getDate() === 1) {
-        out.push({ column: c, text: dayOf(c * 7 + r).toLocaleString("en-US", { month: "short" }).toUpperCase() });
+        out.push({ column: c, text: dayOf(c * 7 + r).toLocaleString("en-US", { month: "short" }) });
         break;
       }
     }
   }
   // The partial month in the first week only shows when the next label leaves it room, as in Swift.
-  if ((out[0]?.column ?? 0) > 2) out.unshift({ column: 0, text: dayOf(0).toLocaleString("en-US", { month: "short" }).toUpperCase() });
+  if ((out[0]?.column ?? 0) > 2) out.unshift({ column: 0, text: dayOf(0).toLocaleString("en-US", { month: "short" }) });
   return out;
 })();
 const dateLabel = (i: number) =>
-  i === TODAY_INDEX ? "TODAY" : dayOf(i).toLocaleString("en-US", { weekday: "short", month: "short", day: "numeric" }).toUpperCase();
+  i === TODAY_INDEX ? "Today" : dayOf(i).toLocaleString("en-US", { weekday: "short", month: "short", day: "numeric" });
 
 // ---------------------------------------------------------------- Hooks
 
@@ -135,7 +191,10 @@ function useReducedMotion() {
   return reduced;
 }
 
-/** Walks the storyboard; each step holds for `ms`, then loops. Holds the first (resting) step under reduced motion. */
+/**
+ * Walks the storyboard; each step holds for `ms`, then loops. Holds the first (resting) step under reduced motion.
+ * `prev` is the step before, so a fresh touch can land without travelling.
+ */
 function useSteps(list: readonly Step[]) {
   const reduced = useReducedMotion();
   const [state, setState] = useState({ i: 0, loop: 0 });
@@ -147,7 +206,7 @@ function useSteps(list: readonly Step[]) {
     const t = setTimeout(() => setState((s) => (s.i + 1 >= list.length ? { i: 0, loop: s.loop + 1 } : { i: s.i + 1, loop: s.loop })), list[state.i].ms);
     return () => clearTimeout(t);
   }, [state.i, list, reduced]);
-  return { step: list[state.i], loop: state.loop, reduced };
+  return { step: list[state.i], prev: list[(state.i + list.length - 1) % list.length], loop: state.loop, reduced };
 }
 
 /** Light or dark stage: the mixes differ, so read the ground the preview actually sits on, and follow theme changes. */
@@ -180,7 +239,10 @@ function Flame() {
   );
 }
 
-/** A number whose changed digits roll up into place, like SwiftUI's numeric text transition. */
+/**
+ * A number whose changed digits roll up into place, like SwiftUI's numeric text transition. A figure people
+ * read, so it rolls on the value spring and never overshoots.
+ */
 function Roll({ value, style }: { value: number; style?: CSSProperties }) {
   const prev = useRef(value);
   const [from, setFrom] = useState(value);
@@ -190,6 +252,7 @@ function Roll({ value, style }: { value: number; style?: CSSProperties }) {
   }, [value]);
   const next = String(value);
   const old = String(from).padStart(next.length, " ");
+  const roll = curve("value");
   return (
     <span style={{ display: "inline-flex", fontVariantNumeric: "tabular-nums", ...style }}>
       {next.split("").map((digit, k) => {
@@ -197,9 +260,9 @@ function Roll({ value, style }: { value: number; style?: CSSProperties }) {
         return (
           <span key={k} style={{ position: "relative", display: "inline-block", overflow: "hidden", padding: "0.06em 0", margin: "-0.06em 0" }}>
             {changed ? (
-              <span key={`o${value}`} data-motion aria-hidden style={{ position: "absolute", left: 0, top: "0.06em", animation: `hm-roll-out .45s ${ease} both` }}>{old[k]}</span>
+              <span key={`o${value}`} data-motion aria-hidden style={{ position: "absolute", left: 0, top: "0.06em", animation: `hm-roll-out ${roll.ms}ms ${roll.easing} both` }}>{old[k]}</span>
             ) : null}
-            <span key={`n${value}`} data-motion style={{ display: "inline-block", animation: changed ? `hm-roll-in .45s ${ease} both` : undefined }}>{digit}</span>
+            <span key={`n${value}`} data-motion style={{ display: "inline-block", animation: changed ? `hm-roll-in ${roll.ms}ms ${roll.easing} both` : undefined }}>{digit}</span>
           </span>
         );
       })}
@@ -207,67 +270,106 @@ function Roll({ value, style }: { value: number; style?: CSSProperties }) {
   );
 }
 
-function Figure({ label, value, children }: { label: string; value?: number; children: ReactNode }) {
+/** A day's shade whose value just changed: it fills its tile at once and is kicked up off it on mount. */
+function PoppedShade({ background }: { background: string }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || prefersReduced()) return;
+    const pop = el.animate(popFrames(), { duration: ms("rebound"), easing: "linear" });
+    return () => pop.cancel();
+  }, []);
+  return <span ref={ref} data-motion style={{ position: "absolute", inset: 0, borderRadius: u(RADIUS), background }} />;
+}
+
+/** A figure beside the streak: its value over a quiet label, as Swift's `figure`. */
+function Figure({ label, value }: { label: string; value: number }) {
   return (
-    <>
-      <span style={{ fontSize: u(13), fontWeight: 600, letterSpacing: u(1.6), color: ground.muted }}>{label}</span>
-      <span style={{ justifySelf: "end", fontSize: u(20), fontWeight: 500, color: ground.text, fontVariantNumeric: "tabular-nums" }}>
-        {value !== undefined ? <Roll value={value} /> : null}
-        {children}
+    <span style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: u(4) }}>
+      <span style={{ display: "flex", alignItems: "baseline", lineHeight: 1, fontSize: u(20), fontWeight: 600, color: ground.text, fontVariantNumeric: "tabular-nums" }}>
+        <Roll value={value} />
+        &nbsp;days
       </span>
-    </>
+      <span style={{ fontSize: u(13), fontWeight: 600, color: ground.muted, lineHeight: 1 }}>{label}</span>
+    </span>
   );
 }
 
 // ---------------------------------------------------------------- Preview
 
 export function ActivityHeatmapPreview() {
-  const { step, loop, reduced } = useSteps(steps);
+  const { step, prev, loop, reduced } = useSteps(steps);
   const root = useRef<HTMLDivElement>(null);
   const tone = useTone(root);
   const before = useMemo(() => model(false), []);
   const after = useMemo(() => model(true), []);
+  // The loop starts from `before`; a day whose value differs from it has changed and pops instead of waving in.
+  const start = steps[0].todayDone ? after : before;
   const m = step.todayDone ? after : before;
-  const finger = step.finger;
-  const selected = finger ? Math.min(finger[0] * 7 + finger[1], TODAY_INDEX) : null;
-  const [lastSelected, setLastSelected] = useState(TODAY_INDEX);
-  useEffect(() => {
-    if (selected !== null) setLastSelected(selected);
-  }, [selected]);
-  const shown = selected ?? lastSelected;
+  const dayAt = (f: Step["finger"]) => (f ? Math.min(f[0] * 7 + f[1], TODAY_INDEX) : null);
+  const selected = dayAt(step.finger);
+  const touching = selected !== null;
+  const wasTouching = prev.finger !== null;
+  // At rest the lift stays on its last day, so it settles back where it was.
+  const shown = selected ?? dayAt(prev.finger) ?? TODAY_INDEX;
   const cellX = (i: number) => GRID_X + Math.floor(i / 7) * STRIDE;
   const cellY = (i: number) => GRID_Y + (i % 7) * STRIDE;
-  const calloutW = 128;
-  const calloutLeft = Math.min(Math.max(cellX(shown) + CELL / 2 - calloutW / 2, LEFT), LEFT + WIDTH - calloutW);
-  const lift = CELL * 0.16 + 2;
-  const caption: CSSProperties = { fontSize: u(12.5), fontWeight: 600, letterSpacing: u(0.8), color: ground.muted, whiteSpace: "nowrap" };
+  const caption: CSSProperties = { fontSize: u(13), fontWeight: 600, color: ground.muted, whiteSpace: "nowrap" };
+  const waveIn = grow();
+
+  // The callout rests a neck's width above the lifted day, kept inside the grid's width. Home is the middle of the
+  // day, shrunk small enough to fit inside it, since the day is smaller than the callout.
+  const lift = (CELL * (RAISE - 1)) / 2;
+  const calloutLeft = Math.min(Math.max(cellX(shown) + CELL / 2 - CALLOUT.w / 2, LEFT), LEFT + WIDTH - CALLOUT.w);
+  const calloutTop = cellY(shown) - lift - liquid.joined - CALLOUT.h;
+  const home = [cellX(shown) + CELL / 2 - (calloutLeft + CALLOUT.w / 2), cellY(shown) + CELL / 2 - (calloutTop + CALLOUT.h / 2)];
+  const shrink = (CELL * RAISE * 0.7) / CALLOUT.w;
+
+  // The lift and its callout glide from day to day on the press spring, which never bounces or trails the finger;
+  // a fresh touch lands on its day without travelling.
+  const glide = touching && wasTouching;
+  const move = glide ? t("transform", "press") : "transform 0ms";
+  const place = glide ? t(["left", "top"], "press") : "left 0ms, top 0ms";
+  // Only a step to another day blends the shade. A fresh touch lands in its own shade, and a day whose value
+  // changes under the finger simply takes the new one, as Swift's lifted cell does.
+  const tint = glide && selected !== dayAt(prev.finger) ? t("background-color", "press") : "none";
+  // The selection's lead: the day springs up out of the still grid with visible give (Swift's follow(elastic, 0))
+  // while the callout buds out of it on the split spring. Let go, the callout melts home on the bounceless spring,
+  // the day settles back onto the grid and the pair leaves once the callout is in.
+  const lands = touching && !wasTouching;
+  const pluck = touching ? (lands ? t("transform", follow(tiers.elastic, 0)) : "none") : t("transform", "dismiss");
+  // The callout buds a beat behind the pluck, so the day leads.
+  const budMove = touching ? t("transform", liquid.split, lands ? 60 : 0) : t("transform", liquid.home);
 
   return (
     <div ref={root} className="absolute inset-0 overflow-hidden" style={{ background: ground.bg, fontFamily: font.stack, color: ground.text }}>
       <style>{[
-        `@keyframes hm-in{from{transform:scale(0)}to{transform:scale(1)}}`,
-        `@keyframes hm-pop{0%{transform:scale(1)}40%{transform:scale(1.32)}100%{transform:scale(1)}}`,
+        `@keyframes hm-grow{from{transform:scale(0)}to{transform:scale(1)}}`,
         `@keyframes hm-roll-in{from{transform:translateY(55%);opacity:0;filter:blur(2px)}to{transform:none;opacity:1;filter:none}}`,
         `@keyframes hm-roll-out{from{transform:none;opacity:1}to{transform:translateY(-55%);opacity:0;filter:blur(2px)}}`,
         `@media (prefers-reduced-motion: reduce){[data-motion]{animation:none!important;transition:none!important}}`,
       ].join("")}</style>
 
-      {/* Summary: the streak on the left, longest and active days on the right. */}
+      {/* Summary: the streak under its glass chip on the left, longest and active days on the right. */}
       <div style={{ position: "absolute", left: u(LEFT), width: u(WIDTH), top: u(TOP), height: u(SUMMARY_H), display: "flex", alignItems: "flex-end", justifyContent: "space-between" }}>
-        <div style={{ display: "flex", flexDirection: "column", gap: u(2) }}>
-          <span style={{ display: "flex", alignItems: "center", gap: u(6), fontSize: u(14), fontWeight: 600, letterSpacing: u(1.7), color: ground.muted }}>
-            <Flame />
-            CURRENT STREAK
-          </span>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: u(8) }}>
+          <LiquidGroup unit={UNIT}>
+            <Liquid className="flex items-center" style={{ gap: u(6), height: u(30), paddingInline: u(12), fontSize: u(14), fontWeight: 600, color: ground.muted, whiteSpace: "nowrap" }}>
+              <Flame />
+              Current streak
+            </Liquid>
+          </LiquidGroup>
           <span style={{ display: "flex", alignItems: "baseline", gap: u(5), lineHeight: 1 }}>
             {/* Keyed by loop: the reset to 11 at the start of a loop is not a change to roll. */}
             <Roll key={loop} value={m.streak} style={{ fontSize: u(58), fontWeight: font.numeralWeight, letterSpacing: u(-1.2) }} />
             <span style={{ fontSize: u(21), fontWeight: 600, color: ground.muted }}>days</span>
           </span>
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "auto auto", columnGap: u(18), rowGap: u(6), alignItems: "baseline", paddingBottom: u(4) }}>
-          <Figure key={`l${loop}`} label="LONGEST" value={m.longest}>{" days"}</Figure>
-          <Figure key={`a${loop}`} label="ACTIVE" value={m.active}>{" days"}</Figure>
+        {/* Longest and active days: two figures side by side, a hairline between them, on the streak's baseline. */}
+        <div style={{ display: "flex", alignItems: "flex-end", gap: u(16), paddingBottom: u(4) }}>
+          <Figure key={`l${loop}`} label="Longest" value={m.longest} />
+          <span aria-hidden style={{ width: u(1), height: u(37), background: `color-mix(in srgb, ${ground.muted} 25%, transparent)`, alignSelf: "center" }} />
+          <Figure key={`a${loop}`} label="Active" value={m.active} />
         </div>
       </div>
 
@@ -278,89 +380,101 @@ export function ActivityHeatmapPreview() {
         </span>
       ))}
       {/* Weekday labels on every other row. */}
-      {(["MON", "WED", "FRI"] as const).map((text, k) => (
+      {(["Mon", "Wed", "Fri"] as const).map((text, k) => (
         <span key={text} style={{ ...caption, position: "absolute", left: u(LEFT), top: u(cellY(1 + k * 2) + CELL / 2), transform: "translateY(-50%)" }}>{text}</span>
       ))}
 
-      {/* The cells. A new key each loop replays the wave. */}
+      {/* The cells. The empty tiles hold still and are there at once; each shade grows from the middle of its tile
+          in a wave, oldest week first and each row a beat after the one above. A new key each loop replays it. */}
       <div key={loop}>
         {m.levels.map((level, i) => {
-          const column = Math.floor(i / 7);
-          const delay = (column / (WEEKS - 1)) * 0.45 + (i % 7) * 0.022;
-          const today = i === TODAY_INDEX;
+          const delay = (Math.floor(i / 7) / (WEEKS - 1)) * WAVE_SPREAD + (i % 7) * WAVE_ROW_STEP;
+          const changed = m.values[i] !== start.values[i];
           return (
             <span
               key={i}
-              data-motion
-              style={{
-                position: "absolute", left: u(cellX(i)), top: u(cellY(i)), width: u(CELL), height: u(CELL), borderRadius: u(RADIUS),
-                background: shade(level, tone), transition: "background-color .25s",
-                animation: reduced ? undefined : today && step.todayDone ? `hm-pop .45s ${ease} both` : `hm-in .34s ${spring} ${delay.toFixed(3)}s both`,
-                boxShadow: today ? `0 0 0 ${u(2)} ${ground.bg}, 0 0 0 ${u(3.6)} ${ground.text}` : undefined,
-              }}
-            />
+              style={{ position: "absolute", left: u(cellX(i)), top: u(cellY(i)), width: u(CELL), height: u(CELL), borderRadius: u(RADIUS), background: ground.field }}
+            >
+              {level <= 0 ? null : changed ? (
+                <PoppedShade key="pop" background={shade(level, tone)} />
+              ) : (
+                <span
+                  key="wave"
+                  data-motion
+                  style={{
+                    position: "absolute", inset: 0, borderRadius: u(RADIUS), background: shade(level, tone),
+                    animation: reduced ? undefined : `hm-grow ${waveIn.ms}ms ${waveIn.easing} ${Math.round(delay)}ms both`,
+                  }}
+                />
+              )}
+            </span>
           );
         })}
       </div>
+      {/* Today's ring belongs to the tile, so it is there from the first frame, drawn over the shade. */}
+      <span
+        aria-hidden
+        style={{
+          position: "absolute", left: u(cellX(TODAY_INDEX)), top: u(cellY(TODAY_INDEX)), width: u(CELL), height: u(CELL), borderRadius: u(RADIUS),
+          boxShadow: `0 0 0 ${u(1.25)} ${ground.bg}, 0 0 0 ${u(2.75)} ${ground.text}`, pointerEvents: "none",
+        }}
+      />
 
-      {/* The legend under the grid's trailing edge. */}
-      <span style={{ ...caption, position: "absolute", right: u(560 - LEFT - WIDTH), top: u(GRID_Y + 7 * STRIDE - GAP + 12), display: "flex", alignItems: "center", gap: u(7) }}>
-        LESS
-        <span style={{ display: "flex", gap: u(3.5) }}>
-          {[0, 1, 2, 3, 4].map((level) => (
-            <span key={level} style={{ width: u(12), height: u(12), borderRadius: u(3), background: shade(level, tone) }} />
-          ))}
-        </span>
-        MORE
-      </span>
+      {/* The legend on a glass chip under the grid's trailing edge. */}
+      <LiquidGroup unit={UNIT} style={{ position: "absolute", right: u(560 - LEFT - WIDTH), top: u(GRID_Y + 7 * STRIDE - GAP + LEGEND_GAP) }}>
+        <Liquid className="flex items-center" style={{ ...caption, gap: u(7), height: u(LEGEND_H), paddingInline: u(11) }}>
+          Less
+          <span style={{ display: "flex", gap: u(3.5) }}>
+            {[0, 1, 2, 3, 4].map((level) => (
+              <span key={level} style={{ width: u(12), height: u(12), borderRadius: u(3), background: shade(level, tone) }} />
+            ))}
+          </span>
+          More
+        </Liquid>
+      </LiquidGroup>
 
-      {/* The finger, then the lifted day above it, and the callout with its nub. */}
+      {/* The finger. */}
       <span
         aria-hidden
         data-motion
         style={{
-          position: "absolute", left: u(cellX(shown) + CELL / 2 - 19), top: u(cellY(shown) + CELL / 2 - 17), width: u(38), height: u(38), borderRadius: "50%",
+          position: "absolute", left: 0, top: 0, width: u(38), height: u(38), borderRadius: "50%",
           boxSizing: "border-box", border: `${u(1.5)} solid ${ground.muted}`, background: "color-mix(in srgb, currentColor 7%, transparent)",
-          opacity: finger ? 0.7 : 0, transition: `left .16s ${ease}, top .16s ${ease}, opacity .2s ${ease}`,
+          transform: `translate(${u(cellX(shown) + CELL / 2 - 19)}, ${u(cellY(shown) + CELL / 2 - 17)})`,
+          opacity: touching ? 0.7 : 0, transition: `${move}, ${t("opacity", touching ? "press" : "dismiss")}`,
         }}
       />
-      <span
-        aria-hidden
-        data-motion
-        style={{
-          position: "absolute", left: u(cellX(shown) - 2), top: u(cellY(shown) - 2), width: u(CELL + 4), height: u(CELL + 4), boxSizing: "border-box",
-          borderRadius: u(RADIUS + 2), border: `${u(2)} solid ${ground.bg}`, background: shade(m.levels[shown], tone),
-          boxShadow: `0 ${u(3)} ${u(8)} rgba(0,0,0,.26)`,
-          opacity: selected !== null ? 1 : 0, transform: `scale(${selected !== null ? 1.32 : 1})`,
-          transition: `left .16s ${ease}, top .16s ${ease}, transform .32s ${spring}, opacity .18s, background-color .25s`,
-        }}
-      />
-      <div
-        data-motion
-        style={{
-          position: "absolute", left: u(calloutLeft), top: u(cellY(shown) - lift - 9 - 50), width: u(calloutW), height: u(50), boxSizing: "border-box",
-          padding: `${u(7)} ${u(11)}`, borderRadius: u(12), background: ground.text, color: ground.bg, boxShadow: `0 ${u(4)} ${u(12)} rgba(0,0,0,.18)`,
-          display: "flex", flexDirection: "column", justifyContent: "center", gap: u(2),
-          opacity: selected !== null ? 1 : 0, transition: `left .16s ${ease}, top .16s ${ease}, opacity .18s`,
-        }}
+
+      {/* The lifted day and its callout, liquid glass in one group. They come up on the snap and leave once the
+          callout has melted back in. */}
+      <LiquidGroup
+        unit={UNIT}
+        axis="both"
+        style={{ position: "absolute", inset: 0, pointerEvents: "none", opacity: touching ? 1 : 0, transition: touching ? t("opacity", "snap") : "opacity 300ms ease-in 420ms" }}
       >
-        <span style={{ fontSize: u(11.5), fontWeight: 600, letterSpacing: u(0.7), opacity: 0.7, whiteSpace: "nowrap" }}>{dateLabel(shown)}</span>
-        <span style={{ display: "flex", alignItems: "center", gap: u(7), fontSize: u(17), fontWeight: 600, whiteSpace: "nowrap", fontVariantNumeric: "tabular-nums" }}>
-          <span style={{ width: u(11), height: u(11), borderRadius: u(3), background: shade(m.levels[shown], tone), flex: "none" }} />
-          {m.values[shown] > 0 ? `${m.values[shown]} min` : "No activity"}
+        {/* The callout first, so it slips under the day going home. Its text swaps at once, so a fast scrub never ghosts. */}
+        <span data-motion aria-hidden style={{ position: "absolute", left: u(calloutLeft), top: u(calloutTop), width: u(CALLOUT.w), height: u(CALLOUT.h), transition: place }}>
+          <span data-motion style={{ display: "block", width: "100%", height: "100%", transform: touching ? "none" : `translate(${u(home[0])}, ${u(home[1])}) scale(${(liquid.homeScale * shrink).toFixed(3)})`, transition: budMove }}>
+            <Liquid radius={14} className="flex flex-col justify-center" style={{ width: "100%", height: "100%", boxSizing: "border-box", padding: `${u(7)} ${u(11)}`, gap: u(2), color: ground.text }}>
+              <BudContent out={touching}>
+                <span className="flex flex-col" style={{ gap: u(2) }}>
+                  <span style={{ fontSize: u(12.5), fontWeight: 600, opacity: 0.6, whiteSpace: "nowrap" }}>{dateLabel(shown)}</span>
+                  <span style={{ display: "flex", alignItems: "center", gap: u(7), fontSize: u(17), fontWeight: 600, whiteSpace: "nowrap", fontVariantNumeric: "tabular-nums" }}>
+                    <span data-motion style={{ width: u(11), height: u(11), borderRadius: u(3), background: shade(m.levels[shown], tone), flex: "none", transition: tint }} />
+                    {m.values[shown] > 0 ? `${m.values[shown]} min` : "No activity"}
+                  </span>
+                </span>
+              </BudContent>
+            </Liquid>
+          </span>
         </span>
-      </div>
-      <svg
-        aria-hidden
-        data-motion
-        viewBox="0 0 12 6"
-        style={{
-          position: "absolute", left: u(Math.min(Math.max(cellX(shown) + CELL / 2, LEFT + 14), LEFT + WIDTH - 14) - 6), top: u(cellY(shown) - lift - 9.5),
-          width: u(12), height: u(6), opacity: selected !== null ? 1 : 0, transition: `left .16s ${ease}, top .16s ${ease}, opacity .18s`,
-        }}
-      >
-        <path d="M0 0h12L6 6z" fill={ground.text} />
-      </svg>
+        {/* The day, as glass tinted with its shade, plucked up out of the still grid. */}
+        <span data-motion aria-hidden style={{ position: "absolute", left: 0, top: 0, width: u(CELL), height: u(CELL), transform: `translate(${u(cellX(shown))}, ${u(cellY(shown))})`, transition: move }}>
+          <span data-motion style={{ display: "block", width: "100%", height: "100%", transform: `scale(${touching ? RAISE : 1})`, transition: pluck }}>
+            <Liquid radius={RADIUS} tint={shade(m.levels[shown], tone)} style={{ width: "100%", height: "100%", transition: tint }} />
+          </span>
+        </span>
+      </LiquidGroup>
     </div>
   );
 }

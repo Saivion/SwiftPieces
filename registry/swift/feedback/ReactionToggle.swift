@@ -1,49 +1,50 @@
 // swiftpieces:
 // title: Reaction Toggle
-// description: A like or save toggle that presses in, floods its capsule with a solid color block from the symbol outward, bounces the symbol, sends out one fading halo, and can roll a count or float a confirmation pill.
+// description: A liquid glass like or save toggle. It presses in, its glass capsule floods with its tint from the symbol outward while the symbol swaps to its filled form and squashes and springs like soft rubber, the count rolls, and a confirmation pill buds out of the capsule on a liquid neck and melts back into it.
 // category: feedback
 // minIOSVersion: "17.0"
-// version: "2.0.1"
+// version: "2.2.0"
 // tags: [like, bookmark, toggle, reaction, haptic, capsule]
 
 import SwiftUI
 
-/// Reaction toggle with press feel, a circular block flood, a symbol bounce, one halo, and an optional count and pill.
+/// Liquid glass reaction toggle with press feel, a tint that floods the glass from the symbol, a rubbery symbol squash,
+/// and an optional rolling count and confirmation pill that buds out of the capsule.
 ///
 /// - Parameters:
 ///   - isOn: Bound reaction state.
 ///   - systemImage: Outline symbol name.
 ///   - filledImage: Filled symbol name; defaults to `systemImage` with `.fill` appended.
 ///   - count: Optional number shown beside the symbol; it rolls with `numericText` and offsets by one while `isOn`.
-///   - confirmation: Optional pill text floated above the toggle when turned on, such as "Saved".
+///   - confirmation: Optional pill text, such as "Saved". Turning the toggle on buds a glass pill out of the top of the capsule, joined to it by a liquid neck, which melts back in a moment later.
 ///   - size: Symbol point size; scales with Dynamic Type. The hit area is at least 44 pt.
-///   - tint: Overrides the block color used when on. Defaults to `style.fill`.
-///   - style: Colors and shape. `.standard` is a tangerine block with dark ink on a quiet capsule; set `isContained` to `false` for a bare symbol.
+///   - tint: Overrides the tint the glass floods with when on. Defaults to `style.fill`.
+///   - style: Colors and shape. `.standard` is a neutral glass capsule that floods with the brand red under dark ink; set `isContained` to `false` for a bare symbol.
 public struct ReactionToggle: View {
     /// Colors and shape for the toggle. Defaults follow the SwiftPieces house palette and adapt to light and dark.
     public struct Style: Sendable {
-        /// Block color that floods the capsule (or fills the symbol when bare) when on.
+        /// The tint that floods the glass capsule (or fills the symbol when bare) when on.
         public var fill: Color
-        /// Symbol and count color on the block.
+        /// Symbol and count color on the tinted glass.
         public var ink: Color
-        /// Capsule color while off.
+        /// The glass tint while off. `.clear`, the default, leaves it neutral glass.
         public var restFill: Color
         /// Symbol and count color while off.
         public var restInk: Color
-        /// Confirmation pill background.
+        /// The glass tint of the confirmation pill. `.clear`, the default, leaves it neutral glass.
         public var pillFill: Color
-        /// Confirmation pill text.
+        /// Confirmation pill text and check.
         public var pillInk: Color
-        /// `true` draws a capsule that floods with `fill`; `false` shows a bare symbol that fills with `fill`.
+        /// `true` draws a glass capsule that floods with `fill`; `false` shows a bare symbol that fills with `fill`.
         public var isContained: Bool
 
         public init(
             fill: Color = Style.tangerine,
             ink: Color = Style.blockInk,
-            restFill: Color = Style.adaptive(0xEFEDE8, 0x262626),
+            restFill: Color = .clear,
             restInk: Color = Style.adaptive(0x141414, 0xF4F3EF),
-            pillFill: Color = Style.adaptive(0x141414, 0xF4F3EF),
-            pillInk: Color = Style.adaptive(0xF4F3EF, 0x141414),
+            pillFill: Color = .clear,
+            pillInk: Color = Style.adaptive(0x141414, 0xF4F3EF),
             isContained: Bool = true
         ) {
             self.fill = fill
@@ -57,7 +58,8 @@ public struct ReactionToggle: View {
 
         public static let standard = Style()
 
-        public static let tangerine = Color(red: 1, green: 0x5B / 255, blue: 0x3A / 255)
+        /// The brand red, `#FF0000`, kept under its earlier name so existing code still compiles.
+        public static let tangerine = Color(red: 1, green: 0, blue: 0)
         public static let sky = Color(red: 0x9C / 255, green: 0xC2 / 255, blue: 1)
         public static let butter = Color(red: 1, green: 0xD9 / 255, blue: 0x76 / 255)
         public static let sage = Color(red: 0xA9 / 255, green: 0xDC / 255, blue: 0xB7 / 255)
@@ -77,8 +79,14 @@ public struct ReactionToggle: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Binding private var isOn: Bool
     @State private var flood: CGFloat
+    /// The glass carries the tint at rest. It arrives just behind the flood, so the colour reads as spreading out of
+    /// the symbol rather than switching on.
+    @State private var tinted: Bool
     @State private var burst = 0
     @State private var showsPill = false
+    /// The confirmation pill: home inside the capsule, out above it while it shows.
+    @State private var pills = PieceBuds()
+    @State private var pillSize = CGSize(width: 80, height: 30)
     @ScaledMetric(relativeTo: .body) private var size: CGFloat = 24
 
     private let systemImage: String
@@ -87,10 +95,14 @@ public struct ReactionToggle: View {
     private let confirmation: String?
     private let tint: Color?
     private let style: Style
+    /// The beat between the lead (the flood and the symbol, on the tap) and what follows it: the glass takes the tint
+    /// two beats on, and the pill buds once it has.
+    private let beat: Double = 0.07
 
     public init(isOn: Binding<Bool>, systemImage: String = "heart", filledImage: String? = nil, count: Int? = nil, confirmation: String? = nil, size: CGFloat = 24, tint: Color? = nil, style: Style = .standard) {
         _isOn = isOn
         _flood = State(initialValue: isOn.wrappedValue ? 1 : 0)
+        _tinted = State(initialValue: isOn.wrappedValue)
         _size = ScaledMetric(wrappedValue: size, relativeTo: .body)
         self.systemImage = systemImage
         self.filledImage = filledImage ?? "\(systemImage).fill"
@@ -105,48 +117,64 @@ public struct ReactionToggle: View {
     private var height: CGFloat { max(44, size * 2) }
     private var leading: CGFloat { style.isContained ? (height - box) / 2 + 2 : 0 }
     private var total: Int? { count.map { $0 + (isOn ? 1 : 0) } }
+    private var restTint: Color? { style.restFill == .clear ? nil : style.restFill }
+    private var pillTint: Color? { style.pillFill == .clear ? nil : style.pillFill }
 
     public var body: some View {
-        Button {
-            isOn.toggle()
-        } label: {
-            HStack(spacing: size * 0.28) {
-                symbol
-                if let total {
-                    Text(total.formatted())
-                        .font(.system(size: size * 0.7, weight: .semibold, design: .rounded))
-                        .monospacedDigit()
-                        .lineLimit(1)
-                        .fixedSize()
-                        .foregroundStyle(ink)
-                        .contentTransition(.numericText(value: Double(total)))
-                        .animation(.spring(duration: 0.4, bounce: 0.15), value: isOn)
-                }
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        return PieceLiquidGroup(lift: style.isContained) {
+            Button {
+                isOn.toggle()
+            } label: {
+                surface(face)
             }
-            .padding(.leading, leading)
-            .padding(.trailing, style.isContained ? (count == nil ? leading : height * 0.42) : 0)
-            .frame(minWidth: 44, minHeight: height)
-            .background { if style.isContained { capsule } }
-            .contentShape(.capsule)
+            // Sinks centered and springs back; it sits in feeds, so it never reads the touch point. Under Reduce Motion
+            // it shifts a shade instead (darker in light mode, lighter in dark).
+            .buttonStyle(TogglePress(contained: style.isContained))
+            // A bare symbol has no glass to flood, so a halo ripples off it a beat after the tap, as the fill reaches
+            // its outline.
+            .background { if !style.isContained, burst > 0 { Halo(color: fill, animation: halo(motion)).frame(width: box, height: box).id(burst) } }
+            // Behind the toggle, so the pill at home sits under the capsule and melts into it, never over the symbol.
+            .background(alignment: .top) { pill }
         }
-        .buttonStyle(Press())
-        .background { if !style.isContained, burst > 0 { Halo(color: fill, capsule: false).frame(width: box, height: box).id(burst) } }
-        .overlay { if style.isContained, burst > 0 { Halo(color: fill, capsule: true).id(burst) } }
-        .overlay(alignment: .top) { pill }
+        .fontWeight(.semibold)
         .sensoryFeedback(.impact(flexibility: .soft), trigger: isOn) { _, on in on }
         .accessibilityLabel(confirmation ?? (systemImage.hasPrefix("bookmark") ? "Save" : "Like"))
         .accessibilityValue(total.map { $0.formatted() } ?? "")
         .accessibilityAddTraits(isOn ? .isSelected : [])
         .onChange(of: isOn) { _, on in
             if on {
-                withAnimation(reduceMotion ? .easeOut(duration: 0.2) : .spring(duration: 0.5, bounce: 0.1)) { flood = 1 }
+                // The lead: the tint floods out of the symbol while the symbol squashes, on the tap. The glass takes the
+                // tint two beats on, as the flood reaches the rim.
+                withAnimation(motion.morph) { flood = 1 }
+                withAnimation(motion.cascade(motion.morph, index: 2, step: beat)) { tinted = true }
                 if !reduceMotion { burst += 1 }
                 guard confirmation != nil else { return }
-                withAnimation(reduceMotion ? .easeOut(duration: 0.2) : .spring(duration: 0.4, bounce: 0.35)) { showsPill = true }
+                if style.isContained {
+                    showsPill = true
+                } else {
+                    // A bare symbol has no glass for the pill to bud from, so it rises in on its own, two beats on.
+                    withAnimation(motion.cascade(motion.reveal, index: 2, step: beat)) { showsPill = true }
+                }
             } else {
-                withAnimation(.easeOut(duration: 0.28)) {
+                // A quiet drain back into the symbol: no overshoot, no haptic.
+                withAnimation(motion.dismiss) {
                     flood = 0
+                    tinted = false
                     showsPill = false
+                }
+            }
+        }
+        .onChange(of: showsPill) { _, shows in
+            guard style.isContained else { return }
+            Task {
+                if shows {
+                    // The pill answers the tap: it buds once the glass has taken the tint, two beats on.
+                    if !reduceMotion { try? await Task.sleep(for: .milliseconds(Int(beat * 2 * 1000))) }
+                    guard showsPill else { return }
+                    await pills.bloom(["pill"], reduceMotion: reduceMotion)
+                } else {
+                    await pills.gather(["pill"], reduceMotion: reduceMotion)
                 }
             }
         }
@@ -154,116 +182,246 @@ public struct ReactionToggle: View {
             guard showsPill else { return }
             try? await Task.sleep(for: .seconds(1.3))
             guard !Task.isCancelled else { return }
-            withAnimation(.easeOut(duration: 0.25)) { showsPill = false }
+            withAnimation(PieceMotion(reduceMotion: reduceMotion).dismiss) { showsPill = false }
         }
     }
 
-    /// Ink follows the flood so the symbol never disappears into the block.
+    /// The halo trails the tap by one beat: one-shot, calm, spending itself as it spreads.
+    private func halo(_ motion: PieceMotion) -> Animation {
+        motion.cascade(motion.reveal, index: 1, step: beat)
+    }
+
+    /// Ink follows the flood so the symbol never disappears into the tint.
     private var ink: Color {
         style.isContained && isOn ? style.ink : style.restInk
     }
 
-    /// Rest capsule with a solid circle that grows out of the symbol to fill it.
-    private var capsule: some View {
+    /// The symbol and the count, padded to the capsule.
+    private var face: some View {
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        return HStack(spacing: size * 0.28) {
+            symbol
+            if let total {
+                Text(total.formatted())
+                    .font(.system(size: size * 0.7, weight: .semibold, design: .rounded))
+                    .monospacedDigit()
+                    .lineLimit(1)
+                    .fixedSize()
+                    .foregroundStyle(ink)
+                    // Data: it lands with the toggle, never a beat behind, and never rolls past its number.
+                    // Under Reduce Motion the digits crossfade.
+                    .contentTransition(reduceMotion ? .opacity : .numericText(value: Double(total)))
+                    .animation(motion.value, value: isOn)
+            }
+        }
+        .padding(.leading, leading)
+        .padding(.trailing, style.isContained ? (count == nil ? leading : height * 0.42) : 0)
+        .frame(minWidth: 44, minHeight: height)
+        .contentShape(.capsule)
+    }
+
+    /// Contained, the face sits on a glass capsule with the flood behind it, so the glass shows the colour through as
+    /// it spreads and then takes it as its own tint. Bare, the face stands alone.
+    @ViewBuilder
+    private func surface(_ face: some View) -> some View {
+        if style.isContained {
+            face
+                .pieceLiquid(.capsule, tint: tinted ? fill : restTint, interactive: false)
+                // Sinks with the glass under a press, so no rim of the tint shows around the pressed capsule.
+                .background { pool.modifier(SinksWithGlass()) }
+        } else {
+            face
+        }
+    }
+
+    /// A solid circle of the tint that grows out of the symbol to fill the capsule, behind the glass. Under Reduce
+    /// Motion the circle is already full size and fades in and out instead.
+    private var pool: some View {
         GeometryReader { proxy in
             let reach = hypot(proxy.size.width, proxy.size.height) * 1.05
-            ZStack {
-                Capsule().fill(style.restFill)
-                Circle()
-                    .fill(fill)
-                    .frame(width: reach * 2, height: reach * 2)
-                    .scaleEffect(max(flood, 0.001))
-                    .position(x: leading + box / 2, y: proxy.size.height / 2)
-            }
-            .clipShape(.capsule)
+            Flood(level: reduceMotion ? 1 : flood)
+                .fill(fill)
+                .frame(width: reach * 2, height: reach * 2)
+                .opacity(reduceMotion ? flood : 1)
+                .position(x: leading + box / 2, y: proxy.size.height / 2)
         }
+        .clipShape(.capsule)
+        .allowsHitTesting(false)
     }
 
     /// Contained: the symbol swaps to its filled form in ink. Bare: a filled block sits under an ink outline, like a sticker.
     private var symbol: some View {
-        ZStack {
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        let name = isOn && style.isContained ? filledImage : systemImage
+        return ZStack {
             if !style.isContained {
                 Image(systemName: filledImage)
                     .foregroundStyle(fill)
-                    .scaleEffect(flood)
+                    .scaleEffect(reduceMotion ? 1 : flood)
                     .opacity(flood)
             }
-            Image(systemName: isOn && style.isContained ? filledImage : systemImage)
+            // The glyph swaps as the tint reaches it: the outline blurs out as the filled form sharpens in. Under
+            // Reduce Motion it crossfades in place.
+            Image(systemName: name)
                 .foregroundStyle(ink)
-                .contentTransition(.symbolEffect(.replace.downUp))
+                .id(name)
+                .transition(motion.swap)
         }
+        .animation(motion.morph, value: isOn)
         .font(.system(size: size, weight: .semibold))
         .frame(width: box, height: box)
-            .keyframeAnimator(initialValue: Bounce(), trigger: burst) { view, value in
-                view.scaleEffect(value.scale).rotationEffect(.degrees(value.tilt))
-            } keyframes: { _ in
-                KeyframeTrack(\.scale) {
-                    CubicKeyframe(0.78, duration: 0.08)
-                    SpringKeyframe(1.24, duration: 0.18, spring: .snappy)
-                    SpringKeyframe(1, duration: 0.4, spring: .bouncy)
-                }
-                KeyframeTrack(\.tilt) {
-                    CubicKeyframe(-12, duration: 0.14)
-                    SpringKeyframe(0, duration: 0.45, spring: .bouncy)
-                }
+        // Soft rubber: it flattens wide as the tap lands, springs up tall and narrow, and wobbles to rest with a small
+        // tilt. Visual only, so the hit area and layout never change. Not run under Reduce Motion.
+        .keyframeAnimator(initialValue: Squish(), trigger: burst) { view, value in
+            view.scaleEffect(x: value.x, y: value.y).rotationEffect(.degrees(value.tilt))
+        } keyframes: { _ in
+            KeyframeTrack(\.x) {
+                CubicKeyframe(1.08, duration: 0.08)
+                SpringKeyframe(0.94, duration: 0.14, spring: PieceMotion.tight)
+                SpringKeyframe(1, duration: 0.38, spring: PieceMotion.expressive)
             }
-    }
-
-    @ViewBuilder
-    private var pill: some View {
-        if showsPill, let confirmation {
-            HStack(spacing: 5) {
-                Image(systemName: "checkmark").font(.caption2.weight(.heavy))
-                Text(confirmation)
+            KeyframeTrack(\.y) {
+                CubicKeyframe(0.84, duration: 0.08)
+                SpringKeyframe(1.12, duration: 0.14, spring: PieceMotion.tight)
+                SpringKeyframe(1, duration: 0.38, spring: PieceMotion.expressive)
             }
-            .font(.footnote.weight(.semibold))
-            .foregroundStyle(style.pillInk)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 7)
-            .background(style.pillFill, in: .capsule)
-            .shadow(color: .black.opacity(0.18), radius: 10, y: 5)
-            .fixedSize()
-            .offset(y: -height * 0.5 - 22)
-            .transition(.scale(scale: 0.6, anchor: .bottom).combined(with: .opacity).combined(with: .offset(y: 8)))
-            .allowsHitTesting(false)
-            .accessibilityHidden(true)
+            KeyframeTrack(\.tilt) {
+                CubicKeyframe(-12, duration: 0.14)
+                SpringKeyframe(0, duration: 0.46, spring: PieceMotion.expressive)
+            }
         }
     }
 
-    private struct Bounce {
-        var scale: CGFloat = 1
+    /// Contained, the pill is a bubble of the capsule: born inside it, shrunk, it springs out above the capsule and
+    /// rests joined to it by a liquid neck, then melts back in. Bare, there is no glass to bud from, so it rises in on
+    /// its own above the symbol.
+    @ViewBuilder
+    private var pill: some View {
+        if let confirmation {
+            if style.isContained {
+                if pills.contains("pill") {
+                    let out = pills.isOut("pill")
+                    pillBody(confirmation, out: out)
+                        .pieceBud(
+                            out: out,
+                            rest: CGSize(width: 0, height: -(pillSize.height + PieceLiquid.joined)),
+                            home: CGSize(width: 0, height: (height - pillSize.height) / 2)
+                        )
+                }
+            } else if showsPill {
+                pillBody(confirmation, out: true)
+                    .offset(y: -(pillSize.height + 10))
+                    .transition(PieceMotion(reduceMotion: reduceMotion).transition(.offset(y: 8).combined(with: .opacity)))
+            }
+        }
+    }
+
+    /// A check and the confirmation on a glass capsule. Home, it is round and smaller than the capsule it sits in, its
+    /// words hidden; it widens to fit them as it springs out and narrows again on the way home, so it never pokes out
+    /// of the capsule's sides. Its tint, if any, drains as it melts, so nothing rides over the capsule's symbol.
+    private func pillBody(_ text: String, out: Bool) -> some View {
+        let wide = out || reduceMotion || !style.isContained
+        return HStack(spacing: 5) {
+            Image(systemName: "checkmark").font(.caption2.weight(.semibold))
+            Text(text)
+        }
+        .font(.footnote.weight(.semibold))
+        .foregroundStyle(style.pillInk)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 7)
+        .fixedSize()
+        .onGeometryChange(for: CGSize.self) { $0.size } action: { pillSize = $0 }
+        .pieceBudContent(out: out)
+        .frame(width: wide ? max(pillSize.width, pillSize.height) : pillSize.height, height: pillSize.height)
+        .clipShape(.capsule)
+        .pieceLiquid(.capsule, tint: out ? pillTint : nil, interactive: false)
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
+    }
+
+    /// The flood: a circle from the center, `level` of the way to filling its frame. The level animates here, not a
+    /// scale, so the circle is gone with 6% of the drain left and the spring's long tail never leaves a speck inside
+    /// the outline glyph.
+    private struct Flood: Shape {
+        var level: CGFloat
+
+        var animatableData: CGFloat {
+            get { level }
+            set { level = newValue }
+        }
+
+        func path(in rect: CGRect) -> Path {
+            let radius = min(rect.width, rect.height) / 2 * (level - 0.06) / 0.94
+            guard radius > 0 else { return Path() }
+            return Circle().path(in: CGRect(x: rect.midX - radius, y: rect.midY - radius, width: radius * 2, height: radius * 2))
+        }
+    }
+
+    /// The press. Contained, the glass and the face it carries sink as one through the liquid press (a plain scale on
+    /// glass leaves the face behind); bare, there is no glass, so the symbol sinks as a view.
+    private struct TogglePress: ButtonStyle {
+        let contained: Bool
+
+        @ViewBuilder func makeBody(configuration: Configuration) -> some View {
+            if contained {
+                configuration.label.pieceLiquidPress(configuration.isPressed)
+            } else {
+                configuration.label.piecePress(configuration.isPressed)
+            }
+        }
+    }
+
+    /// Scales the pool behind the glass by the same liquid scale the press puts on the glass, about the same centre.
+    private struct SinksWithGlass: ViewModifier {
+        @Environment(\.pieceLiquidScale) private var scale
+
+        func body(content: Content) -> some View {
+            content.scaleEffect(scale)
+        }
+    }
+
+    /// The symbol's squash: horizontal and vertical scale, and a tilt in degrees.
+    private struct Squish {
+        var x: CGFloat = 1
+        var y: CGFloat = 1
         var tilt: Double = 0
     }
 
-    /// Stiff press-in, bouncy release.
-    private struct Press: ButtonStyle {
-        func makeBody(configuration: Configuration) -> some View {
-            configuration.label
-                .scaleEffect(configuration.isPressed ? 0.92 : 1)
-                .animation(configuration.isPressed ? .spring(duration: 0.12, bounce: 0) : .spring(duration: 0.45, bounce: 0.5), value: configuration.isPressed)
-        }
-    }
-
-    /// One outline that expands from the toggle and fades; re-created per reaction via `.id`.
+    /// One ring that expands from a bare symbol and fades; re-created per reaction via `.id`. It draws nothing until
+    /// its animation starts, so it waits out its beat unseen.
     private struct Halo: View {
         let color: Color
-        let capsule: Bool
+        let animation: Animation
         @State private var fired = false
 
         var body: some View {
-            Group {
-                if capsule {
-                    Capsule().strokeBorder(color, lineWidth: fired ? 1 : 3)
-                        .padding(fired ? -12 : 0)
-                } else {
-                    Circle().strokeBorder(color, lineWidth: fired ? 0.5 : 2.5)
-                        .scaleEffect(fired ? 1.8 : 0.7)
-                }
-            }
-            .opacity(fired ? 0 : 1)
-            .allowsHitTesting(false)
-            .accessibilityHidden(true)
-            .onAppear { withAnimation(.easeOut(duration: 0.6)) { fired = true } }
+            Ripple(progress: fired ? 1 : 0)
+                .fill(color)
+                .opacity(fired ? 0 : 1)
+                .allowsHitTesting(false)
+                .accessibilityHidden(true)
+                .onAppear { withAnimation(animation) { fired = true } }
+        }
+    }
+
+    /// The halo's ring at `progress` of the way out; empty at 0. It grows from 0.7 to 1.8 times the symbol box,
+    /// thinning as it goes.
+    private struct Ripple: Shape {
+        var progress: CGFloat
+
+        var animatableData: CGFloat {
+            get { progress }
+            set { progress = newValue }
+        }
+
+        func path(in rect: CGRect) -> Path {
+            guard progress > 0 else { return Path() }
+            let p = min(progress, 1)
+            let scale = 0.7 + 1.1 * p
+            let line = (2.5 - 2 * p) * scale
+            let side = min(rect.width, rect.height) * scale
+            let ring = CGRect(x: rect.midX - side / 2, y: rect.midY - side / 2, width: side, height: side)
+            return Circle().path(in: ring.insetBy(dx: line / 2, dy: line / 2)).strokedPath(StrokeStyle(lineWidth: line))
         }
     }
 }
@@ -294,3 +452,460 @@ private struct ReactionToggleExample: View {
 #Preview("Dark") {
     ReactionToggleExample().preferredColorScheme(.dark)
 }
+
+// MARK: - Piece motion
+//
+// The SwiftPieces motion language: shared spring tokens and gesture physics, with the same values in every
+// piece. Each piece carries a copy of only the parts it uses, so this file stands alone. Generated from
+// registry/foundation/PieceMotion.swift in the SwiftPieces repo; edit it there, not here.
+// swiftpieces-motion: 1.1.0 (core, follow, pressMath, press)
+
+/// The SwiftPieces motion language: five spring tiers, and a named role for every moment a piece moves,
+/// each with its Reduce Motion substitute.
+///
+/// Build one from the environment, `PieceMotion(reduceMotion: reduceMotion)`, and pick the role that names
+/// what just happened. Never animate the tracking of a finger: set gesture state directly in `onChanged`, so the
+/// surface stays under the finger, and spring only the release.
+private struct PieceMotion {
+    var reduceMotion = false
+
+    // Tiers. Overshoot and settle times are measured from rest with SwiftUI's Spring.
+    /// No overshoot, 90% in about 90ms. A press arriving under the finger.
+    static var tight: Spring { Spring(duration: 0.14, bounce: 0) }
+    /// About 2.8% overshoot, 90% in about 140ms. Snapping to a detent, page or segment.
+    static var responsive: Spring { Spring(duration: 0.32, bounce: 0.25) }
+    /// About 8.4% overshoot. Visible give: a release, a return from past an edge, a drag settling home.
+    static var elastic: Spring { Spring(duration: 0.42, bounce: 0.38) }
+    /// About 15% overshoot. A resolved action landing. At most once per interaction.
+    static var expressive: Spring { Spring(duration: 0.48, bounce: 0.48) }
+    /// About 1.5% overshoot, unhurried. Opening large surfaces and ambient change.
+    static var calm: Spring { Spring(duration: 0.5, bounce: 0.2) }
+
+    /// Reduce Motion: settles become this short spring with no overshoot.
+    private static var still: Animation { .spring(duration: 0.25, bounce: 0) }
+
+    // Roles.
+    /// Touch-down. Starts on the same frame and never bounces under the finger.
+    var press: Animation { .spring(Self.tight) }
+    /// The finger lifts off a pressed surface, which springs back through rest.
+    var release: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A dragged thing comes to rest. With a gesture's velocity, use `settle(velocity:from:to:)` instead.
+    var settle: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// Lands on a detent, page or segment.
+    var snap: Animation { reduceMotion ? Self.still : .spring(Self.responsive) }
+    /// A number, a chart value or anything else people read moves to its new value. Never overshoots, so it
+    /// never shows a value that isn't true.
+    var value: Animation { reduceMotion ? Self.still : .spring(duration: 0.35, bounce: 0) }
+    /// Comes back from past a limit: a pull beyond the edge, a value pushed against its bound.
+    var rebound: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A shape or container changes size, corner radius or form, with a little give at the end.
+    var morph: Animation { reduceMotion ? Self.still : .spring(duration: 0.4, bounce: 0.2) }
+    /// Something appears, opens or expands. Opening is a little slower than closing.
+    var reveal: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.calm) }
+    /// Something leaves, closes or collapses. Quick and firm, out of the way.
+    var dismiss: Animation { reduceMotion ? .easeIn(duration: 0.18) : .spring(duration: 0.3, bounce: 0.08) }
+    /// A resolved action lands: a check, a sent state, a reaction.
+    var success: Animation { reduceMotion ? .easeOut(duration: 0.24) : .spring(Self.expressive) }
+    /// A refused action. Firm, no wobble; `pieceShake` adds the movement.
+    var error: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.responsive) }
+    /// Slow ambient change. Loops themselves stop under Reduce Motion: check `allowsAmbient`.
+    var ambient: Animation { reduceMotion ? .easeInOut(duration: 0.3) : .spring(Self.calm) }
+
+    /// Loops, drifts, idle breathing and parallax run only when this is true.
+    var allowsAmbient: Bool { !reduceMotion }
+
+    /// A moving transition, or a plain fade under Reduce Motion.
+    func transition(_ transition: AnyTransition) -> AnyTransition {
+        reduceMotion ? .opacity : transition
+    }
+
+    /// For content replaced inside a container that stays put (a label, a glyph, a count): the old content
+    /// blurs out as the new one sharpens in. A fade under Reduce Motion.
+    @MainActor var swap: AnyTransition {
+        reduceMotion ? .opacity : AnyTransition(.blurReplace)
+    }
+}
+
+extension PieceMotion {
+    /// Follow-through: rank 0 leads, each later rank arrives a beat later on a slightly looser spring. Safe to reverse.
+    func follow(_ spring: Spring = PieceMotion.elastic, rank: Int) -> Animation {
+        guard !reduceMotion else { return .spring(duration: 0.25, bounce: 0) }
+        let k = Double(min(max(rank, 0), 6))
+        return .spring(duration: spring.duration + 0.04 * k, bounce: min(spring.bounce + 0.02 * k, 0.55))
+    }
+
+    /// One-shot entrances only: item `index` waits 30ms per place, capped at the seventh. Exits go together.
+    func cascade(_ animation: Animation, index: Int, step: Double = 0.03) -> Animation {
+        guard !reduceMotion, index > 0 else { return animation }
+        return animation.delay(step * Double(min(index, 7)))
+    }
+}
+
+extension PieceMotion {
+    /// About `depth` points per edge, not a fixed percentage: an icon sinks to 0.92, a pill 0.95, a card 0.985.
+    nonisolated static func pressScale(for size: CGSize, depth: CGFloat = 2.5) -> CGFloat {
+        let side = (max(size.width, 1) * max(size.height, 1)).squareRoot()
+        return min(max(1 - depth * 2 / side, 0.92), 0.985)
+    }
+
+    /// An anchor partway from the center toward the touch, so the press leans into the finger without tipping.
+    nonisolated static func pressAnchor(touch: CGPoint?, in size: CGSize, lean: CGFloat = 0.6) -> UnitPoint {
+        guard let touch, size.width > 0, size.height > 0 else { return .center }
+        let x = min(max(touch.x / size.width, 0), 1)
+        let y = min(max(touch.y / size.height, 0), 1)
+        return UnitPoint(x: 0.5 + (x - 0.5) * lean, y: 0.5 + (y - 0.5) * lean)
+    }
+}
+
+/// Sinks on touch-down, leaning toward the touch if given, and springs back from the same lean. Under Reduce
+/// Motion it shades instead of moving (darker in light mode, lighter in dark), without turning transparent.
+private struct PiecePress: ViewModifier {
+    let pressed: Bool
+    var touch: CGPoint?
+    var depth: CGFloat = 2.5
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.colorScheme) private var colorScheme
+    @State private var size: CGSize = .zero
+    @State private var anchor: UnitPoint = .center
+
+    func body(content: Content) -> some View {
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        let scale = pressed && !reduceMotion ? PieceMotion.pressScale(for: size, depth: depth) : 1
+        content
+            .onGeometryChange(for: CGSize.self) { $0.size } action: { size = $0 }
+            .brightness(pressed && reduceMotion ? (colorScheme == .dark ? 0.1 : -0.08) : 0)
+            .scaleEffect(scale, anchor: anchor)
+            .animation(pressed ? motion.press : motion.release, value: pressed)
+            .onChange(of: pressed) { _, isPressed in
+                if isPressed { anchor = PieceMotion.pressAnchor(touch: touch, in: size) }
+            }
+            .onChange(of: touch) { _, touch in
+                if pressed, let touch { anchor = PieceMotion.pressAnchor(touch: touch, in: size) }
+            }
+    }
+}
+
+private extension View {
+    /// Sinks this view while `pressed`, leaning toward `touch` (in this view's coordinates) when given.
+    func piecePress(_ pressed: Bool, touch: CGPoint? = nil, depth: CGFloat = 2.5) -> some View {
+        modifier(PiecePress(pressed: pressed, touch: touch, depth: depth))
+    }
+}
+
+// swiftpieces-motion: end
+
+// MARK: - Piece liquid
+//
+// The SwiftPieces liquid glass language: glass shapes that merge through a neck, bubbles that bud out of
+// and melt back into each other, and the frosted fallback before iOS 26. Each piece carries a copy of only
+// the parts it uses, so this file stands alone. Generated from registry/foundation/PieceLiquid.swift in the
+// SwiftPieces repo; edit it there, not here. The rules are in LIQUID_GLASS.md.
+// swiftpieces-liquid: 1.7.0 (liquid, liquidPress, bud)
+
+/// The liquid glass language: one merge distance, two rest gaps, and the springs a bubble leaves and comes home on.
+///
+/// Glass shapes inside one `PieceLiquidGroup` melt into each other through a neck when they come within `merge`
+/// points. Parts of one control rest `joined`, inside that distance, so the neck holds; separate actions rest
+/// `apart`, outside it, so they only goo while one buds out of, or melts back into, another.
+private enum PieceLiquid {
+    /// Glass shapes closer than this share a neck.
+    static let merge: CGFloat = 20
+    /// The gap between parts of one control (a stepper's buttons, a progress pill and its stop): the neck holds,
+    /// short and smooth, about two thirds of the shapes' height at its waist. Joined parts read best at one height.
+    static let joined: CGFloat = 4
+    /// The gap between separate actions (menu items, confirm and cancel, chips): they rest as their own bubbles.
+    static let apart: CGFloat = 26
+    /// How far a bubble shrinks while it is home inside its parent.
+    static let homeScale: CGFloat = 0.72
+
+    /// A bubble leaving its parent: slow enough that the neck's stretch and snap read.
+    static func split(reduceMotion: Bool) -> Animation {
+        reduceMotion ? .easeOut(duration: 0.2) : .spring(duration: 0.62, bounce: 0.22)
+    }
+
+    /// A bubble going home. No bounce: a bounce would carry it out through the far side of its parent.
+    static func home(reduceMotion: Bool) -> Animation {
+        reduceMotion ? .easeIn(duration: 0.18) : .spring(duration: 0.5, bounce: 0)
+    }
+}
+
+/// A group of glass shapes that merge into one liquid surface. On iOS 26 it is a `GlassEffectContainer`; before
+/// that, and under Reduce Transparency, the shapes draw on their own and simply don't merge. `lift` adds the soft
+/// shadow liquid glass floats on in light mode.
+private struct PieceLiquidGroup<Content: View>: View {
+    var spacing: CGFloat = PieceLiquid.merge
+    var lift = true
+    @ViewBuilder var content: Content
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        container
+            .shadow(color: .black.opacity(lift && colorScheme == .light ? 0.07 : 0), radius: 18, y: 8)
+    }
+
+    @ViewBuilder private var container: some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26, *), !reduceTransparency {
+            GlassEffectContainer(spacing: spacing) { content }
+        } else {
+            content
+        }
+        #else
+        content
+        #endif
+    }
+}
+
+/// One liquid glass shape: Liquid Glass on iOS 26, carrying `tint` as a solid colour and swelling under a press when
+/// `interactive`; a frosted Material with a light rim and a soft shadow before that; a solid fill under Reduce
+/// Transparency.
+///
+/// The tint is painted inside clear glass rather than tinting the glass. Tinted glass in a group bleeds its colour
+/// through every neck as a smear, so a red button would glow into the white pill it is joined to; painted inside,
+/// the colour stays crisp to the shape's edge, the necks between shapes are clear glass, and a tint change animates
+/// like any colour (tinted glass snaps).
+private struct PieceLiquidSurface<S: Shape>: ViewModifier {
+    var shape: S
+    var tint: Color?
+    var interactive: Bool
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.pieceLiquidScale) private var scale
+
+    func body(content: Content) -> some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26, *), !reduceTransparency {
+            // Scaled as two parts, content and outline, about the same centre. A scaleEffect on a glass view inside a
+            // GlassEffectContainer shrinks the glass but leaves what it carries full size, pinned to its corner.
+            content
+                .background { shape.fill(tint ?? .clear) }
+                .scaleEffect(scale)
+                .glassEffect(glass, in: shape.scale(scale))
+        } else {
+            fallback(content).scaleEffect(scale)
+        }
+        #else
+        fallback(content).scaleEffect(scale)
+        #endif
+    }
+
+    #if compiler(>=6.2)
+    @available(iOS 26, *)
+    private var glass: Glass {
+        interactive ? Glass.regular.interactive() : .regular
+    }
+    #endif
+
+    private func fallback(_ content: Content) -> some View {
+        let dark = colorScheme == .dark
+        return content
+            .background {
+                if reduceTransparency {
+                    shape.fill(tint ?? (dark ? Color(white: 0.17) : Color(white: 0.97)))
+                } else {
+                    ZStack {
+                        shape.fill(.regularMaterial)
+                        if let tint { shape.fill(tint.opacity(0.88)) }
+                    }
+                }
+            }
+            .overlay { shape.stroke(Color.white.opacity(dark ? 0.14 : 0.7), lineWidth: 0.5) }
+            .shadow(color: .black.opacity(dark ? 0.32 : 0.08), radius: 10, y: 5)
+    }
+}
+
+private struct PieceLiquidScaleKey: EnvironmentKey {
+    static let defaultValue: CGFloat = 1
+}
+
+private extension EnvironmentValues {
+    /// How much the liquid shapes below are scaled, about their own centres. Nested scales multiply.
+    var pieceLiquidScale: CGFloat {
+        get { self[PieceLiquidScaleKey.self] }
+        set { self[PieceLiquidScaleKey.self] = newValue }
+    }
+}
+
+private extension View {
+    /// Draws this view on a liquid glass `shape`. Put it inside a `PieceLiquidGroup` so it can merge with its neighbours.
+    func pieceLiquid<S: Shape>(_ shape: S, tint: Color? = nil, interactive: Bool = true) -> some View {
+        modifier(PieceLiquidSurface(shape: shape, tint: tint, interactive: interactive))
+    }
+
+    /// Scales the liquid glass shapes in this view, content and outline together, about their own centres. Use it
+    /// instead of `scaleEffect` on a glass view (a press, a lift, a swell): inside a group a plain `scaleEffect` shrinks
+    /// the glass but leaves its content full size and off centre. Animates like any other value.
+    func pieceLiquidScale(_ scale: CGFloat) -> some View {
+        transformEnvironment(\.pieceLiquidScale) { $0 *= scale }
+    }
+}
+
+/// The press for a glass control: the same size-aware sink and lean as `piecePress`, applied through
+/// `pieceLiquidScale` so the glass and what it carries sink together (a plain scaleEffect on glass leaves the content
+/// behind). Put the glass inside what it presses: the label of a button, the view this modifies. Under Reduce Motion
+/// it shades instead of moving.
+private struct PieceLiquidPress: ViewModifier {
+    let pressed: Bool
+    var touch: CGPoint?
+    var depth: CGFloat = 2.5
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.colorScheme) private var colorScheme
+    @State private var size: CGSize = .zero
+    @State private var anchor: UnitPoint = .center
+
+    func body(content: Content) -> some View {
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        let scale = pressed && !reduceMotion ? PieceMotion.pressScale(for: size, depth: depth) : 1
+        // A scale about `anchor` is a scale about the centre plus this shift toward the anchor.
+        let lean = CGSize(width: (anchor.x - 0.5) * size.width * (1 - scale), height: (anchor.y - 0.5) * size.height * (1 - scale))
+        content
+            .onGeometryChange(for: CGSize.self) { $0.size } action: { size = $0 }
+            .brightness(pressed && reduceMotion ? (colorScheme == .dark ? 0.1 : -0.08) : 0)
+            .pieceLiquidScale(scale)
+            .offset(lean)
+            .animation(pressed ? motion.press : motion.release, value: pressed)
+            .onChange(of: pressed) { _, isPressed in
+                if isPressed { anchor = PieceMotion.pressAnchor(touch: touch, in: size) }
+            }
+            .onChange(of: touch) { _, touch in
+                if pressed, let touch { anchor = PieceMotion.pressAnchor(touch: touch, in: size) }
+            }
+    }
+}
+
+/// `PiecePressStyle` for glass buttons: the label (with its `.pieceLiquid` inside) sinks as one.
+private struct PieceLiquidPressStyle: ButtonStyle {
+    var depth: CGFloat = 2.5
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label.pieceLiquidPress(configuration.isPressed, depth: depth)
+    }
+}
+
+private extension View {
+    /// Sinks this view's glass while `pressed`, leaning toward `touch` (in this view's coordinates) when given.
+    func pieceLiquidPress(_ pressed: Bool, touch: CGPoint? = nil, depth: CGFloat = 2.5) -> some View {
+        modifier(PieceLiquidPress(pressed: pressed, touch: touch, depth: depth))
+    }
+}
+
+/// The bud: how a bubble leaves and rejoins its parent, driven explicitly so every bubble shows the whole cycle.
+///
+/// A bubble is born at `home`, inside its parent, where the two glass shapes are one. It springs out to `rest`, and
+/// while it is inside the merge distance a neck holds it to the parent, thinning as it goes, until it snaps free.
+/// Going home it springs back on a spring with no bounce, the neck reaches out and re-forms, and only once it has
+/// melted all the way in is it removed. Both offsets are relative to where the bubble is laid out. Under Reduce
+/// Motion it stays at `rest`: its content fades and its glass closes in place.
+private struct PieceBud: ViewModifier {
+    var out: Bool
+    var rest: CGSize
+    var home: CGSize
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func body(content: Content) -> some View {
+        if reduceMotion {
+            // No travel. Inside a group glass ignores opacity, so the glass closes to nothing in place on the short
+            // Reduce Motion ease while its content fades; the opacity covers a bubble outside a group.
+            content
+                .pieceLiquidScale(out ? 1 : 0.001)
+                .opacity(out ? 1 : 0)
+                .offset(rest)
+        } else {
+            // The glass shrinks through `pieceLiquidScale`, never a plain scaleEffect (see there), then moves.
+            content
+                .pieceLiquidScale(out ? 1 : PieceLiquid.homeScale)
+                .offset(out ? rest : home)
+        }
+    }
+}
+
+/// A bubble's own content, on its own clock: gone the moment the bubble heads home, so it never rides over the
+/// parent's content, and arriving just after the bubble leaves.
+private struct PieceBudContent: ViewModifier {
+    var out: Bool
+
+    func body(content: Content) -> some View {
+        content
+            .blur(radius: out ? 0 : 6)
+            .opacity(out ? 1 : 0)
+            .animation(out ? .easeOut(duration: 0.3).delay(0.1) : .easeOut(duration: 0.14), value: out)
+    }
+}
+
+private extension View {
+    /// Places a bubble at `rest` while `out`, and at `home` (inside its parent, shrunk) while not.
+    func pieceBud(out: Bool, rest: CGSize = .zero, home: CGSize) -> some View {
+        modifier(PieceBud(out: out, rest: rest, home: home))
+    }
+
+    /// Hides a bubble's icon or label while it is home. Put it on the content, inside the glass.
+    func pieceBudContent(out: Bool) -> some View {
+        modifier(PieceBudContent(out: out))
+    }
+}
+
+/// Which bubbles exist and which are out. A bubble is added home with no animation, sent out on the next frame,
+/// and called home before it is removed, so it always melts in rather than fading. Keep one in `@State`.
+@MainActor @Observable
+private final class PieceBuds {
+    private(set) var present: [String] = []
+    private(set) var out: Set<String> = []
+    /// The latest call for each bubble. A bloom or gather that has been overtaken (a bubble sent home while it was
+    /// still waiting to go out, or called out again while melting) leaves that bubble alone.
+    @ObservationIgnored private var turn: [String: Int] = [:]
+
+    func contains(_ id: String) -> Bool { present.contains(id) }
+    func isOut(_ id: String) -> Bool { out.contains(id) }
+
+    private func claim(_ ids: [String]) -> [String: Int] {
+        var mine: [String: Int] = [:]
+        for id in ids {
+            let next = (turn[id] ?? 0) + 1
+            turn[id] = next
+            mine[id] = next
+        }
+        return mine
+    }
+
+    /// Puts bubbles straight out at rest with no motion: a view's first frame, or a state restored.
+    func place(_ ids: [String]) {
+        _ = claim(ids)
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) {
+            for id in ids where !present.contains(id) { present.append(id) }
+            out.formUnion(ids)
+        }
+    }
+
+    /// Adds bubbles home, then sends each out, `stagger` seconds apart, after an optional `delay`.
+    func bloom(_ ids: [String], reduceMotion: Bool, stagger: Double = 0.05, delay: Double = 0) async {
+        let mine = claim(ids)
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) {
+            for id in ids where !present.contains(id) { present.append(id) }
+        }
+        try? await Task.sleep(for: .milliseconds(24 + Int(max(delay, 0) * 1000)))
+        let split = PieceLiquid.split(reduceMotion: reduceMotion)
+        for (i, id) in ids.enumerated() where turn[id] == mine[id] {
+            withAnimation(split.delay(reduceMotion ? 0 : Double(i) * stagger)) { _ = out.insert(id) }
+        }
+    }
+
+    /// Calls bubbles home, last first, then removes them once they have melted in.
+    func gather(_ ids: [String], reduceMotion: Bool, stagger: Double = 0.04) async {
+        let mine = claim(ids)
+        let home = PieceLiquid.home(reduceMotion: reduceMotion)
+        for (i, id) in ids.reversed().enumerated() {
+            withAnimation(home.delay(reduceMotion ? 0 : Double(i) * stagger)) { _ = out.remove(id) }
+        }
+        try? await Task.sleep(for: .milliseconds(Int((0.52 + Double(ids.count) * stagger) * 1000)))
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) { present.removeAll { ids.contains($0) && !out.contains($0) && turn[$0] == mine[$0] } }
+    }
+}
+
+// swiftpieces-liquid: end

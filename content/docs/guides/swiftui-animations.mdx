@@ -170,7 +170,7 @@ struct SegmentedExample: View {
 }
 ```
 
-Only one view with a given `id` should be visible at a time (or mark one as `isSource: false`). For morphing a card into a detail screen, the same idea applies across a larger hierarchy. [Prompt Chips](/docs/components/ai/prompt-chips) uses it to morph a tapped suggestion into a composer-width block.
+Only one view with a given `id` should be visible at a time (or mark one as `isSource: false`). For morphing a card into a detail screen, the same idea applies across a larger hierarchy. [Prompt Chips](/docs/components/ai/prompt-chips) takes another route for its hand-off: the other chips melt into the tapped one inside a glass group, with no matched geometry at all.
 
 ## phaseAnimator and keyframeAnimator
 

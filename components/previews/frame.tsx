@@ -8,6 +8,8 @@ import { cn } from "@/lib/cn";
  * timers never run off-screen. Aspect stays fixed so grids never reflow.
  * `clear` drops the ground entirely, for stages drawn straight onto a dashed frame (the landing visuals).
  * The stage is a size container, so previews can scale with `cqw`/`cqh` between the 330 px grid card and the 560 px docs header.
+ * Every piece sets its text semibold (LIQUID_GLASS.md, rule 13), so the stage does too: a label that sets no weight
+ * of its own still matches the Swift piece.
  */
 export function PreviewFrame({ children, className, aspect = "aspect-[4/3]", tone = "dark" }: { children: ReactNode; className?: string; aspect?: string; tone?: "dark" | "black" | "light" | "clear" }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -15,7 +17,7 @@ export function PreviewFrame({ children, className, aspect = "aspect-[4/3]", ton
   return (
     <div
       ref={ref}
-      className={cn("relative isolate overflow-hidden rounded-[var(--radius)] select-none [container-type:size]", aspect, (tone === "dark" || tone === "black") && "stage-ground", tone === "light" && "bg-[#f0f0f0] text-black", tone === "clear" && "stage-clear", className)}
+      className={cn("relative isolate overflow-hidden rounded-[var(--radius)] font-semibold select-none [container-type:size]", aspect, (tone === "dark" || tone === "black") && "stage-ground", tone === "light" && "bg-[#f0f0f0] text-black", tone === "clear" && "stage-clear", className)}
     >
       {inView ? children : null}
     </div>

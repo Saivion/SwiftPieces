@@ -1,25 +1,31 @@
 // swiftpieces:
 // title: Drag to Dismiss
-// description: A modifier that lets a photo, card, or sheet follow a two-axis drag, rounds and shrinks it with progress over a styled scrim, reports its phase so the UI can say "release to close", then springs back or flies off along the drag vector past a distance or velocity threshold.
+// description: A modifier that lets a photo, card, or sheet follow a two-axis drag, rounds and shrinks it toward the finger with progress over a styled scrim, then springs back or is tossed off along the drag vector at the speed of the flick past a distance or velocity threshold. A liquid glass close bubble drops in at the top as the drag gets going, and a "Release to close" pill buds out of it on a liquid neck the moment the drag passes the threshold, melting back in if it falls short.
 // category: motion
 // pro: depth-gallery
 // minIOSVersion: "17.0"
-// version: "2.0.1"
+// version: "2.2.0"
 // tags: [dismiss, drag, gesture, sheet, photos, modifier, haptics]
 
 import SwiftUI
 
-/// Photos-style dismiss: drag in any direction, the view rounds and shrinks as it travels, the scrim thins,
-/// and a far enough drag or a fast flick sends it off screen along the direction it was moving.
+/// Photos-style dismiss: drag in any direction, the view rounds and shrinks toward the finger as it travels, the
+/// scrim thins, and a far enough drag or a fast flick tosses it off screen along the direction it was moving, at the
+/// finger's speed. Under Reduce Motion it fades where it is instead.
+///
+/// The hint is liquid glass and stays put at the top of the layout frame while the view travels: a round close bubble
+/// drops in once the drag is under way, and the moment the drag arms, a pill with `style.hint` buds out of it, born
+/// inside the bubble and widening as it springs out to rest joined to it by a liquid neck. Fall back under the
+/// threshold and the pill melts home; let go and the pill melts home and the bubble lifts away.
 ///
 /// - Parameters:
 ///   - threshold: Drag distance in points that arms the dismiss. A flick whose projected travel passes twice this commits from a shorter drag.
 ///   - cornerRadius: Corner radius the view reaches at full progress; it starts square so full-screen content keeps its edges at rest.
 ///   - progress: Optional binding that receives the dismiss progress (0 at rest, 1 armed) so the presenter can scale its background from 0.94 back to 1.
 ///   - scrollOffset: Vertical offset of a scroll view inside the content. The drag is only captured at 0. On iOS 18 the modifier observes the inner scroll view itself.
-///   - phase: Optional binding that receives the current phase (idle, dragging, armed, returning, committing), for a "Release to close" hint or to dim chrome while dragging.
-///   - style: Scrim color and opacity at rest, and how much the view shrinks at full progress. `.standard` is a near-black `#141414` scrim at 0.5 with a 0.15 shrink.
-///   - onDismiss: Called once the view has flown off; end the presentation here.
+///   - phase: Optional binding that receives the current phase (idle, dragging, armed, returning, committing), to dim chrome while dragging or drive a hint of your own (set `style.hint` to `nil` then).
+///   - style: Scrim color and opacity at rest, how much the view shrinks at full progress, and the hint's words. `.standard` is a near-black `#141414` scrim at 0.5 with a 0.15 shrink and a "Release to close" hint.
+///   - onDismiss: Called once the view has flown off (faded, under Reduce Motion); end the presentation here.
 public extension View {
     func dragToDismiss(
         threshold: CGFloat = 110,
@@ -34,26 +40,31 @@ public extension View {
     }
 }
 
-/// Two-axis drag with a five-phase state machine; the fly-off distance and duration come from the release velocity.
+/// Two-axis drag with a five-phase state machine. The fly-off distance comes from the flick, and both the return and
+/// the fly-off leave at the finger's speed.
 public struct DragToDismiss: ViewModifier {
     public enum Phase: Sendable { case idle, dragging, armed, returning, committing }
 
-    /// How the scrim and the traveling view look.
+    /// How the scrim, the traveling view and the hint look.
     public struct Style: Sendable {
         /// Scrim color behind the view.
         public var scrim: Color
         /// Scrim opacity at rest; it thins to zero with progress.
         public var scrimOpacity: Double
-        /// Fraction the view shrinks by at full progress, 0–0.5.
+        /// Fraction the view shrinks by at full progress, 0–0.5. Dragged past the threshold it gives a little more.
         public var shrink: CGFloat
+        /// The words on the glass pill that buds out of the close bubble once the drag arms. `nil` hides the hint
+        /// altogether, for a presenter that draws its own from `phase`.
+        public var hint: String?
 
-        public init(scrim: Color = Color(red: 20 / 255, green: 20 / 255, blue: 20 / 255), scrimOpacity: Double = 0.5, shrink: CGFloat = 0.15) {
+        public init(scrim: Color = Color(red: 20 / 255, green: 20 / 255, blue: 20 / 255), scrimOpacity: Double = 0.5, shrink: CGFloat = 0.15, hint: String? = "Release to close") {
             self.scrim = scrim
             self.scrimOpacity = scrimOpacity
             self.shrink = shrink
+            self.hint = hint
         }
 
-        /// Near-black `#141414` scrim at 0.5, 0.15 shrink.
+        /// Near-black `#141414` scrim at 0.5, 0.15 shrink, "Release to close" hint.
         public static let standard = Style()
         /// No scrim, for cards that sit over live content.
         public static let clear = Style(scrimOpacity: 0)
@@ -61,11 +72,29 @@ public struct DragToDismiss: ViewModifier {
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var phase: Phase = .idle
-    @State private var translation: CGSize = .zero
+    /// The view's offset is a sprung part plus a held part, and only their sum is drawn. Releases animate `base` alone;
+    /// the finger sets `held` directly and nothing animates it, so a grab while the view is still springing home adds
+    /// the finger to that flight instead of cutting it short.
+    @State private var base: CGSize = .zero
+    @State private var held: CGSize = .zero
+    /// Where the view was grabbed, so it shrinks toward the finger and the grabbed point stays under it.
+    @State private var anchor: UnitPoint = .center
+    /// 0 until the toss, then 1 on the same spring as the travel, which the fade reads.
+    @State private var tossed: CGFloat = 0
+    /// Counts returns, so only the latest one brings the phase back to idle.
+    @State private var returns = 0
+    /// Resets when the system cancels a touch, which skips onEnded.
+    @GestureState private var touching = false
     @State private var containerSize = CGSize(width: 390, height: 844)
     @State private var observedScrollOffset: CGFloat = 0
     @State private var hasScrollView = false
     @State private var yielded = false
+    /// The close bubble at the top, while a drag is under way.
+    @State private var hintShown = false
+    /// The hint pill: home inside the close bubble, out beside it while the drag is armed.
+    @State private var hintBuds = PieceBuds()
+    @State private var hintWidth: CGFloat = 0
+    @ScaledMetric(relativeTo: .subheadline) private var hintHeight: CGFloat = 40
 
     private let threshold: CGFloat
     private let cornerRadius: CGFloat
@@ -93,19 +122,21 @@ public struct DragToDismiss: ViewModifier {
         self.onDismiss = onDismiss
     }
 
+    /// Where the view is headed: what the finger holds plus wherever a release has sent it.
+    private var translation: CGSize { CGSize(width: base.width + held.width, height: base.height + held.height) }
     private var distance: CGFloat { hypot(translation.width, translation.height) }
     private var progress: CGFloat { phase == .committing ? 1 : min(1, distance / threshold) }
+    /// Drives the shrink: the progress, then a little more past the threshold against rubber-band resistance (up to
+    /// another 30% of the shrink), so the view keeps lifting instead of stopping dead the moment the drag arms.
+    private var lift: CGFloat {
+        progress + PieceMotion.rubberBand(max(distance - threshold, 0), limit: threshold * 0.3) / max(threshold, 1)
+    }
     private var atTop: Bool { scrollOffset <= 0.5 && observedScrollOffset <= 0.5 }
+    /// The close bubble shows once a drag has gone a third of the way, so a small nudge never flashes it.
+    private var wantsHint: Bool { style.hint != nil && (phase == .dragging || phase == .armed) && progress > 0.3 }
 
     public func body(content: Content) -> some View {
-        let dragging = phase == .dragging || phase == .armed
-        content
-            .scrollDisabled(dragging)
-            .modifier(ScrollObserver(offset: $observedScrollOffset, seen: $hasScrollView))
-            .clipShape(.rect(cornerRadius: cornerRadius * progress, style: .continuous))
-            .scaleEffect(reduceMotion ? 1 : 1 - min(max(style.shrink, 0), 0.5) * progress)
-            .offset(translation)
-            .opacity(phase == .committing ? 0 : 1)
+        surface(content)
             .background {
                 // Sits in the layout frame, so it stays put while the content travels.
                 style.scrim
@@ -118,15 +149,120 @@ public struct DragToDismiss: ViewModifier {
                         .onChange(of: proxy.size) { _, size in containerSize = size }
                 }
             }
+            // In the layout frame, like the scrim, so it stays put at the top while the view travels.
+            .overlay(alignment: .top) { hint }
             .simultaneousGesture(drag)
             .sensoryFeedback(.impact(flexibility: .rigid), trigger: phase) { _, new in new == .armed }
             .onChange(of: progress) { _, new in progressBinding?.wrappedValue = new }
-            .onChange(of: phase) { _, new in phaseBinding?.wrappedValue = new }
-            .accessibilityAction(.escape) { commit(toward: CGSize(width: 0, height: 1), speed: 0) }
+            .onChange(of: phase) { _, new in
+                phaseBinding?.wrappedValue = new
+                // The pill buds the moment the drag arms, with the tick, and melts home as soon as it disarms.
+                if new == .armed, style.hint != nil {
+                    Task { await hintBuds.bloom(["label"], reduceMotion: reduceMotion) }
+                } else if hintBuds.contains("label") {
+                    Task { await hintBuds.gather(["label"], reduceMotion: reduceMotion) }
+                }
+            }
+            .onChange(of: wantsHint) { _, wants in
+                let motion = PieceMotion(reduceMotion: reduceMotion)
+                guard !wants else {
+                    withAnimation(motion.reveal) { hintShown = true }
+                    return
+                }
+                // The pill melts home first, so the bubble never lifts away with it still out.
+                Task {
+                    if hintBuds.contains("label") { await hintBuds.gather(["label"], reduceMotion: reduceMotion) }
+                    guard !wantsHint else { return }
+                    withAnimation(motion.dismiss) { hintShown = false }
+                }
+            }
+            // A touch the system cancels (a call, an alert) never reaches onEnded: bring the view home so the inner
+            // scroll view is enabled again. After a normal release onEnded has already moved the phase on.
+            .onChange(of: touching) { _, isTouching in
+                guard !isTouching else { return }
+                yielded = false
+                if phase == .dragging || phase == .armed { letGo(velocity: .zero) }
+            }
+            .accessibilityAction(.escape) { commit(toward: CGSize(width: 0, height: 1), speed: 0, velocity: .zero) }
+    }
+
+    /// The hint: a round close bubble and the pill that buds out of it, in one liquid group. It appears on its own,
+    /// with no glass to bud from, so the bubble drops in on the reveal and lifts away on the dismiss; the pill then buds
+    /// out of the bubble and melts back into it. The pair stays centred as the pill comes and goes. Visual only: the
+    /// phase already tells VoiceOver nothing new, and the escape gesture is the way to close there.
+    @ViewBuilder
+    private var hint: some View {
+        if let text = style.hint {
+            let motion = PieceMotion(reduceMotion: reduceMotion)
+            let out = hintBuds.isOut("label")
+            PieceLiquidGroup {
+                if hintShown {
+                    ZStack(alignment: .leading) {
+                        if hintBuds.contains("label") { hintLabel(text, out: out) }
+                        Image(systemName: "xmark")
+                            .font(.system(size: hintHeight * 0.36, weight: .semibold))
+                            .foregroundStyle(hintInk)
+                            .frame(width: hintHeight, height: hintHeight)
+                            .pieceLiquid(.circle, interactive: false)
+                    }
+                    .frame(width: hintHeight, alignment: .leading)
+                    .offset(x: out ? -(hintWidth + PieceLiquid.joined) / 2 : 0)
+                    .transition(motion.transition(.opacity.combined(with: .offset(y: -12))))
+                }
+            }
+            .padding(.top, 12)
+            .fontWeight(.semibold)
+            .allowsHitTesting(false)
+            .accessibilityHidden(true)
+        }
+    }
+
+    /// The hint's words on a glass pill. Home it is a small round bubble inside the close bubble, its words hidden; out,
+    /// it rests beside the bubble at its full width, a neck away. It widens as it leaves and narrows as it returns, so
+    /// it never sits wider than the bubble it melts into.
+    private func hintLabel(_ text: String, out: Bool) -> some View {
+        let wide = out || reduceMotion
+        return Text(text)
+            .font(.subheadline.weight(.semibold))
+            .foregroundStyle(hintInk)
+            .fixedSize()
+            .padding(.horizontal, hintHeight * 0.4)
+            .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { hintWidth = $0 }
+            .pieceBudContent(out: out)
+            .frame(width: wide ? max(hintWidth, hintHeight) : hintHeight, height: hintHeight)
+            .clipShape(.capsule)
+            .pieceLiquid(.capsule, interactive: false)
+            .pieceBud(out: out, rest: CGSize(width: hintHeight + PieceLiquid.joined, height: 0), home: .zero)
+    }
+
+    /// Ink on the neutral glass: dark in light mode, near white in dark.
+    private var hintInk: Color { dragColor(light: 0x141414, dark: 0xF4F3EF) }
+
+    /// The content as it travels: rounded, shrunk toward the finger, offset and, once tossed, faded.
+    private func surface(_ content: Content) -> some View {
+        let shrink: CGFloat = reduceMotion ? 0 : min(max(style.shrink, 0), 0.5)
+        // Armed, the view gives another 2% on the snap spring with the haptic, so the threshold shows as well as it feels.
+        // Under Reduce Motion it dims a little on the same beat instead of moving, a hint of the fade a release brings.
+        let armed = phase == .armed || phase == .committing
+        return content
+            .scrollDisabled(phase == .dragging || phase == .armed)
+            .modifier(ScrollObserver(offset: $observedScrollOffset, seen: $hasScrollView))
+            // Opacity, not a tint overlay: an overlay would also paint the clear part of a full-size frame around a card.
+            .opacity(armed && reduceMotion ? 0.85 : 1)
+            .clipShape(.rect(cornerRadius: cornerRadius * progress, style: .continuous))
+            .scaleEffect(1 - shrink * lift, anchor: anchor)
+            .scaleEffect(armed && !reduceMotion ? 0.98 : 1, anchor: anchor)
+            // The finger's part is one offset, never animated. The sprung part takes one offset per axis, so a release
+            // carries the finger's horizontal and vertical speed separately.
+            .offset(held)
+            .offset(x: base.width)
+            .offset(y: base.height)
+            .modifier(TossFade(progress: tossed, from: reduceMotion ? 0 : 0.55))
     }
 
     private var drag: some Gesture {
         DragGesture(minimumDistance: 4, coordinateSpace: .local)
+            .updating($touching) { _, state, _ in state = true }
             .onChanged { value in
                 guard phase != .committing else { return }
                 if phase == .idle || phase == .returning {
@@ -134,11 +270,23 @@ public struct DragToDismiss: ViewModifier {
                     let upward = value.translation.height < 0 && abs(value.translation.height) > abs(value.translation.width)
                     yielded = !atTop || (hasScrollView && upward)
                     if yielded { return }
+                    // Every grab shrinks toward its own point. On the way home the pivot blends over on the press
+                    // spring, so the leftover return scale does not jump as it moves.
+                    let size = CGSize(width: max(containerSize.width, 1), height: max(containerSize.height, 1))
+                    let grabbed = UnitPoint(x: min(max(value.startLocation.x / size.width, 0), 1), y: min(max(value.startLocation.y / size.height, 0), 1))
+                    if phase == .idle {
+                        anchor = grabbed
+                    } else {
+                        withAnimation(PieceMotion(reduceMotion: reduceMotion).press) { anchor = grabbed }
+                    }
                 }
                 guard !yielded else { return }
-                translation = value.translation
-                let armed = distance > threshold
-                withAnimation(.interactiveSpring(duration: 0.15)) { phase = armed ? .armed : .dragging }
+                // Directly under the finger, never animated. A return still in flight finishes beneath it.
+                held = CGSize(width: value.translation.width - base.width, height: value.translation.height - base.height)
+                let next: Phase = distance > threshold ? .armed : .dragging
+                if next != phase {
+                    withAnimation(PieceMotion(reduceMotion: reduceMotion).snap) { phase = next }
+                }
             }
             .onEnded { value in
                 defer { yielded = false }
@@ -149,32 +297,94 @@ public struct DragToDismiss: ViewModifier {
                 if distance > threshold || projected > threshold * 2 {
                     let speed = hypot(flick.width, flick.height)
                     let direction = speed > 40 ? flick : translation
-                    commit(toward: direction, speed: speed)
+                    commit(toward: direction, speed: speed, velocity: value.velocity)
                 } else {
-                    phase = .returning
-                    withAnimation(.spring(duration: reduceMotion ? 0.2 : 0.45, bounce: reduceMotion ? 0 : 0.28)) {
-                        translation = .zero
-                    } completion: {
-                        if phase == .returning { phase = .idle }
-                    }
+                    letGo(velocity: value.velocity)
                 }
             }
     }
 
-    /// Flies off along `direction`, far enough to clear the container; faster flicks get shorter animations.
-    private func commit(toward direction: CGSize, speed: CGFloat) {
+    /// The return home: between the snap and the elastic settle, about 4.6% overshoot. Let go at the threshold, the view
+    /// passes home by about 5pt, partly covered as it grows back to full size; the elastic swing's 9pt would show a
+    /// full-screen view's edge.
+    private static var homeSpring: Spring { Spring(duration: 0.4, bounce: 0.3) }
+
+    /// Springs the view home, leaving at the finger's `velocity` (pt/s), each axis on its own spring.
+    private func letGo(velocity: CGSize) {
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        let from = translation
+        returns += 1
+        let current = returns
+        withAnimation(motion.snap) { phase = .returning }
+        let legX = motion.settle(velocity: velocity.width, from: from.width, to: 0, spring: Self.homeSpring)
+        let legY = motion.settle(velocity: velocity.height, from: from.height, to: 0, spring: Self.homeSpring)
+        // The longer leg reports the return, so the phase rests only once the view is home.
+        let horizontal = abs(from.width) >= abs(from.height)
+        withAnimation(horizontal ? legY : legX) {
+            if horizontal { base.height = -held.height } else { base.width = -held.width }
+        }
+        withAnimation(horizontal ? legX : legY) {
+            if horizontal { base.width = -held.width } else { base.height = -held.height }
+        } completion: {
+            // On the snap spring as well, so a hint bound to the phase leaves as smoothly as it arrived.
+            if phase == .returning, returns == current { withAnimation(motion.snap) { phase = .idle } }
+        }
+    }
+
+    /// Tosses the view off along `direction`, far enough to clear the container, leaving at the finger's `velocity`.
+    /// Under Reduce Motion it fades where it is instead of crossing the screen.
+    private func commit(toward direction: CGSize, speed: CGFloat, velocity: CGSize) {
+        guard phase != .committing else { return }
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        guard !reduceMotion else {
+            withAnimation(motion.dismiss, completionCriteria: .logicallyComplete) {
+                phase = .committing
+                tossed = 1
+            } completion: {
+                onDismiss()
+            }
+            return
+        }
         let length = max(hypot(direction.width, direction.height), 1)
         let unit = CGSize(width: direction.width / length, height: direction.height / length)
         let exit = hypot(containerSize.width, containerSize.height) * 1.1
         let travel = max(exit, speed * 1.5)
         let end = CGSize(width: translation.width + unit.width * travel, height: translation.height + unit.height * travel)
-        // predictedEndTranslation assumes ~0.25 s of deceleration, so speed / 0.25 is points per second.
-        let duration = reduceMotion ? 0.2 : min(0.45, max(0.22, travel / max(speed * 4, 1)))
-        withAnimation(.spring(duration: duration, bounce: 0), completionCriteria: .logicallyComplete) {
+        // The finger's speed along the throw, never back against it, so a slow release never dips before it leaves.
+        // Both legs then share one relative speed and the view flies straight. The flight spring is the old toss's
+        // slowest timing, kept so a slow release still leaves unhurried; a flick now leaves at its own speed.
+        let along = max(velocity.width * unit.width + velocity.height * unit.height, 0)
+        let flight = Spring(duration: 0.45, bounce: 0)
+        let legX = motion.settle(velocity: along * unit.width, from: translation.width, to: end.width, spring: flight)
+        let legY = motion.settle(velocity: along * unit.height, from: translation.height, to: end.height, spring: flight)
+        let horizontal = abs(unit.width) >= abs(unit.height)
+        withAnimation(horizontal ? legY : legX) {
+            if horizontal { base.height = end.height - held.height } else { base.width = end.width - held.width }
+        }
+        // The longer leg carries the phase, the fade and the completion, so onDismiss runs once, after the view is gone.
+        withAnimation(horizontal ? legX : legY, completionCriteria: .logicallyComplete) {
             phase = .committing
-            translation = end
+            tossed = 1
+            if horizontal { base.width = end.width - held.width } else { base.height = end.height - held.height }
         } completion: {
             onDismiss()
+        }
+    }
+
+    /// Keeps a tossed view solid for most of its flight and fades it from `from` to 90% of the way, so it leaves as a
+    /// photo rather than a ghost and is gone before the flight completes. `progress` animates on the same spring as the
+    /// travel, so the fade keeps pace with any flick. Under Reduce Motion `from` is 0 and it is a plain fade.
+    private struct TossFade: ViewModifier, Animatable {
+        var progress: CGFloat
+        var from: CGFloat
+
+        nonisolated var animatableData: CGFloat {
+            get { progress }
+            set { progress = newValue }
+        }
+
+        func body(content: Content) -> some View {
+            content.opacity(Double(1 - min(max((progress - from) / (0.9 - from), 0), 1)))
         }
     }
 
@@ -198,8 +408,6 @@ public struct DragToDismiss: ViewModifier {
     }
 }
 
-// MARK: - Example
-
 private func dragColor(_ hex: UInt32) -> Color {
     Color(uiColor: dragUIColor(hex))
 }
@@ -214,8 +422,11 @@ private func dragUIColor(_ hex: UInt32) -> UIColor {
     UIColor(red: CGFloat((hex >> 16) & 0xFF) / 255, green: CGFloat((hex >> 8) & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
 }
 
+// MARK: - Example
+
 /// The card the modifier moves, and nothing else. Drag it anywhere: it rounds and shrinks as it travels, the modifier's
-/// own scrim thins with it, and a far drag or a fast flick sends it off along the drag. It returns so it can be tried again.
+/// own scrim thins with it and its glass hint drops in at the top, and a far drag or a fast flick sends it off along
+/// the drag. It returns so it can be tried again.
 private struct DragToDismissExample: View {
     @State private var shown = true
 
@@ -237,13 +448,13 @@ private struct DragToDismissExample: View {
         }
     }
 
-    /// A butter boarding pass with the route as a heavy headline and times as light numerals.
+    /// A butter boarding pass with the route as a large headline and the times as numerals.
     static var pass: some View {
         let ink = dragColor(0x141414)
         return VStack(alignment: .leading, spacing: 0) {
             HStack {
                 Text("BOARDING PASS")
-                    .font(.caption.weight(.bold))
+                    .font(.caption.weight(.semibold))
                     .tracking(1)
                 Spacer()
                 Text("Group 2")
@@ -253,7 +464,7 @@ private struct DragToDismissExample: View {
                     .background(dragColor(0x9CC2FF), in: .capsule)
             }
             Text("SFO\n\(Text("to LIS").foregroundStyle(ink.opacity(0.55)))")
-                .font(.system(size: 56, weight: .bold))
+                .font(.system(size: 56, weight: .semibold))
                 .tracking(-2.4)
                 .padding(.top, 28)
             HStack(alignment: .firstTextBaseline, spacing: 28) {
@@ -273,10 +484,11 @@ private struct DragToDismissExample: View {
                 }
                 Spacer()
                 Image(systemName: "qrcode")
-                    .font(.system(size: 40))
+                    .font(.system(size: 40, weight: .semibold))
             }
         }
         .foregroundStyle(ink)
+        .fontWeight(.semibold)
         .padding(24)
         .frame(width: 330)
         .background(dragColor(0xFFD976), in: .rect(cornerRadius: 34, style: .continuous))
@@ -288,8 +500,8 @@ private struct DragToDismissExample: View {
 
     private static func field(_ label: String, _ value: String) -> some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(label).font(.caption2.weight(.bold)).tracking(1).opacity(0.6)
-            Text(value).font(.system(size: 30, weight: .light)).monospacedDigit().tracking(-0.8)
+            Text(label).font(.caption2.weight(.semibold)).tracking(1).opacity(0.6)
+            Text(value).font(.system(size: 30, weight: .semibold)).monospacedDigit().tracking(-0.8)
         }
     }
 }
@@ -301,3 +513,387 @@ private struct DragToDismissExample: View {
 #Preview("Dark") {
     DragToDismissExample().preferredColorScheme(.dark)
 }
+
+// MARK: - Piece motion
+//
+// The SwiftPieces motion language: shared spring tokens and gesture physics, with the same values in every
+// piece. Each piece carries a copy of only the parts it uses, so this file stands alone. Generated from
+// registry/foundation/PieceMotion.swift in the SwiftPieces repo; edit it there, not here.
+// swiftpieces-motion: 1.1.0 (core, momentum, rubberBand)
+
+/// The SwiftPieces motion language: five spring tiers, and a named role for every moment a piece moves,
+/// each with its Reduce Motion substitute.
+///
+/// Build one from the environment, `PieceMotion(reduceMotion: reduceMotion)`, and pick the role that names
+/// what just happened. Never animate the tracking of a finger: set gesture state directly in `onChanged`, so the
+/// surface stays under the finger, and spring only the release.
+private struct PieceMotion {
+    var reduceMotion = false
+
+    // Tiers. Overshoot and settle times are measured from rest with SwiftUI's Spring.
+    /// No overshoot, 90% in about 90ms. A press arriving under the finger.
+    static var tight: Spring { Spring(duration: 0.14, bounce: 0) }
+    /// About 2.8% overshoot, 90% in about 140ms. Snapping to a detent, page or segment.
+    static var responsive: Spring { Spring(duration: 0.32, bounce: 0.25) }
+    /// About 8.4% overshoot. Visible give: a release, a return from past an edge, a drag settling home.
+    static var elastic: Spring { Spring(duration: 0.42, bounce: 0.38) }
+    /// About 15% overshoot. A resolved action landing. At most once per interaction.
+    static var expressive: Spring { Spring(duration: 0.48, bounce: 0.48) }
+    /// About 1.5% overshoot, unhurried. Opening large surfaces and ambient change.
+    static var calm: Spring { Spring(duration: 0.5, bounce: 0.2) }
+
+    /// Reduce Motion: settles become this short spring with no overshoot.
+    private static var still: Animation { .spring(duration: 0.25, bounce: 0) }
+
+    // Roles.
+    /// Touch-down. Starts on the same frame and never bounces under the finger.
+    var press: Animation { .spring(Self.tight) }
+    /// The finger lifts off a pressed surface, which springs back through rest.
+    var release: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A dragged thing comes to rest. With a gesture's velocity, use `settle(velocity:from:to:)` instead.
+    var settle: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// Lands on a detent, page or segment.
+    var snap: Animation { reduceMotion ? Self.still : .spring(Self.responsive) }
+    /// A number, a chart value or anything else people read moves to its new value. Never overshoots, so it
+    /// never shows a value that isn't true.
+    var value: Animation { reduceMotion ? Self.still : .spring(duration: 0.35, bounce: 0) }
+    /// Comes back from past a limit: a pull beyond the edge, a value pushed against its bound.
+    var rebound: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A shape or container changes size, corner radius or form, with a little give at the end.
+    var morph: Animation { reduceMotion ? Self.still : .spring(duration: 0.4, bounce: 0.2) }
+    /// Something appears, opens or expands. Opening is a little slower than closing.
+    var reveal: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.calm) }
+    /// Something leaves, closes or collapses. Quick and firm, out of the way.
+    var dismiss: Animation { reduceMotion ? .easeIn(duration: 0.18) : .spring(duration: 0.3, bounce: 0.08) }
+    /// A resolved action lands: a check, a sent state, a reaction.
+    var success: Animation { reduceMotion ? .easeOut(duration: 0.24) : .spring(Self.expressive) }
+    /// A refused action. Firm, no wobble; `pieceShake` adds the movement.
+    var error: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.responsive) }
+    /// Slow ambient change. Loops themselves stop under Reduce Motion: check `allowsAmbient`.
+    var ambient: Animation { reduceMotion ? .easeInOut(duration: 0.3) : .spring(Self.calm) }
+
+    /// Loops, drifts, idle breathing and parallax run only when this is true.
+    var allowsAmbient: Bool { !reduceMotion }
+
+    /// A moving transition, or a plain fade under Reduce Motion.
+    func transition(_ transition: AnyTransition) -> AnyTransition {
+        reduceMotion ? .opacity : transition
+    }
+
+    /// For content replaced inside a container that stays put (a label, a glyph, a count): the old content
+    /// blurs out as the new one sharpens in. A fade under Reduce Motion.
+    @MainActor var swap: AnyTransition {
+        reduceMotion ? .opacity : AnyTransition(.blurReplace)
+    }
+}
+
+extension PieceMotion {
+    /// Where a flick at `velocity` (pt/s) coasts to. 0.998 coasts like a scroll view; 0.99 suits detents.
+    nonisolated static func project(_ position: CGFloat, velocity: CGFloat, decelerationRate: CGFloat = 0.99) -> CGFloat {
+        position + velocity / 1000 * decelerationRate / (1 - decelerationRate)
+    }
+
+    /// The candidate closest to `value`.
+    nonisolated static func nearest(_ value: CGFloat, in candidates: [CGFloat]) -> CGFloat {
+        candidates.min { abs($0 - value) < abs($1 - value) } ?? value
+    }
+
+    /// A settle that leaves at the finger's speed (pt/s). One per axis, each on its own `.offset(x:)` / `.offset(y:)`:
+    /// a spring takes one velocity. SwiftUI's own velocity carry-over is unreliable; this always carries it.
+    func settle(velocity: CGFloat, from current: CGFloat, to target: CGFloat, spring: Spring = PieceMotion.elastic) -> Animation {
+        let spring = reduceMotion ? Spring(duration: 0.25, bounce: 0) : spring
+        let distance = target - current
+        guard abs(distance) >= 1 else { return .spring(spring) }
+        // In whole distances per second, capped near the spring's frequency: a hard flick adds give, not a slingshot.
+        // At exactly the frequency a critically damped spring cannot pass its target, so Reduce Motion stops there.
+        let cap = 2 * Double.pi / spring.duration * (reduceMotion ? 1 : 1.5)
+        let relative = min(max(Double(velocity / distance), -cap), cap)
+        return .interpolatingSpring(spring, initialVelocity: relative)
+    }
+}
+
+extension PieceMotion {
+    /// A scroll view's edge resistance for a pull `overshoot` points past a limit; never reaches `limit`.
+    /// About 24 to 40 for thumbs and toggles, 60 to 120 for cards and sheets. Band the total pull, not deltas.
+    nonisolated static func rubberBand(_ overshoot: CGFloat, limit: CGFloat, coefficient: CGFloat = 0.55) -> CGFloat {
+        guard limit > 0, overshoot != 0 else { return 0 }
+        let banded = (1 - 1 / (abs(overshoot) * coefficient / limit + 1)) * limit
+        return overshoot < 0 ? -banded : banded
+    }
+
+    /// `value` inside `range` passes through unchanged; past either end it moves with rubber-band resistance.
+    nonisolated static func rubberBand(_ value: CGFloat, in range: ClosedRange<CGFloat>, limit: CGFloat, coefficient: CGFloat = 0.55) -> CGFloat {
+        if value < range.lowerBound { return range.lowerBound + rubberBand(value - range.lowerBound, limit: limit, coefficient: coefficient) }
+        if value > range.upperBound { return range.upperBound + rubberBand(value - range.upperBound, limit: limit, coefficient: coefficient) }
+        return value
+    }
+}
+
+// swiftpieces-motion: end
+
+// MARK: - Piece liquid
+//
+// The SwiftPieces liquid glass language: glass shapes that merge through a neck, bubbles that bud out of
+// and melt back into each other, and the frosted fallback before iOS 26. Each piece carries a copy of only
+// the parts it uses, so this file stands alone. Generated from registry/foundation/PieceLiquid.swift in the
+// SwiftPieces repo; edit it there, not here. The rules are in LIQUID_GLASS.md.
+// swiftpieces-liquid: 1.7.0 (liquid, bud)
+
+/// The liquid glass language: one merge distance, two rest gaps, and the springs a bubble leaves and comes home on.
+///
+/// Glass shapes inside one `PieceLiquidGroup` melt into each other through a neck when they come within `merge`
+/// points. Parts of one control rest `joined`, inside that distance, so the neck holds; separate actions rest
+/// `apart`, outside it, so they only goo while one buds out of, or melts back into, another.
+private enum PieceLiquid {
+    /// Glass shapes closer than this share a neck.
+    static let merge: CGFloat = 20
+    /// The gap between parts of one control (a stepper's buttons, a progress pill and its stop): the neck holds,
+    /// short and smooth, about two thirds of the shapes' height at its waist. Joined parts read best at one height.
+    static let joined: CGFloat = 4
+    /// The gap between separate actions (menu items, confirm and cancel, chips): they rest as their own bubbles.
+    static let apart: CGFloat = 26
+    /// How far a bubble shrinks while it is home inside its parent.
+    static let homeScale: CGFloat = 0.72
+
+    /// A bubble leaving its parent: slow enough that the neck's stretch and snap read.
+    static func split(reduceMotion: Bool) -> Animation {
+        reduceMotion ? .easeOut(duration: 0.2) : .spring(duration: 0.62, bounce: 0.22)
+    }
+
+    /// A bubble going home. No bounce: a bounce would carry it out through the far side of its parent.
+    static func home(reduceMotion: Bool) -> Animation {
+        reduceMotion ? .easeIn(duration: 0.18) : .spring(duration: 0.5, bounce: 0)
+    }
+}
+
+/// A group of glass shapes that merge into one liquid surface. On iOS 26 it is a `GlassEffectContainer`; before
+/// that, and under Reduce Transparency, the shapes draw on their own and simply don't merge. `lift` adds the soft
+/// shadow liquid glass floats on in light mode.
+private struct PieceLiquidGroup<Content: View>: View {
+    var spacing: CGFloat = PieceLiquid.merge
+    var lift = true
+    @ViewBuilder var content: Content
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        container
+            .shadow(color: .black.opacity(lift && colorScheme == .light ? 0.07 : 0), radius: 18, y: 8)
+    }
+
+    @ViewBuilder private var container: some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26, *), !reduceTransparency {
+            GlassEffectContainer(spacing: spacing) { content }
+        } else {
+            content
+        }
+        #else
+        content
+        #endif
+    }
+}
+
+/// One liquid glass shape: Liquid Glass on iOS 26, carrying `tint` as a solid colour and swelling under a press when
+/// `interactive`; a frosted Material with a light rim and a soft shadow before that; a solid fill under Reduce
+/// Transparency.
+///
+/// The tint is painted inside clear glass rather than tinting the glass. Tinted glass in a group bleeds its colour
+/// through every neck as a smear, so a red button would glow into the white pill it is joined to; painted inside,
+/// the colour stays crisp to the shape's edge, the necks between shapes are clear glass, and a tint change animates
+/// like any colour (tinted glass snaps).
+private struct PieceLiquidSurface<S: Shape>: ViewModifier {
+    var shape: S
+    var tint: Color?
+    var interactive: Bool
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.pieceLiquidScale) private var scale
+
+    func body(content: Content) -> some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26, *), !reduceTransparency {
+            // Scaled as two parts, content and outline, about the same centre. A scaleEffect on a glass view inside a
+            // GlassEffectContainer shrinks the glass but leaves what it carries full size, pinned to its corner.
+            content
+                .background { shape.fill(tint ?? .clear) }
+                .scaleEffect(scale)
+                .glassEffect(glass, in: shape.scale(scale))
+        } else {
+            fallback(content).scaleEffect(scale)
+        }
+        #else
+        fallback(content).scaleEffect(scale)
+        #endif
+    }
+
+    #if compiler(>=6.2)
+    @available(iOS 26, *)
+    private var glass: Glass {
+        interactive ? Glass.regular.interactive() : .regular
+    }
+    #endif
+
+    private func fallback(_ content: Content) -> some View {
+        let dark = colorScheme == .dark
+        return content
+            .background {
+                if reduceTransparency {
+                    shape.fill(tint ?? (dark ? Color(white: 0.17) : Color(white: 0.97)))
+                } else {
+                    ZStack {
+                        shape.fill(.regularMaterial)
+                        if let tint { shape.fill(tint.opacity(0.88)) }
+                    }
+                }
+            }
+            .overlay { shape.stroke(Color.white.opacity(dark ? 0.14 : 0.7), lineWidth: 0.5) }
+            .shadow(color: .black.opacity(dark ? 0.32 : 0.08), radius: 10, y: 5)
+    }
+}
+
+private struct PieceLiquidScaleKey: EnvironmentKey {
+    static let defaultValue: CGFloat = 1
+}
+
+private extension EnvironmentValues {
+    /// How much the liquid shapes below are scaled, about their own centres. Nested scales multiply.
+    var pieceLiquidScale: CGFloat {
+        get { self[PieceLiquidScaleKey.self] }
+        set { self[PieceLiquidScaleKey.self] = newValue }
+    }
+}
+
+private extension View {
+    /// Draws this view on a liquid glass `shape`. Put it inside a `PieceLiquidGroup` so it can merge with its neighbours.
+    func pieceLiquid<S: Shape>(_ shape: S, tint: Color? = nil, interactive: Bool = true) -> some View {
+        modifier(PieceLiquidSurface(shape: shape, tint: tint, interactive: interactive))
+    }
+
+    /// Scales the liquid glass shapes in this view, content and outline together, about their own centres. Use it
+    /// instead of `scaleEffect` on a glass view (a press, a lift, a swell): inside a group a plain `scaleEffect` shrinks
+    /// the glass but leaves its content full size and off centre. Animates like any other value.
+    func pieceLiquidScale(_ scale: CGFloat) -> some View {
+        transformEnvironment(\.pieceLiquidScale) { $0 *= scale }
+    }
+}
+
+/// The bud: how a bubble leaves and rejoins its parent, driven explicitly so every bubble shows the whole cycle.
+///
+/// A bubble is born at `home`, inside its parent, where the two glass shapes are one. It springs out to `rest`, and
+/// while it is inside the merge distance a neck holds it to the parent, thinning as it goes, until it snaps free.
+/// Going home it springs back on a spring with no bounce, the neck reaches out and re-forms, and only once it has
+/// melted all the way in is it removed. Both offsets are relative to where the bubble is laid out. Under Reduce
+/// Motion it stays at `rest`: its content fades and its glass closes in place.
+private struct PieceBud: ViewModifier {
+    var out: Bool
+    var rest: CGSize
+    var home: CGSize
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func body(content: Content) -> some View {
+        if reduceMotion {
+            // No travel. Inside a group glass ignores opacity, so the glass closes to nothing in place on the short
+            // Reduce Motion ease while its content fades; the opacity covers a bubble outside a group.
+            content
+                .pieceLiquidScale(out ? 1 : 0.001)
+                .opacity(out ? 1 : 0)
+                .offset(rest)
+        } else {
+            // The glass shrinks through `pieceLiquidScale`, never a plain scaleEffect (see there), then moves.
+            content
+                .pieceLiquidScale(out ? 1 : PieceLiquid.homeScale)
+                .offset(out ? rest : home)
+        }
+    }
+}
+
+/// A bubble's own content, on its own clock: gone the moment the bubble heads home, so it never rides over the
+/// parent's content, and arriving just after the bubble leaves.
+private struct PieceBudContent: ViewModifier {
+    var out: Bool
+
+    func body(content: Content) -> some View {
+        content
+            .blur(radius: out ? 0 : 6)
+            .opacity(out ? 1 : 0)
+            .animation(out ? .easeOut(duration: 0.3).delay(0.1) : .easeOut(duration: 0.14), value: out)
+    }
+}
+
+private extension View {
+    /// Places a bubble at `rest` while `out`, and at `home` (inside its parent, shrunk) while not.
+    func pieceBud(out: Bool, rest: CGSize = .zero, home: CGSize) -> some View {
+        modifier(PieceBud(out: out, rest: rest, home: home))
+    }
+
+    /// Hides a bubble's icon or label while it is home. Put it on the content, inside the glass.
+    func pieceBudContent(out: Bool) -> some View {
+        modifier(PieceBudContent(out: out))
+    }
+}
+
+/// Which bubbles exist and which are out. A bubble is added home with no animation, sent out on the next frame,
+/// and called home before it is removed, so it always melts in rather than fading. Keep one in `@State`.
+@MainActor @Observable
+private final class PieceBuds {
+    private(set) var present: [String] = []
+    private(set) var out: Set<String> = []
+    /// The latest call for each bubble. A bloom or gather that has been overtaken (a bubble sent home while it was
+    /// still waiting to go out, or called out again while melting) leaves that bubble alone.
+    @ObservationIgnored private var turn: [String: Int] = [:]
+
+    func contains(_ id: String) -> Bool { present.contains(id) }
+    func isOut(_ id: String) -> Bool { out.contains(id) }
+
+    private func claim(_ ids: [String]) -> [String: Int] {
+        var mine: [String: Int] = [:]
+        for id in ids {
+            let next = (turn[id] ?? 0) + 1
+            turn[id] = next
+            mine[id] = next
+        }
+        return mine
+    }
+
+    /// Puts bubbles straight out at rest with no motion: a view's first frame, or a state restored.
+    func place(_ ids: [String]) {
+        _ = claim(ids)
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) {
+            for id in ids where !present.contains(id) { present.append(id) }
+            out.formUnion(ids)
+        }
+    }
+
+    /// Adds bubbles home, then sends each out, `stagger` seconds apart, after an optional `delay`.
+    func bloom(_ ids: [String], reduceMotion: Bool, stagger: Double = 0.05, delay: Double = 0) async {
+        let mine = claim(ids)
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) {
+            for id in ids where !present.contains(id) { present.append(id) }
+        }
+        try? await Task.sleep(for: .milliseconds(24 + Int(max(delay, 0) * 1000)))
+        let split = PieceLiquid.split(reduceMotion: reduceMotion)
+        for (i, id) in ids.enumerated() where turn[id] == mine[id] {
+            withAnimation(split.delay(reduceMotion ? 0 : Double(i) * stagger)) { _ = out.insert(id) }
+        }
+    }
+
+    /// Calls bubbles home, last first, then removes them once they have melted in.
+    func gather(_ ids: [String], reduceMotion: Bool, stagger: Double = 0.04) async {
+        let mine = claim(ids)
+        let home = PieceLiquid.home(reduceMotion: reduceMotion)
+        for (i, id) in ids.reversed().enumerated() {
+            withAnimation(home.delay(reduceMotion ? 0 : Double(i) * stagger)) { _ = out.remove(id) }
+        }
+        try? await Task.sleep(for: .milliseconds(Int((0.52 + Double(ids.count) * stagger) * 1000)))
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) { present.removeAll { ids.contains($0) && !out.contains($0) && turn[$0] == mine[$0] } }
+    }
+}
+
+// swiftpieces-liquid: end

@@ -95,6 +95,8 @@ const config: NextConfig = {
       { source: "/playground/:kind/:slug", destination: "/apps", permanent: false },
       // Category filters used to be query strings on /components; each category has its own page now.
       { source: "/components", has: [{ type: "query", key: "category", value: "(?<category>[a-z]+)" }], destination: "/components/:category", permanent: true },
+      // Code Block was retired on 2026-10-08; Source Stack took its place in the AI pieces.
+      { source: "/docs/components/ai/code-block", destination: "/docs/components/ai/source-stack", permanent: true },
       // The docs sidebar's category folders have no page of their own; their URL leads to the hub.
       { source: `/docs/components/:category(${CATEGORY_SLUGS})`, destination: "/components/:category", permanent: true },
     ];
