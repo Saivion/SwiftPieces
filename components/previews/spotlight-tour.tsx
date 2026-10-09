@@ -1,13 +1,19 @@
 "use client";
-import { useEffect, useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { font, ground, signal } from "./palette";
+import { curve, follow, pressScale, reduced, roles, t, type Spring } from "./piece-motion";
+import { BudContent, Liquid, LiquidGroup, MorphText, liquid } from "./piece-liquid";
 
 /*
  * Spotlight Tour: plain placeholders (a search capsule, three rows, a round add button), then the tour
- * over them. The scrim fades in as the cutout closes onto the add button and a red ring draws around it,
- * with the callout above reading 1 of 3. Next dips, the cutout springs up to the search capsule and the
- * callout flips below it; Next again, it morphs into a circle on the first row's pin; Done, and the
- * scrim fades away. Sizes are authored in px against the 560 x 420 docs stage and converted to `cqw`.
+ * over them. The scrim irises calmly onto the add button, the glass callout follows out of it reading 1 of 3,
+ * and the red ring draws once the cutout has landed; Skip and Next bud out of the panel on its far side
+ * from the target. Next sinks; the cutout glides to the search capsule without overshoot and the callout
+ * trails it like a cue card, landing a beat later with a little give while its words dip out and back, and
+ * the pair flows round to the panel's other side. Next again, it morphs into a circle on the first row's
+ * pin, Skip melts into Next and Next morphs into Done; Done, and everything leaves together, quicker than
+ * it came. Motion uses the PieceMotion roles (piece-motion.ts) and the glass is piece-liquid.tsx, one
+ * point to one stage px. Sizes are authored in px against the 560 x 420 docs stage and converted to `cqw`.
  */
 
 /** Stage px (560 wide) to container units. */
@@ -19,6 +25,8 @@ type Beat = {
   stop: Stop | null | "out";
   /** The callout button pressed during this beat (it dips). */
   press?: "next" | "done";
+  /** `false` while Skip and Next are still inside the panel: they bud out 320 ms after the callout arrives, as in Swift. */
+  pair?: false;
   /** Where a finger rests during the beat, in stage px (560 x 420), for the launch video. */
   finger?: { x: number; y: number };
   ms: number;
@@ -27,16 +35,17 @@ type Beat = {
 /** The storyboard, about 8 seconds a loop. The launch video follows the same beats. */
 const STORYBOARD: readonly Beat[] = [
   { stop: null, ms: 1200 }, // Rest: the placeholders, nothing dimmed.
-  { stop: "add", ms: 1900 }, // Scrim in, the cutout closes onto the add button, the ring draws in, callout above: 1 of 3.
-  { stop: "add", press: "next", finger: { x: 492, y: 278 }, ms: 240 }, // Next dips.
-  { stop: "search", ms: 1700 }, // The cutout springs up to the search capsule; the callout travels and flips below: 2 of 3.
-  { stop: "search", press: "next", finger: { x: 378, y: 210 }, ms: 240 }, // Next dips.
-  { stop: "pin", ms: 1700 }, // It morphs into a circle on the first row's pin: 3 of 3, Done, no Skip.
-  { stop: "pin", press: "done", finger: { x: 492, y: 267 }, ms: 240 }, // Done dips.
-  { stop: "out", ms: 760 }, // The ring fades, the cutout opens up and the scrim fades out.
+  { stop: "add", pair: false, ms: 320 }, // Scrim in, the cutout irises onto the add button, the callout above it: 1 of 3.
+  { stop: "add", ms: 1580 }, // Skip and Next bud out of the panel's top, away from the target, then the ring draws.
+  { stop: "add", press: "next", finger: { x: 511, y: 152 }, ms: 240 }, // Next sinks.
+  { stop: "search", ms: 1700 }, // The cutout glides up to the search capsule; the callout trails and flips below, the pair flowing under it: 2 of 3.
+  { stop: "search", press: "next", finger: { x: 397, y: 252 }, ms: 240 }, // Next sinks.
+  { stop: "pin", ms: 1700 }, // It morphs into a circle on the first row's pin: 3 of 3, Skip melts into Next, which morphs into Done.
+  { stop: "pin", press: "done", finger: { x: 511, y: 309 }, ms: 240 }, // Done sinks.
+  { stop: "out", ms: 760 }, // The ring fades, the cutout opens up and the scrim fades out, all on dismiss.
 ];
-/** Under reduced motion the preview holds this beat: the first stop, fully drawn. */
-const HOLD = 1;
+/** Under reduced motion the preview holds this beat: the first stop, fully drawn, the pair out. */
+const HOLD = 2;
 
 const STOPS: Stop[] = ["add", "search", "pin"];
 type Rect = { x: number; y: number; w: number; h: number; r: number };
@@ -50,13 +59,20 @@ const HOLES: Record<Stop, Rect> = {
   pin: circle(461, 116, 22),
 };
 const CARD_W = 300;
-const CARD_H = 142;
-/** Where the callout sits for each stop (inside 16 px margins) and where its nub points. */
+/** The glass panel, and the pair of capsules resting apart from it on its far side from the target. */
+const PANEL_H = 112;
+const PAIR_H = 34, NEXT_W = 66, SKIP_W = 58;
+const CARD_H = PANEL_H + liquid.apart + PAIR_H;
+/** Where the callout sits for each stop (inside 16 px margins, its panel 16 px from the ring) and where its nub points. */
 const CARDS: Record<Stop, { x: number; y: number; below: boolean; nub: number }> = {
-  add: { x: 244, y: 165, below: false, nub: 464 },
+  add: { x: 244, y: 135, below: false, nub: 464 },
   search: { x: 130, y: 97, below: true, nub: 280 },
   pin: { x: 244, y: 154, below: true, nub: 461 },
 };
+/** A capsule's home from the panel: just inside the panel's nearest edge, shrunk, where the two are one shape. */
+const PAIR_HOME = PAIR_H / 2 + liquid.apart + (PAIR_H * liquid.homeScale) / 2;
+/** Skip's home inside Next on the last stop: just inside Next's leading end. */
+const SKIP_HOME = SKIP_W / 2 + liquid.apart + (SKIP_W * liquid.homeScale) / 2;
 const COPY: Record<Stop, { title: string; message: string; symbol?: boolean }> = {
   add: { title: "Start a note", message: "Tap here to write something new.", symbol: true },
   search: { title: "Find it fast", message: "Search every note by title, tag or person." },
@@ -64,8 +80,72 @@ const COPY: Record<Stop, { title: string; message: string; symbol?: boolean }> =
 };
 
 const SCRIM = "rgba(8, 8, 8, 0.5)";
-const morph = "cubic-bezier(0.3, 1.15, 0.5, 1)";
-const ease = "cubic-bezier(0.22, 1, 0.36, 1)";
+/** How far out the cutout starts when the tour irises in. */
+const IRIS = 46;
+/** Next sinks about 2.5 px per edge. */
+const NEXT_PRESS = pressScale(NEXT_W, PAIR_H);
+
+/** The tour walks the stops in order, so each stop is reached from the one before it; `null` for the first. */
+const cameFrom = (s: Stop): Stop | null => STOPS[STOPS.indexOf(s) - 1] ?? null;
+
+/** What the tour is doing this beat: resting, presenting its first stop, moving between stops, or leaving. */
+type Phase = "rest" | "in" | "move" | "out";
+
+/** How long a spring with no bounce and this response takes to bring a move of `travel` px within 2 px of its stop. */
+function landing(travel: number, response: number, tolerance = 2) {
+  if (travel <= tolerance) return 0;
+  const left = tolerance / travel;
+  let x = -Math.log(left);
+  for (let i = 0; i < 4; i++) x = Math.log((1 + x) / left);
+  return (x * response) / (2 * Math.PI);
+}
+
+/** The ring waits until the cutout is within 2 px of it, never before the old ring has cleared at 150ms. */
+function ringDelay(to: Stop) {
+  const from = cameFrom(to);
+  // Presenting: the iris closes in on the reveal spring, whose slight bounce only lands it sooner.
+  if (!from) return landing(IRIS, roles.reveal.duration) * 1000;
+  const a = HOLES[from], b = HOLES[to];
+  const travel = Math.max(Math.abs(a.x - b.x), Math.abs(a.y - b.y), Math.abs(a.x + a.w - b.x - b.w), Math.abs(a.y + a.h - b.y - b.h));
+  return Math.max(landing(travel, roles.value.duration), 0.15) * 1000;
+}
+
+/** The cue card trails the light: the reveal spring two ranks looser, so it lands a beat after the cutout. */
+const TRAIL = follow("reveal", 2);
+
+/** Stop to stop the trail keeps its give, but overshoots by at most 6 px, so the nub never reaches the new ring. */
+function stopTrail(to: Stop): Spring {
+  const from = cameFrom(to);
+  if (!from) return TRAIL;
+  const travel = Math.max(Math.abs(CARDS[from].x - CARDS[to].x), Math.abs(CARDS[from].y - CARDS[to].y));
+  const l = Math.log(travel / 6);
+  const bounce = travel > 6 ? 1 - l / Math.sqrt(Math.PI * Math.PI + l * l) : 1;
+  return { duration: TRAIL.duration, bounce: Math.min(TRAIL.bounce, bounce) };
+}
+
+/**
+ * The stop whose words are on the card. A change of stop dips the old words out before the new ones come back,
+ * so they never smear while the card travels; the quick fades are deliberate, as in Swift.
+ */
+function useDip(stop: Stop, live: boolean) {
+  const [onCard, setOnCard] = useState(stop);
+  const [visible, setVisible] = useState(true);
+  useEffect(() => {
+    if (stop === onCard) return;
+    if (!live || reduced()) {
+      setOnCard(stop);
+      setVisible(true);
+      return;
+    }
+    setVisible(false);
+    const id = setTimeout(() => {
+      setOnCard(stop);
+      setVisible(true);
+    }, 100);
+    return () => clearTimeout(id);
+  }, [stop, onCard, live]);
+  return { onCard, visible };
+}
 
 function useReducedMotion() {
   const [reduced, setReduced] = useState(false);
@@ -145,68 +225,118 @@ function Placeholders() {
   );
 }
 
-function Nub({ up, x, shown }: { up: boolean; x: number; shown: boolean }) {
+/**
+ * The pointer on the panel's facing edge: a glass shape in the panel's group, so the goo melts it into the panel as one
+ * pointer. It grows out of the edge and shrinks back into it.
+ */
+function Nub({ up, x, y, shown, motion }: { up: boolean; x: number; y: number; shown: boolean; motion: string }) {
   return (
-    <svg
-      aria-hidden
-      data-motion
-      viewBox="0 0 20 9"
-      style={{
-        position: "absolute", left: u(x - 10), width: u(20), height: u(9), ...(up ? { top: u(-8) } : { bottom: u(-8) }),
-        opacity: shown ? 1 : 0, transform: up ? "none" : "scaleY(-1)", transition: `opacity .2s, left .55s ${morph}`,
-      }}
-    >
-      <path d="M0 9 L7.6 1.6 Q10 -0.4 12.4 1.6 L20 9 Z" fill={ground.surface} />
-    </svg>
+    <Liquid radius={0} style={{
+      position: "absolute", left: 0, top: 0, width: u(20), height: u(9), clipPath: up ? "polygon(0% 100%, 42% 12%, 50% 0%, 58% 12%, 100% 100%)" : "polygon(0% 0%, 42% 88%, 50% 100%, 58% 88%, 100% 0%)",
+      transformOrigin: up ? "50% 100%" : "50% 0%", transform: `translate(${u(x - 10)}, ${u(y)}) scale(${shown ? 1 : 0})`, transition: motion,
+    }} />
   );
 }
 
-function Callout({ stop, press, shown }: { stop: Stop; press?: Beat["press"]; shown: boolean }) {
+/**
+ * True for 400 ms after the pair changes side. Its glass melts through the panel's on the trail and out the other side,
+ * so its words leave at once and come back as it lands, never crossing the panel's, and Next drops its tint meanwhile.
+ */
+function useFlowing(side: boolean, live: boolean) {
+  const [flowing, setFlowing] = useState(false);
+  const last = useRef(side);
+  useEffect(() => {
+    if (last.current === side) return;
+    last.current = side;
+    if (!live || reduced()) return;
+    setFlowing(true);
+    const id = setTimeout(() => setFlowing(false), 400);
+    return () => clearTimeout(id);
+  }, [side, live]);
+  return flowing;
+}
+
+function Callout({ stop, press, phase, pairOut }: { stop: Stop; press?: Beat["press"]; phase: Phase; pairOut: boolean }) {
   const card = CARDS[stop];
-  const copy = COPY[stop];
+  const hole = HOLES[stop];
   const index = STOPS.indexOf(stop);
   const last = index === STOPS.length - 1;
+  const shown = phase === "in" || phase === "move";
+  // The words lag the stop by one dip; the dots, Next or Done and Skip follow the stop at once, as in Swift.
+  const text = useDip(stop, shown);
+  const copy = COPY[text.onCard];
+  const trail = phase === "move" ? stopTrail(stop) : TRAIL;
+  // Resting, the card jumps to the first stop unseen; presenting and stop to stop it trails; it leaves on dismiss.
+  const motion = phase === "rest" ? "none" : t(["transform", "opacity"], phase === "out" ? "dismiss" : trail);
+  const nubMotion = phase === "move" ? t("transform", trail) : "none";
+  // The panel faces the target; the pair sits on its far side and flows round it when the callout flips.
+  const pairOnTop = !card.below;
+  const panelTop = pairOnTop ? PAIR_H + liquid.apart : 0;
+  const pairTop = pairOnTop ? 0 : PANEL_H + liquid.apart;
+  const flow = phase === "move" ? t("top", trail) : "none";
+  const flowing = useFlowing(pairOnTop, phase === "move");
+  // Home from the panel is toward it; Skip's home on the last stop is inside Next, and back in the panel once the
+  // tour has closed, ready to bud again.
+  const fromPanel: [number, number] = [0, pairOnTop ? PAIR_HOME : -PAIR_HOME];
+  const skipOut = pairOut && !last;
+  const skipHome: [number, number] = last && phase !== "rest" ? [SKIP_HOME, 0] : fromPanel;
   return (
     <div
       data-motion
       style={{
-        ...abs(card.x, card.y, CARD_W, CARD_H), boxSizing: "border-box", borderRadius: u(24), background: ground.surface,
-        boxShadow: "0 1.6cqw 4cqw rgba(0,0,0,0.18)", padding: `${u(14)} ${u(16)} ${u(11)}`, display: "flex", flexDirection: "column",
-        opacity: shown ? 1 : 0, transform: shown ? "none" : "scale(.95)", transformOrigin: `${(((card.nub - card.x) / CARD_W) * 100).toFixed(1)}% ${card.below ? "0%" : "100%"}`,
-        transition: `left .55s ${morph}, top .55s ${morph}, opacity .3s, transform .45s ${ease}`,
+        ...abs(0, 0, CARD_W, CARD_H),
+        // It comes out of the target and goes back into it: the scale is anchored on the target's centre.
+        opacity: shown ? 1 : 0, transform: `translate(${u(card.x)}, ${u(card.y)}) scale(${shown ? 1 : 0.94})`,
+        transformOrigin: `${u(hole.x + hole.w / 2 - card.x)} ${u(hole.y + hole.h / 2 - card.y)}`, transition: motion,
       }}
     >
-      <Nub up x={card.nub - card.x} shown={card.below} />
-      <Nub up={false} x={card.nub - card.x} shown={!card.below} />
-      <div key={stop} data-motion style={{ display: "flex", gap: u(11), flex: 1, animation: "st-text .24s ease-out .12s both" }}>
-        {copy.symbol ? (
-          <span style={{ width: u(34), height: u(34), borderRadius: u(10), background: ground.control, color: ground.text, display: "grid", placeItems: "center", flexShrink: 0 }}>
-            <Glyph d={G.compose} size={16} stroke={2.2} />
+      <LiquidGroup unit={u(1)} axis="both" style={{ width: "100%", height: "100%" }}>
+        <Nub up x={card.nub - card.x} y={panelTop - 8} shown={card.below} motion={nubMotion} />
+        <Nub up={false} x={card.nub - card.x} y={panelTop + PANEL_H - 1} shown={!card.below} motion={nubMotion} />
+        {/* The pair: separate actions resting apart, on wrappers that carry the flow so each capsule keeps its own bud. */}
+        <span data-motion style={{ position: "absolute", left: u(CARD_W - NEXT_W - liquid.apart - SKIP_W), top: u(pairTop), width: u(SKIP_W), height: u(PAIR_H), transition: flow }}>
+          <Liquid bud={{ out: skipOut, home: skipHome }} className="flex h-full w-full items-center justify-center" style={{ fontSize: u(13.5), fontWeight: 600, color: ground.muted }}>
+            <BudContent out={skipOut && !flowing}>Skip</BudContent>
+          </Liquid>
+        </span>
+        <span data-motion style={{ position: "absolute", left: u(CARD_W - NEXT_W), top: u(pairTop), width: u(NEXT_W), height: u(PAIR_H), zIndex: 1, transition: flow }}>
+          <span data-motion className="flex h-full w-full" style={{ transform: press ? `scale(${NEXT_PRESS})` : "none", transition: t("transform", press ? "press" : "release") }}>
+            <Liquid tint={pairOut && !flowing ? signal.fill : undefined} bud={{ out: pairOut, home: fromPanel }} className="flex h-full w-full items-center justify-center" style={{ fontSize: u(13.5), fontWeight: 600, color: signal.on }}>
+              <BudContent out={pairOut && !flowing}><MorphText text={last ? "Done" : "Next"} /></BudContent>
+            </Liquid>
           </span>
-        ) : null}
-        <span style={{ display: "flex", flexDirection: "column", gap: u(3), minWidth: 0 }}>
-          <span style={{ fontSize: u(10.5), fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: ground.muted, fontVariantNumeric: "tabular-nums" }}>{index + 1} of {STOPS.length}</span>
-          <span style={{ fontSize: u(19), fontWeight: 700, letterSpacing: "-0.02em", lineHeight: 1.15, color: ground.text }}>{copy.title}</span>
-          <span style={{ fontSize: u(13.5), lineHeight: 1.35, color: ground.muted }}>{copy.message}</span>
         </span>
-      </div>
-      <div style={{ display: "flex", alignItems: "center", gap: u(4) }}>
-        <span style={{ display: "flex", gap: u(5), flex: 1 }}>
-          {STOPS.map((s, i) => (
-            <span key={s} data-motion style={{ height: u(6), width: u(i === index ? 18 : 6), borderRadius: u(3), background: i === index ? signal.fill : ground.control, transition: `width .4s ${ease}, background-color .3s` }} />
-          ))}
+        {/* Above the pair, so a capsule at home sits under the panel. */}
+        <span data-motion style={{ position: "absolute", left: 0, top: u(panelTop), width: u(CARD_W), height: u(PANEL_H), zIndex: 2, transition: flow }}>
+          <Liquid radius={24} className="flex h-full w-full flex-col" style={{ boxSizing: "border-box", padding: `${u(14)} ${u(16)}` }}>
+            <div
+              data-motion
+              style={{ display: "flex", gap: u(11), flex: 1, opacity: text.visible ? 1 : 0, transition: text.visible ? "opacity 220ms ease-out" : "opacity 100ms ease-in" }}
+            >
+              {copy.symbol ? (
+                <span style={{ width: u(34), height: u(34), borderRadius: u(10), background: ground.control, color: ground.text, display: "grid", placeItems: "center", flexShrink: 0 }}>
+                  <Glyph d={G.compose} size={16} stroke={2.2} />
+                </span>
+              ) : null}
+              <span style={{ display: "flex", flexDirection: "column", gap: u(3), minWidth: 0 }}>
+                <span style={{ fontSize: u(10.5), fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: ground.muted, fontVariantNumeric: "tabular-nums" }}>{STOPS.indexOf(text.onCard) + 1} of {STOPS.length}</span>
+                <span style={{ fontSize: u(19), fontWeight: 600, letterSpacing: "-0.02em", lineHeight: 1.15, color: ground.text }}>{copy.title}</span>
+                <span style={{ fontSize: u(13.5), fontWeight: 600, lineHeight: 1.35, color: ground.muted }}>{copy.message}</span>
+              </span>
+            </div>
+            {/* The dots ride the card's trail, as in Swift, so the new one fills and grows as the card lands, not before. */}
+            <span style={{ display: "flex", gap: u(5) }}>
+              {STOPS.map((s, i) => (
+                <span
+                  key={s}
+                  data-motion
+                  style={{ height: u(6), width: u(i === index ? 18 : 6), borderRadius: u(3), background: i === index ? signal.fill : ground.control, transition: t(["width", "background-color"], trail) }}
+                />
+              ))}
+            </span>
+          </Liquid>
         </span>
-        <span style={{ fontSize: u(13.5), fontWeight: 600, color: ground.muted, padding: `0 ${u(10)}`, opacity: last ? 0 : 1, transition: "opacity .2s" }}>Skip</span>
-        <span
-          data-motion
-          style={{
-            height: u(34), padding: `0 ${u(18)}`, borderRadius: u(17), background: signal.fill, color: signal.on, display: "grid", placeItems: "center",
-            fontSize: u(13.5), fontWeight: 700, transform: press ? "scale(.94)" : "none", transition: `transform .25s ${ease}`,
-          }}
-        >
-          {last ? "Done" : "Next"}
-        </span>
-      </div>
+      </LiquidGroup>
     </div>
   );
 }
@@ -215,23 +345,33 @@ export function SpotlightTourPreview() {
   const { beat } = useSteps(STORYBOARD);
   const touring = beat.stop !== null && beat.stop !== "out";
   const stop: Stop = beat.stop === null ? "add" : beat.stop === "out" ? "pin" : beat.stop;
+  const from = cameFrom(stop);
+  const phase: Phase = beat.stop === null ? "rest" : beat.stop === "out" ? "out" : from ? "move" : "in";
   // Resting and closing, the cutout is opened wide around the stop, so presenting closes it in like an iris.
-  const hole = touring ? HOLES[stop] : open(HOLES[stop], 46);
+  const hole = touring ? HOLES[stop] : open(HOLES[stop], IRIS);
+  // The cutout leads. It irises in calmly, glides stop to stop without overshoot so its corners never wobble and it
+  // never uncovers the controls beside its target, and leaves on dismiss. Resting, it jumps back unseen.
+  const holeMotion = phase === "rest" ? "none" : t(["left", "top", "width", "height", "border-radius", "opacity"], phase === "in" ? "reveal" : phase === "out" ? "dismiss" : "value");
+  const ring = curve("reveal");
   return (
     <div className="absolute inset-0 overflow-hidden" style={{ background: ground.bg, fontFamily: font.stack }}>
-      <style>{"@keyframes st-draw{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}@keyframes st-text{from{opacity:0}to{opacity:1}}@media (prefers-reduced-motion: reduce){[data-motion]{animation:none!important;transition:none!important}}"}</style>
+      <style>{"@keyframes st-draw{from{stroke-dashoffset:1.5}to{stroke-dashoffset:.5}}@keyframes st-fade{from{opacity:1}to{opacity:0}}@media (prefers-reduced-motion: reduce){[data-motion]{animation:none!important;transition:none!important}}"}</style>
       <Placeholders />
       {/* The scrim: a spread shadow around the cutout, so the cutout morphs with plain CSS transitions. */}
       <div
         data-motion
         aria-hidden
-        style={{
-          ...abs(hole.x, hole.y, hole.w, hole.h), borderRadius: u(hole.r), boxShadow: `0 0 0 ${u(1400)} ${SCRIM}`, opacity: touring ? 1 : 0,
-          transition: `left .55s ${morph}, top .55s ${morph}, width .55s ${morph}, height .55s ${morph}, border-radius .55s ${morph}, opacity ${touring ? ".35s" : ".45s"} ease`,
-        }}
+        style={{ ...abs(hole.x, hole.y, hole.w, hole.h), borderRadius: u(hole.r), boxShadow: `0 0 0 ${u(1400)} ${SCRIM}`, opacity: touring ? 1 : 0, transition: holeMotion }}
       />
-      <svg aria-hidden viewBox="0 0 560 420" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", overflow: "visible", opacity: touring ? 1 : 0, transition: "opacity .15s" }}>
-        {touring ? (
+      {/* A quick, deliberate fade for the ring: on exit it clears just ahead of the scrim. */}
+      <svg aria-hidden viewBox="0 0 560 420" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", overflow: "visible", opacity: touring ? 1 : 0, transition: "opacity 150ms ease-out" }}>
+        {/* The ring a step change leaves behind is all but gone by the time the cutout is halfway to its next stop. */}
+        {phase === "move" && from ? (
+          <path key={`leave-${from}`} data-motion d={ringPath(open(HOLES[from], 1))} pathLength={1} fill="none" stroke={signal.fill} strokeWidth={2} strokeDasharray="1.5 1.5" strokeDashoffset={0.5} style={{ animation: "st-fade 150ms ease-out both" }} />
+        ) : null}
+        {/* Draws in from the top on the reveal spring once the cutout has landed. A dash longer than the path keeps the
+            spring's slight overshoot from opening a gap at the start; with no animation it is simply drawn. */}
+        {beat.stop !== null ? (
           <path
             key={stop}
             data-motion
@@ -240,13 +380,14 @@ export function SpotlightTourPreview() {
             fill="none"
             stroke={signal.fill}
             strokeWidth={2}
-            strokeDasharray="1 1"
-            strokeDashoffset={0}
-            style={{ animation: "st-draw .45s ease-out .34s both" }}
+            strokeDasharray="1.5 1.5"
+            strokeDashoffset={0.5}
+            style={{ animation: `st-draw ${ring.ms}ms ${ring.easing} ${Math.round(ringDelay(stop))}ms both` }}
           />
         ) : null}
       </svg>
-      <Callout stop={stop} press={beat.press} shown={touring} />
+      {/* The pair stays out as the tour closes, so the callout leaves in one piece. */}
+      <Callout stop={stop} press={beat.press} phase={phase} pairOut={beat.stop !== null && beat.pair !== false} />
     </div>
   );
 }

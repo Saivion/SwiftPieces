@@ -1,17 +1,17 @@
 ---
 title: "Activity Heatmap"
-description: "A streak calendar for habit, fitness, study and journaling apps: weeks of days drawn in one Canvas as rounded cells in solid steps from a pale red mix up to pure red, laid out by the locale's first weekday with month labels on their week columns, a light streak numeral that stays alive until midnight beside the longest run and active days, a scrub that lifts the day under your finger with a callout and a haptic tick per day, sideways scrolling that opens on today when the weeks outgrow the width, and VoiceOver that steps day by day or plays the weeks as an audio graph."
+description: "A liquid glass streak calendar for habit, fitness, study and journaling apps: weeks of days drawn in one Canvas as rounded cells in solid steps from a pale red mix up to pure red, laid out by the locale's first weekday with month labels on their week columns, a semibold streak numeral under a glass streak chip that stays alive until midnight beside the longest run and active days, a scrub that lifts the day under your finger as a tinted glass tile with a glass callout budding out of it on a liquid neck and a haptic tick per day, a glass legend chip, sideways scrolling that opens on today when the weeks outgrow the width, and VoiceOver that steps day by day or plays the weeks as an audio graph."
 piece: "ActivityHeatmap"
 category: "data"
 minIOSVersion: "17.0"
-version: "1.0.1"
+version: "1.3.0"
 tags: ["heatmap","streak","calendar","habits","activity","contributions","scrub","accessibility"]
 registryDependencies: []
 ---
 
 {/* GENERATED FILE. Edit registry/swift/data/ActivityHeatmap.swift or ActivityHeatmap.mdx instead. */}
 
-A calendar heatmap of daily activity with the current streak, a scrub callout and full VoiceOver support. Columns are weeks, oldest leading and newest trailing, and rows are weekdays in the calendar's order, so Monday-first regions get Monday on top. Each day is one rounded cell: level 0 is an empty field and levels 1 to 4 are solid steps of the accent mixed into the ground, up to the pure accent. Drag sideways across the grid, or press and move, to read any day, and tap to select one; vertical swipes still scroll the screen. When the weeks outgrow the width the grid scrolls sideways and a short hold starts the reading instead. The cells are drawn in one `Canvas` and hit-tested by geometry, so a year of days stays light.
+A calendar heatmap of daily activity with the current streak, a scrub callout and full VoiceOver support. Columns are weeks, oldest leading and newest trailing, and rows are weekdays in the calendar's order, so Monday-first regions get Monday on top. Each day is one rounded cell: level 0 is an empty field and levels 1 to 4 are solid steps of the accent mixed into the ground, up to the pure accent. Drag sideways across the grid, or press and move, to read any day, and tap to select one; vertical swipes still scroll the screen. When the weeks outgrow the width the grid scrolls sideways and a short hold starts the reading instead. The cells are drawn in one `Canvas` and hit-tested by geometry, so a year of days stays light. The cells are content; the chrome around them is liquid glass. The streak label and the legend sit on glass chips, and a selected day lifts out of the grid as a glass tile tinted with its shade, with its callout budding out of it and resting joined to it by a liquid neck. The callout melts back into the tile when the day is let go.
 
 ## Notes
 
@@ -19,15 +19,16 @@ A calendar heatmap of daily activity with the current streak, a scrub callout an
 - Columns are weeks, oldest leading and newest trailing, and rows are weekdays in the calendar's order: the person's own first weekday by default, so Monday-first regions get Monday on top. Days are stepped from noon, so daylight saving changes and leap days never skip or double a cell. Month labels sit above the first week of each month, and the weekday labels mark Monday, Wednesday and Friday on whichever rows they fall.
 - Level 0 is the empty field. Levels 1 to 4 are solid steps of the accent mixed into the ground (pale on light, deep on dark, further apart with Increase Contrast), up to the pure accent, never transparency. `.automatic` splits the non-zero days in view into quartiles, so one huge day does not wash out the rest and the busiest day always takes the top shade. `.thresholds([1, 3, 6, 10])` sets the minimum for each level; fewer than four spread over the shades, so `.thresholds([1])` draws a done or not done habit in the full accent.
 - The current streak counts back from today and stays alive until midnight while today has nothing yet. It looks back through all of your data, so a streak that began before the first visible week is counted in full; the longest streak and the active days cover the visible weeks. With `.thresholds`, the first value is what counts as active. `ActivityHeatmap.summary(of:)` returns the same figures for a widget or a reminder.
-- Drag sideways across the grid, or press and move, and the day under the finger lifts with a callout (date, value and its shade) and a selection tick for each new day. Vertical swipes that start on the grid still scroll the screen or move a sheet. Tap a day to select it and tap it again to clear it.
+- Drag sideways across the grid, or press and move, and the day under the finger is plucked up out of the still grid as a glass tile tinted with its shade, with a selection tick for each new day. It springs up with visible give, and its callout (date, value and its shade, on glass) buds out of it: born inside the day, it springs out to rest just above it (or below, near the top), joined to the day by a liquid neck that points it at its day. Both glide from day to day on a spring that never bounces or trails the finger, while the callout's text changes at once, so a fast scrub never ghosts. Let go, the callout's text blurs off and it melts back into the day, which settles onto the grid and leaves. Vertical swipes that start on the grid still scroll the screen or move a sheet. Tap a day to select it and tap it again to clear it.
 - With a `selection` binding, a scrub moves the selection live and release keeps it; setting it from outside selects that day and scrolls it into view. Without a binding, a scrub shows the callout only while the finger is down, and a tap keeps it.
-- Cells grow to fill the width up to `Style.maximumCellSize`. When the weeks would make them smaller than `Style.minimumCellSize`, the grid scrolls sideways, opens on today and comes to rest on whole weeks; sideways swipes scroll it and a quarter-second hold starts reading instead.
+- Cells grow to fill the width up to `Style.maximumCellSize`. When the weeks would make them smaller than `Style.minimumCellSize`, the grid scrolls sideways, opens on today and comes to rest on whole weeks; sideways swipes scroll it and a quarter-second hold starts reading instead, with a soft tap in place of the first day's tick.
 - Today wears a ring in the text color, and days after the end date are left out. `endDate` shows an earlier range; `nil` (the default) follows today and moves on by itself at midnight or when the time zone changes.
-- The cells fill in with a quick wave once, a day whose value changes pops, and the streak numeral rolls to its new value. Reduce Motion drops the wave, the pop and the lift's spring.
+- The current streak's label sits on a glass chip, its flame lit in the accent while the streak is alive (lit and unlit blur across), and the legend sits on a glass chip under the grid. Every string and symbol is semibold; size sets the hierarchy.
+- On first appearance the empty tiles are there at once and the shades grow into them in a wave, oldest week to newest, stopping at their tile's size so none ever reads larger; today's ring is there from the start. A whole new dataset (more than 21 days changed) grows in the same way. A day whose value changes is kicked up off its tile and settles with a little give while its neighbors stay still, and the streak numeral and figures roll to their new values. Under Reduce Motion the shades are simply there, a changed day is marked by a faint ring just inside its tile that fades instead of the pop (so it shows on today too), the lifted day sits at a smaller lift without springing and moves from day to day at once, the callout fades in and out in place instead of budding, the numerals crossfade, and a selection set from outside jumps into view instead of scrolling.
 - VoiceOver reads the heatmap as one adjustable element: "Activity, last 20 weeks. Current streak 12 days. Longest 31 days. Active 86 days." Swipe up or down to move a day (the value reads "Tuesday, September 30, 45 min"), use the Previous week and Next week actions, and the escape gesture clears the selection. It also offers the days as an audio graph. With a hardware keyboard, the up and down arrows move a day and left and right move a week.
 - While your data loads, apply `.redacted(reason: .placeholder)`: the grid keeps its shape in empty cells and the figures redact. With no activity in view the summary reads "No activity yet".
 - Dynamic Type scales the streak, the figures and the labels; the summary stacks at large sizes and the grid labels stop growing before they crowd the rows, while cells keep their size. Right to left, the weeks run from the right, newest on the left.
-- `Style` sets the accent, the ground the shades are mixed into (set it to the surface the heatmap sits on), the empty, text, secondary and callout colors, the cell radius and spacing, the smallest and largest cell, and the numeral size. `Style.fill(level:)` gives the same shades for your own day details. `Messages` replaces any line of built-in copy, and `valueLabel` names your unit, for example minutes formatted as a `Measurement`.
+- `Style` sets the accent, the ground the shades are mixed into (set it to the surface the heatmap sits on), the empty, text, secondary and callout colors, the cell radius and spacing, the smallest and largest cell, and the numeral size. `callout` tints the callout's glass (`.clear`, the default, leaves it neutral) and `calloutText` colors its text (the text color by default). Under Reduce Transparency the glass draws solid. `Style.fill(level:)` gives the same shades for your own day details. `Messages` replaces any line of built-in copy, and `valueLabel` names your unit, for example minutes formatted as a `Measurement`.
 
 ## Usage
 
@@ -68,6 +69,10 @@ import UIKit
 /// grid, or press and move, to read any day, and tap to select one; vertical swipes still scroll the screen.
 /// When the weeks outgrow the width the grid scrolls sideways and a short hold starts the reading instead.
 /// The cells are drawn in one `Canvas` and hit-tested by geometry, so a year of days stays light.
+///
+/// The cells are content; the chrome around them is liquid glass. The streak label and the legend sit on glass chips,
+/// and a selected day lifts out of the grid as a glass tile tinted with its shade, with its callout budding out of it
+/// and resting joined to it by a liquid neck. The callout melts back into the tile when the day is let go.
 ///
 /// - Parameters:
 ///   - counts: Activity per day, such as sessions, minutes or entries. Each key is placed on the day it falls on in `calendar` (its time zone), so exact timestamps work and several on one day add up. Zero, negative and non-finite values count as no activity. Days outside the visible weeks are ignored, except that a current streak which began earlier is counted in full. `[Date: Int]` works too.
@@ -183,9 +188,9 @@ public struct ActivityHeatmap: View {
         public var text: Color
         /// Labels, units and the legend.
         public var secondary: Color
-        /// The callout above a selected day.
+        /// The glass tint of the callout above a selected day. `.clear`, the default, leaves it neutral glass.
         public var callout: Color
-        /// Text on the callout.
+        /// Text on the callout. Defaults to the text color, which reads on neutral glass in both appearances.
         public var calloutText: Color
         /// Cell corner radius.
         public var cornerRadius: CGFloat
@@ -205,8 +210,8 @@ public struct ActivityHeatmap: View {
             self.empty = empty ?? HeatmapPalette.field
             self.text = text ?? HeatmapPalette.text
             self.secondary = secondary ?? HeatmapPalette.secondary
-            self.callout = callout ?? HeatmapPalette.text
-            self.calloutText = calloutText ?? HeatmapPalette.calloutText
+            self.callout = callout ?? .clear
+            self.calloutText = calloutText ?? HeatmapPalette.text
             self.cornerRadius = max(cornerRadius, 0)
             self.spacing = max(spacing, 0)
             self.minimumCellSize = max(minimumCellSize, 6)
@@ -273,6 +278,13 @@ public struct ActivityHeatmap: View {
     @State private var scrollTarget = HeatmapScrollTarget()
     @State private var hapticTick = 0
     @State private var holdTick = 0
+    /// The day the selection layer shows. It outlasts the selection while the callout melts home.
+    @State private var shownIndex: Int?
+    /// Whether the shown day is lifted: true while a day is selected.
+    @State private var held = false
+    /// The callout: out of the lifted day while it is selected, melted back into it once it is let go.
+    @State private var buds = PieceBuds()
+    @State private var calloutSize: CGSize = .zero
 
     private let counts: [Date: Double]
     private let weeks: Int
@@ -350,11 +362,12 @@ public struct ActivityHeatmap: View {
                 summaryHeader(summary, hasActivity: summary.activeDays > 0 || summary.currentStreak > 0)
             }
             VStack(alignment: .trailing, spacing: 10) {
-                grid(model: model, selected: selected, redacted: redacted)
+                grid(model: model, redacted: redacted)
                 legend(steps: model.steps, redacted: redacted)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+        .fontWeight(.semibold)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(accessibilityLabel(model))
         .accessibilityValue(selected.map { spokenDay($0, in: model) } ?? "")
@@ -377,20 +390,46 @@ public struct ActivityHeatmap: View {
         }
         .onAppear {
             now = Date()
+            // A day selected before the heatmap appears is simply there, its callout already out.
+            if let selected, shownIndex == nil {
+                shownIndex = selected
+                held = true
+                buds.place(["callout"])
+            }
             guard !didEnter else { return }
             didEnter = true
             if !reduceMotion { entrance = Date() }
         }
-        // The wave runs once, about a second; this clears it so the Canvas stops redrawing every frame.
+        // A day being selected lifts and buds its callout; moving on keeps both out and glides them; letting go melts
+        // the callout back into the day, which then settles into the grid.
+        .onChange(of: selected) { old, new in
+            guard let new else {
+                held = false
+                Task {
+                    await buds.gather(["callout"], reduceMotion: reduceMotion)
+                    // Unless another day was picked meanwhile.
+                    if !held { withAnimation(PieceMotion(reduceMotion: reduceMotion).dismiss) { shownIndex = nil } }
+                }
+                return
+            }
+            shownIndex = new
+            if old == nil {
+                held = true
+                // A beat behind the pluck, so the day leads and the callout follows out of it.
+                Task { await buds.bloom(["callout"], reduceMotion: reduceMotion, delay: 0.06) }
+            }
+        }
+        // The wave runs once, about a second; this clears it once the last cell has landed, so the Canvas stops
+        // redrawing every frame.
         .task(id: entrance) {
             guard entrance != nil else { return }
-            try? await Task.sleep(for: .milliseconds(1050))
+            try? await Task.sleep(for: .seconds(HeatmapPainter.waveLength))
             if !Task.isCancelled { entrance = nil }
         }
         .onChange(of: model.valueSignature) { old, new in popChanged(old, new, lastIndex: model.lastIndex) }
         .task(id: popTick) {
             guard popTick > 0 else { return }
-            try? await Task.sleep(for: .milliseconds(520))
+            try? await Task.sleep(for: .seconds(HeatmapPainter.popLength))
             if !Task.isCancelled { pops = [:] }
         }
         // A selection set from outside (a binding, VoiceOver, the keyboard) scrolls into view; a touch is already there.
@@ -422,18 +461,27 @@ public struct ActivityHeatmap: View {
 
     private func streakBlock(_ summary: Summary, hasActivity: Bool) -> some View {
         let alive = summary.currentStreak > 0
-        return VStack(alignment: .leading, spacing: 2) {
-            HStack(spacing: 5) {
-                Image(systemName: alive ? "flame.fill" : "flame")
-                    .font(.system(size: metaSize, weight: .bold))
-                    .foregroundStyle(alive && !redactionReasons.contains(.placeholder) ? style.accent : style.secondary)
-                    .contentTransition(.symbolEffect(.replace))
-                    .symbolEffect(.bounce, value: reduceMotion ? 0 : summary.currentStreak)
-                Text(messages.currentStreak.uppercased(with: locale))
-                    .font(.system(size: metaSize, weight: .semibold))
-                    .tracking(1.2)
-                    .foregroundStyle(style.secondary)
-                    .lineLimit(1)
+        return VStack(alignment: .leading, spacing: 8) {
+            // The streak's label on a glass chip, the flame lit in the accent while the streak is alive.
+            PieceLiquidGroup {
+                HStack(spacing: 5) {
+                    Image(systemName: alive ? "flame.fill" : "flame")
+                        .font(.system(size: metaSize, weight: .semibold))
+                        .foregroundStyle(alive && !redactionReasons.contains(.placeholder) ? style.accent : style.secondary)
+                        .symbolEffect(.bounce, value: reduceMotion ? 0 : summary.currentStreak)
+                        // Lit and unlit blur across.
+                        .id(alive)
+                        .transition(PieceMotion(reduceMotion: reduceMotion).swap)
+                    Text(messages.currentStreak)
+                        .font(.system(size: metaSize + 1, weight: .semibold))
+                        .foregroundStyle(style.secondary)
+                        .lineLimit(1)
+                }
+                .padding(.horizontal, 11)
+                .frame(minHeight: 28)
+                .pieceLiquid(Capsule(), interactive: false)
+                // A streak lit or put out by new data swaps its flame on the snap, whether or not the data was animated.
+                .animation(PieceMotion(reduceMotion: reduceMotion).snap, value: alive)
             }
             if hasActivity {
                 streakNumeral(summary.currentStreak)
@@ -447,14 +495,14 @@ public struct ActivityHeatmap: View {
     }
 
     /// "12 days" from the system's duration formatter, so the unit is right in every language, with the
-    /// number set as the light display numeral and the unit small beside it.
+    /// number set as the display numeral and the unit small beside it.
     private func streakNumeral(_ days: Int) -> some View {
         var text = Duration.seconds(Double(days) * 86_400).formatted(Duration.UnitsFormatStyle(allowedUnits: [.days], width: .wide).locale(locale).attributed)
         var hasNumber = false
         for run in text.runs {
             if run.measurement == .value {
                 hasNumber = true
-                text[run.range].swiftUI.font = .system(size: style.numeralSize * numeralScale, weight: .light)
+                text[run.range].swiftUI.font = .system(size: style.numeralSize * numeralScale, weight: .semibold)
                 text[run.range].swiftUI.foregroundColor = style.text
             } else {
                 text[run.range].swiftUI.font = .system(size: unitScale, weight: .semibold)
@@ -464,7 +512,7 @@ public struct ActivityHeatmap: View {
         if !hasNumber {
             // A language that spells out one day without a figure still gets the numeral.
             var number = AttributedString(days.formatted(.number.locale(locale)) + " ")
-            number.swiftUI.font = .system(size: style.numeralSize * numeralScale, weight: .light)
+            number.swiftUI.font = .system(size: style.numeralSize * numeralScale, weight: .semibold)
             number.swiftUI.foregroundColor = style.text
             text = number + text
         }
@@ -473,32 +521,37 @@ public struct ActivityHeatmap: View {
             .lineLimit(1)
             .minimumScaleFactor(0.5)
             .contentTransition(reduceMotion ? .opacity : .numericText(value: Double(days)))
-            .animation(reduceMotion ? .easeInOut(duration: 0.2) : .snappy(duration: 0.45), value: days)
+            // A figure: it rolls on the value spring, so its digits never overshoot.
+            .animation(PieceMotion(reduceMotion: reduceMotion).value, value: days)
     }
 
-    /// Longest streak and active days as a two-row table, figures right-aligned.
+    /// Longest streak and active days side by side, each its value over a quiet label, a hairline between them.
     private func figures(_ summary: Summary) -> some View {
-        Grid(alignment: .leadingFirstTextBaseline, horizontalSpacing: 14, verticalSpacing: 5) {
+        HStack(alignment: .bottom, spacing: 16) {
             figure(messages.longestStreak, days: summary.longestStreak)
+            Rectangle()
+                .fill(style.secondary.opacity(0.25))
+                .frame(width: 1 / displayScale, height: unitScale + metaSize + 4)
+                .accessibilityHidden(true)
             figure(messages.activeDays, days: summary.activeDays)
         }
         .lineLimit(1)
+        .padding(.bottom, 4)
     }
 
     private func figure(_ label: String, days: Int) -> some View {
-        GridRow(alignment: .lastTextBaseline) {
-            Text(label.uppercased(with: locale))
-                .font(.system(size: metaSize, weight: .semibold))
-                .tracking(1.2)
-                .foregroundStyle(style.secondary)
+        VStack(alignment: .leading, spacing: 4) {
             Text(dayCount(days))
-                .font(.system(size: unitScale, weight: .medium))
+                .font(.system(size: unitScale, weight: .semibold))
                 .monospacedDigit()
                 .foregroundStyle(style.text)
-                .gridColumnAlignment(.trailing)
                 .contentTransition(reduceMotion ? .opacity : .numericText(value: Double(days)))
-                .animation(.snappy(duration: 0.4), value: days)
+                .animation(PieceMotion(reduceMotion: reduceMotion).value, value: days)
+            Text(label)
+                .font(.system(size: metaSize, weight: .semibold))
+                .foregroundStyle(style.secondary)
         }
+        .accessibilityElement(children: .combine)
     }
 
     private func dayCount(_ days: Int) -> String {
@@ -509,26 +562,28 @@ public struct ActivityHeatmap: View {
 
     /// The weekday labels and the cells. The section runs left to right internally and mirrors itself for
     /// right-to-left languages, so the Canvas, its hit-testing and the callout share one coordinate space.
-    private func grid(model: HeatmapModel, selected: Int?, redacted: Bool) -> some View {
+    private func grid(model: HeatmapModel, redacted: Bool) -> some View {
         let rtl = isRTL
         let header = headerHeight
+        let motion = PieceMotion(reduceMotion: reduceMotion)
         return HeatmapGridLayout(weeks: model.weeks, style: style, header: header, scale: displayScale, labelSpacing: 7, rtl: rtl) {
             ForEach(model.rowLabels) { label in
-                Text(label.text.uppercased(with: locale))
+                Text(label.text)
                     .font(.system(size: axisSize, weight: .semibold))
-                    .tracking(0.6)
                     .foregroundStyle(style.secondary)
                     .lineLimit(1)
                     .fixedSize()
                     .layoutValue(key: HeatmapRowKey.self, value: label.row)
             }
             GeometryReader { proxy in
-                cells(model: model, width: proxy.size.width, header: header, rtl: rtl, redacted: redacted, tracksPlacement: selected != nil)
+                cells(model: model, width: proxy.size.width, header: header, rtl: rtl, redacted: redacted, tracksPlacement: shownIndex != nil)
             }
         }
         .overlay(alignment: .topLeading) {
-            selectionLayer(model: model, selected: selected, rtl: rtl, redacted: redacted)
-                .animation(reduceMotion ? .easeInOut(duration: 0.15) : .smooth(duration: 0.18), value: selected == nil)
+            // The lifted day comes up on the snap, plucking up with its own give while its callout buds out of it. It
+            // leaves firmly, once the callout has melted back in and the day has settled into the grid.
+            selectionLayer(model: model, rtl: rtl, redacted: redacted)
+                .animation(shownIndex == nil ? motion.dismiss : motion.snap, value: shownIndex == nil)
         }
         .coordinateSpace(.named(HeatmapSpace.grid))
         .environment(\.layoutDirection, .leftToRight)
@@ -543,7 +598,7 @@ public struct ActivityHeatmap: View {
         if metrics.scrolls {
             ScrollViewReader { reader in
                 ScrollView(.horizontal) {
-                    HeatmapCells(model: model, metrics: metrics, originX: 0, rtl: rtl, bleed: bleed, style: style, axisSize: axisSize, locale: locale, entrance: entrance, pops: pops, redacted: redacted)
+                    HeatmapCells(model: model, metrics: metrics, originX: 0, rtl: rtl, bleed: bleed, style: style, axisSize: axisSize, locale: locale, entrance: entrance, pops: pops, reduceMotion: reduceMotion, redacted: redacted)
                         .equatable()
                         .frame(width: metrics.gridWidth + bleed * 2, height: metrics.height + bleed * 2)
                         .padding(-bleed)
@@ -568,7 +623,9 @@ public struct ActivityHeatmap: View {
                 .onGeometryChange(for: CGRect.self) { $0.frame(in: .named(HeatmapSpace.grid)) } action: { viewport = $0 }
                 .onChange(of: scrollTarget) { _, target in
                     guard let column = target.column else { return }
-                    withAnimation(reduceMotion ? nil : .smooth(duration: 0.35)) { reader.scrollTo(column, anchor: .center) }
+                    // Glides to the week on the value spring, which never overshoots, so a long jump never runs past
+                    // it or past the grid's edge. Under Reduce Motion the grid jumps rather than sliding a long way.
+                    withAnimation(reduceMotion ? nil : PieceMotion().value) { reader.scrollTo(column, anchor: .center) }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: rtl ? .topTrailing : .topLeading)
                 .padding(EdgeInsets(top: 0, leading: rtl ? -bleed : 0, bottom: -bleed, trailing: rtl ? 0 : -bleed))
@@ -576,7 +633,7 @@ public struct ActivityHeatmap: View {
         } else {
             // Cells capped at their largest size leave room to spare: the grid keeps to the leading side.
             let originX = rtl ? max(width - metrics.gridWidth, 0) : 0
-            HeatmapCells(model: model, metrics: metrics, originX: originX, rtl: rtl, bleed: bleed, style: style, axisSize: axisSize, locale: locale, entrance: entrance, pops: pops, redacted: redacted)
+            HeatmapCells(model: model, metrics: metrics, originX: originX, rtl: rtl, bleed: bleed, style: style, axisSize: axisSize, locale: locale, entrance: entrance, pops: pops, reduceMotion: reduceMotion, redacted: redacted)
                 .equatable()
                 .frame(width: width + bleed * 2, height: metrics.height + bleed * 2)
                 .padding(-bleed)
@@ -616,44 +673,41 @@ public struct ActivityHeatmap: View {
 
     // MARK: Selection layer
 
-    /// The lifted cell and its callout, above the grid and outside any scroll view, so neither is clipped.
+    /// The lifted day and its callout, above the grid and outside any scroll view, so neither is clipped. Both are glass
+    /// in one group: the callout buds out of the day and rests a neck's width from it, so the neck points it at its day.
     @ViewBuilder
-    private func selectionLayer(model: HeatmapModel, selected: Int?, rtl: Bool, redacted: Bool) -> some View {
-        if let index = selected, model.isPresent(index), let placement = cache.placement ?? placement, !redacted {
+    private func selectionLayer(model: HeatmapModel, rtl: Bool, redacted: Bool) -> some View {
+        if let index = shownIndex, model.isPresent(index), let placement = cache.placement ?? placement, !redacted {
             let metrics = placement.metrics
             let rect = metrics.rect(index: index, originX: placement.originX, rtl: rtl).offsetBy(dx: placement.canvas.minX, dy: placement.canvas.minY)
             let center = CGPoint(x: rect.midX, y: rect.midY)
             if viewport.map({ $0.insetBy(dx: -2, dy: -2).contains(center) }) ?? true {
                 GeometryReader { proxy in
                     let bounds = proxy.size
-                    // How far the lifted cell reaches past its own edges.
-                    let lift = (metrics.cell + HeatmapLiftedCell.edge * 2) * ((reduceMotion ? 1.12 : 1.32) - 1) / 2 + HeatmapLiftedCell.edge
-                    let calloutHeight = ceil(calloutMetaSize * 1.25 + calloutValueSize * 1.3 + 17)
-                    let above = rect.minY - lift - 9 - calloutHeight >= (showsSummary ? -60 : 0)
-                    let nubX = min(max(rect.midX, 14), max(bounds.width - 14, 14))
-                    // Each piece is an overlay of the same empty frame, so the callout reaching above the
-                    // grid never moves the others.
-                    Color.clear
-                        .overlay(alignment: .topLeading) {
-                            HeatmapLiftedCell(fill: style.fill(level: max(model.levels[index], 0)), ground: style.ground, size: metrics.cell, radius: metrics.radius, reduceMotion: reduceMotion)
-                                .offset(x: rect.minX - HeatmapLiftedCell.edge, y: rect.minY - HeatmapLiftedCell.edge)
+                    let gap = PieceLiquid.joined
+                    // How far the lifted day reaches past its own edges.
+                    let lift = metrics.cell * (HeatmapLiftedCell.raise(reduceMotion: reduceMotion) - 1) / 2
+                    let size = calloutSize.height > 0 ? calloutSize : CGSize(width: 120, height: ceil(calloutMetaSize * 1.25 + calloutValueSize * 1.3 + 17))
+                    let above = rect.minY - lift - gap - size.height >= (showsSummary ? -60 : 0)
+                    let left = min(max(rect.midX - size.width / 2, 0), max(bounds.width - size.width, 0))
+                    let top = above ? rect.minY - lift - gap - size.height : rect.maxY + lift + gap
+                    // From where it rests to the middle of its day.
+                    let home = CGSize(width: rect.midX - (left + size.width / 2), height: rect.midY - (top + size.height / 2))
+                    PieceLiquidGroup {
+                        // The day last, so the callout melting home slips under it.
+                        ZStack(alignment: .topLeading) {
+                            Color.clear
+                            if buds.contains("callout") {
+                                callout(index: index, model: model, home: home, fits: metrics.cell * HeatmapLiftedCell.raise(reduceMotion: reduceMotion))
+                                    .offset(x: left, y: top)
+                            }
+                            HeatmapLiftedCell(fill: style.fill(level: max(model.levels[index], 0)), size: metrics.cell, radius: metrics.radius, held: held, reduceMotion: reduceMotion)
+                                .offset(x: rect.minX, y: rect.minY)
                         }
-                        .overlay(alignment: .topLeading) {
-                            HeatmapNub(pointsDown: above)
-                                .fill(style.callout)
-                                .frame(width: 12, height: 6)
-                                .offset(x: nubX - 6, y: above ? rect.minY - lift - 9 : rect.maxY + lift + 3)
-                        }
-                        .overlay(alignment: .topLeading) {
-                            callout(index: index, model: model)
-                                .alignmentGuide(.leading) { d in
-                                    -min(max(rect.midX - d.width / 2, 0), max(bounds.width - d.width, 0))
-                                }
-                                .alignmentGuide(.top) { d in
-                                    above ? -(rect.minY - lift - 9 - d.height + 0.5) : -(rect.maxY + lift + 9 - 0.5)
-                                }
-                        }
-                        .animation(reduceMotion ? nil : .snappy(duration: 0.16), value: index)
+                    }
+                    // The lift and its callout glide to the next day on the press spring, which never bounces or trails
+                    // the finger. Under Reduce Motion they move from day to day at once.
+                    .animation(reduceMotion ? nil : PieceMotion().press, value: index)
                 }
                 .allowsHitTesting(false)
                 .transition(.opacity)
@@ -661,13 +715,19 @@ public struct ActivityHeatmap: View {
         }
     }
 
-    private func callout(index: Int, model: HeatmapModel) -> some View {
+    /// The day's date and value on glass. It is born inside the lifted day, shrunk small enough to fit in it, springs
+    /// out on the split spring pulling a neck from the day, and its text arrives just after. Let go, its text blurs off
+    /// at once and it melts back into the day on a spring with no bounce. Its text swaps at once as it glides from day
+    /// to day, so a fast scrub never ghosts.
+    private func callout(index: Int, model: HeatmapModel, home: CGSize, fits: CGFloat) -> some View {
         let level = max(model.levels[index], 0)
+        let out = buds.isOut("callout")
+        // At home it shrinks further than a bubble usually does: the day it melts into is smaller than it is.
+        let shrink = min(1, fits * 0.7 / (max(calloutSize.width, 1) * PieceLiquid.homeScale))
         return VStack(alignment: .leading, spacing: 3) {
             Text(calloutDate(index, in: model))
                 .font(.system(size: calloutMetaSize, weight: .semibold))
-                .tracking(0.6)
-                .opacity(0.68)
+                .opacity(0.6)
             HStack(spacing: 6) {
                 RoundedRectangle(cornerRadius: 3, style: .continuous)
                     .fill(style.fill(level: level))
@@ -679,34 +739,42 @@ public struct ActivityHeatmap: View {
         }
         .lineLimit(1)
         .fixedSize()
-        // The callout glides from day to day; its text swaps at once, so a fast scrub never ghosts.
         .contentTransition(.identity)
         .foregroundStyle(style.calloutText)
-        .padding(.horizontal, 10)
-        .padding(.vertical, 7)
-        .background(style.callout, in: .rect(cornerRadius: 12, style: .continuous))
-        .shadow(color: .black.opacity(0.16), radius: 10, y: 4)
+        .pieceBudContent(out: out)
+        .padding(.horizontal, 11)
+        .padding(.vertical, 8)
+        .onGeometryChange(for: CGSize.self) { $0.size } action: { calloutSize = $0 }
+        .pieceLiquid(.rect(cornerRadius: 14, style: .continuous), tint: out && style.callout != .clear ? style.callout : nil, interactive: false)
+        // Through the glass, so the text shrinks with the callout (a scaleEffect on glass leaves it behind).
+        .pieceLiquidScale(out || reduceMotion ? 1 : shrink)
+        .pieceBud(out: out, home: home)
     }
 
     // MARK: Legend
 
+    /// The shades from less to more on a glass chip under the grid's trailing edge.
     private func legend(steps: [Int], redacted: Bool) -> some View {
         let swatch = max(round(axisSize * 0.95), 9)
-        return HStack(spacing: 6) {
-            Text(messages.less.uppercased(with: locale))
-            HStack(spacing: 3) {
-                ForEach(steps, id: \.self) { step in
-                    RoundedRectangle(cornerRadius: 2.5, style: .continuous)
-                        .fill(redacted ? style.empty : style.fill(level: step))
-                        .frame(width: swatch, height: swatch)
+        return PieceLiquidGroup {
+            HStack(spacing: 6) {
+                Text(messages.less)
+                HStack(spacing: 3) {
+                    ForEach(steps, id: \.self) { step in
+                        RoundedRectangle(cornerRadius: 2.5, style: .continuous)
+                            .fill(redacted ? style.empty : style.fill(level: step))
+                            .frame(width: swatch, height: swatch)
+                    }
                 }
+                Text(messages.more)
             }
-            Text(messages.more.uppercased(with: locale))
+            .font(.system(size: axisSize, weight: .semibold))
+            .foregroundStyle(style.secondary)
+            .lineLimit(1)
+            .padding(.horizontal, 11)
+            .frame(minHeight: 26)
+            .pieceLiquid(Capsule(), interactive: false)
         }
-        .font(.system(size: axisSize, weight: .semibold))
-        .tracking(0.6)
-        .foregroundStyle(style.secondary)
-        .lineLimit(1)
         .accessibilityHidden(true)
     }
 
@@ -718,8 +786,11 @@ public struct ActivityHeatmap: View {
         switch event {
         case .began(let point, let pressed):
             touch = HeatmapTouch(start: point, moved: !pressed)
-            if pressed, metrics.scrolls { holdTick += 1 }
-            track(point, model: model, metrics: metrics, originX: originX, rtl: rtl)
+            // One haptic per event: in a scrolling grid the hold that arms the scrub taps softly, and its first day
+            // takes no selection tick on top.
+            let arms = pressed && metrics.scrolls
+            if arms { holdTick += 1 }
+            track(point, model: model, metrics: metrics, originX: originX, rtl: rtl, ticks: !arms)
         case .moved(let point):
             if let start = touch?.start, hypot(point.x - start.x, point.y - start.y) > 6 { touch?.moved = true }
             track(point, model: model, metrics: metrics, originX: originX, rtl: rtl)
@@ -732,13 +803,13 @@ public struct ActivityHeatmap: View {
         }
     }
 
-    private func track(_ location: CGPoint, model: HeatmapModel, metrics: HeatmapMetrics, originX: CGFloat, rtl: Bool) {
+    private func track(_ location: CGPoint, model: HeatmapModel, metrics: HeatmapMetrics, originX: CGFloat, rtl: Bool, ticks: Bool = true) {
         guard model.lastIndex >= 0 else { return }
         // Past today (the future part of the last week) the scrub stays on the last day.
         let index = min(metrics.index(at: location, originX: originX, rtl: rtl), model.lastIndex)
         guard index != touchIndex else { return }
         touchIndex = index
-        hapticTick += 1
+        if ticks { hapticTick += 1 }
         if selectionBinding != nil {
             touchCommit = index
             commit(index, in: model)
@@ -804,13 +875,14 @@ public struct ActivityHeatmap: View {
 
     // MARK: Motion
 
-    /// Days whose value changed get a pop; a whole new dataset waves in again instead.
+    /// Days whose value changed get a pop (a fading ring under Reduce Motion); a whole new dataset grows in again
+    /// instead, or under Reduce Motion is simply there.
     private func popChanged(_ old: HeatmapModel.ValueSignature, _ new: HeatmapModel.ValueSignature, lastIndex: Int) {
-        guard !reduceMotion, entrance == nil, old.firstDay == new.firstDay, old.values.count == new.values.count else { return }
+        guard entrance == nil, old.firstDay == new.firstDay, old.values.count == new.values.count else { return }
         let changed = new.values.indices.filter { $0 <= lastIndex && new.values[$0] != old.values[$0] }
         guard !changed.isEmpty else { return }
         if changed.count > 21 {
-            entrance = Date()
+            if !reduceMotion { entrance = Date() }
             return
         }
         let start = Date()
@@ -826,11 +898,11 @@ public struct ActivityHeatmap: View {
     }
 
     private func calloutDate(_ index: Int, in model: HeatmapModel) -> String {
-        if index == model.todayIndex { return messages.today.uppercased(with: locale) }
+        if index == model.todayIndex { return messages.today }
         let day = model.days[index]
         var format = dateStyle(model.calendar, wide: false)
         if model.calendar.component(.year, from: day) != model.calendar.component(.year, from: model.today) { format = format.year() }
-        return day.formatted(format).uppercased(with: locale)
+        return day.formatted(format)
     }
 
     private func valueText(_ index: Int, in model: HeatmapModel) -> String {
@@ -1355,11 +1427,12 @@ private struct HeatmapCells: View, Equatable {
     let locale: Locale
     let entrance: Date?
     let pops: [Int: Date]
+    let reduceMotion: Bool
     let redacted: Bool
 
     var body: some View {
         let fills = (0...4).map { style.fill(level: $0) }
-        let input = HeatmapPainter.Input(model: model, metrics: metrics, originX: originX, rtl: rtl, bleed: bleed, fills: fills, ring: style.text, label: style.secondary, axisSize: axisSize, locale: locale, entrance: entrance, pops: pops, redacted: redacted)
+        let input = HeatmapPainter.Input(model: model, metrics: metrics, originX: originX, rtl: rtl, bleed: bleed, fills: fills, ring: style.text, label: style.secondary, axisSize: axisSize, locale: locale, entrance: entrance, pops: pops, reduceMotion: reduceMotion, redacted: redacted)
         TimelineView(.animation(minimumInterval: nil, paused: entrance == nil && pops.isEmpty)) { timeline in
             Canvas { context, size in
                 HeatmapPainter.draw(input, in: &context, size: size, time: timeline.date)
@@ -1383,8 +1456,25 @@ private enum HeatmapPainter {
         var locale: Locale
         var entrance: Date?
         var pops: [Int: Date]
+        var reduceMotion: Bool
         var redacted: Bool
     }
+
+    /// The Canvas draws on a clock, so it evaluates the springs behind two roles by hand: the reveal's for the
+    /// entrance wave and the rebound's for a pop.
+    private static let reveal = PieceMotion.calm
+    private static let rebound = PieceMotion.elastic
+    /// The entrance wave: how far the newest column lags the oldest, and each row the one above it.
+    static let waveSpread = 0.45
+    static let waveRowStep = 0.022
+    /// From the start of the wave until its last shade has landed.
+    static var waveLength: Double { waveSpread + 6 * waveRowStep + reveal.settlingDuration }
+    /// How long a changed day's pop, or its ring under Reduce Motion, lasts.
+    static var popLength: Double { rebound.settlingDuration }
+    /// The pop's kick, in cell sizes per second. On the rebound spring the cell swells about 25% within 80ms, at most
+    /// the default gap on each side of the largest default cell, dips about 2% below its size and settles. A harder
+    /// kick on this spring would reach into the neighbors.
+    private static let popKick = 7.6
 
     static func draw(_ input: Input, in context: inout GraphicsContext, size: CGSize, time: Date) {
         let model = input.model, m = input.metrics
@@ -1392,39 +1482,57 @@ private enum HeatmapPainter {
         if !input.redacted { drawMonths(input, in: &context, width: size.width - input.bleed * 2) }
         guard model.lastIndex >= 0 else { return }
 
-        var todayScale: CGFloat = 1
         for index in 0...model.lastIndex {
-            let scale = cellScale(index, input: input, time: time)
-            if index == model.todayIndex { todayScale = scale }
-            guard scale > 0.01 else { continue }
-            var rect = m.rect(index: index, originX: input.originX, rtl: input.rtl)
-            if scale != 1 { rect = rect.insetBy(dx: rect.width * (1 - scale) / 2, dy: rect.height * (1 - scale) / 2) }
             let level = input.redacted ? 0 : min(max(model.levels[index], 0), 4)
+            let cell = m.rect(index: index, originX: input.originX, rtl: input.rtl)
+            // The tiles hold still and only the shades wave in, each growing from the middle of its empty tile.
+            let grown = level > 0 ? wave(index, input: input, time: time) : 1
+            if grown < 1 {
+                context.fill(Path(roundedRect: cell, cornerRadius: m.radius, style: .continuous), with: .color(input.fills[0]))
+            }
+            let scale = grown * pop(index, input: input, time: time)
+            guard scale > 0.01 else { continue }
+            let rect = scale == 1 ? cell : cell.insetBy(dx: cell.width * (1 - scale) / 2, dy: cell.height * (1 - scale) / 2)
             context.fill(Path(roundedRect: rect, cornerRadius: m.radius * scale, style: .continuous), with: .color(input.fills[level]))
         }
 
-        // Today wears a ring in the text color, just outside the cell.
-        if let today = model.todayIndex, !input.redacted, todayScale > 0.6 {
+        guard !input.redacted else { return }
+        // Today wears a ring in the text color, just outside the cell. It belongs to the tile, so it is there from
+        // the first frame while the shade grows inside it.
+        if let today = model.todayIndex {
             let rect = m.rect(index: today, originX: input.originX, rtl: input.rtl).insetBy(dx: -2, dy: -2)
             context.stroke(Path(roundedRect: rect, cornerRadius: m.radius + 2, style: .continuous), with: .color(input.ring), lineWidth: 1.5)
         }
+        // Under Reduce Motion a changed day is marked by a faint ring that fades, in place of the pop. It runs just
+        // inside the tile, so it still shows on today, the day that changes most, under today's own ring.
+        if input.reduceMotion {
+            for (index, start) in input.pops where model.isPresent(index) {
+                let fade = 1 - min(max(time.timeIntervalSince(start) / popLength, 0), 1)
+                guard fade > 0 else { continue }
+                let rect = m.rect(index: index, originX: input.originX, rtl: input.rtl).insetBy(dx: 0.75, dy: 0.75)
+                context.stroke(Path(roundedRect: rect, cornerRadius: max(m.radius - 0.75, 0), style: .continuous), with: .color(input.ring.opacity(0.6 * fade)), lineWidth: 1.5)
+            }
+        }
     }
 
-    /// The entrance wave (oldest to newest, top to bottom, with a little overshoot) and a pop for days whose value changed.
-    private static func cellScale(_ index: Int, input: Input, time: Date) -> CGFloat {
-        var scale: CGFloat = 1
-        if let start = input.entrance {
-            let column = Double(index / 7), row = Double(index % 7)
-            let delay = (input.metrics.weeks > 1 ? column / Double(input.metrics.weeks - 1) : 0) * 0.45 + row * 0.022
-            let p = min(max((time.timeIntervalSince(start) - delay) / 0.34, 0), 1)
-            let c1 = 1.0, c3 = c1 + 1, x = p - 1
-            scale = CGFloat(1 + c3 * x * x * x + c1 * x * x)
-        }
-        if let start = input.pops[index] {
-            let p = min(max(time.timeIntervalSince(start) / 0.45, 0), 1)
-            scale *= 1 + 0.32 * CGFloat(sin(Double.pi * p))
-        }
-        return scale
+    /// How far a shade has grown in the entrance wave, oldest to newest and top to bottom. Each one grows on the
+    /// reveal spring and is clamped at its size, so no cell ever reads larger than it is.
+    private static func wave(_ index: Int, input: Input, time: Date) -> CGFloat {
+        guard let start = input.entrance else { return 1 }
+        let column = Double(index / 7), row = Double(index % 7)
+        let delay = (input.metrics.weeks > 1 ? column / Double(input.metrics.weeks - 1) : 0) * waveSpread + row * waveRowStep
+        let t = time.timeIntervalSince(start) - delay
+        guard t > 0 else { return 0 }
+        return CGFloat(min(reveal.value(target: 1.0, time: t), 1))
+    }
+
+    /// A day whose value changed is kicked up off its tile and settles back with a little give, its neighbors
+    /// still. Under Reduce Motion it stays put and `draw` rings it instead.
+    private static func pop(_ index: Int, input: Input, time: Date) -> CGFloat {
+        guard !input.reduceMotion, let start = input.pops[index] else { return 1 }
+        let t = time.timeIntervalSince(start)
+        guard t > 0 else { return 1 }
+        return 1 + CGFloat(rebound.value(target: 0.0, initialVelocity: popKick, time: t))
     }
 
     /// Month labels above the first column of each month. A label never collides with the next one or runs
@@ -1434,9 +1542,8 @@ private enum HeatmapPainter {
         var placed: [(frame: CGRect, text: GraphicsContext.ResolvedText, isLead: Bool)] = []
         for label in input.model.monthLabels {
             let text = context.resolve(
-                Text(label.text.uppercased(with: input.locale))
+                Text(label.text)
                     .font(.system(size: input.axisSize, weight: .semibold))
-                    .tracking(0.6)
                     .foregroundStyle(input.label)
             )
             let size = text.measure(in: CGSize(width: 240, height: 80))
@@ -1454,49 +1561,37 @@ private enum HeatmapPainter {
     }
 }
 
-/// The selected day, lifted out of the grid: scaled up with an edge in the ground color that cuts it
-/// free of its neighbors, and a soft shadow, springing up as it appears.
+/// The selected day, lifted out of the grid as a glass tile tinted with its shade: plucked up with visible give as it
+/// appears, and settling back onto its day once it is let go. Its rim and the glass's own shadow cut it free of its
+/// neighbors.
 private struct HeatmapLiftedCell: View {
-    static let edge: CGFloat = 2
+    /// How far the cell rises: a clear pluck, or a smaller lift that is simply there under Reduce Motion.
+    static func raise(reduceMotion: Bool) -> CGFloat { reduceMotion ? 1.12 : 1.32 }
 
     let fill: Color
-    let ground: Color
     let size: CGFloat
     let radius: CGFloat
+    /// True while the day is selected. Let go, it settles back onto its day before the layer leaves.
+    let held: Bool
     let reduceMotion: Bool
     @State private var raised = false
 
     var body: some View {
-        RoundedRectangle(cornerRadius: radius, style: .continuous)
-            .fill(fill)
+        Color.clear
             .frame(width: size, height: size)
-            .padding(Self.edge)
-            .background(ground, in: .rect(cornerRadius: radius + Self.edge, style: .continuous))
-            .scaleEffect(raised ? (reduceMotion ? 1.12 : 1.32) : 1)
-            .shadow(color: .black.opacity(raised ? 0.22 : 0), radius: 6, y: 3)
+            .pieceLiquid(.rect(cornerRadius: radius, style: .continuous), tint: fill, interactive: false)
+            // Under Reduce Motion it starts raised and stays there until the layer leaves. Through the liquid scale, as
+            // every scale on glass is.
+            .pieceLiquidScale(raised || reduceMotion ? Self.raise(reduceMotion: reduceMotion) : 1)
             .onAppear {
-                withAnimation(reduceMotion ? nil : .spring(duration: 0.32, bounce: 0.45)) { raised = true }
+                // The selection's lead: it springs up with visible give, in place, so the give never moves it off its
+                // day. The callout buds out of it a beat behind, on the split spring.
+                if held { withAnimation(PieceMotion(reduceMotion: reduceMotion).follow(PieceMotion.elastic, rank: 0)) { raised = true } }
             }
-    }
-}
-
-/// The small triangle that points from the callout to its day.
-private struct HeatmapNub: Shape {
-    var pointsDown: Bool
-
-    func path(in rect: CGRect) -> Path {
-        var path = Path()
-        if pointsDown {
-            path.move(to: CGPoint(x: rect.minX, y: rect.minY))
-            path.addLine(to: CGPoint(x: rect.maxX, y: rect.minY))
-            path.addLine(to: CGPoint(x: rect.midX, y: rect.maxY))
-        } else {
-            path.move(to: CGPoint(x: rect.minX, y: rect.maxY))
-            path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
-            path.addLine(to: CGPoint(x: rect.midX, y: rect.minY))
-        }
-        path.closeSubpath()
-        return path
+            .onChange(of: held) { _, held in
+                let motion = PieceMotion(reduceMotion: reduceMotion)
+                withAnimation(held ? motion.follow(PieceMotion.elastic, rank: 0) : motion.dismiss) { raised = held }
+            }
     }
 }
 
@@ -1550,7 +1645,6 @@ private enum HeatmapPalette {
     static let field = adaptive(light: 0xE9E7E1, dark: 0x262626)
     static let text = adaptive(light: 0x141414, dark: 0xF4F3EF)
     static let secondary = adaptive(light: 0x5C5A56, dark: 0xA6A49F)
-    static let calloutText = adaptive(light: 0xF4F3EF, dark: 0x141414)
 
     /// A solid mix of the accent into the ground for levels 1 to 3, resolved per appearance: pale steps on
     /// light ground, deep steps on dark, spaced further apart when Increase Contrast is on.
@@ -1631,6 +1725,396 @@ private struct ActivityHeatmapExample: View {
     ActivityHeatmapExample()
         .preferredColorScheme(.dark)
 }
+
+#Preview("Logging today") {
+    ActivityHeatmapLoggingExample()
+}
+
+/// Changes the data in place, to show a changed day's pop (its fading ring under Reduce Motion): log or undo
+/// today, or add minutes to the three days before it at once.
+private struct ActivityHeatmapLoggingExample: View {
+    @State private var minutes = ActivityHeatmapSample.minutes(todayDone: false)
+    private let today = Calendar.current.startOfDay(for: Date())
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            ActivityHeatmap(minutes)
+            HStack {
+                Button(minutes[today] == nil ? "Log today" : "Undo today") {
+                    minutes[today] = minutes[today] == nil ? 30 : nil
+                }
+                Button("Add to past 3 days") {
+                    for back in 1...3 {
+                        guard let day = Calendar.current.date(byAdding: .day, value: -back, to: today) else { continue }
+                        minutes[day, default: 0] += 20
+                    }
+                }
+            }
+            .buttonStyle(.bordered)
+            .tint(HeatmapPalette.text)
+        }
+        .padding(20)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(HeatmapPalette.ground)
+    }
+}
+
+// MARK: - Piece motion
+//
+// The SwiftPieces motion language: shared spring tokens and gesture physics, with the same values in every
+// piece. Each piece carries a copy of only the parts it uses, so this file stands alone. Generated from
+// registry/foundation/PieceMotion.swift in the SwiftPieces repo; edit it there, not here.
+// swiftpieces-motion: 1.1.0 (core, follow)
+
+/// The SwiftPieces motion language: five spring tiers, and a named role for every moment a piece moves,
+/// each with its Reduce Motion substitute.
+///
+/// Build one from the environment, `PieceMotion(reduceMotion: reduceMotion)`, and pick the role that names
+/// what just happened. Never animate the tracking of a finger: set gesture state directly in `onChanged`, so the
+/// surface stays under the finger, and spring only the release.
+private struct PieceMotion {
+    var reduceMotion = false
+
+    // Tiers. Overshoot and settle times are measured from rest with SwiftUI's Spring.
+    /// No overshoot, 90% in about 90ms. A press arriving under the finger.
+    static var tight: Spring { Spring(duration: 0.14, bounce: 0) }
+    /// About 2.8% overshoot, 90% in about 140ms. Snapping to a detent, page or segment.
+    static var responsive: Spring { Spring(duration: 0.32, bounce: 0.25) }
+    /// About 8.4% overshoot. Visible give: a release, a return from past an edge, a drag settling home.
+    static var elastic: Spring { Spring(duration: 0.42, bounce: 0.38) }
+    /// About 15% overshoot. A resolved action landing. At most once per interaction.
+    static var expressive: Spring { Spring(duration: 0.48, bounce: 0.48) }
+    /// About 1.5% overshoot, unhurried. Opening large surfaces and ambient change.
+    static var calm: Spring { Spring(duration: 0.5, bounce: 0.2) }
+
+    /// Reduce Motion: settles become this short spring with no overshoot.
+    private static var still: Animation { .spring(duration: 0.25, bounce: 0) }
+
+    // Roles.
+    /// Touch-down. Starts on the same frame and never bounces under the finger.
+    var press: Animation { .spring(Self.tight) }
+    /// The finger lifts off a pressed surface, which springs back through rest.
+    var release: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A dragged thing comes to rest. With a gesture's velocity, use `settle(velocity:from:to:)` instead.
+    var settle: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// Lands on a detent, page or segment.
+    var snap: Animation { reduceMotion ? Self.still : .spring(Self.responsive) }
+    /// A number, a chart value or anything else people read moves to its new value. Never overshoots, so it
+    /// never shows a value that isn't true.
+    var value: Animation { reduceMotion ? Self.still : .spring(duration: 0.35, bounce: 0) }
+    /// Comes back from past a limit: a pull beyond the edge, a value pushed against its bound.
+    var rebound: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A shape or container changes size, corner radius or form, with a little give at the end.
+    var morph: Animation { reduceMotion ? Self.still : .spring(duration: 0.4, bounce: 0.2) }
+    /// Something appears, opens or expands. Opening is a little slower than closing.
+    var reveal: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.calm) }
+    /// Something leaves, closes or collapses. Quick and firm, out of the way.
+    var dismiss: Animation { reduceMotion ? .easeIn(duration: 0.18) : .spring(duration: 0.3, bounce: 0.08) }
+    /// A resolved action lands: a check, a sent state, a reaction.
+    var success: Animation { reduceMotion ? .easeOut(duration: 0.24) : .spring(Self.expressive) }
+    /// A refused action. Firm, no wobble; `pieceShake` adds the movement.
+    var error: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.responsive) }
+    /// Slow ambient change. Loops themselves stop under Reduce Motion: check `allowsAmbient`.
+    var ambient: Animation { reduceMotion ? .easeInOut(duration: 0.3) : .spring(Self.calm) }
+
+    /// Loops, drifts, idle breathing and parallax run only when this is true.
+    var allowsAmbient: Bool { !reduceMotion }
+
+    /// A moving transition, or a plain fade under Reduce Motion.
+    func transition(_ transition: AnyTransition) -> AnyTransition {
+        reduceMotion ? .opacity : transition
+    }
+
+    /// For content replaced inside a container that stays put (a label, a glyph, a count): the old content
+    /// blurs out as the new one sharpens in. A fade under Reduce Motion.
+    @MainActor var swap: AnyTransition {
+        reduceMotion ? .opacity : AnyTransition(.blurReplace)
+    }
+}
+
+extension PieceMotion {
+    /// Follow-through: rank 0 leads, each later rank arrives a beat later on a slightly looser spring. Safe to reverse.
+    func follow(_ spring: Spring = PieceMotion.elastic, rank: Int) -> Animation {
+        guard !reduceMotion else { return .spring(duration: 0.25, bounce: 0) }
+        let k = Double(min(max(rank, 0), 6))
+        return .spring(duration: spring.duration + 0.04 * k, bounce: min(spring.bounce + 0.02 * k, 0.55))
+    }
+
+    /// One-shot entrances only: item `index` waits 30ms per place, capped at the seventh. Exits go together.
+    func cascade(_ animation: Animation, index: Int, step: Double = 0.03) -> Animation {
+        guard !reduceMotion, index > 0 else { return animation }
+        return animation.delay(step * Double(min(index, 7)))
+    }
+}
+
+// swiftpieces-motion: end
+
+// MARK: - Piece liquid
+//
+// The SwiftPieces liquid glass language: glass shapes that merge through a neck, bubbles that bud out of
+// and melt back into each other, and the frosted fallback before iOS 26. Each piece carries a copy of only
+// the parts it uses, so this file stands alone. Generated from registry/foundation/PieceLiquid.swift in the
+// SwiftPieces repo; edit it there, not here. The rules are in LIQUID_GLASS.md.
+// swiftpieces-liquid: 1.7.0 (liquid, bud)
+
+/// The liquid glass language: one merge distance, two rest gaps, and the springs a bubble leaves and comes home on.
+///
+/// Glass shapes inside one `PieceLiquidGroup` melt into each other through a neck when they come within `merge`
+/// points. Parts of one control rest `joined`, inside that distance, so the neck holds; separate actions rest
+/// `apart`, outside it, so they only goo while one buds out of, or melts back into, another.
+private enum PieceLiquid {
+    /// Glass shapes closer than this share a neck.
+    static let merge: CGFloat = 20
+    /// The gap between parts of one control (a stepper's buttons, a progress pill and its stop): the neck holds,
+    /// short and smooth, about two thirds of the shapes' height at its waist. Joined parts read best at one height.
+    static let joined: CGFloat = 4
+    /// The gap between separate actions (menu items, confirm and cancel, chips): they rest as their own bubbles.
+    static let apart: CGFloat = 26
+    /// How far a bubble shrinks while it is home inside its parent.
+    static let homeScale: CGFloat = 0.72
+
+    /// A bubble leaving its parent: slow enough that the neck's stretch and snap read.
+    static func split(reduceMotion: Bool) -> Animation {
+        reduceMotion ? .easeOut(duration: 0.2) : .spring(duration: 0.62, bounce: 0.22)
+    }
+
+    /// A bubble going home. No bounce: a bounce would carry it out through the far side of its parent.
+    static func home(reduceMotion: Bool) -> Animation {
+        reduceMotion ? .easeIn(duration: 0.18) : .spring(duration: 0.5, bounce: 0)
+    }
+}
+
+/// A group of glass shapes that merge into one liquid surface. On iOS 26 it is a `GlassEffectContainer`; before
+/// that, and under Reduce Transparency, the shapes draw on their own and simply don't merge. `lift` adds the soft
+/// shadow liquid glass floats on in light mode.
+private struct PieceLiquidGroup<Content: View>: View {
+    var spacing: CGFloat = PieceLiquid.merge
+    var lift = true
+    @ViewBuilder var content: Content
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        container
+            .shadow(color: .black.opacity(lift && colorScheme == .light ? 0.07 : 0), radius: 18, y: 8)
+    }
+
+    @ViewBuilder private var container: some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26, *), !reduceTransparency {
+            GlassEffectContainer(spacing: spacing) { content }
+        } else {
+            content
+        }
+        #else
+        content
+        #endif
+    }
+}
+
+/// One liquid glass shape: Liquid Glass on iOS 26, carrying `tint` as a solid colour and swelling under a press when
+/// `interactive`; a frosted Material with a light rim and a soft shadow before that; a solid fill under Reduce
+/// Transparency.
+///
+/// The tint is painted inside clear glass rather than tinting the glass. Tinted glass in a group bleeds its colour
+/// through every neck as a smear, so a red button would glow into the white pill it is joined to; painted inside,
+/// the colour stays crisp to the shape's edge, the necks between shapes are clear glass, and a tint change animates
+/// like any colour (tinted glass snaps).
+private struct PieceLiquidSurface<S: Shape>: ViewModifier {
+    var shape: S
+    var tint: Color?
+    var interactive: Bool
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.pieceLiquidScale) private var scale
+
+    func body(content: Content) -> some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26, *), !reduceTransparency {
+            // Scaled as two parts, content and outline, about the same centre. A scaleEffect on a glass view inside a
+            // GlassEffectContainer shrinks the glass but leaves what it carries full size, pinned to its corner.
+            content
+                .background { shape.fill(tint ?? .clear) }
+                .scaleEffect(scale)
+                .glassEffect(glass, in: shape.scale(scale))
+        } else {
+            fallback(content).scaleEffect(scale)
+        }
+        #else
+        fallback(content).scaleEffect(scale)
+        #endif
+    }
+
+    #if compiler(>=6.2)
+    @available(iOS 26, *)
+    private var glass: Glass {
+        interactive ? Glass.regular.interactive() : .regular
+    }
+    #endif
+
+    private func fallback(_ content: Content) -> some View {
+        let dark = colorScheme == .dark
+        return content
+            .background {
+                if reduceTransparency {
+                    shape.fill(tint ?? (dark ? Color(white: 0.17) : Color(white: 0.97)))
+                } else {
+                    ZStack {
+                        shape.fill(.regularMaterial)
+                        if let tint { shape.fill(tint.opacity(0.88)) }
+                    }
+                }
+            }
+            .overlay { shape.stroke(Color.white.opacity(dark ? 0.14 : 0.7), lineWidth: 0.5) }
+            .shadow(color: .black.opacity(dark ? 0.32 : 0.08), radius: 10, y: 5)
+    }
+}
+
+private struct PieceLiquidScaleKey: EnvironmentKey {
+    static let defaultValue: CGFloat = 1
+}
+
+private extension EnvironmentValues {
+    /// How much the liquid shapes below are scaled, about their own centres. Nested scales multiply.
+    var pieceLiquidScale: CGFloat {
+        get { self[PieceLiquidScaleKey.self] }
+        set { self[PieceLiquidScaleKey.self] = newValue }
+    }
+}
+
+private extension View {
+    /// Draws this view on a liquid glass `shape`. Put it inside a `PieceLiquidGroup` so it can merge with its neighbours.
+    func pieceLiquid<S: Shape>(_ shape: S, tint: Color? = nil, interactive: Bool = true) -> some View {
+        modifier(PieceLiquidSurface(shape: shape, tint: tint, interactive: interactive))
+    }
+
+    /// Scales the liquid glass shapes in this view, content and outline together, about their own centres. Use it
+    /// instead of `scaleEffect` on a glass view (a press, a lift, a swell): inside a group a plain `scaleEffect` shrinks
+    /// the glass but leaves its content full size and off centre. Animates like any other value.
+    func pieceLiquidScale(_ scale: CGFloat) -> some View {
+        transformEnvironment(\.pieceLiquidScale) { $0 *= scale }
+    }
+}
+
+/// The bud: how a bubble leaves and rejoins its parent, driven explicitly so every bubble shows the whole cycle.
+///
+/// A bubble is born at `home`, inside its parent, where the two glass shapes are one. It springs out to `rest`, and
+/// while it is inside the merge distance a neck holds it to the parent, thinning as it goes, until it snaps free.
+/// Going home it springs back on a spring with no bounce, the neck reaches out and re-forms, and only once it has
+/// melted all the way in is it removed. Both offsets are relative to where the bubble is laid out. Under Reduce
+/// Motion it stays at `rest`: its content fades and its glass closes in place.
+private struct PieceBud: ViewModifier {
+    var out: Bool
+    var rest: CGSize
+    var home: CGSize
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func body(content: Content) -> some View {
+        if reduceMotion {
+            // No travel. Inside a group glass ignores opacity, so the glass closes to nothing in place on the short
+            // Reduce Motion ease while its content fades; the opacity covers a bubble outside a group.
+            content
+                .pieceLiquidScale(out ? 1 : 0.001)
+                .opacity(out ? 1 : 0)
+                .offset(rest)
+        } else {
+            // The glass shrinks through `pieceLiquidScale`, never a plain scaleEffect (see there), then moves.
+            content
+                .pieceLiquidScale(out ? 1 : PieceLiquid.homeScale)
+                .offset(out ? rest : home)
+        }
+    }
+}
+
+/// A bubble's own content, on its own clock: gone the moment the bubble heads home, so it never rides over the
+/// parent's content, and arriving just after the bubble leaves.
+private struct PieceBudContent: ViewModifier {
+    var out: Bool
+
+    func body(content: Content) -> some View {
+        content
+            .blur(radius: out ? 0 : 6)
+            .opacity(out ? 1 : 0)
+            .animation(out ? .easeOut(duration: 0.3).delay(0.1) : .easeOut(duration: 0.14), value: out)
+    }
+}
+
+private extension View {
+    /// Places a bubble at `rest` while `out`, and at `home` (inside its parent, shrunk) while not.
+    func pieceBud(out: Bool, rest: CGSize = .zero, home: CGSize) -> some View {
+        modifier(PieceBud(out: out, rest: rest, home: home))
+    }
+
+    /// Hides a bubble's icon or label while it is home. Put it on the content, inside the glass.
+    func pieceBudContent(out: Bool) -> some View {
+        modifier(PieceBudContent(out: out))
+    }
+}
+
+/// Which bubbles exist and which are out. A bubble is added home with no animation, sent out on the next frame,
+/// and called home before it is removed, so it always melts in rather than fading. Keep one in `@State`.
+@MainActor @Observable
+private final class PieceBuds {
+    private(set) var present: [String] = []
+    private(set) var out: Set<String> = []
+    /// The latest call for each bubble. A bloom or gather that has been overtaken (a bubble sent home while it was
+    /// still waiting to go out, or called out again while melting) leaves that bubble alone.
+    @ObservationIgnored private var turn: [String: Int] = [:]
+
+    func contains(_ id: String) -> Bool { present.contains(id) }
+    func isOut(_ id: String) -> Bool { out.contains(id) }
+
+    private func claim(_ ids: [String]) -> [String: Int] {
+        var mine: [String: Int] = [:]
+        for id in ids {
+            let next = (turn[id] ?? 0) + 1
+            turn[id] = next
+            mine[id] = next
+        }
+        return mine
+    }
+
+    /// Puts bubbles straight out at rest with no motion: a view's first frame, or a state restored.
+    func place(_ ids: [String]) {
+        _ = claim(ids)
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) {
+            for id in ids where !present.contains(id) { present.append(id) }
+            out.formUnion(ids)
+        }
+    }
+
+    /// Adds bubbles home, then sends each out, `stagger` seconds apart, after an optional `delay`.
+    func bloom(_ ids: [String], reduceMotion: Bool, stagger: Double = 0.05, delay: Double = 0) async {
+        let mine = claim(ids)
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) {
+            for id in ids where !present.contains(id) { present.append(id) }
+        }
+        try? await Task.sleep(for: .milliseconds(24 + Int(max(delay, 0) * 1000)))
+        let split = PieceLiquid.split(reduceMotion: reduceMotion)
+        for (i, id) in ids.enumerated() where turn[id] == mine[id] {
+            withAnimation(split.delay(reduceMotion ? 0 : Double(i) * stagger)) { _ = out.insert(id) }
+        }
+    }
+
+    /// Calls bubbles home, last first, then removes them once they have melted in.
+    func gather(_ ids: [String], reduceMotion: Bool, stagger: Double = 0.04) async {
+        let mine = claim(ids)
+        let home = PieceLiquid.home(reduceMotion: reduceMotion)
+        for (i, id) in ids.reversed().enumerated() {
+            withAnimation(home.delay(reduceMotion ? 0 : Double(i) * stagger)) { _ = out.remove(id) }
+        }
+        try? await Task.sleep(for: .milliseconds(Int((0.52 + Double(ids.count) * stagger) * 1000)))
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) { present.removeAll { ids.contains($0) && !out.contains($0) && turn[$0] == mine[$0] } }
+    }
+}
+
+// swiftpieces-liquid: end
 ```
 
 </Tab>

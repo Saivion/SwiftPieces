@@ -1,32 +1,33 @@
 ---
 title: "Picture Headline"
-description: "A headline with living pictures stuck between its words like a hand-placed collage. Each word rises into place and each picture opens from a dot into a tilted sticker with a white rim, landing with a spring, a light tick and a flash of crop marks, then keeps drifting. Press a sticker to lift it. Use the built-in house-palette scenes (the sun is our red mascot), your own images or SF Symbols; it wraps like text at any width and Dynamic Type size."
+description: "A semibold headline with living pictures stuck between its words like a hand-placed collage. Each word rises into place and each picture opens from a dot into a tilted sticker with a white rim, landing with a spring, a light tick and a flash of crop marks, then keeps drifting. Press a sticker to lift it. Use the built-in house-palette scenes (the sun is our red mascot), your own images or SF Symbols; it wraps like text at any width and Dynamic Type size."
 piece: "PictureHeadline"
 category: "text"
 minIOSVersion: "17.0"
-version: "1.0.1"
+version: "1.2.0"
 tags: ["text","headline","inline images","pictures","reveal","stagger","onboarding","hero","typography"]
 registryDependencies: []
 ---
 
 {/* GENERATED FILE. Edit registry/swift/text/PictureHeadline.swift or PictureHeadline.mdx instead. */}
 
-A headline with pictures stuck between its words like stickers, revealed in reading order. Write it as a list of segments: strings are words, pictures sit where you put them. ```swift PictureHeadline(["Slow", .art(.sun), "mornings, long", .art(.waves), "walks and early", .art(.moon), "nights."]) .font(.system(size: 40, weight: .bold)) ``` Pictures are sized from the font, so they follow Dynamic Type and every font you set. Each lands as a sticker: a white rim, a soft shadow and a small tilt that alternates along the headline, with crop marks flashing at its corners. Press and hold one to lift it. Text wraps word by word and a picture never breaks from the row it lands on.
+A headline with pictures stuck between its words like stickers, revealed in reading order. Write it as a list of segments: strings are words, pictures sit where you put them. ```swift PictureHeadline(["Slow", .art(.sun), "mornings, long", .art(.waves), "walks and early", .art(.moon), "nights."]) .font(.system(size: 40, weight: .semibold)) ``` Words are set in the house weight, semibold. Pictures are sized from the font, so they follow Dynamic Type and every font you set. Each lands as a sticker: a white rim, a soft shadow and a small tilt that alternates along the headline, with crop marks flashing at its corners. Press and hold one to lift it. Text wraps word by word and a picture never breaks from the row it lands on.
 
 ## Notes
 
 - Write the headline as a list: string literals are words and pictures go where you put them, for example `["Slow", .art(.sun), "mornings, long", .art(.waves), "walks."]`. A string can hold several words; each word rises on its own.
-- Pictures land as stickers: a white rim, a soft shadow and a small resting tilt that alternates along the headline (`Style.tilt`, 4 degrees at most), so a line reads as placed by hand. As each one lands, four hairline crop marks flash at its corners, the crosses SwiftPieces draws on its artboards. `Style.tilt = 0` lays them flat, `Style.rim = 0` drops the rim and `Style.cropMarks = false` skips the marks.
-- Press and hold a sticker to lift it: it straightens, scales up and casts a deeper shadow above its neighbours, with a light tick, then springs back to its tilt when you let go. The press uses `onLongPressGesture(onPressingChanged:)` with a small tolerance, so scrolling over the headline still scrolls. `Style.lifts = false` turns it off.
+- Pictures land as stickers: a white rim, a soft shadow and a small resting tilt that alternates along the headline (`Style.tilt`, 4 degrees at most), so a line reads as placed by hand. As each one lands, four hairline crop marks snap in at its corners, contracting onto them, and clear a moment later: the crosses SwiftPieces draws on its artboards. `Style.tilt = 0` lays them flat, `Style.rim = 0` drops the rim and `Style.cropMarks = false` skips the marks.
+- Press and hold a sticker to lift it: it peels up at once on a spring with no overshoot under the finger, straightening and scaling up with a deeper shadow above its neighbours. A light tick lands once the hold has lasted a moment, so a quick tap or a scroll that starts on a sticker stays silent. It stays up until you let go, then drops back to its tilt with a little give. The press uses `onLongPressGesture(onPressingChanged:)` with a small tolerance, so scrolling over the headline still scrolls. A hold claims the touch, so a headline inside a `Button` or a tappable card doesn't also trigger it; a quick tap still passes through. `Style.lifts = false` turns the lift off.
+- Words are set in the house weight, semibold, at the piece's root; size carries the hierarchy, as the example's `.font(.system(size: 40, weight: .semibold))` shows.
 - Pictures are sized from the font: `Style.pictureHeight` is a fraction of the line height (0.82 by default) and each picture's `width` is in picture heights (2.4 is a wide frame, 1 a square). Set the font with `.font(...)` as usual and the pictures follow it, Dynamic Type included.
 - Words and pictures wrap like text with a private `Layout`, so the headline breaks across rows at any width and a picture never splits from the row it lands on. `alignment` sets each row's alignment.
-- The reveal runs in reading order. Each word slides up from behind its own baseline and each picture opens from a dot as tall as the frame into the full sticker on a spring, turning from flat to its tilt as it lands, its contents settling from a slight zoom. The stagger is sized from the number of items, so a short and a long headline both land in about `duration` (1.2 seconds by default). `delay` holds the start; change `trigger` to replay.
+- The reveal runs in reading order. Each word slides up from behind its own baseline on a calm spring that never overshoots. Each picture appears as a dot as tall as the frame and widens into the full sticker on the opening spring (`Style.openDuration` and `Style.openBounce`), swelling a little past full width, picture and rim together, before it settles; its tilt lands a beat behind the frame as follow-through, and its contents settle from a slight zoom just after the frame lands. The stagger is sized from the number of items, so a short and a long headline both land in about `duration` (1.2 seconds by default). `delay` holds the start; change `trigger` to replay. The old headline fades out with the words it was showing, and the new one rises a beat behind it, so changing the segments and the trigger together (a pager, say) moves from one headline to the next without a cut.
 - Three kinds of picture: `.art(_:)` draws one of five built-in scenes in the house palette (`.sun` is the red SwiftPieces mascot, bobbing and blinking over the sand; `.waves`, `.moon`, `.hills` and `.bloom`), so a headline looks finished before you have artwork; `.image(_:)` fills the frame with your own `Image`; `.symbol(_:fill:ink:)` sets an SF Symbol on a solid block.
-- After landing, pictures keep moving: scenes drift (the sun bobs, the sea slides, stars twinkle), images pan slowly and symbols bob. Set `Style.drift = false` for still pictures. Drawing uses `Canvas` driven by a `TimelineView` at up to 30 frames a second.
+- After landing, pictures keep moving: each starts from a still rest pose as it lands and eases into its drift over about a second, each on its own clock. Scenes drift (the sun bobs and blinks, the sea slides, stars twinkle), images pan slowly and symbols bob. Set `Style.drift = false` for still pictures. Drawing uses `Canvas` driven by a `TimelineView` at up to 30 frames a second, paused until the picture lands.
 - `revealOnScroll` waits until the headline scrolls into view with `onScrollVisibilityChange` on iOS 18; on iOS 17 it reveals on appear.
-- Haptics: a light tick as each picture lands, in time with the spring, and another when you lift one. Pass `haptics: false` to stay silent.
+- Haptics: a light tick as each picture's frame lands, timed from the opening spring and on the beat of its crop marks, and another when a hold lifts one. Under Reduce Motion one tick marks the moment the headline has faded in. A headline fading out for a replay never ticks. Pass `haptics: false` to stay silent.
 - VoiceOver reads the headline as one header: the words in order, plus a picture's `label` where it sits, so `.art(.sun, label: "a sunrise")` is read and an unlabelled picture is skipped.
-- Reduce Motion drops the rise, the zoom, the tilt, the crop marks, the lift and the drift: words and pictures fade in together and pictures sit flat and still.
+- Reduce Motion keeps the feedback and drops the movement: words and pictures fade in together, and pictures sit flat and still on their rest pose (the sun with its eyes open), with no rise, zoom, tilt, crop marks or drift. A held sticker deepens its shadow and shifts its brightness slightly instead of lifting (darker in light mode, lighter in dark mode), one tick marks the landing, and a replay fades the old headline out just ahead of the new one fading in.
 - `Style` (`.standard` is the house look): `pictureHeight`, `cornerRadius` (a fraction of the picture height; 0.5 makes a capsule), `tilt`, `rim`, `rimColor`, `cropMarks`, `lifts`, `drift`, `openDuration` and `openBounce`.
 
 ## Usage
@@ -63,13 +64,13 @@ import SwiftUI
 ///
 /// ```swift
 /// PictureHeadline(["Slow", .art(.sun), "mornings, long", .art(.waves), "walks and early", .art(.moon), "nights."])
-///     .font(.system(size: 40, weight: .bold))
+///     .font(.system(size: 40, weight: .semibold))
 /// ```
 ///
-/// Pictures are sized from the font, so they follow Dynamic Type and every font you set. Each lands as a
-/// sticker: a white rim, a soft shadow and a small tilt that alternates along the headline, with crop
-/// marks flashing at its corners. Press and hold one to lift it. Text wraps word by word and a picture
-/// never breaks from the row it lands on.
+/// Words are set in the house weight, semibold. Pictures are sized from the font, so they follow Dynamic Type and every
+/// font you set. Each lands as a sticker: a white rim, a soft shadow and a small tilt that alternates along the
+/// headline, with crop marks flashing at its corners. Press and hold one to lift it. Text wraps word by word and a
+/// picture never breaks from the row it lands on.
 ///
 /// - Parameters:
 ///   - segments: Words (string literals) and pictures (`.art`, `.image`, `.symbol`), in reading order.
@@ -137,7 +138,7 @@ public struct PictureHeadline: View {
         public var drift: Bool
         /// Duration of the dot-to-frame spring, in seconds.
         public var openDuration: Double
-        /// Bounce of the opening spring.
+        /// Bounce of the opening spring: how far a sticker swells past its full width before it settles.
         public var openBounce: Double
         /// The largest resting tilt, in degrees. Pictures alternate around it like stickers placed by hand; 0 lays them flat.
         public var tilt: Double
@@ -177,7 +178,9 @@ public struct PictureHeadline: View {
         public static let standard = Style()
     }
 
-    @State private var epoch = 0
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    /// The trigger the headline is showing, shared with every copy of the reveal.
+    @State private var showing: Showing
 
     private let segments: [Segment]
     private let alignment: TextAlignment
@@ -206,15 +209,66 @@ public struct PictureHeadline: View {
         self.trigger = trigger
         self.haptics = haptics
         self.style = style
+        _showing = State(initialValue: Showing(trigger))
     }
 
     public var body: some View {
-        Reveal(items: items, alignment: alignment, duration: duration, delay: delay, revealOnScroll: revealOnScroll, haptics: haptics, style: style)
-            .id(epoch)
-            .accessibilityElement(children: .ignore)
-            .accessibilityLabel(spoken)
-            .accessibilityAddTraits(.isHeader)
-            .onChange(of: trigger) { _, _ in epoch += 1 }
+        // Each trigger value is its own copy of the reveal, so a replay swaps copies in the same update that brings
+        // any new segments: the outgoing copy keeps the words it was showing while it fades.
+        let run = Run(trigger: trigger, showing: showing)
+        // True only in the update that starts a replay, before `onChange` records the new trigger. The new copy then
+        // rises a beat behind the old one's fade, so the old words are nearly gone before the new ones surface.
+        let replay = showing.trigger != trigger
+        // A ZStack, so a replay's outgoing and incoming headlines share one place instead of stacking. The outgoing
+        // copy no longer takes part in layout, so the headline is sized by the incoming one from the first frame.
+        ZStack {
+            Reveal(items: items, alignment: alignment, duration: duration, delay: delay + (replay ? 0.15 : 0), revealOnScroll: revealOnScroll, haptics: haptics, style: style, run: run)
+                .id(trigger)
+                .transition(Outgoing())
+        }
+        .animation(PieceMotion(reduceMotion: reduceMotion).dismiss, value: trigger)
+        .fontWeight(.semibold)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(spoken)
+        .accessibilityAddTraits(.isHeader)
+        .onChange(of: trigger) { _, now in showing.trigger = now }
+    }
+
+    /// A replay's outgoing headline fades out and stops taking touches, so a press lands on the new one.
+    private struct Outgoing: Transition {
+        func body(content: Content, phase: TransitionPhase) -> some View {
+            let leaving = phase == .didDisappear
+            content
+                .opacity(leaving ? 0 : 1)
+                .allowsHitTesting(!leaving)
+        }
+    }
+
+    /// The trigger the headline is showing now. A reference, because a replay's outgoing copy stops receiving inputs
+    /// once it is removed, yet still has to see that it was replaced.
+    @MainActor private final class Showing {
+        var trigger: AnyHashable
+        init(_ trigger: AnyHashable) { self.trigger = trigger }
+    }
+
+    /// One copy of the reveal: the trigger it runs for. Before a landing tick, crop marks, drift or a lift tick it
+    /// checks `retired`, so a replay's outgoing copy goes quiet as it fades.
+    private struct Run {
+        let trigger: AnyHashable
+        let showing: Showing
+        @MainActor var retired: Bool { showing.trigger != trigger }
+    }
+
+    /// How long after its start a picture lands: when its frame first reaches about its full width on the opening
+    /// spring (0.35 s for the standard style), or as the fade ends under Reduce Motion. The tick, the crop marks and
+    /// the drift all start on this beat.
+    private static func landing(_ style: Style, reduceMotion: Bool) -> Double {
+        // `PieceMotion.reveal` under Reduce Motion is a 0.2 s fade.
+        guard !reduceMotion else { return 0.2 }
+        let spring = Spring(duration: max(0.05, style.openDuration), bounce: style.openBounce)
+        var t = 0.0
+        while t < 3, spring.value(target: 1.0, time: t) < 0.97 { t += 1.0 / 120 }
+        return t
     }
 
     /// The headline as one string for VoiceOver: the words, plus any picture labels where they sit.
@@ -252,9 +306,11 @@ public struct PictureHeadline: View {
 
         let id: Int
         let kind: Kind
+
+        var isPicture: Bool { if case .picture = kind { true } else { false } }
     }
 
-    /// Recreated (via `.id`) on every replay so its `revealed` state starts fresh.
+    /// Recreated (via `.id(trigger)`) on every replay so its `revealed` state starts fresh.
     private struct Reveal: View {
         @Environment(\.accessibilityReduceMotion) private var reduceMotion
         @State private var revealed = false
@@ -267,6 +323,7 @@ public struct PictureHeadline: View {
         let revealOnScroll: Bool
         let haptics: Bool
         let style: Style
+        let run: Run
 
         /// Each item takes ~0.6 s to land; the rest of `duration` is spread across the stagger.
         private var stagger: Double {
@@ -279,7 +336,7 @@ public struct PictureHeadline: View {
         /// Each picture's resting tilt: alternating sides and sizes, so a row reads as placed by hand.
         private func tilt(_ item: Item) -> Double {
             let pattern: [Double] = [-1, 0.75, -0.55, 1, -0.8, 0.6]
-            let ordinal = items.prefix(item.id).filter { if case .picture = $0.kind { true } else { false } }.count
+            let ordinal = items.prefix(item.id).filter(\.isPicture).count
             return style.tilt * pattern[ordinal % pattern.count]
         }
 
@@ -293,16 +350,23 @@ public struct PictureHeadline: View {
                     flow.onAppear { revealed = true }
                 }
             }
-            .sensoryFeedback(.impact(weight: .light, intensity: 0.7), trigger: ticks)
+            .sensoryFeedback(.impact(weight: SensoryFeedback.Weight.light, intensity: 0.7), trigger: ticks)
             .task(id: revealed) {
-                // One tick per picture, as it opens.
-                guard revealed, haptics, !reduceMotion else { return }
+                guard revealed, haptics else { return }
+                let landing = PictureHeadline.landing(style, reduceMotion: reduceMotion)
+                if reduceMotion {
+                    // Everything fades in together, so one tick marks the landing.
+                    guard items.contains(where: \.isPicture) else { return }
+                    try? await Task.sleep(for: .seconds(delay + landing))
+                    if !Task.isCancelled, !run.retired { ticks += 1 }
+                    return
+                }
+                // One tick per picture as its frame lands, on the beat of its crop marks.
                 var elapsed = 0.0
-                for item in items {
-                    guard case .picture = item.kind else { continue }
-                    let at = start(item) + 0.12
+                for item in items where item.isPicture {
+                    let at = start(item) + landing
                     try? await Task.sleep(for: .seconds(max(0, at - elapsed)))
-                    if Task.isCancelled { return }
+                    if Task.isCancelled || run.retired { return }
                     elapsed = at
                     ticks += 1
                 }
@@ -316,7 +380,7 @@ public struct PictureHeadline: View {
                     case .word(let word):
                         WordView(word: word, revealed: revealed, reduceMotion: reduceMotion, delay: start(item))
                     case .picture(let picture, let width):
-                        PictureSticker(picture: picture, width: width, open: revealed, reduceMotion: reduceMotion, delay: start(item), tilt: tilt(item), haptics: haptics, style: style)
+                        PictureSticker(picture: picture, width: width, open: revealed, reduceMotion: reduceMotion, delay: start(item), tilt: tilt(item), haptics: haptics, style: style, run: run)
                     }
                 }
             }
@@ -332,14 +396,18 @@ public struct PictureHeadline: View {
 
         var body: some View {
             let hidden = !revealed
-            let motion = !reduceMotion
+            let rises = !reduceMotion
+            // Words are read: they rise at the calm reveal's pace without its give, so a word never bobs past its
+            // baseline. A literal on purpose, tied to calm's duration: `value` has no give but is quicker. A fade
+            // under Reduce Motion.
+            let rise: Animation = rises ? .spring(duration: PieceMotion.calm.duration, bounce: 0) : PieceMotion(reduceMotion: reduceMotion).reveal
             Text(word)
-                .opacity(hidden && !motion ? 0 : 1)
+                .opacity(hidden && !rises ? 0 : 1)
                 .visualEffect { content, proxy in
-                    content.offset(y: hidden && motion ? proxy.size.height * 1.05 : 0)
+                    content.offset(y: hidden && rises ? proxy.size.height * 1.05 : 0)
                 }
-                .animation(reduceMotion ? .easeOut(duration: 0.35).delay(delay) : .spring(duration: 0.62, bounce: 0).delay(delay), value: revealed)
-                // Clips the rise at the word's own bottom edge; the top stays open for the spring.
+                .animation(rise.delay(delay), value: revealed)
+                // Clips the rise at the word's own bottom edge and leaves the top open, so accents are never cut.
                 .mask(Rectangle().padding(.horizontal, -40).padding(.top, -400))
         }
     }
@@ -354,25 +422,34 @@ public struct PictureHeadline: View {
         let tilt: Double
         let haptics: Bool
         let style: Style
+        let run: Run
 
         @State private var pressed = false
+        /// Holds that lasted long enough to count as a lift, one tick each.
+        @State private var holds = 0
 
         var body: some View {
             PictureSlot(width: width, height: style.pictureHeight) {
                 Text(verbatim: "Hg").hidden()
-                PictureFrame(picture: picture, open: open, pressed: pressed, reduceMotion: reduceMotion, delay: delay, tilt: tilt, style: style)
+                PictureFrame(picture: picture, open: open, pressed: pressed, reduceMotion: reduceMotion, delay: delay, tilt: tilt, style: style, run: run)
             }
             .zIndex(pressed ? 1 : 0)
-            .onLongPressGesture(minimumDuration: 0.12, maximumDistance: 14, perform: {}, onPressingChanged: { down in
-                guard style.lifts, open else { return }
-                pressed = down
+            // Pressing is reported from touch-down until the finger lifts, so the sticker peels up at once and stays up
+            // while held. Once the hold passes, the press completes and claims the touch, so a Button or tap gesture
+            // around the headline doesn't also fire. Moving past the tolerance first ends it, so scrolling over the
+            // headline still scrolls. Every report writes `pressed`, so it always resets.
+            .onLongPressGesture(minimumDuration: 0.12, maximumDistance: 14, perform: {
+                // The tick lands as the hold passes, so a quick tap or a scroll that starts on a sticker stays silent.
+                if haptics, style.lifts, open, !run.retired { holds += 1 }
+            }, onPressingChanged: { down in
+                pressed = down && style.lifts && open
             })
-            .sensoryFeedback(.impact(weight: .light, intensity: 0.8), trigger: pressed) { _, now in now && haptics }
+            .sensoryFeedback(.impact(weight: SensoryFeedback.Weight.light, intensity: 0.8), trigger: holds)
         }
     }
 
     /// A picture as a sticker: a dot that opens into a rounded frame with a white rim and a soft shadow,
-    /// landing at its tilt on a spring, its contents settling from a slight zoom, with crop marks flashing
+    /// landing at its tilt on a spring, its contents settling from a slight zoom, with crop marks snapping in
     /// at its corners. Pressed, it straightens and lifts forward.
     private struct PictureFrame: View {
         let picture: Picture
@@ -382,10 +459,23 @@ public struct PictureHeadline: View {
         let delay: Double
         let tilt: Double
         let style: Style
+        let run: Run
 
+        @Environment(\.colorScheme) private var colorScheme
         @State private var marksShown = false
+        /// When the picture landed. Its drift starts here, from the rest pose; until then it holds still.
+        @State private var landedAt: Date?
 
         var body: some View {
+            let motion = PieceMotion(reduceMotion: reduceMotion)
+            // The frame leads on the piece's own spring (`openDuration`, `openBounce`). The dot is there at once, the
+            // tilt lands a beat behind the frame and a touch looser, and the picture settles from its zoom just after the
+            // frame lands, with no overshoot so its edges never pull in from the rim. Under Reduce Motion only the fade runs.
+            let opening = Spring(duration: style.openDuration, bounce: style.openBounce)
+            let frameIn = (reduceMotion ? motion.reveal : .spring(opening)).delay(delay)
+            let fadeIn = (reduceMotion ? motion.reveal : .spring(PieceMotion.tight)).delay(delay)
+            let tiltIn = motion.follow(opening, rank: 1).delay(delay + 0.06)
+            let settleIn = motion.follow(Spring(duration: style.openDuration, bounce: 0), rank: 2).delay(delay)
             GeometryReader { proxy in
                 let size = proxy.size
                 let radius = size.height * min(0.5, max(0, style.cornerRadius))
@@ -394,76 +484,122 @@ public struct PictureHeadline: View {
                 let lift = pressed && !reduceMotion
                 content(size)
                     .frame(width: size.width, height: size.height)
-                    .scaleEffect(shown && open ? 1 : (reduceMotion ? 1 : 1.3))
-                    .clipShape(RoundedRectangle(cornerRadius: radius, style: .continuous))
-                    .overlay {
-                        if rim > 0 {
-                            RoundedRectangle(cornerRadius: radius, style: .continuous).strokeBorder(style.rimColor, lineWidth: rim)
-                        }
-                    }
-                    .mask {
-                        // The opening: a dot as tall as the frame widens to the full frame.
-                        RoundedRectangle(cornerRadius: shown ? radius : size.height / 2, style: .continuous)
-                            .frame(width: shown ? size.width : size.height, height: size.height)
-                            .frame(maxWidth: .infinity)
-                    }
-                    .shadow(color: .black.opacity(lift ? 0.26 : 0.14), radius: size.height * (lift ? 0.24 : 0.1), y: size.height * (lift ? 0.16 : 0.06))
-                    // An overlay, so the marks reach past the frame without changing its layout.
+                    .scaleEffect(shown ? 1 : 1.3)
+                    .animation(settleIn, value: open)
+                    // Under Reduce Motion a held sticker shifts its brightness instead of lifting: darker in light mode,
+                    // lighter in dark mode, so it stands off a dark page rather than sinking into it.
+                    .brightness(pressed && reduceMotion ? (colorScheme == .dark ? 0.1 : -0.08) : 0)
+                    // The opening: a dot as tall as the frame widens to the full frame. The drawn frame and its rim widen
+                    // themselves, so the opening spring's give shows as the sticker swelling past full width and settling.
+                    .modifier(Opening(width: shown ? size.width : size.height, radius: shown ? radius : size.height / 2, size: size, rim: rim, rimColor: style.rimColor))
+                    .animation(frameIn, value: open)
+                    // Held, it lifts off the page: a deeper, softer shadow. It doesn't move, so it stays under Reduce Motion.
+                    .shadow(color: .black.opacity(pressed ? 0.26 : 0.14), radius: size.height * (pressed ? 0.24 : 0.1), y: size.height * (pressed ? 0.16 : 0.06))
+                    // An overlay, so the marks reach past the frame without changing its layout. They contract onto the
+                    // corners as they appear.
                     .overlay {
                         if style.cropMarks {
-                            CropMarks(size: size).opacity(marksShown ? 1 : 0)
+                            CropMarks(size: size)
+                                .scaleEffect(marksShown ? 1 : 1.08)
+                                .opacity(marksShown ? 1 : 0)
                         }
                     }
-                .opacity(open ? 1 : 0)
-                .rotationEffect(.degrees(shown && !lift && !reduceMotion ? tilt : 0))
-                .scaleEffect(lift ? 1.18 : 1)
-                .animation(animation, value: open)
-                .animation(.spring(duration: 0.38, bounce: 0.32), value: pressed)
+                    .opacity(open ? 1 : 0)
+                    .animation(fadeIn, value: open)
+                    .rotationEffect(.degrees(shown && !lift && !reduceMotion ? tilt : 0))
+                    .animation(tiltIn, value: open)
+                    // Peels up on the press spring, with no overshoot under the finger, and drops back to its tilt with
+                    // a little give.
+                    .scaleEffect(lift ? 1.18 : 1)
+                    .animation(pressed ? motion.press : motion.release, value: pressed)
             }
             .task(id: open) {
-                // The marks flash as the sticker lands, then clear.
-                guard open, style.cropMarks, !reduceMotion else { return }
-                try? await Task.sleep(for: .seconds(delay + 0.18))
-                if Task.isCancelled { return }
-                withAnimation(.easeOut(duration: 0.18)) { marksShown = true }
+                // The landing beat, in time with the parent's tick: drift begins and the marks snap in, hold, then clear.
+                // Under Reduce Motion the fade is the landing; nothing drifts and the marks stay off.
+                guard open else { return }
+                try? await Task.sleep(for: .seconds(delay + PictureHeadline.landing(style, reduceMotion: reduceMotion)))
+                // A replay's outgoing copy never lands: no marks, no drift.
+                if Task.isCancelled || run.retired { return }
+                landedAt = .now
+                guard style.cropMarks, !reduceMotion else { return }
+                let motion = PieceMotion(reduceMotion: reduceMotion)
+                withAnimation(motion.snap) { marksShown = true }
                 try? await Task.sleep(for: .seconds(0.55))
-                withAnimation(.easeIn(duration: 0.4)) { marksShown = false }
+                withAnimation(motion.dismiss) { marksShown = false }
             }
-        }
-
-        private var animation: Animation {
-            reduceMotion ? .easeOut(duration: 0.35).delay(delay) : .spring(duration: style.openDuration, bounce: style.openBounce).delay(delay)
+            .onChange(of: reduceMotion) {
+                // Turning Reduce Motion off starts the drift again from its rest pose, rather than mid-swing.
+                if landedAt != nil { landedAt = .now }
+            }
         }
 
         @ViewBuilder private func content(_ size: CGSize) -> some View {
-            let moving = style.drift && !reduceMotion
+            // Drift waits for the landing and stops under Reduce Motion, resting on time 0, each scene's designed pose.
+            let drifts = style.drift && PieceMotion(reduceMotion: reduceMotion).allowsAmbient
+            let start = drifts ? landedAt : nil
             switch picture {
             case .art(let scene):
-                TimelineView(.animation(minimumInterval: 1.0 / 30, paused: !moving)) { context in
-                    SceneArt(scene: scene, time: moving ? context.date.timeIntervalSinceReferenceDate : 0)
+                TimelineView(.animation(minimumInterval: 1.0 / 30, paused: start == nil)) { context in
+                    SceneArt(scene: scene, time: Self.driftTime(since: start, at: context.date))
                 }
             case .image(let image):
-                TimelineView(.animation(minimumInterval: 1.0 / 30, paused: !moving)) { context in
-                    let t = moving ? context.date.timeIntervalSinceReferenceDate : 0
+                TimelineView(.animation(minimumInterval: 1.0 / 30, paused: start == nil)) { context in
+                    let t = Self.driftTime(since: start, at: context.date)
                     image
                         .resizable()
                         .scaledToFill()
                         .frame(width: size.width, height: size.height)
-                        .scaleEffect(moving ? 1.1 : 1)
-                        .offset(x: moving ? sin(t * 0.35) * size.width * 0.03 : 0, y: moving ? cos(t * 0.27) * size.height * 0.03 : 0)
+                        // Zoomed whenever it can drift, so the pan never shows an edge. The pan starts centred.
+                        .scaleEffect(drifts ? 1.1 : 1)
+                        .offset(x: sin(t * 0.35) * size.width * 0.03, y: sin(t * 0.27) * size.height * 0.03)
                 }
             case .symbol(let name, let fill, let ink):
-                TimelineView(.animation(minimumInterval: 1.0 / 30, paused: !moving)) { context in
-                    let t = moving ? context.date.timeIntervalSinceReferenceDate : 0
+                TimelineView(.animation(minimumInterval: 1.0 / 30, paused: start == nil)) { context in
+                    let t = Self.driftTime(since: start, at: context.date)
                     ZStack {
                         fill
                         Image(systemName: name)
                             .font(.system(size: size.height * 0.5, weight: .semibold))
                             .foregroundStyle(ink)
-                            .offset(y: moving ? sin(t * 1.4) * size.height * 0.04 : 0)
+                            .offset(y: sin(t * 1.4) * size.height * 0.04)
                     }
                 }
             }
+        }
+
+        /// The sticker's frame and rim at `width`, centred in the slot. Past full width the picture swells with the
+        /// frame, so its edges never pull in from the rim; the slot's layout never moves.
+        private struct Opening: ViewModifier, Animatable {
+            var width: CGFloat
+            var radius: CGFloat
+            let size: CGSize
+            let rim: CGFloat
+            let rimColor: Color
+
+            nonisolated var animatableData: AnimatablePair<CGFloat, CGFloat> {
+                get { AnimatablePair(width, radius) }
+                set { width = newValue.first; radius = newValue.second }
+            }
+
+            func body(content: Content) -> some View {
+                let shape = RoundedRectangle(cornerRadius: max(0, radius), style: .continuous)
+                content
+                    .scaleEffect(max(1, width / max(size.width, 1)))
+                    .frame(width: max(0, width), height: size.height)
+                    .clipShape(shape)
+                    .overlay {
+                        if rim > 0 { shape.strokeBorder(rimColor, lineWidth: rim) }
+                    }
+                    .frame(width: size.width, height: size.height)
+            }
+        }
+
+        /// Seconds of drift since landing, eased in over the first 0.8 s so a scene leaves its rest pose gently
+        /// instead of starting mid-swing. 0, the rest pose, until it lands.
+        private static func driftTime(since start: Date?, at date: Date) -> Double {
+            guard let start else { return 0 }
+            let t = max(0, date.timeIntervalSince(start)), ramp = 0.8
+            return t < ramp ? t * t / (2 * ramp) : t - ramp / 2
         }
     }
 }
@@ -523,7 +659,8 @@ private struct SceneArt: View {
         let r = s.height * 0.3
         let center = CGPoint(x: s.width * 0.6, y: s.height * 0.5 + sin(time * 0.7) * s.height * 0.05)
         c.fill(Path(ellipseIn: CGRect(x: center.x - r, y: center.y - r, width: r * 2, height: r * 2)), with: .color(Art.red))
-        let blink = time.truncatingRemainder(dividingBy: 3.6) < 0.14 ? 0.2 : 1.0
+        // The blink closes each 3.6 s cycle, so the rest pose at time 0 has its eyes open.
+        let blink = time.truncatingRemainder(dividingBy: 3.6) > 3.46 ? 0.2 : 1.0
         for side in [-1.0, 1.0] {
             let eye = CGPoint(x: center.x + side * r * 0.34, y: center.y - r * 0.12)
             let w = r * 0.13, h = r * 0.2 * blink
@@ -721,7 +858,7 @@ private struct PictureHeadlineExample: View {
             alignment: .center,
             trigger: replay
         )
-        .font(.system(size: 40, weight: .bold))
+        .font(.system(size: 40, weight: .semibold))
         .tracking(-1.2)
         .foregroundStyle(PictureHeadlinePalette.text)
         .frame(maxWidth: 360)
@@ -758,6 +895,96 @@ private enum PictureHeadlinePalette {
     PictureHeadlineExample()
         .preferredColorScheme(.dark)
 }
+
+// MARK: - Piece motion
+//
+// The SwiftPieces motion language: shared spring tokens and gesture physics, with the same values in every
+// piece. Each piece carries a copy of only the parts it uses, so this file stands alone. Generated from
+// registry/foundation/PieceMotion.swift in the SwiftPieces repo; edit it there, not here.
+// swiftpieces-motion: 1.1.0 (core, follow)
+
+/// The SwiftPieces motion language: five spring tiers, and a named role for every moment a piece moves,
+/// each with its Reduce Motion substitute.
+///
+/// Build one from the environment, `PieceMotion(reduceMotion: reduceMotion)`, and pick the role that names
+/// what just happened. Never animate the tracking of a finger: set gesture state directly in `onChanged`, so the
+/// surface stays under the finger, and spring only the release.
+private struct PieceMotion {
+    var reduceMotion = false
+
+    // Tiers. Overshoot and settle times are measured from rest with SwiftUI's Spring.
+    /// No overshoot, 90% in about 90ms. A press arriving under the finger.
+    static var tight: Spring { Spring(duration: 0.14, bounce: 0) }
+    /// About 2.8% overshoot, 90% in about 140ms. Snapping to a detent, page or segment.
+    static var responsive: Spring { Spring(duration: 0.32, bounce: 0.25) }
+    /// About 8.4% overshoot. Visible give: a release, a return from past an edge, a drag settling home.
+    static var elastic: Spring { Spring(duration: 0.42, bounce: 0.38) }
+    /// About 15% overshoot. A resolved action landing. At most once per interaction.
+    static var expressive: Spring { Spring(duration: 0.48, bounce: 0.48) }
+    /// About 1.5% overshoot, unhurried. Opening large surfaces and ambient change.
+    static var calm: Spring { Spring(duration: 0.5, bounce: 0.2) }
+
+    /// Reduce Motion: settles become this short spring with no overshoot.
+    private static var still: Animation { .spring(duration: 0.25, bounce: 0) }
+
+    // Roles.
+    /// Touch-down. Starts on the same frame and never bounces under the finger.
+    var press: Animation { .spring(Self.tight) }
+    /// The finger lifts off a pressed surface, which springs back through rest.
+    var release: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A dragged thing comes to rest. With a gesture's velocity, use `settle(velocity:from:to:)` instead.
+    var settle: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// Lands on a detent, page or segment.
+    var snap: Animation { reduceMotion ? Self.still : .spring(Self.responsive) }
+    /// A number, a chart value or anything else people read moves to its new value. Never overshoots, so it
+    /// never shows a value that isn't true.
+    var value: Animation { reduceMotion ? Self.still : .spring(duration: 0.35, bounce: 0) }
+    /// Comes back from past a limit: a pull beyond the edge, a value pushed against its bound.
+    var rebound: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A shape or container changes size, corner radius or form, with a little give at the end.
+    var morph: Animation { reduceMotion ? Self.still : .spring(duration: 0.4, bounce: 0.2) }
+    /// Something appears, opens or expands. Opening is a little slower than closing.
+    var reveal: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.calm) }
+    /// Something leaves, closes or collapses. Quick and firm, out of the way.
+    var dismiss: Animation { reduceMotion ? .easeIn(duration: 0.18) : .spring(duration: 0.3, bounce: 0.08) }
+    /// A resolved action lands: a check, a sent state, a reaction.
+    var success: Animation { reduceMotion ? .easeOut(duration: 0.24) : .spring(Self.expressive) }
+    /// A refused action. Firm, no wobble; `pieceShake` adds the movement.
+    var error: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.responsive) }
+    /// Slow ambient change. Loops themselves stop under Reduce Motion: check `allowsAmbient`.
+    var ambient: Animation { reduceMotion ? .easeInOut(duration: 0.3) : .spring(Self.calm) }
+
+    /// Loops, drifts, idle breathing and parallax run only when this is true.
+    var allowsAmbient: Bool { !reduceMotion }
+
+    /// A moving transition, or a plain fade under Reduce Motion.
+    func transition(_ transition: AnyTransition) -> AnyTransition {
+        reduceMotion ? .opacity : transition
+    }
+
+    /// For content replaced inside a container that stays put (a label, a glyph, a count): the old content
+    /// blurs out as the new one sharpens in. A fade under Reduce Motion.
+    @MainActor var swap: AnyTransition {
+        reduceMotion ? .opacity : AnyTransition(.blurReplace)
+    }
+}
+
+extension PieceMotion {
+    /// Follow-through: rank 0 leads, each later rank arrives a beat later on a slightly looser spring. Safe to reverse.
+    func follow(_ spring: Spring = PieceMotion.elastic, rank: Int) -> Animation {
+        guard !reduceMotion else { return .spring(duration: 0.25, bounce: 0) }
+        let k = Double(min(max(rank, 0), 6))
+        return .spring(duration: spring.duration + 0.04 * k, bounce: min(spring.bounce + 0.02 * k, 0.55))
+    }
+
+    /// One-shot entrances only: item `index` waits 30ms per place, capped at the seventh. Exits go together.
+    func cascade(_ animation: Animation, index: Int, step: Double = 0.03) -> Animation {
+        guard !reduceMotion, index > 0 else { return animation }
+        return animation.delay(step * Double(min(index, 7)))
+    }
+}
+
+// swiftpieces-motion: end
 ```
 
 </Tab>

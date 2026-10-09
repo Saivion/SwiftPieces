@@ -120,7 +120,7 @@ export const hubs: Hub[] = [
       { q: "How do I show a loading state in a SwiftUI button?", a: "Model the action as a phase (idle, loading, success, error), disable the button while loading, and swap the label for a ProgressView. Commit Button does this with one animated shape and returns to idle on its own." },
       { q: "How do I add haptics to a SwiftUI button?", a: "On iOS 17 and later use .sensoryFeedback(.impact, trigger: value) on the button, where the trigger changes on tap. Every control here already fires the right feedback at the right moment." },
     ],
-    guides: [["SwiftUI buttons guide", "/docs/guides/swiftui-buttons"], ["SwiftUI haptics guide", "/docs/guides/swiftui-haptics"]],
+    guides: [["SwiftUI motion guide", "/docs/guides/swiftui-motion"], ["SwiftUI buttons guide", "/docs/guides/swiftui-buttons"], ["SwiftUI haptics guide", "/docs/guides/swiftui-haptics"]],
     related: ["haptics", "inputs", "feedback"],
   },
   {
@@ -161,7 +161,7 @@ export const hubs: Hub[] = [
       { q: "How do I make a swipeable card stack in SwiftUI?", a: "Stack the cards in a ZStack, attach a DragGesture to the top one, rotate it from a bottom anchor as it moves, and decide the throw from predictedEndTranslation so a flick counts. Swipe Deck does this over any Identifiable array and adds VoiceOver swipe actions." },
       { q: "How do I flip a card in SwiftUI?", a: "Rotate the container with rotation3DEffect around the y axis and swap which face is visible at 90 degrees, rotating the back face 180 degrees so its content is not mirrored. Flip Card also lets a drag scrub the rotation." },
     ],
-    guides: [["SwiftUI cards guide", "/docs/guides/swiftui-cards"], ["SwiftUI animations guide", "/docs/guides/swiftui-animations"]],
+    guides: [["SwiftUI motion guide", "/docs/guides/swiftui-motion"], ["SwiftUI cards guide", "/docs/guides/swiftui-cards"], ["SwiftUI animations guide", "/docs/guides/swiftui-animations"]],
     related: ["lists", "animations", "media"],
   },
   {
@@ -257,7 +257,7 @@ export const hubs: Hub[] = [
     faqs: [
       { q: "How do I add drag to dismiss in SwiftUI?", a: "Track a DragGesture's translation, scale and fade the view with progress, and on release dismiss if the distance or predictedEndTranslation passes a threshold, otherwise spring back. Drag to Dismiss wraps this in one modifier." },
     ],
-    guides: [["SwiftUI animations guide", "/docs/guides/swiftui-animations"]],
+    guides: [["SwiftUI motion guide", "/docs/guides/swiftui-motion"], ["SwiftUI animations guide", "/docs/guides/swiftui-animations"]],
     related: ["animations", "media", "cards"],
   },
   {
@@ -287,11 +287,11 @@ export const hubs: Hub[] = [
     name: "AI",
     title: "SwiftUI AI Chat Components",
     h1: "SwiftUI AI chat components",
-    intro: "The surfaces an AI feature needs: a streaming reply, a thinking state, prompt suggestion chips, a code block and Siri-style orbs drawn in Metal.",
-    description: "Free SwiftUI AI chat components for iOS: streaming text reply, thinking indicator, prompt suggestion chips, code block with syntax colors and Metal shader orbs.",
+    intro: "The surfaces an AI feature needs: a streaming reply, a thinking state, prompt suggestion chips, the sources behind an answer and Siri-style orbs drawn in Metal.",
+    description: "Free SwiftUI AI chat components for iOS: streaming text reply, thinking indicator, prompt suggestion chips, answer sources and citations, and Metal shader orbs.",
     about: [
       "Streaming Reply is the reply surface: text arrives token by token with a per-word fade and a cursor, inline code sits on blocks, and a long press lifts the message to copy or regenerate. Thinking State is the working placeholder, laid out like the reply it becomes, with an elapsed-seconds label. Prompt Chips is a snapping row of suggestions where the chosen chip morphs into the composer.",
-      "Code Block renders code for chat replies with Swift syntax colors, collapse and expand, a wrap toggle and a copy pill, plus a streaming mode. Assistant Orb and Thought Orb are dark glass balls with a Siri-style voice wave inside, drawn by a Metal shader, whose palettes crossfade with the kind of work in progress.",
+      "Source Stack folds an answer's citations into one pill of site badges that opens into numbered source cards, the badges flying out of the stack into their cards. Assistant Orb and Thought Orb are dark glass balls with a Siri-style voice wave inside, drawn by a Metal shader, whose palettes crossfade with the kind of work in progress.",
     ],
     faqs: [
       { q: "How do I stream text in SwiftUI like ChatGPT?", a: "Append tokens to a string in @State as they arrive from an AsyncSequence, and animate each new word in. Streaming Reply does this with a per-word fade and a block cursor, and exposes copy and regenerate." },
@@ -337,7 +337,7 @@ export const hubs: Hub[] = [
       { q: "What is the best animation to use in SwiftUI?", a: "Springs, in most cases. .spring(duration:bounce:) (iOS 17) is easy to tune, continues smoothly from a gesture's velocity and never ends abruptly. Use easing curves for fades and progress that should not overshoot." },
       { q: "Do these animations respect Reduce Motion?", a: "Yes. Each piece reads accessibilityReduceMotion and swaps large movement for fades or no motion, as described on its page." },
     ],
-    guides: [["SwiftUI animations guide", "/docs/guides/swiftui-animations"], ["SwiftUI cards guide", "/docs/guides/swiftui-cards"]],
+    guides: [["SwiftUI motion guide", "/docs/guides/swiftui-motion"], ["SwiftUI animations guide", "/docs/guides/swiftui-animations"], ["SwiftUI cards guide", "/docs/guides/swiftui-cards"]],
     related: ["cards", "motion", "haptics"],
   },
   {

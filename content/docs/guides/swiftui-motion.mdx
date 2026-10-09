@@ -1,0 +1,293 @@
+---
+title: "SwiftUI Motion: Springs, Rubber Banding and Gesture Momentum"
+description: "How to make SwiftUI motion feel physical: spring tiers, finger tracking without lag, velocity that carries into the release, rubber banding, press deformation, squash and stretch, follow-through and Reduce Motion."
+---
+
+Motion feels physical when it behaves like something with mass: it answers the finger at once, stays under the finger while it moves, keeps the finger's speed when it is let go, resists at its limits and comes to rest with a little give. Motion feels mechanical when one spring is pasted on every change, when everything moves at the same moment, and when a flick dies the instant the finger lifts.
+
+This guide is the motion language every SwiftPieces component shares, written so you can use it in your own views. Every snippet targets iOS 17 and uses only SwiftUI.
+
+## Five spring tiers
+
+Most interfaces need far fewer springs than they use. SwiftPieces uses five, and each moment picks the tier that matches what just happened. Overshoot and timing are measured from rest with SwiftUI's `Spring`.
+
+| Tier | `Spring` | Overshoot | 90% of the way | Use it for |
+| --- | --- | --- | --- | --- |
+| Tight | `Spring(duration: 0.14, bounce: 0)` | none | 87ms | a press arriving under the finger |
+| Responsive | `Spring(duration: 0.32, bounce: 0.25)` | 2.8% | 143ms | snapping to a detent, segment or page |
+| Elastic | `Spring(duration: 0.42, bounce: 0.38)` | 8.4% | 161ms | a release, a return from past an edge, a drag settling home |
+| Expressive | `Spring(duration: 0.48, bounce: 0.48)` | 15% | 166ms | a resolved action landing, at most once per interaction |
+| Calm | `Spring(duration: 0.5, bounce: 0.2)` | 1.5% | 238ms | opening large surfaces, ambient change |
+
+Two rules keep the bounce feeling fluid rather than sloppy. Bounce belongs to releases, landings and outcomes, never to the press itself: a press that overshoots under the finger reads as a glitch. And values people read, a number, a chart, a progress figure, never overshoot at all, because for that instant they would show something untrue.
+
+## Roles
+
+A tier says how something moves. A role says why, and carries the Reduce Motion substitute with it, so no call site has to remember one.
+
+| Role | Moment | Spring | Under Reduce Motion |
+| --- | --- | --- | --- |
+| `press` | touch-down | tight | tight |
+| `release` | the finger lifts off a pressed surface | elastic | short spring, no overshoot |
+| `settle` | a dragged thing comes to rest | elastic, carrying the finger's velocity | short spring, no overshoot |
+| `snap` | lands on a detent, segment or page | responsive | short spring, no overshoot |
+| `value` | a number or chart value moves to its new value | `Spring(duration: 0.35, bounce: 0)` | short spring, no overshoot |
+| `rebound` | returns from past a limit | elastic | short spring, no overshoot |
+| `morph` | size, corner radius or shape changes | `Spring(duration: 0.4, bounce: 0.2)` | short spring, no overshoot |
+| `reveal` | appears, opens, expands | calm | 0.2s ease-out fade |
+| `dismiss` | leaves, closes, collapses | `Spring(duration: 0.3, bounce: 0.08)` | 0.18s ease-in fade |
+| `success` | a resolved action lands | expressive | 0.24s ease-out |
+| `error` | a refused action | responsive, plus a shake | 0.2s ease-out, no shake |
+| `ambient` | slow background change | calm, and loops pause | loops stop on a rest pose |
+
+Opening is a little slower than closing on purpose: things arrive with care and get out of the way quickly.
+
+## Track the finger, spring the release
+
+The surface must stay under the finger at every frame. Set gesture state directly in `onChanged` and never put an animation on it: an `.animation(_:value:)` or an interactive spring on a dragged offset makes the surface trail the finger, and that lag is what reads as mushy.
+
+The release is the opposite. When the finger lifts, the surface should leave at the finger's speed and then settle. SwiftUI sometimes carries a gesture's velocity into the next spring by itself, but not reliably, so pass it explicitly. `interpolatingSpring` takes an initial velocity measured in whole distances per second, so divide the finger's speed by the distance left to travel.
+
+A spring takes one velocity, and a `CGSize` offset is one animated value, so it would give both axes the same speed. Put each axis on its own offset and release each with its own velocity:
+
+```swift
+struct DraggableTile: View {
+    @State private var offset: CGSize = .zero
+
+    var body: some View {
+        RoundedRectangle(cornerRadius: 24, style: .continuous)
+            .fill(.orange)
+            .frame(width: 140, height: 140)
+            // One offset per axis, so each can carry its own velocity.
+            .offset(x: offset.width)
+            .offset(y: offset.height)
+            .gesture(
+                DragGesture()
+                    .onChanged { offset = $0.translation } // no animation: stays under the finger
+                    .onEnded { drag in
+                        let spring = Spring(duration: 0.42, bounce: 0.38)
+                        withAnimation(.interpolatingSpring(spring, initialVelocity: relative(drag.velocity.width, from: offset.width, to: 0, spring: spring))) {
+                            offset.width = 0
+                        }
+                        withAnimation(.interpolatingSpring(spring, initialVelocity: relative(drag.velocity.height, from: offset.height, to: 0, spring: spring))) {
+                            offset.height = 0
+                        }
+                    }
+            )
+    }
+
+    /// Finger speed in distances per second, capped near the spring's own frequency so a hard flick
+    /// adds a little overshoot rather than a slingshot.
+    private func relative(_ velocity: CGFloat, from current: CGFloat, to target: CGFloat, spring: Spring) -> Double {
+        let distance = target - current
+        guard abs(distance) >= 1 else { return 0 }
+        let cap = 2 * Double.pi / spring.duration * 1.5
+        return min(max(Double(velocity / distance), -cap), cap)
+    }
+}
+```
+
+If something waits for the release to finish, attach the completion to the axis that travels further. An axis with nothing left to travel completes at once.
+
+## Decide where a flick lands
+
+Choose the resting place from where the motion is heading, not from where the finger happened to lift. `DragGesture.Value.predictedEndTranslation` does this for you. For your own thresholds, project the release the way a scroll view decelerates:
+
+```swift
+/// Where a flick at `velocity` (points per second) would coast to from `position`.
+/// 0.998 coasts like a scroll view; 0.99 is shorter and suits detents, so a moderate flick doesn't skip one.
+func project(_ position: CGFloat, velocity: CGFloat, decelerationRate: CGFloat = 0.99) -> CGFloat {
+    position + velocity / 1000 * decelerationRate / (1 - decelerationRate)
+}
+
+func nearest(_ value: CGFloat, in candidates: [CGFloat]) -> CGFloat {
+    candidates.min { abs($0 - value) < abs($1 - value) } ?? value
+}
+
+// let detent = nearest(project(sheetOffset, velocity: drag.velocity.height), in: [0, 320, 640])
+```
+
+## Rubber banding at the edges
+
+A limit should feel elastic, not broken. Past its bound, a dragged value keeps moving with growing resistance and never escapes, then springs back with `rebound`. This is the curve a scroll view uses at its edge:
+
+```swift
+/// How far something travels when pulled `overshoot` points past its limit. It grows ever more
+/// slowly and never reaches `limit`. 0.55 matches a scroll view.
+func rubberBand(_ overshoot: CGFloat, limit: CGFloat, coefficient: CGFloat = 0.55) -> CGFloat {
+    guard limit > 0, overshoot != 0 else { return 0 }
+    let banded = (1 - 1 / (abs(overshoot) * coefficient / limit + 1)) * limit
+    return overshoot < 0 ? -banded : banded
+}
+```
+
+Size the limit to the thing being pulled: 24 to 40 points for a slider thumb or a toggle, 60 to 120 for a card or a sheet. Band the total overshoot, never each event's delta, or the surface drifts away from the finger. For a control, only the visual overshoots: the committed value stays clamped.
+
+## Press deformation
+
+A press should land within a frame or two, and never bounce on the way in. Two details make it feel like pressure rather than a resize:
+
+- **Size-aware depth.** Sink each edge by about the same few points instead of a fixed percentage. An icon button lands near 0.92, a pill near 0.95 and a card near 0.985.
+- **A lean toward the finger.** Anchor the scale partway from the center toward the touch, and keep that anchor through the release, so the surface re-expands from where it was pressed instead of sliding.
+
+```swift
+struct PressStyle: ButtonStyle {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var size: CGSize = .zero
+
+    func makeBody(configuration: Configuration) -> some View {
+        let pressed = configuration.isPressed
+        configuration.label
+            .onGeometryChange(for: CGSize.self) { $0.size } action: { size = $0 }
+            // Reduce Motion: dim instead of moving, without turning the surface see-through.
+            .brightness(pressed && reduceMotion ? -0.08 : 0)
+            .scaleEffect(pressed && !reduceMotion ? scale(for: size) : 1)
+            .animation(pressed ? .spring(duration: 0.14, bounce: 0) : .spring(duration: 0.42, bounce: reduceMotion ? 0 : 0.38), value: pressed)
+    }
+
+    /// About 2.5 points at each edge, between 0.92 and 0.985.
+    private func scale(for size: CGSize) -> CGFloat {
+        let side = (max(size.width, 1) * max(size.height, 1)).squareRoot()
+        return min(max(1 - 5 / side, 0.92), 0.985)
+    }
+}
+```
+
+Leave the touch-point lean out of anything inside a `ScrollView` or `List`: reading the touch location needs a zero-distance drag gesture, and that gesture competes with scrolling.
+
+## Squash and stretch
+
+A surface in motion reads as soft when it stretches along its direction of travel and thins across it by the same factor, so its area never changes. Scaling one axis alone reads as growing. A `GeometryEffect` can stretch along any angle:
+
+```swift
+/// Stretches along `vector`'s direction by its length (0.06 is 6%) and thins across it, keeping the area.
+struct Stretch: GeometryEffect {
+    var vector: CGSize
+
+    var animatableData: AnimatablePair<CGFloat, CGFloat> {
+        get { AnimatablePair(vector.width, vector.height) }
+        set { vector = CGSize(width: newValue.first, height: newValue.second) }
+    }
+
+    func effectValue(size: CGSize) -> ProjectionTransform {
+        let amount = min(hypot(vector.width, vector.height), 0.2)
+        guard amount > 0.0005 else { return ProjectionTransform() }
+        let c = vector.width / amount, s = vector.height / amount
+        let along = 1 + amount, across = 1 / along, k = along - across
+        let stretch = CGAffineTransform(a: across + k * c * c, b: k * c * s, c: k * c * s, d: across + k * s * s, tx: 0, ty: 0)
+        let x = size.width / 2, y = size.height / 2
+        return ProjectionTransform(CGAffineTransform(translationX: -x, y: -y).concatenating(stretch).concatenating(CGAffineTransform(translationX: x, y: y)))
+    }
+}
+```
+
+Animate the vector back to zero rather than the angle and the amount separately: the direction holds while it shrinks, so the shape never spins on release. Clamp hard. About 8 to 12% suits a card or a blob, 12 to 18% a small indicator, and no more than 3 to 5% on anything carrying text. A tethered pull, like a button dragged past its edge, should stretch from the pull distance; free flight can stretch from velocity, low-passed, and cleared when the finger rests, since a resting finger sends no events.
+
+## Follow-through and stagger
+
+When everything moves at once, nothing leads. Let one element move first and let supporting elements answer a beat later. There are two ways, and they suit different jobs:
+
+- **A longer spring per rank** for anything that can reverse mid-flight. Each follower gets about 40ms more duration and a touch more bounce, so it arrives later and settles softer, and it still turns around at once if the state flips back.
+- **A delay per index** for one-shot entrances: about 30ms per item, capped around the seventh item so a long list never keeps the last row waiting. A delay holds a follower still when a toggle reverses, so don't use it for anything toggleable. Exits go together.
+
+```swift
+struct Panel: View {
+    @State private var open = false
+
+    var body: some View {
+        VStack(spacing: 12) {
+            ForEach(0..<4) { rank in
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .fill(.orange.opacity(1 - Double(rank) * 0.18))
+                    .frame(height: 52)
+                    // The lead moves first; each rank after it follows a little softer.
+                    .animation(.spring(duration: 0.42 + 0.04 * Double(rank), bounce: 0.38 + 0.02 * Double(rank))) {
+                        $0.offset(y: open ? 0 : 24).opacity(open ? 1 : 0)
+                    }
+            }
+        }
+        .onTapGesture { open.toggle() }
+    }
+}
+```
+
+Never stagger data: numbers, chart values and text the user is reading arrive together.
+
+## State morphs
+
+Loading, success and error are one control changing, not three controls crossfading. Keep a single container and its identity, and branch only the glyph or label inside it. Then sequence the change:
+
+1. The container changes shape with `morph`, settling with a little give.
+2. The content swaps inside it, the old blurring out as the new sharpens in.
+3. A secondary response lands last: for success, a small dip, swell and settle; for a refusal, a short decaying shake, with the error haptic on the same beat.
+
+```swift
+/// Anticipation, overshoot, settle, each time `trigger` changes. Apply with `.modifier(Pop(trigger: saves))`.
+struct Pop: ViewModifier {
+    let trigger: Int
+
+    func body(content: Content) -> some View {
+        content.keyframeAnimator(initialValue: CGFloat(1), trigger: trigger) { view, scale in
+            view.scaleEffect(scale)
+        } keyframes: { _ in
+            KeyframeTrack {
+                CubicKeyframe(0.97, duration: 0.08)
+                SpringKeyframe(1.08, duration: 0.14, spring: Spring(duration: 0.18, bounce: 0))
+                SpringKeyframe(1, duration: 0.42, spring: Spring(duration: 0.48, bounce: 0.48))
+            }
+        }
+    }
+}
+```
+
+Use a counter for the trigger, never a `Bool`: a Bool that flips back before the view updates never fires.
+
+## Reduce Motion
+
+Reduce Motion asks for less motion, not less feedback. Substitute rather than switch off:
+
+- Releases, snaps and settles land on a short spring with no overshoot.
+- Moving transitions become fades. Content swaps fade without blur.
+- Presses dim instead of scaling. Stretch, lean, pop and shake turn off.
+- Ambient loops stop on a designed rest pose, not on whatever frame they were on.
+- Color, symbol, label and haptic feedback all stay, so every outcome still reads.
+- Gestures keep tracking the finger and keep their velocity; only the bounce goes.
+
+## Haptics that land with the motion
+
+- Fire a haptic when the motion arrives, not when it starts: a check's success tap belongs to the moment the check lands.
+- One haptic per event. A threshold tick and a throw impact in the same frame read as a stutter.
+- Use counters or semantic values (a step index, a detent) as triggers.
+- `.increase`, `.decrease`, `.start`, `.stop` and `.levelChange` play nothing on iPhone. Use `.selection` or an `.impact` there.
+- Presses and continuous tracking get no haptic of their own. Steps, detents, thresholds and outcomes do.
+
+[SwiftUI haptics](/docs/guides/swiftui-haptics) covers the modifier in depth.
+
+## Anti-patterns
+
+- One bouncy spring pasted on every change.
+- Press feedback that is only a uniform scale, or that overshoots on the way in.
+- Animating finger tracking, which adds lag.
+- Releases that start from rest after a flick.
+- Hard clamps at limits, or linear resistance that never stiffens.
+- Every sibling moving at the same moment, or a stagger on data.
+- Crossfading a whole control between states instead of morphing one container.
+- Overshoot on data values, or a bounce so large that a size change wobbles.
+- Loops that never rest, or that keep running under Reduce Motion.
+- Changing layout on every gesture frame. Move with offset, scale and geometry effects instead.
+
+## How SwiftPieces ships it
+
+Every piece shares this language through `PieceMotion`: the tiers, the roles with their Reduce Motion substitutes, velocity-carrying settles, projection, rubber banding, press deformation, stretch, follow-through, pop and shake. A piece still stands alone. Each `.swift` file carries a private copy of just the parts of `PieceMotion` it uses, at the end of the file under `// MARK: - Piece motion`, so installing one piece is still one file and two pieces in the same app never collide.
+
+If you contribute a piece, use the roles instead of writing springs, edit `registry/foundation/PieceMotion.swift` rather than a copy, and run `npm run motion:sync`. `registry:build` refuses to run while a copy is out of date.
+
+## Install a piece
+
+Each piece is one Swift file built on Apple frameworks only. Run the CLI from the folder that contains your `.xcodeproj`:
+
+```bash
+npx swiftpieces add ElasticButton SwipeDeck GlassSegments
+```
+
+See [installation](/docs/installation) for copy and paste and the details of what the CLI adds.

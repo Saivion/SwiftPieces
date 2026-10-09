@@ -8,8 +8,8 @@ import { snippet } from "@/lib/seo";
 /** Plain search phrase per piece, Title Case, without "SwiftUI". Keep each under ~32 characters. */
 export const searchPhrase: Record<string, string> = {
   AssistantOrb: "Siri-Style AI Orb",
-  CodeBlock: "Code Block with Syntax Colors",
   PromptChips: "AI Prompt Suggestion Chips",
+  SourceStack: "AI Answer Sources and Citations",
   StreamingReply: "Streaming AI Chat Reply",
   ThinkingState: "AI Thinking Indicator",
   ThoughtOrb: "AI Status Orb",

@@ -4,6 +4,8 @@
   "defaultOpen": false,
   "pages": [
     "glass-action-menu",
+    "glass-mode-bar",
+    "glass-quick-add",
     "glass-segments",
     "glass-surface"
   ]

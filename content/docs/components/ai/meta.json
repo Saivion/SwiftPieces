@@ -1,11 +1,11 @@
 {
   "title": "AI",
-  "description": "Streaming replies, thinking states, prompt chips and code.",
+  "description": "Streaming replies, thinking states, prompt chips and answer sources.",
   "defaultOpen": false,
   "pages": [
     "assistant-orb",
-    "code-block",
     "prompt-chips",
+    "source-stack",
     "streaming-reply",
     "thinking-state",
     "thought-orb"

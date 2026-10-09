@@ -40,6 +40,9 @@ export const ground = {
   band: "var(--pv-band, #4a4029)",
 } as const;
 
+/** A shadow colour at the dark stage's `alpha`, scaled down on paper (`--pv-shadow`), like Swift's light/dark strength. */
+export const shade = (alpha: number) => `rgba(0,0,0,calc(${alpha} * var(--pv-shadow, 1)))`;
+
 /** The light appearance, for pieces shown on paper. */
 export const paper = {
   bg: "#f3f2ee",
@@ -74,12 +77,12 @@ export const blockList: string[] = Object.values(blocks);
 /** Corner radii (px at the 560 px docs stage; scale with cqw in previews). */
 export const radius = { sm: 12, md: 18, lg: 26, xl: 34 } as const;
 
-/** Type: SF Pro stack. Display runs heavy and tight; big figures run light. */
+/** Type: SF Pro stack. One weight, semibold (600), for every string (LIQUID_GLASS.md, rule 13); size sets the hierarchy. */
 export const font = {
   stack: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, sans-serif',
   rounded: 'ui-rounded, "SF Pro Rounded", -apple-system, system-ui, sans-serif',
   mono: 'ui-monospace, "SF Mono", SFMono-Regular, Menlo, monospace',
-  displayWeight: 700,
+  displayWeight: 600,
   displayTracking: "-0.04em",
-  numeralWeight: 300,
+  numeralWeight: 600,
 } as const;

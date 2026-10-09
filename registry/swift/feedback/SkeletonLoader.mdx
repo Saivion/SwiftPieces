@@ -1,9 +1,11 @@
 ## Notes
 
 - `.skeleton(isLoading:)` keeps the real view in the tree, hidden, so layout never jumps. The placeholder is a silhouette of the redacted view drawn through an alpha threshold, so text bars, color blocks and symbols all become one solid bone color, whatever colors the content uses.
-- A soft diagonal highlight sweeps across the bones. Every instance reads the same reference clock, which keeps every skeleton on screen in phase.
-- On handoff the placeholder fades while the content unblurs and rises 6 pt; `staggerIndex` delays that by 60 ms per row so lists reveal top to bottom.
-- `isFailed` stops the sweep and dims the bones so the slot reads as empty; flip `isLoading` back on to retry.
+- A soft diagonal light passes over the bones, easing in and out, then rests before the next pass. Every instance reads the same reference clock, so passes start on the same beat. Bones and rows are crossed edge to edge in the first three quarters of `period`, so they are lit in the same moments whatever their width. Larger surfaces, up to a whole screen, stretch their pass toward nine tenths of `period` to keep the light calm, so it runs only a little quicker than a row's and rests less.
+- On handoff the placeholder lifts away first on a quick, firm fade, and 50 ms later the content surfaces behind it, unblurring and rising 6 pt on a calm spring with no visible overshoot, so the two barely overlap out of register. `staggerIndex` delays each row's handoff by 60 ms per index so lists reveal top to bottom. Turning loading back on covers every row at once.
+- `isFailed` stops the sweep and dims the bones firmly so the slot reads as empty; flip `isLoading` back on to retry, and the bones brighten as the light returns.
 - `Style` sets the bone `fill`, the sweep `highlight`, the `period` and the failed opacity, with house palette defaults that adapt to light and dark. Pass the same style to `SkeletonLoader` bones and `.skeleton` so they match.
-- Reduce Transparency switches to an opaque fill without the sweep. Under Reduce Motion there is no sweep and the handoff is an instant swap.
+- Under Reduce Motion the light holds still and every bone breathes slowly toward the highlight and back in unison, over two periods, so the slot still reads as loading. The handoff is a short crossfade with no blur, rise or stagger, so the slot never flashes empty.
+- Reduce Transparency switches to an opaque fill without the sweep or the breath.
+- Bones stand in for content, not chrome, so they stay solid rather than liquid glass: glass is for the controls that load around them. The example rows are semibold throughout, like every string in the library.
 - For a whole projects screen that starts as ghost rows and hands off to real content, see the Pro Projects screen.

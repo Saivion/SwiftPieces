@@ -7,12 +7,14 @@ on:
     branches: [main]
     paths:
       - "registry/swift/**"
+      - "registry/foundation/**"
       - "previews/**"
       - "scripts/typecheck-swift.sh"
       - ".github/workflows/swift.yml"
   pull_request:
     paths:
       - "registry/swift/**"
+      - "registry/foundation/**"
       - "previews/**"
       - "scripts/typecheck-swift.sh"
       - ".github/workflows/swift.yml"

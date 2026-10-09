@@ -29,6 +29,7 @@ import {
 import { categories } from "../lib/categories";
 import { exploreProPages, proCatalog, proCountsLabel } from "../lib/pro-catalog";
 import { hubs, hubItems, hubPath } from "../lib/hubs";
+import { motionDrift } from "./sync-motion";
 
 const ROOT = join(import.meta.dirname, "..");
 const SWIFT_DIR = join(ROOT, "registry/swift");
@@ -110,6 +111,10 @@ export function toSlug(name: string): string {
 }
 
 function build() {
+  // Each piece carries its own copy of the motion sections it uses (registry/foundation/PieceMotion.swift).
+  // A stale copy would ship old motion to the registry and the docs, so it stops the build.
+  const drift = motionDrift();
+  if (drift.length) throw new Error(`Piece motion blocks are out of date in ${drift.join(", ")}. Run \`npm run motion:sync\`.`);
   const previews = readPreviewManifest();
   const items: RegistryItem[] = [];
 
@@ -413,7 +418,8 @@ function writeLlms(items: RegistryItem[]) {
     "- License: MIT + Commons Clause. Free for personal and commercial apps, including client work. Source-available rather than OSI open source: the pieces themselves may not be sold or redistributed.",
     "- No dependencies and no Swift package: the CLI copies source files into a SwiftPieces folder in the app, and they become the developer's own code.",
     "- iOS 17 baseline. Liquid Glass pieces gate glass with `#available(iOS 26, *)` and fall back to Material.",
-    "- Motion, states and accessibility are built in (Dynamic Type, Reduce Motion, Reduce Transparency), with haptics (sensoryFeedback) where an interaction calls for them.",
+    `- One motion language across every piece: five spring tiers with named roles, gesture releases that keep the finger's velocity, rubber-band limits and a Reduce Motion substitute for every movement (${SITE_URL}/docs/guides/swiftui-motion).`,
+    "- States and accessibility are built in (Dynamic Type, Reduce Motion, Reduce Transparency), with haptics (sensoryFeedback) where an interaction calls for them.",
     `- Source: ${"https://github.com/Saivion/SwiftPieces"}`,
     "",
     "Rules for Liquid Glass: gate with `#available(iOS 26, *)` and a Material fallback; wrap multiple glass views in one `GlassEffectContainer`; apply `.glassEffect` after layout modifiers; respect `accessibilityReduceTransparency`; never use invented modifiers such as `.liquidGlassUltra`.",

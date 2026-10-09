@@ -1,27 +1,30 @@
 // swiftpieces:
 // title: Task Row
-// description: A task card whose check draws itself while the card flashes into a solid color block, a priority label block, a swipe-right that completes with a strike-through then compacts the row, swipe-left snooze and delete blocks, and a long-press lift that reports reorder moves.
+// description: A task card with liquid glass chrome. Its check is a glass bubble, stamped in ink and popping as the check draws while the card flashes into a solid block, then settling to tinted glass as the row compacts; the priority sits on a tinted glass chip; a swipe-right buds a complete bubble out from under the card that completes with a strike-through; a swipe-left buds Snooze and Delete bubbles that part to rest apart; and a long-press lift reports reorder moves.
 // category: lists
 // minIOSVersion: "17.0"
-// version: "2.0.1"
+// version: "2.2.0"
 // pro: transaction-row
-// tags: [task, todo, swipe, reorder, productivity, blocks]
+// tags: [task, todo, swipe, reorder, productivity, glass]
 
 import SwiftUI
 import UIKit
 
 /// Interactive task row for to-do lists, driven by a bound `Status`.
 ///
+/// The card stays a solid surface; its chrome is liquid glass. The check is a glass bubble, the priority a tinted glass
+/// chip, and the swipe actions are glass bubbles that bud out from under the card's edge as it slides.
+///
 /// - Parameters:
 ///   - title: Task text.
 ///   - status: `.open`, `.completed`, or `.snoozed`. Set it from outside and the row animates to match.
 ///   - due: Optional secondary label, such as "Today, 5 PM".
-///   - priority: Optional priority label block at the trailing edge.
-///   - tint: Block color for the check, the completion flash and the complete tile. `nil` uses `style.complete`.
-///   - style: Card surface, text colors, priority and tile blocks, and corner radius. Defaults to the house palette.
+///   - priority: Optional priority chip at the trailing edge.
+///   - tint: Color for the check, the completion flash and the complete bubble. `nil` uses `style.complete`.
+///   - style: Card surface, text colors, priority and action tints, and corner radius. Defaults to the house palette.
 ///   - onTap: Called when the row body is tapped, typically to open the task.
-///   - onSnooze: Adds a Snooze block behind a left swipe and is called when it is chosen.
-///   - onDelete: Adds a Delete block behind a left swipe and is called when it is chosen.
+///   - onSnooze: Adds a Snooze bubble behind a left swipe and is called when it is chosen.
+///   - onDelete: Adds a Delete bubble behind a left swipe and is called when it is chosen.
 ///   - onMove: Enables long-press lift and reports how many rows the user dragged it (negative is up) on release.
 public struct TaskRow: View {
     public enum Status: Equatable { case open, completed, snoozed }
@@ -30,16 +33,32 @@ public struct TaskRow: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.isEnabled) private var isEnabled
     @Binding private var status: Status
+    /// The card's place on its rail is two parts. This sprung part is the only one a settle animates.
     @State private var offset: CGFloat = 0
+    /// The held part: the finger sets it directly and nothing animates it, so a grab while the card is still
+    /// settling rides on that flight instead of cutting it short.
+    @State private var pull: CGFloat = 0
     @State private var dragStart: CGFloat? = nil
     @State private var armed = false
+    /// What the complete bubble offers, set only while the finger is on it, so the glyph doesn't flip as the bubble
+    /// melts back behind the toggle.
+    @State private var tileReopens = false
     @State private var check: CGFloat = 0
     @State private var strike: CGFloat = 0
     @State private var compact = false
+    /// The row was snoozed before it completed, so its priority stays hidden through the completion flash.
+    @State private var snoozedBefore = false
+    /// A long press that has rested past a tap: only then does the card start to press in.
+    @State private var holding = false
     @State private var lifted = false
     @State private var lift: CGFloat = 0
+    /// A dropped card stays above its neighbors until it lands.
+    @State private var dropping = false
     @State private var rowHeight: CGFloat = 72
     @State private var completions = 0
+    // Both reset when the system cancels a touch, which never reaches onEnded.
+    @GestureState private var swiping = false
+    @GestureState private var hold = Hold.idle
 
     private let title: String
     private let due: String?
@@ -51,9 +70,13 @@ public struct TaskRow: View {
     private let onDelete: (() -> Void)?
     private let onMove: ((Int) -> Void)?
 
+    /// The room each swipe action takes on the rail, which sets the left detent.
     private let tileWidth: CGFloat = 76
-    private let tileGap: CGFloat = 6
+    /// The swipe bubbles: round, at the house size for round controls.
+    private let bubble: CGFloat = 56
     private let completeThreshold: CGFloat = 104
+    /// How far past a limit (the complete detent, the bubbles, a side with nothing to reveal) the card can be pulled.
+    private let bandLimit: CGFloat = 60
 
     public init(_ title: String, status: Binding<Status>, due: String? = nil, priority: Priority? = nil, tint: Color? = nil, style: Style = .standard, onTap: (() -> Void)? = nil, onSnooze: (() -> Void)? = nil, onDelete: (() -> Void)? = nil, onMove: ((Int) -> Void)? = nil) {
         self.title = title
@@ -69,24 +92,50 @@ public struct TaskRow: View {
     }
 
     private var completing: Bool { status == .completed && !compact }
-    private var spring: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(duration: 0.4, bounce: 0.18) }
     private var cardShape: RoundedRectangle { RoundedRectangle(cornerRadius: style.cornerRadius, style: .continuous) }
 
     public var body: some View {
+        let motion = PieceMotion(reduceMotion: reduceMotion)
         card
-            .scaleEffect(lifted ? 1.03 : 1)
-            .shadow(color: .black.opacity(lifted ? 0.2 : 0), radius: 22, y: 12)
-            .offset(x: offset, y: lift)
-            .zIndex(lifted ? 1 : 0)
-            .background(alignment: .leading) { completeTile }
-            .background(alignment: .trailing) { trailingTiles }
+            // The shadow trails the card a beat: it spreads as the card rises and gathers in after it lands. Cast from
+            // the card's outline, not the card: a shadow on a view that holds glass rings the glass with a halo.
+            .background {
+                cardShape
+                    .fill(style.surface)
+                    .animation(motion.follow(rank: 1)) { $0.shadow(color: .black.opacity(lifted ? 0.2 : 0), radius: lifted ? 22 : 8, y: lifted ? 12 : 3) }
+            }
+            // Held, the card presses into the table as the long press builds; picked up, it springs off it. Not under
+            // Reduce Motion, where the shadow and the haptic carry the lift.
+            .animation(liftAnimation(motion)) { $0.scaleEffect(reduceMotion ? 1 : lifted ? 1.03 : holding ? 0.98 : 1) }
+            // One offset per part and axis, so each release carries its own speed.
+            .offset(x: offset)
+            .offset(x: pull)
+            .offset(y: lift)
+            .zIndex(lifted || dropping ? 1 : 0)
+            // The swipe bubbles are laid out from the card's place as drawn, so they bud and melt exactly with it. They
+            // are their own liquid group: they sit under the solid card, apart from the glass on it.
+            .background {
+                PieceLiquidGroup {
+                    Rail(base: offset, pull: pull) { actionBubbles(at: $0) }
+                }
+            }
+            .fontWeight(.semibold)
             .opacity(isEnabled ? 1 : 0.5)
             .contentShape(.rect)
             .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { rowHeight = $0 }
             .gesture(swipe, including: isEnabled ? .all : .subviews)
             .highPriorityGesture(liftGesture, including: onMove == nil || !isEnabled ? .none : .all)
-            .animation(.spring(duration: 0.35, bounce: 0.2), value: lifted)
             .onChange(of: status, initial: true) { old, new in apply(new, from: old) }
+            // A cancelled touch puts the card back without completing or moving anything. After a normal release
+            // onEnded has already done so, and these do nothing.
+            .onChange(of: swiping) { _, active in if !active { cancelSwipe() } }
+            .onChange(of: hold) { _, new in if new == .idle, lifted { drop() } }
+            // Every touch starts the long press. Only one still resting after 100ms presses the card in, so a tap, a
+            // scroll or a swipe never dips it.
+            .task(id: hold) {
+                if hold == .pressing { try? await Task.sleep(for: .milliseconds(100)) }
+                if !Task.isCancelled { holding = hold == .pressing }
+            }
             .sensoryFeedback(.impact(flexibility: .rigid), trigger: armed) { _, isArmed in isArmed }
             .sensoryFeedback(.impact(flexibility: .soft), trigger: lifted) { _, isLifted in isLifted }
             .sensoryFeedback(.success, trigger: completions)
@@ -109,32 +158,39 @@ public struct TaskRow: View {
     // MARK: Card
 
     private var card: some View {
-        HStack(spacing: 14) {
-            checkControl
-            VStack(alignment: .leading, spacing: 5) {
-                Text(title)
-                    .font(compact ? .subheadline.weight(.medium) : .body.weight(.semibold))
-                    .foregroundStyle(completing ? style.ink : status == .open ? style.text : style.muted)
-                    .lineLimit(2)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .overlay(alignment: .leading) {
-                        // The strike draws from the leading edge over the text's own width.
-                        Capsule()
-                            .fill(completing ? style.ink : style.muted)
-                            .frame(height: 2)
-                            .scaleEffect(x: strike, y: 1, anchor: .leading)
-                            .opacity(strike > 0 ? 1 : 0)
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        // The glass on the card is one group. No lift: the card is the ground here, and a glass shadow would smudge the
+        // title beside it.
+        return PieceLiquidGroup(lift: false) {
+            HStack(spacing: 14) {
+                checkControl
+                VStack(alignment: .leading, spacing: 5) {
+                    Text(title)
+                        .font(compact ? .subheadline.weight(.semibold) : .body.weight(.semibold))
+                        .foregroundStyle(completing ? style.ink : status == .open ? style.text : style.muted)
+                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .overlay(alignment: .leading) {
+                            // The strike draws from the leading edge over the text's own width.
+                            Capsule()
+                                .fill(completing ? style.ink : style.muted)
+                                .frame(height: 2)
+                                .scaleEffect(x: strike, y: 1, anchor: .leading)
+                                .opacity(strike > 0 ? 1 : 0)
+                        }
+                    if !compact, status == .snoozed || due != nil {
+                        meta
+                            .transition(motion.transition(.opacity.combined(with: .move(edge: .top))))
                     }
-                if !compact, status == .snoozed || due != nil {
-                    meta
-                        .transition(.opacity.combined(with: .move(edge: .top)))
                 }
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .layoutPriority(1)
-            if let priority, !compact, status == .open {
-                priorityLabel(priority)
-                    .transition(.scale(scale: 0.6).combined(with: .opacity))
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .layoutPriority(1)
+                // Stays through the completion flash and folds away with the due label as the row compacts. A snoozed task
+                // completes without it coming back.
+                if let priority, !compact, status == .open || (status == .completed && !snoozedBefore) {
+                    priorityChip(priority)
+                        .transition(motion.transition(.scale(scale: 0.6).combined(with: .opacity)))
+                }
             }
         }
         .padding(.leading, 12)
@@ -150,77 +206,97 @@ public struct TaskRow: View {
         }
         .clipShape(cardShape)
         .contentShape(cardShape)
-        .onTapGesture { if offset != 0 { settle(0) } else { onTap?() } }
+        // Completing flashes the card into the block at once, with the title inked to match, and the sequence in
+        // apply takes it from there. Snoozing and reopening morph the card in place, whoever changed the status.
+        .animation(status == .completed ? nil : motion.morph, value: status)
+        .onTapGesture { if abs(offset + pull) > 0.5 { settle(0) } else { onTap?() } }
     }
 
     @ViewBuilder
     private var meta: some View {
+        let motion = PieceMotion(reduceMotion: reduceMotion)
         if status == .snoozed {
             Label("Snoozed", systemImage: "moon.zzz.fill")
-                .font(.caption.weight(.bold))
+                .font(.caption.weight(.semibold))
                 .foregroundStyle(style.ink)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 3)
-                .background(style.snooze, in: Capsule())
+                .padding(.horizontal, 9)
+                .padding(.vertical, 4)
+                .pieceLiquid(Capsule(), tint: style.snooze, interactive: false)
+                .transition(motion.swap)
         } else if let due {
             Label(due, systemImage: "clock")
-                .font(.footnote.weight(.medium))
+                .font(.footnote.weight(.semibold))
                 .foregroundStyle(completing ? style.ink.opacity(0.7) : style.muted)
                 .labelStyle(TightLabel())
+                .transition(motion.swap)
         }
     }
 
-    private func priorityLabel(_ priority: Priority) -> some View {
+    /// The priority on a chip of tinted glass.
+    private func priorityChip(_ priority: Priority) -> some View {
         let (label, color): (String, Color) = switch priority {
         case .low: ("LOW", style.low)
         case .medium: ("MED", style.medium)
         case .high: ("HIGH", style.high)
         }
         return Text(label)
-            .font(.caption2.weight(.heavy))
+            .font(.caption2.weight(.semibold))
             .tracking(0.8)
             .foregroundStyle(style.ink)
-            .padding(.horizontal, 8)
+            .padding(.horizontal, 9)
             .frame(minHeight: 22)
-            .background(color, in: Capsule())
+            .pieceLiquid(Capsule(), tint: color, interactive: false)
             .fixedSize()
             .accessibilityHidden(true)
     }
 
+    /// The check: a glass bubble. Open it is clear glass with a faint ring; completed, it takes the complete tint, and
+    /// snoozed the snooze tint with a moon. Completing, it pops as the check draws, stamped in ink for the beat the card
+    /// is a block.
     private var checkControl: some View {
-        Button(action: toggle) {
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        let fill: Color? = switch status {
+        case .open: nil
+        case .snoozed: style.snooze
+        case .completed: tint
+        }
+        return Button(action: toggle) {
             ZStack {
+                // Clear glass alone can vanish on a light card; the ring keeps an open check a visible target.
                 Circle()
-                    .strokeBorder(status == .open ? style.muted.opacity(0.55) : .clear, lineWidth: 2)
+                    .strokeBorder(style.muted.opacity(status == .open ? 0.45 : 0), lineWidth: 1.5)
+                // The stamp: solid ink over the glass while the card flashes, fading to show the tint as the row
+                // settles. An opacity, not the glass tint, because it has to wait out the completion's delayed fold.
+                // Like the card, it flashes on at once.
                 Circle()
-                    .fill(status == .snoozed ? style.snooze : completing ? style.ink : tint)
-                    .scaleEffect(status == .open ? 0.001 : 1)
+                    .fill(style.ink)
+                    .opacity(completing ? 1 : 0)
+                    .animation(status == .completed ? nil : motion.morph, value: status)
                 if status == .snoozed {
                     Image(systemName: "moon.zzz.fill")
-                        .font(.system(size: 12, weight: .bold))
+                        .font(.system(size: 12, weight: .semibold))
                         .foregroundStyle(style.ink)
-                        .transition(.scale.combined(with: .opacity))
+                        .transition(motion.swap)
                 } else {
-                    checkmark
+                    Checkmark()
                         .trim(from: 0, to: check)
                         .stroke(completing ? tint : style.ink, style: StrokeStyle(lineWidth: 2.6, lineCap: .round, lineJoin: .round))
+                        // Fades as it clears, so the round cap doesn't linger as a dot on the spring's tail.
+                        .opacity(status == .open ? 0 : 1)
+                        // Takes the flash's color at once, so it reads on the ink stamp from its first stroke.
+                        .animation(status == .completed ? nil : motion.dismiss, value: status)
                 }
             }
             .frame(width: compact ? 24 : 28, height: compact ? 24 : 28)
+            // The tint arrives with the outcome's give; clearing it gets out of the way without a wobble.
+            .pieceLiquid(.circle, tint: fill, interactive: false)
+            .animation(status == .open ? motion.dismiss : motion.success, value: status)
+            // A completion lands with a pop. Under Reduce Motion the color and the check carry it.
+            .pieceLiquidPop(trigger: completions)
             .frame(width: 44, height: 44)
             .contentShape(.rect)
-            .animation(spring, value: status)
         }
-        .buttonStyle(PressStyle(reduceMotion: reduceMotion))
-    }
-
-    private var checkmark: Path {
-        Path { path in
-            let s = compact ? 24.0 : 28.0
-            path.move(to: CGPoint(x: s * 0.29, y: s * 0.52))
-            path.addLine(to: CGPoint(x: s * 0.44, y: s * 0.67))
-            path.addLine(to: CGPoint(x: s * 0.72, y: s * 0.37))
-        }
+        .buttonStyle(PieceLiquidPressStyle())
     }
 
     private var accessibilityValue: String {
@@ -241,59 +317,118 @@ public struct TaskRow: View {
         return parts.joined(separator: ", ")
     }
 
-    // MARK: Tiles
+    // MARK: Bubbles
 
+    /// The swipe actions for the card drawn at `position`: the complete bubble behind a right swipe, Snooze and Delete
+    /// behind a left one. Each is born just inside the card's edge, shrunk and hidden under it, and the reveal draws it
+    /// out to its place; closing, it goes back under the card the same way. Driven by the card's place, so it never
+    /// trails the finger, and removed only once the card is home.
+    private func actionBubbles(at position: CGFloat) -> some View {
+        ZStack {
+            completeBubble(at: position)
+            trailingBubbles(at: position)
+        }
+    }
+
+    /// The complete bubble, tinted, centered in the gap a right swipe opens.
     @ViewBuilder
-    private var completeTile: some View {
-        let revealed = max(offset - tileGap, 0)
+    private func completeBubble(at position: CGFloat) -> some View {
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        let revealed = max(position, 0)
         if revealed > 0 {
-            let reveal = min(1, revealed / completeThreshold)
-            Image(systemName: status == .completed ? "arrow.uturn.backward" : "checkmark")
-                .font(.system(size: 22, weight: .bold))
+            let progress = min(1, revealed / completeThreshold)
+            // At the detent it sits in the middle of the gap, and stays there past it.
+            let rest = max(revealed, completeThreshold) / 2
+            let home = revealed + bubble * PieceLiquid.homeScale / 2
+            let center = reduceMotion ? rest : home + (rest - home) * progress
+            // The glyph arrives once the bubble is mostly clear of the card, and blurs away the moment the card heads home.
+            let out = revealed - center >= bubble * 0.3 && offset + pull > 0
+            Image(systemName: tileReopens ? "arrow.uturn.backward" : "checkmark")
+                .font(.system(size: 20, weight: .semibold))
                 .foregroundStyle(style.ink)
-                .scaleEffect(0.55 + 0.45 * reveal + (armed ? 0.2 : 0))
-                .frame(width: revealed, height: rowHeight)
-                .background(tint, in: RoundedRectangle(cornerRadius: style.cornerRadius, style: .continuous))
-                .animation(.snappy(duration: 0.2), value: armed)
+                // Stamps on with give as the swipe arms and lets go firmly if pulled back. Under Reduce Motion it
+                // brightens instead.
+                .animation(armed ? motion.success : motion.snap) {
+                    $0.scaleEffect(armed && !reduceMotion ? 1.2 : 1)
+                        .opacity(reduceMotion && !armed ? 0.55 : 1)
+                }
+                .pieceBudContent(out: out)
+                .frame(width: bubble, height: bubble)
+                .pieceLiquid(.circle, tint: Self.drain(tint, progress), interactive: false)
+                .modifier(RailBud(progress: progress, center: center, width: bubble, edge: .leading))
                 .accessibilityHidden(true)
         }
     }
 
+    /// Snooze and Delete, each a tinted bubble, resting apart in the gap a left swipe opens.
     @ViewBuilder
-    private var trailingTiles: some View {
-        let revealed = max(-offset, 0)
+    private func trailingBubbles(at position: CGFloat) -> some View {
+        let revealed = max(-position, 0)
         if revealed > 0, trailingCount > 0 {
-            let reveal = min(1, revealed / trailingWidth)
-            HStack(spacing: tileGap) {
+            ZStack(alignment: .trailing) {
                 if let onSnooze {
-                    tile("Snooze", systemImage: "moon.zzz", color: style.snooze, reveal: reveal) { status = .snoozed; onSnooze() }
+                    actionBubble("Snooze", systemImage: "moon.zzz", color: style.snooze, index: 0, revealed: revealed) { status = .snoozed; onSnooze() }
                 }
+                // Drawn last: it leads out of the card, so it passes over Snooze on the way.
                 if let onDelete {
-                    tile("Delete", systemImage: "trash", color: style.delete, reveal: reveal, action: onDelete)
+                    actionBubble("Delete", systemImage: "trash", color: style.delete, index: trailingCount - 1, revealed: revealed, action: onDelete)
                 }
             }
-            .padding(.leading, tileGap)
-            .frame(width: revealed, alignment: .leading)
-            .clipped()
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .trailing)
             .accessibilityHidden(true)
         }
     }
 
-    private func tile(_ label: String, systemImage: String, color: Color, reveal: CGFloat, action: @escaping () -> Void) -> some View {
-        Button { settle(0); action() } label: {
-            VStack(spacing: 5) {
+    /// One trailing action bubble, `index` places out from the card.
+    private func actionBubble(_ label: String, systemImage: String, color: Color, index: Int, revealed: CGFloat, action: @escaping () -> Void) -> some View {
+        let place = trailingPlacement(index, revealed: revealed)
+        // The label arrives once the bubble is mostly clear of the card, and blurs away the moment the card heads home.
+        let out = revealed - place.center >= bubble * 0.3 && offset + pull < 0
+        return Button { settle(0); action() } label: {
+            VStack(spacing: 2) {
                 Image(systemName: systemImage)
-                    .font(.system(size: 19, weight: .semibold))
-                    .scaleEffect(0.55 + 0.45 * reveal)
+                    .font(.system(size: 17, weight: .semibold))
                 Text(label)
-                    .font(.caption.weight(.semibold))
-                    .opacity(max(0, (reveal - 0.45) / 0.55))
+                    .font(.caption2.weight(.semibold))
+                    .lineLimit(1)
             }
             .foregroundStyle(style.ink)
-            .frame(width: tileWidth - tileGap, height: rowHeight)
-            .background(color, in: RoundedRectangle(cornerRadius: style.cornerRadius, style: .continuous))
+            .pieceBudContent(out: out)
+            .frame(width: place.width, height: bubble)
+            .pieceLiquid(Capsule(), tint: Self.drain(color, place.progress), interactive: false)
+            .contentShape(Capsule())
         }
-        .buttonStyle(PressStyle(reduceMotion: reduceMotion))
+        .buttonStyle(PieceLiquidPressStyle())
+        .modifier(RailBud(progress: place.progress, center: place.center, width: place.width, edge: .trailing))
+    }
+
+    /// Where trailing bubble `index` (0 nearest the card) sits for a left swipe opened `revealed` points: its width,
+    /// its centre's distance from the row's trailing edge, and how far it has budded out (0 home, 1 out). At the detent
+    /// the bubbles rest `PieceLiquid.apart`, centered in the room the swipe opens. Pulled past it, the outer bubble
+    /// stretches into the pull instead of opening onto bare ground. Opening, the outer bubble leads out of the card and
+    /// the one nearer the card follows a step behind.
+    private func trailingPlacement(_ index: Int, revealed: CGFloat) -> (width: CGFloat, center: CGFloat, progress: CGFloat) {
+        let count = CGFloat(trailingCount)
+        let gap = PieceLiquid.apart
+        let margin = (trailingWidth - bubble * count - gap * (count - 1)) / 2
+        let isOuter = index == trailingCount - 1
+        let width = bubble + (isOuter ? max(revealed - trailingWidth, 0) : 0)
+        // Laid out from the card's side, so past the detent the card side holds and the outer one stretches.
+        let fromCard = margin + CGFloat(index) * (bubble + gap) + width / 2
+        let rest = max(revealed, trailingWidth) - fromCard
+        guard revealed < trailingWidth else { return (width, rest, 1) }
+        let lead = 0.12 * CGFloat(min(trailingCount - 1 - index, 4))
+        let progress = max(0, (revealed / trailingWidth - lead) / (1 - lead))
+        guard !reduceMotion else { return (width, rest, progress) }
+        let home = revealed + bubble * PieceLiquid.homeScale / 2
+        return (width, home + (rest - home) * progress, progress)
+    }
+
+    /// A swipe bubble's tint for how far it has budded out: none while it is still home under the card, filling in as
+    /// it leaves and draining as it heads back, with its place, so it is clear glass by the time it melts in.
+    private static func drain(_ color: Color, _ progress: CGFloat) -> Color? {
+        let amount = min(max((progress - 0.35) / 0.3, 0), 1)
+        return amount > 0 ? color.opacity(amount) : nil
     }
 
     private var trailingCount: Int { (onSnooze == nil ? 0 : 1) + (onDelete == nil ? 0 : 1) }
@@ -303,57 +438,127 @@ public struct TaskRow: View {
 
     private var swipe: some Gesture {
         DragGesture(minimumDistance: 12)
+            .updating($swiping) { _, swiping, _ in swiping = true }
             .onChanged { value in
                 guard !lifted else { return }
                 if dragStart == nil {
                     guard abs(value.translation.width) > abs(value.translation.height) else { return }
-                    dragStart = offset
+                    let start = offset + pull
+                    dragStart = start
+                    // The gesture waits 12pt before it claims a swipe. The card eases across that on the press spring
+                    // instead of jumping, and a settle still in flight finishes underneath.
+                    withAnimation(PieceMotion(reduceMotion: reduceMotion).press) {
+                        offset += place(start + value.translation.width) - start
+                    }
                 }
                 guard let dragStart else { return }
-                let x = dragStart + value.translation.width
-                if x > 0 {
-                    // Past the threshold the row eases toward a limit so the commit point feels like a detent.
-                    offset = x < completeThreshold ? x : completeThreshold + rubber(x - completeThreshold)
-                } else {
-                    offset = trailingCount == 0 ? -rubber(-x) : max(x, -trailingWidth - rubber(-x - trailingWidth))
-                }
-                let nowArmed = offset >= completeThreshold
+                // Directly under the finger, never animated.
+                let position = place(dragStart + value.translation.width)
+                pull = position - offset
+                let nowArmed = position >= completeThreshold
                 if nowArmed != armed { armed = nowArmed }
+                let reopens = status == .completed
+                if reopens != tileReopens { tileReopens = reopens }
             }
             .onEnded { value in
                 guard let start = dragStart else { return }
                 dragStart = nil
+                // The card's own speed, not the finger's: past a limit the band slows it.
+                let x = start + value.translation.width
+                let speed = (place(x + value.velocity.width / 120) - place(x)) * 120
                 if armed {
                     armed = false
-                    settle(0)
+                    settle(0, velocity: speed)
                     toggle()
                     return
                 }
                 let projected = start + value.predictedEndTranslation.width
-                settle(projected < -trailingWidth / 2 && trailingCount > 0 ? -trailingWidth : 0)
+                settle(projected < -trailingWidth / 2 && trailingCount > 0 ? -trailingWidth : 0, velocity: speed)
             }
     }
 
     private var liftGesture: some Gesture {
         LongPressGesture(minimumDuration: 0.35)
             .sequenced(before: DragGesture(minimumDistance: 0))
+            .updating($hold) { value, hold, _ in
+                if case .second(true, _) = value { hold = .carrying } else { hold = .pressing }
+            }
             .onChanged { value in
                 guard case .second(true, let drag) = value else { return }
                 if !lifted { lifted = true }
                 lift = drag?.translation.height ?? 0
             }
-            .onEnded { _ in
+            .onEnded { value in
                 let steps = Int((lift / (rowHeight + 8)).rounded())
-                withAnimation(spring) { lift = 0 }
-                lifted = false
+                var velocity: CGFloat = 0
+                if case .second(_, let drag?) = value { velocity = drag.velocity.height }
+                drop(velocity: velocity)
                 if steps != 0 { onMove?(steps) }
             }
     }
 
-    private func rubber(_ distance: CGFloat) -> CGFloat { 40 * (1 - 1 / (1 + distance / 40)) }
+    /// Where the card sits for a finger at `x` on its rail: under the finger from the open bubbles to the complete
+    /// detent, and against rubber-band resistance past either, or on a side with nothing to reveal.
+    private func place(_ x: CGFloat) -> CGFloat {
+        PieceMotion.rubberBand(x, in: (trailingCount == 0 ? 0 : -trailingWidth)...completeThreshold, limit: bandLimit)
+    }
 
-    private func settle(_ target: CGFloat) {
-        withAnimation(spring) { offset = target }
+    /// Puts the card on `target`. A release passes the card's own speed (pt/s) and leaves at it: the bubbles open into
+    /// their detent on the elastic spring, the outer bubble stretching into any overshoot, a right swipe comes home on
+    /// the snap spring, a close from the left or a flick home comes home firmly, and a pull past the bubbles or toward a
+    /// side with nothing to reveal rebounds with give. A tap or a cancelled touch carries no energy, so it snaps open
+    /// or home with the snap's small give. Only the sprung part moves; the held part stays where the finger left it.
+    private func settle(_ target: CGFloat, velocity: CGFloat? = nil) {
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        let position = offset + pull
+        var animation = motion.snap
+        if let velocity {
+            let rebounding = target == 0 ? position < 0 && trailingCount == 0 : position < target
+            // Let go on the right (the completing swipe, a peek), the card comes home with the snap's give unless it
+            // was flicked home faster than half that spring's frequency: it passes home by 4.5pt at most, short of the
+            // trailing bubbles' homes. Faster, or from the left, a bouncy card would show the other side.
+            let homing = target == 0 && position > 0 && velocity > -position * .pi / PieceMotion.responsive.duration
+            let spring = rebounding || target != 0 ? PieceMotion.elastic : homing ? PieceMotion.responsive : Self.closing
+            // An open leaves toward the bubbles no faster than the spring's own speed over the travel, so even a hard
+            // flick passes them by about 18% at most. More slung the card 45pt past, and a grab during that overshoot
+            // ended up as far from the finger.
+            let reach = (target - position) * 2 * .pi / spring.duration
+            let carried = target == 0 ? velocity : reach < 0 ? max(velocity, reach) : min(velocity, reach)
+            animation = motion.settle(velocity: carried, from: position, to: target, spring: spring)
+        }
+        withAnimation(animation) { offset = target - pull }
+    }
+
+    /// A release that closes the card. No bounce at all: a card passing home would show the other side's bubbles.
+    private static var closing: Spring { Spring(duration: 0.28, bounce: 0) }
+
+    /// A swipe the system cancelled never reaches onEnded: put the card on the nearer detent, completing nothing.
+    private func cancelSwipe() {
+        guard dragStart != nil else { return }
+        dragStart = nil
+        armed = false
+        settle(offset + pull < -trailingWidth / 2 && trailingCount > 0 ? -trailingWidth : 0)
+    }
+
+    /// Picked up, the card springs off the table through its pressed pose. Held, it presses in slowly and with no
+    /// overshoot (a press never bounces under the finger), so a press let go short of the lift barely dips it. Set
+    /// down, it comes to rest.
+    private func liftAnimation(_ motion: PieceMotion) -> Animation {
+        lifted ? motion.release : holding ? .spring(duration: 0.5, bounce: 0) : motion.settle
+    }
+
+    /// Sets the card back down in its slot, leaving at the finger's speed (pt/s). It stays above its neighbors until it
+    /// has landed and its shadow has gathered in, also when it was let go without moving.
+    private func drop(velocity: CGFloat = 0) {
+        guard lifted || lift != 0 else { return }
+        dropping = true
+        // The scale and the shadow take their own springs from this change, and the completion waits for them too.
+        withAnimation(PieceMotion(reduceMotion: reduceMotion).settle(velocity: velocity, from: lift, to: 0), completionCriteria: .removed) {
+            lifted = false
+            lift = 0
+        } completion: {
+            if !lifted { dropping = false }
+        }
     }
 
     // MARK: State
@@ -363,6 +568,7 @@ public struct TaskRow: View {
     }
 
     private func apply(_ new: Status, from old: Status) {
+        let motion = PieceMotion(reduceMotion: reduceMotion)
         switch new {
         case .completed:
             if old != .completed { completions += 1 }
@@ -370,27 +576,74 @@ public struct TaskRow: View {
                 // Rows that load already completed start settled, with no flash.
                 check = 1; strike = 1; compact = true
             } else if reduceMotion {
-                withAnimation(.easeOut(duration: 0.25)) { check = 1; strike = 1; compact = true }
+                withAnimation(motion.success) { check = 1; strike = 1; compact = true }
             } else {
+                // The check and the strike draw at a pen's steady pace, never past their ends: a strike that
+                // overshot would run past the title. Then the row folds down compact on the morph's slight give, its
+                // due label and priority folding away with it.
                 withAnimation(.easeOut(duration: 0.3)) { check = 1 }
                 withAnimation(.easeInOut(duration: 0.35).delay(0.15)) { strike = 1 }
-                withAnimation(.spring(duration: 0.45, bounce: 0.12).delay(0.7)) { compact = true }
+                withAnimation(motion.morph.delay(0.7)) { compact = true }
             }
         case .open, .snoozed:
-            withAnimation(reduceMotion ? .easeOut(duration: 0.2) : .spring(duration: 0.4, bounce: 0.1)) {
+            // Recorded on the way in, so it already holds on the frame a completion lands.
+            snoozedBefore = new == .snoozed
+            // The check and the strike clear quickly, with the tint; the row opens back up a little slower.
+            withAnimation(motion.dismiss) {
                 check = 0
                 strike = 0
-                compact = false
             }
+            withAnimation(motion.reveal) { compact = false }
         }
     }
 
-    private struct PressStyle: ButtonStyle {
-        let reduceMotion: Bool
-        func makeBody(configuration: Configuration) -> some View {
-            configuration.label
-                .scaleEffect(configuration.isPressed && !reduceMotion ? 0.88 : 1)
-                .animation(.spring(duration: 0.3, bounce: 0.3), value: configuration.isPressed)
+    /// Where a long press stands: still building toward the lift, or carrying the card.
+    private enum Hold { case idle, pressing, carrying }
+
+    /// Shows `content` for the card's place on its rail as drawn: the sprung part as SwiftUI animates it, plus the held
+    /// part. The bubbles behind the card are laid out from it, so they bud and melt exactly with the card, even when a
+    /// grab lands on a settle still in flight.
+    private struct Rail<Content: View>: View, Animatable {
+        var base: CGFloat
+        let pull: CGFloat
+        @ViewBuilder let content: (CGFloat) -> Content
+
+        nonisolated var animatableData: CGFloat {
+            get { base }
+            set { base = newValue }
+        }
+
+        var body: some View { content(base + pull) }
+    }
+
+    /// A swipe bubble's own bud, driven by the reveal: shrunk just inside the card's edge at first, full size at its
+    /// place once the side is open, `center` points in from the row's edge on that side. Shrink first, then move, so
+    /// home stays where it was measured. Under Reduce Motion it waits at its place and fades in with the reveal.
+    private struct RailBud: ViewModifier {
+        let progress: CGFloat
+        let center: CGFloat
+        let width: CGFloat
+        let edge: HorizontalEdge
+        @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+        func body(content: Content) -> some View {
+            let inward: CGFloat = edge == .leading ? 1 : -1
+            content
+                .pieceLiquidScale(reduceMotion ? 1 : PieceLiquid.homeScale + (1 - PieceLiquid.homeScale) * progress)
+                .opacity(reduceMotion ? min(1, progress * 2) : 1)
+                .offset(x: inward * (center - width / 2))
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: edge == .leading ? .leading : .trailing)
+        }
+    }
+
+    /// The check, in the circle's own coordinates, so it shrinks with the circle as the row compacts.
+    private struct Checkmark: Shape {
+        func path(in rect: CGRect) -> Path {
+            var path = Path()
+            path.move(to: CGPoint(x: rect.minX + rect.width * 0.29, y: rect.minY + rect.height * 0.52))
+            path.addLine(to: CGPoint(x: rect.minX + rect.width * 0.44, y: rect.minY + rect.height * 0.67))
+            path.addLine(to: CGPoint(x: rect.minX + rect.width * 0.72, y: rect.minY + rect.height * 0.37))
+            return path
         }
     }
 
@@ -413,24 +666,24 @@ public extension TaskRow {
         public var text: Color = Style.adaptive(0x141414, 0xF4F3EF)
         /// Due label, strike-through and finished titles.
         public var muted: Color = Style.adaptive(0x5C5A56, 0xA6A49F)
-        /// Dark ink used on every block.
+        /// Dark ink used on every tint and on the flashed card.
         public var ink: Color = Color(red: 0.078, green: 0.078, blue: 0.078)
-        /// Check fill, completion wash and complete tile, unless `tint` is passed.
+        /// Check tint, completion flash and complete bubble, unless `tint` is passed.
         public var complete: Color = Color(red: 0.663, green: 0.863, blue: 0.718)
-        /// Snooze tile, snoozed check and label.
+        /// Snooze bubble, snoozed check and Snoozed chip.
         public var snooze: Color = Color(red: 0.804, green: 0.722, blue: 1)
-        /// Delete tile.
+        /// Delete bubble.
         public var delete: Color = Color(red: 1, green: 0, blue: 0)
-        /// Priority label blocks.
+        /// Priority chip tints.
         public var high: Color = Color(red: 1, green: 0, blue: 0)
         public var medium: Color = Color(red: 1, green: 0.851, blue: 0.463)
         public var low: Color = Color(red: 0.612, green: 0.761, blue: 1)
-        /// Corner radius of the card and its tiles.
+        /// Corner radius of the card. The swipe bubbles are round.
         public var cornerRadius: CGFloat = 22
 
         public init() {}
 
-        /// The house palette: white or charcoal cards, sage check, lilac snooze, signal delete.
+        /// The house palette: white or charcoal cards, a sage check, lilac snooze, signal delete, all on glass.
         public static let standard = Style()
 
         private static func adaptive(_ light: UInt32, _ dark: UInt32) -> Color {
@@ -444,7 +697,7 @@ public extension TaskRow {
 
 // MARK: - Example
 
-/// Four task cards and nothing else: open, completed, snoozed, with priority blocks.
+/// Four task cards and nothing else: open, completed, snoozed, with priority chips.
 private struct TaskRowExample: View {
     @State private var tasks: [(String, String?, TaskRow.Priority?, TaskRow.Status)] = [
         ("Review the launch checklist", "Today, 5 PM", .high, .open),
@@ -472,3 +725,504 @@ private struct TaskRowExample: View {
 #Preview("Dark") {
     TaskRowExample().preferredColorScheme(.dark)
 }
+
+// MARK: - Piece motion
+//
+// The SwiftPieces motion language: shared spring tokens and gesture physics, with the same values in every
+// piece. Each piece carries a copy of only the parts it uses, so this file stands alone. Generated from
+// registry/foundation/PieceMotion.swift in the SwiftPieces repo; edit it there, not here.
+// swiftpieces-motion: 1.1.0 (core, follow, momentum, rubberBand, pressMath)
+
+/// The SwiftPieces motion language: five spring tiers, and a named role for every moment a piece moves,
+/// each with its Reduce Motion substitute.
+///
+/// Build one from the environment, `PieceMotion(reduceMotion: reduceMotion)`, and pick the role that names
+/// what just happened. Never animate the tracking of a finger: set gesture state directly in `onChanged`, so the
+/// surface stays under the finger, and spring only the release.
+private struct PieceMotion {
+    var reduceMotion = false
+
+    // Tiers. Overshoot and settle times are measured from rest with SwiftUI's Spring.
+    /// No overshoot, 90% in about 90ms. A press arriving under the finger.
+    static var tight: Spring { Spring(duration: 0.14, bounce: 0) }
+    /// About 2.8% overshoot, 90% in about 140ms. Snapping to a detent, page or segment.
+    static var responsive: Spring { Spring(duration: 0.32, bounce: 0.25) }
+    /// About 8.4% overshoot. Visible give: a release, a return from past an edge, a drag settling home.
+    static var elastic: Spring { Spring(duration: 0.42, bounce: 0.38) }
+    /// About 15% overshoot. A resolved action landing. At most once per interaction.
+    static var expressive: Spring { Spring(duration: 0.48, bounce: 0.48) }
+    /// About 1.5% overshoot, unhurried. Opening large surfaces and ambient change.
+    static var calm: Spring { Spring(duration: 0.5, bounce: 0.2) }
+
+    /// Reduce Motion: settles become this short spring with no overshoot.
+    private static var still: Animation { .spring(duration: 0.25, bounce: 0) }
+
+    // Roles.
+    /// Touch-down. Starts on the same frame and never bounces under the finger.
+    var press: Animation { .spring(Self.tight) }
+    /// The finger lifts off a pressed surface, which springs back through rest.
+    var release: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A dragged thing comes to rest. With a gesture's velocity, use `settle(velocity:from:to:)` instead.
+    var settle: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// Lands on a detent, page or segment.
+    var snap: Animation { reduceMotion ? Self.still : .spring(Self.responsive) }
+    /// A number, a chart value or anything else people read moves to its new value. Never overshoots, so it
+    /// never shows a value that isn't true.
+    var value: Animation { reduceMotion ? Self.still : .spring(duration: 0.35, bounce: 0) }
+    /// Comes back from past a limit: a pull beyond the edge, a value pushed against its bound.
+    var rebound: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A shape or container changes size, corner radius or form, with a little give at the end.
+    var morph: Animation { reduceMotion ? Self.still : .spring(duration: 0.4, bounce: 0.2) }
+    /// Something appears, opens or expands. Opening is a little slower than closing.
+    var reveal: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.calm) }
+    /// Something leaves, closes or collapses. Quick and firm, out of the way.
+    var dismiss: Animation { reduceMotion ? .easeIn(duration: 0.18) : .spring(duration: 0.3, bounce: 0.08) }
+    /// A resolved action lands: a check, a sent state, a reaction.
+    var success: Animation { reduceMotion ? .easeOut(duration: 0.24) : .spring(Self.expressive) }
+    /// A refused action. Firm, no wobble; `pieceShake` adds the movement.
+    var error: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.responsive) }
+    /// Slow ambient change. Loops themselves stop under Reduce Motion: check `allowsAmbient`.
+    var ambient: Animation { reduceMotion ? .easeInOut(duration: 0.3) : .spring(Self.calm) }
+
+    /// Loops, drifts, idle breathing and parallax run only when this is true.
+    var allowsAmbient: Bool { !reduceMotion }
+
+    /// A moving transition, or a plain fade under Reduce Motion.
+    func transition(_ transition: AnyTransition) -> AnyTransition {
+        reduceMotion ? .opacity : transition
+    }
+
+    /// For content replaced inside a container that stays put (a label, a glyph, a count): the old content
+    /// blurs out as the new one sharpens in. A fade under Reduce Motion.
+    @MainActor var swap: AnyTransition {
+        reduceMotion ? .opacity : AnyTransition(.blurReplace)
+    }
+}
+
+extension PieceMotion {
+    /// Follow-through: rank 0 leads, each later rank arrives a beat later on a slightly looser spring. Safe to reverse.
+    func follow(_ spring: Spring = PieceMotion.elastic, rank: Int) -> Animation {
+        guard !reduceMotion else { return .spring(duration: 0.25, bounce: 0) }
+        let k = Double(min(max(rank, 0), 6))
+        return .spring(duration: spring.duration + 0.04 * k, bounce: min(spring.bounce + 0.02 * k, 0.55))
+    }
+
+    /// One-shot entrances only: item `index` waits 30ms per place, capped at the seventh. Exits go together.
+    func cascade(_ animation: Animation, index: Int, step: Double = 0.03) -> Animation {
+        guard !reduceMotion, index > 0 else { return animation }
+        return animation.delay(step * Double(min(index, 7)))
+    }
+}
+
+extension PieceMotion {
+    /// Where a flick at `velocity` (pt/s) coasts to. 0.998 coasts like a scroll view; 0.99 suits detents.
+    nonisolated static func project(_ position: CGFloat, velocity: CGFloat, decelerationRate: CGFloat = 0.99) -> CGFloat {
+        position + velocity / 1000 * decelerationRate / (1 - decelerationRate)
+    }
+
+    /// The candidate closest to `value`.
+    nonisolated static func nearest(_ value: CGFloat, in candidates: [CGFloat]) -> CGFloat {
+        candidates.min { abs($0 - value) < abs($1 - value) } ?? value
+    }
+
+    /// A settle that leaves at the finger's speed (pt/s). One per axis, each on its own `.offset(x:)` / `.offset(y:)`:
+    /// a spring takes one velocity. SwiftUI's own velocity carry-over is unreliable; this always carries it.
+    func settle(velocity: CGFloat, from current: CGFloat, to target: CGFloat, spring: Spring = PieceMotion.elastic) -> Animation {
+        let spring = reduceMotion ? Spring(duration: 0.25, bounce: 0) : spring
+        let distance = target - current
+        guard abs(distance) >= 1 else { return .spring(spring) }
+        // In whole distances per second, capped near the spring's frequency: a hard flick adds give, not a slingshot.
+        // At exactly the frequency a critically damped spring cannot pass its target, so Reduce Motion stops there.
+        let cap = 2 * Double.pi / spring.duration * (reduceMotion ? 1 : 1.5)
+        let relative = min(max(Double(velocity / distance), -cap), cap)
+        return .interpolatingSpring(spring, initialVelocity: relative)
+    }
+}
+
+extension PieceMotion {
+    /// A scroll view's edge resistance for a pull `overshoot` points past a limit; never reaches `limit`.
+    /// About 24 to 40 for thumbs and toggles, 60 to 120 for cards and sheets. Band the total pull, not deltas.
+    nonisolated static func rubberBand(_ overshoot: CGFloat, limit: CGFloat, coefficient: CGFloat = 0.55) -> CGFloat {
+        guard limit > 0, overshoot != 0 else { return 0 }
+        let banded = (1 - 1 / (abs(overshoot) * coefficient / limit + 1)) * limit
+        return overshoot < 0 ? -banded : banded
+    }
+
+    /// `value` inside `range` passes through unchanged; past either end it moves with rubber-band resistance.
+    nonisolated static func rubberBand(_ value: CGFloat, in range: ClosedRange<CGFloat>, limit: CGFloat, coefficient: CGFloat = 0.55) -> CGFloat {
+        if value < range.lowerBound { return range.lowerBound + rubberBand(value - range.lowerBound, limit: limit, coefficient: coefficient) }
+        if value > range.upperBound { return range.upperBound + rubberBand(value - range.upperBound, limit: limit, coefficient: coefficient) }
+        return value
+    }
+}
+
+extension PieceMotion {
+    /// About `depth` points per edge, not a fixed percentage: an icon sinks to 0.92, a pill 0.95, a card 0.985.
+    nonisolated static func pressScale(for size: CGSize, depth: CGFloat = 2.5) -> CGFloat {
+        let side = (max(size.width, 1) * max(size.height, 1)).squareRoot()
+        return min(max(1 - depth * 2 / side, 0.92), 0.985)
+    }
+
+    /// An anchor partway from the center toward the touch, so the press leans into the finger without tipping.
+    nonisolated static func pressAnchor(touch: CGPoint?, in size: CGSize, lean: CGFloat = 0.6) -> UnitPoint {
+        guard let touch, size.width > 0, size.height > 0 else { return .center }
+        let x = min(max(touch.x / size.width, 0), 1)
+        let y = min(max(touch.y / size.height, 0), 1)
+        return UnitPoint(x: 0.5 + (x - 0.5) * lean, y: 0.5 + (y - 0.5) * lean)
+    }
+}
+
+// swiftpieces-motion: end
+
+// MARK: - Piece liquid
+//
+// The SwiftPieces liquid glass language: glass shapes that merge through a neck, bubbles that bud out of
+// and melt back into each other, and the frosted fallback before iOS 26. Each piece carries a copy of only
+// the parts it uses, so this file stands alone. Generated from registry/foundation/PieceLiquid.swift in the
+// SwiftPieces repo; edit it there, not here. The rules are in LIQUID_GLASS.md.
+// swiftpieces-liquid: 1.7.0 (liquid, liquidPress, liquidPop, bud)
+
+/// The liquid glass language: one merge distance, two rest gaps, and the springs a bubble leaves and comes home on.
+///
+/// Glass shapes inside one `PieceLiquidGroup` melt into each other through a neck when they come within `merge`
+/// points. Parts of one control rest `joined`, inside that distance, so the neck holds; separate actions rest
+/// `apart`, outside it, so they only goo while one buds out of, or melts back into, another.
+private enum PieceLiquid {
+    /// Glass shapes closer than this share a neck.
+    static let merge: CGFloat = 20
+    /// The gap between parts of one control (a stepper's buttons, a progress pill and its stop): the neck holds,
+    /// short and smooth, about two thirds of the shapes' height at its waist. Joined parts read best at one height.
+    static let joined: CGFloat = 4
+    /// The gap between separate actions (menu items, confirm and cancel, chips): they rest as their own bubbles.
+    static let apart: CGFloat = 26
+    /// How far a bubble shrinks while it is home inside its parent.
+    static let homeScale: CGFloat = 0.72
+
+    /// A bubble leaving its parent: slow enough that the neck's stretch and snap read.
+    static func split(reduceMotion: Bool) -> Animation {
+        reduceMotion ? .easeOut(duration: 0.2) : .spring(duration: 0.62, bounce: 0.22)
+    }
+
+    /// A bubble going home. No bounce: a bounce would carry it out through the far side of its parent.
+    static func home(reduceMotion: Bool) -> Animation {
+        reduceMotion ? .easeIn(duration: 0.18) : .spring(duration: 0.5, bounce: 0)
+    }
+}
+
+/// A group of glass shapes that merge into one liquid surface. On iOS 26 it is a `GlassEffectContainer`; before
+/// that, and under Reduce Transparency, the shapes draw on their own and simply don't merge. `lift` adds the soft
+/// shadow liquid glass floats on in light mode.
+private struct PieceLiquidGroup<Content: View>: View {
+    var spacing: CGFloat = PieceLiquid.merge
+    var lift = true
+    @ViewBuilder var content: Content
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        container
+            .shadow(color: .black.opacity(lift && colorScheme == .light ? 0.07 : 0), radius: 18, y: 8)
+    }
+
+    @ViewBuilder private var container: some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26, *), !reduceTransparency {
+            GlassEffectContainer(spacing: spacing) { content }
+        } else {
+            content
+        }
+        #else
+        content
+        #endif
+    }
+}
+
+/// One liquid glass shape: Liquid Glass on iOS 26, carrying `tint` as a solid colour and swelling under a press when
+/// `interactive`; a frosted Material with a light rim and a soft shadow before that; a solid fill under Reduce
+/// Transparency.
+///
+/// The tint is painted inside clear glass rather than tinting the glass. Tinted glass in a group bleeds its colour
+/// through every neck as a smear, so a red button would glow into the white pill it is joined to; painted inside,
+/// the colour stays crisp to the shape's edge, the necks between shapes are clear glass, and a tint change animates
+/// like any colour (tinted glass snaps).
+private struct PieceLiquidSurface<S: Shape>: ViewModifier {
+    var shape: S
+    var tint: Color?
+    var interactive: Bool
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.pieceLiquidScale) private var scale
+
+    func body(content: Content) -> some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26, *), !reduceTransparency {
+            // Scaled as two parts, content and outline, about the same centre. A scaleEffect on a glass view inside a
+            // GlassEffectContainer shrinks the glass but leaves what it carries full size, pinned to its corner.
+            content
+                .background { shape.fill(tint ?? .clear) }
+                .scaleEffect(scale)
+                .glassEffect(glass, in: shape.scale(scale))
+        } else {
+            fallback(content).scaleEffect(scale)
+        }
+        #else
+        fallback(content).scaleEffect(scale)
+        #endif
+    }
+
+    #if compiler(>=6.2)
+    @available(iOS 26, *)
+    private var glass: Glass {
+        interactive ? Glass.regular.interactive() : .regular
+    }
+    #endif
+
+    private func fallback(_ content: Content) -> some View {
+        let dark = colorScheme == .dark
+        return content
+            .background {
+                if reduceTransparency {
+                    shape.fill(tint ?? (dark ? Color(white: 0.17) : Color(white: 0.97)))
+                } else {
+                    ZStack {
+                        shape.fill(.regularMaterial)
+                        if let tint { shape.fill(tint.opacity(0.88)) }
+                    }
+                }
+            }
+            .overlay { shape.stroke(Color.white.opacity(dark ? 0.14 : 0.7), lineWidth: 0.5) }
+            .shadow(color: .black.opacity(dark ? 0.32 : 0.08), radius: 10, y: 5)
+    }
+}
+
+private struct PieceLiquidScaleKey: EnvironmentKey {
+    static let defaultValue: CGFloat = 1
+}
+
+private extension EnvironmentValues {
+    /// How much the liquid shapes below are scaled, about their own centres. Nested scales multiply.
+    var pieceLiquidScale: CGFloat {
+        get { self[PieceLiquidScaleKey.self] }
+        set { self[PieceLiquidScaleKey.self] = newValue }
+    }
+}
+
+private extension View {
+    /// Draws this view on a liquid glass `shape`. Put it inside a `PieceLiquidGroup` so it can merge with its neighbours.
+    func pieceLiquid<S: Shape>(_ shape: S, tint: Color? = nil, interactive: Bool = true) -> some View {
+        modifier(PieceLiquidSurface(shape: shape, tint: tint, interactive: interactive))
+    }
+
+    /// Scales the liquid glass shapes in this view, content and outline together, about their own centres. Use it
+    /// instead of `scaleEffect` on a glass view (a press, a lift, a swell): inside a group a plain `scaleEffect` shrinks
+    /// the glass but leaves its content full size and off centre. Animates like any other value.
+    func pieceLiquidScale(_ scale: CGFloat) -> some View {
+        transformEnvironment(\.pieceLiquidScale) { $0 *= scale }
+    }
+}
+
+/// The press for a glass control: the same size-aware sink and lean as `piecePress`, applied through
+/// `pieceLiquidScale` so the glass and what it carries sink together (a plain scaleEffect on glass leaves the content
+/// behind). Put the glass inside what it presses: the label of a button, the view this modifies. Under Reduce Motion
+/// it shades instead of moving.
+private struct PieceLiquidPress: ViewModifier {
+    let pressed: Bool
+    var touch: CGPoint?
+    var depth: CGFloat = 2.5
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.colorScheme) private var colorScheme
+    @State private var size: CGSize = .zero
+    @State private var anchor: UnitPoint = .center
+
+    func body(content: Content) -> some View {
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        let scale = pressed && !reduceMotion ? PieceMotion.pressScale(for: size, depth: depth) : 1
+        // A scale about `anchor` is a scale about the centre plus this shift toward the anchor.
+        let lean = CGSize(width: (anchor.x - 0.5) * size.width * (1 - scale), height: (anchor.y - 0.5) * size.height * (1 - scale))
+        content
+            .onGeometryChange(for: CGSize.self) { $0.size } action: { size = $0 }
+            .brightness(pressed && reduceMotion ? (colorScheme == .dark ? 0.1 : -0.08) : 0)
+            .pieceLiquidScale(scale)
+            .offset(lean)
+            .animation(pressed ? motion.press : motion.release, value: pressed)
+            .onChange(of: pressed) { _, isPressed in
+                if isPressed { anchor = PieceMotion.pressAnchor(touch: touch, in: size) }
+            }
+            .onChange(of: touch) { _, touch in
+                if pressed, let touch { anchor = PieceMotion.pressAnchor(touch: touch, in: size) }
+            }
+    }
+}
+
+/// `PiecePressStyle` for glass buttons: the label (with its `.pieceLiquid` inside) sinks as one.
+private struct PieceLiquidPressStyle: ButtonStyle {
+    var depth: CGFloat = 2.5
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label.pieceLiquidPress(configuration.isPressed, depth: depth)
+    }
+}
+
+private extension View {
+    /// Sinks this view's glass while `pressed`, leaning toward `touch` (in this view's coordinates) when given.
+    func pieceLiquidPress(_ pressed: Bool, touch: CGPoint? = nil, depth: CGFloat = 2.5) -> some View {
+        modifier(PieceLiquidPress(pressed: pressed, touch: touch, depth: depth))
+    }
+}
+
+/// `piecePop` for glass: dips, swells past full size and lands each time `trigger` changes, on the same timings,
+/// through `pieceLiquidScale` so the glass and what it carries pop together. Driven from state rather than a
+/// keyframe animator, since the liquid scale can't be set from inside one. Still under Reduce Motion.
+private struct PieceLiquidPop: ViewModifier {
+    let trigger: AnyHashable
+    var amount: CGFloat = 0.08
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var scale: CGFloat = 1
+    @State private var run = 0
+
+    func body(content: Content) -> some View {
+        content
+            .pieceLiquidScale(scale)
+            .onChange(of: trigger) { _, _ in
+                guard !reduceMotion else { return }
+                run += 1
+                let mine = run
+                withAnimation(.easeInOut(duration: 0.08)) { scale = 1 - amount * 0.4 }
+                Task { @MainActor in
+                    try? await Task.sleep(for: .milliseconds(80))
+                    guard run == mine else { return }
+                    withAnimation(.spring(duration: 0.18, bounce: 0)) { scale = 1 + amount }
+                    try? await Task.sleep(for: .milliseconds(140))
+                    guard run == mine else { return }
+                    withAnimation(.spring(PieceMotion.expressive)) { scale = 1 }
+                }
+            }
+    }
+}
+
+private extension View {
+    /// Pops this view's glass each time `trigger` changes. Use a counter, never a Bool that can flip back before it fires.
+    func pieceLiquidPop(trigger: some Hashable & Sendable, amount: CGFloat = 0.08) -> some View {
+        modifier(PieceLiquidPop(trigger: AnyHashable(trigger), amount: amount))
+    }
+}
+
+/// The bud: how a bubble leaves and rejoins its parent, driven explicitly so every bubble shows the whole cycle.
+///
+/// A bubble is born at `home`, inside its parent, where the two glass shapes are one. It springs out to `rest`, and
+/// while it is inside the merge distance a neck holds it to the parent, thinning as it goes, until it snaps free.
+/// Going home it springs back on a spring with no bounce, the neck reaches out and re-forms, and only once it has
+/// melted all the way in is it removed. Both offsets are relative to where the bubble is laid out. Under Reduce
+/// Motion it stays at `rest`: its content fades and its glass closes in place.
+private struct PieceBud: ViewModifier {
+    var out: Bool
+    var rest: CGSize
+    var home: CGSize
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func body(content: Content) -> some View {
+        if reduceMotion {
+            // No travel. Inside a group glass ignores opacity, so the glass closes to nothing in place on the short
+            // Reduce Motion ease while its content fades; the opacity covers a bubble outside a group.
+            content
+                .pieceLiquidScale(out ? 1 : 0.001)
+                .opacity(out ? 1 : 0)
+                .offset(rest)
+        } else {
+            // The glass shrinks through `pieceLiquidScale`, never a plain scaleEffect (see there), then moves.
+            content
+                .pieceLiquidScale(out ? 1 : PieceLiquid.homeScale)
+                .offset(out ? rest : home)
+        }
+    }
+}
+
+/// A bubble's own content, on its own clock: gone the moment the bubble heads home, so it never rides over the
+/// parent's content, and arriving just after the bubble leaves.
+private struct PieceBudContent: ViewModifier {
+    var out: Bool
+
+    func body(content: Content) -> some View {
+        content
+            .blur(radius: out ? 0 : 6)
+            .opacity(out ? 1 : 0)
+            .animation(out ? .easeOut(duration: 0.3).delay(0.1) : .easeOut(duration: 0.14), value: out)
+    }
+}
+
+private extension View {
+    /// Places a bubble at `rest` while `out`, and at `home` (inside its parent, shrunk) while not.
+    func pieceBud(out: Bool, rest: CGSize = .zero, home: CGSize) -> some View {
+        modifier(PieceBud(out: out, rest: rest, home: home))
+    }
+
+    /// Hides a bubble's icon or label while it is home. Put it on the content, inside the glass.
+    func pieceBudContent(out: Bool) -> some View {
+        modifier(PieceBudContent(out: out))
+    }
+}
+
+/// Which bubbles exist and which are out. A bubble is added home with no animation, sent out on the next frame,
+/// and called home before it is removed, so it always melts in rather than fading. Keep one in `@State`.
+@MainActor @Observable
+private final class PieceBuds {
+    private(set) var present: [String] = []
+    private(set) var out: Set<String> = []
+    /// The latest call for each bubble. A bloom or gather that has been overtaken (a bubble sent home while it was
+    /// still waiting to go out, or called out again while melting) leaves that bubble alone.
+    @ObservationIgnored private var turn: [String: Int] = [:]
+
+    func contains(_ id: String) -> Bool { present.contains(id) }
+    func isOut(_ id: String) -> Bool { out.contains(id) }
+
+    private func claim(_ ids: [String]) -> [String: Int] {
+        var mine: [String: Int] = [:]
+        for id in ids {
+            let next = (turn[id] ?? 0) + 1
+            turn[id] = next
+            mine[id] = next
+        }
+        return mine
+    }
+
+    /// Puts bubbles straight out at rest with no motion: a view's first frame, or a state restored.
+    func place(_ ids: [String]) {
+        _ = claim(ids)
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) {
+            for id in ids where !present.contains(id) { present.append(id) }
+            out.formUnion(ids)
+        }
+    }
+
+    /// Adds bubbles home, then sends each out, `stagger` seconds apart, after an optional `delay`.
+    func bloom(_ ids: [String], reduceMotion: Bool, stagger: Double = 0.05, delay: Double = 0) async {
+        let mine = claim(ids)
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) {
+            for id in ids where !present.contains(id) { present.append(id) }
+        }
+        try? await Task.sleep(for: .milliseconds(24 + Int(max(delay, 0) * 1000)))
+        let split = PieceLiquid.split(reduceMotion: reduceMotion)
+        for (i, id) in ids.enumerated() where turn[id] == mine[id] {
+            withAnimation(split.delay(reduceMotion ? 0 : Double(i) * stagger)) { _ = out.insert(id) }
+        }
+    }
+
+    /// Calls bubbles home, last first, then removes them once they have melted in.
+    func gather(_ ids: [String], reduceMotion: Bool, stagger: Double = 0.04) async {
+        let mine = claim(ids)
+        let home = PieceLiquid.home(reduceMotion: reduceMotion)
+        for (i, id) in ids.reversed().enumerated() {
+            withAnimation(home.delay(reduceMotion ? 0 : Double(i) * stagger)) { _ = out.remove(id) }
+        }
+        try? await Task.sleep(for: .milliseconds(Int((0.52 + Double(ids.count) * stagger) * 1000)))
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) { present.removeAll { ids.contains($0) && !out.contains($0) && turn[$0] == mine[$0] } }
+    }
+}
+
+// swiftpieces-liquid: end

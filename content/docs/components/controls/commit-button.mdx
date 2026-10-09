@@ -1,25 +1,26 @@
 ---
 title: "Commit Button"
-description: "An async action button driven by one idle/loading/success/error/disabled phase: a signal capsule collapses to a spinning ring, closes it and blooms into a sage success block with a drawn check, or re-expands as a butter error block that shakes and doubles as retry."
+description: "A liquid glass async action button driven by one idle/loading/success/error/disabled phase: the signal glass capsule draws in around its label as a glass bubble buds out of its end carrying a spinning ring; on success the ring closes on a check and both turn sage, then the bubble melts home as the label morphs to its success title; an error morphs the label to the message on butter glass, turns the bubble into a retry and shakes."
 piece: "CommitButton"
 category: "controls"
 minIOSVersion: "17.0"
-version: "2.1.0"
+version: "2.3.0"
 tags: ["button","loading","success","error","async","haptics"]
 registryDependencies: []
 ---
 
 {/* GENERATED FILE. Edit registry/swift/controls/CommitButton.swift or CommitButton.mdx instead. */}
 
-Async action button whose whole lifecycle is one bound `phase`.
+Liquid glass async action button whose whole lifecycle is one bound `phase`. The capsule is glass, tinted for what it says: signal to act, sage once the work is done, butter on an error. While the work runs a glass bubble buds out of the capsule's end carrying the progress ring, joined to it by a liquid neck, and melts back in once the outcome has landed; on an error it stays out as the retry. The label morphs letter by letter from one message to the next.
 
 ## Notes
 
 - `phase` is a `Binding` so the button can return itself to `.idle` after the success hold (`successHold`, default 900ms); everything else is set by you: `.loading` in the action, `.success` or `.error("message")` when the work finishes.
-- States, all from `Style.standard`: idle is a signal capsule with dark ink; pressed squashes and darkens; loading collapses to a circle with an ink arc; success closes the arc, turns sage and draws the check, then, if you pass `successTitle` ("Saved"), blooms back into a sage capsule with an ink check disc; error re-expands as a butter block with an ink "!" disc, rolls the label to the message and shakes; disabled uses the raised color with muted ink.
-- Tapping in the error state fires the action again, so the message doubles as a retry (VoiceOver hears "Double tap to try again"). The button ignores taps while loading or succeeding without dimming.
-- `tint` and `errorTint` still work: they override the style fills and switch that state's ink to white. For full control pass a `Style` with your own fills, ink, height and font.
-- Reduce Motion crossfades the label, shortens the collapse and skips the shake offset; the haptics stay.
+- The button is liquid glass. Idle, it is a signal-tinted glass capsule with dark ink; pressed it sinks and the glass darkens a touch. Loading draws the capsule in around its label and buds a round glass bubble out of its end, joined to it by a liquid neck, carrying a signal arc that winds up from rest. Success lets the arc coast to rest as it closes into a ring while the capsule and the bubble turn sage, draws the check and pops it on the success haptic; then, if you pass `successTitle` ("Saved"), the bubble melts back into the capsule's end as the capsule opens to full width and the label morphs letter by letter into the title, a check beside it. Without a title the check stays in its bubble until the hold ends. An error opens the capsule back out on butter glass, morphs the label into the message, turns the bubble into a butter retry and shakes with the error haptic on the same beat. Disabled is clear glass with muted ink.
+- Tapping in the error state, on the label or on the retry bubble, fires the action again (VoiceOver hears "Double tap to try again"). The button ignores taps while loading or succeeding without dimming.
+- `collapses: false` keeps the capsule full width while it works and makes room for the bubble at its end instead of drawing in around the label.
+- `tint` and `errorTint` still work: they override the style's glass tints and switch that state's ink to white. For full control pass a `Style` with your own tints, ink, height and font. `disabledFill` no longer does anything: a disabled button is clear glass.
+- Motion uses the shared SwiftPieces springs: the capsule's width, tint and label change together and land with a small give, the bubble leaves on the bud's split spring and goes home with no bounce, its tint draining as it melts in, and only the mark pops. Under Reduce Motion the press darkens instead of sinking, the bubble fades in and out in place, the arc holds still and breathes in opacity while it works, labels cross-fade, and there is no pop or shake; colors, the check, the message and every haptic stay. Reduce Transparency draws the glass solid.
 - Need a slide-to-act confirmation with an amount and recipient? SwiftPieces Pro has the Send Money screen (`swipe-to-confirm`).
 
 ## Usage
@@ -34,13 +35,13 @@ CommitButtonExample().preferredColorScheme(.light)
 | --- | --- |
 | `title` | Idle label. |
 | `phase` | Bound `.idle`, `.loading`, `.success`, `.error(message)` or `.disabled`. The button returns itself to `.idle` after a success hold. |
-| `tint` | Overrides the style's fill while idle and loading, with white ink. `nil` uses `style.fill`. |
+| `tint` | Overrides the style's glass tint while idle and loading, with white ink. `nil` uses `style.fill`. |
 | `tintInk` | The ink on `tint`, for a tint white doesn't read on (an app's accent and its ink). `nil` is white. |
-| `errorTint` | Overrides the style's error fill, with white ink. `nil` uses `style.errorFill`. |
-| `successHold` | How long the success state stays before the label expands back. |
-| `successTitle` | Text shown beside the check on success, such as "Saved". `nil` keeps the success state a closed circle. |
-| `collapses` | Shrinks the capsule to its ring while it works (the default). `false` keeps it full width, the ring centred. |
-| `style` | Fills, ink, height and type. `.standard` is the house palette: signal, sage for success, butter for errors. |
+| `errorTint` | Overrides the style's error tint, with white ink. `nil` uses `style.errorFill`. |
+| `successHold` | How long the success state stays before the button returns to idle. |
+| `successTitle` | Text the label morphs to on success, such as "Saved", with a check beside it. `nil` keeps the check in its bubble until the hold ends. |
+| `collapses` | Draws the capsule in around its label while it works (the default), so the ring bubble buds out beside it. `false` keeps the capsule full width and makes room for the bubble at its end. |
+| `style` | Tints, ink, height and type. `.standard` is the house palette: signal, sage for success, butter for errors. |
 | `action` | Tap handler. Set `phase` to `.loading` inside it and to `.success` or `.error` when the work finishes. |
 
 ## Source
@@ -51,18 +52,23 @@ CommitButtonExample().preferredColorScheme(.light)
 ```swift title="CommitButton.swift"
 import SwiftUI
 
-/// Async action button whose whole lifecycle is one bound `phase`.
+/// Liquid glass async action button whose whole lifecycle is one bound `phase`.
+///
+/// The capsule is glass, tinted for what it says: signal to act, sage once the work is done, butter on an error. While
+/// the work runs a glass bubble buds out of the capsule's end carrying the progress ring, joined to it by a liquid
+/// neck, and melts back in once the outcome has landed; on an error it stays out as the retry. The label morphs letter
+/// by letter from one message to the next.
 ///
 /// - Parameters:
 ///   - title: Idle label.
 ///   - phase: Bound `.idle`, `.loading`, `.success`, `.error(message)` or `.disabled`. The button returns itself to `.idle` after a success hold.
-///   - tint: Overrides the style's fill while idle and loading, with white ink. `nil` uses `style.fill`.
+///   - tint: Overrides the style's glass tint while idle and loading, with white ink. `nil` uses `style.fill`.
 ///   - tintInk: The ink on `tint`, for a tint white doesn't read on (an app's accent and its ink). `nil` is white.
-///   - errorTint: Overrides the style's error fill, with white ink. `nil` uses `style.errorFill`.
-///   - successHold: How long the success state stays before the label expands back.
-///   - successTitle: Text shown beside the check on success, such as "Saved". `nil` keeps the success state a closed circle.
-///   - collapses: Shrinks the capsule to its ring while it works (the default). `false` keeps it full width, the ring centred.
-///   - style: Fills, ink, height and type. `.standard` is the house palette: signal, sage for success, butter for errors.
+///   - errorTint: Overrides the style's error tint, with white ink. `nil` uses `style.errorFill`.
+///   - successHold: How long the success state stays before the button returns to idle.
+///   - successTitle: Text the label morphs to on success, such as "Saved", with a check beside it. `nil` keeps the check in its bubble until the hold ends.
+///   - collapses: Draws the capsule in around its label while it works (the default), so the ring bubble buds out beside it. `false` keeps the capsule full width and makes room for the bubble at its end.
+///   - style: Tints, ink, height and type. `.standard` is the house palette: signal, sage for success, butter for errors.
 ///   - action: Tap handler. Set `phase` to `.loading` inside it and to `.success` or `.error` when the work finishes.
 public struct CommitButton: View {
     public enum Phase: Equatable {
@@ -71,25 +77,26 @@ public struct CommitButton: View {
         var isError: Bool { if case .error = self { return true } else { return false } }
     }
 
-    /// Colors and metrics for every phase. Colors adapt to light and dark.
+    /// Glass tints and metrics for every phase. Colors adapt to light and dark.
     public struct Style: Sendable {
-        /// Idle and loading fill: the primary action color.
+        /// The capsule's glass tint while idle and loading: the primary action color. It also colors the spinning arc.
         public var fill: Color
         /// Ink on `fill`, `successFill` and `errorFill`.
         public var ink: Color
-        /// Fill once the work succeeds.
+        /// The glass tint once the work succeeds, on the capsule and the ring bubble.
         public var successFill: Color
-        /// Fill while showing an error.
+        /// The glass tint while showing an error, on the capsule and the retry bubble.
         public var errorFill: Color
-        /// Fill and label color while `.disabled`.
+        /// Unused since the liquid glass refactor: a disabled button is clear glass. Kept so existing code still compiles.
         public var disabledFill: Color
+        /// Label color while `.disabled`.
         public var disabledInk: Color
-        /// Height of the capsule; the loading circle uses the same diameter. Never below 44.
+        /// Height of the capsule; the ring bubble uses the same diameter. Never below 44.
         public var height: CGFloat
         /// Label font.
         public var font: Font
 
-        public init(fill: Color = House.hex(0xFF5B3A), ink: Color = House.hex(0x141414), successFill: Color = House.hex(0xA9DCB7), errorFill: Color = House.hex(0xFFD976), disabledFill: Color = House.adaptive(light: 0xEAE8E2, dark: 0x262626), disabledInk: Color = House.adaptive(light: 0x8B8984, dark: 0x6F6D69), height: CGFloat = 56, font: Font = .body.weight(.semibold)) {
+        public init(fill: Color = House.hex(0xFF0000), ink: Color = House.hex(0x141414), successFill: Color = House.hex(0xA9DCB7), errorFill: Color = House.hex(0xFFD976), disabledFill: Color = House.adaptive(light: 0xEAE8E2, dark: 0x262626), disabledInk: Color = House.adaptive(light: 0x8B8984, dark: 0x6F6D69), height: CGFloat = 56, font: Font = .body.weight(.semibold)) {
             self.fill = fill
             self.ink = ink
             self.successFill = successFill
@@ -124,11 +131,21 @@ public struct CommitButton: View {
     @State private var ringClosed = false
     @State private var checkDrawn = false
     @State private var bloomed = false
+    /// The arc turns on the clock while `spinning`. `restAngle` is where it rests, and where a spin starts from.
+    @State private var spinning = false
+    @State private var spinStart: Date = .now
+    @State private var restAngle: Double = -90
+    /// Outcomes that have landed. The pop and the shake key off these.
+    @State private var pops = 0
     @State private var shakes = 0
     @State private var pressTicks = 0
     @State private var successTicks = 0
     @State private var errorTicks = 0
+    /// The outcome on its way in, until its haptic plays.
+    @State private var unfelt: Outcome?
     @State private var flow: Task<Void, Never>?
+    /// The bubble at the capsule's end: out while the work runs, while the outcome lands and as the retry.
+    @State private var buds = PieceBuds()
 
     private let title: String
     private let tint: Color?
@@ -154,20 +171,24 @@ public struct CommitButton: View {
         self._shownTitle = State(initialValue: title)
     }
 
-    /// Loading, and success until the check has drawn (or for good when there is no success title):
-    /// the ring shows.
+    /// Loading, and success until the label has bloomed into its success title (or for good when there is none):
+    /// the ring shows in its bubble.
     private var working: Bool {
         phase == .loading || (phase == .success && !(bloomed && successTitle != nil))
     }
 
-    /// Working, and set to shrink to the ring.
+    /// The bubble is out while the ring shows and while an error offers the retry.
+    private var bubbleWanted: Bool { working || phase.isError }
+
+    /// Working, and set to draw the capsule in around its label.
     private var collapsed: Bool { collapses && working }
 
-    private var fill: Color {
+    /// The capsule's glass tint: signal to act, sage once done, butter on an error, clear while disabled.
+    private var capsuleTint: Color? {
         switch phase {
         case .error: errorTint ?? style.errorFill
         case .success where ringClosed: style.successFill
-        case .disabled: style.disabledFill
+        case .disabled: nil
         default: tint ?? style.fill
         }
     }
@@ -181,125 +202,195 @@ public struct CommitButton: View {
         }
     }
 
+    /// The bubble's tint while it is out: clear glass around the spinning ring, sage once it closes, butter as the retry.
+    private var bubbleTint: Color? {
+        switch phase {
+        case .error: errorTint ?? style.errorFill
+        case .success where ringClosed: style.successFill
+        default: nil
+        }
+    }
+
+    /// The success title has taken over the label, with the check beside it.
+    private var showsCheck: Bool { phase == .success && bloomed && successTitle != nil }
+
     public var body: some View {
-        let shakeAllowed = !reduceMotion
         Button {
             pressTicks += 1
             action()
         } label: {
-            ZStack {
-                if working {
-                    ring.transition(.scale(scale: 0.6).combined(with: .opacity))
-                } else if phase == .success, let successTitle {
-                    HStack(spacing: 10) {
-                        checkDisc
-                        Text(successTitle).font(style.font).lineLimit(1)
-                    }
-                    .transition(.scale(scale: 0.8).combined(with: .opacity))
-                } else {
-                    HStack(spacing: 10) {
-                        if phase.isError {
-                            Image(systemName: "exclamationmark")
-                                .font(.caption.weight(.black))
-                                .foregroundStyle(errorTint ?? style.errorFill)
-                                .frame(width: 22, height: 22)
-                                .background(ink, in: Circle())
-                                .transition(.scale.combined(with: .opacity))
-                        }
-                        Text(shownTitle)
-                            .font(style.font)
-                            .lineLimit(1)
-                            .fixedSize()
-                            .id(shownTitle)
-                            .transition(reduceMotion ? .opacity : .push(from: .bottom).combined(with: .opacity))
-                    }
+            PieceLiquidGroup {
+                HStack(spacing: 0) {
+                    capsule
+                        // Above the slot, so the bubble melting home slips under the capsule's end.
+                        .zIndex(1)
+                    slot
                 }
             }
-            .foregroundStyle(ink)
-            .frame(height: style.height)
-            .frame(maxWidth: collapsed ? style.height : .infinity)
-            .padding(.horizontal, collapsed ? 0 : 28)
-            .background(fill, in: Capsule())
-            .clipShape(Capsule())
-            .contentShape(Capsule())
-            .animation(reduceMotion ? .smooth(duration: 0.2) : .snappy(duration: 0.38, extraBounce: 0.08), value: collapsed)
-            .animation(.snappy(duration: 0.3), value: shownTitle)
-            .animation(.smooth(duration: 0.3), value: phase)
-            .animation(.smooth(duration: 0.3), value: ringClosed)
+            // A capsule drawn in around its label stays centred where the full-width one was.
+            .frame(maxWidth: .infinity)
         }
-        .buttonStyle(Squash())
+        .buttonStyle(Press())
+        .fontWeight(.semibold)
         .disabled(working || phase == .success || phase == .disabled)
-        .keyframeAnimator(initialValue: 0.0, trigger: shakes) { content, x in
-            content.offset(x: shakeAllowed ? x : 0)
-        } keyframes: { _ in
-            // Three cycles, each smaller than the last.
-            CubicKeyframe(-10, duration: 0.06)
-            CubicKeyframe(9, duration: 0.06)
-            CubicKeyframe(-6, duration: 0.06)
-            CubicKeyframe(5, duration: 0.06)
-            CubicKeyframe(-2, duration: 0.06)
-            CubicKeyframe(0, duration: 0.06)
-        }
+        .pieceShake(trigger: shakes, distance: 10)
         .sensoryFeedback(.impact(flexibility: .soft), trigger: pressTicks)
         .sensoryFeedback(.success, trigger: successTicks)
         .sensoryFeedback(.error, trigger: errorTicks)
+        .onAppear {
+            if phase == .loading, !spinning { spin() }
+            if case .error(let message) = phase { shownTitle = message }
+            buds.place(bubbleWanted ? ["end"] : [])
+        }
         .onChange(of: phase) { _, new in respond(to: new) }
+        .onChange(of: bubbleWanted) { _, wanted in
+            Task {
+                if wanted {
+                    await buds.bloom(["end"], reduceMotion: reduceMotion)
+                } else {
+                    await buds.gather(["end"], reduceMotion: reduceMotion)
+                }
+            }
+        }
         .accessibilityLabel(title)
         .accessibilityValue(accessibilityValue)
         .accessibilityHint(phase.isError ? "Double tap to try again" : "")
     }
 
-    /// Spinning arc while loading; on success the arc closes into a full ring, then the check draws.
-    private var ring: some View {
-        TimelineView(.animation(paused: phase != .loading)) { context in
-            let angle = context.date.timeIntervalSinceReferenceDate.truncatingRemainder(dividingBy: 1.0) * 360
-            let side = style.height * 0.46
-            ZStack {
-                Circle().stroke(ink.opacity(0.22), lineWidth: 3)
-                Circle()
-                    .trim(from: 0, to: ringClosed ? 1 : 0.28)
-                    .stroke(ink, style: StrokeStyle(lineWidth: 3, lineCap: .round))
-                    .rotationEffect(.degrees(angle))
-                    .animation(.spring(duration: 0.4, bounce: 0), value: ringClosed)
-                Checkmark()
-                    .trim(from: 0, to: checkDrawn ? 1 : 0)
-                    .stroke(ink, style: StrokeStyle(lineWidth: 3, lineCap: .round, lineJoin: .round))
-                    .padding(side * 0.26)
-                    .animation(.spring(duration: 0.35, bounce: 0.1), value: checkDrawn)
+    /// The glass capsule and its label. It draws in around the label while it works and opens back to full width
+    /// with the outcome, its tint and label changing with it.
+    private var capsule: some View {
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        return HStack(spacing: 8) {
+            if showsCheck {
+                Image(systemName: "checkmark")
+                    .font(style.font)
+                    .transition(motion.swap)
             }
-            .frame(width: side, height: side)
+            PieceMorphText(text: shownTitle, font: style.font)
         }
+        .foregroundStyle(ink)
+        .lineLimit(1)
+        .padding(.horizontal, 28)
+        .frame(height: style.height)
+        .frame(maxWidth: collapsed ? nil : .infinity)
+        .background { PressShade() }
+        .pieceLiquid(Capsule(), tint: capsuleTint, interactive: false)
+        .contentShape(.capsule)
+        // Width, tint and label change together and land with the morph spring's small give.
+        .animation(motion.morph, value: collapsed)
+        .animation(motion.morph, value: shownTitle)
+        .animation(motion.morph, value: phase)
     }
 
-    /// The bloomed success mark: an ink disc with the check drawn in the success fill.
-    private var checkDisc: some View {
-        Checkmark()
-            .trim(from: 0, to: checkDrawn ? 1 : 0)
-            .stroke(style.successFill, style: StrokeStyle(lineWidth: 2.6, lineCap: .round, lineJoin: .round))
-            .padding(7)
-            .frame(width: 26, height: 26)
-            .background(style.ink, in: Circle())
+    /// The bubble's place at the capsule's end. It opens as the bubble buds out and closes as it melts home, on the
+    /// bubble's own spring, so the capsule gives it room and takes the room back as one liquid.
+    private var slot: some View {
+        let out = buds.isOut("end")
+        return Color.clear
+            .frame(width: out ? style.height + PieceLiquid.joined : 0, height: style.height)
+            .overlay(alignment: .trailing) {
+                if buds.contains("end") {
+                    bubble(out: out)
+                }
+            }
     }
 
+    /// The round bubble joined to the capsule's end. Home is the capsule's last stretch, shrunk, where the two are
+    /// one shape; out, it rests a neck's width beyond it. It carries the ring while the work runs and the retry
+    /// after an error.
+    private func bubble(out: Bool) -> some View {
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        return ZStack {
+            if phase.isError {
+                Image(systemName: "arrow.clockwise")
+                    .font(.system(size: style.height * 0.32, weight: .semibold))
+                    .foregroundStyle(errorTint == nil ? style.ink : .white)
+                    .transition(motion.swap)
+            } else {
+                ring
+                    // Only the mark pops as the check lands; the glass never swells.
+                    .piecePop(trigger: pops)
+                    .transition(motion.swap)
+            }
+        }
+        .animation(motion.morph, value: phase.isError)
+        .pieceBudContent(out: out)
+        .frame(width: style.height, height: style.height)
+        // Its tint drains as it melts, so it dissolves into the capsule instead of sitting on its label.
+        .pieceLiquid(Circle(), tint: out ? bubbleTint : nil, interactive: false)
+        .contentShape(.circle)
+        .pieceBud(out: out, home: .zero)
+        .animation(motion.morph, value: ringClosed)
+        .accessibilityHidden(true)
+    }
+
+    /// Spinning arc while loading; on success it coasts to rest as it closes into a full ring, then the check draws.
+    private var ring: some View {
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        let side = style.height * 0.46
+        // Copied out of state for the timeline, which re-runs its closure every frame while the arc turns or breathes.
+        let start = spinStart, rest = restAngle, closed = ringClosed
+        // The arc carries the action's color on clear glass, and the ink once the bubble turns sage.
+        let arcInk = closed ? style.ink : (tint ?? style.fill)
+        let turning = spinning && !reduceMotion
+        // Under Reduce Motion the arc holds still and breathes in opacity instead, so it still reads as working.
+        let breathing = spinning && reduceMotion
+        return ZStack {
+            Circle().stroke(closed ? style.ink.opacity(0.22) : Color.primary.opacity(0.14), lineWidth: 3)
+            TimelineView(.animation(paused: !turning && !breathing)) { context in
+                let t = context.date.timeIntervalSince(start)
+                Circle()
+                    .trim(from: 0, to: closed ? 1 : 0.28)
+                    .stroke(arcInk, style: StrokeStyle(lineWidth: 3, lineCap: .round))
+                    .rotationEffect(.degrees(turning ? rest + spun(t) : rest))
+                    .opacity(breathing ? breath(t) : 1)
+            }
+            Checkmark()
+                .trim(from: 0, to: checkDrawn ? 1 : 0)
+                .stroke(style.ink, style: StrokeStyle(lineWidth: 3, lineCap: .round, lineJoin: .round))
+                .padding(side * 0.26)
+                .animation(motion.reveal, value: checkDrawn)
+        }
+        .frame(width: side, height: side)
+    }
+
+    /// The choreography, in beats. Glass first (the capsule draws in, the bubble buds, the tint turns), then content
+    /// (the arc, the check, the label), then the outcome lands: its haptic with the pop or the shake, on one beat.
     private func respond(to phase: Phase) {
+        let motion = PieceMotion(reduceMotion: reduceMotion)
         flow?.cancel()
+        // An outcome left before it lands is still felt, once. A retry or another outcome brings its own feedback.
+        if let unfelt, phase == .idle || phase == .disabled { feel(unfelt) }
+        unfelt = nil
+        if phase == .loading { spin() } else { coast(motion) }
         switch phase {
         case .idle, .loading:
-            ringClosed = false
-            checkDrawn = false
+            // A ring still on screen (a retry set straight from success) reopens its arc rather than jumping.
+            withAnimation(motion.dismiss) {
+                ringClosed = false
+                checkDrawn = false
+            }
             bloomed = false
             shownTitle = title
         case .success:
+            // The arc coasts on as it closes, and the capsule and the bubble turn sage with it.
+            withAnimation(motion.morph) { ringClosed = true }
+            unfelt = .success
             flow = Task {
-                ringClosed = true
                 try? await Task.sleep(for: .milliseconds(reduceMotion ? 80 : 260))
                 guard !Task.isCancelled else { return }
                 checkDrawn = true
-                successTicks += 1
-                if successTitle != nil {
+                land(.success)
+                if let successTitle {
                     try? await Task.sleep(for: .milliseconds(reduceMotion ? 60 : 320))
                     guard !Task.isCancelled else { return }
-                    bloomed = true
+                    // The bubble melts home with its check as the label morphs to the success title, the check now
+                    // beside it, and the capsule opens back to full width.
+                    withAnimation(motion.morph) {
+                        bloomed = true
+                        shownTitle = successTitle
+                    }
                 }
                 try? await Task.sleep(for: successHold)
                 guard !Task.isCancelled, self.phase == .success else { return }
@@ -309,17 +400,72 @@ public struct CommitButton: View {
             ringClosed = false
             checkDrawn = false
             bloomed = false
-            errorTicks += 1
             shownTitle = message
+            unfelt = .failure
             flow = Task {
-                // Let the capsule re-expand before it shakes.
+                // Let the capsule open back out and the bubble turn into the retry, then the shake and its haptic land
+                // together.
                 try? await Task.sleep(for: .milliseconds(140))
                 guard !Task.isCancelled else { return }
-                shakes += 1
+                land(.failure)
             }
         case .disabled:
             break
         }
+    }
+
+    private enum Outcome { case success, failure }
+
+    /// The outcome lands: its haptic, and the pop or the shake.
+    private func land(_ outcome: Outcome) {
+        unfelt = nil
+        feel(outcome)
+        if outcome == .success { pops += 1 } else { shakes += 1 }
+    }
+
+    private func feel(_ outcome: Outcome) {
+        if outcome == .success { successTicks += 1 } else { errorTicks += 1 }
+    }
+
+    /// Starts the arc turning from where it rests.
+    private func spin() {
+        spinStart = .now
+        spinning = true
+    }
+
+    /// Lets a turning arc coast to rest at the speed it was turning, so it never stops dead.
+    private func coast(_ motion: PieceMotion) {
+        guard spinning else { return }
+        guard motion.allowsAmbient else {
+            withAnimation(motion.ambient) { spinning = false }
+            return
+        }
+        let t = Date.now.timeIntervalSince(spinStart)
+        let angle = restAngle + spun(t), speed = spinSpeed(t)
+        let rest = PieceMotion.project(angle, velocity: speed)
+        withAnimation(motion.settle(velocity: speed, from: angle, to: rest, spring: PieceMotion.calm)) {
+            spinning = false
+            restAngle = rest
+        }
+    }
+
+    /// A spin reaches its one turn a second from rest over about three of these, so the arc winds up.
+    private static let spinUp: Double = 0.15
+
+    /// Degrees turned `t` seconds into a spin that starts from rest.
+    private func spun(_ t: TimeInterval) -> Double {
+        let t = max(t, 0)
+        return 360 * (t - Self.spinUp * (1 - exp(-t / Self.spinUp)))
+    }
+
+    /// The spin's speed in degrees per second, `t` seconds in.
+    private func spinSpeed(_ t: TimeInterval) -> Double {
+        360 * (1 - exp(-max(t, 0) / Self.spinUp))
+    }
+
+    /// The still arc's opacity under Reduce Motion: a slow breath between full and 0.45 that starts at full.
+    private func breath(_ t: TimeInterval) -> Double {
+        0.725 + 0.275 * cos(2 * .pi * max(t, 0) / 1.2)
     }
 
     private var accessibilityValue: String {
@@ -343,17 +489,42 @@ public struct CommitButton: View {
         }
     }
 
-    /// Elastic press with a darken, kept private so the file stands alone. Loading and success are not dimmed like a normal disabled button.
-    private struct Squash: ButtonStyle {
+    /// The press darkens the capsule's glass a touch, in every mode. It reads the press from the button style, so
+    /// only the capsule darkens, never the bubble beside it.
+    private struct PressShade: View {
+        @Environment(\.commitButtonPressed) private var pressed
+        @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+        var body: some View {
+            let motion = PieceMotion(reduceMotion: reduceMotion)
+            Capsule()
+                .fill(.black.opacity(pressed ? 0.1 : 0))
+                .animation(pressed ? motion.press : motion.release, value: pressed)
+        }
+    }
+
+    /// The shared press, plus the capsule's darken. Loading and success are not dimmed like a normal disabled button.
+    private struct Press: ButtonStyle {
         @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
         func makeBody(configuration: Configuration) -> some View {
-            let pressed = configuration.isPressed
+            // Under Reduce Motion the press darkens instead of sinking: the shared press would brighten this glass
+            // in dark mode, the opposite of the darken.
             configuration.label
-                .overlay(Capsule().fill(.black.opacity(pressed ? 0.1 : 0)))
-                .scaleEffect(pressed && !reduceMotion ? 0.96 : 1)
-                .animation(pressed ? .spring(duration: 0.16, bounce: 0) : .snappy(duration: 0.36, extraBounce: 0.2), value: pressed)
+                .environment(\.commitButtonPressed, configuration.isPressed)
+                .piecePress(configuration.isPressed && !reduceMotion)
         }
+    }
+}
+
+private struct CommitButtonPressedKey: EnvironmentKey {
+    static let defaultValue = false
+}
+
+fileprivate extension EnvironmentValues {
+    var commitButtonPressed: Bool {
+        get { self[CommitButtonPressedKey.self] }
+        set { self[CommitButtonPressedKey.self] = newValue }
     }
 }
 
@@ -374,7 +545,6 @@ private struct CommitButtonExample: View {
                 phase = attempts.isMultiple(of: 2) ? .error("Couldn't save") : .success
             }
         }
-        .frame(maxWidth: .infinity)
         .frame(maxWidth: 340)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(House.adaptive(light: 0xF3F2EE, dark: 0x121212))
@@ -383,6 +553,511 @@ private struct CommitButtonExample: View {
 
 #Preview("Light") { CommitButtonExample().preferredColorScheme(.light) }
 #Preview("Dark") { CommitButtonExample().preferredColorScheme(.dark) }
+
+// MARK: - Piece motion
+//
+// The SwiftPieces motion language: shared spring tokens and gesture physics, with the same values in every
+// piece. Each piece carries a copy of only the parts it uses, so this file stands alone. Generated from
+// registry/foundation/PieceMotion.swift in the SwiftPieces repo; edit it there, not here.
+// swiftpieces-motion: 1.1.0 (core, momentum, pressMath, press, pop, shake)
+
+/// The SwiftPieces motion language: five spring tiers, and a named role for every moment a piece moves,
+/// each with its Reduce Motion substitute.
+///
+/// Build one from the environment, `PieceMotion(reduceMotion: reduceMotion)`, and pick the role that names
+/// what just happened. Never animate the tracking of a finger: set gesture state directly in `onChanged`, so the
+/// surface stays under the finger, and spring only the release.
+private struct PieceMotion {
+    var reduceMotion = false
+
+    // Tiers. Overshoot and settle times are measured from rest with SwiftUI's Spring.
+    /// No overshoot, 90% in about 90ms. A press arriving under the finger.
+    static var tight: Spring { Spring(duration: 0.14, bounce: 0) }
+    /// About 2.8% overshoot, 90% in about 140ms. Snapping to a detent, page or segment.
+    static var responsive: Spring { Spring(duration: 0.32, bounce: 0.25) }
+    /// About 8.4% overshoot. Visible give: a release, a return from past an edge, a drag settling home.
+    static var elastic: Spring { Spring(duration: 0.42, bounce: 0.38) }
+    /// About 15% overshoot. A resolved action landing. At most once per interaction.
+    static var expressive: Spring { Spring(duration: 0.48, bounce: 0.48) }
+    /// About 1.5% overshoot, unhurried. Opening large surfaces and ambient change.
+    static var calm: Spring { Spring(duration: 0.5, bounce: 0.2) }
+
+    /// Reduce Motion: settles become this short spring with no overshoot.
+    private static var still: Animation { .spring(duration: 0.25, bounce: 0) }
+
+    // Roles.
+    /// Touch-down. Starts on the same frame and never bounces under the finger.
+    var press: Animation { .spring(Self.tight) }
+    /// The finger lifts off a pressed surface, which springs back through rest.
+    var release: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A dragged thing comes to rest. With a gesture's velocity, use `settle(velocity:from:to:)` instead.
+    var settle: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// Lands on a detent, page or segment.
+    var snap: Animation { reduceMotion ? Self.still : .spring(Self.responsive) }
+    /// A number, a chart value or anything else people read moves to its new value. Never overshoots, so it
+    /// never shows a value that isn't true.
+    var value: Animation { reduceMotion ? Self.still : .spring(duration: 0.35, bounce: 0) }
+    /// Comes back from past a limit: a pull beyond the edge, a value pushed against its bound.
+    var rebound: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A shape or container changes size, corner radius or form, with a little give at the end.
+    var morph: Animation { reduceMotion ? Self.still : .spring(duration: 0.4, bounce: 0.2) }
+    /// Something appears, opens or expands. Opening is a little slower than closing.
+    var reveal: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.calm) }
+    /// Something leaves, closes or collapses. Quick and firm, out of the way.
+    var dismiss: Animation { reduceMotion ? .easeIn(duration: 0.18) : .spring(duration: 0.3, bounce: 0.08) }
+    /// A resolved action lands: a check, a sent state, a reaction.
+    var success: Animation { reduceMotion ? .easeOut(duration: 0.24) : .spring(Self.expressive) }
+    /// A refused action. Firm, no wobble; `pieceShake` adds the movement.
+    var error: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.responsive) }
+    /// Slow ambient change. Loops themselves stop under Reduce Motion: check `allowsAmbient`.
+    var ambient: Animation { reduceMotion ? .easeInOut(duration: 0.3) : .spring(Self.calm) }
+
+    /// Loops, drifts, idle breathing and parallax run only when this is true.
+    var allowsAmbient: Bool { !reduceMotion }
+
+    /// A moving transition, or a plain fade under Reduce Motion.
+    func transition(_ transition: AnyTransition) -> AnyTransition {
+        reduceMotion ? .opacity : transition
+    }
+
+    /// For content replaced inside a container that stays put (a label, a glyph, a count): the old content
+    /// blurs out as the new one sharpens in. A fade under Reduce Motion.
+    @MainActor var swap: AnyTransition {
+        reduceMotion ? .opacity : AnyTransition(.blurReplace)
+    }
+}
+
+extension PieceMotion {
+    /// Where a flick at `velocity` (pt/s) coasts to. 0.998 coasts like a scroll view; 0.99 suits detents.
+    nonisolated static func project(_ position: CGFloat, velocity: CGFloat, decelerationRate: CGFloat = 0.99) -> CGFloat {
+        position + velocity / 1000 * decelerationRate / (1 - decelerationRate)
+    }
+
+    /// The candidate closest to `value`.
+    nonisolated static func nearest(_ value: CGFloat, in candidates: [CGFloat]) -> CGFloat {
+        candidates.min { abs($0 - value) < abs($1 - value) } ?? value
+    }
+
+    /// A settle that leaves at the finger's speed (pt/s). One per axis, each on its own `.offset(x:)` / `.offset(y:)`:
+    /// a spring takes one velocity. SwiftUI's own velocity carry-over is unreliable; this always carries it.
+    func settle(velocity: CGFloat, from current: CGFloat, to target: CGFloat, spring: Spring = PieceMotion.elastic) -> Animation {
+        let spring = reduceMotion ? Spring(duration: 0.25, bounce: 0) : spring
+        let distance = target - current
+        guard abs(distance) >= 1 else { return .spring(spring) }
+        // In whole distances per second, capped near the spring's frequency: a hard flick adds give, not a slingshot.
+        // At exactly the frequency a critically damped spring cannot pass its target, so Reduce Motion stops there.
+        let cap = 2 * Double.pi / spring.duration * (reduceMotion ? 1 : 1.5)
+        let relative = min(max(Double(velocity / distance), -cap), cap)
+        return .interpolatingSpring(spring, initialVelocity: relative)
+    }
+}
+
+extension PieceMotion {
+    /// About `depth` points per edge, not a fixed percentage: an icon sinks to 0.92, a pill 0.95, a card 0.985.
+    nonisolated static func pressScale(for size: CGSize, depth: CGFloat = 2.5) -> CGFloat {
+        let side = (max(size.width, 1) * max(size.height, 1)).squareRoot()
+        return min(max(1 - depth * 2 / side, 0.92), 0.985)
+    }
+
+    /// An anchor partway from the center toward the touch, so the press leans into the finger without tipping.
+    nonisolated static func pressAnchor(touch: CGPoint?, in size: CGSize, lean: CGFloat = 0.6) -> UnitPoint {
+        guard let touch, size.width > 0, size.height > 0 else { return .center }
+        let x = min(max(touch.x / size.width, 0), 1)
+        let y = min(max(touch.y / size.height, 0), 1)
+        return UnitPoint(x: 0.5 + (x - 0.5) * lean, y: 0.5 + (y - 0.5) * lean)
+    }
+}
+
+/// Sinks on touch-down, leaning toward the touch if given, and springs back from the same lean. Under Reduce
+/// Motion it shades instead of moving (darker in light mode, lighter in dark), without turning transparent.
+private struct PiecePress: ViewModifier {
+    let pressed: Bool
+    var touch: CGPoint?
+    var depth: CGFloat = 2.5
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.colorScheme) private var colorScheme
+    @State private var size: CGSize = .zero
+    @State private var anchor: UnitPoint = .center
+
+    func body(content: Content) -> some View {
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        let scale = pressed && !reduceMotion ? PieceMotion.pressScale(for: size, depth: depth) : 1
+        content
+            .onGeometryChange(for: CGSize.self) { $0.size } action: { size = $0 }
+            .brightness(pressed && reduceMotion ? (colorScheme == .dark ? 0.1 : -0.08) : 0)
+            .scaleEffect(scale, anchor: anchor)
+            .animation(pressed ? motion.press : motion.release, value: pressed)
+            .onChange(of: pressed) { _, isPressed in
+                if isPressed { anchor = PieceMotion.pressAnchor(touch: touch, in: size) }
+            }
+            .onChange(of: touch) { _, touch in
+                if pressed, let touch { anchor = PieceMotion.pressAnchor(touch: touch, in: size) }
+            }
+    }
+}
+
+private extension View {
+    /// Sinks this view while `pressed`, leaning toward `touch` (in this view's coordinates) when given.
+    func piecePress(_ pressed: Bool, touch: CGPoint? = nil, depth: CGFloat = 2.5) -> some View {
+        modifier(PiecePress(pressed: pressed, touch: touch, depth: depth))
+    }
+}
+
+/// Anticipation, overshoot, settle: dips, swells past full size and lands each time `trigger` changes. Under
+/// Reduce Motion it stays still (same view, no identity change) and the color or symbol carries the meaning.
+private struct PiecePop: ViewModifier {
+    let trigger: AnyHashable
+    var amount: CGFloat = 0.08
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func body(content: Content) -> some View {
+        let amount = reduceMotion ? 0 : amount
+        content.keyframeAnimator(initialValue: CGFloat(1), trigger: trigger) { view, scale in
+            view.scaleEffect(scale)
+        } keyframes: { _ in
+            KeyframeTrack {
+                CubicKeyframe(1 - amount * 0.4, duration: 0.08)
+                SpringKeyframe(1 + amount, duration: 0.14, spring: Spring(duration: 0.18, bounce: 0))
+                SpringKeyframe(1, duration: 0.42, spring: PieceMotion.expressive)
+            }
+        }
+    }
+}
+
+private extension View {
+    /// Pops each time `trigger` changes. Use a counter, never a Bool that can flip back before it fires.
+    func piecePop(trigger: some Hashable & Sendable, amount: CGFloat = 0.08) -> some View {
+        modifier(PiecePop(trigger: AnyHashable(trigger), amount: amount))
+    }
+}
+
+/// A short decaying side-to-side shake for refused input, each time `trigger` changes. Under Reduce Motion it stays
+/// still (same view, no identity change): pair it with a color or message change and the error haptic.
+private struct PieceShake: ViewModifier {
+    let trigger: AnyHashable
+    var distance: CGFloat = 8
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func body(content: Content) -> some View {
+        let distance = reduceMotion ? 0 : distance
+        content.keyframeAnimator(initialValue: CGFloat(0), trigger: trigger) { view, x in
+            view.offset(x: x)
+        } keyframes: { _ in
+            KeyframeTrack {
+                CubicKeyframe(-distance, duration: 0.06)
+                CubicKeyframe(distance * 0.75, duration: 0.07)
+                CubicKeyframe(-distance * 0.5, duration: 0.07)
+                CubicKeyframe(distance * 0.25, duration: 0.06)
+                SpringKeyframe(0, duration: 0.12, spring: Spring(duration: 0.18, bounce: 0))
+            }
+        }
+    }
+}
+
+private extension View {
+    /// Shakes this view side to side once each time `trigger` changes, for input that was refused.
+    func pieceShake(trigger: some Hashable & Sendable, distance: CGFloat = 8) -> some View {
+        modifier(PieceShake(trigger: AnyHashable(trigger), distance: distance))
+    }
+}
+
+// swiftpieces-motion: end
+
+// MARK: - Piece liquid
+//
+// The SwiftPieces liquid glass language: glass shapes that merge through a neck, bubbles that bud out of
+// and melt back into each other, and the frosted fallback before iOS 26. Each piece carries a copy of only
+// the parts it uses, so this file stands alone. Generated from registry/foundation/PieceLiquid.swift in the
+// SwiftPieces repo; edit it there, not here. The rules are in LIQUID_GLASS.md.
+// swiftpieces-liquid: 1.7.0 (liquid, bud, morphText)
+
+/// The liquid glass language: one merge distance, two rest gaps, and the springs a bubble leaves and comes home on.
+///
+/// Glass shapes inside one `PieceLiquidGroup` melt into each other through a neck when they come within `merge`
+/// points. Parts of one control rest `joined`, inside that distance, so the neck holds; separate actions rest
+/// `apart`, outside it, so they only goo while one buds out of, or melts back into, another.
+private enum PieceLiquid {
+    /// Glass shapes closer than this share a neck.
+    static let merge: CGFloat = 20
+    /// The gap between parts of one control (a stepper's buttons, a progress pill and its stop): the neck holds,
+    /// short and smooth, about two thirds of the shapes' height at its waist. Joined parts read best at one height.
+    static let joined: CGFloat = 4
+    /// The gap between separate actions (menu items, confirm and cancel, chips): they rest as their own bubbles.
+    static let apart: CGFloat = 26
+    /// How far a bubble shrinks while it is home inside its parent.
+    static let homeScale: CGFloat = 0.72
+
+    /// A bubble leaving its parent: slow enough that the neck's stretch and snap read.
+    static func split(reduceMotion: Bool) -> Animation {
+        reduceMotion ? .easeOut(duration: 0.2) : .spring(duration: 0.62, bounce: 0.22)
+    }
+
+    /// A bubble going home. No bounce: a bounce would carry it out through the far side of its parent.
+    static func home(reduceMotion: Bool) -> Animation {
+        reduceMotion ? .easeIn(duration: 0.18) : .spring(duration: 0.5, bounce: 0)
+    }
+}
+
+/// A group of glass shapes that merge into one liquid surface. On iOS 26 it is a `GlassEffectContainer`; before
+/// that, and under Reduce Transparency, the shapes draw on their own and simply don't merge. `lift` adds the soft
+/// shadow liquid glass floats on in light mode.
+private struct PieceLiquidGroup<Content: View>: View {
+    var spacing: CGFloat = PieceLiquid.merge
+    var lift = true
+    @ViewBuilder var content: Content
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        container
+            .shadow(color: .black.opacity(lift && colorScheme == .light ? 0.07 : 0), radius: 18, y: 8)
+    }
+
+    @ViewBuilder private var container: some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26, *), !reduceTransparency {
+            GlassEffectContainer(spacing: spacing) { content }
+        } else {
+            content
+        }
+        #else
+        content
+        #endif
+    }
+}
+
+/// One liquid glass shape: Liquid Glass on iOS 26, carrying `tint` as a solid colour and swelling under a press when
+/// `interactive`; a frosted Material with a light rim and a soft shadow before that; a solid fill under Reduce
+/// Transparency.
+///
+/// The tint is painted inside clear glass rather than tinting the glass. Tinted glass in a group bleeds its colour
+/// through every neck as a smear, so a red button would glow into the white pill it is joined to; painted inside,
+/// the colour stays crisp to the shape's edge, the necks between shapes are clear glass, and a tint change animates
+/// like any colour (tinted glass snaps).
+private struct PieceLiquidSurface<S: Shape>: ViewModifier {
+    var shape: S
+    var tint: Color?
+    var interactive: Bool
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.pieceLiquidScale) private var scale
+
+    func body(content: Content) -> some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26, *), !reduceTransparency {
+            // Scaled as two parts, content and outline, about the same centre. A scaleEffect on a glass view inside a
+            // GlassEffectContainer shrinks the glass but leaves what it carries full size, pinned to its corner.
+            content
+                .background { shape.fill(tint ?? .clear) }
+                .scaleEffect(scale)
+                .glassEffect(glass, in: shape.scale(scale))
+        } else {
+            fallback(content).scaleEffect(scale)
+        }
+        #else
+        fallback(content).scaleEffect(scale)
+        #endif
+    }
+
+    #if compiler(>=6.2)
+    @available(iOS 26, *)
+    private var glass: Glass {
+        interactive ? Glass.regular.interactive() : .regular
+    }
+    #endif
+
+    private func fallback(_ content: Content) -> some View {
+        let dark = colorScheme == .dark
+        return content
+            .background {
+                if reduceTransparency {
+                    shape.fill(tint ?? (dark ? Color(white: 0.17) : Color(white: 0.97)))
+                } else {
+                    ZStack {
+                        shape.fill(.regularMaterial)
+                        if let tint { shape.fill(tint.opacity(0.88)) }
+                    }
+                }
+            }
+            .overlay { shape.stroke(Color.white.opacity(dark ? 0.14 : 0.7), lineWidth: 0.5) }
+            .shadow(color: .black.opacity(dark ? 0.32 : 0.08), radius: 10, y: 5)
+    }
+}
+
+private struct PieceLiquidScaleKey: EnvironmentKey {
+    static let defaultValue: CGFloat = 1
+}
+
+private extension EnvironmentValues {
+    /// How much the liquid shapes below are scaled, about their own centres. Nested scales multiply.
+    var pieceLiquidScale: CGFloat {
+        get { self[PieceLiquidScaleKey.self] }
+        set { self[PieceLiquidScaleKey.self] = newValue }
+    }
+}
+
+private extension View {
+    /// Draws this view on a liquid glass `shape`. Put it inside a `PieceLiquidGroup` so it can merge with its neighbours.
+    func pieceLiquid<S: Shape>(_ shape: S, tint: Color? = nil, interactive: Bool = true) -> some View {
+        modifier(PieceLiquidSurface(shape: shape, tint: tint, interactive: interactive))
+    }
+
+    /// Scales the liquid glass shapes in this view, content and outline together, about their own centres. Use it
+    /// instead of `scaleEffect` on a glass view (a press, a lift, a swell): inside a group a plain `scaleEffect` shrinks
+    /// the glass but leaves its content full size and off centre. Animates like any other value.
+    func pieceLiquidScale(_ scale: CGFloat) -> some View {
+        transformEnvironment(\.pieceLiquidScale) { $0 *= scale }
+    }
+}
+
+/// The bud: how a bubble leaves and rejoins its parent, driven explicitly so every bubble shows the whole cycle.
+///
+/// A bubble is born at `home`, inside its parent, where the two glass shapes are one. It springs out to `rest`, and
+/// while it is inside the merge distance a neck holds it to the parent, thinning as it goes, until it snaps free.
+/// Going home it springs back on a spring with no bounce, the neck reaches out and re-forms, and only once it has
+/// melted all the way in is it removed. Both offsets are relative to where the bubble is laid out. Under Reduce
+/// Motion it stays at `rest`: its content fades and its glass closes in place.
+private struct PieceBud: ViewModifier {
+    var out: Bool
+    var rest: CGSize
+    var home: CGSize
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func body(content: Content) -> some View {
+        if reduceMotion {
+            // No travel. Inside a group glass ignores opacity, so the glass closes to nothing in place on the short
+            // Reduce Motion ease while its content fades; the opacity covers a bubble outside a group.
+            content
+                .pieceLiquidScale(out ? 1 : 0.001)
+                .opacity(out ? 1 : 0)
+                .offset(rest)
+        } else {
+            // The glass shrinks through `pieceLiquidScale`, never a plain scaleEffect (see there), then moves.
+            content
+                .pieceLiquidScale(out ? 1 : PieceLiquid.homeScale)
+                .offset(out ? rest : home)
+        }
+    }
+}
+
+/// A bubble's own content, on its own clock: gone the moment the bubble heads home, so it never rides over the
+/// parent's content, and arriving just after the bubble leaves.
+private struct PieceBudContent: ViewModifier {
+    var out: Bool
+
+    func body(content: Content) -> some View {
+        content
+            .blur(radius: out ? 0 : 6)
+            .opacity(out ? 1 : 0)
+            .animation(out ? .easeOut(duration: 0.3).delay(0.1) : .easeOut(duration: 0.14), value: out)
+    }
+}
+
+private extension View {
+    /// Places a bubble at `rest` while `out`, and at `home` (inside its parent, shrunk) while not.
+    func pieceBud(out: Bool, rest: CGSize = .zero, home: CGSize) -> some View {
+        modifier(PieceBud(out: out, rest: rest, home: home))
+    }
+
+    /// Hides a bubble's icon or label while it is home. Put it on the content, inside the glass.
+    func pieceBudContent(out: Bool) -> some View {
+        modifier(PieceBudContent(out: out))
+    }
+}
+
+/// Which bubbles exist and which are out. A bubble is added home with no animation, sent out on the next frame,
+/// and called home before it is removed, so it always melts in rather than fading. Keep one in `@State`.
+@MainActor @Observable
+private final class PieceBuds {
+    private(set) var present: [String] = []
+    private(set) var out: Set<String> = []
+    /// The latest call for each bubble. A bloom or gather that has been overtaken (a bubble sent home while it was
+    /// still waiting to go out, or called out again while melting) leaves that bubble alone.
+    @ObservationIgnored private var turn: [String: Int] = [:]
+
+    func contains(_ id: String) -> Bool { present.contains(id) }
+    func isOut(_ id: String) -> Bool { out.contains(id) }
+
+    private func claim(_ ids: [String]) -> [String: Int] {
+        var mine: [String: Int] = [:]
+        for id in ids {
+            let next = (turn[id] ?? 0) + 1
+            turn[id] = next
+            mine[id] = next
+        }
+        return mine
+    }
+
+    /// Puts bubbles straight out at rest with no motion: a view's first frame, or a state restored.
+    func place(_ ids: [String]) {
+        _ = claim(ids)
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) {
+            for id in ids where !present.contains(id) { present.append(id) }
+            out.formUnion(ids)
+        }
+    }
+
+    /// Adds bubbles home, then sends each out, `stagger` seconds apart, after an optional `delay`.
+    func bloom(_ ids: [String], reduceMotion: Bool, stagger: Double = 0.05, delay: Double = 0) async {
+        let mine = claim(ids)
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) {
+            for id in ids where !present.contains(id) { present.append(id) }
+        }
+        try? await Task.sleep(for: .milliseconds(24 + Int(max(delay, 0) * 1000)))
+        let split = PieceLiquid.split(reduceMotion: reduceMotion)
+        for (i, id) in ids.enumerated() where turn[id] == mine[id] {
+            withAnimation(split.delay(reduceMotion ? 0 : Double(i) * stagger)) { _ = out.insert(id) }
+        }
+    }
+
+    /// Calls bubbles home, last first, then removes them once they have melted in.
+    func gather(_ ids: [String], reduceMotion: Bool, stagger: Double = 0.04) async {
+        let mine = claim(ids)
+        let home = PieceLiquid.home(reduceMotion: reduceMotion)
+        for (i, id) in ids.reversed().enumerated() {
+            withAnimation(home.delay(reduceMotion ? 0 : Double(i) * stagger)) { _ = out.remove(id) }
+        }
+        try? await Task.sleep(for: .milliseconds(Int((0.52 + Double(ids.count) * stagger) * 1000)))
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) { present.removeAll { ids.contains($0) && !out.contains($0) && turn[$0] == mine[$0] } }
+    }
+}
+
+/// A label that changes letter by letter: letters both strings share hold still, the rest blur out and the new ones
+/// blur in a few milliseconds apart. Under Reduce Motion it cross-fades. VoiceOver reads the whole string.
+private struct PieceMorphText: View {
+    var text: String
+    var font: Font = .body.weight(.semibold)
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        let glyphs = Array(text)
+        HStack(spacing: 0) {
+            ForEach(glyphs.indices, id: \.self) { i in
+                Text(String(glyphs[i]))
+                    .id("\(i)\(glyphs[i])")
+                    .transition(transition(i))
+            }
+        }
+        .font(font)
+        .fixedSize()
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(text)
+    }
+
+    private func transition(_ i: Int) -> AnyTransition {
+        guard !reduceMotion else { return .opacity }
+        return AnyTransition(.blurReplace(.downUp)).combined(with: .scale(scale: 0.6, anchor: .bottom))
+            .animation(.spring(duration: 0.42, bounce: 0.3).delay(Double(i) * 0.022))
+    }
+}
+
+// swiftpieces-liquid: end
 ```
 
 </Tab>

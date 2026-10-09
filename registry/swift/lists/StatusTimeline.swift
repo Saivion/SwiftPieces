@@ -1,21 +1,24 @@
 // swiftpieces:
 // title: Status Timeline
-// description: A vertical status timeline where the live step becomes a solid color block, connectors draw in as steps complete, nodes morph from number to check, the current node breathes, and any step expands to show its detail.
+// description: "A vertical status timeline on liquid glass nodes: the live node is tinted and breathes, completed ones stamp to a tinted check as the ink runs down the line to the next stop, and a step's detail buds out of its node as a glass panel joined to it, melting back in as the relay moves on."
 // category: lists
 // minIOSVersion: "17.0"
-// version: "2.0.1"
-// tags: [timeline, status, tracking, progress, steps, blocks]
+// version: "2.2.0"
+// tags: [timeline, status, tracking, progress, steps, glass]
 
 import SwiftUI
 import UIKit
 
 /// Vertical timeline for order tracking, delivery, or verification flows.
 ///
+/// Each step's node is a liquid glass bubble, tinted by its status. An open step's detail sits on a glass panel that
+/// buds out of its node and rests joined to it by a liquid neck, so the node and its detail read as one shape.
+///
 /// - Parameters:
 ///   - steps: Steps in order, each with a title, optional detail and timestamp, and a status.
-///   - tint: Block color for the current step and completed nodes. `nil` uses `style.current` and `style.complete`.
+///   - tint: Glass tint for the current step and completed nodes. `nil` uses `style.current` and `style.complete`.
 ///   - expandsCurrent: Start with the current step expanded.
-///   - style: Block colors, text colors, connector and surface. Defaults to the house palette.
+///   - style: Tints, text colors and connector. Defaults to the house palette.
 public struct StatusTimeline: View {
     public enum Status: Equatable { case pending, current, complete, failed }
 
@@ -37,8 +40,22 @@ public struct StatusTimeline: View {
     }
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    /// Row state is keyed by `Mark.key`, so a repeated title never shares a slot.
     @State private var expanded: String? = nil
+    /// Complete steps as of the last change, so the expanded detail follows the live step only when it moves on.
+    /// -1 while a relay that was cut short still owes that follow.
     @State private var completed = 0
+    /// The status each row draws. It changes inside the relay, never ahead of the data, so a stop lights only when
+    /// the ink reaches it. A row missing from here draws its own status.
+    @State private var shown: [String: Status] = [:]
+    /// Landings per row, so the pop or the shake plays on the node that landed.
+    @State private var stamps: [String: Int] = [:]
+    @State private var strikes: [String: Int] = [:]
+    /// One haptic per change and outcome, played as it lands.
+    @State private var successes = 0
+    @State private var failures = 0
+    /// The detail panels, keyed like `expanded`: out of their nodes while open, melted back in as they close.
+    @State private var buds = PieceBuds()
 
     private let steps: [Step]
     private let tint: Color?
@@ -47,6 +64,17 @@ public struct StatusTimeline: View {
 
     private let node: CGFloat = 30
     private let column: CGFloat = 44
+    /// How far the node sits below the top of its row, level with the title.
+    private let nodeTop: CGFloat = 9
+    private let panelRadius: CGFloat = 20
+
+    /// The relay's beats, in seconds from the step that completes. Its number leaves and its check starts to draw a
+    /// beat later; the stamp lands with its haptic; the ink leaves down the line and runs on a clock, so the next stop
+    /// can light exactly as the ink reaches it; that stop's detail opens a beat after it lights.
+    private let beat = 0.1
+    private let stampLands = 0.22
+    private let inkLeaves = 0.2
+    private let inkRuns = 0.4
 
     public init(steps: [Step], tint: Color? = nil, expandsCurrent: Bool = true, style: Style = .standard) {
         self.steps = steps
@@ -55,59 +83,174 @@ public struct StatusTimeline: View {
         self.style = style
     }
 
-    private var spring: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(duration: 0.45, bounce: 0.15) }
     private var currentBlock: Color { tint ?? style.current }
     private var completeBlock: Color { tint ?? style.complete }
 
     public var body: some View {
+        let trail = self.trail
         VStack(spacing: 0) {
-            ForEach(Array(steps.enumerated()), id: \.element.id) { index, step in
-                row(step, at: index)
+            ForEach(Array(trail.enumerated()), id: \.element.key) { index, mark in
+                row(steps[index], at: index, key: mark.key)
             }
         }
-        .animation(.easeInOut(duration: 0.45), value: completedCount)
-        .animation(spring, value: statuses)
+        .fontWeight(.semibold)
         .onAppear {
+            // Appearing shows the trail as it stands, without replaying the relay or its haptics. If the live step
+            // moved on while the timeline was off screen, the detail follows it here instead.
+            if expandsCurrent, expanded == nil || completed != completedCount {
+                expanded = trail.first { $0.status == .current }?.key
+            }
             completed = completedCount
-            if expandsCurrent, expanded == nil { expanded = steps.first { $0.status == .current }?.id }
+            shown = actual
+            // The open panel is simply there on the first frame; it buds only when a step opens.
+            if let expanded { buds.place([expanded]) }
         }
-        .onChange(of: completedCount) { _, count in advance(to: count) }
-        .sensoryFeedback(.success, trigger: completed) { old, new in new > old }
-        .sensoryFeedback(.error, trigger: failedCount) { old, new in new > old }
+        // The panel follows the open step: the one closing melts into its node as the one opening buds out of its own.
+        .onChange(of: expanded) { old, new in
+            if let old { Task { await buds.gather([old], reduceMotion: reduceMotion) } }
+            if let new { Task { await buds.bloom([new], reduceMotion: reduceMotion) } }
+        }
+        // Keys as well as statuses, so a list that shifts or renames its steps never keeps a stale drawing.
+        .task(id: trail) { await relay() }
+        .sensoryFeedback(.success, trigger: successes)
+        .sensoryFeedback(.error, trigger: failures)
         .accessibilityElement(children: .contain)
         .accessibilityLabel("Status timeline")
         .accessibilityValue("\(completedCount) of \(steps.count) complete")
     }
 
-    private var statuses: [Status] { steps.map { $0.status } }
+    private var completedCount: Int { steps.filter { $0.status == .complete }.count }
 
-    /// The live step moved on: follow it with the expanded detail.
-    private func advance(to count: Int) {
-        completed = count
-        guard expandsCurrent else { return }
-        let next: String? = steps.first(where: { $0.status == .current })?.id
-        withAnimation(spring) { expanded = next }
+    /// A row as the relay sees it.
+    private struct Mark: Equatable {
+        let key: String
+        let status: Status
     }
 
-    private var completedCount: Int { steps.filter { $0.status == .complete }.count }
-    private var failedCount: Int { steps.filter { $0.status == .failed }.count }
+    /// Every row in order. A key is the step's id, numbered from its second appearance on, so a moved step keeps
+    /// its key and a repeated title gets its own.
+    private var trail: [Mark] {
+        var seen: [String: Int] = [:]
+        return steps.map { step in
+            let n = seen[step.id, default: 0]
+            seen[step.id] = n + 1
+            return Mark(key: n == 0 ? step.id : "\(step.id)\u{1F}\(n)", status: step.status)
+        }
+    }
+
+    /// Every row's own status, by key.
+    private var actual: [String: Status] {
+        var statuses: [String: Status] = [:]
+        for mark in trail { statuses[mark.key] = mark.status }
+        return statuses
+    }
+
+    /// The status a row draws: behind its data while the relay carries the change down to it.
+    private func drawn(_ step: Step, key: String) -> Status { shown[key] ?? step.status }
+
+    // MARK: Relay
+
+    /// Plays a status change down the trail as a relay. A step that completes stamps its check, the ink runs down its
+    /// line, and the step below takes its new status only as the ink reaches it. Other changes land at once. A newer
+    /// change cancels this one and carries on from what is drawn.
+    private func relay() async {
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        let trail = self.trail
+        // How many lines of fresh ink each changed row waits for: one more than the row above when that row
+        // completes in this same change. Unchanged and new rows are nil; they already draw their own status.
+        var hops: [Int?] = []
+        for (i, mark) in trail.enumerated() {
+            guard let was = shown[mark.key], was != mark.status else { hops.append(nil); continue }
+            if i > 0, let above = hops[i - 1], trail[i - 1].status == .complete { hops.append(above + 1) } else { hops.append(0) }
+        }
+        // Completing three or more steps at once is catching up, not a hand-off, so it lands in one beat, as every
+        // change does under Reduce Motion. Fewer completions keep the relay to three legs at most.
+        let completing = trail.indices.filter { hops[$0] != nil && trail[$0].status == .complete }.count
+        if reduceMotion || completing >= 3 { hops = hops.map { $0.map { _ in 0 } } }
+        let last = hops.compactMap { $0 }.max() ?? 0
+        let leg = inkLeaves + inkRuns * 0.85
+        let done = trail.filter { $0.status == .complete }.count
+        let follows = expandsCurrent && done != completed
+        completed = done
+        // The live step, whose detail opens once it lights.
+        let live = trail.firstIndex { $0.status == .current }.map { trail[$0].key }
+        let opensAt = trail.firstIndex { $0.status == .current }.flatMap { hops[$0] } ?? 0
+        let origin = ContinuousClock.now
+        // Applied outcomes whose haptic has not played yet, and outcomes this change has already played.
+        var owed = (success: false, failure: false)
+        var felt = (success: false, failure: false)
+
+        /// Waits until `time` seconds into the relay. False once a newer change, or leaving the screen, cancels it.
+        func reach(_ time: Double) async -> Bool {
+            try? await Task.sleep(until: origin + .seconds(time))
+            return !Task.isCancelled
+        }
+
+        hop: for h in 0...last {
+            let start = Double(h) * leg
+            if h > 0 { guard await reach(start) else { break hop } }
+            let group = trail.indices.filter { hops[$0] == h }
+            // Hop 0 morphs in place; later hops light as the ink arrives. At hop 0 the detail moves in the same
+            // transaction: the open one closes as its step stamps, and a live step lit here opens at once (always, under
+            // Reduce Motion), so the rows reflow once. A title restyled in one transaction while its row reflows in
+            // another jumps to where it lands instead of riding along.
+            withAnimation(h == 0 ? motion.morph : motion.reveal) {
+                for i in group { shown[trail[i].key] = trail[i].status }
+                if h == 0, follows, expanded != live { expanded = opensAt == 0 ? live : nil }
+            }
+            let stamped = group.filter { trail[$0].status == .complete }.map { trail[$0].key }
+            let struck = group.filter { trail[$0].status == .failed }.map { trail[$0].key }
+            if !stamped.isEmpty, !felt.success { owed.success = true }
+            if !struck.isEmpty, !felt.failure { owed.failure = true }
+            // A live step the ink lights opens its detail a beat later.
+            if follows, h > 0, opensAt == h, let live {
+                guard await reach(start + beat) else { break hop }
+                withAnimation(motion.reveal) { expanded = live }
+            }
+            guard !stamped.isEmpty || !struck.isEmpty else { continue }
+            // The stamp lands: the pop or the shake, and the change's haptic on the same beat.
+            guard await reach(start + stampLands) else { break hop }
+            for id in stamped { stamps[id, default: 0] += 1 }
+            for id in struck { strikes[id, default: 0] += 1 }
+            if owed.success { successes += 1; owed.success = false; felt.success = true }
+            if owed.failure { failures += 1; owed.failure = false; felt.failure = true }
+        }
+
+        guard !Task.isCancelled else {
+            // Cut short: an outcome already drawn still plays its haptic, once and at once, without the pop or shake.
+            // The newer relay takes over from what is drawn, and the detail this one still owed follows the live step
+            // with it, or on reappearing, rather than moving now under the newer relay's restyle.
+            if owed.success { successes += 1 }
+            if owed.failure { failures += 1 }
+            if follows, expanded != live { completed = -1 }
+            return
+        }
+        // Landed: every step draws its own status again.
+        shown = actual
+    }
 
     // MARK: Row
 
-    private func row(_ step: Step, at index: Int) -> some View {
-        let isLast = index == steps.count - 1
-        let isExpanded = expanded == step.id && step.detail != nil
-        let isCurrent = step.status == .current
-        let isFailed = step.status == .failed
-        let block: Color? = isCurrent ? currentBlock : isFailed ? style.failed : nil
-        let ink = block == nil ? (step.status == .pending ? style.muted : style.text) : style.ink
+    /// The gap between the node column and the text, so an open row's panel rests a neck's width from its node.
+    private var textGap: CGFloat { PieceLiquid.joined - (column - node) / 2 }
 
-        return HStack(alignment: .top, spacing: 6) {
+    private func row(_ step: Step, at index: Int, key: String) -> some View {
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        let status = drawn(step, key: key)
+        let isLast = index == steps.count - 1
+        let isExpanded = expanded == key && step.detail != nil
+        // Text reads in ink while it sits on a tinted panel: the live step's, or a failed one's.
+        let panelTint = self.panelTint(status)
+        let onTint = panelTint != nil && buds.isOut(key)
+        let ink = onTint ? style.ink : status == .pending ? style.muted : style.text
+        let bottom: CGFloat = isLast ? 0 : 4
+
+        return HStack(alignment: .top, spacing: textGap) {
             VStack(spacing: 0) {
-                nodeView(step, number: index + 1)
-                    .padding(.top, 9)
+                nodeMark(key: key, status: status, number: index + 1)
+                    .padding(.top, nodeTop)
                 if !isLast {
-                    connector(after: step)
+                    connector(status: status)
                         .frame(maxHeight: .infinity)
                 }
             }
@@ -116,105 +259,166 @@ public struct StatusTimeline: View {
             VStack(alignment: .leading, spacing: 8) {
                 HStack(alignment: .firstTextBaseline, spacing: 8) {
                     Text(step.title)
-                        .font(.body.weight(block == nil ? (step.status == .complete ? .medium : .regular) : .semibold))
+                        .font(.body.weight(.semibold))
                         .foregroundStyle(ink)
                         .fixedSize(horizontal: false, vertical: true)
                     Spacer(minLength: 8)
                     if let timestamp = step.timestamp {
                         Text(timestamp)
-                            .font(.footnote.weight(.medium))
+                            .font(.footnote.weight(.semibold))
                             .monospacedDigit()
-                            .foregroundStyle(block == nil ? style.muted : style.ink.opacity(0.7))
+                            .foregroundStyle(onTint ? style.ink.opacity(0.7) : style.muted)
                     }
                     if step.detail != nil {
                         Image(systemName: "chevron.down")
-                            .font(.caption.weight(.bold))
-                            .foregroundStyle(block == nil ? style.muted : style.ink)
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(onTint ? style.ink : style.muted)
                             .rotationEffect(.degrees(isExpanded ? -180 : 0))
                     }
                 }
                 if isExpanded, let detail = step.detail {
                     Text(detail)
                         .font(.subheadline)
-                        .foregroundStyle(block == nil ? style.muted : style.ink.opacity(0.78))
+                        .foregroundStyle(onTint ? style.ink.opacity(0.78) : style.muted)
                         .fixedSize(horizontal: false, vertical: true)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(block == nil ? 12 : 0)
-                        .background {
-                            if block == nil { RoundedRectangle(cornerRadius: 12, style: .continuous).fill(style.surface) }
-                        }
-                        .transition(.opacity.combined(with: .move(edge: .top)))
+                        // The panel's content: hidden while it is home in the node, arriving just after it leaves.
+                        .pieceBudContent(out: buds.isOut(key))
+                        .transition(motion.swap)
                 }
             }
             .padding(.horizontal, 14)
             .padding(.vertical, 12)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background {
-                if let block {
-                    RoundedRectangle(cornerRadius: 18, style: .continuous)
-                        .fill(block)
-                        .transition(.opacity.combined(with: .scale(scale: 0.96, anchor: .leading)))
-                }
-            }
-            .padding(.bottom, isLast ? 0 : 4)
+            // The opening row reveals its detail as it grows, so text never shows past the panel's edge.
+            .clipShape(.rect(cornerRadius: panelRadius, style: .continuous))
+            .padding(.bottom, bottom)
         }
         // Rows hug their content; the connector stretches only to the row's own height.
         .fixedSize(horizontal: false, vertical: true)
+        // The row's glass sits under everything: a glass group draws its shapes above whatever else it holds, so the
+        // text and the node's mark stay outside it, on top.
+        .background(alignment: .topLeading) {
+            GeometryReader { proxy in
+                glass(key: key, status: status, hasDetail: step.detail != nil, tint: panelTint, size: proxy.size, bottom: bottom)
+            }
+        }
         .contentShape(.rect)
         .onTapGesture {
             guard step.detail != nil else { return }
-            withAnimation(spring) { expanded = isExpanded ? nil : step.id }
+            // Opening is a little slower than closing.
+            withAnimation(isExpanded ? motion.dismiss : motion.reveal) { expanded = isExpanded ? nil : key }
         }
         .accessibilityElement(children: .combine)
+        // The real status at once, never the relay's delayed drawing of it.
         .accessibilityValue(statusName(step.status))
         .accessibilityAddTraits(step.detail == nil ? [] : .isButton)
         .accessibilityHint(step.detail == nil ? "" : (isExpanded ? "Collapses detail" : "Expands detail"))
     }
 
-    // MARK: Node
+    /// A row's glass, in a liquid group of its own: the node bubble, and the panel behind the text while the row is
+    /// open. Each row has its own group, so a node holds its own panel and never its neighbour, which in short rows
+    /// sits closer than the merge distance.
+    private func glass(key: String, status: Status, hasDetail: Bool, tint: Color?, size: CGSize, bottom: CGFloat) -> some View {
+        let text = CGRect(x: column + textGap, y: 0, width: max(size.width - column - textGap, 0), height: max(size.height - bottom, 0))
+        return PieceLiquidGroup {
+            ZStack(alignment: .topLeading) {
+                if hasDetail, buds.contains(key) {
+                    panel(key: key, tint: tint, size: text.size)
+                        .offset(x: text.minX, y: text.minY)
+                }
+                nodeBubble(key: key, status: status)
+                    .offset(x: (column - node) / 2, y: nodeTop)
+            }
+            .frame(width: size.width, height: size.height, alignment: .topLeading)
+        }
+    }
 
-    private func nodeView(_ step: Step, number: Int) -> some View {
-        let fill: Color? = switch step.status {
-        case .complete: completeBlock
+    /// The glass behind an open row's text. It buds out of the row's node and rests joined to it; closing, it melts
+    /// back into the node. Home, it is a small round blob well inside the node, so the two are one shape; it grows out
+    /// of there into the panel by its frame, never a scale, which would leave the glass behind. A tinted panel holds its
+    /// tint only while out, so the color drains as it melts. Under Reduce Motion it waits at full size and fades.
+    private func panel(key: String, tint: Color?, size: CGSize) -> some View {
+        let out = buds.isOut(key)
+        let full = out || reduceMotion
+        let side = node * 0.6
+        let center = CGPoint(x: -(textGap + node / 2), y: nodeTop + node / 2)
+        return Color.clear
+            .frame(width: full ? size.width : side, height: full ? size.height : side)
+            .pieceLiquid(RoundedRectangle(cornerRadius: panelRadius, style: .continuous), tint: out ? tint : nil, interactive: false)
+            .offset(x: full ? 0 : center.x - side / 2, y: full ? 0 : center.y - side / 2)
+            .opacity(reduceMotion && !out ? 0 : 1)
+            .frame(width: size.width, height: size.height, alignment: .topLeading)
+    }
+
+    /// The tint an open row's panel takes: the live color for the current step, the warning color for a failed one.
+    private func panelTint(_ status: Status) -> Color? {
+        switch status {
         case .current: currentBlock
         case .failed: style.failed
-        case .pending: nil
+        case .pending, .complete: nil
         }
+    }
+
+    // MARK: Node
+
+    /// The glass tint a status gives its node: the live color while it is current, the success color once it stamps and
+    /// the warning color if it fails. Pending, it is clear glass.
+    private func nodeTint(_ status: Status) -> Color? {
+        switch status {
+        case .pending: nil
+        case .current: currentBlock
+        case .complete: completeBlock
+        case .failed: style.failed
+        }
+    }
+
+    /// A node's glass bubble, in the row's glass layer. It pops and shakes with its mark, on the same triggers and timings.
+    private func nodeBubble(key: String, status: Status) -> some View {
+        Color.clear
+            .frame(width: node, height: node)
+            // The tint arrives with the ink and changes with the relay's own spring.
+            .pieceLiquid(.circle, tint: nodeTint(status), interactive: false)
+            .pieceLiquidPop(trigger: stamps[key, default: 0])
+            .pieceShake(trigger: strikes[key, default: 0], distance: 3)
+    }
+
+    /// What sits on a node: the breathing ring of the live step, its number, the check it stamps, or the x of a failure.
+    private func nodeMark(key: String, status: Status, number: Int) -> some View {
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        let stamped = status == .complete
+        let breathes = motion.allowsAmbient
+        let ring = currentBlock
         return ZStack {
-            if step.status == .current, !reduceMotion {
-                // A slow breathing ring marks the live step without drawing attention from the content.
+            if status == .current {
+                // A slow breathing ring marks the live step without drawing attention from the content. Under Reduce
+                // Motion it holds still as a halo and breathes in opacity only, so the step still reads as in progress.
                 PhaseAnimator([0.0, 1.0]) { phase in
                     Circle()
-                        .stroke(currentBlock.opacity(0.9 - 0.9 * phase), lineWidth: 2)
-                        .scaleEffect(1 + 0.5 * phase)
+                        .stroke(ring.opacity(breathes ? 0.9 - 0.9 * phase : 0.5 - 0.3 * phase), lineWidth: 2)
+                        .scaleEffect(breathes ? 1 + 0.5 * phase : 1.3)
                 } animation: { _ in .easeInOut(duration: 1.6) }
-            } else if step.status == .current {
-                Circle().stroke(currentBlock.opacity(0.5), lineWidth: 2).scaleEffect(1.3)
             }
-            if let fill {
-                Circle().fill(fill)
-            } else {
-                Circle().strokeBorder(style.muted.opacity(0.45), lineWidth: 2)
-            }
-            switch step.status {
-            case .complete:
-                checkmark
-                    .stroke(style.ink, style: StrokeStyle(lineWidth: 2.6, lineCap: .round, lineJoin: .round))
-                    .transition(.scale(scale: 0.4).combined(with: .opacity))
+            // The check draws a beat after the number leaves.
+            inkStroke(checkmark, on: stamped, color: style.ink, lineWidth: 2.6, draw: motion.cascade(motion.morph, index: 1, step: beat))
+            switch status {
             case .failed:
                 Image(systemName: "xmark")
-                    .font(.system(size: 12, weight: .heavy))
+                    .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(style.ink)
-                    .transition(.scale(scale: 0.4).combined(with: .opacity))
+                    .transition(motion.swap)
             case .current, .pending:
                 Text("\(number)")
-                    .font(.system(size: 14, weight: .bold, design: .rounded))
-                    .foregroundStyle(step.status == .current ? style.ink : style.muted)
-                    .transition(.scale(scale: 0.6).combined(with: .opacity))
+                    .font(.system(size: 14, weight: .semibold, design: .rounded))
+                    .foregroundStyle(status == .current ? style.ink : style.muted)
+                    .transition(motion.swap)
+            case .complete:
+                EmptyView()
             }
         }
         .frame(width: node, height: node)
-        .animation(spring, value: step.status)
+        .piecePop(trigger: stamps[key, default: 0])
+        .pieceShake(trigger: strikes[key, default: 0], distance: 3)
     }
 
     private var checkmark: Path {
@@ -225,18 +429,30 @@ public struct StatusTimeline: View {
         }
     }
 
-    /// The line beneath a node. It fills once that step is complete, turns dashed after a failure, and stops.
-    private func connector(after step: Step) -> some View {
+    /// The line beneath a node. Its ink runs down once that step is complete, turns dashed after a failure, and stops.
+    private func connector(status: Status) -> some View {
         GeometryReader { proxy in
             let height = proxy.size.height
             let line = Path { path in
                 path.move(to: CGPoint(x: proxy.size.width / 2, y: 3))
                 path.addLine(to: CGPoint(x: proxy.size.width / 2, y: height + 6))
             }
-            line.stroke(style.muted.opacity(0.25), style: StrokeStyle(lineWidth: 3, lineCap: .round, dash: step.status == .failed ? [2, 7] : []))
-            line.trim(from: 0, to: step.status == .complete ? 1 : 0)
-                .stroke(style.text, style: StrokeStyle(lineWidth: 3, lineCap: .round))
+            line.stroke(style.muted.opacity(0.25), style: StrokeStyle(lineWidth: 3, lineCap: .round, dash: status == .failed ? [2, 7] : []))
+            // Ink runs on a clock rather than a spring, so it reaches the next stop exactly when that stop lights.
+            inkStroke(line, on: status == .complete, color: style.text, lineWidth: 3, draw: .easeInOut(duration: inkRuns).delay(inkLeaves))
         }
+    }
+
+    /// A stroke that draws in on `draw` and clears quickly, fading as it un-draws so its round cap never lingers as a
+    /// dot. Under Reduce Motion it fades in and out whole.
+    private func inkStroke(_ shape: some Shape, on: Bool, color: Color, lineWidth: CGFloat, draw: Animation) -> some View {
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        return shape
+            .trim(from: 0, to: on || reduceMotion ? 1 : 0)
+            .stroke(color, style: StrokeStyle(lineWidth: lineWidth, lineCap: .round, lineJoin: .round))
+            .animation(on ? draw : motion.dismiss, value: on)
+            .opacity(on ? 1 : 0)
+            .animation(on ? (reduceMotion ? motion.morph : nil) : motion.dismiss, value: on)
     }
 
     private func statusName(_ status: Status) -> String {
@@ -252,24 +468,25 @@ public struct StatusTimeline: View {
 public extension StatusTimeline {
     /// Look of a `StatusTimeline`. Start from `.standard` and change what you need.
     struct Style: Sendable {
-        /// Block behind the live step and its node.
+        /// Glass tint of the live step's node, its breathing ring and its open panel.
         public var current: Color = Color(red: 1, green: 0, blue: 0)
-        /// Completed nodes.
+        /// Glass tint of completed nodes.
         public var complete: Color = Color(red: 0.663, green: 0.863, blue: 0.718)
-        /// Failed step block and node.
-        public var failed: Color = Color(red: 1, green: 0, blue: 0)
-        /// Dark ink used on every block.
+        /// Glass tint of a failed step's node and its open panel.
+        public var failed: Color = Color(red: 1, green: 0.851, blue: 0.463)
+        /// Dark ink used on every tint.
         public var ink: Color = Color(red: 0.078, green: 0.078, blue: 0.078)
         /// Titles and the filled connector.
         public var text: Color = Style.adaptive(0x141414, 0xF4F3EF)
-        /// Pending titles, timestamps, rings and the empty connector.
+        /// Pending titles, timestamps, numbers and the empty connector.
         public var muted: Color = Style.adaptive(0x5C5A56, 0xA6A49F)
-        /// Card behind expanded detail on steps that are not blocks.
+        /// Unused since the liquid glass refactor: an open step's detail sits on a glass panel budded from its node.
+        /// Kept so existing code still compiles.
         public var surface: Color = Style.adaptive(0xFFFFFF, 0x1C1C1C)
 
         public init() {}
 
-        /// The house palette: a tangerine live step, sage checks, signal failures.
+        /// The house palette: a signal live step, sage checks, butter failures, all on glass.
         public static let standard = Style()
 
         private static func adaptive(_ light: UInt32, _ dark: UInt32) -> Color {
@@ -308,3 +525,455 @@ private struct StatusTimelineExample: View {
 #Preview("Dark") {
     StatusTimelineExample().preferredColorScheme(.dark)
 }
+
+// MARK: - Piece motion
+//
+// The SwiftPieces motion language: shared spring tokens and gesture physics, with the same values in every
+// piece. Each piece carries a copy of only the parts it uses, so this file stands alone. Generated from
+// registry/foundation/PieceMotion.swift in the SwiftPieces repo; edit it there, not here.
+// swiftpieces-motion: 1.1.0 (core, follow, pop, shake)
+
+/// The SwiftPieces motion language: five spring tiers, and a named role for every moment a piece moves,
+/// each with its Reduce Motion substitute.
+///
+/// Build one from the environment, `PieceMotion(reduceMotion: reduceMotion)`, and pick the role that names
+/// what just happened. Never animate the tracking of a finger: set gesture state directly in `onChanged`, so the
+/// surface stays under the finger, and spring only the release.
+private struct PieceMotion {
+    var reduceMotion = false
+
+    // Tiers. Overshoot and settle times are measured from rest with SwiftUI's Spring.
+    /// No overshoot, 90% in about 90ms. A press arriving under the finger.
+    static var tight: Spring { Spring(duration: 0.14, bounce: 0) }
+    /// About 2.8% overshoot, 90% in about 140ms. Snapping to a detent, page or segment.
+    static var responsive: Spring { Spring(duration: 0.32, bounce: 0.25) }
+    /// About 8.4% overshoot. Visible give: a release, a return from past an edge, a drag settling home.
+    static var elastic: Spring { Spring(duration: 0.42, bounce: 0.38) }
+    /// About 15% overshoot. A resolved action landing. At most once per interaction.
+    static var expressive: Spring { Spring(duration: 0.48, bounce: 0.48) }
+    /// About 1.5% overshoot, unhurried. Opening large surfaces and ambient change.
+    static var calm: Spring { Spring(duration: 0.5, bounce: 0.2) }
+
+    /// Reduce Motion: settles become this short spring with no overshoot.
+    private static var still: Animation { .spring(duration: 0.25, bounce: 0) }
+
+    // Roles.
+    /// Touch-down. Starts on the same frame and never bounces under the finger.
+    var press: Animation { .spring(Self.tight) }
+    /// The finger lifts off a pressed surface, which springs back through rest.
+    var release: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A dragged thing comes to rest. With a gesture's velocity, use `settle(velocity:from:to:)` instead.
+    var settle: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// Lands on a detent, page or segment.
+    var snap: Animation { reduceMotion ? Self.still : .spring(Self.responsive) }
+    /// A number, a chart value or anything else people read moves to its new value. Never overshoots, so it
+    /// never shows a value that isn't true.
+    var value: Animation { reduceMotion ? Self.still : .spring(duration: 0.35, bounce: 0) }
+    /// Comes back from past a limit: a pull beyond the edge, a value pushed against its bound.
+    var rebound: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A shape or container changes size, corner radius or form, with a little give at the end.
+    var morph: Animation { reduceMotion ? Self.still : .spring(duration: 0.4, bounce: 0.2) }
+    /// Something appears, opens or expands. Opening is a little slower than closing.
+    var reveal: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.calm) }
+    /// Something leaves, closes or collapses. Quick and firm, out of the way.
+    var dismiss: Animation { reduceMotion ? .easeIn(duration: 0.18) : .spring(duration: 0.3, bounce: 0.08) }
+    /// A resolved action lands: a check, a sent state, a reaction.
+    var success: Animation { reduceMotion ? .easeOut(duration: 0.24) : .spring(Self.expressive) }
+    /// A refused action. Firm, no wobble; `pieceShake` adds the movement.
+    var error: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.responsive) }
+    /// Slow ambient change. Loops themselves stop under Reduce Motion: check `allowsAmbient`.
+    var ambient: Animation { reduceMotion ? .easeInOut(duration: 0.3) : .spring(Self.calm) }
+
+    /// Loops, drifts, idle breathing and parallax run only when this is true.
+    var allowsAmbient: Bool { !reduceMotion }
+
+    /// A moving transition, or a plain fade under Reduce Motion.
+    func transition(_ transition: AnyTransition) -> AnyTransition {
+        reduceMotion ? .opacity : transition
+    }
+
+    /// For content replaced inside a container that stays put (a label, a glyph, a count): the old content
+    /// blurs out as the new one sharpens in. A fade under Reduce Motion.
+    @MainActor var swap: AnyTransition {
+        reduceMotion ? .opacity : AnyTransition(.blurReplace)
+    }
+}
+
+extension PieceMotion {
+    /// Follow-through: rank 0 leads, each later rank arrives a beat later on a slightly looser spring. Safe to reverse.
+    func follow(_ spring: Spring = PieceMotion.elastic, rank: Int) -> Animation {
+        guard !reduceMotion else { return .spring(duration: 0.25, bounce: 0) }
+        let k = Double(min(max(rank, 0), 6))
+        return .spring(duration: spring.duration + 0.04 * k, bounce: min(spring.bounce + 0.02 * k, 0.55))
+    }
+
+    /// One-shot entrances only: item `index` waits 30ms per place, capped at the seventh. Exits go together.
+    func cascade(_ animation: Animation, index: Int, step: Double = 0.03) -> Animation {
+        guard !reduceMotion, index > 0 else { return animation }
+        return animation.delay(step * Double(min(index, 7)))
+    }
+}
+
+/// Anticipation, overshoot, settle: dips, swells past full size and lands each time `trigger` changes. Under
+/// Reduce Motion it stays still (same view, no identity change) and the color or symbol carries the meaning.
+private struct PiecePop: ViewModifier {
+    let trigger: AnyHashable
+    var amount: CGFloat = 0.08
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func body(content: Content) -> some View {
+        let amount = reduceMotion ? 0 : amount
+        content.keyframeAnimator(initialValue: CGFloat(1), trigger: trigger) { view, scale in
+            view.scaleEffect(scale)
+        } keyframes: { _ in
+            KeyframeTrack {
+                CubicKeyframe(1 - amount * 0.4, duration: 0.08)
+                SpringKeyframe(1 + amount, duration: 0.14, spring: Spring(duration: 0.18, bounce: 0))
+                SpringKeyframe(1, duration: 0.42, spring: PieceMotion.expressive)
+            }
+        }
+    }
+}
+
+private extension View {
+    /// Pops each time `trigger` changes. Use a counter, never a Bool that can flip back before it fires.
+    func piecePop(trigger: some Hashable & Sendable, amount: CGFloat = 0.08) -> some View {
+        modifier(PiecePop(trigger: AnyHashable(trigger), amount: amount))
+    }
+}
+
+/// A short decaying side-to-side shake for refused input, each time `trigger` changes. Under Reduce Motion it stays
+/// still (same view, no identity change): pair it with a color or message change and the error haptic.
+private struct PieceShake: ViewModifier {
+    let trigger: AnyHashable
+    var distance: CGFloat = 8
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func body(content: Content) -> some View {
+        let distance = reduceMotion ? 0 : distance
+        content.keyframeAnimator(initialValue: CGFloat(0), trigger: trigger) { view, x in
+            view.offset(x: x)
+        } keyframes: { _ in
+            KeyframeTrack {
+                CubicKeyframe(-distance, duration: 0.06)
+                CubicKeyframe(distance * 0.75, duration: 0.07)
+                CubicKeyframe(-distance * 0.5, duration: 0.07)
+                CubicKeyframe(distance * 0.25, duration: 0.06)
+                SpringKeyframe(0, duration: 0.12, spring: Spring(duration: 0.18, bounce: 0))
+            }
+        }
+    }
+}
+
+private extension View {
+    /// Shakes this view side to side once each time `trigger` changes, for input that was refused.
+    func pieceShake(trigger: some Hashable & Sendable, distance: CGFloat = 8) -> some View {
+        modifier(PieceShake(trigger: AnyHashable(trigger), distance: distance))
+    }
+}
+
+// swiftpieces-motion: end
+
+// MARK: - Piece liquid
+//
+// The SwiftPieces liquid glass language: glass shapes that merge through a neck, bubbles that bud out of
+// and melt back into each other, and the frosted fallback before iOS 26. Each piece carries a copy of only
+// the parts it uses, so this file stands alone. Generated from registry/foundation/PieceLiquid.swift in the
+// SwiftPieces repo; edit it there, not here. The rules are in LIQUID_GLASS.md.
+// swiftpieces-liquid: 1.7.0 (liquid, liquidPop, bud)
+
+/// The liquid glass language: one merge distance, two rest gaps, and the springs a bubble leaves and comes home on.
+///
+/// Glass shapes inside one `PieceLiquidGroup` melt into each other through a neck when they come within `merge`
+/// points. Parts of one control rest `joined`, inside that distance, so the neck holds; separate actions rest
+/// `apart`, outside it, so they only goo while one buds out of, or melts back into, another.
+private enum PieceLiquid {
+    /// Glass shapes closer than this share a neck.
+    static let merge: CGFloat = 20
+    /// The gap between parts of one control (a stepper's buttons, a progress pill and its stop): the neck holds,
+    /// short and smooth, about two thirds of the shapes' height at its waist. Joined parts read best at one height.
+    static let joined: CGFloat = 4
+    /// The gap between separate actions (menu items, confirm and cancel, chips): they rest as their own bubbles.
+    static let apart: CGFloat = 26
+    /// How far a bubble shrinks while it is home inside its parent.
+    static let homeScale: CGFloat = 0.72
+
+    /// A bubble leaving its parent: slow enough that the neck's stretch and snap read.
+    static func split(reduceMotion: Bool) -> Animation {
+        reduceMotion ? .easeOut(duration: 0.2) : .spring(duration: 0.62, bounce: 0.22)
+    }
+
+    /// A bubble going home. No bounce: a bounce would carry it out through the far side of its parent.
+    static func home(reduceMotion: Bool) -> Animation {
+        reduceMotion ? .easeIn(duration: 0.18) : .spring(duration: 0.5, bounce: 0)
+    }
+}
+
+/// A group of glass shapes that merge into one liquid surface. On iOS 26 it is a `GlassEffectContainer`; before
+/// that, and under Reduce Transparency, the shapes draw on their own and simply don't merge. `lift` adds the soft
+/// shadow liquid glass floats on in light mode.
+private struct PieceLiquidGroup<Content: View>: View {
+    var spacing: CGFloat = PieceLiquid.merge
+    var lift = true
+    @ViewBuilder var content: Content
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        container
+            .shadow(color: .black.opacity(lift && colorScheme == .light ? 0.07 : 0), radius: 18, y: 8)
+    }
+
+    @ViewBuilder private var container: some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26, *), !reduceTransparency {
+            GlassEffectContainer(spacing: spacing) { content }
+        } else {
+            content
+        }
+        #else
+        content
+        #endif
+    }
+}
+
+/// One liquid glass shape: Liquid Glass on iOS 26, carrying `tint` as a solid colour and swelling under a press when
+/// `interactive`; a frosted Material with a light rim and a soft shadow before that; a solid fill under Reduce
+/// Transparency.
+///
+/// The tint is painted inside clear glass rather than tinting the glass. Tinted glass in a group bleeds its colour
+/// through every neck as a smear, so a red button would glow into the white pill it is joined to; painted inside,
+/// the colour stays crisp to the shape's edge, the necks between shapes are clear glass, and a tint change animates
+/// like any colour (tinted glass snaps).
+private struct PieceLiquidSurface<S: Shape>: ViewModifier {
+    var shape: S
+    var tint: Color?
+    var interactive: Bool
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.pieceLiquidScale) private var scale
+
+    func body(content: Content) -> some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26, *), !reduceTransparency {
+            // Scaled as two parts, content and outline, about the same centre. A scaleEffect on a glass view inside a
+            // GlassEffectContainer shrinks the glass but leaves what it carries full size, pinned to its corner.
+            content
+                .background { shape.fill(tint ?? .clear) }
+                .scaleEffect(scale)
+                .glassEffect(glass, in: shape.scale(scale))
+        } else {
+            fallback(content).scaleEffect(scale)
+        }
+        #else
+        fallback(content).scaleEffect(scale)
+        #endif
+    }
+
+    #if compiler(>=6.2)
+    @available(iOS 26, *)
+    private var glass: Glass {
+        interactive ? Glass.regular.interactive() : .regular
+    }
+    #endif
+
+    private func fallback(_ content: Content) -> some View {
+        let dark = colorScheme == .dark
+        return content
+            .background {
+                if reduceTransparency {
+                    shape.fill(tint ?? (dark ? Color(white: 0.17) : Color(white: 0.97)))
+                } else {
+                    ZStack {
+                        shape.fill(.regularMaterial)
+                        if let tint { shape.fill(tint.opacity(0.88)) }
+                    }
+                }
+            }
+            .overlay { shape.stroke(Color.white.opacity(dark ? 0.14 : 0.7), lineWidth: 0.5) }
+            .shadow(color: .black.opacity(dark ? 0.32 : 0.08), radius: 10, y: 5)
+    }
+}
+
+private struct PieceLiquidScaleKey: EnvironmentKey {
+    static let defaultValue: CGFloat = 1
+}
+
+private extension EnvironmentValues {
+    /// How much the liquid shapes below are scaled, about their own centres. Nested scales multiply.
+    var pieceLiquidScale: CGFloat {
+        get { self[PieceLiquidScaleKey.self] }
+        set { self[PieceLiquidScaleKey.self] = newValue }
+    }
+}
+
+private extension View {
+    /// Draws this view on a liquid glass `shape`. Put it inside a `PieceLiquidGroup` so it can merge with its neighbours.
+    func pieceLiquid<S: Shape>(_ shape: S, tint: Color? = nil, interactive: Bool = true) -> some View {
+        modifier(PieceLiquidSurface(shape: shape, tint: tint, interactive: interactive))
+    }
+
+    /// Scales the liquid glass shapes in this view, content and outline together, about their own centres. Use it
+    /// instead of `scaleEffect` on a glass view (a press, a lift, a swell): inside a group a plain `scaleEffect` shrinks
+    /// the glass but leaves its content full size and off centre. Animates like any other value.
+    func pieceLiquidScale(_ scale: CGFloat) -> some View {
+        transformEnvironment(\.pieceLiquidScale) { $0 *= scale }
+    }
+}
+
+/// `piecePop` for glass: dips, swells past full size and lands each time `trigger` changes, on the same timings,
+/// through `pieceLiquidScale` so the glass and what it carries pop together. Driven from state rather than a
+/// keyframe animator, since the liquid scale can't be set from inside one. Still under Reduce Motion.
+private struct PieceLiquidPop: ViewModifier {
+    let trigger: AnyHashable
+    var amount: CGFloat = 0.08
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var scale: CGFloat = 1
+    @State private var run = 0
+
+    func body(content: Content) -> some View {
+        content
+            .pieceLiquidScale(scale)
+            .onChange(of: trigger) { _, _ in
+                guard !reduceMotion else { return }
+                run += 1
+                let mine = run
+                withAnimation(.easeInOut(duration: 0.08)) { scale = 1 - amount * 0.4 }
+                Task { @MainActor in
+                    try? await Task.sleep(for: .milliseconds(80))
+                    guard run == mine else { return }
+                    withAnimation(.spring(duration: 0.18, bounce: 0)) { scale = 1 + amount }
+                    try? await Task.sleep(for: .milliseconds(140))
+                    guard run == mine else { return }
+                    withAnimation(.spring(PieceMotion.expressive)) { scale = 1 }
+                }
+            }
+    }
+}
+
+private extension View {
+    /// Pops this view's glass each time `trigger` changes. Use a counter, never a Bool that can flip back before it fires.
+    func pieceLiquidPop(trigger: some Hashable & Sendable, amount: CGFloat = 0.08) -> some View {
+        modifier(PieceLiquidPop(trigger: AnyHashable(trigger), amount: amount))
+    }
+}
+
+/// The bud: how a bubble leaves and rejoins its parent, driven explicitly so every bubble shows the whole cycle.
+///
+/// A bubble is born at `home`, inside its parent, where the two glass shapes are one. It springs out to `rest`, and
+/// while it is inside the merge distance a neck holds it to the parent, thinning as it goes, until it snaps free.
+/// Going home it springs back on a spring with no bounce, the neck reaches out and re-forms, and only once it has
+/// melted all the way in is it removed. Both offsets are relative to where the bubble is laid out. Under Reduce
+/// Motion it stays at `rest`: its content fades and its glass closes in place.
+private struct PieceBud: ViewModifier {
+    var out: Bool
+    var rest: CGSize
+    var home: CGSize
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func body(content: Content) -> some View {
+        if reduceMotion {
+            // No travel. Inside a group glass ignores opacity, so the glass closes to nothing in place on the short
+            // Reduce Motion ease while its content fades; the opacity covers a bubble outside a group.
+            content
+                .pieceLiquidScale(out ? 1 : 0.001)
+                .opacity(out ? 1 : 0)
+                .offset(rest)
+        } else {
+            // The glass shrinks through `pieceLiquidScale`, never a plain scaleEffect (see there), then moves.
+            content
+                .pieceLiquidScale(out ? 1 : PieceLiquid.homeScale)
+                .offset(out ? rest : home)
+        }
+    }
+}
+
+/// A bubble's own content, on its own clock: gone the moment the bubble heads home, so it never rides over the
+/// parent's content, and arriving just after the bubble leaves.
+private struct PieceBudContent: ViewModifier {
+    var out: Bool
+
+    func body(content: Content) -> some View {
+        content
+            .blur(radius: out ? 0 : 6)
+            .opacity(out ? 1 : 0)
+            .animation(out ? .easeOut(duration: 0.3).delay(0.1) : .easeOut(duration: 0.14), value: out)
+    }
+}
+
+private extension View {
+    /// Places a bubble at `rest` while `out`, and at `home` (inside its parent, shrunk) while not.
+    func pieceBud(out: Bool, rest: CGSize = .zero, home: CGSize) -> some View {
+        modifier(PieceBud(out: out, rest: rest, home: home))
+    }
+
+    /// Hides a bubble's icon or label while it is home. Put it on the content, inside the glass.
+    func pieceBudContent(out: Bool) -> some View {
+        modifier(PieceBudContent(out: out))
+    }
+}
+
+/// Which bubbles exist and which are out. A bubble is added home with no animation, sent out on the next frame,
+/// and called home before it is removed, so it always melts in rather than fading. Keep one in `@State`.
+@MainActor @Observable
+private final class PieceBuds {
+    private(set) var present: [String] = []
+    private(set) var out: Set<String> = []
+    /// The latest call for each bubble. A bloom or gather that has been overtaken (a bubble sent home while it was
+    /// still waiting to go out, or called out again while melting) leaves that bubble alone.
+    @ObservationIgnored private var turn: [String: Int] = [:]
+
+    func contains(_ id: String) -> Bool { present.contains(id) }
+    func isOut(_ id: String) -> Bool { out.contains(id) }
+
+    private func claim(_ ids: [String]) -> [String: Int] {
+        var mine: [String: Int] = [:]
+        for id in ids {
+            let next = (turn[id] ?? 0) + 1
+            turn[id] = next
+            mine[id] = next
+        }
+        return mine
+    }
+
+    /// Puts bubbles straight out at rest with no motion: a view's first frame, or a state restored.
+    func place(_ ids: [String]) {
+        _ = claim(ids)
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) {
+            for id in ids where !present.contains(id) { present.append(id) }
+            out.formUnion(ids)
+        }
+    }
+
+    /// Adds bubbles home, then sends each out, `stagger` seconds apart, after an optional `delay`.
+    func bloom(_ ids: [String], reduceMotion: Bool, stagger: Double = 0.05, delay: Double = 0) async {
+        let mine = claim(ids)
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) {
+            for id in ids where !present.contains(id) { present.append(id) }
+        }
+        try? await Task.sleep(for: .milliseconds(24 + Int(max(delay, 0) * 1000)))
+        let split = PieceLiquid.split(reduceMotion: reduceMotion)
+        for (i, id) in ids.enumerated() where turn[id] == mine[id] {
+            withAnimation(split.delay(reduceMotion ? 0 : Double(i) * stagger)) { _ = out.insert(id) }
+        }
+    }
+
+    /// Calls bubbles home, last first, then removes them once they have melted in.
+    func gather(_ ids: [String], reduceMotion: Bool, stagger: Double = 0.04) async {
+        let mine = claim(ids)
+        let home = PieceLiquid.home(reduceMotion: reduceMotion)
+        for (i, id) in ids.reversed().enumerated() {
+            withAnimation(home.delay(reduceMotion ? 0 : Double(i) * stagger)) { _ = out.remove(id) }
+        }
+        try? await Task.sleep(for: .milliseconds(Int((0.52 + Double(ids.count) * stagger) * 1000)))
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) { present.removeAll { ids.contains($0) && !out.contains($0) && turn[$0] == mine[$0] } }
+    }
+}
+
+// swiftpieces-liquid: end

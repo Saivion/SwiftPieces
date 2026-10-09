@@ -1,46 +1,48 @@
 // swiftpieces:
 // title: Hold To Confirm
-// description: "A press-and-hold capsule for destructive or important actions: a solid fill sweeps from the leading puck while held, passes three milestone dots with rising haptics, inverts the label under it, rewinds with a spring on early release and settles into a sage confirmed block."
+// description: "A press-and-hold liquid glass capsule for destructive or important actions: the signal tint wells out of the leading puck while held and sweeps through the glass, passing three milestone dots with rising haptics and inverting the label under it, drains back into the puck on an early release, and on completion turns sage, morphs its label and buds a sage check bubble out of its end."
 // category: controls
 // minIOSVersion: "17.0"
-// version: "2.0.1"
+// version: "2.2.0"
 // pro: swipe-to-confirm
-// tags: [button, hold, confirm, destructive, haptics]
+// tags: [button, hold, confirm, destructive, haptics, glass]
 
 import SwiftUI
 
-/// Hold to confirm. The label inverts as the fill passes under it; letting go or dragging off rewinds.
+/// Hold to confirm, in liquid glass. The tint sweeps through the glass from the leading puck and the label inverts as
+/// it passes; letting go or dragging off drains it back. Completing turns the capsule sage and buds a check bubble out
+/// of its end, joined to it by a liquid neck.
 ///
 /// - Parameters:
 ///   - title: Label while idle and holding.
 ///   - systemImage: Optional SF Symbol drawn in the leading puck.
 ///   - duration: Seconds the hold must last. Halved under Reduce Motion.
-///   - tint: Overrides the style's fill (and tints the track) with white ink on the fill. `nil` uses `style`.
+///   - tint: Overrides the style's fill, with white ink on it. `nil` uses `style`.
 ///   - phase: Optional binding that mirrors `idle`, `holding`, `committed` and `cancelled`; set it to `.holding` to start a sweep programmatically, `.idle` to cancel one.
-///   - committedTitle: Text beside the check once the hold completes, such as "Deleted". `nil` shows the check alone.
-///   - style: Track, fill, ink and committed colors plus height. `.standard` is the house palette with a signal fill.
+///   - committedTitle: Text the label morphs to once the hold completes, such as "Deleted". `nil` lets the label go and leaves the check to speak.
+///   - style: Label, fill, ink and committed colors plus height. `.standard` is the house palette with a signal fill.
 ///   - action: Called once when the hold completes. VoiceOver's activate action calls it directly.
 public struct HoldToConfirm: View {
     public enum Phase { case idle, holding, committed, cancelled, disabled }
 
     /// Colors and metrics. Colors adapt to light and dark.
     public struct Style: Sendable {
-        /// The capsule behind the label at rest.
+        /// Unused since the liquid glass refactor: the capsule is clear glass. Kept so existing code still compiles.
         public var track: Color
-        /// Label and puck color on the track.
+        /// Label color on the clear glass.
         public var label: Color
-        /// The sweeping fill.
+        /// The tint that sweeps through the glass, and the puck it starts from.
         public var fill: Color
-        /// Label and puck color on the fill and on `committedFill`.
+        /// Label, symbol and dots on the fill and on `committedFill`, and the check.
         public var ink: Color
-        /// Fill once the hold completes.
+        /// The fill once the hold completes, and the tint of the check bubble that buds out.
         public var committedFill: Color
-        /// Capsule height. Never below 44.
+        /// Capsule height; the check bubble uses the same diameter. Never below 44.
         public var height: CGFloat
-        /// Shows three dots at 25, 50 and 75% that pop as the fill passes them.
+        /// Shows three dots at 25, 50 and 75% that swell as the fill passes them.
         public var milestones: Bool
 
-        public init(track: Color = House.adaptive(light: 0xEAE8E2, dark: 0x262626), label: Color = House.adaptive(light: 0x141414, dark: 0xF4F3EF), fill: Color = House.hex(0xFF5B3A), ink: Color = House.hex(0x141414), committedFill: Color = House.hex(0xA9DCB7), height: CGFloat = 60, milestones: Bool = true) {
+        public init(track: Color = House.adaptive(light: 0xEAE8E2, dark: 0x262626), label: Color = House.adaptive(light: 0x141414, dark: 0xF4F3EF), fill: Color = House.hex(0xFF0000), ink: Color = House.hex(0x141414), committedFill: Color = House.hex(0xA9DCB7), height: CGFloat = 60, milestones: Bool = true) {
             self.track = track
             self.label = label
             self.fill = fill
@@ -50,7 +52,7 @@ public struct HoldToConfirm: View {
             self.milestones = milestones
         }
 
-        /// The Free house palette: raised track, signal fill, sage when confirmed.
+        /// The Free house palette: clear glass, a signal fill, sage when confirmed.
         public static let standard = Style()
         /// A calmer confirm for non-destructive actions: the butter block sweeps instead of signal.
         public static let butter = Style(fill: House.hex(0xFFD976))
@@ -74,13 +76,33 @@ public struct HoldToConfirm: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var current: Phase = .idle
     @State private var holdStart: Date?
+    /// Where the channel rests when nothing holds or drains it: 0 at the puck, 1 full.
     @State private var settledProgress: Double = 0
+    /// A release on its way back to the puck, drawn on the same clock as the hold.
+    @State private var drain: Drain?
+    /// How far the fill has welled out of the puck: 0 at rest, where the fill is the puck, and 1 from touch-down until
+    /// a release has drained, where it fills the capsule's height.
+    @State private var well: CGFloat = 0
+    /// The fill shows the committed color. Cleared only once the confirmed block has faded, so it never turns back mid-fade.
+    @State private var sealed = false
+    /// The fill layer's opacity. The confirmed block fades out over the glass rather than draining like an undo.
+    @State private var fillOpacity: Double = 1
+    /// One per hold or commit, so a fade left over from an earlier one never clears a later one.
+    @State private var cycle = 0
+    /// The current touch has had its chance to start a hold. Cleared when it lifts or the system cancels it.
+    @State private var touchSpent = false
+    /// Resets when the system cancels a touch (a scroll takes over, an alert comes up), which skips onEnded.
+    @GestureState private var touching = false
+    /// The whole control, for the drag's bounds, and the glass capsule's own width, which narrows while the check is out.
     @State private var size: CGSize = .zero
+    @State private var trackWidth: CGFloat = 0
     @State private var ticks = 0
     @State private var passed = 0
     @State private var tickIntensity: Double = 0.35
     @State private var commits = 0
     @State private var driver: Task<Void, Never>?
+    /// The check bubble: it buds out of the capsule's end once the hold completes and melts back as it resets.
+    @State private var buds = PieceBuds()
 
     private let title: String
     private let systemImage: String?
@@ -90,6 +112,8 @@ public struct HoldToConfirm: View {
     private let style: Style
     private let action: () -> Void
     private let phase: Binding<Phase>?
+    /// The check and committed title arrive this long after the click, so the channel seals first.
+    private let beat: Double = 0.06
 
     public init(_ title: String, systemImage: String? = nil, duration: Double = 1.2, tint: Color? = nil, phase: Binding<Phase>? = nil, committedTitle: String? = nil, style: Style = .standard, action: @escaping () -> Void) {
         self.title = title
@@ -111,43 +135,45 @@ public struct HoldToConfirm: View {
     private var shownPhase: Phase { isEnabled ? current : .disabled }
     private var committed: Bool { current == .committed }
 
-    private var fillColor: Color { committed ? style.committedFill : (tint ?? style.fill) }
-    private var trackColor: Color { tint.map { $0.opacity(0.14) } ?? style.track }
+    private var restFill: Color { tint ?? style.fill }
+    private var fillColor: Color { sealed ? style.committedFill : restFill }
     private var restInk: Color { tint ?? style.label }
-    private var fillInk: Color { tint != nil && !committed ? .white : style.ink }
+    private var fillInk: Color { tint != nil && !sealed ? .white : style.ink }
+    private var shownTitle: String { committed ? (committedTitle ?? "") : title }
 
     public var body: some View {
-        TimelineView(.animation(paused: current != .holding)) { context in
-            let progress = current == .holding ? liveProgress(at: context.date) : settledProgress
-            let inset = (style.height - puck) / 2
-            // The fill starts under the puck, so a hold visibly begins at the first touch.
-            let fillWidth = size.width <= 0 ? 0 : (style.height + (size.width - style.height) * progress)
-            let shownWidth = progress > 0 || committed ? fillWidth : 0
-            ZStack(alignment: .leading) {
-                Capsule().fill(trackColor)
-                Capsule()
-                    .fill(fillColor)
-                    .frame(width: shownWidth)
-                if style.milestones {
-                    milestones(progress: progress, inset: inset)
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        PieceLiquidGroup {
+            HStack(spacing: 0) {
+                TimelineView(.animation(paused: !holding && drain == nil)) { context in
+                    capsule(level: level(at: context.date))
                 }
-                label(ink: restInk, puckFill: restInk, puckInk: trackColor, inset: inset)
-                label(ink: fillInk, puckFill: fillInk, puckInk: fillColor, inset: inset)
-                    .mask(alignment: .leading) {
-                        Capsule().frame(width: shownWidth)
-                    }
+                // Above the slot, so the check melting home slips under the capsule's end.
+                .zIndex(1)
+                checkSlot
             }
-            .frame(height: style.height)
-            .clipShape(Capsule())
         }
+        .fontWeight(.semibold)
         .onGeometryChange(for: CGSize.self) { $0.size } action: { size = $0 }
-        .contentShape(Capsule())
-        .scaleEffect(current == .holding && !reduceMotion ? 0.98 : 1)
+        .contentShape(.capsule)
+        // In at once without overshoot, out with give. A shallow 2%, so the label stays easy to read through a long
+        // hold. Scoped to the scale, so the fill and its colors keep their own timing.
+        .animation(holding ? motion.press : motion.release) { content in
+            content.scaleEffect(holding && !reduceMotion ? 0.98 : 1)
+        }
+        // A full channel clicks shut: a small swell on the success haptic's beat. At most 2%, since this guards
+        // destructive actions. Still under Reduce Motion.
+        .piecePop(trigger: commits, amount: 0.02)
         .saturation(isEnabled ? 1 : 0)
         .opacity(isEnabled ? 1 : 0.5)
-        .animation(.spring(duration: 0.3, bounce: 0.2), value: current == .holding)
-        .animation(.smooth(duration: 0.35), value: committed)
         .gesture(hold)
+        // A cancelled touch lets go here, or the hold would run on and confirm by itself. After a normal lift onEnded
+        // has already let go, so this does nothing.
+        .onChange(of: touching) { _, isTouching in
+            guard !isTouching else { return }
+            touchSpent = false
+            if current == .holding { cancel() }
+        }
         .sensoryFeedback(.impact(flexibility: .soft, intensity: tickIntensity), trigger: ticks)
         .sensoryFeedback(.success, trigger: commits)
         .accessibilityElement(children: .ignore)
@@ -165,95 +191,193 @@ public struct HoldToConfirm: View {
 
     private var puck: CGFloat { style.height - 12 }
 
-    /// Leading puck with the symbol (or a hand) plus the title, or a check and the committed title.
-    private func label(ink: Color, puckFill: Color, puckInk: Color, inset: CGFloat) -> some View {
-        HStack(spacing: 0) {
-            ZStack {
-                Circle().fill(puckFill)
-                Image(systemName: committed ? "checkmark" : (systemImage ?? "hand.tap"))
-                    .font(.system(size: puck * 0.36, weight: .bold))
-                    .foregroundStyle(puckInk)
-                    .contentTransition(.symbolEffect(.replace))
+    /// The clear glass capsule and everything it carries: the title on the glass, the tinted puck, and the fill that
+    /// sweeps out of it.
+    private func capsule(level: Double) -> some View {
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        let inset = (style.height - puck) / 2
+        return ZStack(alignment: .leading) {
+            if style.milestones {
+                milestones(onFill: false)
             }
-            .frame(width: puck, height: puck)
-            .padding(.leading, inset)
-            ZStack {
-                if committed {
-                    Text(committedTitle ?? "")
-                        .transition(reduceMotion ? .opacity : .push(from: .bottom))
-                } else {
-                    Text(title)
-                        .transition(reduceMotion ? .opacity : .push(from: .top))
-                }
-            }
-            .font(.body.weight(.semibold))
-            .lineLimit(1)
-            .minimumScaleFactor(0.8)
-            .foregroundStyle(ink)
-            .frame(maxWidth: .infinity)
-            // Balance the puck so the title stays optically centered.
-            .padding(.trailing, puck + inset)
+            label(ink: restInk, inset: inset)
+            // The puck is where the liquid starts and where it drains back to. It stays under the fill, so the
+            // confirmed block fades out over it rather than taking it along.
+            symbol(ink: tint == nil ? style.ink : .white)
+                .frame(width: puck, height: puck)
+                .background(restFill, in: Circle())
+                .padding(.leading, inset)
+            fillLayer(level: level, inset: inset)
         }
-        .animation(.spring(duration: 0.35, bounce: 0.25), value: committed)
+        .frame(height: style.height)
+        .clipShape(Capsule())
+        .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { trackWidth = $0 }
+        .pieceLiquid(Capsule(), interactive: false)
+        // Confirmed, the label morphs as the capsule draws its end in to let the check bud out.
+        .animation(committed ? motion.cascade(motion.morph, index: 1, step: beat) : motion.dismiss, value: committed)
     }
 
-    /// Three dots along the track; each pops when the fill passes it, in step with the haptic tick.
-    private func milestones(progress: Double, inset: CGFloat) -> some View {
-        ZStack(alignment: .topLeading) {
-            ForEach(1..<4) { i in
-                let on = passed >= i && current == .holding
-                Circle()
-                    .fill(on ? fillInk.opacity(0.6) : restInk.opacity(0.28))
-                    .frame(width: 5, height: 5)
-                    .scaleEffect(on && !reduceMotion ? 1.6 : 1)
-                    .animation(.spring(duration: 0.3, bounce: 0.5), value: on)
-                    .position(x: style.height + (size.width - style.height) * Double(i) / 4, y: style.height - 9)
+    /// The puck's symbol.
+    private func symbol(ink: Color) -> some View {
+        Image(systemName: systemImage ?? "hand.tap")
+            .font(.system(size: puck * 0.36, weight: .semibold))
+            .foregroundStyle(ink)
+    }
+
+    /// The title, centred in the space after the puck. It morphs letter by letter to the committed title and back.
+    private func label(ink: Color, inset: CGFloat) -> some View {
+        PieceMorphText(text: shownTitle)
+            .foregroundStyle(ink)
+            .frame(maxWidth: .infinity)
+            .padding(.leading, puck + inset)
+            // Balance the puck so the title stays optically centered.
+            .padding(.trailing, puck + inset)
+    }
+
+    /// The fill and everything drawn on it, cut to the channel, so the puck, label and dots invert exactly under
+    /// the edge. At rest the channel is exactly the puck; it wells out to the capsule's height at touch-down and sinks
+    /// back into the puck once a release has drained.
+    private func fillLayer(level: Double, inset: CGFloat) -> some View {
+        // From the puck's size to the capsule's height. Under Reduce Motion it fades in and out over the puck instead.
+        let rest = puck / style.height
+        let grown = reduceMotion ? 1 : rest + (1 - rest) * well
+        let center = UnitPoint(x: trackWidth > 0 ? style.height / 2 / trackWidth : 0, y: 0.5)
+        return ZStack(alignment: .leading) {
+            Channel(level: level)
+                .fill(fillColor)
+                .scaleEffect(grown, anchor: center)
+            ZStack(alignment: .leading) {
+                if style.milestones {
+                    milestones(onFill: true, level: level)
+                }
+                label(ink: fillInk, inset: inset)
+                symbol(ink: fillInk)
+                    .frame(width: puck, height: puck)
+                    .padding(.leading, inset)
+            }
+            .mask {
+                Channel(level: level).scaleEffect(grown, anchor: center)
             }
         }
-        .frame(width: size.width, height: style.height)
-        .opacity(committed ? 0 : 1)
+        // Fades as one layer, so the ink stays solid over the puck instead of washing out mid-fade.
+        .compositingGroup()
+        .opacity(fillOpacity * (reduceMotion ? Double(well) : 1))
     }
+
+    /// The check's place at the capsule's end. It opens as the check buds out and closes as it melts home, on the
+    /// bud's own spring, so the capsule draws its end in to make room and takes the room back as one liquid.
+    private var checkSlot: some View {
+        let out = buds.isOut("check")
+        return Color.clear
+            .frame(width: out ? style.height + PieceLiquid.joined : 0, height: style.height)
+            .overlay(alignment: .trailing) {
+                if buds.contains("check") {
+                    Image(systemName: "checkmark")
+                        .font(.system(size: style.height * 0.34, weight: .semibold))
+                        .foregroundStyle(style.ink)
+                        .pieceBudContent(out: out)
+                        .frame(width: style.height, height: style.height)
+                        // Its tint drains as it melts, so it dissolves into the capsule instead of sitting on its label.
+                        .pieceLiquid(Circle(), tint: out ? style.committedFill : nil, interactive: false)
+                        .pieceBud(out: out, home: .zero)
+                        .accessibilityHidden(true)
+                }
+            }
+    }
+
+    /// Three dots at 25, 50 and 75%. One set sits on the glass and one on the fill, cut to it, so each dot inverts
+    /// exactly as the edge passes it, filling or draining. Dots on the fill swell like bubbles as the hold passes
+    /// them, in step with the haptic tick, and keep the swell while the fill covers them, even through a new hold
+    /// that starts mid-drain. Each loses it once the edge has passed back over it, out of sight.
+    private func milestones(onFill: Bool, level: Double = 0) -> some View {
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        // Laid out in whatever width the capsule has, so the dots never push on the capsule's size.
+        return GeometryReader { proxy in
+            ForEach(1..<4) { i in
+                let on = onFill && passed >= i && level >= Double(i) / 4
+                Circle()
+                    .fill(onFill ? fillInk.opacity(0.6) : restInk.opacity(0.28))
+                    .frame(width: 5, height: 5)
+                    .scaleEffect(on && !reduceMotion ? 1.6 : 1)
+                    // Decoration paired with the tick, so it pops with elastic give. The fill itself stays on the clock.
+                    .animation(motion.follow(PieceMotion.elastic, rank: 0), value: on)
+                    .position(x: style.height + (proxy.size.width - style.height) * Double(i) / 4, y: style.height - 9)
+            }
+        }
+        .frame(height: style.height)
+        // Hidden while confirmed. The glass's set returns as the block fades; the fill's set goes with the block.
+        .opacity((onFill ? sealed : committed) ? 0 : 1)
+    }
+
+    /// How full the channel is at `date`, from 0 at the puck to 1: the hold's clock while held, a release's drain,
+    /// whichever is further when a hold starts again mid-drain, and otherwise where it rests.
+    private func level(at date: Date) -> Double {
+        let held = holding ? liveProgress(at: date) : settledProgress
+        guard let drain else { return held }
+        return max(held, drain.level(at: date))
+    }
+
+    private var holding: Bool { current == .holding }
 
     private func liveProgress(at date: Date) -> Double {
         guard let holdStart else { return 0 }
         return min(1, date.timeIntervalSince(holdStart) / holdDuration)
     }
 
+    /// The drain's spring: calm's unhurried pace with its bounce taken out. The level stops at the puck, so any
+    /// overshoot would be cut off there as a dead stop and hold the landing back. Under Reduce Motion, the short
+    /// spring without overshoot that every settle uses.
+    private var drainSpring: Spring { reduceMotion ? Spring(duration: 0.25, bounce: 0) : Spring(duration: PieceMotion.calm.duration, bounce: 0) }
+
     // MARK: Interaction
 
     private var hold: some Gesture {
         DragGesture(minimumDistance: 0)
+            .updating($touching) { _, touching, _ in touching = true }
             .onChanged { value in
                 guard isEnabled else { return }
-                switch current {
-                case .idle, .cancelled:
-                    begin()
-                case .holding:
-                    // Dragging off the capsule cancels, with a little forgiveness.
-                    let bounds = CGRect(origin: .zero, size: size).insetBy(dx: -16, dy: -16)
-                    if !bounds.contains(value.location) { cancel() }
-                case .committed, .disabled:
-                    break
+                // Only a finger landing on the control starts a hold. One dragged off has to lift before it can start
+                // another, so it can't restart the hold from outside the capsule.
+                guard touchSpent else {
+                    touchSpent = true
+                    if current == .idle || current == .cancelled { begin() }
+                    return
                 }
+                // Dragging off the capsule cancels, with a little forgiveness.
+                let bounds = CGRect(origin: .zero, size: size).insetBy(dx: -16, dy: -16)
+                if current == .holding, !bounds.contains(value.location) { cancel() }
             }
             .onEnded { _ in
+                touchSpent = false
                 if current == .holding { cancel() }
             }
     }
 
     private func begin() {
+        let motion = PieceMotion(reduceMotion: reduceMotion)
         driver?.cancel()
+        cycle += 1
+        if sealed {
+            // The confirmed block was still fading. Clear it at once, so this hold starts from the puck in its own color.
+            instantly {
+                sealed = false
+                fillOpacity = 1
+                settledProgress = 0
+                passed = 0
+            }
+        }
         holdStart = Date()
-        settledProgress = 0
-        passed = 0
         transition(to: .holding)
+        // The fill wells out of the puck as the finger lands. A drain still in flight stays drawn until this hold
+        // passes it, so the edge never jumps back to the puck, and the dots it covers keep their swell.
+        withAnimation(motion.press) { well = 1 }
         let quarter = holdDuration / 4
         driver = Task {
             for (index, intensity) in [0.35, 0.55, 0.75].enumerated() {
                 try? await Task.sleep(for: .seconds(quarter))
                 guard !Task.isCancelled, current == .holding else { return }
                 tickIntensity = intensity
-                passed = index + 1
+                passed = max(passed, index + 1)
                 ticks += 1
             }
             try? await Task.sleep(for: .seconds(quarter))
@@ -262,35 +386,90 @@ public struct HoldToConfirm: View {
         }
     }
 
+    /// Lets go early. The fill leaves from wherever its edge is, at the speed it was moving (the hold's steady
+    /// sweep, or a drain's if a new hold never caught up with it), so it eases to a stop before draining back.
     private func cancel() {
+        let motion = PieceMotion(reduceMotion: reduceMotion)
         driver?.cancel()
-        settledProgress = liveProgress(at: Date())
-        transition(to: .cancelled)
+        let now = Date()
+        var from = liveProgress(at: now)
+        var speed = 1 / holdDuration
+        if let drain, drain.level(at: now) > from {
+            from = drain.level(at: now)
+            speed = drain.speed(at: now)
+        }
+        let release = Drain(start: now, from: from, speed: speed, spring: drainSpring)
         holdStart = nil
-        passed = 0
-        withAnimation(.spring(duration: 0.5, bounce: 0.2)) { settledProgress = 0 }
-        Task {
-            try? await Task.sleep(for: .milliseconds(500))
+        drain = release
+        transition(to: .cancelled)
+        driver = Task {
+            try? await Task.sleep(for: .seconds(release.landing))
+            guard !Task.isCancelled else { return }
+            // Drained: the last of the fill sinks back into the puck. The dots on the fill lose their swell out of sight.
+            drain = nil
+            passed = 0
+            withAnimation(motion.dismiss) { well = 0 }
             if current == .cancelled { transition(to: .idle) }
         }
     }
 
+    /// The channel is full. The success haptic, the swell and the action land on one beat; nothing waits for the
+    /// motion. The fill seals in the committed color first, and the check buds out and the title morphs a beat later.
     private func commit() {
+        let motion = PieceMotion(reduceMotion: reduceMotion)
         driver?.cancel()
-        holdStart = nil
-        settledProgress = 1
-        passed = 0
-        transition(to: .committed)
+        cycle += 1
         commits += 1
+        // VoiceOver can confirm from rest, so the fill also sweeps full from wherever it is. It is progress and the
+        // channel stops at full, so it lands on the value spring: no overshoot to cut off against the end.
+        withAnimation(motion.value) {
+            holdStart = nil
+            drain = nil
+            settledProgress = 1
+            well = 1
+            sealed = true
+            fillOpacity = 1
+            current = .committed
+        }
+        // The host's binding hears it outside that animation, so views it drives don't inherit the spring.
+        phase?.wrappedValue = .committed
         action()
-        Task {
+        let confirmed = cycle
+        driver = Task {
+            try? await Task.sleep(for: .seconds(beat))
+            guard !Task.isCancelled, current == .committed else { return }
+            await buds.bloom(["check"], reduceMotion: reduceMotion)
             try? await Task.sleep(for: .milliseconds(1400))
-            guard current == .committed else { return }
-            withAnimation(.smooth(duration: 0.35)) {
-                transition(to: .idle)
+            guard !Task.isCancelled, current == .committed else { return }
+            reset(after: confirmed)
+        }
+    }
+
+    /// Back to idle. The check melts home into the capsule's end, and the confirmed block fades out over the glass
+    /// in its own color while the label morphs back; then the channel is emptied out of sight. Draining it would read
+    /// as an undo.
+    private func reset(after confirmed: Int) {
+        Task { await buds.gather(["check"], reduceMotion: reduceMotion) }
+        withAnimation(PieceMotion(reduceMotion: reduceMotion).dismiss) {
+            transition(to: .idle)
+            fillOpacity = 0
+        } completion: {
+            guard cycle == confirmed else { return }
+            instantly {
                 settledProgress = 0
+                well = 0
+                sealed = false
+                passed = 0
+                fillOpacity = 1
             }
         }
+    }
+
+    /// Applies `changes` at once, cutting off any animation in flight on them.
+    private func instantly(_ changes: () -> Void) {
+        var transaction = Transaction()
+        transaction.disablesAnimations = true
+        withTransaction(transaction, changes)
     }
 
     private var accessibilityValue: String {
@@ -299,6 +478,55 @@ public struct HoldToConfirm: View {
         case .holding: "Holding"
         case .committed: committedTitle ?? "Confirmed"
         case .disabled: "Disabled"
+        }
+    }
+
+    /// A release: the fill carries on at `speed` (progress per second) for an instant, then drains to the puck on
+    /// `spring`. It runs on the timeline's clock rather than as an animation, so a hold that starts mid-drain can
+    /// take over from exactly where the edge is.
+    private struct Drain {
+        let start: Date
+        let from: Double
+        let speed: Double
+        let spring: Spring
+
+        init(start: Date, from: Double, speed: Double, spring: Spring) {
+            self.start = start
+            self.from = from
+            // Capped as `PieceMotion` caps a settle, so a quick tap adds give, not a slingshot.
+            let cap = 2 * Double.pi / spring.duration * 1.5 * from
+            self.speed = min(max(speed, -cap), cap)
+            self.spring = spring
+        }
+
+        func level(at date: Date) -> Double {
+            max(from + spring.value(target: -from, initialVelocity: speed, time: elapsed(at: date)), 0)
+        }
+
+        func speed(at date: Date) -> Double {
+            spring.velocity(target: -from, initialVelocity: speed, time: elapsed(at: date))
+        }
+
+        /// Seconds until the edge is within half a percent of the puck.
+        var landing: TimeInterval {
+            from > 0 ? spring.settlingDuration(target: -from, initialVelocity: speed, epsilon: 0.005) : 0
+        }
+
+        private func elapsed(at date: Date) -> TimeInterval { max(date.timeIntervalSince(start), 0) }
+    }
+
+    /// The fill's shape: a capsule from the leading edge, the puck's circle at 0 and the whole track at 1.
+    private struct Channel: Shape {
+        var level: Double
+
+        var animatableData: Double {
+            get { level }
+            set { level = newValue }
+        }
+
+        func path(in rect: CGRect) -> Path {
+            let width = rect.height + (rect.width - rect.height) * min(max(level, 0), 1)
+            return Capsule().path(in: CGRect(x: rect.minX, y: rect.minY, width: min(width, rect.width), height: rect.height))
         }
     }
 }
@@ -323,3 +551,417 @@ private struct HoldToConfirmExample: View {
 
 #Preview("Light") { HoldToConfirmExample().preferredColorScheme(.light) }
 #Preview("Dark") { HoldToConfirmExample().preferredColorScheme(.dark) }
+
+// MARK: - Piece motion
+//
+// The SwiftPieces motion language: shared spring tokens and gesture physics, with the same values in every
+// piece. Each piece carries a copy of only the parts it uses, so this file stands alone. Generated from
+// registry/foundation/PieceMotion.swift in the SwiftPieces repo; edit it there, not here.
+// swiftpieces-motion: 1.1.0 (core, follow, pop)
+
+/// The SwiftPieces motion language: five spring tiers, and a named role for every moment a piece moves,
+/// each with its Reduce Motion substitute.
+///
+/// Build one from the environment, `PieceMotion(reduceMotion: reduceMotion)`, and pick the role that names
+/// what just happened. Never animate the tracking of a finger: set gesture state directly in `onChanged`, so the
+/// surface stays under the finger, and spring only the release.
+private struct PieceMotion {
+    var reduceMotion = false
+
+    // Tiers. Overshoot and settle times are measured from rest with SwiftUI's Spring.
+    /// No overshoot, 90% in about 90ms. A press arriving under the finger.
+    static var tight: Spring { Spring(duration: 0.14, bounce: 0) }
+    /// About 2.8% overshoot, 90% in about 140ms. Snapping to a detent, page or segment.
+    static var responsive: Spring { Spring(duration: 0.32, bounce: 0.25) }
+    /// About 8.4% overshoot. Visible give: a release, a return from past an edge, a drag settling home.
+    static var elastic: Spring { Spring(duration: 0.42, bounce: 0.38) }
+    /// About 15% overshoot. A resolved action landing. At most once per interaction.
+    static var expressive: Spring { Spring(duration: 0.48, bounce: 0.48) }
+    /// About 1.5% overshoot, unhurried. Opening large surfaces and ambient change.
+    static var calm: Spring { Spring(duration: 0.5, bounce: 0.2) }
+
+    /// Reduce Motion: settles become this short spring with no overshoot.
+    private static var still: Animation { .spring(duration: 0.25, bounce: 0) }
+
+    // Roles.
+    /// Touch-down. Starts on the same frame and never bounces under the finger.
+    var press: Animation { .spring(Self.tight) }
+    /// The finger lifts off a pressed surface, which springs back through rest.
+    var release: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A dragged thing comes to rest. With a gesture's velocity, use `settle(velocity:from:to:)` instead.
+    var settle: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// Lands on a detent, page or segment.
+    var snap: Animation { reduceMotion ? Self.still : .spring(Self.responsive) }
+    /// A number, a chart value or anything else people read moves to its new value. Never overshoots, so it
+    /// never shows a value that isn't true.
+    var value: Animation { reduceMotion ? Self.still : .spring(duration: 0.35, bounce: 0) }
+    /// Comes back from past a limit: a pull beyond the edge, a value pushed against its bound.
+    var rebound: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A shape or container changes size, corner radius or form, with a little give at the end.
+    var morph: Animation { reduceMotion ? Self.still : .spring(duration: 0.4, bounce: 0.2) }
+    /// Something appears, opens or expands. Opening is a little slower than closing.
+    var reveal: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.calm) }
+    /// Something leaves, closes or collapses. Quick and firm, out of the way.
+    var dismiss: Animation { reduceMotion ? .easeIn(duration: 0.18) : .spring(duration: 0.3, bounce: 0.08) }
+    /// A resolved action lands: a check, a sent state, a reaction.
+    var success: Animation { reduceMotion ? .easeOut(duration: 0.24) : .spring(Self.expressive) }
+    /// A refused action. Firm, no wobble; `pieceShake` adds the movement.
+    var error: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.responsive) }
+    /// Slow ambient change. Loops themselves stop under Reduce Motion: check `allowsAmbient`.
+    var ambient: Animation { reduceMotion ? .easeInOut(duration: 0.3) : .spring(Self.calm) }
+
+    /// Loops, drifts, idle breathing and parallax run only when this is true.
+    var allowsAmbient: Bool { !reduceMotion }
+
+    /// A moving transition, or a plain fade under Reduce Motion.
+    func transition(_ transition: AnyTransition) -> AnyTransition {
+        reduceMotion ? .opacity : transition
+    }
+
+    /// For content replaced inside a container that stays put (a label, a glyph, a count): the old content
+    /// blurs out as the new one sharpens in. A fade under Reduce Motion.
+    @MainActor var swap: AnyTransition {
+        reduceMotion ? .opacity : AnyTransition(.blurReplace)
+    }
+}
+
+extension PieceMotion {
+    /// Follow-through: rank 0 leads, each later rank arrives a beat later on a slightly looser spring. Safe to reverse.
+    func follow(_ spring: Spring = PieceMotion.elastic, rank: Int) -> Animation {
+        guard !reduceMotion else { return .spring(duration: 0.25, bounce: 0) }
+        let k = Double(min(max(rank, 0), 6))
+        return .spring(duration: spring.duration + 0.04 * k, bounce: min(spring.bounce + 0.02 * k, 0.55))
+    }
+
+    /// One-shot entrances only: item `index` waits 30ms per place, capped at the seventh. Exits go together.
+    func cascade(_ animation: Animation, index: Int, step: Double = 0.03) -> Animation {
+        guard !reduceMotion, index > 0 else { return animation }
+        return animation.delay(step * Double(min(index, 7)))
+    }
+}
+
+/// Anticipation, overshoot, settle: dips, swells past full size and lands each time `trigger` changes. Under
+/// Reduce Motion it stays still (same view, no identity change) and the color or symbol carries the meaning.
+private struct PiecePop: ViewModifier {
+    let trigger: AnyHashable
+    var amount: CGFloat = 0.08
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func body(content: Content) -> some View {
+        let amount = reduceMotion ? 0 : amount
+        content.keyframeAnimator(initialValue: CGFloat(1), trigger: trigger) { view, scale in
+            view.scaleEffect(scale)
+        } keyframes: { _ in
+            KeyframeTrack {
+                CubicKeyframe(1 - amount * 0.4, duration: 0.08)
+                SpringKeyframe(1 + amount, duration: 0.14, spring: Spring(duration: 0.18, bounce: 0))
+                SpringKeyframe(1, duration: 0.42, spring: PieceMotion.expressive)
+            }
+        }
+    }
+}
+
+private extension View {
+    /// Pops each time `trigger` changes. Use a counter, never a Bool that can flip back before it fires.
+    func piecePop(trigger: some Hashable & Sendable, amount: CGFloat = 0.08) -> some View {
+        modifier(PiecePop(trigger: AnyHashable(trigger), amount: amount))
+    }
+}
+
+// swiftpieces-motion: end
+
+// MARK: - Piece liquid
+//
+// The SwiftPieces liquid glass language: glass shapes that merge through a neck, bubbles that bud out of
+// and melt back into each other, and the frosted fallback before iOS 26. Each piece carries a copy of only
+// the parts it uses, so this file stands alone. Generated from registry/foundation/PieceLiquid.swift in the
+// SwiftPieces repo; edit it there, not here. The rules are in LIQUID_GLASS.md.
+// swiftpieces-liquid: 1.7.0 (liquid, bud, morphText)
+
+/// The liquid glass language: one merge distance, two rest gaps, and the springs a bubble leaves and comes home on.
+///
+/// Glass shapes inside one `PieceLiquidGroup` melt into each other through a neck when they come within `merge`
+/// points. Parts of one control rest `joined`, inside that distance, so the neck holds; separate actions rest
+/// `apart`, outside it, so they only goo while one buds out of, or melts back into, another.
+private enum PieceLiquid {
+    /// Glass shapes closer than this share a neck.
+    static let merge: CGFloat = 20
+    /// The gap between parts of one control (a stepper's buttons, a progress pill and its stop): the neck holds,
+    /// short and smooth, about two thirds of the shapes' height at its waist. Joined parts read best at one height.
+    static let joined: CGFloat = 4
+    /// The gap between separate actions (menu items, confirm and cancel, chips): they rest as their own bubbles.
+    static let apart: CGFloat = 26
+    /// How far a bubble shrinks while it is home inside its parent.
+    static let homeScale: CGFloat = 0.72
+
+    /// A bubble leaving its parent: slow enough that the neck's stretch and snap read.
+    static func split(reduceMotion: Bool) -> Animation {
+        reduceMotion ? .easeOut(duration: 0.2) : .spring(duration: 0.62, bounce: 0.22)
+    }
+
+    /// A bubble going home. No bounce: a bounce would carry it out through the far side of its parent.
+    static func home(reduceMotion: Bool) -> Animation {
+        reduceMotion ? .easeIn(duration: 0.18) : .spring(duration: 0.5, bounce: 0)
+    }
+}
+
+/// A group of glass shapes that merge into one liquid surface. On iOS 26 it is a `GlassEffectContainer`; before
+/// that, and under Reduce Transparency, the shapes draw on their own and simply don't merge. `lift` adds the soft
+/// shadow liquid glass floats on in light mode.
+private struct PieceLiquidGroup<Content: View>: View {
+    var spacing: CGFloat = PieceLiquid.merge
+    var lift = true
+    @ViewBuilder var content: Content
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        container
+            .shadow(color: .black.opacity(lift && colorScheme == .light ? 0.07 : 0), radius: 18, y: 8)
+    }
+
+    @ViewBuilder private var container: some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26, *), !reduceTransparency {
+            GlassEffectContainer(spacing: spacing) { content }
+        } else {
+            content
+        }
+        #else
+        content
+        #endif
+    }
+}
+
+/// One liquid glass shape: Liquid Glass on iOS 26, carrying `tint` as a solid colour and swelling under a press when
+/// `interactive`; a frosted Material with a light rim and a soft shadow before that; a solid fill under Reduce
+/// Transparency.
+///
+/// The tint is painted inside clear glass rather than tinting the glass. Tinted glass in a group bleeds its colour
+/// through every neck as a smear, so a red button would glow into the white pill it is joined to; painted inside,
+/// the colour stays crisp to the shape's edge, the necks between shapes are clear glass, and a tint change animates
+/// like any colour (tinted glass snaps).
+private struct PieceLiquidSurface<S: Shape>: ViewModifier {
+    var shape: S
+    var tint: Color?
+    var interactive: Bool
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.pieceLiquidScale) private var scale
+
+    func body(content: Content) -> some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26, *), !reduceTransparency {
+            // Scaled as two parts, content and outline, about the same centre. A scaleEffect on a glass view inside a
+            // GlassEffectContainer shrinks the glass but leaves what it carries full size, pinned to its corner.
+            content
+                .background { shape.fill(tint ?? .clear) }
+                .scaleEffect(scale)
+                .glassEffect(glass, in: shape.scale(scale))
+        } else {
+            fallback(content).scaleEffect(scale)
+        }
+        #else
+        fallback(content).scaleEffect(scale)
+        #endif
+    }
+
+    #if compiler(>=6.2)
+    @available(iOS 26, *)
+    private var glass: Glass {
+        interactive ? Glass.regular.interactive() : .regular
+    }
+    #endif
+
+    private func fallback(_ content: Content) -> some View {
+        let dark = colorScheme == .dark
+        return content
+            .background {
+                if reduceTransparency {
+                    shape.fill(tint ?? (dark ? Color(white: 0.17) : Color(white: 0.97)))
+                } else {
+                    ZStack {
+                        shape.fill(.regularMaterial)
+                        if let tint { shape.fill(tint.opacity(0.88)) }
+                    }
+                }
+            }
+            .overlay { shape.stroke(Color.white.opacity(dark ? 0.14 : 0.7), lineWidth: 0.5) }
+            .shadow(color: .black.opacity(dark ? 0.32 : 0.08), radius: 10, y: 5)
+    }
+}
+
+private struct PieceLiquidScaleKey: EnvironmentKey {
+    static let defaultValue: CGFloat = 1
+}
+
+private extension EnvironmentValues {
+    /// How much the liquid shapes below are scaled, about their own centres. Nested scales multiply.
+    var pieceLiquidScale: CGFloat {
+        get { self[PieceLiquidScaleKey.self] }
+        set { self[PieceLiquidScaleKey.self] = newValue }
+    }
+}
+
+private extension View {
+    /// Draws this view on a liquid glass `shape`. Put it inside a `PieceLiquidGroup` so it can merge with its neighbours.
+    func pieceLiquid<S: Shape>(_ shape: S, tint: Color? = nil, interactive: Bool = true) -> some View {
+        modifier(PieceLiquidSurface(shape: shape, tint: tint, interactive: interactive))
+    }
+
+    /// Scales the liquid glass shapes in this view, content and outline together, about their own centres. Use it
+    /// instead of `scaleEffect` on a glass view (a press, a lift, a swell): inside a group a plain `scaleEffect` shrinks
+    /// the glass but leaves its content full size and off centre. Animates like any other value.
+    func pieceLiquidScale(_ scale: CGFloat) -> some View {
+        transformEnvironment(\.pieceLiquidScale) { $0 *= scale }
+    }
+}
+
+/// The bud: how a bubble leaves and rejoins its parent, driven explicitly so every bubble shows the whole cycle.
+///
+/// A bubble is born at `home`, inside its parent, where the two glass shapes are one. It springs out to `rest`, and
+/// while it is inside the merge distance a neck holds it to the parent, thinning as it goes, until it snaps free.
+/// Going home it springs back on a spring with no bounce, the neck reaches out and re-forms, and only once it has
+/// melted all the way in is it removed. Both offsets are relative to where the bubble is laid out. Under Reduce
+/// Motion it stays at `rest`: its content fades and its glass closes in place.
+private struct PieceBud: ViewModifier {
+    var out: Bool
+    var rest: CGSize
+    var home: CGSize
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func body(content: Content) -> some View {
+        if reduceMotion {
+            // No travel. Inside a group glass ignores opacity, so the glass closes to nothing in place on the short
+            // Reduce Motion ease while its content fades; the opacity covers a bubble outside a group.
+            content
+                .pieceLiquidScale(out ? 1 : 0.001)
+                .opacity(out ? 1 : 0)
+                .offset(rest)
+        } else {
+            // The glass shrinks through `pieceLiquidScale`, never a plain scaleEffect (see there), then moves.
+            content
+                .pieceLiquidScale(out ? 1 : PieceLiquid.homeScale)
+                .offset(out ? rest : home)
+        }
+    }
+}
+
+/// A bubble's own content, on its own clock: gone the moment the bubble heads home, so it never rides over the
+/// parent's content, and arriving just after the bubble leaves.
+private struct PieceBudContent: ViewModifier {
+    var out: Bool
+
+    func body(content: Content) -> some View {
+        content
+            .blur(radius: out ? 0 : 6)
+            .opacity(out ? 1 : 0)
+            .animation(out ? .easeOut(duration: 0.3).delay(0.1) : .easeOut(duration: 0.14), value: out)
+    }
+}
+
+private extension View {
+    /// Places a bubble at `rest` while `out`, and at `home` (inside its parent, shrunk) while not.
+    func pieceBud(out: Bool, rest: CGSize = .zero, home: CGSize) -> some View {
+        modifier(PieceBud(out: out, rest: rest, home: home))
+    }
+
+    /// Hides a bubble's icon or label while it is home. Put it on the content, inside the glass.
+    func pieceBudContent(out: Bool) -> some View {
+        modifier(PieceBudContent(out: out))
+    }
+}
+
+/// Which bubbles exist and which are out. A bubble is added home with no animation, sent out on the next frame,
+/// and called home before it is removed, so it always melts in rather than fading. Keep one in `@State`.
+@MainActor @Observable
+private final class PieceBuds {
+    private(set) var present: [String] = []
+    private(set) var out: Set<String> = []
+    /// The latest call for each bubble. A bloom or gather that has been overtaken (a bubble sent home while it was
+    /// still waiting to go out, or called out again while melting) leaves that bubble alone.
+    @ObservationIgnored private var turn: [String: Int] = [:]
+
+    func contains(_ id: String) -> Bool { present.contains(id) }
+    func isOut(_ id: String) -> Bool { out.contains(id) }
+
+    private func claim(_ ids: [String]) -> [String: Int] {
+        var mine: [String: Int] = [:]
+        for id in ids {
+            let next = (turn[id] ?? 0) + 1
+            turn[id] = next
+            mine[id] = next
+        }
+        return mine
+    }
+
+    /// Puts bubbles straight out at rest with no motion: a view's first frame, or a state restored.
+    func place(_ ids: [String]) {
+        _ = claim(ids)
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) {
+            for id in ids where !present.contains(id) { present.append(id) }
+            out.formUnion(ids)
+        }
+    }
+
+    /// Adds bubbles home, then sends each out, `stagger` seconds apart, after an optional `delay`.
+    func bloom(_ ids: [String], reduceMotion: Bool, stagger: Double = 0.05, delay: Double = 0) async {
+        let mine = claim(ids)
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) {
+            for id in ids where !present.contains(id) { present.append(id) }
+        }
+        try? await Task.sleep(for: .milliseconds(24 + Int(max(delay, 0) * 1000)))
+        let split = PieceLiquid.split(reduceMotion: reduceMotion)
+        for (i, id) in ids.enumerated() where turn[id] == mine[id] {
+            withAnimation(split.delay(reduceMotion ? 0 : Double(i) * stagger)) { _ = out.insert(id) }
+        }
+    }
+
+    /// Calls bubbles home, last first, then removes them once they have melted in.
+    func gather(_ ids: [String], reduceMotion: Bool, stagger: Double = 0.04) async {
+        let mine = claim(ids)
+        let home = PieceLiquid.home(reduceMotion: reduceMotion)
+        for (i, id) in ids.reversed().enumerated() {
+            withAnimation(home.delay(reduceMotion ? 0 : Double(i) * stagger)) { _ = out.remove(id) }
+        }
+        try? await Task.sleep(for: .milliseconds(Int((0.52 + Double(ids.count) * stagger) * 1000)))
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) { present.removeAll { ids.contains($0) && !out.contains($0) && turn[$0] == mine[$0] } }
+    }
+}
+
+/// A label that changes letter by letter: letters both strings share hold still, the rest blur out and the new ones
+/// blur in a few milliseconds apart. Under Reduce Motion it cross-fades. VoiceOver reads the whole string.
+private struct PieceMorphText: View {
+    var text: String
+    var font: Font = .body.weight(.semibold)
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        let glyphs = Array(text)
+        HStack(spacing: 0) {
+            ForEach(glyphs.indices, id: \.self) { i in
+                Text(String(glyphs[i]))
+                    .id("\(i)\(glyphs[i])")
+                    .transition(transition(i))
+            }
+        }
+        .font(font)
+        .fixedSize()
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(text)
+    }
+
+    private func transition(_ i: Int) -> AnyTransition {
+        guard !reduceMotion else { return .opacity }
+        return AnyTransition(.blurReplace(.downUp)).combined(with: .scale(scale: 0.6, anchor: .bottom))
+            .animation(.spring(duration: 0.42, bounce: 0.3).delay(Double(i) * 0.022))
+    }
+}
+
+// swiftpieces-liquid: end

@@ -49,11 +49,37 @@ export function FitBox({ children, width: target = PHONE_W, minScale = 0.66, fil
       el.style.transform = `translate(-50%, -50%) scale(${k})`;
       setFit((f) => (Math.abs(f.k - k) > 0.004 || f.width !== width || f.height !== height ? { k, width, height } : f));
     };
-    const ro = new ResizeObserver(measure);
+    // `el` is observed and `measure` resizes it, so `measure` must never run when `el` is the only
+    // thing reported: resizing an element inside its own notification leaves a notification the
+    // browser can't deliver ("ResizeObserver loop completed with undelivered notifications"), and a
+    // Shuffle tapped over and over, its fonts landing a beat later, kept the content's height moving.
+    // So when only the content changed, rescale it now (a transform, which resizes nothing, still
+    // before paint) and lay it out again next frame. A change to the box re-lays out at once: `el`
+    // sits inside the box, so the browser delivers what that write changes in the same frame.
+    let relayout = 0;
+    const rescale = () => {
+      const w = b.clientWidth;
+      const h = b.clientHeight;
+      if (w <= 0 || h <= 0) return;
+      const k = Math.min(1, w / Math.max(1, el.offsetWidth), h / Math.max(1, el.offsetHeight));
+      el.style.transform = `translate(-50%, -50%) scale(${k})`;
+    };
+    const ro = new ResizeObserver((entries) => {
+      if (entries.some((e) => e.target === b)) {
+        measure();
+        return;
+      }
+      rescale();
+      cancelAnimationFrame(relayout);
+      relayout = requestAnimationFrame(measure);
+    });
     ro.observe(b);
     ro.observe(el);
     measure();
-    return () => ro.disconnect();
+    return () => {
+      ro.disconnect();
+      cancelAnimationFrame(relayout);
+    };
   }, [target, minScale, fill]);
   return (
     <div ref={box} className="relative size-full overflow-hidden">

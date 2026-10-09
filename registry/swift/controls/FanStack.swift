@@ -1,14 +1,18 @@
 // swiftpieces:
 // title: Fan Stack
-// description: "Overlapping block-color avatars that fan apart on tap or hold with staggered springs, dissolve the +N pill into the hidden faces, and let a drag scrub across them: the avatar under the finger lifts, shows a name tag and ticks a haptic, and releasing selects it."
+// description: "Overlapping avatars in liquid glass bubbles that melt into one shape where they overlap, then fan apart on tap or hold through necks that stretch and snap, the hidden faces budding out of the +N bubble as it melts into them. A drag scrubs across them: the avatar under the finger lifts with its neighbours rolling up after it, a glass name tag buds out of it and a haptic ticks, and releasing selects it."
 // category: controls
 // minIOSVersion: "17.0"
-// version: "2.0.1"
-// tags: [avatar, group, fan, drag, haptics]
+// version: "2.2.0"
+// tags: [avatar, group, fan, drag, haptics, glass]
 
 import SwiftUI
 
-/// Avatar group that expands into a selectable fan.
+/// Avatar group that expands into a selectable fan of liquid glass bubbles.
+///
+/// Collapsed, the avatars overlap and their glass melts into one shape. Fanned, they rest apart, each its own
+/// bubble, so opening pulls them apart through necks that thin and snap. Avatars past `max` wait inside the "+N"
+/// bubble and bud out of it as it melts into them.
 ///
 /// - Parameters:
 ///   - names: Full names, in display order. First name is drawn on top while collapsed.
@@ -18,26 +22,29 @@ import SwiftUI
 ///   - overlap: Fraction of `size` each avatar overlaps the previous one while collapsed, 0–1.
 ///   - onSelect: Called with the name released on while fanned. Also used by VoiceOver's per-avatar action.
 ///   - isFanned: Optional binding to fan or collapse programmatically; written back when the user toggles it.
-///   - style: Block colors, ink, the cut-out ring and the name tag. `.standard` is the house palette; set `ring` to the color behind the stack.
+///   - style: Block colors, ink and the name tag's text. `.standard` is the house palette.
 public struct FanStack: View {
-    /// Colors for avatars, the overflow pill and labels. Colors adapt to light and dark.
+    /// Colors for avatars, the overflow bubble and labels. Colors adapt to light and dark.
     public struct Style: Sendable {
         /// Avatar fills for initials, picked by a stable hash of the name.
         public var colors: [Color]
         /// Initials color on the fills.
         public var ink: Color
-        /// The cut-out ring between overlapping avatars. Match the surface behind the stack.
+        /// Unused since the liquid glass refactor: overlapping avatars are cut apart by their own glass rims, so the
+        /// cut shows the glass instead of a color. Kept so existing code still compiles.
         public var ring: Color
-        /// "+N" pill fill and text.
+        /// Unused since the liquid glass refactor: the "+N" bubble is clear glass. Kept so existing code still compiles.
         public var overflowFill: Color
+        /// "+N" text, and the lifted avatar's first name.
         public var overflowInk: Color
         /// First names under the fanned avatars.
         public var caption: Color
-        /// Name tag above the lifted avatar: fill and text.
+        /// Unused since the liquid glass refactor: the name tag is clear glass. Kept so existing code still compiles.
         public var tagFill: Color
+        /// The name tag's text on its clear glass.
         public var tagInk: Color
 
-        public init(colors: [Color] = [0xFF5B3A, 0x9CC2FF, 0xFFD976, 0xA9DCB7, 0xCDB8FF, 0xE9D5B3].map(House.hex), ink: Color = House.hex(0x141414), ring: Color = House.adaptive(light: 0xFFFFFF, dark: 0x1C1C1C), overflowFill: Color = House.adaptive(light: 0xEAE8E2, dark: 0x262626), overflowInk: Color = House.adaptive(light: 0x141414, dark: 0xF4F3EF), caption: Color = House.adaptive(light: 0x5C5A56, dark: 0xA6A49F), tagFill: Color = House.adaptive(light: 0x141414, dark: 0xF4F3EF), tagInk: Color = House.adaptive(light: 0xF4F3EF, dark: 0x141414)) {
+        public init(colors: [Color] = [0xFF0000, 0x9CC2FF, 0xFFD976, 0xA9DCB7, 0xCDB8FF, 0xE9D5B3].map(House.hex), ink: Color = House.hex(0x141414), ring: Color = House.adaptive(light: 0xFFFFFF, dark: 0x1C1C1C), overflowFill: Color = House.adaptive(light: 0xEAE8E2, dark: 0x262626), overflowInk: Color = House.adaptive(light: 0x141414, dark: 0xF4F3EF), caption: Color = House.adaptive(light: 0x5C5A56, dark: 0xA6A49F), tagFill: Color = House.adaptive(light: 0x141414, dark: 0xF4F3EF), tagInk: Color = House.adaptive(light: 0x141414, dark: 0xF4F3EF)) {
             self.colors = colors.isEmpty ? [House.hex(0x9CC2FF)] : colors
             self.ink = ink
             self.ring = ring
@@ -48,7 +55,7 @@ public struct FanStack: View {
             self.tagInk = tagInk
         }
 
-        /// The Free house palette, sitting on a surface card.
+        /// The Free house palette.
         public static let standard = Style()
 
         /// Builds house colors. Public so `Style` defaults can use it.
@@ -70,10 +77,15 @@ public struct FanStack: View {
     @State private var fanned = false
     @State private var hovered: Int?
     @State private var touching = false
+    @GestureState private var touchActive = false  // resets when the system cancels a touch, which skips onEnded
     @State private var longPressed = false
     @State private var pressTask: Task<Void, Never>?
+    @State private var picked = false  // the last collapse came from a pick, so it waits a beat for the drop
     @State private var crossings = 0
     @State private var selects = 0
+    @State private var fanTicks = 0
+    /// The name tags: one buds out of the avatar under the finger and melts back when the finger moves on.
+    @State private var tags = PieceBuds()
 
     private let names: [String]
     private let images: [Image?]?
@@ -83,9 +95,16 @@ public struct FanStack: View {
     private let onSelect: ((String) -> Void)?
     private let isFanned: Binding<Bool>?
     private let style: Style
-    private let gap: CGFloat = 12
-    private let tagRoom: CGFloat = 34
+    /// Fanned, the avatars are separate choices, so they rest apart: each its own bubble, past the merge distance.
+    private let gap = PieceLiquid.apart
     private let captionRoom: CGFloat = 24
+    /// How much the avatar under the finger grows. Small enough that it never reaches its neighbours' merge distance.
+    private let liftScale: CGFloat = 0.14
+    /// How far it rises.
+    private let liftRise: CGFloat = 4
+    /// The glass rim around each face, and the gap cut between overlapping faces.
+    private let rim: CGFloat = 3
+    private let tagHeight: CGFloat = 26
 
     public init(names: [String], images: [Image?]? = nil, size: CGFloat = 44, max: Int = 4, overlap: CGFloat = 0.25, onSelect: ((String) -> Void)? = nil, isFanned: Binding<Bool>? = nil, style: Style = .standard) {
         self.names = names
@@ -103,6 +122,9 @@ public struct FanStack: View {
     private var collapsedStep: CGFloat { size * (1 - overlap) }
     private var fannedStep: CGFloat { size + gap }
 
+    /// Where the name tag rests above the lifted avatar: a neck's width over its top, so the two stay joined.
+    private var tagRoom: CGFloat { liftRise + size * liftScale / 2 + PieceLiquid.joined + tagHeight }
+
     private var width: CGFloat {
         fanned
             ? CGFloat(names.count - 1) * fannedStep + size
@@ -110,85 +132,158 @@ public struct FanStack: View {
     }
 
     public var body: some View {
-        ZStack(alignment: .topLeading) {
-            ForEach(Array(names.enumerated()), id: \.offset) { index, name in
-                let hidden = !fanned && index >= visibleCount
-                let lifted = fanned && hovered == index
-                InitialsCircle(name: name, image: images?[safe: index] ?? nil, size: size, style: style)
-                    .overlay {
-                        if reduceMotion, lifted {
-                            Circle().strokeBorder(style.tagFill, lineWidth: 3)
-                        }
-                    }
-                    .scaleEffect(hidden ? 0.6 : lifted && !reduceMotion ? 1.18 : 1)
-                    .offset(y: lifted && !reduceMotion ? -4 : 0)
-                    .shadow(color: .black.opacity(lifted ? 0.22 : 0), radius: lifted ? 10 : 0, y: lifted ? 6 : 0)
-                    .opacity(hidden ? 0 : 1)
-                    .overlay(alignment: .top) {
-                        Text(name.split(separator: " ").first.map(String.init) ?? name)
-                            .font(.caption.weight(lifted ? .bold : .medium))
-                            .foregroundStyle(lifted ? style.overflowInk : style.caption)
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.7)
-                            .frame(width: fannedStep)
-                            .offset(y: size + 8)
-                            .opacity(fanned ? 1 : 0)
-                    }
-                    .overlay(alignment: .top) {
-                        // Name tag: the full name in an inverted capsule above the lifted avatar.
-                        Text(name)
-                            .font(.footnote.weight(.semibold))
-                            .foregroundStyle(style.tagInk)
-                            .lineLimit(1)
-                            .fixedSize()
-                            .padding(.horizontal, 10)
-                            .frame(height: 26)
-                            .background(style.tagFill, in: Capsule())
-                            .offset(y: -tagRoom)
-                            .scaleEffect(lifted ? 1 : 0.6, anchor: .bottom)
-                            .opacity(lifted ? 1 : 0)
-                            .accessibilityHidden(true)
-                    }
-                    .offset(x: xPosition(index))
-                    .zIndex(lifted ? Double(names.count + 1) : Double(names.count - index))
-                    .animation(.spring(duration: 0.28, bounce: 0.35), value: hovered)
-                    .animation(fanAnimation(index), value: fanned)
-                    .accessibilityElement(children: .ignore)
-                    .accessibilityLabel(name)
-                    .accessibilityAddTraits(.isButton)
-                    .accessibilityHidden(!fanned)
-                    .accessibilityAction { select(index) }
+        PieceLiquidGroup {
+            ZStack(alignment: .topLeading) {
+                ForEach(Array(names.enumerated()), id: \.offset) { index, name in
+                    avatar(index, name: name)
+                }
+                if overflow > 0 {
+                    overflowBubble
+                }
             }
-            if overflow > 0 {
-                Text("+\(overflow)")
-                    .font(.system(size: size * 0.36, weight: .bold, design: .rounded))
-                    .monospacedDigit()
-                    .foregroundStyle(style.overflowInk)
-                    .frame(width: size, height: size)
-                    .background(style.overflowFill, in: Circle())
-                    .overlay(Circle().strokeBorder(style.ring, lineWidth: 3))
-                    .scaleEffect(fanned ? 0.6 : 1)
-                    .opacity(fanned ? 0 : 1)
-                    .offset(x: fanned ? xPosition(visibleCount) : CGFloat(visibleCount) * collapsedStep)
-                    .zIndex(0)
-                    .animation(fanAnimation(visibleCount), value: fanned)
-                    .accessibilityHidden(true)
-            }
+            .frame(width: width, height: size + (fanned ? captionRoom : 0), alignment: .topLeading)
+            .animation(frameAnimation, value: fanned)
         }
+        .fontWeight(.semibold)
+        // The closed stack sinks under the finger, so the 300ms hold answers before the fan opens. Under Reduce Motion it
+        // shades instead (darker in light mode, lighter in dark).
+        .piecePress(touching && !fanned)
+        // The press is its own layer, which the parent would move to the new size at once (or on the press spring).
+        // The same frame around it holds that layer still, so the stack moves on the frame's spring.
         .frame(width: width, height: size + (fanned ? captionRoom : 0), alignment: .topLeading)
-        .animation(.spring(duration: 0.45, bounce: 0.2), value: fanned)
+        .animation(frameAnimation, value: fanned)
         .contentShape(.rect.inset(by: -8))
         .gesture(fanGesture)
+        // A touch the system cancelled (a scroll took over, an alert) never runs onEnded: let go without picking.
+        // After a normal release onEnded has already cleared `touching`, so this does nothing.
+        .onChange(of: touchActive) { _, active in
+            if !active, touching {
+                pressTask?.cancel()
+                touching = false
+                hovered = nil
+            }
+        }
+        // The tag follows the finger: the last avatar's melts home as the next one's buds out.
+        .onChange(of: fanned ? hovered : nil) { old, new in
+            if let old { Task { await tags.gather(["tag\(old)"], reduceMotion: reduceMotion) } }
+            if let new { Task { await tags.bloom(["tag\(new)"], reduceMotion: reduceMotion) } }
+        }
         .sensoryFeedback(.selection, trigger: crossings)
-        .sensoryFeedback(.impact(flexibility: .soft), trigger: fanned)
+        // One haptic per event: a touch that fans or closes the stack. A pick plays only its own; the binding none.
+        .sensoryFeedback(.impact(flexibility: .soft), trigger: fanTicks)
         .sensoryFeedback(.impact(flexibility: .solid), trigger: selects)
         .accessibilityElement(children: fanned ? .contain : .ignore)
         .accessibilityLabel(fanned ? "People" : collapsedLabel)
         .accessibilityHint(fanned ? "" : "Double tap to expand")
-        .accessibilityAction { setFanned(true) }
+        .accessibilityAction { setFanned(true, felt: true) }
         .onChange(of: isFanned?.wrappedValue) { _, new in
             if let new, new != fanned { setFanned(new) }
         }
+    }
+
+    // MARK: Bubbles
+
+    /// One avatar: its face inset in a glass bubble. Hidden avatars wait inside the "+N" bubble, shrunk, with their
+    /// faces hidden, and bud out of it as the stack fans.
+    ///
+    /// The bubble grows and shrinks by its frame, with the face scaled inside it, rather than by a scale effect on
+    /// the glass: inside a glass group, iOS 26 scales a glass shape's outline but not what it carries.
+    private func avatar(_ index: Int, name: String) -> some View {
+        let hidden = !fanned && index >= visibleCount
+        let lifted = fanned && hovered == index
+        let rise = lift(index)
+        // Lifted toward the eye, larger; home inside the "+N" bubble, shrunk. Under Reduce Motion neither: a hidden
+        // avatar fades in place instead.
+        let grow = reduceMotion ? 1 : (1 + liftScale * rise) * (hidden ? PieceLiquid.homeScale : 1)
+        return Face(name: name, image: images?[safe: index] ?? nil, size: size - rim * 2, style: style)
+            .overlay {
+                // Reduce Motion doesn't lift, so the avatar under the finger shows a ring instead.
+                if reduceMotion, lifted {
+                    Circle().strokeBorder(style.overflowInk, lineWidth: 2)
+                }
+            }
+            .padding(rim)
+            .mask { cut(index) }
+            .pieceBudContent(out: !hidden)
+            .frame(width: size, height: size)
+            .scaleEffect(grow)
+            .frame(width: size * grow, height: size * grow)
+            // A scrub lifts it on the lift's spring; fanning buds it on the fan's. A pick does both at once, and the
+            // lift's firm drop wins.
+            .animation(fanAnimation(index), value: fanned)
+            .animation(liftAnimation(index), value: hovered)
+            .pieceLiquid(Circle(), interactive: false)
+            // Its slot in the stack never changes size, so the lift never pushes its neighbours.
+            .frame(width: size, height: size)
+            .offset(y: reduceMotion ? 0 : -liftRise * rise)
+            // Scoped to the lift, so a pick drops the avatar on its own beat and the fold keeps its stagger.
+            .animation(liftAnimation(index), value: hovered)
+            .opacity(reduceMotion && hidden ? 0 : 1)
+            // Behind the avatar, so a tag melting home slips under its face.
+            .background(alignment: .top) {
+                if tags.contains("tag\(index)") {
+                    NameTag(name: name, out: tags.isOut("tag\(index)"), parent: size, rest: -tagRoom, home: (size - tagHeight) / 2, height: tagHeight, ink: style.tagInk)
+                }
+            }
+            .overlay(alignment: .top) {
+                Text(name.split(separator: " ").first.map(String.init) ?? name)
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(lifted ? style.overflowInk : style.caption)
+                    .animation(liftAnimation(index, PieceMotion.responsive), value: lifted)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+                    .frame(width: fannedStep)
+                    .offset(y: size + 8)
+                    .opacity(fanned ? 1 : 0)
+                    .animation(captionAnimation(index), value: fanned)
+            }
+            .offset(x: xPosition(index))
+            .zIndex(zIndex(index, hidden: hidden, lifted: lifted))
+            .animation(fanAnimation(index), value: fanned)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(name)
+            .accessibilityAddTraits(.isButton)
+            .accessibilityHidden(!fanned)
+            .accessibilityAction { select(index) }
+    }
+
+    /// The "+N" bubble. Fanning, it travels out with the first hidden avatar and melts into it, its count blurring
+    /// away, while the rest of the hidden avatars bud out of the two; folding, it buds back out of that avatar as they
+    /// all melt home into it. Like the avatars, it shrinks by its frame.
+    private var overflowBubble: some View {
+        let home = CGFloat(visibleCount) * (fannedStep - collapsedStep)
+        let grow = fanned && !reduceMotion ? PieceLiquid.homeScale : 1
+        return Text("+\(overflow)")
+            .font(.system(size: size * 0.36, weight: .semibold, design: .rounded))
+            .monospacedDigit()
+            .foregroundStyle(style.overflowInk)
+            .pieceBudContent(out: !fanned)
+            .frame(width: size, height: size)
+            .scaleEffect(grow)
+            .frame(width: size * grow, height: size * grow)
+            .pieceLiquid(Circle(), interactive: false)
+            .frame(width: size, height: size)
+            // Under Reduce Motion it stays in its slot and fades, like every bud.
+            .offset(x: CGFloat(visibleCount) * collapsedStep + (fanned && !reduceMotion ? home : 0))
+            .opacity(reduceMotion && fanned ? 0 : 1)
+            .zIndex(0)
+            .animation(overflowAnimation, value: fanned)
+            .accessibilityHidden(true)
+    }
+
+    /// The cut between overlapping faces: the avatar above this one (the one before it) takes a bite the size of its
+    /// glass bubble out of this face, so a rim of glass shows between the two. Fanned, the bite falls clear of the face.
+    private func cut(_ index: Int) -> some View {
+        Rectangle()
+            .overlay {
+                if index > 0 {
+                    Circle()
+                        .frame(width: size, height: size)
+                        .offset(x: xPosition(index - 1) - xPosition(index))
+                        .blendMode(.destinationOut)
+                }
+            }
+            .compositingGroup()
     }
 
     // MARK: Layout
@@ -198,11 +293,92 @@ public struct FanStack: View {
         return CGFloat(min(index, visibleCount)) * collapsedStep
     }
 
-    /// Opening staggers from the first avatar; closing reverses so the last one folds in first.
+    /// First avatar on top; the lifted one above them all. Hidden avatars sit under the "+N" bubble they wait in.
+    private func zIndex(_ index: Int, hidden: Bool, lifted: Bool) -> Double {
+        if lifted { return Double(names.count + 1) }
+        if hidden { return -Double(index) - 1 }
+        return Double(names.count - index)
+    }
+
+    private var motion: PieceMotion { PieceMotion(reduceMotion: reduceMotion) }
+
+    /// Opening staggers from the first avatar. The shown avatars spring apart on the elastic spring, the fan's
+    /// signature give; the hidden ones bud out of the "+N" bubble on the bud's split spring. Closing reverses, last
+    /// avatar first: the shown ones quick and firm, the hidden ones melting home with no bounce. Reduce Motion: no
+    /// stagger.
     private func fanAnimation(_ index: Int) -> Animation {
+        let buds = index >= visibleCount
+        let spring: Animation
+        if fanned {
+            spring = buds ? PieceLiquid.split(reduceMotion: reduceMotion) : reduceMotion ? motion.reveal : .spring(openSpring(index))
+        } else {
+            spring = buds ? PieceLiquid.home(reduceMotion: reduceMotion) : motion.dismiss
+        }
+        guard !reduceMotion else { return spring }
         let order = fanned ? index : names.count - 1 - index
-        let delay = reduceMotion ? 0 : Double(order) * 0.035
-        return reduceMotion ? .smooth(duration: 0.25) : .spring(duration: 0.45, bounce: 0.3).delay(delay)
+        return spring.delay(foldDelay + Double(order) * staggerStep)
+    }
+
+    /// The "+N" bubble keeps time with the first hidden avatar: it melts into it with no bounce as the fan opens, and
+    /// buds back out of it on the split spring as the fan folds.
+    private var overflowAnimation: Animation {
+        let spring = fanned ? PieceLiquid.home(reduceMotion: reduceMotion) : PieceLiquid.split(reduceMotion: reduceMotion)
+        guard !reduceMotion else { return spring }
+        let order = fanned ? visibleCount : names.count - 1 - visibleCount
+        return spring.delay(foldDelay + Double(order) * staggerStep)
+    }
+
+    /// A first name arrives once its avatar has nearly landed, so names never print over each other while the
+    /// bubbles are still bunched up, and leaves at once as the fan folds.
+    private func captionAnimation(_ index: Int) -> Animation {
+        guard fanned, !reduceMotion else { return motion.dismiss }
+        return motion.reveal.delay(Double(index) * staggerStep + 0.22)
+    }
+
+    /// The elastic spring, firmed up for long travel so no avatar swings more than `gap` past its place, and never
+    /// into its neighbour's merge distance.
+    private func openSpring(_ index: Int) -> Spring {
+        let elastic = PieceMotion.elastic
+        let travel = Double(CGFloat(index) * fannedStep - CGFloat(min(index, visibleCount)) * collapsedStep)
+        let allowed = Double(gap - PieceLiquid.merge)
+        guard travel > allowed else { return elastic }
+        // From rest a spring with damping ratio z passes its target by exp(-πz/√(1-z²)) of the travel; bounce is 1 - z.
+        let a = -log(allowed / travel) / .pi
+        return Spring(duration: elastic.duration, bounce: min(elastic.bounce, 1 - a / (1 + a * a).squareRoot()))
+    }
+
+    /// The frame starts halfway into the stagger, so the space around the stack opens and closes with the avatars
+    /// rather than ahead of them. It opens with the morph's small give and closes firm with the fold, so a centred
+    /// stack doesn't drift after the avatars have landed.
+    private var frameAnimation: Animation {
+        guard !reduceMotion else { return motion.morph }
+        return (fanned ? motion.morph : motion.dismiss).delay(foldDelay + Double(Swift.max(names.count - 1, 0)) * staggerStep / 2)
+    }
+
+    /// 35ms per avatar, tightened for big groups so the whole stagger stays within 200ms.
+    private var staggerStep: Double { min(0.035, 0.2 / Double(Swift.max(names.count - 1, 1))) }
+
+    /// A pick holds the fold for a beat while the chosen avatar drops back (`press`, about 90ms), so the choice
+    /// reads before the hand closes. `onSelect` has already run.
+    private var foldDelay: Double { picked ? 0.1 : 0 }
+
+    /// How high avatar `index` rises: fully under the finger and a little beside it, so the lift rolls along the
+    /// hand. Height only, never sideways, so `index(at:)` stays true. Reduce Motion lifts only the one avatar.
+    private func lift(_ index: Int) -> CGFloat {
+        guard fanned, let hovered else { return 0 }
+        switch abs(index - hovered) {
+        case 0: return 1
+        case 1: return reduceMotion ? 0 : 0.3
+        default: return 0
+        }
+    }
+
+    /// While scrubbing, the avatar under the finger moves first with the elastic give a scrub puts in, and the ones
+    /// beside it follow on looser springs. The first names below take the snap tier, so text never wobbles. On a pick
+    /// or a close the lift drops at once, firm and without overshoot, before the fold.
+    private func liftAnimation(_ index: Int, _ spring: Spring = PieceMotion.elastic) -> Animation {
+        guard fanned else { return motion.press }
+        return motion.follow(spring, rank: hovered.map { abs(index - $0) } ?? 0)
     }
 
     private var collapsedLabel: String {
@@ -215,6 +391,7 @@ public struct FanStack: View {
     /// Tap toggles the fan. Holding 300ms fans and keeps the touch live to scrub; releasing over an avatar selects it.
     private var fanGesture: some Gesture {
         DragGesture(minimumDistance: 0)
+            .updating($touchActive) { _, active, _ in active = true }
             .onChanged { value in
                 if !touching {
                     touching = true
@@ -224,7 +401,7 @@ public struct FanStack: View {
                             try? await Task.sleep(for: .milliseconds(300))
                             guard !Task.isCancelled, touching else { return }
                             longPressed = true
-                            setFanned(true)
+                            setFanned(true, felt: true)
                         }
                     }
                 }
@@ -240,9 +417,9 @@ public struct FanStack: View {
                 touching = false
                 defer { hovered = nil }
                 if fanned {
-                    if let hovered { select(hovered) } else if !longPressed { setFanned(false) }
+                    if let hovered { select(hovered) } else if !longPressed { setFanned(false, felt: true) }
                 } else if !longPressed {
-                    setFanned(true)
+                    setFanned(true, felt: true)
                 }
             }
     }
@@ -254,7 +431,10 @@ public struct FanStack: View {
         return point.x - CGFloat(index) * fannedStep <= size + gap / 2 ? index : nil
     }
 
-    private func setFanned(_ value: Bool) {
+    /// `felt` plays the soft impact: only for a touch or an accessibility action, never for the binding.
+    private func setFanned(_ value: Bool, felt: Bool = false) {
+        if felt, value != fanned { fanTicks += 1 }
+        if value { picked = false }
         fanned = value
         isFanned?.wrappedValue = value
         if !value { hovered = nil }
@@ -263,11 +443,12 @@ public struct FanStack: View {
     private func select(_ index: Int) {
         selects += 1
         onSelect?(names[index])
+        picked = true
         setFanned(false)
     }
 
-    /// Initials avatar on a block color, kept private so this file stands alone.
-    private struct InitialsCircle: View {
+    /// The face inside an avatar's bubble: the image, or initials on a block color. Kept private so this file stands alone.
+    private struct Face: View {
         let name: String
         let image: Image?
         let size: CGFloat
@@ -279,7 +460,7 @@ public struct FanStack: View {
                     image.resizable().scaledToFill()
                 } else {
                     Text(initials)
-                        .font(.system(size: size * 0.38, weight: .bold, design: .rounded))
+                        .font(.system(size: size * 0.4, weight: .semibold, design: .rounded))
                         .foregroundStyle(style.ink)
                         .frame(width: size, height: size)
                         .background(color)
@@ -287,7 +468,6 @@ public struct FanStack: View {
             }
             .frame(width: size, height: size)
             .clipShape(Circle())
-            .overlay(Circle().strokeBorder(style.ring, lineWidth: 3))
         }
 
         private var initials: String {
@@ -301,6 +481,45 @@ public struct FanStack: View {
             return style.colors[Int(hash % UInt32(style.colors.count))]
         }
     }
+
+    /// The full name on a clear glass capsule, budding out of the lifted avatar to rest a neck's width above it. Home,
+    /// it shrinks until it fits inside the avatar, however long the name, so none of it pokes out as it melts in.
+    private struct NameTag: View {
+        let name: String
+        let out: Bool
+        /// The avatar's diameter.
+        let parent: CGFloat
+        /// Vertical offsets from the avatar's top: where the tag rests, and where it is home at the avatar's centre.
+        let rest: CGFloat
+        let home: CGFloat
+        let height: CGFloat
+        let ink: Color
+        @Environment(\.accessibilityReduceMotion) private var reduceMotion
+        @State private var width: CGFloat = 80
+
+        var body: some View {
+            let fit = min(PieceLiquid.homeScale, parent * 0.6 / max(width, 1))
+            // Shrunk by its frame with the name scaled inside, as the avatars are. Under Reduce Motion it fades in place.
+            let grow = out || reduceMotion ? 1 : fit
+            Text(name)
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(ink)
+                .lineLimit(1)
+                .fixedSize()
+                .pieceBudContent(out: out)
+                .padding(.horizontal, 10)
+                .frame(height: height)
+                .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { width = $0 }
+                .scaleEffect(grow)
+                .frame(width: width * grow, height: height * grow)
+                .pieceLiquid(Capsule(), interactive: false)
+                // Centred on its rest place or on the avatar's centre: the frame shrinks about the top otherwise.
+                .frame(height: height)
+                .offset(y: out || reduceMotion ? rest : home)
+                .opacity(reduceMotion && !out ? 0 : 1)
+                .accessibilityHidden(true)
+        }
+    }
 }
 
 private extension Array {
@@ -311,22 +530,427 @@ private extension Array {
 
 // MARK: - Example
 
-/// Just the stack, on the ground the cut-out ring is matched to.
+/// Just the stack, on the house ground.
 private struct FanStackExample: View {
     private typealias House = FanStack.Style.House
-    private static let ground = House.adaptive(light: 0xF3F2EE, dark: 0x121212)
 
     var body: some View {
         FanStack(
-            names: ["Priya Raman", "Jonas Weber", "Amara Diallo", "Leo Brandt", "Sofia Marin", "Kenji Sato"],
-            size: 52,
-            max: 3,
-            style: .init(ring: Self.ground)
+            names: ["Priya Raman", "Jonas Weber", "Amara Diallo", "Leo Brandt", "Sofia Marin"],
+            max: 3
         )
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Self.ground)
+        .background(House.adaptive(light: 0xF3F2EE, dark: 0x121212))
     }
 }
 
 #Preview("Light") { FanStackExample().preferredColorScheme(.light) }
 #Preview("Dark") { FanStackExample().preferredColorScheme(.dark) }
+
+// MARK: - Piece motion
+//
+// The SwiftPieces motion language: shared spring tokens and gesture physics, with the same values in every
+// piece. Each piece carries a copy of only the parts it uses, so this file stands alone. Generated from
+// registry/foundation/PieceMotion.swift in the SwiftPieces repo; edit it there, not here.
+// swiftpieces-motion: 1.1.0 (core, follow, pressMath, press)
+
+/// The SwiftPieces motion language: five spring tiers, and a named role for every moment a piece moves,
+/// each with its Reduce Motion substitute.
+///
+/// Build one from the environment, `PieceMotion(reduceMotion: reduceMotion)`, and pick the role that names
+/// what just happened. Never animate the tracking of a finger: set gesture state directly in `onChanged`, so the
+/// surface stays under the finger, and spring only the release.
+private struct PieceMotion {
+    var reduceMotion = false
+
+    // Tiers. Overshoot and settle times are measured from rest with SwiftUI's Spring.
+    /// No overshoot, 90% in about 90ms. A press arriving under the finger.
+    static var tight: Spring { Spring(duration: 0.14, bounce: 0) }
+    /// About 2.8% overshoot, 90% in about 140ms. Snapping to a detent, page or segment.
+    static var responsive: Spring { Spring(duration: 0.32, bounce: 0.25) }
+    /// About 8.4% overshoot. Visible give: a release, a return from past an edge, a drag settling home.
+    static var elastic: Spring { Spring(duration: 0.42, bounce: 0.38) }
+    /// About 15% overshoot. A resolved action landing. At most once per interaction.
+    static var expressive: Spring { Spring(duration: 0.48, bounce: 0.48) }
+    /// About 1.5% overshoot, unhurried. Opening large surfaces and ambient change.
+    static var calm: Spring { Spring(duration: 0.5, bounce: 0.2) }
+
+    /// Reduce Motion: settles become this short spring with no overshoot.
+    private static var still: Animation { .spring(duration: 0.25, bounce: 0) }
+
+    // Roles.
+    /// Touch-down. Starts on the same frame and never bounces under the finger.
+    var press: Animation { .spring(Self.tight) }
+    /// The finger lifts off a pressed surface, which springs back through rest.
+    var release: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A dragged thing comes to rest. With a gesture's velocity, use `settle(velocity:from:to:)` instead.
+    var settle: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// Lands on a detent, page or segment.
+    var snap: Animation { reduceMotion ? Self.still : .spring(Self.responsive) }
+    /// A number, a chart value or anything else people read moves to its new value. Never overshoots, so it
+    /// never shows a value that isn't true.
+    var value: Animation { reduceMotion ? Self.still : .spring(duration: 0.35, bounce: 0) }
+    /// Comes back from past a limit: a pull beyond the edge, a value pushed against its bound.
+    var rebound: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A shape or container changes size, corner radius or form, with a little give at the end.
+    var morph: Animation { reduceMotion ? Self.still : .spring(duration: 0.4, bounce: 0.2) }
+    /// Something appears, opens or expands. Opening is a little slower than closing.
+    var reveal: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.calm) }
+    /// Something leaves, closes or collapses. Quick and firm, out of the way.
+    var dismiss: Animation { reduceMotion ? .easeIn(duration: 0.18) : .spring(duration: 0.3, bounce: 0.08) }
+    /// A resolved action lands: a check, a sent state, a reaction.
+    var success: Animation { reduceMotion ? .easeOut(duration: 0.24) : .spring(Self.expressive) }
+    /// A refused action. Firm, no wobble; `pieceShake` adds the movement.
+    var error: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.responsive) }
+    /// Slow ambient change. Loops themselves stop under Reduce Motion: check `allowsAmbient`.
+    var ambient: Animation { reduceMotion ? .easeInOut(duration: 0.3) : .spring(Self.calm) }
+
+    /// Loops, drifts, idle breathing and parallax run only when this is true.
+    var allowsAmbient: Bool { !reduceMotion }
+
+    /// A moving transition, or a plain fade under Reduce Motion.
+    func transition(_ transition: AnyTransition) -> AnyTransition {
+        reduceMotion ? .opacity : transition
+    }
+
+    /// For content replaced inside a container that stays put (a label, a glyph, a count): the old content
+    /// blurs out as the new one sharpens in. A fade under Reduce Motion.
+    @MainActor var swap: AnyTransition {
+        reduceMotion ? .opacity : AnyTransition(.blurReplace)
+    }
+}
+
+extension PieceMotion {
+    /// Follow-through: rank 0 leads, each later rank arrives a beat later on a slightly looser spring. Safe to reverse.
+    func follow(_ spring: Spring = PieceMotion.elastic, rank: Int) -> Animation {
+        guard !reduceMotion else { return .spring(duration: 0.25, bounce: 0) }
+        let k = Double(min(max(rank, 0), 6))
+        return .spring(duration: spring.duration + 0.04 * k, bounce: min(spring.bounce + 0.02 * k, 0.55))
+    }
+
+    /// One-shot entrances only: item `index` waits 30ms per place, capped at the seventh. Exits go together.
+    func cascade(_ animation: Animation, index: Int, step: Double = 0.03) -> Animation {
+        guard !reduceMotion, index > 0 else { return animation }
+        return animation.delay(step * Double(min(index, 7)))
+    }
+}
+
+extension PieceMotion {
+    /// About `depth` points per edge, not a fixed percentage: an icon sinks to 0.92, a pill 0.95, a card 0.985.
+    nonisolated static func pressScale(for size: CGSize, depth: CGFloat = 2.5) -> CGFloat {
+        let side = (max(size.width, 1) * max(size.height, 1)).squareRoot()
+        return min(max(1 - depth * 2 / side, 0.92), 0.985)
+    }
+
+    /// An anchor partway from the center toward the touch, so the press leans into the finger without tipping.
+    nonisolated static func pressAnchor(touch: CGPoint?, in size: CGSize, lean: CGFloat = 0.6) -> UnitPoint {
+        guard let touch, size.width > 0, size.height > 0 else { return .center }
+        let x = min(max(touch.x / size.width, 0), 1)
+        let y = min(max(touch.y / size.height, 0), 1)
+        return UnitPoint(x: 0.5 + (x - 0.5) * lean, y: 0.5 + (y - 0.5) * lean)
+    }
+}
+
+/// Sinks on touch-down, leaning toward the touch if given, and springs back from the same lean. Under Reduce
+/// Motion it shades instead of moving (darker in light mode, lighter in dark), without turning transparent.
+private struct PiecePress: ViewModifier {
+    let pressed: Bool
+    var touch: CGPoint?
+    var depth: CGFloat = 2.5
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.colorScheme) private var colorScheme
+    @State private var size: CGSize = .zero
+    @State private var anchor: UnitPoint = .center
+
+    func body(content: Content) -> some View {
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        let scale = pressed && !reduceMotion ? PieceMotion.pressScale(for: size, depth: depth) : 1
+        content
+            .onGeometryChange(for: CGSize.self) { $0.size } action: { size = $0 }
+            .brightness(pressed && reduceMotion ? (colorScheme == .dark ? 0.1 : -0.08) : 0)
+            .scaleEffect(scale, anchor: anchor)
+            .animation(pressed ? motion.press : motion.release, value: pressed)
+            .onChange(of: pressed) { _, isPressed in
+                if isPressed { anchor = PieceMotion.pressAnchor(touch: touch, in: size) }
+            }
+            .onChange(of: touch) { _, touch in
+                if pressed, let touch { anchor = PieceMotion.pressAnchor(touch: touch, in: size) }
+            }
+    }
+}
+
+private extension View {
+    /// Sinks this view while `pressed`, leaning toward `touch` (in this view's coordinates) when given.
+    func piecePress(_ pressed: Bool, touch: CGPoint? = nil, depth: CGFloat = 2.5) -> some View {
+        modifier(PiecePress(pressed: pressed, touch: touch, depth: depth))
+    }
+}
+
+// swiftpieces-motion: end
+
+// MARK: - Piece liquid
+//
+// The SwiftPieces liquid glass language: glass shapes that merge through a neck, bubbles that bud out of
+// and melt back into each other, and the frosted fallback before iOS 26. Each piece carries a copy of only
+// the parts it uses, so this file stands alone. Generated from registry/foundation/PieceLiquid.swift in the
+// SwiftPieces repo; edit it there, not here. The rules are in LIQUID_GLASS.md.
+// swiftpieces-liquid: 1.7.0 (liquid, bud)
+
+/// The liquid glass language: one merge distance, two rest gaps, and the springs a bubble leaves and comes home on.
+///
+/// Glass shapes inside one `PieceLiquidGroup` melt into each other through a neck when they come within `merge`
+/// points. Parts of one control rest `joined`, inside that distance, so the neck holds; separate actions rest
+/// `apart`, outside it, so they only goo while one buds out of, or melts back into, another.
+private enum PieceLiquid {
+    /// Glass shapes closer than this share a neck.
+    static let merge: CGFloat = 20
+    /// The gap between parts of one control (a stepper's buttons, a progress pill and its stop): the neck holds,
+    /// short and smooth, about two thirds of the shapes' height at its waist. Joined parts read best at one height.
+    static let joined: CGFloat = 4
+    /// The gap between separate actions (menu items, confirm and cancel, chips): they rest as their own bubbles.
+    static let apart: CGFloat = 26
+    /// How far a bubble shrinks while it is home inside its parent.
+    static let homeScale: CGFloat = 0.72
+
+    /// A bubble leaving its parent: slow enough that the neck's stretch and snap read.
+    static func split(reduceMotion: Bool) -> Animation {
+        reduceMotion ? .easeOut(duration: 0.2) : .spring(duration: 0.62, bounce: 0.22)
+    }
+
+    /// A bubble going home. No bounce: a bounce would carry it out through the far side of its parent.
+    static func home(reduceMotion: Bool) -> Animation {
+        reduceMotion ? .easeIn(duration: 0.18) : .spring(duration: 0.5, bounce: 0)
+    }
+}
+
+/// A group of glass shapes that merge into one liquid surface. On iOS 26 it is a `GlassEffectContainer`; before
+/// that, and under Reduce Transparency, the shapes draw on their own and simply don't merge. `lift` adds the soft
+/// shadow liquid glass floats on in light mode.
+private struct PieceLiquidGroup<Content: View>: View {
+    var spacing: CGFloat = PieceLiquid.merge
+    var lift = true
+    @ViewBuilder var content: Content
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        container
+            .shadow(color: .black.opacity(lift && colorScheme == .light ? 0.07 : 0), radius: 18, y: 8)
+    }
+
+    @ViewBuilder private var container: some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26, *), !reduceTransparency {
+            GlassEffectContainer(spacing: spacing) { content }
+        } else {
+            content
+        }
+        #else
+        content
+        #endif
+    }
+}
+
+/// One liquid glass shape: Liquid Glass on iOS 26, carrying `tint` as a solid colour and swelling under a press when
+/// `interactive`; a frosted Material with a light rim and a soft shadow before that; a solid fill under Reduce
+/// Transparency.
+///
+/// The tint is painted inside clear glass rather than tinting the glass. Tinted glass in a group bleeds its colour
+/// through every neck as a smear, so a red button would glow into the white pill it is joined to; painted inside,
+/// the colour stays crisp to the shape's edge, the necks between shapes are clear glass, and a tint change animates
+/// like any colour (tinted glass snaps).
+private struct PieceLiquidSurface<S: Shape>: ViewModifier {
+    var shape: S
+    var tint: Color?
+    var interactive: Bool
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.pieceLiquidScale) private var scale
+
+    func body(content: Content) -> some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26, *), !reduceTransparency {
+            // Scaled as two parts, content and outline, about the same centre. A scaleEffect on a glass view inside a
+            // GlassEffectContainer shrinks the glass but leaves what it carries full size, pinned to its corner.
+            content
+                .background { shape.fill(tint ?? .clear) }
+                .scaleEffect(scale)
+                .glassEffect(glass, in: shape.scale(scale))
+        } else {
+            fallback(content).scaleEffect(scale)
+        }
+        #else
+        fallback(content).scaleEffect(scale)
+        #endif
+    }
+
+    #if compiler(>=6.2)
+    @available(iOS 26, *)
+    private var glass: Glass {
+        interactive ? Glass.regular.interactive() : .regular
+    }
+    #endif
+
+    private func fallback(_ content: Content) -> some View {
+        let dark = colorScheme == .dark
+        return content
+            .background {
+                if reduceTransparency {
+                    shape.fill(tint ?? (dark ? Color(white: 0.17) : Color(white: 0.97)))
+                } else {
+                    ZStack {
+                        shape.fill(.regularMaterial)
+                        if let tint { shape.fill(tint.opacity(0.88)) }
+                    }
+                }
+            }
+            .overlay { shape.stroke(Color.white.opacity(dark ? 0.14 : 0.7), lineWidth: 0.5) }
+            .shadow(color: .black.opacity(dark ? 0.32 : 0.08), radius: 10, y: 5)
+    }
+}
+
+private struct PieceLiquidScaleKey: EnvironmentKey {
+    static let defaultValue: CGFloat = 1
+}
+
+private extension EnvironmentValues {
+    /// How much the liquid shapes below are scaled, about their own centres. Nested scales multiply.
+    var pieceLiquidScale: CGFloat {
+        get { self[PieceLiquidScaleKey.self] }
+        set { self[PieceLiquidScaleKey.self] = newValue }
+    }
+}
+
+private extension View {
+    /// Draws this view on a liquid glass `shape`. Put it inside a `PieceLiquidGroup` so it can merge with its neighbours.
+    func pieceLiquid<S: Shape>(_ shape: S, tint: Color? = nil, interactive: Bool = true) -> some View {
+        modifier(PieceLiquidSurface(shape: shape, tint: tint, interactive: interactive))
+    }
+
+    /// Scales the liquid glass shapes in this view, content and outline together, about their own centres. Use it
+    /// instead of `scaleEffect` on a glass view (a press, a lift, a swell): inside a group a plain `scaleEffect` shrinks
+    /// the glass but leaves its content full size and off centre. Animates like any other value.
+    func pieceLiquidScale(_ scale: CGFloat) -> some View {
+        transformEnvironment(\.pieceLiquidScale) { $0 *= scale }
+    }
+}
+
+/// The bud: how a bubble leaves and rejoins its parent, driven explicitly so every bubble shows the whole cycle.
+///
+/// A bubble is born at `home`, inside its parent, where the two glass shapes are one. It springs out to `rest`, and
+/// while it is inside the merge distance a neck holds it to the parent, thinning as it goes, until it snaps free.
+/// Going home it springs back on a spring with no bounce, the neck reaches out and re-forms, and only once it has
+/// melted all the way in is it removed. Both offsets are relative to where the bubble is laid out. Under Reduce
+/// Motion it stays at `rest`: its content fades and its glass closes in place.
+private struct PieceBud: ViewModifier {
+    var out: Bool
+    var rest: CGSize
+    var home: CGSize
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func body(content: Content) -> some View {
+        if reduceMotion {
+            // No travel. Inside a group glass ignores opacity, so the glass closes to nothing in place on the short
+            // Reduce Motion ease while its content fades; the opacity covers a bubble outside a group.
+            content
+                .pieceLiquidScale(out ? 1 : 0.001)
+                .opacity(out ? 1 : 0)
+                .offset(rest)
+        } else {
+            // The glass shrinks through `pieceLiquidScale`, never a plain scaleEffect (see there), then moves.
+            content
+                .pieceLiquidScale(out ? 1 : PieceLiquid.homeScale)
+                .offset(out ? rest : home)
+        }
+    }
+}
+
+/// A bubble's own content, on its own clock: gone the moment the bubble heads home, so it never rides over the
+/// parent's content, and arriving just after the bubble leaves.
+private struct PieceBudContent: ViewModifier {
+    var out: Bool
+
+    func body(content: Content) -> some View {
+        content
+            .blur(radius: out ? 0 : 6)
+            .opacity(out ? 1 : 0)
+            .animation(out ? .easeOut(duration: 0.3).delay(0.1) : .easeOut(duration: 0.14), value: out)
+    }
+}
+
+private extension View {
+    /// Places a bubble at `rest` while `out`, and at `home` (inside its parent, shrunk) while not.
+    func pieceBud(out: Bool, rest: CGSize = .zero, home: CGSize) -> some View {
+        modifier(PieceBud(out: out, rest: rest, home: home))
+    }
+
+    /// Hides a bubble's icon or label while it is home. Put it on the content, inside the glass.
+    func pieceBudContent(out: Bool) -> some View {
+        modifier(PieceBudContent(out: out))
+    }
+}
+
+/// Which bubbles exist and which are out. A bubble is added home with no animation, sent out on the next frame,
+/// and called home before it is removed, so it always melts in rather than fading. Keep one in `@State`.
+@MainActor @Observable
+private final class PieceBuds {
+    private(set) var present: [String] = []
+    private(set) var out: Set<String> = []
+    /// The latest call for each bubble. A bloom or gather that has been overtaken (a bubble sent home while it was
+    /// still waiting to go out, or called out again while melting) leaves that bubble alone.
+    @ObservationIgnored private var turn: [String: Int] = [:]
+
+    func contains(_ id: String) -> Bool { present.contains(id) }
+    func isOut(_ id: String) -> Bool { out.contains(id) }
+
+    private func claim(_ ids: [String]) -> [String: Int] {
+        var mine: [String: Int] = [:]
+        for id in ids {
+            let next = (turn[id] ?? 0) + 1
+            turn[id] = next
+            mine[id] = next
+        }
+        return mine
+    }
+
+    /// Puts bubbles straight out at rest with no motion: a view's first frame, or a state restored.
+    func place(_ ids: [String]) {
+        _ = claim(ids)
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) {
+            for id in ids where !present.contains(id) { present.append(id) }
+            out.formUnion(ids)
+        }
+    }
+
+    /// Adds bubbles home, then sends each out, `stagger` seconds apart, after an optional `delay`.
+    func bloom(_ ids: [String], reduceMotion: Bool, stagger: Double = 0.05, delay: Double = 0) async {
+        let mine = claim(ids)
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) {
+            for id in ids where !present.contains(id) { present.append(id) }
+        }
+        try? await Task.sleep(for: .milliseconds(24 + Int(max(delay, 0) * 1000)))
+        let split = PieceLiquid.split(reduceMotion: reduceMotion)
+        for (i, id) in ids.enumerated() where turn[id] == mine[id] {
+            withAnimation(split.delay(reduceMotion ? 0 : Double(i) * stagger)) { _ = out.insert(id) }
+        }
+    }
+
+    /// Calls bubbles home, last first, then removes them once they have melted in.
+    func gather(_ ids: [String], reduceMotion: Bool, stagger: Double = 0.04) async {
+        let mine = claim(ids)
+        let home = PieceLiquid.home(reduceMotion: reduceMotion)
+        for (i, id) in ids.reversed().enumerated() {
+            withAnimation(home.delay(reduceMotion ? 0 : Double(i) * stagger)) { _ = out.remove(id) }
+        }
+        try? await Task.sleep(for: .milliseconds(Int((0.52 + Double(ids.count) * stagger) * 1000)))
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) { present.removeAll { ids.contains($0) && !out.contains($0) && turn[$0] == mine[$0] } }
+    }
+}
+
+// swiftpieces-liquid: end
