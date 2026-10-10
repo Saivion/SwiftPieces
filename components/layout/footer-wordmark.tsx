@@ -19,7 +19,8 @@ const WORD: CSSProperties = { fontSize: SIZE, fontWeight: 800, fontFamily: "var(
 type Point = { x: number; y: number };
 /** Where each letter of PIECES starts, and the point on it the cursor clicks. */
 type Letter = { x: number; click: Point };
-type Marks = { slot: Point; letters: Letter[]; rest: Point };
+/** `xs` is where every glyph of the word starts, outline and solid alike, so both line up in any browser. */
+type Marks = { slot: Point; letters: Letter[]; rest: Point; xs: number[] };
 type Phase = "static" | "waiting" | "playing" | "done";
 
 /** One property of the cursor over time: a value at a moment, eased toward the next key. */
@@ -139,6 +140,8 @@ function choreograph(m: Marks) {
 export function FooterWordmark() {
   const svg = useRef<SVGSVGElement>(null);
   const text = useRef<SVGTextElement>(null);
+  // The word at its natural spacing, never shown: each glyph's own advance is read from it.
+  const probe = useRef<SVGTextElement>(null);
   // The cursor, one nested group per track (x, y, lean, press), then the idle drift.
   const cx = useRef<SVGGElement>(null);
   const cy = useRef<SVGGElement>(null);
@@ -154,18 +157,26 @@ export function FooterWordmark() {
   useEffect(() => {
     let live = true;
     void document.fonts.ready.then(() => {
-      const t = text.current;
+      const t = probe.current;
       if (!t || !live) return;
       try {
+        // The word spans the content width exactly. `textLength` would stretch it, but browsers disagree on
+        // where that puts each glyph: Safari's `getExtentOfChar` reports the unstretched positions, so the
+        // solid letters landed a few slots off the outline. So the spacing is laid out here instead: each
+        // glyph's own advance, plus an equal share of what is left, and every glyph is placed at its x.
+        const word = SLOT + PIECE;
+        const widths = [...word].map((_, i) => t.getSubStringLength(i, 1));
+        const gap = (1000 - widths.reduce((sum, w) => sum + w, 0)) / (word.length - 1);
+        const xs: number[] = [];
+        widths.reduce((x, w) => (xs.push(x), x + w + gap), 0);
         // Every click lands on ink: the top stroke of each capital (P's bar, I's top, E's arm, the
         // crowns of C and S), which sits just under the cap height at the middle of the glyph.
         const ls = [...PIECE].map((_, i) => {
-          const e = t.getExtentOfChar(SLOT.length + i);
-          return { x: e.x, click: { x: e.x + e.width * 0.48, y: INK_Y } };
+          const x = xs[SLOT.length + i];
+          return { x, click: { x: x + widths[SLOT.length + i] * 0.48, y: INK_Y } };
         });
-        const slot = t.getExtentOfChar(0);
         const r = ls[REST].click;
-        setMarks({ slot: { x: slot.x, y: INK_Y }, letters: ls, rest: { x: r.x + 4, y: r.y + 2 } });
+        setMarks({ slot: { x: xs[0], y: INK_Y }, letters: ls, rest: { x: r.x + 4, y: r.y + 2 }, xs });
         setPhase(matchMedia("(prefers-reduced-motion: reduce)").matches ? "done" : "waiting");
       } catch {
         // No layout to measure (a hidden footer): the word still shows, solid, without the cursor.
@@ -248,11 +259,23 @@ export function FooterWordmark() {
 
   return (
     <svg ref={svg} aria-hidden viewBox={`0 0 1000 ${HEIGHT}`} overflow="visible" className="footer-mark mt-12 mb-10 block w-full select-none sm:mb-14" data-phase={phase} preserveAspectRatio="xMidYMin meet">
-      {/* The whole word in outline: the slot every letter sits in. */}
-      <text ref={text} x="0" y={CAP} textLength="1000" lengthAdjust="spacing" className="footer-mark-slot" style={WORD}>
+      <text ref={probe} x="0" y={CAP} visibility="hidden" style={WORD}>
         {SLOT}
         {PIECE}
       </text>
+      {/* The whole word in outline: the slot every letter sits in. Once measured, every glyph sits at its
+          own x; until then (and without JavaScript) `textLength` spreads it across the width. */}
+      {marks ? (
+        <text x={marks.xs.join(" ")} y={CAP} className="footer-mark-slot" style={WORD}>
+          {SLOT}
+          {PIECE}
+        </text>
+      ) : (
+        <text ref={text} x="0" y={CAP} textLength="1000" lengthAdjust="spacing" className="footer-mark-slot" style={WORD}>
+          {SLOT}
+          {PIECE}
+        </text>
+      )}
       {marks ? (
         <>
           {/* PIECES, one letter at a time, each placed by a click. */}
