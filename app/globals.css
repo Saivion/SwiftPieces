@@ -81,26 +81,18 @@
    and crosses take the Pro palette's blue into orange. */
 /* The Pro badge (components/ui/pro-badge.tsx), identical to Pro's navbar badge: red into pink into blue. */
 .pro-badge {
-  /* The Pro palette, as the Pro text has it but without the orange: brand red (#ff0000) leading into pink and blue.
-     A tinted badge, never solid: a 1px ring of the three, a faint wash of them, and the crown and word in the same
-     colours, a little of the foreground mixed into the ink so it reads in light and dark alike. */
-  --pb-a: var(--pro-c1);
-  --pb-m: var(--pro-pink, #ff8fb8);
-  --pb-b: var(--pro-c3);
-  --pb-ink-a: color-mix(in srgb, var(--pb-a) 80%, var(--foreground));
-  --pb-ink-m: color-mix(in srgb, var(--pb-m) 70%, var(--foreground));
-  --pb-ink-b: color-mix(in srgb, var(--pb-b) 75%, var(--foreground));
+  /* A grey chip, the same surface as the navbar's buttons beside it, so it sits on the bar instead of floating above
+     it. The crown is the one colour, in brand red; the word is plain ink. Reads alike in light and dark. */
+  --pb-ink-a: var(--pro-c1);
+  --pb-ink-m: var(--pro-c1);
+  --pb-ink-b: var(--pro-c1);
   border: 1px solid transparent;
-  background:
-    linear-gradient(100deg, color-mix(in srgb, var(--pb-a) 12%, var(--background)), color-mix(in srgb, var(--pb-m) 12%, var(--background)), color-mix(in srgb, var(--pb-b) 12%, var(--background))) padding-box,
-    linear-gradient(100deg, color-mix(in srgb, var(--pb-a) 60%, transparent), color-mix(in srgb, var(--pb-m) 55%, transparent), color-mix(in srgb, var(--pb-b) 55%, transparent)) border-box;
-  transition: filter .3s;
+  background: color-mix(in srgb, var(--foreground) 7%, var(--background));
+  color: var(--foreground);
+  transition: background-color .3s;
 }
-.pro-badge span {
-  background-image: linear-gradient(100deg, var(--pb-ink-a), var(--pb-ink-m), var(--pb-ink-b));
-  -webkit-background-clip: text; background-clip: text; color: transparent;
-}
-.pro-badge:hover, a:hover .pro-badge { filter: saturate(1.4) brightness(1.03); }
+.pro-badge:hover, a:hover .pro-badge { background: color-mix(in srgb, var(--foreground) 11%, var(--background)); }
+
 
 .frame-pro { --pb-a: var(--pro-c3); --pb-b: var(--pro-c2); transition: color .2s ease; }
 .frame-pro:hover, .frame-pro:has(:focus-visible) { color: var(--foreground); }
@@ -908,3 +900,7 @@ html.light .pv-glass-pass { filter: var(--pv-goo-light) var(--pv-goo-lift); }
 /* Always-dark islands (the landing iPhones, the carousel, the terminal) keep dark glass in light mode too: their glass
    colours are dark (.stage-dark), so the material lookup must be the dark one, or the glass turns milky grey. */
 .stage-dark .pv-glass-pass, html.light .stage-dark .pv-glass-pass { filter: var(--pv-goo-dark) var(--pv-goo-lift); }
+/* WebKit only (piece-liquid.tsx, useGlassSync): the goo pass runs no transitions or animations of its own, so nothing
+   in it lands on a GPU layer, where WebKit would drop its SVG filter and paint the raw shapes. It follows the content
+   pass frame by frame instead. */
+.pv-glass-sync, .pv-glass-sync * { transition: none !important; animation: none !important; }

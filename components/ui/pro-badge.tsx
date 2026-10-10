@@ -2,14 +2,15 @@ import { cn } from "@/lib/cn";
 
 /**
  * The Pro badge, as SwiftPieces Pro's navbar draws it (SwiftPiecesPro/components/layout/pro-badge.tsx
- * and crown.tsx): a crown and the word in red into pink into blue, on a faint wash of the same inside a ring of them. Styles: `.pro-badge` in app/globals.css, kept identical to Pro's. `size="sm"` fits a
+ * and crown.tsx): a grey chip like the navbar's buttons, the crown in brand red and the word in plain ink.
+ * Styles: `.pro-badge` in app/globals.css, kept identical to Pro's. `size="sm"` fits a
  * menu row beside a title, where the New and Beta badges sit.
  */
 export function ProBadge({ label = "Pro", size = "md", className }: { label?: string; size?: "sm" | "md"; className?: string }) {
   return (
     <span className={cn("pro-badge inline-flex shrink-0 items-center rounded-[4px] font-semibold tracking-[-0.01em]", size === "sm" ? "h-5 gap-1 px-1.5 text-[10.5px]" : "h-8 gap-1.5 px-2.5 text-[12.5px]", className)}>
       <svg aria-hidden viewBox="0 0 24 24" className={cn("ai ai-tilt overflow-visible", size === "sm" ? "size-2.5" : "size-3.5")} fill="url(#pro-badge-ink)">
-        {/* The same red-pink-blue ink as the word (--pb-ink-a/b). Every copy declares the same
+        {/* The crown's ink (--pb-ink-a/b, brand red in .pro-badge). Every copy declares the same
             gradient, so a repeated id is harmless. */}
         <defs>
           <linearGradient id="pro-badge-ink" x1="0" y1="0" x2="1" y2="0">

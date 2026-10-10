@@ -73,6 +73,79 @@ const PassContext = createContext<Pass | null>(null);
 /** The CSS length of one iOS point inside the current group, so shapes and offsets can be written in points. */
 const UnitContext = createContext("1px");
 
+/**
+ * Whether this browser is WebKit: Safari, and every browser on iPhone and iPad. WebKit drops an SVG reference filter
+ * (`filter: url(#…)`) from an element once anything inside it runs on its own GPU layer, and a running transform or
+ * opacity transition (a bud, a toggle, a morph) puts the shape on one. The goo pass would then paint its raw input.
+ * So on WebKit the goo pass runs no transitions or animations of its own (`.pv-glass-sync`, app/globals.css): while
+ * the content pass animates, `useGlassSync` copies each element's live geometry onto its twin in the goo pass every
+ * frame. Plain style writes make no GPU layer, so the filter holds and the glass melts as it does in Chrome.
+ * Read once, after hydration; Chrome, Edge and Firefox keep the transitions in both passes.
+ */
+let webkit: boolean | undefined;
+function isWebKit(): boolean {
+  if (webkit !== undefined) return webkit;
+  const ua = navigator.userAgent;
+  // Every iOS browser is WebKit, whatever its name (CriOS, FxiOS, EdgiOS carry no "Chrome/"); on the desktop, Safari
+  // is the WebKit browser that names no Blink engine.
+  webkit = /AppleWebKit/.test(ua) && !/(Chrome|Chromium|Edg|OPR|SamsungBrowser)\//.test(ua);
+  return webkit;
+}
+
+/** What the goo pass copies from the content pass while it moves: everything that changes a shape's outline. */
+const SYNCED = ["transform", "translate", "scale", "rotate", "opacity", "width", "height", "top", "right", "bottom", "left", "border-top-left-radius", "border-top-right-radius", "border-bottom-right-radius", "border-bottom-left-radius"] as const;
+
+/** The elements of a pass in document order. The goo pass's content-hiding wrappers are skipped, so both lists pair up. */
+const elementsOf = (root: HTMLElement) => Array.from(root.querySelectorAll<HTMLElement>("*:not([data-pv-skip])")).filter((el) => el instanceof HTMLElement);
+
+/**
+ * WebKit only (see isWebKit): while anything in the content pass transitions or animates, mirror its live geometry onto
+ * the goo pass each frame; when it all settles, hand each property back to the value React set, read off the content
+ * twin, which has the same props.
+ */
+function useGlassSync(glassRef: React.RefObject<HTMLDivElement | null>, contentRef: React.RefObject<HTMLDivElement | null>) {
+  const [on, setOn] = useState(false);
+  useEffect(() => setOn(isWebKit()), []);
+  useEffect(() => {
+    const glassRoot = glassRef.current, contentRoot = contentRef.current;
+    if (!on || !glassRoot || !contentRoot || typeof contentRoot.getAnimations !== "function") return;
+    let raf = 0;
+    const pairs = () => {
+      const g = elementsOf(glassRoot), c = elementsOf(contentRoot);
+      return g.length === c.length ? g.map((el, i) => [el, c[i]] as const) : null;
+    };
+    const copy = (live: boolean) => {
+      const list = pairs();
+      if (!list) return;
+      for (const [g, c] of list) {
+        const from = live ? getComputedStyle(c) : c.style;
+        for (const p of SYNCED) {
+          const v = from.getPropertyValue(p);
+          if (g.style.getPropertyValue(p) !== v) g.style.setProperty(p, v);
+        }
+      }
+    };
+    const frame = () => {
+      if (contentRoot.getAnimations({ subtree: true }).length) {
+        copy(true);
+        raf = requestAnimationFrame(frame);
+      } else {
+        raf = 0;
+        copy(false);
+      }
+    };
+    const start = () => { if (!raf) raf = requestAnimationFrame(frame); };
+    const events = ["transitionrun", "animationstart"] as const;
+    for (const e of events) contentRoot.addEventListener(e, start);
+    start();
+    return () => {
+      cancelAnimationFrame(raf);
+      for (const e of events) contentRoot.removeEventListener(e, start);
+    };
+  }, [on, glassRef, contentRef]);
+  return on;
+}
+
 /** A length in points as CSS, against `unit` (one point). */
 const len = (points: number, unit: string) => `calc(${unit} * ${+points.toFixed(3)})`;
 
@@ -114,6 +187,9 @@ export function LiquidGroup({ unit, merge = liquid.merge, axis = "x", lift = tru
   const along = merge * 0.55 * px, across = merge * 0.15 * px;
   const deviation = axis === "x" ? `${along} ${across}` : axis === "y" ? `${across} ${along}` : `${merge * 0.35 * px}`;
   const r = (n: number) => +n.toFixed(3);
+  const glassRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const synced = useGlassSync(glassRef, contentRef);
   return (
     <UnitContext.Provider value={unit}>
       <div className={`relative ${className ?? ""}`} style={style}>
@@ -141,7 +217,7 @@ export function LiquidGroup({ unit, merge = liquid.merge, axis = "x", lift = tru
         <PassContext.Provider value="glass">
           {/* Hidden as a whole, so text and fills that are not glass never pass through the goo; each `Liquid` turns
               its own fill back on, nested ones included. */}
-          <div aria-hidden className="pv-glass-pass pointer-events-none absolute inset-0" style={{
+          <div ref={glassRef} aria-hidden className={`pv-glass-pass pointer-events-none absolute inset-0${synced ? " pv-glass-sync" : ""}`} style={{
             visibility: "hidden",
             ["--pv-goo-light" as string]: `url(#${id}-light)`,
             ["--pv-goo-dark" as string]: `url(#${id}-dark)`,
@@ -156,7 +232,7 @@ export function LiquidGroup({ unit, merge = liquid.merge, axis = "x", lift = tru
         <PassContext.Provider value="content">
           {/* At least the group's own height, like the glass pass: shapes placed absolutely against the group's edges
               land in the same place in both passes, so a tint painted here sits exactly on its glass. */}
-          <div className="relative" style={{ minHeight: "100%" }}>{children}</div>
+          <div ref={contentRef} className="relative" style={{ minHeight: "100%" }}>{children}</div>
         </PassContext.Provider>
       </div>
     </UnitContext.Provider>
@@ -203,10 +279,12 @@ export function Liquid({ radius = "capsule", tint, bud, className, style, childr
   }
   if (pass === "glass") {
     // The outline alone, opaque so the filter reads it as alpha; the filter makes the glass. The content keeps its
-    // space so the outline matches the content pass exactly.
+    // space so the outline matches the content pass exactly. Painted the glass's own opaque colour rather than black:
+    // the filter reads only alpha, so it changes nothing there, and if a browser ever draws this pass unfiltered it
+    // shows as plain glass, never as black pills.
     return (
-      <div className={className} style={{ ...base, background: "#000", boxShadow: "none", color: "transparent", visibility: "visible" }}>
-        <span style={{ visibility: "hidden", display: "contents" }}>{children}</span>
+      <div className={className} style={{ ...base, background: glass.solid, boxShadow: "none", color: "transparent", visibility: "visible" }}>
+        <span data-pv-skip style={{ visibility: "hidden", display: "contents" }}>{children}</span>
       </div>
     );
   }
