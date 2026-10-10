@@ -1,3 +1,4 @@
+import { useId } from "react";
 import { cn } from "@/lib/cn";
 
 /**
@@ -7,13 +8,16 @@ import { cn } from "@/lib/cn";
  * menu row beside a title, where the New and Beta badges sit.
  */
 export function ProBadge({ label = "Pro", size = "md", className }: { label?: string; size?: "sm" | "md"; className?: string }) {
+  // One gradient id per badge. A shared id resolves to the first copy in the document, and when that
+  // copy sits in a hidden subtree (the desktop menu, on phones) the gradient doesn't paint and the
+  // crown goes blank everywhere.
+  const ink = `pro-badge-ink-${useId().replace(/[^\w-]/g, "")}`;
   return (
     <span className={cn("pro-badge inline-flex shrink-0 items-center rounded-[4px] font-semibold tracking-[-0.01em]", size === "sm" ? "h-5 gap-1 px-1.5 text-[10.5px]" : "h-8 gap-1.5 px-2.5 text-[12.5px]", className)}>
-      <svg aria-hidden viewBox="0 0 24 24" className={cn("ai ai-tilt overflow-visible", size === "sm" ? "size-2.5" : "size-3.5")} fill="url(#pro-badge-ink)">
-        {/* The crown's ink (--pb-ink-a/b, brand red in .pro-badge). Every copy declares the same
-            gradient, so a repeated id is harmless. */}
+      <svg aria-hidden viewBox="0 0 24 24" className={cn("ai ai-tilt overflow-visible", size === "sm" ? "size-2.5" : "size-3.5")} fill={`url(#${ink})`}>
+        {/* The crown's ink (--pb-ink-a/b, brand red in .pro-badge), under this badge's own id. */}
         <defs>
-          <linearGradient id="pro-badge-ink" x1="0" y1="0" x2="1" y2="0">
+          <linearGradient id={ink} x1="0" y1="0" x2="1" y2="0">
             <stop offset="0" style={{ stopColor: "var(--pb-ink-a)" }} />
             <stop offset="0.5" style={{ stopColor: "var(--pb-ink-m)" }} />
             <stop offset="1" style={{ stopColor: "var(--pb-ink-b)" }} />
