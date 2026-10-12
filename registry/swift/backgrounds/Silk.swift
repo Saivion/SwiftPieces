@@ -7,6 +7,7 @@
 // version: "2.2.0"
 // tags: [background, shader, silk, motion, loop, palette]
 // shaders: [Silk.metal]
+// infoPlist: { NSMotionUsageDescription: "Moves the light across the silk as you tilt the device." }
 
 import SwiftUI
 import CoreMotion
