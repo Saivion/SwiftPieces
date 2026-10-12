@@ -122,15 +122,7 @@ public struct ThinkingState: View {
             // and the same ripple runs through their opacity.
             HStack(spacing: 6) {
                 ForEach(0..<3, id: \.self) { index in
-                    let phase = ((time * 0.9 - Double(index) * 0.16).truncatingRemainder(dividingBy: 1) + 1).truncatingRemainder(dividingBy: 1)
-                    let wave = phase < 0.45 ? sin(phase / 0.45 * .pi) : 0
-                    let lift = wave * wave
-                    Circle()
-                        .fill(tint ?? (style.dots.isEmpty ? Color.secondary : style.dots[index % style.dots.count]))
-                        .frame(width: 9, height: 9)
-                        .opacity(moving ? 1 : 0.5 + 0.5 * lift)
-                        .scaleEffect(moving ? 0.8 + 0.2 * lift : 0.8)
-                        .offset(y: moving ? -5 * lift : 0)
+                    thinkingDot(index: index, time: time, moving: moving)
                 }
             }
             .frame(height: lineHeight)
@@ -143,6 +135,19 @@ public struct ThinkingState: View {
                 .foregroundStyle(style.muted)
                 .overlay { ThinkingSheen(pass: pass, moving: moving, color: tint ?? style.text, strength: 1).mask(label) }
         }
+    }
+
+    /// One rising dot. Its own function so `content` type-checks; the phase, wave and lift are unchanged.
+    private func thinkingDot(index: Int, time: Double, moving: Bool) -> some View {
+        let phase = ((time * 0.9 - Double(index) * 0.16).truncatingRemainder(dividingBy: 1) + 1).truncatingRemainder(dividingBy: 1)
+        let wave = phase < 0.45 ? sin(phase / 0.45 * .pi) : 0
+        let lift = wave * wave
+        return Circle()
+            .fill(tint ?? (style.dots.isEmpty ? Color.secondary : style.dots[index % style.dots.count]))
+            .frame(width: 9, height: 9)
+            .opacity(moving ? 1 : 0.5 + 0.5 * lift)
+            .scaleEffect(moving ? 0.8 + 0.2 * lift : 0.8)
+            .offset(y: moving ? -5 * lift : 0)
     }
 
     /// Reply-shaped placeholder bars: full, slightly short, and a trailing short bar.
