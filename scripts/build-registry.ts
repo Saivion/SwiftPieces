@@ -259,8 +259,19 @@ function build() {
   writeDocsIndex();
   writeLlms(items);
   writeSchema();
+  writeReadmeCount(items.length, Object.keys(categories).length);
 
   console.log(`registry: ${items.length} free pieces, ${items.filter((i) => i.liquidGlass).length} Liquid Glass, ${items.filter((i) => i.metal).length} Metal`);
+}
+
+/** The README's piece count is generated from the registry, so it cannot drift from the files. */
+function writeReadmeCount(pieces: number, categoryCount: number) {
+  const path = join(ROOT, "README.md");
+  const text = readFileSync(path, "utf8");
+  const pattern = /\*\*\d+ pieces across \d+ categories:\*\*/;
+  if (!pattern.test(text)) throw new Error("README.md is missing the \"N pieces across M categories\" sentence.");
+  const next = text.replace(pattern, `**${pieces} pieces across ${categoryCount} categories:**`);
+  if (next !== text) writeFileSync(path, next);
 }
 
 

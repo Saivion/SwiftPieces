@@ -41,7 +41,7 @@ jobs:
         run: npm test
       - run: npm run registry:build
       - name: Generated files are committed
-        run: git diff --exit-code -- registry/__registry__ content/docs public/llms.txt public/schema
+        run: git diff --exit-code -- registry/__registry__ content/docs public/llms.txt public/schema README.md
       - run: npm run typecheck
       - run: npm run cli:build
       - run: npx opennextjs-cloudflare build
