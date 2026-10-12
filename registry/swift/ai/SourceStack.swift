@@ -247,13 +247,12 @@ public struct SourceStack: View {
     }
 }
 
-/// The same sRGB value as `Color(red: 0x14 / 255, green: 0x14 / 255, blue: 0x14 / 255)`: the division is
-/// floating-point because `Color.init` takes `Double`. Kept in its own function so `Style.init` type-checks.
+/// sRGB from a hex integer. `Double` keeps `0x14 / 255` as 20/255, which is what `Color.init` did inline.
 private func houseColor(_ hex: UInt32) -> Color {
     Color(red: Double((hex >> 16) & 0xFF) / 255, green: Double((hex >> 8) & 0xFF) / 255, blue: Double(hex & 0xFF) / 255)
 }
 
-/// Badge discs, in house order. A function rather than a stored array so the default stays nonisolated.
+/// Badge discs, in house order. Split out of `Style.init` so that initializer type-checks.
 private func houseBlocks() -> [Color] {
     [0x9CC2FF, 0xFFD976, 0xA9DCB7, 0xCDB8FF, 0xE9D5B3, 0xFF0000].map { hex in houseColor(hex) }
 }

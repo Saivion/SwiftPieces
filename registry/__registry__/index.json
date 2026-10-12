@@ -281,7 +281,9 @@
     "registryDependencies": [],
     "spmDependencies": [],
     "requiredCapabilities": [],
-    "infoPlist": {},
+    "infoPlist": {
+      "NSMotionUsageDescription": "Moves the light across the silk as you tilt the device."
+    },
     "assets": [],
     "shaders": [
       {
@@ -409,7 +411,9 @@
     "registryDependencies": [],
     "spmDependencies": [],
     "requiredCapabilities": [],
-    "infoPlist": {},
+    "infoPlist": {
+      "NSMotionUsageDescription": "Tilts the card as you move the device, so the light and shadow follow how you hold it."
+    },
     "assets": [],
     "shaders": [],
     "files": [

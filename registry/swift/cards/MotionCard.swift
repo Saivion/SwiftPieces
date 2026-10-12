@@ -6,6 +6,7 @@
 // version: "2.3.0"
 // pro: payment-card
 // tags: [card, motion, tilt, core-motion, press, ticket]
+// infoPlist: { NSMotionUsageDescription: "Tilts the card as you move the device, so the light and shadow follow how you hold it." }
 
 import SwiftUI
 import CoreMotion
