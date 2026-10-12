@@ -40,14 +40,22 @@ public struct NoticeStack: View {
         public var muted: Color
 
         public init(
-            ink: Color = NoticeStack.adaptive(light: 0x141414, dark: 0xF4F3EF),
-            muted: Color = NoticeStack.adaptive(light: 0x5C5A56, dark: 0xA6A49F)
+            ink: Color = Style.adaptive(light: 0x141414, dark: 0xF4F3EF),
+            muted: Color = Style.adaptive(light: 0x5C5A56, dark: 0xA6A49F)
         ) {
             self.ink = ink
             self.muted = muted
         }
 
         public static let standard = Style()
+
+        /// A color that follows the appearance, from two 0xRRGGBB values.
+        public static func adaptive(light: UInt32, dark: UInt32) -> Color {
+            Color(UIColor { @Sendable traits in
+                let hex = traits.userInterfaceStyle == .dark ? dark : light
+                return UIColor(red: CGFloat(hex >> 16 & 0xFF) / 255, green: CGFloat(hex >> 8 & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
+            })
+        }
     }
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -178,10 +186,7 @@ public struct NoticeStack: View {
     }
 
     public static func adaptive(light: UInt32, dark: UInt32) -> Color {
-        Color(UIColor { @Sendable traits in
-            let hex = traits.userInterfaceStyle == .dark ? dark : light
-            return UIColor(red: CGFloat(hex >> 16 & 0xFF) / 255, green: CGFloat(hex >> 8 & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
-        })
+        Style.adaptive(light: light, dark: dark)
     }
 }
 

@@ -51,8 +51,8 @@ public struct ScrollIsland: View {
         public var accent: Color
 
         public init(
-            ink: Color = ScrollIsland.adaptive(light: 0x141414, dark: 0xF4F3EF),
-            muted: Color = ScrollIsland.adaptive(light: 0x5C5A56, dark: 0xA6A49F),
+            ink: Color = Style.adaptive(light: 0x141414, dark: 0xF4F3EF),
+            muted: Color = Style.adaptive(light: 0x5C5A56, dark: 0xA6A49F),
             accent: Color = Color(red: 1, green: 0, blue: 0)
         ) {
             self.ink = ink
@@ -61,6 +61,14 @@ public struct ScrollIsland: View {
         }
 
         public static let standard = Style()
+
+        /// A color that follows the appearance, from two 0xRRGGBB values.
+        public static func adaptive(light: UInt32, dark: UInt32) -> Color {
+            Color(UIColor { @Sendable traits in
+                let hex = traits.userInterfaceStyle == .dark ? dark : light
+                return UIColor(red: CGFloat(hex >> 16 & 0xFF) / 255, green: CGFloat(hex >> 8 & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
+            })
+        }
     }
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -155,7 +163,7 @@ public struct ScrollIsland: View {
 
     private var capsule: some View {
         let motion = PieceMotion(reduceMotion: reduceMotion)
-        HStack(spacing: 10) {
+        return HStack(spacing: 10) {
             if let stop = current {
                 Image(systemName: stop.symbol)
                     .font(.body.weight(.semibold))
@@ -243,10 +251,7 @@ public struct ScrollIsland: View {
 
     /// A color that follows the appearance, from two 0xRRGGBB values.
     public static func adaptive(light: UInt32, dark: UInt32) -> Color {
-        Color(UIColor { @Sendable traits in
-            let hex = traits.userInterfaceStyle == .dark ? dark : light
-            return UIColor(red: CGFloat(hex >> 16 & 0xFF) / 255, green: CGFloat(hex >> 8 & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
-        })
+        Style.adaptive(light: light, dark: dark)
     }
 }
 
