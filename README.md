@@ -38,7 +38,7 @@ npx swiftpieces add AssistantOrb SwipeDeck GlassActionMenu
 
 Or open the file on [swiftpieces.com/components](https://swiftpieces.com/components) and copy it. There is nothing to install and no package to track.
 
-**67 pieces across 14 categories:** [text](https://swiftpieces.com/components/text), [backgrounds](https://swiftpieces.com/components/backgrounds), [Liquid Glass](https://swiftpieces.com/components/glass), [buttons and controls](https://swiftpieces.com/components/controls), [inputs and forms](https://swiftpieces.com/components/inputs), [cards](https://swiftpieces.com/components/cards), [lists](https://swiftpieces.com/components/lists), [navigation](https://swiftpieces.com/components/navigation), [sheets](https://swiftpieces.com/components/sheets), [feedback](https://swiftpieces.com/components/feedback), [motion](https://swiftpieces.com/components/motion), [data and charts](https://swiftpieces.com/components/data), [AI](https://swiftpieces.com/components/ai) and [media](https://swiftpieces.com/components/media).
+**69 pieces across 14 categories:** [text](https://swiftpieces.com/components/text), [backgrounds](https://swiftpieces.com/components/backgrounds), [Liquid Glass](https://swiftpieces.com/components/glass), [buttons and controls](https://swiftpieces.com/components/controls), [inputs and forms](https://swiftpieces.com/components/inputs), [cards](https://swiftpieces.com/components/cards), [lists](https://swiftpieces.com/components/lists), [navigation](https://swiftpieces.com/components/navigation), [sheets](https://swiftpieces.com/components/sheets), [feedback](https://swiftpieces.com/components/feedback), [motion](https://swiftpieces.com/components/motion), [data and charts](https://swiftpieces.com/components/data), [AI](https://swiftpieces.com/components/ai) and [media](https://swiftpieces.com/components/media).
 
 **Guides:** [SwiftUI animations](https://swiftpieces.com/docs/guides/swiftui-animations) · [SwiftUI buttons](https://swiftpieces.com/docs/guides/swiftui-buttons) · [SwiftUI cards](https://swiftpieces.com/docs/guides/swiftui-cards) · [SwiftUI haptics](https://swiftpieces.com/docs/guides/swiftui-haptics) · [Loading states](https://swiftpieces.com/docs/guides/swiftui-loading-states) · [Liquid Glass](https://swiftpieces.com/docs/liquid-glass)
 
@@ -75,7 +75,7 @@ npm run registry:build   # .swift -> registry JSON, docs pages, llms.txt
 npm run dev
 ```
 
-Use Node 22.22 or newer: `.nvmrc` pins Node 22, the line CI and Cloudflare's builds use. Pieces live in `registry/swift/<category>/`; after changing one, or `registry.json`, rerun `npm run registry:build` to regenerate the registry output.
+Use Node 22.22.0 or newer: `.nvmrc` pins 22.22.0, the line CI and Cloudflare's builds use. Pieces live in `registry/swift/<category>/`; after changing one, or `registry.json`, rerun `npm run registry:build` to regenerate the registry output.
 
 | Path | Purpose |
 | --- | --- |
