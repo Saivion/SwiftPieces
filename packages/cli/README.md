@@ -19,6 +19,8 @@ npx swiftpieces add AssistantOrb SwipeDeck
 
 Xcode 16+ picks up the files automatically through folder-synchronized groups. Requires Node 18.17+.
 
+Files are written only inside the SwiftPieces folder (or the agent's skills folder for the Build Kit). The license key is sent only to `https://pro.swiftpieces.com` unless you pass `--trust-registry`. Registry URLs must be `https`; `--allow-http-localhost` allows a local `http` registry.
+
 Docs: [swiftpieces.com/docs/cli](https://swiftpieces.com/docs/cli) · Pro: [pro.swiftpieces.com](https://pro.swiftpieces.com)
 
 ## License

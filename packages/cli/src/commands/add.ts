@@ -1,14 +1,31 @@
-import { existsSync, mkdirSync, writeFileSync } from "node:fs";
-import { dirname, join, relative } from "node:path";
+import { dirname, relative } from "node:path";
 import { DEFAULT_REGISTRIES, findConfig, readLicenseKey } from "../config.js";
-import { fetchItem, RegistryError, type RegistryItem } from "../registry.js";
+import { fetchItem, RegistryError, type FetchPolicy, type RegistryItem } from "../registry.js";
 import { fetchKitItem, isKitId, resolveAgents, skillsDir, writeKit } from "../kit.js";
 import { init } from "./init.js";
 import { detectXcodeProject } from "../xcode.js";
+import { existingRegularFile, mkdirInside, PathEscapeError, resolveInside, writeInside } from "../safe-path.js";
 
 const PREFIX = "SwiftPieces/";
 
-type AddOptions = { overwrite?: boolean; dryRun?: boolean; agent?: string; global?: boolean };
+export type AddOptions = {
+  overwrite?: boolean;
+  dryRun?: boolean;
+  agent?: string;
+  global?: boolean;
+  allowHttpLocalhost?: boolean;
+  trustRegistry?: boolean;
+};
+
+function policyOf(opts: AddOptions): FetchPolicy {
+  return { allowHttpLocalhost: opts.allowHttpLocalhost, trustRegistry: opts.trustRegistry };
+}
+
+function fail(error: unknown): false {
+  console.error(error instanceof RegistryError || error instanceof PathEscapeError ? error.message : String(error));
+  process.exitCode = 1;
+  return false;
+}
 
 export async function add(all: string[], opts: AddOptions) {
   const kitIds = all.filter(isKitId);
@@ -21,7 +38,7 @@ export async function add(all: string[], opts: AddOptions) {
   let found = findConfig();
   if (!found) {
     // First run in this project: set it up, then carry on with the add.
-    await init({});
+    await init({ allowHttpLocalhost: opts.allowHttpLocalhost });
     console.log("");
     found = findConfig();
     if (!found) {
@@ -32,8 +49,15 @@ export async function add(all: string[], opts: AddOptions) {
   }
   const { config, path: configPath } = found;
   const root = dirname(configPath);
-  const baseDir = join(root, config.directory);
+  let baseDir: string;
+  try {
+    baseDir = resolveInside(root, config.directory);
+  } catch (error) {
+    fail(error);
+    return;
+  }
   const licenseKey = readLicenseKey();
+  const policy = policyOf(opts);
 
   const resolved = new Map<string, { item: RegistryItem; source: "free" | "pro" }>();
   const queue = [...names];
@@ -41,62 +65,67 @@ export async function add(all: string[], opts: AddOptions) {
     const name = queue.shift()!;
     if (resolved.has(name)) continue;
     try {
-      const r = await fetchItem(config.registries, name, licenseKey);
+      const r = await fetchItem(config.registries, name, licenseKey, policy);
       resolved.set(r.item.name, r);
       for (const dep of r.item.registryDependencies) if (!resolved.has(dep)) queue.push(dep);
-    } catch (e) {
-      console.error(e instanceof RegistryError ? e.message : String(e));
-      process.exitCode = 1;
+    } catch (error) {
+      fail(error);
       return;
     }
   }
 
-  const written: string[] = [];
+  type Planned = { item: RegistryItem; source: "free" | "pro"; rel: string; display: string; content: string };
+  const planned: Planned[] = [];
   const skipped: string[] = [];
-  for (const { item, source } of resolved.values()) {
-    if (compareVersions(item.minIOSVersion, config.minIOSVersion) > 0) {
-      console.log(`note: ${item.name} needs iOS ${item.minIOSVersion}+ (your project minimum is ${config.minIOSVersion}); it gates newer APIs with #available.`);
+  try {
+    if (!opts.dryRun) mkdirInside(root, baseDir);
+    for (const { item, source } of resolved.values()) {
+      if (compareVersions(item.minIOSVersion, config.minIOSVersion) > 0) {
+        console.log(`note: ${item.name} needs iOS ${item.minIOSVersion}+ (your project minimum is ${config.minIOSVersion}); it gates newer APIs with #available.`);
+      }
+      for (const file of [...item.files, ...item.shaders, ...item.assets]) {
+        const rel = file.target.startsWith(PREFIX) ? file.target.slice(PREFIX.length) : file.target;
+        const display = relative(root, resolveInside(baseDir, rel));
+        if (existingRegularFile(baseDir, rel) && !opts.overwrite) {
+          skipped.push(display);
+          continue;
+        }
+        planned.push({ item, source, rel, display, content: file.content });
+      }
     }
-    for (const file of [...item.files, ...(item.shaders ?? []), ...(item.assets ?? [])]) {
-      const rel = file.target.startsWith(PREFIX) ? file.target.slice(PREFIX.length) : file.target;
-      const dest = join(baseDir, rel);
-      const display = relative(root, dest);
-      if (existsSync(dest) && !opts.overwrite) {
-        skipped.push(display);
-        continue;
-      }
-      if (file.content === undefined) {
-        console.error(`${item.name}: the ${source} registry did not return content for ${file.target}`);
-        process.exitCode = 1;
-        return;
-      }
-      if (!opts.dryRun) {
-        mkdirSync(dirname(dest), { recursive: true });
-        writeFileSync(dest, file.content);
-      }
-      written.push(`${display}${source === "pro" ? "  (pro)" : ""}`);
+    if (!opts.dryRun) {
+      for (const file of planned) writeInside(baseDir, file.rel, file.content);
     }
+  } catch (error) {
+    fail(error);
+    return;
   }
 
-  for (const f of written) console.log(`${opts.dryRun ? "would write" : "wrote"}  ${f}`);
-  for (const f of skipped) console.log(`skipped ${f} (exists; use --overwrite)`);
+  for (const file of planned) console.log(`${opts.dryRun ? "would write" : "wrote"}  ${file.display}${file.source === "pro" ? "  (pro)" : ""}`);
+  for (const file of skipped) console.log(`skipped ${file} (exists; use --overwrite)`);
 
-  const requirements: string[] = [];
-  for (const { item } of resolved.values()) {
-    for (const c of item.requiredCapabilities ?? []) requirements.push(`${item.name}: enable capability ${c}`);
-    for (const [k, v] of Object.entries(item.infoPlist ?? {})) requirements.push(`${item.name}: add Info.plist ${k} = "${v}"`);
-    for (const d of item.spmDependencies ?? []) requirements.push(`${item.name}: add Swift package ${d.url} (from ${d.from})`);
-  }
+  const requirements = requirementLines([...resolved.values()].map((r) => r.item));
   if (requirements.length) {
     console.log("\nProject requirements (not applied automatically):");
-    for (const r of requirements) console.log(`  - ${r}`);
+    for (const line of requirements) console.log(`  - ${line}`);
   }
-  if (written.length && !opts.dryRun) {
-    const files = `${written.length} file${written.length === 1 ? "" : "s"} in ./${config.directory}/`;
+  if (planned.length && !opts.dryRun) {
+    const files = `${planned.length} file${planned.length === 1 ? "" : "s"} in ./${config.directory}/`;
     console.log(detectXcodeProject(root)
       ? `\nDone. ${files}. Build in Xcode 16+; synchronized folders pick them up automatically.`
       : `\nDone. ${files}. Drag that folder into your app in Xcode to use them.`);
   }
+}
+
+/** Info.plist keys, capabilities and packages a piece needs, in the lines `add` prints. */
+export function requirementLines(items: Pick<RegistryItem, "name" | "requiredCapabilities" | "infoPlist" | "spmDependencies">[]): string[] {
+  const lines: string[] = [];
+  for (const item of items) {
+    for (const capability of item.requiredCapabilities) lines.push(`${item.name}: enable capability ${capability}`);
+    for (const [key, value] of Object.entries(item.infoPlist)) lines.push(`${item.name}: add Info.plist ${key} = "${value}"`);
+    for (const dependency of item.spmDependencies) lines.push(`${item.name}: add Swift package ${dependency.url} (from ${dependency.from})`);
+  }
+  return lines;
 }
 
 /**
@@ -110,22 +139,20 @@ async function addKit(ids: string[], opts: AddOptions): Promise<boolean> {
   const licenseKey = readLicenseKey();
   try {
     const agents = resolveAgents(root, opts.agent);
-    const dirs = agents.map((a) => skillsDir(root, a, Boolean(opts.global)));
+    const dirs = agents.map((agent) => skillsDir(root, agent, Boolean(opts.global)));
     const pieces = new Set<string>();
     for (const id of ids) {
-      const item = await fetchKitItem(registries.pro, id, licenseKey);
+      const item = await fetchKitItem(registries.pro, id, licenseKey, policyOf(opts));
       const { written, skipped } = writeKit(item, dirs, root, opts);
-      for (const f of written) console.log(`${opts.dryRun ? "would write" : "wrote"}  ${f}  (${item.kind})`);
-      for (const f of skipped) console.log(`skipped ${f} (exists; use --overwrite)`);
-      if (item.kind === "recipe") for (const u of item.uses) pieces.add(u);
+      for (const file of written) console.log(`${opts.dryRun ? "would write" : "wrote"}  ${file}  (${item.kind})`);
+      for (const file of skipped) console.log(`skipped ${file} (exists; use --overwrite)`);
+      if (item.kind === "recipe") for (const use of item.uses) pieces.add(use);
     }
     console.log(`\nBuild Kit: ${ids.length} item${ids.length === 1 ? "" : "s"} for ${agents.join(", ")}. Restart your agent so it picks up new skills.`);
     if (pieces.size) console.log(`The recipe assembles library screens. Add them with:\n  npx swiftpieces add ${[...pieces].join(" ")}`);
     return true;
-  } catch (e) {
-    console.error(e instanceof RegistryError ? e.message : String(e));
-    process.exitCode = 1;
-    return false;
+  } catch (error) {
+    return fail(error);
   }
 }
 
