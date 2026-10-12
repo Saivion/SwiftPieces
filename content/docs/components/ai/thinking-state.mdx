@@ -48,6 +48,31 @@ ThinkingStateExample().preferredColorScheme(.light)
 <Tab value="ThinkingState.swift">
 
 ```swift title="ThinkingState.swift"
+// Copyright (c) 2026 Saivion Hayes
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, and distribute the Software as part of
+// an application, website, or product, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// Commons Clause Restriction
+//
+// You may use this Software, including for any commercial purpose, so long as
+// you do not sell, sublicense, or redistribute the components themselves, whether
+// alone, in a bundle, or as a ported version.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
 import SwiftUI
 import UIKit
 
@@ -163,15 +188,7 @@ public struct ThinkingState: View {
             // and the same ripple runs through their opacity.
             HStack(spacing: 6) {
                 ForEach(0..<3, id: \.self) { index in
-                    let phase = ((time * 0.9 - Double(index) * 0.16).truncatingRemainder(dividingBy: 1) + 1).truncatingRemainder(dividingBy: 1)
-                    let wave = phase < 0.45 ? sin(phase / 0.45 * .pi) : 0
-                    let lift = wave * wave
-                    Circle()
-                        .fill(tint ?? (style.dots.isEmpty ? Color.secondary : style.dots[index % style.dots.count]))
-                        .frame(width: 9, height: 9)
-                        .opacity(moving ? 1 : 0.5 + 0.5 * lift)
-                        .scaleEffect(moving ? 0.8 + 0.2 * lift : 0.8)
-                        .offset(y: moving ? -5 * lift : 0)
+                    thinkingDot(index: index, time: time, moving: moving)
                 }
             }
             .frame(height: lineHeight)
@@ -184,6 +201,19 @@ public struct ThinkingState: View {
                 .foregroundStyle(style.muted)
                 .overlay { ThinkingSheen(pass: pass, moving: moving, color: tint ?? style.text, strength: 1).mask(label) }
         }
+    }
+
+    /// One rising dot. Its own function so `content` type-checks; the phase, wave and lift are unchanged.
+    private func thinkingDot(index: Int, time: Double, moving: Bool) -> some View {
+        let phase = ((time * 0.9 - Double(index) * 0.16).truncatingRemainder(dividingBy: 1) + 1).truncatingRemainder(dividingBy: 1)
+        let wave = phase < 0.45 ? sin(phase / 0.45 * .pi) : 0
+        let lift = wave * wave
+        return Circle()
+            .fill(tint ?? (style.dots.isEmpty ? Color.secondary : style.dots[index % style.dots.count]))
+            .frame(width: 9, height: 9)
+            .opacity(moving ? 1 : 0.5 + 0.5 * lift)
+            .scaleEffect(moving ? 0.8 + 0.2 * lift : 0.8)
+            .offset(y: moving ? -5 * lift : 0)
     }
 
     /// Reply-shaped placeholder bars: full, slightly short, and a trailing short bar.

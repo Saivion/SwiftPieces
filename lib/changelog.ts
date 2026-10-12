@@ -7,6 +7,20 @@ import type { ChangelogEntry } from "@/components/changelog/changelog-grid";
  */
 export const changelog: ChangelogEntry[] = [
   {
+    slug: "cli-0-3-4",
+    date: "Oct 12, 2026",
+    title: "CLI 0.3.4",
+    summary: "swiftpieces 0.3.4 only writes inside the folder you chose, only sends your license key to pro.swiftpieces.com, and checks a registry response before writing it.",
+    points: [
+      "A piece or Build Kit path that contains `..`, an absolute path, or a symlink pointing out of the destination is refused, and nothing is written there.",
+      "The license key is sent only to https://pro.swiftpieces.com. Pass `--trust-registry` to send it to another registry you run yourself.",
+      "Registry URLs have to be https. A local http registry works only with `--allow-http-localhost`.",
+      "Each item is checked against the registry schema before any file is written.",
+    ],
+    visual: "terminal",
+    tint: "blue",
+  },
+  {
     slug: "liquid-motion",
     date: "Oct 2026",
     title: "Liquid Glass, Motion and Flows",

@@ -5,7 +5,10 @@ import type { RegistryIndexEntry, RegistryItem } from "@/lib/registry-schema";
 // Pure helpers live in registry-paths.ts so client components never pull the registry JSON into a chunk.
 export { cliCommand, mcpPrompt, piecePath } from "@/lib/registry-paths";
 
-const entries = index as RegistryIndexEntry[];
+// Generated JSON is a literal union. Two Info.plist shapes (location and motion) make that union
+// not overlap Record<string, string>, so the cast goes through unknown. The registry build already
+// validated every entry.
+const entries = index as unknown as RegistryIndexEntry[];
 const byName = new Map(entries.map((e) => [e.name, e]));
 const bySlug = new Map(entries.map((e) => [e.slug, e]));
 

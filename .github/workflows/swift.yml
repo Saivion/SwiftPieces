@@ -1,23 +1,13 @@
 name: Swift
 
-# Type-checks the library itself. Runs only when Swift, Metal or the preview app changes: the
-# website checks live in ci.yml and run on every push. macOS runners are the slow part of CI.
+# Type-checks the library and builds the preview app on every push and pull request to main,
+# and when someone starts it by hand. Path filters used to hide a red run after Swift changed.
 on:
   push:
     branches: [main]
-    paths:
-      - "registry/swift/**"
-      - "registry/foundation/**"
-      - "previews/**"
-      - "scripts/typecheck-swift.sh"
-      - ".github/workflows/swift.yml"
   pull_request:
-    paths:
-      - "registry/swift/**"
-      - "registry/foundation/**"
-      - "previews/**"
-      - "scripts/typecheck-swift.sh"
-      - ".github/workflows/swift.yml"
+    branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -40,6 +30,15 @@ jobs:
       - name: Metal toolchain
         run: xcrun -sdk iphonesimulator metal --version || xcodebuild -downloadComponent MetalToolchain
       - run: bash scripts/typecheck-swift.sh
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      # patterns is the check the builder README documents. `all` also compiles every definition
+      # variant and thirty styled projects, which is a local pass rather than every push.
+      - name: Playground patterns type-check
+        run: npx tsx scripts/typecheck-playground.ts patterns
       - name: Build preview app (all pieces in one target)
         run: |
           xcodebuild -project previews/SwiftPiecesPreviews.xcodeproj -scheme SwiftPiecesPreviews \

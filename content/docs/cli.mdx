@@ -42,3 +42,6 @@ npx swiftpieces whoami               # check whether your key has Pro access
 - **Dependencies resolve recursively** through `registryDependencies`, across both registries.
 - **Shaders and assets** listed by a piece are written alongside it.
 - **Project requirements** (Info.plist keys, capabilities, SPM packages) are printed after install for you to apply.
+- **Writes stay in the destination.** A path with `..`, an absolute path, or a symlink that leaves the SwiftPieces folder (or the agent's skills folder, for the Build Kit) is refused.
+- **The license key goes to pro.swiftpieces.com.** It is not sent to any other registry unless you pass `--trust-registry`.
+- **Registries are https.** `http://` is refused, except `--allow-http-localhost` for a registry on localhost. An item that doesn't match the registry schema is not written.

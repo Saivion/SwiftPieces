@@ -70,12 +70,13 @@ LIQUID_GLASS.md
 *~
 
 # ─── Tests (kept local, not published) ──────────────────────
-# The builder's test suite runs on this machine only; CI skips it when absent.
-packages/builder/test/
+# Scratch specs stay untracked. The CLI and builder suites are committed and run in CI.
 *.test.ts
 *.test.tsx
 *.spec.ts
 *.spec.tsx
+!packages/cli/test/*.test.ts
+!packages/builder/test/*.test.ts
 
 # ─── Internal notes, briefs and scratch (not public docs) ────
 # Public docs live in content/docs/, README.md and CONTRIBUTING.md.

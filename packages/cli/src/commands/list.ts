@@ -1,11 +1,12 @@
 import { DEFAULT_REGISTRIES, findConfig, readLicenseKey } from "../config.js";
-import { fetchIndex } from "../registry.js";
+import { fetchIndex, type FetchPolicy } from "../registry.js";
 import { fetchKitIndex } from "../kit.js";
 
-export async function list(opts: { category?: string; json?: boolean; pro?: boolean; kit?: boolean }) {
+export async function list(opts: { category?: string; json?: boolean; pro?: boolean; kit?: boolean; allowHttpLocalhost?: boolean; trustRegistry?: boolean }) {
+  const policy: FetchPolicy = { allowHttpLocalhost: opts.allowHttpLocalhost, trustRegistry: opts.trustRegistry };
   const registries = findConfig()?.config.registries ?? DEFAULT_REGISTRIES;
   if (opts.kit) {
-    const kit = await fetchKitIndex(registries.pro);
+    const kit = await fetchKitIndex(registries.pro, policy);
     if (opts.json) return void console.log(JSON.stringify(kit, null, 2));
     const byKind = new Map<string, typeof kit>();
     for (const i of kit) byKind.set(i.kind, [...(byKind.get(i.kind) ?? []), i]);
@@ -17,7 +18,7 @@ export async function list(opts: { category?: string; json?: boolean; pro?: bool
     return;
   }
   const registry = opts.pro ? registries.pro : registries.free;
-  const items = await fetchIndex(registry);
+  const items = await fetchIndex(registry, policy);
   const filtered = opts.category ? items.filter((i) => i.category === opts.category) : items;
   if (opts.json) {
     console.log(JSON.stringify(filtered, null, 2));

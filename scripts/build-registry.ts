@@ -39,6 +39,41 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://swiftpieces.com";
 const MEDIA_URL = process.env.NEXT_PUBLIC_MEDIA_URL ?? "https://media.swiftpieces.com";
 const PRO_URL = process.env.NEXT_PUBLIC_PRO_URL ?? "https://pro.swiftpieces.com";
 
+/**
+ * The copyright and permission notice LICENSE requires in every copy. Quoted here, not rewritten:
+ * the LICENSE file itself is unchanged. Markdown emphasis in that file is not part of the notice.
+ */
+const INSTALLED_LICENSE_NOTICE = `// Copyright (c) 2026 Saivion Hayes
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, and distribute the Software as part of
+// an application, website, or product, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// Commons Clause Restriction
+//
+// You may use this Software, including for any commercial purpose, so long as
+// you do not sell, sublicense, or redistribute the components themselves, whether
+// alone, in a bundle, or as a ported version.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.`;
+
+/** Prepended to every installed text file. Binary content (a NUL byte) is left as it is. */
+function withLicenseNotice(content: string): string {
+  if (content.includes("\0") || content.startsWith("// Copyright (c) 2026 Saivion Hayes\n")) return content;
+  return `${INSTALLED_LICENSE_NOTICE}\n\n${content}`;
+}
+
 const headerSchema = z.object({
   title: z.string(),
   description: z.string(),
@@ -142,7 +177,7 @@ function build() {
           path: relative(ROOT, p),
           type: "registry:shader" as const,
           target: `SwiftPieces/${folder}/${s}`,
-          content: readFileSync(p, "utf8"),
+          content: withLicenseNotice(readFileSync(p, "utf8")),
         };
       });
       const assets = header.assets.map((a) => {
@@ -152,7 +187,7 @@ function build() {
           path: relative(ROOT, p),
           type: "registry:asset" as const,
           target: `SwiftPieces/${folder}/${a}`,
-          content: readFileSync(p, "utf8"),
+          content: withLicenseNotice(readFileSync(p, "utf8")),
         };
       });
 
@@ -177,7 +212,7 @@ function build() {
             path: relative(ROOT, abs),
             type: "registry:component",
             target: `SwiftPieces/${folder}/${file}`,
-            content: body,
+            content: withLicenseNotice(body),
           },
         ],
         preview: {
@@ -224,8 +259,19 @@ function build() {
   writeDocsIndex();
   writeLlms(items);
   writeSchema();
+  writeReadmeCount(items.length, Object.keys(categories).length);
 
   console.log(`registry: ${items.length} free pieces, ${items.filter((i) => i.liquidGlass).length} Liquid Glass, ${items.filter((i) => i.metal).length} Metal`);
+}
+
+/** The README's piece count is generated from the registry, so it cannot drift from the files. */
+function writeReadmeCount(pieces: number, categoryCount: number) {
+  const path = join(ROOT, "README.md");
+  const text = readFileSync(path, "utf8");
+  const pattern = /\*\*\d+ pieces across \d+ categories:\*\*/;
+  if (!pattern.test(text)) throw new Error("README.md is missing the \"N pieces across M categories\" sentence.");
+  const next = text.replace(pattern, `**${pieces} pieces across ${categoryCount} categories:**`);
+  if (next !== text) writeFileSync(path, next);
 }
 
 

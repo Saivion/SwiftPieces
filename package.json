@@ -26,7 +26,7 @@
     "builder:test": "npm test --workspace packages/builder",
     "cli:build": "npm run build --workspace packages/cli",
     "audit:public": "bash scripts/audit-public.sh",
-    "test": "node --import tsx --test lib/*.test.ts"
+    "test": "node scripts/run-tests.mjs"
   },
   "workspaces": [
     "packages/*"
@@ -38,7 +38,7 @@
     "fumadocs-core": "^16.15.10",
     "fumadocs-mdx": "^15.4.0",
     "fumadocs-ui": "^16.15.10",
-    "next": "^16.3.5",
+    "next": "^16.3.8",
     "posthog-js": "^1.435.8",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
@@ -46,6 +46,7 @@
     "zod": "^4.6.5"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^5.20261012.1",
     "@tailwindcss/postcss": "^4.3.3",
     "@types/mdx": "^2.0.14",
     "@types/node": "^26.5.1",
@@ -55,6 +56,6 @@
     "tailwindcss": "^4.3.3",
     "tsx": "^4.23.13",
     "typescript": "^5.9.3",
-    "wrangler": "^4.131.1"
+    "wrangler": "^4.149.0"
   }
 }
