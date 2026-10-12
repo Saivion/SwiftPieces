@@ -1,7 +1,9 @@
-import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
-import { dirname, join, relative } from "node:path";
-import { RegistryError, request } from "./registry.js";
+import { join, relative } from "node:path";
+import { existsSync } from "node:fs";
+import { RegistryError, request, sendsLicenseKey, type FetchPolicy, OFFICIAL_PRO_ORIGIN, assertRegistryUrl } from "./registry.js";
+import { formatZodError, kitItemSchema, type KitItem } from "./schema.js";
+import { existingRegularFile, resolveInside, writeInside } from "./safe-path.js";
 
 // Build Kit items install as Agent Skills (a folder with SKILL.md) where the user's coding agent
 // looks for them, not into the SwiftPieces folder. They come from the Pro registry at /r/kit/<id>.json.
@@ -40,42 +42,56 @@ export function skillsDir(root: string, agent: Agent, global: boolean): string {
   return agent === "xcode" || global ? GLOBAL_DIRS[agent] : join(root, PROJECT_DIRS[agent]);
 }
 
-type KitFile = { path: string; content?: string };
-export type KitItem = { id: string; kind: string; title: string; skillName: string; uses: string[]; availability: "free" | "pro"; files?: KitFile[] };
+export type { KitItem };
 
-export async function fetchKitItem(proRegistry: string, id: string, licenseKey?: string): Promise<KitItem> {
+function kitUrl(proRegistry: string, suffix: string, policy: FetchPolicy): URL {
+  const root = assertRegistryUrl(proRegistry, policy);
+  const url = new URL(suffix.replace(/^\//, ""), `${root.toString().replace(/\/$/, "")}/`);
+  return assertRegistryUrl(url.toString(), policy);
+}
+
+export async function fetchKitItem(proRegistry: string, id: string, licenseKey?: string, policy: FetchPolicy = {}): Promise<KitItem> {
+  const url = kitUrl(proRegistry, `kit/${encodeURIComponent(id)}.json`, policy);
   const headers: Record<string, string> = { "user-agent": "swiftpieces-cli", accept: "application/json" };
-  if (licenseKey) headers["x-license-key"] = licenseKey;
-  const res = await request(`${proRegistry.replace(/\/$/, "")}/kit/${encodeURIComponent(id)}.json`, { headers });
+  if (licenseKey && sendsLicenseKey(url, policy)) headers["x-license-key"] = licenseKey;
+  const res = await request(url.toString(), { headers });
   if (res.status === 404) throw new RegistryError(`No Build Kit item "${id}". Run \`npx swiftpieces list --kit\`.`, 404);
-  if (res.status === 401) throw new RegistryError(`"${id}" is part of the SwiftPieces Pro Build Kit. Run \`npx swiftpieces login <key>\` with your license key, or get Pro at https://pro.swiftpieces.com/pro`, 401);
+  if (res.status === 401) {
+    const kept = Boolean(licenseKey) && !sendsLicenseKey(url, policy);
+    throw new RegistryError(
+      kept
+        ? `"${id}" is part of the SwiftPieces Pro Build Kit, and the license key was not sent to ${url.origin}. The key is only sent to ${OFFICIAL_PRO_ORIGIN}. Pass --trust-registry if you trust this registry.`
+        : `"${id}" is part of the SwiftPieces Pro Build Kit. Run \`npx swiftpieces login <key>\` with your license key, or get Pro at https://pro.swiftpieces.com/pro`,
+      401,
+    );
+  }
   if (res.status === 403) throw new RegistryError(`"${id}" is part of SwiftPieces Pro, and this license's account doesn't own it. Get it at https://pro.swiftpieces.com/pro`, 403);
   if (!res.ok) throw new RegistryError(`Build Kit returned ${res.status} for "${id}"`, res.status);
-  const item = (await res.json()) as KitItem;
-  if (!item.files?.some((f) => f.content !== undefined)) throw new RegistryError(`The Build Kit did not return "${id}". Check \`npx swiftpieces whoami\`.`, 403);
-  return item;
+  const parsed = kitItemSchema.safeParse(await res.json());
+  if (!parsed.success) throw new RegistryError(`"${id}" failed validation and was not written. ${formatZodError(parsed.error)}`);
+  return parsed.data;
 }
 
-export async function fetchKitIndex(proRegistry: string): Promise<Omit<KitItem, "files">[]> {
-  const res = await request(`${proRegistry.replace(/\/$/, "")}/kit/index.json`, { headers: { "user-agent": "swiftpieces-cli", accept: "application/json" } });
+export async function fetchKitIndex(proRegistry: string, policy: FetchPolicy = {}): Promise<Omit<KitItem, "files">[]> {
+  const url = kitUrl(proRegistry, "kit/index.json", policy);
+  const res = await request(url.toString(), { headers: { "user-agent": "swiftpieces-cli", accept: "application/json" } });
   if (!res.ok) throw new RegistryError(`Build Kit index returned ${res.status}`, res.status);
-  return (await res.json()) as Omit<KitItem, "files">[];
+  const data: unknown = await res.json();
+  if (!Array.isArray(data)) throw new RegistryError("Build Kit index was not a list.");
+  return data as Omit<KitItem, "files">[];
 }
 
-/** Writes an item's files under each agent's skills folder. Returns written and skipped paths for display. */
+/** Writes an item's files under each agent's skills folder. Paths that leave that folder are refused. */
 export function writeKit(item: KitItem, dirs: string[], root: string, opts: { overwrite?: boolean; dryRun?: boolean }) {
   const written: string[] = [];
   const skipped: string[] = [];
   for (const dir of dirs) {
-    for (const file of item.files ?? []) {
-      if (file.content === undefined) continue;
-      const dest = join(dir, file.path);
-      const display = dest.startsWith(root) ? relative(root, dest) : dest.replace(homedir(), "~");
-      if (existsSync(dest) && !opts.overwrite) { skipped.push(display); continue; }
-      if (!opts.dryRun) {
-        mkdirSync(dirname(dest), { recursive: true });
-        writeFileSync(dest, file.content);
-      }
+    for (const file of item.files) {
+      resolveInside(dir, file.path);
+      const displayPath = join(dir, file.path);
+      const display = displayPath.startsWith(root) ? relative(root, displayPath) : displayPath.replace(homedir(), "~");
+      if (existingRegularFile(dir, file.path) && !opts.overwrite) { skipped.push(display); continue; }
+      if (!opts.dryRun) writeInside(dir, file.path, file.content);
       written.push(display);
     }
   }

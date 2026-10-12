@@ -1,7 +1,7 @@
 import { DEFAULT_REGISTRIES, findConfig, readLicenseKey, writeLicenseKey } from "../config.js";
-import { whoami as verify } from "../registry.js";
+import { whoami as verify, type FetchPolicy } from "../registry.js";
 
-export async function login(key: string | undefined) {
+export async function login(key: string | undefined, policy: FetchPolicy = {}) {
   const licenseKey = key ?? process.env.SWIFTPIECES_LICENSE_KEY;
   if (!licenseKey) {
     console.error("Usage: npx swiftpieces login <sp_live_...>  (find your key at https://pro.swiftpieces.com/account)");
@@ -9,9 +9,9 @@ export async function login(key: string | undefined) {
     return;
   }
   const registries = findConfig()?.config.registries ?? DEFAULT_REGISTRIES;
-  const who = await verify(registries.pro, licenseKey);
+  const who = await verify(registries.pro, licenseKey, policy);
   if (!who) {
-    console.error("That license key was not accepted by pro.swiftpieces.com.");
+    console.error(policy.trustRegistry ? "That license key was not accepted by the configured registry." : "That license key was not accepted by pro.swiftpieces.com.");
     process.exitCode = 1;
     return;
   }
@@ -29,16 +29,16 @@ export async function logout() {
   console.log("License key removed from ~/.swiftpieces/auth.json.");
 }
 
-export async function whoami() {
+export async function whoami(policy: FetchPolicy = {}) {
   const key = readLicenseKey();
   if (!key) {
     console.log("Not signed in. Free pieces work without a key; run `npx swiftpieces login <key>` for Pro.");
     return;
   }
   const registries = findConfig()?.config.registries ?? DEFAULT_REGISTRIES;
-  const who = await verify(registries.pro, key);
+  const who = await verify(registries.pro, key, policy);
   if (!who) {
-    console.log("Key present but not accepted by pro.swiftpieces.com.");
+    console.log(policy.trustRegistry ? "Key present but not accepted by the configured registry." : "Key present but not accepted by pro.swiftpieces.com.");
     return;
   }
   const label = who.hint ? `License ${who.hint}` : "License";

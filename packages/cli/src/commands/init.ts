@@ -1,9 +1,10 @@
-import { mkdirSync } from "node:fs";
 import { join, relative } from "node:path";
 import { CONFIG_REGISTRIES, findConfig, writeConfig } from "../config.js";
+import { assertRegistryUrl, type FetchPolicy } from "../registry.js";
 import { detectXcodeProject } from "../xcode.js";
+import { mkdirInside, resolveInside } from "../safe-path.js";
 
-export async function init(opts: { registry?: string; proRegistry?: string; dir?: string; minIOS?: string; force?: boolean }) {
+export async function init(opts: { registry?: string; proRegistry?: string; dir?: string; minIOS?: string; force?: boolean; allowHttpLocalhost?: boolean }) {
   const cwd = process.cwd();
   const existing = findConfig(cwd);
   if (existing && !opts.force) {
@@ -12,14 +13,18 @@ export async function init(opts: { registry?: string; proRegistry?: string; dir?
   }
 
   const project = detectXcodeProject(cwd);
-  let directory = opts.dir;
-  if (!directory) directory = project?.sourceDir ? relative(cwd, join(project.sourceDir, "SwiftPieces")) : "SwiftPieces";
-
-  mkdirSync(join(cwd, directory), { recursive: true });
+  const requested = opts.dir ?? (project?.sourceDir ? relative(cwd, join(project.sourceDir, "SwiftPieces")) : "SwiftPieces");
+  const policy: FetchPolicy = { allowHttpLocalhost: opts.allowHttpLocalhost };
+  const free = (opts.registry ?? CONFIG_REGISTRIES.free).toString();
+  const pro = (opts.proRegistry ?? CONFIG_REGISTRIES.pro).toString();
+  assertRegistryUrl(free, policy);
+  assertRegistryUrl(pro, policy);
+  const directory = relative(cwd, resolveInside(cwd, requested));
+  mkdirInside(cwd, resolveInside(cwd, directory));
   const path = writeConfig(cwd, {
     directory,
     minIOSVersion: opts.minIOS ?? "17.0",
-    registries: { free: opts.registry ?? CONFIG_REGISTRIES.free, pro: opts.proRegistry ?? CONFIG_REGISTRIES.pro },
+    registries: { free, pro },
   });
 
   console.log(`Created ${relative(cwd, path)}`);
