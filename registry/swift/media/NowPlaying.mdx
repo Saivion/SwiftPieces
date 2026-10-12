@@ -1,0 +1,11 @@
+## Notes
+
+- Collapsed, it is a glass pill: artwork, a morphing title, and a play bubble joined to the pill. Drag up and the pill follows your finger, then settles open or shut with the flick's speed (`predictedEndTranslation` against a 120 point travel). Drag down to close. A sideways drag is left for the scrubber.
+- Open, the artwork grows, the artist fades in, a scrub track appears, and previous and next bud out of the play bubble on liquid necks. Closing melts them home. Play fills with signal while `isPlaying` is true.
+- The pill, the artwork, play, and the skip bubbles share one `PieceLiquidGroup`. On iOS 26 that is Liquid Glass, interactive on the pill and the transport. On iOS 17, and under Reduce Transparency, it is a frosted material or a solid fill.
+- `progress` is the position in the track, from 0 to 1. While `isPlaying` is true it advances and wraps. Drag the track, once the player is open, to set it. `onSkip` is called with -1 or 1.
+- The title uses `PieceMorphText`, so a track change rewrites it letter by letter.
+- Haptics: a light impact for play and pause, a soft impact when the player lands open or shut, and a selection tick when a skip fires. Pass `haptics: false` to stay silent.
+- VoiceOver reads the title, artist, Play or Pause, Previous, Next, and the playback position as an adjustable control.
+- Reduce Motion opens and closes without the travel, and fades the artist, the track, and the skip bubbles. Playback and the ticks stay.
+- `symbol` is the artwork's SF Symbol. `tint` is painted inside the artwork tile. The default tint is the house mascot red.

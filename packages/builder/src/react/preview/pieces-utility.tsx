@@ -14,6 +14,7 @@ import { renderer as locationPicker } from "./utility/location-picker.js";
 import { renderer as spotlightTour } from "./utility/spotlight-tour.js";
 import { renderer as activityHeatmap } from "./utility/activity-heatmap.js";
 import { renderer as pictureHeadline } from "./utility/picture-headline.js";
+import { imageCompare, noticeStack, nowPlaying, rangeLens, scrollIsland, stepTrail, walletStack, waveformScrub } from "./utility/crafted.js";
 
 const all: Record<string, Renderer | null> = {
   "index-scrubber": indexScrubber,
@@ -28,6 +29,14 @@ const all: Record<string, Renderer | null> = {
   "spotlight-tour": spotlightTour,
   "activity-heatmap": activityHeatmap,
   "picture-headline": pictureHeadline,
+  "scroll-island": scrollIsland,
+  "step-trail": stepTrail,
+  "waveform-scrub": waveformScrub,
+  "image-compare": imageCompare,
+  "now-playing": nowPlaying,
+  "wallet-stack": walletStack,
+  "notice-stack": noticeStack,
+  "range-lens": rangeLens,
 };
 
 export const utilityPieceRenderers: Record<string, Renderer> = Object.fromEntries(Object.entries(all).filter((e): e is [string, Renderer] => e[1] !== null));

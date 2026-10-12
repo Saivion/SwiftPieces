@@ -4054,6 +4054,110 @@
     }
   },
   {
+    "url": "/docs/components/cards/wallet-stack",
+    "title": "Wallet Stack",
+    "description": "Passes stacked as liquid glass that melts into one shape where they overlap. Drag up and they fan apart through necks that thin and snap; drag down and they gather home. Tap a fanned pass to lift it forward, with a light tick, and tap it again to set it back into the stack.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Components",
+      "Categories · 14",
+      "Cards"
+    ],
+    "structuredData": {
+      "contents": [
+        {
+          "content": "A stack of glass passes that fans open and lets one card lift forward. Collapsed, the cards overlap inside the merge distance, so their glass is one shape. Fanned, they rest apart. `selection` is the id of the lifted card, or nil when every card is in the fan or the stack."
+        },
+        {
+          "heading": "notes",
+          "content": "Passes are listed front to back. Collapsed, they overlap inside the merge distance, so their glass is one shape with a short neck between cards. Drag up and they fan apart; the necks thin and snap once the gap passes the merge distance. Drag down and they gather. A flick settles open or shut."
+        },
+        {
+          "heading": "notes",
+          "content": "Tap a fanned card to lift it forward (`selection` becomes its id) and tap it again to set it back. A drag that opened the fan does not also count as that tap. Closing the fan clears `selection`."
+        },
+        {
+          "heading": "notes",
+          "content": "Each card is interactive liquid glass with its own `tint` painted inside, in one `PieceLiquidGroup`. A lifted card scales through `pieceLiquidScale`, so the glass and the label grow together. On iOS 26 that is Liquid Glass. On iOS 17, and under Reduce Transparency, it is a frosted material or a solid fill."
+        },
+        {
+          "heading": "notes",
+          "content": "Haptics: a light impact when the fan opens or closes, and when a card lifts or settles back. Pass `haptics: false` to stay silent."
+        },
+        {
+          "heading": "notes",
+          "content": "VoiceOver reads each pass as its own button, name and detail, and marks the lifted one selected."
+        },
+        {
+          "heading": "notes",
+          "content": "Reduce Motion fans and gathers without the overshoot, and a lifted card does not scale. The ticks stay."
+        },
+        {
+          "heading": "notes",
+          "content": "`Style` sets `ink` and `muted` on the cards. Each card brings its own `tint`. Four or five passes read best; more still fan, with a taller stack."
+        },
+        {
+          "heading": "parameters",
+          "content": "Parameter"
+        },
+        {
+          "heading": "parameters",
+          "content": "Description"
+        },
+        {
+          "heading": "parameters",
+          "content": "`cards`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Passes from front to back. Four or five read best."
+        },
+        {
+          "heading": "parameters",
+          "content": "`selection`"
+        },
+        {
+          "heading": "parameters",
+          "content": "The lifted card's id, or nil."
+        },
+        {
+          "heading": "parameters",
+          "content": "`haptics`"
+        },
+        {
+          "heading": "parameters",
+          "content": "A light tick when the fan opens, closes, or a card lifts."
+        },
+        {
+          "heading": "parameters",
+          "content": "`style`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Ink on the cards. Each card brings its own tint, painted inside the glass."
+        }
+      ],
+      "headings": [
+        {
+          "id": "notes",
+          "content": "Notes"
+        },
+        {
+          "id": "usage",
+          "content": "Usage"
+        },
+        {
+          "id": "parameters",
+          "content": "Parameters"
+        },
+        {
+          "id": "source",
+          "content": "Source"
+        }
+      ]
+    }
+  },
+  {
     "url": "/docs/components/controls/commit-button",
     "title": "Commit Button",
     "description": "A liquid glass async action button driven by one idle/loading/success/error/disabled phase: the signal glass capsule draws in around its label as a glass bubble buds out of its end carrying a spinning ring; on success the ring closes on a check and both turn sage, then the bubble melts home as the label morphs to its success title; an error morphs the label to the message on butter glass, turns the bubble into a retry and shakes.",
@@ -5203,6 +5307,126 @@
         {
           "heading": "parameters",
           "content": "Delta chip tints, decimal dimming, and roll tinting. Defaults to `.standard`: sage for up, red for down, dimmed decimals, no tint while rolling."
+        }
+      ],
+      "headings": [
+        {
+          "id": "notes",
+          "content": "Notes"
+        },
+        {
+          "id": "usage",
+          "content": "Usage"
+        },
+        {
+          "id": "parameters",
+          "content": "Parameters"
+        },
+        {
+          "id": "source",
+          "content": "Source"
+        }
+      ]
+    }
+  },
+  {
+    "url": "/docs/components/data/range-lens",
+    "title": "Range Lens",
+    "description": "A chart you read by dragging a glass lens across it. Grab the lens to move the window, or grab either edge to resize it; the lens follows your finger, flattens against the ends and lands with the flick. While you drag, a readout buds off the lens on a liquid neck and morphs its numbers, with a tick each time an edge crosses a sample, then melts home when you let go.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Components",
+      "Categories · 14",
+      "Data"
+    ],
+    "structuredData": {
+      "contents": [
+        {
+          "content": "A series with a glass window you drag to choose the range you are reading. `lower` and `upper` are fractions of the series, from 0 to 1, `lower` before `upper`. The lens is a glass rounded rectangle melted over the bars it covers. A readout above it names the average inside the window."
+        },
+        {
+          "heading": "notes",
+          "content": "`samples` are values from 0 to 1, left to right. `lower` and `upper` are fractions of the series, `lower` before `upper`, with a minimum span of about 8 percent. Bars inside the window use `ink`; bars outside use `muted`."
+        },
+        {
+          "heading": "notes",
+          "content": "Drag the lens to move the window, keeping its width. Drag within about 28 points of either edge to resize that edge. The lens tracks the finger. On release a move coasts both edges together; a resize coasts the edge you held, and the other edge follows a beat later. The window clamps inside the series."
+        },
+        {
+          "heading": "notes",
+          "content": "While the finger is down, a readout buds off the top of the lens on a liquid neck and morphs the average inside the window. Letting go melts it home. A caption above the chart keeps the average and the two percents either way."
+        },
+        {
+          "heading": "notes",
+          "content": "The lens and the readout share a `PieceLiquidGroup`. The lens is interactive liquid glass with a light signal tint painted inside. On iOS 26 that is Liquid Glass. On iOS 17, and under Reduce Transparency, it is a frosted material or a solid fill."
+        },
+        {
+          "heading": "notes",
+          "content": "Haptics: a selection tick when either edge crosses a sample. Pass `haptics: false` to stay silent."
+        },
+        {
+          "heading": "notes",
+          "content": "VoiceOver reads one adjustable range, the caption, and shifts the window by a small step."
+        },
+        {
+          "heading": "notes",
+          "content": "Reduce Motion keeps the window, the caption, and the ticks, and fades the readout instead of travelling it."
+        },
+        {
+          "heading": "notes",
+          "content": "Right to left flips which edge is leading."
+        },
+        {
+          "heading": "notes",
+          "content": "`Style` (`.standard` is house ink, a quiet mute, and a faint signal lens): `ink`, `muted`, `accent`."
+        },
+        {
+          "heading": "parameters",
+          "content": "Parameter"
+        },
+        {
+          "heading": "parameters",
+          "content": "Description"
+        },
+        {
+          "heading": "parameters",
+          "content": "`samples`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Values from 0 to 1, left to right. Fewer than two draws an empty track."
+        },
+        {
+          "heading": "parameters",
+          "content": "`lower`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Leading edge of the window, from 0 to 1."
+        },
+        {
+          "heading": "parameters",
+          "content": "`upper`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Trailing edge of the window, from 0 to 1."
+        },
+        {
+          "heading": "parameters",
+          "content": "`haptics`"
+        },
+        {
+          "heading": "parameters",
+          "content": "A selection tick when either edge crosses a sample."
+        },
+        {
+          "heading": "parameters",
+          "content": "`style`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Bar ink, the dim ink outside the lens, and the lens tint. `.standard` is house ink with a clear lens."
         }
       ],
       "headings": [
@@ -9942,6 +10166,130 @@
     }
   },
   {
+    "url": "/docs/components/media/image-compare",
+    "title": "Image Compare",
+    "description": "Drag a glass seam across two pictures to see what changed. The seam follows your finger, flattens against the edges with rubber-band resistance and ticks as it crosses the middle, where it rests if you let go close by. While you drag, a percent bubble buds off the handle on a liquid neck and melts back in when you release.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Components",
+      "Categories · 14",
+      "Media"
+    ],
+    "structuredData": {
+      "contents": [
+        {
+          "content": "A before-and-after picture split by a draggable glass seam. `split` is how much of the before picture shows, from 0 (only after) to 1 (only before). The handle tracks the finger. Past either edge it resists. Near the middle, a quiet release settles on the halfway detent."
+        },
+        {
+          "heading": "notes",
+          "content": "`split` is how much of `before` shows, from 0 (only after) to 1 (only before). Give the compare a frame: it fills the size you offer. `before` and `after` are any views, masked by the seam, so you can pass photos, colors, or your own drawings."
+        },
+        {
+          "heading": "notes",
+          "content": "Drag the seam. It tracks the finger and rubber-bands past either edge. A quiet release near the middle (within about 6 percent, and not a flick) settles on the halfway detent and ticks. A harder flick keeps its speed and lands where it was heading."
+        },
+        {
+          "heading": "notes",
+          "content": "The handle is a glass capsule. While the finger is down, a percent bubble buds off it on a liquid neck and melts home on release. The Before and After captions are their own glass chips, not in the handle's group, so they stay separate. On iOS 26 the handle is interactive Liquid Glass. On iOS 17, and under Reduce Transparency, it is a frosted material or a solid fill."
+        },
+        {
+          "heading": "notes",
+          "content": "Haptics: a selection tick when the seam crosses the middle. Pass `haptics: false` to stay silent."
+        },
+        {
+          "heading": "notes",
+          "content": "VoiceOver reads one adjustable control, \"Before, 62 percent\", and increment or decrement moves the seam."
+        },
+        {
+          "heading": "notes",
+          "content": "Reduce Motion keeps the seam, the detent, and the tick. The percent bubble still appears and disappears, without the travel."
+        },
+        {
+          "heading": "notes",
+          "content": "Right to left flips the drag and which picture leads."
+        },
+        {
+          "heading": "notes",
+          "content": "Captions default to Before and After. Pass `beforeCaption` and `afterCaption` to name the pictures."
+        },
+        {
+          "heading": "parameters",
+          "content": "Parameter"
+        },
+        {
+          "heading": "parameters",
+          "content": "Description"
+        },
+        {
+          "heading": "parameters",
+          "content": "`split`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Fraction of the width given to `before`, from 0 to 1."
+        },
+        {
+          "heading": "parameters",
+          "content": "`beforeCaption`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Name of the leading picture, read by VoiceOver and drawn on a glass chip."
+        },
+        {
+          "heading": "parameters",
+          "content": "`afterCaption`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Name of the trailing picture."
+        },
+        {
+          "heading": "parameters",
+          "content": "`haptics`"
+        },
+        {
+          "heading": "parameters",
+          "content": "A selection tick when the seam crosses the middle."
+        },
+        {
+          "heading": "parameters",
+          "content": "`before`"
+        },
+        {
+          "heading": "parameters",
+          "content": "The picture revealed from the leading edge."
+        },
+        {
+          "heading": "parameters",
+          "content": "`after`"
+        },
+        {
+          "heading": "parameters",
+          "content": "The picture revealed from the trailing edge."
+        }
+      ],
+      "headings": [
+        {
+          "id": "notes",
+          "content": "Notes"
+        },
+        {
+          "id": "usage",
+          "content": "Usage"
+        },
+        {
+          "id": "parameters",
+          "content": "Parameters"
+        },
+        {
+          "id": "source",
+          "content": "Source"
+        }
+      ]
+    }
+  },
+  {
     "url": "/docs/components/media/link-preview",
     "title": "Link Preview",
     "description": "A rich card for any URL that holds its final size while a skeleton sweeps, then settles the page's image and title into place under a liquid glass host chip that is there from the first frame (riding over the picture on the large card), fetched once with LinkPresentation, shared by every card showing the same link and cached so scrolling never refetches, falling back to a quiet card with the address when a page cannot be read, opening on tap and offering Copy Link and Share on long press.",
@@ -10071,6 +10419,158 @@
         {
           "heading": "parameters",
           "content": "Colors and corner radius. Defaults to the SwiftPieces house palette, adapting to light and dark."
+        }
+      ],
+      "headings": [
+        {
+          "id": "notes",
+          "content": "Notes"
+        },
+        {
+          "id": "usage",
+          "content": "Usage"
+        },
+        {
+          "id": "parameters",
+          "content": "Parameters"
+        },
+        {
+          "id": "source",
+          "content": "Source"
+        }
+      ]
+    }
+  },
+  {
+    "url": "/docs/components/media/now-playing",
+    "title": "Now Playing",
+    "description": "A mini player that grows into the full player in one motion. Drag the glass pill upward and it follows your finger, then settles open or shut with the flick's speed. Skip bubbles bud out of the play button on liquid necks only once it is open, and melt back in as it closes. Scrub the track while it is open; play floods the button with signal.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Components",
+      "Categories · 14",
+      "Media"
+    ],
+    "structuredData": {
+      "contents": [
+        {
+          "content": "A glass mini player that morphs into the full player. Collapsed, it is a pill: artwork, title and a play bubble joined to it. Drag up to open. The artwork grows, the artist and the scrub track appear, and previous and next bud out of play. Drag down, or flick, to close."
+        },
+        {
+          "heading": "notes",
+          "content": "Collapsed, it is a glass pill: artwork, a morphing title, and a play bubble joined to the pill. Drag up and the pill follows your finger, then settles open or shut with the flick's speed (`predictedEndTranslation` against a 120 point travel). Drag down to close. A sideways drag is left for the scrubber."
+        },
+        {
+          "heading": "notes",
+          "content": "Open, the artwork grows, the artist fades in, a scrub track appears, and previous and next bud out of the play bubble on liquid necks. Closing melts them home. Play fills with signal while `isPlaying` is true."
+        },
+        {
+          "heading": "notes",
+          "content": "The pill, the artwork, play, and the skip bubbles share one `PieceLiquidGroup`. On iOS 26 that is Liquid Glass, interactive on the pill and the transport. On iOS 17, and under Reduce Transparency, it is a frosted material or a solid fill."
+        },
+        {
+          "heading": "notes",
+          "content": "`progress` is the position in the track, from 0 to 1. While `isPlaying` is true it advances and wraps. Drag the track, once the player is open, to set it. `onSkip` is called with -1 or 1."
+        },
+        {
+          "heading": "notes",
+          "content": "The title uses `PieceMorphText`, so a track change rewrites it letter by letter."
+        },
+        {
+          "heading": "notes",
+          "content": "Haptics: a light impact for play and pause, a soft impact when the player lands open or shut, and a selection tick when a skip fires. Pass `haptics: false` to stay silent."
+        },
+        {
+          "heading": "notes",
+          "content": "VoiceOver reads the title, artist, Play or Pause, Previous, Next, and the playback position as an adjustable control."
+        },
+        {
+          "heading": "notes",
+          "content": "Reduce Motion opens and closes without the travel, and fades the artist, the track, and the skip bubbles. Playback and the ticks stay."
+        },
+        {
+          "heading": "notes",
+          "content": "`symbol` is the artwork's SF Symbol. `tint` is painted inside the artwork tile. The default tint is the house mascot red."
+        },
+        {
+          "heading": "parameters",
+          "content": "Parameter"
+        },
+        {
+          "heading": "parameters",
+          "content": "Description"
+        },
+        {
+          "heading": "parameters",
+          "content": "`title`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Track title. It morphs letter by letter when it changes."
+        },
+        {
+          "heading": "parameters",
+          "content": "`artist`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Secondary line, shown once the player is open."
+        },
+        {
+          "heading": "parameters",
+          "content": "`symbol`"
+        },
+        {
+          "heading": "parameters",
+          "content": "SF Symbol drawn on the artwork block."
+        },
+        {
+          "heading": "parameters",
+          "content": "`tint`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Artwork color, painted inside the glass artwork tile."
+        },
+        {
+          "heading": "parameters",
+          "content": "`isPlaying`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Whether playback is advancing."
+        },
+        {
+          "heading": "parameters",
+          "content": "`progress`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Position in the track, from 0 to 1."
+        },
+        {
+          "heading": "parameters",
+          "content": "`expanded`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Whether the full player is open."
+        },
+        {
+          "heading": "parameters",
+          "content": "`haptics`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Ticks for play, for landing open or shut, and when a skip fires."
+        },
+        {
+          "heading": "parameters",
+          "content": "`onSkip`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Called with -1 or 1 when previous or next is chosen."
         }
       ],
       "headings": [
@@ -10582,6 +11082,134 @@
     }
   },
   {
+    "url": "/docs/components/media/waveform-scrub",
+    "title": "Waveform Scrub",
+    "description": "A voice note you can scrub by dragging its waveform. The samples are the control: a glass playhead bulges out of a glass track and follows your finger, swelling while you hold it, while a time bubble buds off it on a liquid neck. Loud peaks tick. A play bubble rests apart and floods with signal while it plays.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Components",
+      "Categories · 14",
+      "Media"
+    ],
+    "structuredData": {
+      "contents": [
+        {
+          "content": "A waveform that is itself the scrubber, with a glass playhead melted into a glass track. `samples` are loudness from 0 to 1, left to right. `progress` is how far playback has reached, from 0 to 1. Drag anywhere on the track to move the playhead; it tracks the finger and keeps the flick's speed for a short coast."
+        },
+        {
+          "heading": "notes",
+          "content": "`samples` are loudness from 0 to 1, left to right. `progress` is how far playback has reached, also from 0 to 1. `duration` is the length in seconds, used for the time bubble and for how fast `isPlaying` advances."
+        },
+        {
+          "heading": "notes",
+          "content": "The samples are the control. Drag anywhere on the track and the playhead follows the finger, rubber-banding past either end. On release it coasts a little of the flick, then clamps. While the finger is down the playhead swells and a time bubble buds off it on a liquid neck; letting go melts the bubble home."
+        },
+        {
+          "heading": "notes",
+          "content": "The track and the playhead sit in one `PieceLiquidGroup` with the play bubble held `PieceLiquid.apart`, so the playhead can neck into the track and the play bubble stays its own shape except while it is pressed. The play bubble uses `pieceLiquidPop` and fills with signal while `isPlaying` is true. On iOS 26 the shapes are Liquid Glass. On iOS 17, and under Reduce Transparency, they are frosted material or solid fills."
+        },
+        {
+          "heading": "notes",
+          "content": "Playback advances `progress` on its own while `isPlaying` is true and the finger is up, wrapping at the end. A loud sample (0.82 or more) ticks once as the playhead enters it."
+        },
+        {
+          "heading": "notes",
+          "content": "Haptics: that peak tick, and a light impact for play and pause. Pass `haptics: false` to stay silent."
+        },
+        {
+          "heading": "notes",
+          "content": "VoiceOver reads the waveform as an adjustable control with the current time, and the play bubble as Play or Pause. Increment and decrement move `progress` by a twentieth."
+        },
+        {
+          "heading": "notes",
+          "content": "Reduce Motion keeps playback, the ticks, and the time label, and drops the swell. The time bubble still appears and disappears."
+        },
+        {
+          "heading": "notes",
+          "content": "Right to left flips the scrub."
+        },
+        {
+          "heading": "notes",
+          "content": "`Style` (`.standard` is house ink, a quiet mute for unplayed bars, and signal on the playhead and on play): `ink`, `muted`, `accent`."
+        },
+        {
+          "heading": "parameters",
+          "content": "Parameter"
+        },
+        {
+          "heading": "parameters",
+          "content": "Description"
+        },
+        {
+          "heading": "parameters",
+          "content": "`samples`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Bar heights from 0 to 1. An empty list draws a flat track."
+        },
+        {
+          "heading": "parameters",
+          "content": "`progress`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Playback position from 0 to 1."
+        },
+        {
+          "heading": "parameters",
+          "content": "`isPlaying`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Whether the note is advancing on its own."
+        },
+        {
+          "heading": "parameters",
+          "content": "`duration`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Length of the note in seconds, used for the time bubble and for playback."
+        },
+        {
+          "heading": "parameters",
+          "content": "`haptics`"
+        },
+        {
+          "heading": "parameters",
+          "content": "A selection tick when the playhead crosses a loud peak, and a light tick for play and pause."
+        },
+        {
+          "heading": "parameters",
+          "content": "`style`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Ink for played bars, mute for the rest, and the play bubble's tint. `.standard` uses house ink and signal."
+        }
+      ],
+      "headings": [
+        {
+          "id": "notes",
+          "content": "Notes"
+        },
+        {
+          "id": "usage",
+          "content": "Usage"
+        },
+        {
+          "id": "parameters",
+          "content": "Parameters"
+        },
+        {
+          "id": "source",
+          "content": "Source"
+        }
+      ]
+    }
+  },
+  {
     "url": "/docs/components/motion/drag-to-dismiss",
     "title": "Drag to Dismiss",
     "description": "A modifier that lets a photo, card, or sheet follow a two-axis drag, rounds and shrinks it toward the finger with progress over a styled scrim, then springs back or is tossed off along the drag vector at the speed of the flick past a distance or velocity threshold. A liquid glass close bubble drops in at the top as the drag gets going, and a \"Release to close\" pill buds out of it on a liquid neck the moment the drag passes the threshold, melting back in if it falls short.",
@@ -11014,6 +11642,242 @@
     }
   },
   {
+    "url": "/docs/components/navigation/scroll-island",
+    "title": "Scroll Island",
+    "description": "A floating liquid glass island that names the section you are in. Drag it sideways to scrub sections: the capsule follows your finger, rubber-bands past the ends and lands where the flick was heading, with a tick at each section and the title morphing letter by letter. Tap it and a detail line opens inside the glass while an Open bubble buds out underneath on a liquid neck, then melts home when you tap again.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Components",
+      "Categories · 14",
+      "Navigation"
+    ],
+    "structuredData": {
+      "contents": [
+        {
+          "content": "A floating glass island for the section a scroll view is in. Bind `position` to a continuous section index (0 at the first stop). Dragging the island scrubs it; a flick lands on the stop the gesture was heading for. `expanded` opens the detail and buds an Open bubble. `swift ScrollIsland(stops: stops, position: $section, expanded: $open) { stop in open(stop) } `"
+        },
+        {
+          "heading": "notes",
+          "content": "Bind `position` to a continuous section index. Dragging the island writes it directly, so the capsule stays under the finger; a flick lands on the stop `PieceMotion.project` was heading for, snapped with `PieceMotion.nearest`. Past the first or last stop the capsule rubber-bands and springs home."
+        },
+        {
+          "heading": "notes",
+          "content": "A tap that barely moved (under 10 points) opens or closes the island. Opening grows the capsule, fades the stop's detail in, and buds an Open bubble out of the bottom on a liquid neck. Closing melts the bubble home. The bubble calls `onOpen` with the stop the island is resting on."
+        },
+        {
+          "heading": "notes",
+          "content": "The title changes with `PieceMorphText`, letter by letter, as the island crosses a stop. The detail is a second line, shown only while `expanded` is true."
+        },
+        {
+          "heading": "notes",
+          "content": "The island and the Open bubble sit in one `PieceLiquidGroup`, so the bubble shares a neck with the capsule while it is leaving or returning. On iOS 26 that is Liquid Glass (`glassEffect` inside `GlassEffectContainer`, interactive on the capsule and the bubble). On iOS 17, and under Reduce Transparency, it is a frosted material or a solid fill."
+        },
+        {
+          "heading": "notes",
+          "content": "Haptics: a selection tick each time a drag crosses a stop, and a light impact when the island opens or closes. Pass `haptics: false` to stay silent."
+        },
+        {
+          "heading": "notes",
+          "content": "VoiceOver reads the island as one adjustable element: the title, and the detail while it is open. Increment and decrement move a stop. An Expand or Collapse action toggles the detail."
+        },
+        {
+          "heading": "notes",
+          "content": "Reduce Motion keeps the ticks and the open state, and swaps the morph for a fade. The bubble still appears and disappears, without the travel."
+        },
+        {
+          "heading": "notes",
+          "content": "Right to left flips the drag, so leading still moves toward the first stop."
+        },
+        {
+          "heading": "notes",
+          "content": "`Style` (`.standard` is house ink, muted detail, and signal red on the Open bubble): `ink`, `muted`, `accent`."
+        },
+        {
+          "heading": "parameters",
+          "content": "Parameter"
+        },
+        {
+          "heading": "parameters",
+          "content": "Description"
+        },
+        {
+          "heading": "parameters",
+          "content": "`stops`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Sections in order. Each has a title, an SF Symbol and a short detail."
+        },
+        {
+          "heading": "parameters",
+          "content": "`position`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Continuous index of the current section. 0 is the first stop. Values between stops are in flight."
+        },
+        {
+          "heading": "parameters",
+          "content": "`expanded`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Whether the detail and the Open bubble are out."
+        },
+        {
+          "heading": "parameters",
+          "content": "`haptics`"
+        },
+        {
+          "heading": "parameters",
+          "content": "A selection tick as the island crosses a section, and a light tick when it opens or closes."
+        },
+        {
+          "heading": "parameters",
+          "content": "`onOpen`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Called when the Open bubble is tapped, with the stop the island is resting on."
+        },
+        {
+          "heading": "parameters",
+          "content": "`style`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Ink, muted detail and the Open bubble's tint. `.standard` is house ink on signal red."
+        }
+      ],
+      "headings": [
+        {
+          "id": "notes",
+          "content": "Notes"
+        },
+        {
+          "id": "usage",
+          "content": "Usage"
+        },
+        {
+          "id": "parameters",
+          "content": "Parameters"
+        },
+        {
+          "id": "source",
+          "content": "Source"
+        }
+      ]
+    }
+  },
+  {
+    "url": "/docs/components/navigation/step-trail",
+    "title": "Step Trail",
+    "description": "A row of glass stops with one capsule that carries the step you are on. Drag the capsule or flick the page: it follows your finger, stretches halfway between stops, rubber-bands past the ends and lands with the flick's speed while the title morphs. The stop it rests on grows from a dot into a labeled capsule, joined to its neighbours only while it is passing them.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Components",
+      "Categories · 14",
+      "Navigation"
+    ],
+    "structuredData": {
+      "contents": [
+        {
+          "content": "A paged step with a glass capsule you can throw along a trail of stops. `selection` is the id of the current step. Dragging the trail or the page sets a continuous position and releases onto a stop. The page's title morphs; its detail fades with the landing."
+        },
+        {
+          "heading": "notes",
+          "content": "`selection` is the id of the current step. The trail keeps a continuous index while a finger is down and writes `selection` when that index crosses a stop. Setting `selection` from outside animates the capsule to that stop."
+        },
+        {
+          "heading": "notes",
+          "content": "Drag the page or the trail. The capsule tracks the finger, grows wider while it is between stops, rubber-bands past either end, and lands with the flick's speed. The page title morphs with `PieceMorphText`; the detail fades on the landing."
+        },
+        {
+          "heading": "notes",
+          "content": "Stops are glass dots. The active stop is a signal capsule carrying the title, in the same `PieceLiquidGroup`, so it necks into a neighbouring dot only while it is passing. On iOS 26 that is interactive Liquid Glass. On iOS 17, and under Reduce Transparency, it is a frosted material or a solid fill."
+        },
+        {
+          "heading": "notes",
+          "content": "Haptics: a selection tick each time the capsule crosses a stop during a drag. Pass `haptics: false` to stay silent."
+        },
+        {
+          "heading": "notes",
+          "content": "VoiceOver reads one adjustable element: the title, the position (\"2 of 4\"), and the detail. Increment and decrement move a stop."
+        },
+        {
+          "heading": "notes",
+          "content": "Reduce Motion lands without the stretch and fades the page instead of morphing it. The ticks stay."
+        },
+        {
+          "heading": "notes",
+          "content": "Right to left flips both drags and the capsule's travel."
+        },
+        {
+          "heading": "notes",
+          "content": "`Style` (`.standard` is house ink and signal red on the capsule): `ink`, `muted`, `accent`."
+        },
+        {
+          "heading": "parameters",
+          "content": "Parameter"
+        },
+        {
+          "heading": "parameters",
+          "content": "Description"
+        },
+        {
+          "heading": "parameters",
+          "content": "`steps`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Stops in order. Each has a title, an SF Symbol and a sentence of detail."
+        },
+        {
+          "heading": "parameters",
+          "content": "`selection`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Id of the selected step."
+        },
+        {
+          "heading": "parameters",
+          "content": "`haptics`"
+        },
+        {
+          "heading": "parameters",
+          "content": "A selection tick each time the capsule lands on or crosses a stop."
+        },
+        {
+          "heading": "parameters",
+          "content": "`style`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Ink, muted detail and the capsule tint. `.standard` paints the capsule in signal red."
+        }
+      ],
+      "headings": [
+        {
+          "id": "notes",
+          "content": "Notes"
+        },
+        {
+          "id": "usage",
+          "content": "Usage"
+        },
+        {
+          "id": "parameters",
+          "content": "Parameters"
+        },
+        {
+          "id": "source",
+          "content": "Source"
+        }
+      ]
+    }
+  },
+  {
     "url": "/docs/components/navigation/stretch-header",
     "title": "Stretch Header",
     "description": "A hero header for your own ScrollView and NavigationStack: a semibold display title and uppercase eyebrow over a solid block hero that stretches on overscroll, a title that shrinks toward the real navigation bar, a row of liquid glass stat pills that pins under the bar, and a solid bar that fades in.",
@@ -11399,6 +12263,118 @@
         {
           "heading": "parameters",
           "content": "Async handler for the primary button. Cancel melts back into the button, which spins and reads Working until it returns, then turns sage with a check and Done that the tile answers a beat later, then the card dismisses."
+        }
+      ],
+      "headings": [
+        {
+          "id": "notes",
+          "content": "Notes"
+        },
+        {
+          "id": "usage",
+          "content": "Usage"
+        },
+        {
+          "id": "parameters",
+          "content": "Parameters"
+        },
+        {
+          "id": "source",
+          "content": "Source"
+        }
+      ]
+    }
+  },
+  {
+    "url": "/docs/components/sheets/notice-stack",
+    "title": "Notice Stack",
+    "description": "Glass notices piled so they melt into one shape, the top one proud of the pile. Flick the top notice sideways and it flies off with your speed while the next one rises into its place, with a tick as it commits. Tap the pile and the notices fan into their own bubbles; swipe any of them away and the rest close up.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Components",
+      "Categories · 14",
+      "Sheets"
+    ],
+    "structuredData": {
+      "contents": [
+        {
+          "content": "A pile of glass notices you can fan open and swipe away. Collapsed, only a peek of the notices under the first shows, close enough that the glass merges. Expanded, each notice is its own bubble. Swiping one past a threshold, or flicking it, removes it from `notices`."
+        },
+        {
+          "heading": "notes",
+          "content": "`notices` is the pile, front to back. Removing one is how a swipe completes, so the binding is the source of truth. `expanded` fans the pile into separate bubbles."
+        },
+        {
+          "heading": "notes",
+          "content": "Collapsed, three notices peek, close enough that the glass merges into one shape, each one a little smaller through `pieceLiquidScale`. Flick the front notice sideways: past about 88 points, or with a flick, it flies off with your speed and the next notice rises. A short drag springs home. Tap the front notice to fan the pile."
+        },
+        {
+          "heading": "notes",
+          "content": "Expanded, every notice is its own bubble at `PieceLiquid.apart`. Swipe any of them away and the rest close up. Tap the pile to gather it."
+        },
+        {
+          "heading": "notes",
+          "content": "The pile is one `PieceLiquidGroup`, so collapsed notices share a neck and expanded ones only neck while they are budding or dismissing. On iOS 26 that is Liquid Glass, interactive on the notice you can swipe. On iOS 17, and under Reduce Transparency, it is a frosted material or a solid fill."
+        },
+        {
+          "heading": "notes",
+          "content": "Haptics: a soft impact when a swipe commits, and a light impact when the pile fans or gathers. Pass `haptics: false` to stay silent."
+        },
+        {
+          "heading": "notes",
+          "content": "VoiceOver reads each notice as its title and message, with a Dismiss action. The fan is the tap."
+        },
+        {
+          "heading": "notes",
+          "content": "Reduce Motion dismisses and fans without the flight, and the collapsed peek does not scale. The ticks stay."
+        },
+        {
+          "heading": "notes",
+          "content": "Right to left flips the swipe."
+        },
+        {
+          "heading": "notes",
+          "content": "`Style` sets `ink` and the muted message color. The notices themselves are clear glass."
+        },
+        {
+          "heading": "parameters",
+          "content": "Parameter"
+        },
+        {
+          "heading": "parameters",
+          "content": "Description"
+        },
+        {
+          "heading": "parameters",
+          "content": "`notices`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Notices from front to back. Removing one is how a swipe completes."
+        },
+        {
+          "heading": "parameters",
+          "content": "`expanded`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Whether the pile is fanned into separate bubbles."
+        },
+        {
+          "heading": "parameters",
+          "content": "`haptics`"
+        },
+        {
+          "heading": "parameters",
+          "content": "A soft tick when a swipe commits, and a light tick when the pile fans or gathers."
+        },
+        {
+          "heading": "parameters",
+          "content": "`style`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Ink and muted message color. The notices themselves are clear glass."
         }
       ],
       "headings": [

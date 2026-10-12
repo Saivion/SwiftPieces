@@ -1,0 +1,11 @@
+## Notes
+
+- `samples` are loudness from 0 to 1, left to right. `progress` is how far playback has reached, also from 0 to 1. `duration` is the length in seconds, used for the time bubble and for how fast `isPlaying` advances.
+- The samples are the control. Drag anywhere on the track and the playhead follows the finger, rubber-banding past either end. On release it coasts a little of the flick, then clamps. While the finger is down the playhead swells and a time bubble buds off it on a liquid neck; letting go melts the bubble home.
+- The track and the playhead sit in one `PieceLiquidGroup` with the play bubble held `PieceLiquid.apart`, so the playhead can neck into the track and the play bubble stays its own shape except while it is pressed. The play bubble uses `pieceLiquidPop` and fills with signal while `isPlaying` is true. On iOS 26 the shapes are Liquid Glass. On iOS 17, and under Reduce Transparency, they are frosted material or solid fills.
+- Playback advances `progress` on its own while `isPlaying` is true and the finger is up, wrapping at the end. A loud sample (0.82 or more) ticks once as the playhead enters it.
+- Haptics: that peak tick, and a light impact for play and pause. Pass `haptics: false` to stay silent.
+- VoiceOver reads the waveform as an adjustable control with the current time, and the play bubble as Play or Pause. Increment and decrement move `progress` by a twentieth.
+- Reduce Motion keeps playback, the ticks, and the time label, and drops the swell. The time bubble still appears and disappears.
+- Right to left flips the scrub.
+- `Style` (`.standard` is house ink, a quiet mute for unplayed bars, and signal on the playhead and on play): `ink`, `muted`, `accent`.

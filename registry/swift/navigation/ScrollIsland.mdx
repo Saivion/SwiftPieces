@@ -1,0 +1,11 @@
+## Notes
+
+- Bind `position` to a continuous section index. Dragging the island writes it directly, so the capsule stays under the finger; a flick lands on the stop `PieceMotion.project` was heading for, snapped with `PieceMotion.nearest`. Past the first or last stop the capsule rubber-bands and springs home.
+- A tap that barely moved (under 10 points) opens or closes the island. Opening grows the capsule, fades the stop's detail in, and buds an Open bubble out of the bottom on a liquid neck. Closing melts the bubble home. The bubble calls `onOpen` with the stop the island is resting on.
+- The title changes with `PieceMorphText`, letter by letter, as the island crosses a stop. The detail is a second line, shown only while `expanded` is true.
+- The island and the Open bubble sit in one `PieceLiquidGroup`, so the bubble shares a neck with the capsule while it is leaving or returning. On iOS 26 that is Liquid Glass (`glassEffect` inside `GlassEffectContainer`, interactive on the capsule and the bubble). On iOS 17, and under Reduce Transparency, it is a frosted material or a solid fill.
+- Haptics: a selection tick each time a drag crosses a stop, and a light impact when the island opens or closes. Pass `haptics: false` to stay silent.
+- VoiceOver reads the island as one adjustable element: the title, and the detail while it is open. Increment and decrement move a stop. An Expand or Collapse action toggles the detail.
+- Reduce Motion keeps the ticks and the open state, and swaps the morph for a fade. The bubble still appears and disappears, without the travel.
+- Right to left flips the drag, so leading still moves toward the first stop.
+- `Style` (`.standard` is house ink, muted detail, and signal red on the Open bubble): `ink`, `muted`, `accent`.

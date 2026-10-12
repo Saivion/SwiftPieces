@@ -1,7 +1,8 @@
 // Free SwiftPieces that solve everyday app problems: a section index scrubber, drag-to-select, an
 // attachment tray, a feed that follows new content, address autocomplete, a signature pad, link previews,
 // a photo cropper, a map location picker, a spotlight tour and an activity heatmap, plus a picture
-// headline (text with living pictures between its words). One file per piece in ./utility, each exporting its definition.
+// headline (text with living pictures between its words) and eight crafted interactions in ./utility/crafted.
+// One file per piece in ./utility, each exporting its definition, except the crafted set which shares one module.
 import type { SwiftPieceDefinition } from "../core/schema.js";
 import * as indexScrubber from "./utility/index-scrubber.js";
 import * as dragSelectGrid from "./utility/drag-select-grid.js";
@@ -15,8 +16,9 @@ import * as locationPicker from "./utility/location-picker.js";
 import * as spotlightTour from "./utility/spotlight-tour.js";
 import * as activityHeatmap from "./utility/activity-heatmap.js";
 import * as pictureHeadline from "./utility/picture-headline.js";
+import { crafted } from "./utility/crafted.js";
 
-const all = [indexScrubber, dragSelectGrid, attachmentTray, followScroll, addressField, signaturePad, linkPreview, photoCropper, locationPicker, spotlightTour, activityHeatmap, pictureHeadline];
+const all = [indexScrubber, dragSelectGrid, attachmentTray, followScroll, addressField, signaturePad, linkPreview, photoCropper, locationPicker, spotlightTour, activityHeatmap, pictureHeadline, ...crafted];
 
 export const utilityPieces: SwiftPieceDefinition[] = all.flatMap((m) => (m.definition ? [m.definition] : []));
 

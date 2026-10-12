@@ -125,7 +125,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/ai/source-stack",
     "added": "2026-09-29",
-    "isNew": true,
+    "isNew": false,
     "liquidGlass": false,
     "metal": false
   },
@@ -514,6 +514,48 @@
   },
   {
     "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "WalletStack",
+    "slug": "wallet-stack",
+    "type": "registry:component",
+    "title": "Wallet Stack",
+    "description": "Passes stacked as liquid glass that melts into one shape where they overlap. Drag up and they fan apart through necks that thin and snap; drag down and they gather home. Tap a fanned pass to lift it forward, with a light tick, and tap it again to set it back into the stack.",
+    "category": "cards",
+    "license": "MIT+Commons-Clause",
+    "version": "1.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "wallet",
+      "cards",
+      "stack",
+      "fan",
+      "glass",
+      "drag",
+      "haptics"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/cards/WalletStack.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Cards/WalletStack.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/cards/wallet-stack",
+    "added": "2026-10-12",
+    "isNew": true,
+    "liquidGlass": true,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
     "name": "CommitButton",
     "slug": "commit-button",
     "type": "registry:component",
@@ -757,7 +799,7 @@
     "docs": "https://swiftpieces.com/docs/components/data/activity-heatmap",
     "pro": "lens-tab-bar",
     "added": "2026-09-29",
-    "isNew": true,
+    "isNew": false,
     "liquidGlass": true,
     "metal": false
   },
@@ -840,6 +882,48 @@
     "docs": "https://swiftpieces.com/docs/components/data/odometer",
     "pro": "dashboard-screen",
     "isNew": false,
+    "liquidGlass": true,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "RangeLens",
+    "slug": "range-lens",
+    "type": "registry:component",
+    "title": "Range Lens",
+    "description": "A chart you read by dragging a glass lens across it. Grab the lens to move the window, or grab either edge to resize it; the lens follows your finger, flattens against the ends and lands with the flick. While you drag, a readout buds off the lens on a liquid neck and morphs its numbers, with a tick each time an edge crosses a sample, then melts home when you let go.",
+    "category": "data",
+    "license": "MIT+Commons-Clause",
+    "version": "1.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "chart",
+      "brush",
+      "range",
+      "lens",
+      "glass",
+      "scrub",
+      "haptics"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/data/RangeLens.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Data/RangeLens.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/data/range-lens",
+    "added": "2026-10-12",
+    "isNew": true,
     "liquidGlass": true,
     "metal": false
   },
@@ -1211,7 +1295,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/glass/glass-mode-bar",
     "added": "2026-09-29",
-    "isNew": true,
+    "isNew": false,
     "liquidGlass": true,
     "metal": false
   },
@@ -1254,7 +1338,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/glass/glass-quick-add",
     "added": "2026-09-29",
-    "isNew": true,
+    "isNew": false,
     "liquidGlass": true,
     "metal": false
   },
@@ -1376,7 +1460,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/inputs/address-field",
     "added": "2026-09-29",
-    "isNew": true,
+    "isNew": false,
     "liquidGlass": true,
     "metal": false
   },
@@ -1625,7 +1709,7 @@
     "docs": "https://swiftpieces.com/docs/components/inputs/location-picker",
     "pro": "detent-sheet",
     "added": "2026-09-29",
-    "isNew": true,
+    "isNew": false,
     "liquidGlass": true,
     "metal": false
   },
@@ -1790,7 +1874,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/inputs/signature-pad",
     "added": "2026-09-29",
-    "isNew": true,
+    "isNew": false,
     "liquidGlass": true,
     "metal": false
   },
@@ -1916,7 +2000,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/lists/drag-select-grid",
     "added": "2026-09-29",
-    "isNew": true,
+    "isNew": false,
     "liquidGlass": true,
     "metal": false
   },
@@ -1959,7 +2043,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/lists/follow-scroll",
     "added": "2026-09-29",
-    "isNew": true,
+    "isNew": false,
     "liquidGlass": true,
     "metal": false
   },
@@ -2165,6 +2249,47 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/media/attachment-tray",
     "added": "2026-09-29",
+    "isNew": false,
+    "liquidGlass": true,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "ImageCompare",
+    "slug": "image-compare",
+    "type": "registry:component",
+    "title": "Image Compare",
+    "description": "Drag a glass seam across two pictures to see what changed. The seam follows your finger, flattens against the edges with rubber-band resistance and ticks as it crosses the middle, where it rests if you let go close by. While you drag, a percent bubble buds off the handle on a liquid neck and melts back in when you release.",
+    "category": "media",
+    "license": "MIT+Commons-Clause",
+    "version": "1.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "compare",
+      "before after",
+      "drag",
+      "glass",
+      "photos",
+      "haptics"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/media/ImageCompare.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Media/ImageCompare.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/media/image-compare",
+    "added": "2026-10-12",
     "isNew": true,
     "liquidGlass": true,
     "metal": false
@@ -2208,6 +2333,48 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/media/link-preview",
     "added": "2026-09-29",
+    "isNew": false,
+    "liquidGlass": true,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "NowPlaying",
+    "slug": "now-playing",
+    "type": "registry:component",
+    "title": "Now Playing",
+    "description": "A mini player that grows into the full player in one motion. Drag the glass pill upward and it follows your finger, then settles open or shut with the flick's speed. Skip bubbles bud out of the play button on liquid necks only once it is open, and melt back in as it closes. Scrub the track while it is open; play floods the button with signal.",
+    "category": "media",
+    "license": "MIT+Commons-Clause",
+    "version": "1.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "player",
+      "music",
+      "morph",
+      "glass",
+      "drag",
+      "now playing",
+      "haptics"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/media/NowPlaying.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Media/NowPlaying.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/media/now-playing",
+    "added": "2026-10-12",
     "isNew": true,
     "liquidGlass": true,
     "metal": false
@@ -2251,7 +2418,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/media/photo-cropper",
     "added": "2026-09-29",
-    "isNew": true,
+    "isNew": false,
     "liquidGlass": true,
     "metal": false
   },
@@ -2335,6 +2502,48 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/media/story-strip",
     "isNew": false,
+    "liquidGlass": true,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "WaveformScrub",
+    "slug": "waveform-scrub",
+    "type": "registry:component",
+    "title": "Waveform Scrub",
+    "description": "A voice note you can scrub by dragging its waveform. The samples are the control: a glass playhead bulges out of a glass track and follows your finger, swelling while you hold it, while a time bubble buds off it on a liquid neck. Loud peaks tick. A play bubble rests apart and floods with signal while it plays.",
+    "category": "media",
+    "license": "MIT+Commons-Clause",
+    "version": "1.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "waveform",
+      "audio",
+      "scrub",
+      "voice",
+      "glass",
+      "haptics",
+      "media"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/media/WaveformScrub.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Media/WaveformScrub.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/media/waveform-scrub",
+    "added": "2026-10-12",
+    "isNew": true,
     "liquidGlass": true,
     "metal": false
   },
@@ -2459,6 +2668,91 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/navigation/index-scrubber",
     "added": "2026-09-29",
+    "isNew": false,
+    "liquidGlass": true,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "ScrollIsland",
+    "slug": "scroll-island",
+    "type": "registry:component",
+    "title": "Scroll Island",
+    "description": "A floating liquid glass island that names the section you are in. Drag it sideways to scrub sections: the capsule follows your finger, rubber-bands past the ends and lands where the flick was heading, with a tick at each section and the title morphing letter by letter. Tap it and a detail line opens inside the glass while an Open bubble buds out underneath on a liquid neck, then melts home when you tap again.",
+    "category": "navigation",
+    "license": "MIT+Commons-Clause",
+    "version": "1.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "island",
+      "scroll",
+      "section",
+      "glass",
+      "morph",
+      "scrub",
+      "dynamic island",
+      "haptics"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/navigation/ScrollIsland.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Navigation/ScrollIsland.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/navigation/scroll-island",
+    "added": "2026-10-12",
+    "isNew": true,
+    "liquidGlass": true,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "StepTrail",
+    "slug": "step-trail",
+    "type": "registry:component",
+    "title": "Step Trail",
+    "description": "A row of glass stops with one capsule that carries the step you are on. Drag the capsule or flick the page: it follows your finger, stretches halfway between stops, rubber-bands past the ends and lands with the flick's speed while the title morphs. The stop it rests on grows from a dot into a labeled capsule, joined to its neighbours only while it is passing them.",
+    "category": "navigation",
+    "license": "MIT+Commons-Clause",
+    "version": "1.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "steps",
+      "pager",
+      "onboarding",
+      "glass",
+      "morph",
+      "drag",
+      "haptics"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/navigation/StepTrail.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Navigation/StepTrail.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/navigation/step-trail",
+    "added": "2026-10-12",
     "isNew": true,
     "liquidGlass": true,
     "metal": false
@@ -2587,6 +2881,48 @@
   },
   {
     "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "NoticeStack",
+    "slug": "notice-stack",
+    "type": "registry:component",
+    "title": "Notice Stack",
+    "description": "Glass notices piled so they melt into one shape, the top one proud of the pile. Flick the top notice sideways and it flies off with your speed while the next one rises into its place, with a tick as it commits. Tap the pile and the notices fan into their own bubbles; swipe any of them away and the rest close up.",
+    "category": "sheets",
+    "license": "MIT+Commons-Clause",
+    "version": "1.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "notices",
+      "stack",
+      "toast",
+      "swipe",
+      "glass",
+      "dismiss",
+      "haptics"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/sheets/NoticeStack.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Sheets/NoticeStack.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/sheets/notice-stack",
+    "added": "2026-10-12",
+    "isNew": true,
+    "liquidGlass": true,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
     "name": "PermissionSheet",
     "slug": "permission-sheet",
     "type": "registry:component",
@@ -2665,7 +3001,7 @@
     "docs": "https://swiftpieces.com/docs/components/sheets/spotlight-tour",
     "pro": "onboarding-flow",
     "added": "2026-09-29",
-    "isNew": true,
+    "isNew": false,
     "liquidGlass": true,
     "metal": false
   },
@@ -2831,7 +3167,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/text/picture-headline",
     "added": "2026-09-29",
-    "isNew": true,
+    "isNew": false,
     "liquidGlass": false,
     "metal": false
   },

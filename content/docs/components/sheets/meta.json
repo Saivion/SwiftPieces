@@ -4,6 +4,7 @@
   "defaultOpen": false,
   "pages": [
     "confirm-sheet",
+    "notice-stack",
     "permission-sheet",
     "spotlight-tour",
     "toast"

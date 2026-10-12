@@ -1,0 +1,11 @@
+## Notes
+
+- `notices` is the pile, front to back. Removing one is how a swipe completes, so the binding is the source of truth. `expanded` fans the pile into separate bubbles.
+- Collapsed, three notices peek, close enough that the glass merges into one shape, each one a little smaller through `pieceLiquidScale`. Flick the front notice sideways: past about 88 points, or with a flick, it flies off with your speed and the next notice rises. A short drag springs home. Tap the front notice to fan the pile.
+- Expanded, every notice is its own bubble at `PieceLiquid.apart`. Swipe any of them away and the rest close up. Tap the pile to gather it.
+- The pile is one `PieceLiquidGroup`, so collapsed notices share a neck and expanded ones only neck while they are budding or dismissing. On iOS 26 that is Liquid Glass, interactive on the notice you can swipe. On iOS 17, and under Reduce Transparency, it is a frosted material or a solid fill.
+- Haptics: a soft impact when a swipe commits, and a light impact when the pile fans or gathers. Pass `haptics: false` to stay silent.
+- VoiceOver reads each notice as its title and message, with a Dismiss action. The fan is the tap.
+- Reduce Motion dismisses and fans without the flight, and the collapsed peek does not scale. The ticks stay.
+- Right to left flips the swipe.
+- `Style` sets `ink` and the muted message color. The notices themselves are clear glass.

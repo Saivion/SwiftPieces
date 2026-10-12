@@ -1,0 +1,11 @@
+## Notes
+
+- `samples` are values from 0 to 1, left to right. `lower` and `upper` are fractions of the series, `lower` before `upper`, with a minimum span of about 8 percent. Bars inside the window use `ink`; bars outside use `muted`.
+- Drag the lens to move the window, keeping its width. Drag within about 28 points of either edge to resize that edge. The lens tracks the finger. On release a move coasts both edges together; a resize coasts the edge you held, and the other edge follows a beat later. The window clamps inside the series.
+- While the finger is down, a readout buds off the top of the lens on a liquid neck and morphs the average inside the window. Letting go melts it home. A caption above the chart keeps the average and the two percents either way.
+- The lens and the readout share a `PieceLiquidGroup`. The lens is interactive liquid glass with a light signal tint painted inside. On iOS 26 that is Liquid Glass. On iOS 17, and under Reduce Transparency, it is a frosted material or a solid fill.
+- Haptics: a selection tick when either edge crosses a sample. Pass `haptics: false` to stay silent.
+- VoiceOver reads one adjustable range, the caption, and shifts the window by a small step.
+- Reduce Motion keeps the window, the caption, and the ticks, and fades the readout instead of travelling it.
+- Right to left flips which edge is leading.
+- `Style` (`.standard` is house ink, a quiet mute, and a faint signal lens): `ink`, `muted`, `accent`.

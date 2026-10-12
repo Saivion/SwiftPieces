@@ -1,0 +1,10 @@
+## Notes
+
+- `selection` is the id of the current step. The trail keeps a continuous index while a finger is down and writes `selection` when that index crosses a stop. Setting `selection` from outside animates the capsule to that stop.
+- Drag the page or the trail. The capsule tracks the finger, grows wider while it is between stops, rubber-bands past either end, and lands with the flick's speed. The page title morphs with `PieceMorphText`; the detail fades on the landing.
+- Stops are glass dots. The active stop is a signal capsule carrying the title, in the same `PieceLiquidGroup`, so it necks into a neighbouring dot only while it is passing. On iOS 26 that is interactive Liquid Glass. On iOS 17, and under Reduce Transparency, it is a frosted material or a solid fill.
+- Haptics: a selection tick each time the capsule crosses a stop during a drag. Pass `haptics: false` to stay silent.
+- VoiceOver reads one adjustable element: the title, the position ("2 of 4"), and the detail. Increment and decrement move a stop.
+- Reduce Motion lands without the stretch and fades the page instead of morphing it. The ticks stay.
+- Right to left flips both drags and the capsule's travel.
+- `Style` (`.standard` is house ink and signal red on the capsule): `ink`, `muted`, `accent`.

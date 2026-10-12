@@ -6,6 +6,7 @@
     "flip-card",
     "motion-card",
     "parallax-card",
-    "swipe-deck"
+    "swipe-deck",
+    "wallet-stack"
   ]
 }

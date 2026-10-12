@@ -336,7 +336,7 @@ const elements: CatalogEntry[] = [
     description: "Cards for every job: a native card with an action, an image card, a card that flips to its back, and a Motion Card that tilts toward your finger.",
     try: ["Tap the flip card", "Move over the motion card", "Tap Open on the card"],
     interactions: ["tap", "expand", "drag"],
-    components: ["card", "image", "flip-card", "motion-card", "parallax-card"],
+    components: ["card", "image", "flip-card", "motion-card", "parallax-card", "wallet-stack"],
     keywords: ["swiftui card view", "swiftui flip card", "swiftui 3d card"],
   }),
   free({
@@ -390,7 +390,7 @@ const elements: CatalogEntry[] = [
     description: "Ways to switch views: tabs with an indicator that tracks between them, a floating dock, and a segmented control.",
     try: ["Tap each tab", "Pick a dock item"],
     interactions: ["tabs", "select", "spring"],
-    components: ["tracking-tabs", "floating-dock", "segmented"],
+    components: ["tracking-tabs", "floating-dock", "segmented", "scroll-island", "step-trail"],
     keywords: ["swiftui custom tab bar", "swiftui tabs indicator", "swiftui floating tab bar"],
   }),
   free({
@@ -399,7 +399,7 @@ const elements: CatalogEntry[] = [
     description: "Everything that rises over a screen: a half-height sheet you can drag to full, a confirmation sheet, a permission request, a toast, and a spotlight tour that dims the screen around each control it introduces.",
     try: ["Open the sheet and drag it up", "Tap Delete account", "Tap Save changes for a toast", "Take the tour"],
     interactions: ["sheet", "transition", "haptic"],
-    components: ["confirm-sheet", "permission-sheet", "toast", "spotlight-tour", "button"],
+    components: ["confirm-sheet", "permission-sheet", "toast", "notice-stack", "spotlight-tour", "button"],
     keywords: ["swiftui sheet", "swiftui presentationdetents", "swiftui toast", "swiftui confirmation dialog"],
   }),
   free({
@@ -408,7 +408,7 @@ const elements: CatalogEntry[] = [
     description: "Numbers that move: a Swift Charts bar chart, a line you scrub for exact values, a breakdown ring, a live figure, an odometer that rolls, and a streak heatmap you scrub day by day.",
     try: ["Drag across the line chart", "Tap a bar", "Tap a slice", "Scrub across the heatmap"],
     interactions: ["scrub", "tap", "transition"],
-    components: ["chart", "scrub-chart", "ring-breakdown", "live-stat", "odometer", "activity-heatmap"],
+    components: ["chart", "scrub-chart", "ring-breakdown", "live-stat", "odometer", "activity-heatmap", "range-lens"],
     keywords: ["swift charts", "swiftui line chart", "swiftui animated number"],
   }),
   free({
@@ -435,7 +435,7 @@ const elements: CatalogEntry[] = [
     description: "Visual content: image tiles, a paging carousel, a depth carousel, a story player, a link preview card, a tray of photo attachments, a photo cropper with aspect presets, a stack of avatars that fans out, and avatars with status.",
     try: ["Swipe the carousels", "Tap the story to skip ahead", "Add a photo to the tray", "Pinch the photo in the cropper", "Tap the avatar stack"],
     interactions: ["swipe", "tap"],
-    components: ["image", "page-carousel", "depth-carousel", "story-strip", "link-preview", "attachment-tray", "photo-cropper", "fan-stack", "avatar"],
+    components: ["image", "page-carousel", "depth-carousel", "story-strip", "link-preview", "attachment-tray", "photo-cropper", "fan-stack", "waveform-scrub", "image-compare", "now-playing", "avatar"],
     keywords: ["swiftui carousel", "swiftui image gallery", "swiftui stories"],
   }),
 ];

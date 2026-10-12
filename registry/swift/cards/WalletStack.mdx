@@ -1,0 +1,9 @@
+## Notes
+
+- Passes are listed front to back. Collapsed, they overlap inside the merge distance, so their glass is one shape with a short neck between cards. Drag up and they fan apart; the necks thin and snap once the gap passes the merge distance. Drag down and they gather. A flick settles open or shut.
+- Tap a fanned card to lift it forward (`selection` becomes its id) and tap it again to set it back. A drag that opened the fan does not also count as that tap. Closing the fan clears `selection`.
+- Each card is interactive liquid glass with its own `tint` painted inside, in one `PieceLiquidGroup`. A lifted card scales through `pieceLiquidScale`, so the glass and the label grow together. On iOS 26 that is Liquid Glass. On iOS 17, and under Reduce Transparency, it is a frosted material or a solid fill.
+- Haptics: a light impact when the fan opens or closes, and when a card lifts or settles back. Pass `haptics: false` to stay silent.
+- VoiceOver reads each pass as its own button, name and detail, and marks the lifted one selected.
+- Reduce Motion fans and gathers without the overshoot, and a lifted card does not scale. The ticks stay.
+- `Style` sets `ink` and `muted` on the cards. Each card brings its own `tint`. Four or five passes read best; more still fan, with a taller stack.

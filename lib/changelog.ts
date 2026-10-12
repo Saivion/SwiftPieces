@@ -7,6 +7,26 @@ import type { ChangelogEntry } from "@/components/changelog/changelog-grid";
  */
 export const changelog: ChangelogEntry[] = [
   {
+    slug: "crafted-pieces",
+    date: "Oct 12, 2026",
+    title: "Eight crafted pieces",
+    summary: "Eight interaction-driven pieces join the free library: a scroll island, a waveform you scrub, a before-and-after seam, a now-playing morph, a step trail, a wallet stack, a notice pile, and a chart lens. The previous New set joins the general library.",
+    points: [
+      "Scroll Island: a floating glass island you drag to scrub sections. The title morphs, and a tap buds an Open bubble on a liquid neck.",
+      "Waveform Scrub: the samples are the control. A glass playhead follows your finger, a time bubble buds off it, and loud peaks tick.",
+      "Image Compare: drag a glass seam across two pictures. It rubber-bands at the edges, rests on a center detent, and buds a percent bubble while you drag.",
+      "Now Playing: drag a mini player up into the full player. Skip bubbles bud out of play only once it is open.",
+      "Step Trail: throw a glass capsule along a trail of stops. It stretches between them and the page title morphs.",
+      "Wallet Stack: overlapping passes melt into one glass shape, fan apart when you drag up, and lift when you tap one.",
+      "Notice Stack: a collapsed pile of notices that melts together. Flick the top one away, or tap to fan them into their own bubbles.",
+      "Range Lens: drag a glass window across a series, or grab either edge to resize it. A readout buds off the lens while you drag.",
+      "Each one is liquid glass on iOS 26, through the shared liquid language, and a frosted fallback from iOS 17. Reduce Motion, Reduce Transparency, VoiceOver, and Dynamic Type are covered.",
+      "The pieces that shipped on Sep 29, 2026 leave the New badge and join the general set. The badge now marks this wave.",
+    ],
+    visual: "cards",
+    tint: "red",
+  },
+  {
     slug: "cli-0-3-4",
     date: "Oct 12, 2026",
     title: "CLI 0.3.4",

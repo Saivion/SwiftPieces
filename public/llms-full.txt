@@ -1,6 +1,6 @@
 # SwiftPieces: full text
 
-> 69 free SwiftUI components for iOS, one Swift file each, MIT + Commons Clause. Index: https://swiftpieces.com/llms.txt. Source for any piece: https://swiftpieces.com/r/<Name>.json or its docs page.
+> 77 free SwiftUI components for iOS, one Swift file each, MIT + Commons Clause. Index: https://swiftpieces.com/llms.txt. Source for any piece: https://swiftpieces.com/r/<Name>.json or its docs page.
 
 # Components
 
@@ -405,6 +405,34 @@ Swipeable card stack over Identifiable data. The deck removes the top item from 
 - `onTap`: Optional tap handler for the top card.
 - `card`: Builds one card. Give it its own shape and surface; the deck sizes it to fill the deck's frame.
 
+## Wallet Stack (`WalletStack`)
+
+URL: https://swiftpieces.com/docs/components/cards/wallet-stack
+Category: Cards. iOS 17.0+. Liquid Glass on iOS 26 with a Material fallback.
+Files: WalletStack.swift
+Install: npx swiftpieces add WalletStack
+
+Passes stacked as liquid glass that melts into one shape where they overlap. Drag up and they fan apart through necks that thin and snap; drag down and they gather home. Tap a fanned pass to lift it forward, with a light tick, and tap it again to set it back into the stack.
+
+A stack of glass passes that fans open and lets one card lift forward. Collapsed, the cards overlap inside the merge distance, so their glass is one shape. Fanned, they rest apart. `selection` is the id of the lifted card, or nil when every card is in the fan or the stack.
+
+### Notes
+
+- Passes are listed front to back. Collapsed, they overlap inside the merge distance, so their glass is one shape with a short neck between cards. Drag up and they fan apart; the necks thin and snap once the gap passes the merge distance. Drag down and they gather. A flick settles open or shut.
+- Tap a fanned card to lift it forward (`selection` becomes its id) and tap it again to set it back. A drag that opened the fan does not also count as that tap. Closing the fan clears `selection`.
+- Each card is interactive liquid glass with its own `tint` painted inside, in one `PieceLiquidGroup`. A lifted card scales through `pieceLiquidScale`, so the glass and the label grow together. On iOS 26 that is Liquid Glass. On iOS 17, and under Reduce Transparency, it is a frosted material or a solid fill.
+- Haptics: a light impact when the fan opens or closes, and when a card lifts or settles back. Pass `haptics: false` to stay silent.
+- VoiceOver reads each pass as its own button, name and detail, and marks the lifted one selected.
+- Reduce Motion fans and gathers without the overshoot, and a lifted card does not scale. The ticks stay.
+- `Style` sets `ink` and `muted` on the cards. Each card brings its own `tint`. Four or five passes read best; more still fan, with a taller stack.
+
+### Parameters
+
+- `cards`: Passes from front to back. Four or five read best.
+- `selection`: The lifted card's id, or nil.
+- `haptics`: A light tick when the fan opens, closes, or a card lifts.
+- `style`: Ink on the cards. Each card brings its own tint, painted inside the glass.
+
 ## Commit Button (`CommitButton`)
 
 URL: https://swiftpieces.com/docs/components/controls/commit-button
@@ -680,6 +708,37 @@ Slot-machine number with a single spring-driven `Animatable` value behind every 
 - `showsDelta`: Shows a signed delta chip of tinted glass beside the number for a moment after each change.
 - `ticksOnSettle`: Plays a `.selection` haptic when a roll finishes.
 - `style`: Delta chip tints, decimal dimming, and roll tinting. Defaults to `.standard`: sage for up, red for down, dimmed decimals, no tint while rolling.
+
+## Range Lens (`RangeLens`)
+
+URL: https://swiftpieces.com/docs/components/data/range-lens
+Category: Data. iOS 17.0+. Liquid Glass on iOS 26 with a Material fallback.
+Files: RangeLens.swift
+Install: npx swiftpieces add RangeLens
+
+A chart you read by dragging a glass lens across it. Grab the lens to move the window, or grab either edge to resize it; the lens follows your finger, flattens against the ends and lands with the flick. While you drag, a readout buds off the lens on a liquid neck and morphs its numbers, with a tick each time an edge crosses a sample, then melts home when you let go.
+
+A series with a glass window you drag to choose the range you are reading. `lower` and `upper` are fractions of the series, from 0 to 1, `lower` before `upper`. The lens is a glass rounded rectangle melted over the bars it covers. A readout above it names the average inside the window.
+
+### Notes
+
+- `samples` are values from 0 to 1, left to right. `lower` and `upper` are fractions of the series, `lower` before `upper`, with a minimum span of about 8 percent. Bars inside the window use `ink`; bars outside use `muted`.
+- Drag the lens to move the window, keeping its width. Drag within about 28 points of either edge to resize that edge. The lens tracks the finger. On release a move coasts both edges together; a resize coasts the edge you held, and the other edge follows a beat later. The window clamps inside the series.
+- While the finger is down, a readout buds off the top of the lens on a liquid neck and morphs the average inside the window. Letting go melts it home. A caption above the chart keeps the average and the two percents either way.
+- The lens and the readout share a `PieceLiquidGroup`. The lens is interactive liquid glass with a light signal tint painted inside. On iOS 26 that is Liquid Glass. On iOS 17, and under Reduce Transparency, it is a frosted material or a solid fill.
+- Haptics: a selection tick when either edge crosses a sample. Pass `haptics: false` to stay silent.
+- VoiceOver reads one adjustable range, the caption, and shifts the window by a small step.
+- Reduce Motion keeps the window, the caption, and the ticks, and fades the readout instead of travelling it.
+- Right to left flips which edge is leading.
+- `Style` (`.standard` is house ink, a quiet mute, and a faint signal lens): `ink`, `muted`, `accent`.
+
+### Parameters
+
+- `samples`: Values from 0 to 1, left to right. Fewer than two draws an empty track.
+- `lower`: Leading edge of the window, from 0 to 1.
+- `upper`: Trailing edge of the window, from 0 to 1.
+- `haptics`: A selection tick when either edge crosses a sample.
+- `style`: Bar ink, the dim ink outside the lens, and the lens tint. `.standard` is house ink with a clear lens.
 
 ## Ring Breakdown (`RingBreakdown`)
 
@@ -1841,6 +1900,37 @@ A strip of photo and video attachments with an add tile, per-item loading, retry
 - `style`: Colors and tile metrics. Defaults to the SwiftPieces house palette, adapting to light and dark.
 - `onSelect`: Called when a loaded tile is tapped, for example to open it full screen. When `nil`, loaded tiles have no tap action.
 
+## Image Compare (`ImageCompare`)
+
+URL: https://swiftpieces.com/docs/components/media/image-compare
+Category: Media. iOS 17.0+. Liquid Glass on iOS 26 with a Material fallback.
+Files: ImageCompare.swift
+Install: npx swiftpieces add ImageCompare
+
+Drag a glass seam across two pictures to see what changed. The seam follows your finger, flattens against the edges with rubber-band resistance and ticks as it crosses the middle, where it rests if you let go close by. While you drag, a percent bubble buds off the handle on a liquid neck and melts back in when you release.
+
+A before-and-after picture split by a draggable glass seam. `split` is how much of the before picture shows, from 0 (only after) to 1 (only before). The handle tracks the finger. Past either edge it resists. Near the middle, a quiet release settles on the halfway detent.
+
+### Notes
+
+- `split` is how much of `before` shows, from 0 (only after) to 1 (only before). Give the compare a frame: it fills the size you offer. `before` and `after` are any views, masked by the seam, so you can pass photos, colors, or your own drawings.
+- Drag the seam. It tracks the finger and rubber-bands past either edge. A quiet release near the middle (within about 6 percent, and not a flick) settles on the halfway detent and ticks. A harder flick keeps its speed and lands where it was heading.
+- The handle is a glass capsule. While the finger is down, a percent bubble buds off it on a liquid neck and melts home on release. The Before and After captions are their own glass chips, not in the handle's group, so they stay separate. On iOS 26 the handle is interactive Liquid Glass. On iOS 17, and under Reduce Transparency, it is a frosted material or a solid fill.
+- Haptics: a selection tick when the seam crosses the middle. Pass `haptics: false` to stay silent.
+- VoiceOver reads one adjustable control, "Before, 62 percent", and increment or decrement moves the seam.
+- Reduce Motion keeps the seam, the detent, and the tick. The percent bubble still appears and disappears, without the travel.
+- Right to left flips the drag and which picture leads.
+- Captions default to Before and After. Pass `beforeCaption` and `afterCaption` to name the pictures.
+
+### Parameters
+
+- `split`: Fraction of the width given to `before`, from 0 to 1.
+- `beforeCaption`: Name of the leading picture, read by VoiceOver and drawn on a glass chip.
+- `afterCaption`: Name of the trailing picture.
+- `haptics`: A selection tick when the seam crosses the middle.
+- `before`: The picture revealed from the leading edge.
+- `after`: The picture revealed from the trailing edge.
+
 ## Link Preview (`LinkPreview`)
 
 URL: https://swiftpieces.com/docs/components/media/link-preview
@@ -1879,6 +1969,41 @@ A rich preview card for a URL: the page's image, title and host, fetched once an
 - `metadata`: Metadata to show as is, with no request: for previews, tests, or links your server has already unfurled. `nil` fetches.
 - `timeout`: Seconds before a fetch gives up and the card falls back to the address.
 - `style`: Colors and corner radius. Defaults to the SwiftPieces house palette, adapting to light and dark.
+
+## Now Playing (`NowPlaying`)
+
+URL: https://swiftpieces.com/docs/components/media/now-playing
+Category: Media. iOS 17.0+. Liquid Glass on iOS 26 with a Material fallback.
+Files: NowPlaying.swift
+Install: npx swiftpieces add NowPlaying
+
+A mini player that grows into the full player in one motion. Drag the glass pill upward and it follows your finger, then settles open or shut with the flick's speed. Skip bubbles bud out of the play button on liquid necks only once it is open, and melt back in as it closes. Scrub the track while it is open; play floods the button with signal.
+
+A glass mini player that morphs into the full player. Collapsed, it is a pill: artwork, title and a play bubble joined to it. Drag up to open. The artwork grows, the artist and the scrub track appear, and previous and next bud out of play. Drag down, or flick, to close.
+
+### Notes
+
+- Collapsed, it is a glass pill: artwork, a morphing title, and a play bubble joined to the pill. Drag up and the pill follows your finger, then settles open or shut with the flick's speed (`predictedEndTranslation` against a 120 point travel). Drag down to close. A sideways drag is left for the scrubber.
+- Open, the artwork grows, the artist fades in, a scrub track appears, and previous and next bud out of the play bubble on liquid necks. Closing melts them home. Play fills with signal while `isPlaying` is true.
+- The pill, the artwork, play, and the skip bubbles share one `PieceLiquidGroup`. On iOS 26 that is Liquid Glass, interactive on the pill and the transport. On iOS 17, and under Reduce Transparency, it is a frosted material or a solid fill.
+- `progress` is the position in the track, from 0 to 1. While `isPlaying` is true it advances and wraps. Drag the track, once the player is open, to set it. `onSkip` is called with -1 or 1.
+- The title uses `PieceMorphText`, so a track change rewrites it letter by letter.
+- Haptics: a light impact for play and pause, a soft impact when the player lands open or shut, and a selection tick when a skip fires. Pass `haptics: false` to stay silent.
+- VoiceOver reads the title, artist, Play or Pause, Previous, Next, and the playback position as an adjustable control.
+- Reduce Motion opens and closes without the travel, and fades the artist, the track, and the skip bubbles. Playback and the ticks stay.
+- `symbol` is the artwork's SF Symbol. `tint` is painted inside the artwork tile. The default tint is the house mascot red.
+
+### Parameters
+
+- `title`: Track title. It morphs letter by letter when it changes.
+- `artist`: Secondary line, shown once the player is open.
+- `symbol`: SF Symbol drawn on the artwork block.
+- `tint`: Artwork color, painted inside the glass artwork tile.
+- `isPlaying`: Whether playback is advancing.
+- `progress`: Position in the track, from 0 to 1.
+- `expanded`: Whether the full player is open.
+- `haptics`: Ticks for play, for landing open or shut, and when a skip fires.
+- `onSkip`: Called with -1 or 1 when previous or next is chosen.
 
 ## Photo Cropper (`PhotoCropper`)
 
@@ -1995,6 +2120,38 @@ Segment strip plus the gesture surface of a story player. Pass `duration` to let
 - `fillsContainer`: Expand the gesture surface to the whole container so holds and taps work over the story, with the bars pinned to the top.
 - `onFinish`: Called when the last segment completes.
 
+## Waveform Scrub (`WaveformScrub`)
+
+URL: https://swiftpieces.com/docs/components/media/waveform-scrub
+Category: Media. iOS 17.0+. Liquid Glass on iOS 26 with a Material fallback.
+Files: WaveformScrub.swift
+Install: npx swiftpieces add WaveformScrub
+
+A voice note you can scrub by dragging its waveform. The samples are the control: a glass playhead bulges out of a glass track and follows your finger, swelling while you hold it, while a time bubble buds off it on a liquid neck. Loud peaks tick. A play bubble rests apart and floods with signal while it plays.
+
+A waveform that is itself the scrubber, with a glass playhead melted into a glass track. `samples` are loudness from 0 to 1, left to right. `progress` is how far playback has reached, from 0 to 1. Drag anywhere on the track to move the playhead; it tracks the finger and keeps the flick's speed for a short coast.
+
+### Notes
+
+- `samples` are loudness from 0 to 1, left to right. `progress` is how far playback has reached, also from 0 to 1. `duration` is the length in seconds, used for the time bubble and for how fast `isPlaying` advances.
+- The samples are the control. Drag anywhere on the track and the playhead follows the finger, rubber-banding past either end. On release it coasts a little of the flick, then clamps. While the finger is down the playhead swells and a time bubble buds off it on a liquid neck; letting go melts the bubble home.
+- The track and the playhead sit in one `PieceLiquidGroup` with the play bubble held `PieceLiquid.apart`, so the playhead can neck into the track and the play bubble stays its own shape except while it is pressed. The play bubble uses `pieceLiquidPop` and fills with signal while `isPlaying` is true. On iOS 26 the shapes are Liquid Glass. On iOS 17, and under Reduce Transparency, they are frosted material or solid fills.
+- Playback advances `progress` on its own while `isPlaying` is true and the finger is up, wrapping at the end. A loud sample (0.82 or more) ticks once as the playhead enters it.
+- Haptics: that peak tick, and a light impact for play and pause. Pass `haptics: false` to stay silent.
+- VoiceOver reads the waveform as an adjustable control with the current time, and the play bubble as Play or Pause. Increment and decrement move `progress` by a twentieth.
+- Reduce Motion keeps playback, the ticks, and the time label, and drops the swell. The time bubble still appears and disappears.
+- Right to left flips the scrub.
+- `Style` (`.standard` is house ink, a quiet mute for unplayed bars, and signal on the playhead and on play): `ink`, `muted`, `accent`.
+
+### Parameters
+
+- `samples`: Bar heights from 0 to 1. An empty list draws a flat track.
+- `progress`: Playback position from 0 to 1.
+- `isPlaying`: Whether the note is advancing on its own.
+- `duration`: Length of the note in seconds, used for the time bubble and for playback.
+- `haptics`: A selection tick when the playhead crosses a loud peak, and a light tick for play and pause.
+- `style`: Ink for played bars, mute for the rest, and the play bubble's tint. `.standard` uses house ink and signal.
+
 ## Drag to Dismiss (`DragToDismiss`)
 
 URL: https://swiftpieces.com/docs/components/motion/drag-to-dismiss
@@ -2103,6 +2260,67 @@ A section index rail for long sectioned lists (contacts, glossaries, countries, 
 - `style`: Colors for the letters, the letter bubble and its ink. Defaults to the SwiftPieces house palette, adapting to light and dark.
 - `onSelect`: Called with the section title to jump to: once on touch down, then each time the finger reaches a new section, and on VoiceOver or keyboard moves. Scroll without animation here, the way the system index does.
 
+## Scroll Island (`ScrollIsland`)
+
+URL: https://swiftpieces.com/docs/components/navigation/scroll-island
+Category: Navigation. iOS 17.0+. Liquid Glass on iOS 26 with a Material fallback.
+Files: ScrollIsland.swift
+Install: npx swiftpieces add ScrollIsland
+
+A floating liquid glass island that names the section you are in. Drag it sideways to scrub sections: the capsule follows your finger, rubber-bands past the ends and lands where the flick was heading, with a tick at each section and the title morphing letter by letter. Tap it and a detail line opens inside the glass while an Open bubble buds out underneath on a liquid neck, then melts home when you tap again.
+
+A floating glass island for the section a scroll view is in. Bind `position` to a continuous section index (0 at the first stop). Dragging the island scrubs it; a flick lands on the stop the gesture was heading for. `expanded` opens the detail and buds an Open bubble. ```swift ScrollIsland(stops: stops, position: $section, expanded: $open) { stop in open(stop) } ```
+
+### Notes
+
+- Bind `position` to a continuous section index. Dragging the island writes it directly, so the capsule stays under the finger; a flick lands on the stop `PieceMotion.project` was heading for, snapped with `PieceMotion.nearest`. Past the first or last stop the capsule rubber-bands and springs home.
+- A tap that barely moved (under 10 points) opens or closes the island. Opening grows the capsule, fades the stop's detail in, and buds an Open bubble out of the bottom on a liquid neck. Closing melts the bubble home. The bubble calls `onOpen` with the stop the island is resting on.
+- The title changes with `PieceMorphText`, letter by letter, as the island crosses a stop. The detail is a second line, shown only while `expanded` is true.
+- The island and the Open bubble sit in one `PieceLiquidGroup`, so the bubble shares a neck with the capsule while it is leaving or returning. On iOS 26 that is Liquid Glass (`glassEffect` inside `GlassEffectContainer`, interactive on the capsule and the bubble). On iOS 17, and under Reduce Transparency, it is a frosted material or a solid fill.
+- Haptics: a selection tick each time a drag crosses a stop, and a light impact when the island opens or closes. Pass `haptics: false` to stay silent.
+- VoiceOver reads the island as one adjustable element: the title, and the detail while it is open. Increment and decrement move a stop. An Expand or Collapse action toggles the detail.
+- Reduce Motion keeps the ticks and the open state, and swaps the morph for a fade. The bubble still appears and disappears, without the travel.
+- Right to left flips the drag, so leading still moves toward the first stop.
+- `Style` (`.standard` is house ink, muted detail, and signal red on the Open bubble): `ink`, `muted`, `accent`.
+
+### Parameters
+
+- `stops`: Sections in order. Each has a title, an SF Symbol and a short detail.
+- `position`: Continuous index of the current section. 0 is the first stop. Values between stops are in flight.
+- `expanded`: Whether the detail and the Open bubble are out.
+- `haptics`: A selection tick as the island crosses a section, and a light tick when it opens or closes.
+- `onOpen`: Called when the Open bubble is tapped, with the stop the island is resting on.
+- `style`: Ink, muted detail and the Open bubble's tint. `.standard` is house ink on signal red.
+
+## Step Trail (`StepTrail`)
+
+URL: https://swiftpieces.com/docs/components/navigation/step-trail
+Category: Navigation. iOS 17.0+. Liquid Glass on iOS 26 with a Material fallback.
+Files: StepTrail.swift
+Install: npx swiftpieces add StepTrail
+
+A row of glass stops with one capsule that carries the step you are on. Drag the capsule or flick the page: it follows your finger, stretches halfway between stops, rubber-bands past the ends and lands with the flick's speed while the title morphs. The stop it rests on grows from a dot into a labeled capsule, joined to its neighbours only while it is passing them.
+
+A paged step with a glass capsule you can throw along a trail of stops. `selection` is the id of the current step. Dragging the trail or the page sets a continuous position and releases onto a stop. The page's title morphs; its detail fades with the landing.
+
+### Notes
+
+- `selection` is the id of the current step. The trail keeps a continuous index while a finger is down and writes `selection` when that index crosses a stop. Setting `selection` from outside animates the capsule to that stop.
+- Drag the page or the trail. The capsule tracks the finger, grows wider while it is between stops, rubber-bands past either end, and lands with the flick's speed. The page title morphs with `PieceMorphText`; the detail fades on the landing.
+- Stops are glass dots. The active stop is a signal capsule carrying the title, in the same `PieceLiquidGroup`, so it necks into a neighbouring dot only while it is passing. On iOS 26 that is interactive Liquid Glass. On iOS 17, and under Reduce Transparency, it is a frosted material or a solid fill.
+- Haptics: a selection tick each time the capsule crosses a stop during a drag. Pass `haptics: false` to stay silent.
+- VoiceOver reads one adjustable element: the title, the position ("2 of 4"), and the detail. Increment and decrement move a stop.
+- Reduce Motion lands without the stretch and fades the page instead of morphing it. The ticks stay.
+- Right to left flips both drags and the capsule's travel.
+- `Style` (`.standard` is house ink and signal red on the capsule): `ink`, `muted`, `accent`.
+
+### Parameters
+
+- `steps`: Stops in order. Each has a title, an SF Symbol and a sentence of detail.
+- `selection`: Id of the selected step.
+- `haptics`: A selection tick each time the capsule lands on or crosses a stop.
+- `style`: Ink, muted detail and the capsule tint. `.standard` paints the capsule in signal red.
+
 ## Stretch Header (`StretchHeader`)
 
 URL: https://swiftpieces.com/docs/components/navigation/stretch-header
@@ -2200,6 +2418,36 @@ Presents a confirmation card as a bottom sheet, or inline as an overlay in the c
 - `isDestructive`: Uses the destructive tile and the signal-tinted primary button, and plays a `.warning` haptic on present.
 - `style`: Colors and corner radius. Defaults to the SwiftPieces house palette, adapting to light and dark.
 - `confirm`: Async handler for the primary button. Cancel melts back into the button, which spins and reads Working until it returns, then turns sage with a check and Done that the tile answers a beat later, then the card dismisses.
+
+## Notice Stack (`NoticeStack`)
+
+URL: https://swiftpieces.com/docs/components/sheets/notice-stack
+Category: Sheets. iOS 17.0+. Liquid Glass on iOS 26 with a Material fallback.
+Files: NoticeStack.swift
+Install: npx swiftpieces add NoticeStack
+
+Glass notices piled so they melt into one shape, the top one proud of the pile. Flick the top notice sideways and it flies off with your speed while the next one rises into its place, with a tick as it commits. Tap the pile and the notices fan into their own bubbles; swipe any of them away and the rest close up.
+
+A pile of glass notices you can fan open and swipe away. Collapsed, only a peek of the notices under the first shows, close enough that the glass merges. Expanded, each notice is its own bubble. Swiping one past a threshold, or flicking it, removes it from `notices`.
+
+### Notes
+
+- `notices` is the pile, front to back. Removing one is how a swipe completes, so the binding is the source of truth. `expanded` fans the pile into separate bubbles.
+- Collapsed, three notices peek, close enough that the glass merges into one shape, each one a little smaller through `pieceLiquidScale`. Flick the front notice sideways: past about 88 points, or with a flick, it flies off with your speed and the next notice rises. A short drag springs home. Tap the front notice to fan the pile.
+- Expanded, every notice is its own bubble at `PieceLiquid.apart`. Swipe any of them away and the rest close up. Tap the pile to gather it.
+- The pile is one `PieceLiquidGroup`, so collapsed notices share a neck and expanded ones only neck while they are budding or dismissing. On iOS 26 that is Liquid Glass, interactive on the notice you can swipe. On iOS 17, and under Reduce Transparency, it is a frosted material or a solid fill.
+- Haptics: a soft impact when a swipe commits, and a light impact when the pile fans or gathers. Pass `haptics: false` to stay silent.
+- VoiceOver reads each notice as its title and message, with a Dismiss action. The fan is the tap.
+- Reduce Motion dismisses and fans without the flight, and the collapsed peek does not scale. The ticks stay.
+- Right to left flips the swipe.
+- `Style` sets `ink` and the muted message color. The notices themselves are clear glass.
+
+### Parameters
+
+- `notices`: Notices from front to back. Removing one is how a swipe completes.
+- `expanded`: Whether the pile is fanned into separate bubbles.
+- `haptics`: A soft tick when a swipe commits, and a light tick when the pile fans or gathers.
+- `style`: Ink and muted message color. The notices themselves are clear glass.
 
 ## Permission Sheet (`PermissionSheet`)
 

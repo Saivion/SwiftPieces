@@ -23,6 +23,8 @@ enum PreviewCatalog {
         "PhotoCropper", "LocationPicker", "SpotlightTour", "ActivityHeatmap",
         // text, 2026-10-01
         "PictureHeadline",
+        // crafted interactions, 2026-10-12
+        "ScrollIsland", "StepTrail", "WaveformScrub", "ImageCompare", "NowPlaying", "WalletStack", "NoticeStack", "RangeLens",
     ]
 
     @MainActor @ViewBuilder
@@ -177,6 +179,23 @@ enum PreviewCatalog {
             Stage { SpotlightTourScene() }
         case "ActivityHeatmap":
             Stage { ActivityHeatmapScene() }
+        // crafted interactions, 2026-10-12
+        case "ScrollIsland":
+            Stage { ScrollIslandScene() }
+        case "StepTrail":
+            Stage { StepTrailScene() }
+        case "WaveformScrub":
+            Stage { WaveformScrubScene() }
+        case "ImageCompare":
+            Stage { ImageCompareScene() }
+        case "NowPlaying":
+            Stage { NowPlayingScene() }
+        case "WalletStack":
+            Stage { WalletStackScene() }
+        case "NoticeStack":
+            Stage { NoticeStackScene() }
+        case "RangeLens":
+            Stage { RangeLensScene() }
         default:
             Text("Unknown piece: \(name)")
         }
@@ -3417,5 +3436,176 @@ private struct SpotlightTourSceneRow: View {
         }
         .padding(12)
         .background(bmColor(light: 0xFFFFFF, dark: 0x1C1C1C), in: .rect(cornerRadius: 18, style: .continuous))
+    }
+}
+
+// MARK: - Crafted interactions
+
+private struct CraftedGround: View {
+    var body: some View {
+        ZStack {
+            bmColor(light: 0xF3F2EE, dark: 0x121212)
+            Circle().fill(Color(red: 1, green: 0.851, blue: 0.463)).frame(width: 220).offset(x: 120, y: -80)
+            Circle().fill(Color(red: 0.612, green: 0.761, blue: 1)).frame(width: 180).offset(x: -110, y: 90)
+            Capsule().fill(Color(red: 0.663, green: 0.863, blue: 0.718)).frame(width: 240, height: 70).rotationEffect(.degrees(-8)).offset(x: -20, y: 40)
+        }
+        .ignoresSafeArea()
+        .accessibilityHidden(true)
+    }
+}
+
+private struct ScrollIslandScene: View {
+    @State private var position: CGFloat = 0
+    @State private var expanded = false
+
+    private let stops: [ScrollIsland.Stop] = [
+        .init(id: "arrive", title: "Arrive", symbol: "airplane", detail: "Kansai, 14:20 · pocket Wi-Fi"),
+        .init(id: "fushimi", title: "Fushimi", symbol: "tram.fill", detail: "Day 2 · torii at dusk"),
+        .init(id: "arashiyama", title: "Arashiyama", symbol: "leaf.fill", detail: "Day 3 · 2.4 km along the river"),
+        .init(id: "nara", title: "Nara", symbol: "pawprint.fill", detail: "Day 4 · park before noon"),
+    ]
+
+    var body: some View {
+        ZStack {
+            CraftedGround()
+            ScrollIsland(stops: stops, position: $position, expanded: $expanded)
+                .padding(.horizontal, 28)
+        }
+        .task {
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(2.4))
+                let next = (Int(position.rounded()) + 1) % stops.count
+                withAnimation(.spring(duration: 0.32, bounce: 0.25)) { position = CGFloat(next) }
+            }
+        }
+    }
+}
+
+private struct StepTrailScene: View {
+    @State private var selection = "pack"
+    private let steps: [StepTrail.Step] = [
+        .init(id: "pack", title: "Pack", symbol: "suitcase.fill", detail: "A light bag. The weather stays warm."),
+        .init(id: "train", title: "Train", symbol: "tram.fill", detail: "Reserved seats, window side."),
+        .init(id: "walk", title: "Walk", symbol: "figure.walk", detail: "Two kilometres along the river."),
+        .init(id: "stay", title: "Stay", symbol: "moon.fill", detail: "The inn keeps a room past ten."),
+    ]
+
+    var body: some View {
+        ZStack {
+            CraftedGround()
+            StepTrail(steps: steps, selection: $selection)
+                .padding(28)
+        }
+    }
+}
+
+private struct WaveformScrubScene: View {
+    @State private var progress = 0.18
+    @State private var playing = true
+    private let samples: [Double] = [0.15, 0.22, 0.4, 0.85, 0.55, 0.3, 0.7, 0.95, 0.6, 0.25, 0.45, 0.88, 0.5, 0.2, 0.35, 0.72, 0.4, 0.18, 0.62, 0.9, 0.48, 0.22, 0.3, 0.55]
+
+    var body: some View {
+        ZStack {
+            CraftedGround()
+            WaveformScrub(samples: samples, progress: $progress, isPlaying: $playing, duration: 18)
+                .padding(.horizontal, 28)
+        }
+    }
+}
+
+private struct ImageCompareScene: View {
+    @State private var split: CGFloat = 0.62
+
+    var body: some View {
+        ImageCompare(split: $split, beforeCaption: "Dawn", afterCaption: "Noon") {
+            ZStack {
+                Color(red: 0.18, green: 0.22, blue: 0.4)
+                Circle().fill(Color(red: 1, green: 0.55, blue: 0.35)).frame(width: 90).offset(x: -50, y: -60)
+            }
+        } after: {
+            ZStack {
+                Color(red: 0.45, green: 0.72, blue: 0.95)
+                Circle().fill(Color(red: 1, green: 0.85, blue: 0.4)).frame(width: 100).offset(x: 60, y: -40)
+            }
+        }
+        .frame(width: 300, height: 420)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(CraftedGround())
+    }
+}
+
+private struct NowPlayingScene: View {
+    @State private var playing = true
+    @State private var progress = 0.32
+    @State private var expanded = false
+
+    var body: some View {
+        ZStack {
+            CraftedGround()
+            NowPlaying(title: "Slow mornings", artist: "House palette", symbol: "sun.max.fill", isPlaying: $playing, progress: $progress, expanded: $expanded)
+                .padding(.horizontal, 24)
+        }
+    }
+}
+
+private struct WalletStackScene: View {
+    @State private var selection: String?
+    private let cards: [WalletStack.Card] = [
+        .init(id: "rail", name: "Rail pass", detail: "Kyoto to Osaka", symbol: "tram.fill", tint: Color(red: 1, green: 0.851, blue: 0.463)),
+        .init(id: "ferry", name: "Ferry", detail: "Arashiyama, 16:10", symbol: "ferry.fill", tint: Color(red: 0.612, green: 0.761, blue: 1)),
+        .init(id: "inn", name: "Inn", detail: "Room 4, late checkout", symbol: "house.fill", tint: Color(red: 0.663, green: 0.863, blue: 0.718)),
+        .init(id: "museum", name: "Museum", detail: "Timed entry, 11:00", symbol: "ticket.fill", tint: Color(red: 0.804, green: 0.722, blue: 1)),
+    ]
+
+    var body: some View {
+        ZStack {
+            CraftedGround()
+            WalletStack(cards: cards, selection: $selection)
+                .padding(.horizontal, 28)
+                .padding(.top, 40)
+                .frame(maxHeight: .infinity, alignment: .top)
+        }
+    }
+}
+
+private struct NoticeStackScene: View {
+    @State private var notices: [NoticeStack.Notice] = [
+        .init(id: "gate", title: "Gate changed", message: "Boarding is now B12, ten minutes earlier.", symbol: "airplane"),
+        .init(id: "rain", title: "Rain at four", message: "The river walk is still fine if you leave now.", symbol: "cloud.rain.fill"),
+        .init(id: "table", title: "Table held", message: "Under the lanterns, for two, at 19:30.", symbol: "fork.knife"),
+    ]
+    @State private var expanded = false
+
+    var body: some View {
+        NoticeStack(notices: $notices, expanded: $expanded)
+            .padding(.horizontal, 28)
+            .padding(.top, 36)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            .background(CraftedGround())
+            .onChange(of: notices.isEmpty) { _, empty in
+                guard empty else { return }
+                Task { @MainActor in
+                    try? await Task.sleep(for: .seconds(1.2))
+                    notices = [
+                        .init(id: "gate", title: "Gate changed", message: "Boarding is now B12, ten minutes earlier.", symbol: "airplane"),
+                        .init(id: "rain", title: "Rain at four", message: "The river walk is still fine if you leave now.", symbol: "cloud.rain.fill"),
+                        .init(id: "table", title: "Table held", message: "Under the lanterns, for two, at 19:30.", symbol: "fork.knife"),
+                    ]
+                }
+            }
+    }
+}
+
+private struct RangeLensScene: View {
+    @State private var lower = 0.22
+    @State private var upper = 0.68
+    private let samples: [Double] = [0.2, 0.35, 0.55, 0.4, 0.7, 0.9, 0.6, 0.45, 0.8, 0.5, 0.3, 0.65, 0.85, 0.4, 0.25, 0.55, 0.75, 0.95, 0.6, 0.35, 0.5, 0.7, 0.4, 0.3, 0.6]
+
+    var body: some View {
+        ZStack {
+            CraftedGround()
+            RangeLens(samples: samples, lower: $lower, upper: $upper)
+                .padding(28)
+        }
     }
 }
