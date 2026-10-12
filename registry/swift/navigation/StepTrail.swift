@@ -193,7 +193,7 @@ public struct StepTrail: View {
                 let raw = (origin ?? index) - sign * value.translation.width / 180
                 index = PieceMotion.rubberBand(raw, in: 0...CGFloat(steps.count - 1), limit: 0.35)
             }
-            .onEnded { value in release(value, span: 180) }
+            .onEnded { value in release(value, span: 180, dragSign: -1) }
     }
 
     private func scrub(slot: CGFloat, count: Int) -> some Gesture {
@@ -206,17 +206,18 @@ public struct StepTrail: View {
                 let raw = (origin ?? index) + sign * value.translation.width / max(slot, 1)
                 index = PieceMotion.rubberBand(raw, in: 0...CGFloat(count - 1), limit: 0.35)
             }
-            .onEnded { value in release(value, span: max(slot, 1)) }
+            .onEnded { value in release(value, span: max(slot, 1), dragSign: 1) }
     }
 
-    private func release(_ value: DragGesture.Value, span: CGFloat) {
+    /// `dragSign` matches the sign in front of the finger's translation, so a flick coasts the way the drag was going.
+    private func release(_ value: DragGesture.Value, span: CGFloat, dragSign: CGFloat) {
         let motion = PieceMotion(reduceMotion: reduceMotion)
         let from = index
         dragging = false
         origin = nil
         guard steps.count > 1 else { return }
         let sign: CGFloat = layoutDirection == .rightToLeft ? -1 : 1
-        let velocity = sign * value.velocity.width / span
+        let velocity = dragSign * sign * value.velocity.width / span
         let projected = PieceMotion.project(from, velocity: velocity)
         let stops = (0..<steps.count).map { CGFloat($0) }
         let target = min(max(PieceMotion.nearest(projected, in: stops), 0), CGFloat(steps.count - 1))
