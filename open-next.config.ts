@@ -5,6 +5,7 @@ import memoryQueue from "@opennextjs/cloudflare/overrides/queue/memory-queue";
 
 export default defineCloudflareConfig({
   // Workers Cache API in front of R2 cuts CPU per cache hit on a docs-heavy site (spec §4a).
+  // Each build's entries are removed by an R2 lifecycle rule (README › ISR cache retention).
   incrementalCache: withRegionalCache(r2IncrementalCache, { mode: "long-lived" }),
   // Runs time-based revalidation (`revalidate = 3600` on the homepage) through WORKER_SELF_REFERENCE.
   // Without a queue OpenNext uses a no-op, so ISR pages never refresh after the build: the visit
