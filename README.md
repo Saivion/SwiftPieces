@@ -139,6 +139,15 @@ A worktree holds only tracked files, so `.env.local` and `.dev.vars` aren't ther
 
 Build variables are read while building, not by the running Worker. PostHog only starts on swiftpieces.com itself, so preview URLs and local builds never count toward the numbers.
 
+**ISR cache retention.** The prerendered pages and ISR entries live in the `swiftpieces-cache` R2 bucket under `incremental-cache/<build id>/`. Every deploy and every preview upload writes the whole site again under a new build ID, about 160 MB, and nothing reads the old build's copy after that. R2 has no per-object expiry, so a lifecycle rule on the bucket removes cache entries a week after they were last written:
+
+```bash
+npx wrangler r2 bucket lifecycle add swiftpieces-cache expire-isr-cache incremental-cache/ --expire-days 7
+npx wrangler r2 bucket lifecycle list swiftpieces-cache
+```
+
+Or in the dashboard: R2 → `swiftpieces-cache` → Settings → Object lifecycle rules → Add rule, prefix `incremental-cache/`, delete objects 7 days after upload. Only that prefix is affected. The `VIEWS` KV namespace (view count, star count) is separate storage and keeps its keys. Entries that are in use are rewritten each time they regenerate, so they never reach a week old. A page whose entry has expired is rendered on its next request and cached again, the same as a cache miss. `lib/cache-retention.test.ts` checks that this rule, `open-next.config.ts` and the pages' `revalidate` values still agree.
+
 **Analytics (swiftpieces.com only).** The official deploy measures page views, visits and Playground usage with PostHog, and shows the all-time page views in the hero ("Explored N times"). PostHog never starts anywhere else, so forks, previews and local builds send nothing, and there is nothing to configure to run this project.
 
 | Variable | Where | What |
