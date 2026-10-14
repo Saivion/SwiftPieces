@@ -1,293 +1,1249 @@
 // swiftpieces:
 // title: Now Playing
-// description: "A mini player that grows into the full player in one motion. Drag the glass pill upward and it follows your finger, then settles open or shut with the flick's speed. Skip bubbles bud out of the play button on liquid necks only once it is open, and melt back in as it closes. Scrub the track while it is open; play floods the button with signal."
+// description: "A mini player that grows into the full player in one continuous liquid glass motion: a glass bar with the artwork, the title over the artist and a red progress hairline, with a red play bubble and a forward bubble joined to its end. Tap it or pull it up and the bar stretches with the finger, then settles open with the flick's speed: the same glass grows into a card, the artwork, title and play button fly to their places, and previous and next bud out of play. Scrub the track with a swelling thumb while the times follow, skip with a letter by letter title morph and a blurred artwork swap, and drag the card down to fold it back into the bar. Playback stays the app's: the piece shows the time it is given and reports taps, skips and seeks."
 // category: media
 // minIOSVersion: "17.0"
 // version: "1.0.0"
 // added: "2026-10-12"
-// tags: [player, music, morph, glass, drag, now playing, haptics]
+// tags: [player, music, podcast, audio, mini player, morph, scrubber, glass, haptics]
 
 import SwiftUI
+import UIKit
 
-/// A glass mini player that morphs into the full player.
+/// A mini player that grows into the full player: one liquid glass shape that morphs from a bar into a card.
 ///
-/// Collapsed, it is a pill: artwork, title and a play bubble joined to it. Drag up to open. The artwork grows,
-/// the artist and the scrub track appear, and previous and next bud out of play. Drag down, or flick, to close.
+/// Collapsed, it is a glass bar with the artwork, the title over the artist and a red progress hairline, with a red
+/// play bubble and a forward bubble joined to its end. Tap it, or pull it up (it stretches with the finger), and the
+/// same glass grows into a card: the artwork, title and play button fly to their places, previous and next bud out of
+/// play, and a scrubber and the times blur in. Drag the card down, or tap its grabber, to fold it back.
+///
+/// Playback is the app's. The piece never runs a clock: it shows the `time` it is given, and calls back when people
+/// play, pause, skip or seek. Put it in the bottom safe area inset of your screen; the card opens over the content
+/// above the bar.
+///
+/// ```swift
+/// .safeAreaInset(edge: .bottom) {
+///     NowPlaying(title: track.title, artist: track.artist, isPlaying: player.isPlaying, time: player.time,
+///                duration: track.duration, expanded: $showsPlayer,
+///                onPlayPause: { player.toggle() }, onSkip: { player.skip($0) }, onSeek: { player.seek(to: $0) }) {
+///         track.artwork.resizable().scaledToFill()
+///     }
+///     .padding(.horizontal, 12)
+/// }
+/// ```
 ///
 /// - Parameters:
-///   - title: Track title. It morphs letter by letter when it changes.
-///   - artist: Secondary line, shown once the player is open.
-///   - symbol: SF Symbol drawn on the artwork block.
-///   - tint: Artwork color, painted inside the glass artwork tile.
-///   - isPlaying: Whether playback is advancing.
-///   - progress: Position in the track, from 0 to 1.
-///   - expanded: Whether the full player is open.
-///   - haptics: Ticks for play, for landing open or shut, and when a skip fires.
-///   - onSkip: Called with -1 or 1 when previous or next is chosen.
+///   - title: The track, episode or station. It morphs letter by letter when it changes, and truncates when it doesn't fit. An empty title shows `messages.untitled`.
+///   - artist: The secondary line: the artist, show or author.
+///   - isPlaying: Whether the app is playing. The red play bubble shows pause while it is `true`.
+///   - time: The playback position in seconds, from your player. Updates between ticks are eased, so the hairline and the scrubber creep smoothly at any update rate. While people scrub, updates are ignored.
+///   - duration: The length in seconds. `0` (or any value that isn't positive and finite) is a live stream: the hairline, the scrubber and the times give way to `messages.live`.
+///   - expanded: Whether the full player is open. Bind it to open or close the player from your own code; any change animates.
+///   - skipping: What the skip buttons do: `.tracks` (previous and next, through `onSkip`, the default) or `.seconds(back:forward:)` for podcasts and audiobooks (through `onSeek`).
+///   - messages: The built-in copy and VoiceOver strings. Defaults are localizable through your String Catalog; replace any line.
+///   - style: Colors. Defaults to the SwiftPieces house palette, adapting to light and dark, with red for play, the hairline and the played part of the track.
+///   - onPlayPause: Called when the play bubble is tapped (or Space is pressed). Toggle your player here.
+///   - onSkip: Called with `.previous` or `.next` in `.tracks` mode. `nil` hides the skip bubbles.
+///   - onSeek: Called once with the new position when a scrub ends, a seconds skip is tapped, or VoiceOver adjusts the scrubber. `nil` makes the scrubber a read-only display.
+///   - artwork: The artwork, filled into a square. Omit it for a house tile with a note. It blurs into the new one whenever the title or artist changes.
 public struct NowPlaying: View {
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @ScaledMetric(relativeTo: .body) private var art: CGFloat = 44
 
-    @Binding private var isPlaying: Bool
-    @Binding private var progress: Double
+    // MARK: Types
+
+    /// A skip between tracks, passed to `onSkip`.
+    public enum Skip: Hashable, Sendable {
+        case previous
+        case next
+    }
+
+    /// What the skip bubbles do.
+    public enum Skipping: Hashable, Sendable {
+        /// Previous and next track (`backward.fill` and `forward.fill`), through `onSkip`.
+        case tracks
+        /// Jumps back and forward by whole seconds (`gobackward.15` and `goforward.30`), through `onSeek`. For podcasts and audiobooks.
+        case seconds(back: Int, forward: Int)
+
+        /// Fifteen seconds back, thirty forward: the usual podcast pair.
+        public static let podcast = Skipping.seconds(back: 15, forward: 30)
+    }
+
+    /// The player's copy. Every default goes through `String(localized:)`, so it can be translated in your String
+    /// Catalog, and any line can be replaced: `.init(untitled: "Nothing queued")`.
+    public struct Messages: Sendable {
+        /// Opens the collapsed bar's VoiceOver label: "Now playing, Slow Mornings, Aster Vale".
+        public var nowPlaying: String
+        /// The play bubble while paused.
+        public var play: String
+        /// The play bubble while playing.
+        public var pause: String
+        /// The collapsed bar's VoiceOver value while playing.
+        public var playing: String
+        /// The collapsed bar's VoiceOver value while paused.
+        public var paused: String
+        /// The previous track bubble.
+        public var previous: String
+        /// The next track bubble.
+        public var next: String
+        /// The back bubble in `.seconds` mode, read before its duration: "Skip back, 15 seconds".
+        public var skipBack: String
+        /// The forward bubble in `.seconds` mode, read before its duration.
+        public var skipForward: String
+        /// The action that opens the player.
+        public var openPlayer: String
+        /// The grabber, and the action that closes the player.
+        public var closePlayer: String
+        /// The scrubber's VoiceOver label.
+        public var position: String
+        /// Shown in place of the times for a live stream.
+        public var live: String
+        /// Shown when `title` is empty.
+        public var untitled: String
+
+        /// Pass only the lines you want to change.
+        public init(
+            nowPlaying: String = String(localized: "Now playing", comment: "Now playing: first words of the mini player's VoiceOver label"),
+            play: String = String(localized: "Play", comment: "Now playing: play button"),
+            pause: String = String(localized: "Pause", comment: "Now playing: pause button"),
+            playing: String = String(localized: "Playing", comment: "Now playing: VoiceOver value while audio plays"),
+            paused: String = String(localized: "Paused", comment: "Now playing: VoiceOver value while audio is paused"),
+            previous: String = String(localized: "Previous track", comment: "Now playing: button that goes to the previous track"),
+            next: String = String(localized: "Next track", comment: "Now playing: button that goes to the next track"),
+            skipBack: String = String(localized: "Skip back", comment: "Now playing: button that jumps back by some seconds"),
+            skipForward: String = String(localized: "Skip forward", comment: "Now playing: button that jumps forward by some seconds"),
+            openPlayer: String = String(localized: "Open player", comment: "Now playing: action that opens the full player"),
+            closePlayer: String = String(localized: "Close player", comment: "Now playing: grabber and action that close the full player"),
+            position: String = String(localized: "Playback position", comment: "Now playing: VoiceOver label of the scrubber"),
+            live: String = String(localized: "Live", comment: "Now playing: shown instead of the times for a live stream"),
+            untitled: String = String(localized: "Not playing", comment: "Now playing: shown when there is no title")
+        ) {
+            self.nowPlaying = nowPlaying
+            self.play = play
+            self.pause = pause
+            self.playing = playing
+            self.paused = paused
+            self.previous = previous
+            self.next = next
+            self.skipBack = skipBack
+            self.skipForward = skipForward
+            self.openPlayer = openPlayer
+            self.closePlayer = closePlayer
+            self.position = position
+            self.live = live
+            self.untitled = untitled
+        }
+
+        public static var standard: Messages { Messages() }
+    }
+
+    /// Colors. `.standard` is the house palette.
+    public struct Style: Sendable {
+        /// The play bubble, the progress hairline and the played part of the track.
+        public var accent: Color
+        /// The play and pause glyph on `accent`.
+        public var accentInk: Color
+        /// The title and the glyphs on clear glass.
+        public var label: Color
+        /// The artist and the times.
+        public var secondaryLabel: Color
+        /// The unplayed part of the hairline and the track.
+        public var track: Color
+        /// The scrubber's thumb.
+        public var thumb: Color
+        /// The card's grabber.
+        public var grabber: Color
+        /// The tile behind the note when no artwork is given.
+        public var placeholder: Color
+
+        /// Pass only what you want to change; `nil` keeps the house palette value.
+        public init(accent: Color? = nil, accentInk: Color? = nil, label: Color? = nil, secondaryLabel: Color? = nil, track: Color? = nil, thumb: Color? = nil, grabber: Color? = nil, placeholder: Color? = nil) {
+            self.accent = accent ?? Color(red: 1, green: 0, blue: 0)
+            self.accentInk = accentInk ?? nowPlayingAdaptive(light: 0x141414, dark: 0x141414)
+            self.label = label ?? nowPlayingAdaptive(light: 0x141414, dark: 0xF4F3EF)
+            self.secondaryLabel = secondaryLabel ?? nowPlayingAdaptive(light: 0x5C5A56, dark: 0xA6A49F)
+            self.track = track ?? nowPlayingAdaptive(light: 0x141414, dark: 0xF4F3EF, alpha: 0.14)
+            self.thumb = thumb ?? nowPlayingAdaptive(light: 0xFFFFFF, dark: 0xF4F3EF)
+            self.grabber = grabber ?? nowPlayingAdaptive(light: 0x8B8984, dark: 0x6F6D69)
+            self.placeholder = placeholder ?? nowPlayingAdaptive(light: 0xE9D5B3, dark: 0xE9D5B3)
+        }
+
+        public static let standard = Style()
+    }
+
+    // MARK: State
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.layoutDirection) private var layoutDirection
+    @Environment(\.isEnabled) private var isEnabled
+    @ScaledMetric(relativeTo: .subheadline) private var miniTitleSize: CGFloat = 15
+    @ScaledMetric(relativeTo: .footnote) private var miniArtistSize: CGFloat = 13
+    @ScaledMetric(relativeTo: .title2) private var cardTitleSize: CGFloat = 22
+    @ScaledMetric(relativeTo: .subheadline) private var cardArtistSize: CGFloat = 15
+    @ScaledMetric(relativeTo: .footnote) private var timeSize: CGFloat = 13
+    @ScaledMetric(relativeTo: .subheadline) private var artSize: CGFloat = 44
+    @ScaledMetric(relativeTo: .body) private var buttonSize: CGFloat = 44
+
     @Binding private var expanded: Bool
-    @State private var drag: CGFloat = 0
-    @State private var dragging = false
-    @State private var scrubs = 0
-    @State private var plays = 0
-    @State private var skips = 0
+    /// The layout on screen. It follows `expanded` on the piece's own choreography.
+    @State private var shown: Bool
+    /// The card's own controls (grabber, scrubber, times): in after the glass has grown, out before it shrinks.
+    @State private var controlsShown: Bool
+    @State private var hairlineShown: Bool
+    /// The artwork and the two lines. Under Reduce Motion they fade out and back in at their new places instead of flying.
+    @State private var fliersShown = true
+    /// The two lines blur out as they leave one layout and back in as they reach the other, so they never cross the
+    /// growing artwork while it flies.
+    @State private var linesShown = true
+    /// How far the collapsed bar is pulled up, after the rubber band.
+    @State private var stretch: CGFloat = 0
+    /// How far the open card is dragged down.
+    @State private var drop: CGFloat = 0
+    @State private var drag: NowPlayingDrag = .idle
+    @GestureState private var touching = false
+    @State private var pressing = false
+    /// The scrubbed position while a finger is on the track.
+    @State private var scrubTime: TimeInterval?
+    @GestureState private var scrubTouching = false
+    /// A seek the piece reported and the player hasn't caught up with yet, so the thumb never jumps back.
+    @State private var pendingSeek: TimeInterval?
+    @State private var lastTime: TimeInterval
+    @State private var lastUpdate = Date.distantPast
+    @State private var updateGap: Double = 0.5
+    /// The bubbles: forward joined to play while collapsed; previous and next apart from it while open.
     @State private var buds = PieceBuds()
+    /// The bar's frame in the window, and the window's top safe area: how much room the card has above the bar.
+    @State private var frame: CGRect = .zero
+    @State private var safeTop: CGFloat = 0
+    @State private var choreography: Task<Void, Never>?
+    @State private var releaseVelocity: CGFloat?
+    @State private var announcesTrack = false
+    @State private var playTick = 0
+    @State private var skipTick = 0
+    @State private var landTick = 0
+    @State private var grabTick = 0
+    @AccessibilityFocusState private var titleFocused: Bool
 
     private let title: String
     private let artist: String
-    private let symbol: String
-    private let tint: Color
-    private let haptics: Bool
-    private let onSkip: (Int) -> Void
-    /// How far a drag must travel before the player prefers to open.
-    private let travel: CGFloat = 120
+    private let isPlaying: Bool
+    private let time: TimeInterval
+    private let duration: TimeInterval
+    private let skipping: Skipping
+    private let messages: Messages
+    private let style: Style
+    private let onPlayPause: () -> Void
+    private let onSkip: ((Skip) -> Void)?
+    private let onSeek: ((TimeInterval) -> Void)?
+    private let artwork: AnyView?
 
-    public init(
-        title: String,
-        artist: String,
-        symbol: String = "music.note",
-        tint: Color = Color(red: 1, green: 0.231, blue: 0.188),
-        isPlaying: Binding<Bool>,
-        progress: Binding<Double>,
-        expanded: Binding<Bool>,
-        haptics: Bool = true,
-        onSkip: @escaping (Int) -> Void = { _ in }
-    ) {
+    public init<Artwork: View>(title: String, artist: String, isPlaying: Bool, time: TimeInterval, duration: TimeInterval, expanded: Binding<Bool>, skipping: Skipping = .tracks, messages: Messages = .standard, style: Style = .standard, onPlayPause: @escaping () -> Void, onSkip: ((Skip) -> Void)? = nil, onSeek: ((TimeInterval) -> Void)? = nil, @ViewBuilder artwork: () -> Artwork) {
+        self.init(title: title, artist: artist, isPlaying: isPlaying, time: time, duration: duration, expanded: expanded, skipping: skipping, messages: messages, style: style, artwork: AnyView(artwork()), onPlayPause: onPlayPause, onSkip: onSkip, onSeek: onSeek)
+    }
+
+    /// The same player with the house artwork tile, a note on `style.placeholder`.
+    public init(title: String, artist: String, isPlaying: Bool, time: TimeInterval, duration: TimeInterval, expanded: Binding<Bool>, skipping: Skipping = .tracks, messages: Messages = .standard, style: Style = .standard, onPlayPause: @escaping () -> Void, onSkip: ((Skip) -> Void)? = nil, onSeek: ((TimeInterval) -> Void)? = nil) {
+        self.init(title: title, artist: artist, isPlaying: isPlaying, time: time, duration: duration, expanded: expanded, skipping: skipping, messages: messages, style: style, artwork: nil, onPlayPause: onPlayPause, onSkip: onSkip, onSeek: onSeek)
+    }
+
+    private init(title: String, artist: String, isPlaying: Bool, time: TimeInterval, duration: TimeInterval, expanded: Binding<Bool>, skipping: Skipping, messages: Messages, style: Style, artwork: AnyView?, onPlayPause: @escaping () -> Void, onSkip: ((Skip) -> Void)?, onSeek: ((TimeInterval) -> Void)?) {
         self.title = title
         self.artist = artist
-        self.symbol = symbol
-        self.tint = tint
-        self._isPlaying = isPlaying
-        self._progress = progress
+        self.isPlaying = isPlaying
+        self.time = time.isFinite ? time : 0
+        self.duration = duration
         self._expanded = expanded
-        self.haptics = haptics
+        self.skipping = skipping
+        self.messages = messages
+        self.style = style
+        self.artwork = artwork
+        self.onPlayPause = onPlayPause
         self.onSkip = onSkip
+        self.onSeek = onSeek
+        let open = expanded.wrappedValue
+        _shown = State(initialValue: open)
+        _controlsShown = State(initialValue: open)
+        _hairlineShown = State(initialValue: !open)
+        _lastTime = State(initialValue: time.isFinite ? time : 0)
     }
+
+    // MARK: Derived
+
+    private var motion: PieceMotion { PieceMotion(reduceMotion: reduceMotion) }
+    private var live: Bool { !(duration.isFinite && duration > 0) }
+    private var canSeek: Bool { onSeek != nil && !live && isEnabled }
+    private var shownTitle: String { title.isEmpty ? messages.untitled : title }
+    /// What the hairline, the scrubber and the times show: the finger while scrubbing, then the seek until the player
+    /// catches up, then the player's own time.
+    private var shownTime: TimeInterval {
+        let t = scrubTime ?? pendingSeek ?? time
+        return live ? max(t, 0) : min(max(t, 0), duration)
+    }
+    private var progress: CGFloat { live ? 0 : CGFloat(shownTime / duration) }
+    /// The bubbles the skip mode has: none when it can't act.
+    private var skipIDs: [String] {
+        switch skipping {
+        case .tracks: onSkip == nil ? [] : [NowPlayingBud.previous, NowPlayingBud.next]
+        case .seconds: onSeek == nil || live ? [] : [NowPlayingBud.previous, NowPlayingBud.next]
+        }
+    }
+    private var hasForward: Bool { !skipIDs.isEmpty }
+    /// The title and artwork belong to one track; a change blurs the artwork into the new one.
+    private var trackKey: String { "\(title)\u{1F}\(artist)" }
+    /// Player time between ticks eases linearly over the gap between updates, so a once-a-second clock still creeps.
+    private var creep: Animation? {
+        guard isPlaying, scrubTime == nil, pendingSeek == nil, time > lastTime, time - lastTime < 2.5 else { return motion.value }
+        return .linear(duration: min(max(updateGap, 0.1), 1))
+    }
+
+    private var layout: NowPlayingLayout {
+        let room = frame.maxY > 0 ? frame.maxY - safeTop - 8 : 10_000
+        return NowPlayingLayout.make(
+            width: max(frame.width, 240), room: room, rtl: layoutDirection == .rightToLeft, live: live, forward: hasForward,
+            sizes: .init(miniTitle: miniTitleSize, miniArtist: miniArtistSize, cardTitle: cardTitleSize, cardArtist: cardArtistSize, time: timeSize, art: artSize, button: buttonSize)
+        )
+    }
+
+    // MARK: Body
 
     public var body: some View {
-        let openAmount = amount
+        let g = layout
+        Color.clear
+            .frame(height: g.barH)
+            .frame(maxWidth: .infinity)
+            .accessibilityHidden(true)
+            // The bar is this view's whole layout size, so it sits in a safe area inset; the card opens above it.
+            .overlay(alignment: .bottom) { stage(g) }
+            .fontWeight(.semibold)
+            .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { frame = $0 }
+            .background { NowPlayingSafeTop { safeTop = $0 }.accessibilityHidden(true) }
+            .opacity(isEnabled ? 1 : 0.45)
+            .sensoryFeedback(.impact(weight: .light), trigger: playTick)
+            .sensoryFeedback(.selection, trigger: skipTick)
+            .sensoryFeedback(.selection, trigger: grabTick)
+            .sensoryFeedback(.impact(flexibility: .soft), trigger: landTick)
+            .onAppear {
+                buds.place(shown ? skipIDs : (hasForward ? [NowPlayingBud.forward] : []))
+            }
+            .onChange(of: expanded) { _, open in present(open) }
+            .onChange(of: time) { _, new in timeChanged(to: new) }
+            .onChange(of: trackKey) { _, _ in trackChanged() }
+            .onChange(of: skipIDs) { _, ids in skipsChanged(ids) }
+            // A touch the system cancels never reaches onEnded, so the stretch or the drop lets go here too.
+            .onChange(of: touching) { _, touching in
+                if !touching, drag != .idle { letGo(translation: .zero, velocity: 0) }
+            }
+            .onChange(of: scrubTouching) { _, touching in
+                if !touching, scrubTime != nil { scrubTime = nil }
+            }
+            .task(id: pendingSeek) {
+                // A player that never reports the seek back still gets its own time shown again.
+                guard pendingSeek != nil else { return }
+                try? await Task.sleep(for: .seconds(1.5))
+                if !Task.isCancelled { pendingSeek = nil }
+            }
+            .onDisappear { choreography?.cancel() }
+    }
+
+    /// Everything that moves, in one liquid group: the glass surface (bar or card) with its content, the bubbles, and
+    /// play on top. Laid out left to right; right to left mirrors the layout itself, never the transport.
+    private func stage(_ g: NowPlayingLayout) -> some View {
         PieceLiquidGroup {
-            ZStack(alignment: .bottom) {
-                card(open: openAmount)
-                transport
-                    .padding(.bottom, 16)
+            ZStack(alignment: .topLeading) {
+                surface(g)
+                ForEach(buds.present, id: \.self) { id in bubble(id, g) }
+                playButton(g)
             }
+            .frame(width: g.width, height: g.stageHeight, alignment: .topLeading)
         }
-        .fontWeight(.semibold)
-        .frame(maxWidth: 340)
-        .sensoryFeedback(.impact(weight: SensoryFeedback.Weight.light, intensity: 0.7), trigger: plays)
-        .sensoryFeedback(.selection, trigger: skips)
-        .sensoryFeedback(.impact(flexibility: SensoryFeedback.Flexibility.soft, intensity: 0.8), trigger: scrubs)
-        .simultaneousGesture(lift)
-        .onChange(of: expanded) { _, open in
-            Task { @MainActor in
-                if open { await buds.bloom(["prev", "next"], reduceMotion: reduceMotion, stagger: 0.05) }
-                else { await buds.gather(["prev", "next"], reduceMotion: reduceMotion) }
-            }
-        }
-        .onAppear { if expanded { buds.place(["prev", "next"]) } }
-        .task(id: isPlaying) {
-            guard isPlaying else { return }
-            while !Task.isCancelled, isPlaying {
-                try? await Task.sleep(for: .milliseconds(50))
-                if !isPlaying { break }
-                progress = progress >= 1 ? 0 : progress + 0.004
-            }
-        }
-        .accessibilityElement(children: .contain)
+        .offset(y: drop)
+        .environment(\.layoutDirection, .leftToRight)
     }
 
-    /// 0 collapsed, 1 fully open, including the live drag.
-    private var amount: CGFloat {
-        let base: CGFloat = expanded ? 1 : 0
-        let pulled = base + (dragging ? -drag / travel : 0)
-        return min(max(pulled, 0), 1)
+    // MARK: Surface
+
+    /// The surface's frame in stage coordinates: the bar (taller by the pull) or the card.
+    private func surfaceRect(_ g: NowPlayingLayout) -> CGRect {
+        if shown { return g.card.offsetBy(dx: 0, dy: g.top) }
+        var bar = g.bar.offsetBy(dx: 0, dy: g.top)
+        bar.origin.y -= stretch
+        bar.size.height += stretch
+        return bar
     }
 
-    private func card(open: CGFloat) -> some View {
-        let motion = PieceMotion(reduceMotion: reduceMotion)
-        let artSide = art + (92 - art) * open
-        return VStack(alignment: .leading, spacing: 12) {
-            HStack(spacing: 12) {
-                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .fill(tint)
-                    .frame(width: artSide, height: artSide)
-                    .overlay {
-                        Image(systemName: symbol)
-                            .font(.title3.weight(.semibold))
-                            .foregroundStyle(Color(red: 0.078, green: 0.078, blue: 0.078))
-                    }
-                VStack(alignment: .leading, spacing: 3) {
-                    PieceMorphText(text: title, font: .subheadline.weight(.semibold))
-                    if open > 0.45 {
-                        Text(artist)
-                            .font(.caption.weight(.semibold))
-                            .foregroundStyle(NowPlayingInk.muted)
-                            .transition(motion.transition(.opacity))
-                    }
+    /// One glass shape that is the bar, then the card. Its content is laid out in stage coordinates and moved against
+    /// the surface's own offset, so the artwork and the lines fly on their own paths while the glass grows around them.
+    private func surface(_ g: NowPlayingLayout) -> some View {
+        let rect = surfaceRect(g)
+        let shape = RoundedRectangle(cornerRadius: shown ? NowPlayingLayout.cardRadius : g.barH / 2, style: .continuous)
+        return ZStack(alignment: .topLeading) {
+            artworkFlier(g)
+            lineFlier(g, title: true)
+            lineFlier(g, title: false)
+            hairline(g)
+            cardControls(g)
+        }
+        .frame(width: g.width, height: g.stageHeight, alignment: .topLeading)
+        .offset(x: -rect.minX, y: -rect.minY)
+        .frame(width: rect.width, height: rect.height, alignment: .topLeading)
+        .clipShape(shape)
+        .contentShape(shape)
+        .pieceLiquid(shape, interactive: false)
+        .pieceLiquidPress(pressing && !shown)
+        .offset(x: rect.minX, y: rect.minY)
+        .gesture(surfaceDrag(g), isEnabled: isEnabled)
+        .accessibilityElement(children: shown ? .contain : .ignore)
+        .accessibilityLabel(shown ? "" : String(localized: "\(messages.nowPlaying), \(shownTitle), \(artist)", comment: "Now playing: the mini player's VoiceOver label, then the title and the artist"))
+        .accessibilityValue(shown ? "" : (isPlaying ? messages.playing : messages.paused))
+        .accessibilityAddTraits(shown ? [] : .isButton)
+        .accessibilityAction { if !shown { setExpanded(true) } }
+        .accessibilityAction(.escape) { if shown { setExpanded(false) } }
+        .accessibilityActions {
+            if !shown {
+                Button(isPlaying ? messages.pause : messages.play) { playPause() }
+                if hasForward { Button(skipLabel(NowPlayingBud.next)) { skip(NowPlayingBud.next) } }
+                Button(messages.openPlayer) { setExpanded(true) }
+            }
+        }
+        .focusable(isEnabled)
+        .focusEffectDisabled()
+        .onKeyPress(.space) { playPause(); return .handled }
+        .onKeyPress(.return) {
+            guard !shown else { return .ignored }
+            setExpanded(true)
+            return .handled
+        }
+        .onKeyPress(.escape) {
+            guard shown else { return .ignored }
+            setExpanded(false)
+            return .handled
+        }
+        .onKeyPress(.leftArrow) { keySeek(-15) }
+        .onKeyPress(.rightArrow) { keySeek(15) }
+    }
+
+    /// The artwork, flying between its tile in the bar and its square in the card. A new track blurs into place.
+    private func artworkFlier(_ g: NowPlayingLayout) -> some View {
+        let r = shown ? g.cardArt : g.miniArt
+        let radius: CGFloat = shown ? g.artRadius : 12
+        return ZStack {
+            Group {
+                if let artwork {
+                    artwork
+                } else {
+                    NowPlayingPlaceholder(tint: style.placeholder)
                 }
-                Spacer(minLength: 0)
             }
-            if open > 0.55 {
-                scrubber
-                    .transition(motion.transition(.opacity))
-            }
+            .frame(width: r.width, height: r.height)
+            .id(trackKey)
+            .transition(motion.swap)
         }
-        .foregroundStyle(NowPlayingInk.ink)
-        .padding(16)
-        .padding(.bottom, 54)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .frame(height: 84 + open * 196, alignment: .top)
-        .pieceLiquid(RoundedRectangle(cornerRadius: 28, style: .continuous), interactive: true)
-        .animation(dragging ? nil : motion.morph, value: expanded)
+        .animation(motion.morph, value: trackKey)
+        .frame(width: r.width, height: r.height)
+        .clipShape(RoundedRectangle(cornerRadius: radius, style: .continuous))
+        .opacity(fliersShown ? 1 : 0)
+        .offset(x: r.minX, y: r.minY + g.top)
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
     }
 
-    private var scrubber: some View {
-        GeometryReader { proxy in
-            let w = proxy.size.width
-            ZStack(alignment: .leading) {
-                Capsule().fill(NowPlayingInk.muted.opacity(0.35)).frame(height: 6)
-                Capsule().fill(Color(red: 1, green: 0, blue: 0)).frame(width: max(6, w * CGFloat(min(max(progress, 0), 1))), height: 6)
-            }
-            .frame(height: 28)
-            .contentShape(Rectangle())
-            .gesture(
-                DragGesture(minimumDistance: 0)
-                    .onChanged { value in
-                        progress = Double(min(max(value.location.x / max(w, 1), 0), 1))
-                    }
-            )
+    /// The title or the artist, drawn at the card's size and scaled down into the bar, so it reads crisp in both and
+    /// flies on one path between them.
+    private func lineFlier(_ g: NowPlayingLayout, title isTitle: Bool) -> some View {
+        let r = isTitle ? (shown ? g.cardTitle : g.miniTitle) : (shown ? g.cardArtist : g.miniArtist)
+        let size = isTitle ? cardTitleSize : cardArtistSize
+        let mini = isTitle ? miniTitleSize : miniArtistSize
+        let scale = shown ? 1 : mini / size
+        let text = isTitle ? shownTitle : artist
+        // A morph needs the whole line to fit the narrower of its two slots, measured at the card's size.
+        let room = min(g.miniTitle.width / (mini / size), (isTitle ? g.cardTitle : g.cardArtist).width)
+        let morphs = nowPlayingMorphs(text) && nowPlayingWidth(text, size: size) + 2 <= room
+        let alignment: Alignment = g.rtl ? .trailing : .leading
+        return NowPlayingLine(text: text, size: size, color: isTitle ? style.label : style.secondaryLabel, morphs: morphs, alignment: alignment)
+            .frame(width: r.width / scale, height: r.height / scale, alignment: alignment)
+            .scaleEffect(scale, anchor: .topLeading)
+            .blur(radius: linesShown ? 0 : 5)
+            .opacity(fliersShown && linesShown ? 1 : 0)
+            .offset(x: r.minX, y: r.minY + g.top)
+            .allowsHitTesting(false)
+            .accessibilityAddTraits(isTitle ? .isHeader : [])
+            .modifier(NowPlayingFocus(focus: $titleFocused, applies: isTitle))
+    }
+
+    /// The bar's progress: a red hairline along its bottom inner edge, under the lines.
+    private func hairline(_ g: NowPlayingLayout) -> some View {
+        let r = g.hairline
+        return ZStack(alignment: .leading) {
+            Capsule().fill(style.track)
+            Capsule().fill(style.accent).frame(width: r.width * progress)
         }
-        .frame(height: 28)
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel("Playback position")
-        .accessibilityValue("\(Int((progress * 100).rounded())) percent")
+        .animation(creep, value: time)
+        .frame(width: r.width, height: r.height)
+        .opacity(hairlineShown && !g.live ? 1 : 0)
+        .offset(x: r.minX, y: r.minY + g.top)
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
+    }
+
+    /// The card's own controls: the grabber, the scrubber and the times (or Live).
+    private func cardControls(_ g: NowPlayingLayout) -> some View {
+        ZStack(alignment: .topLeading) {
+            grabber(g)
+            if !g.live {
+                scrubber(g)
+            }
+            times(g)
+        }
+        .opacity(controlsShown ? 1 : 0)
+        .blur(radius: controlsShown ? 0 : 6)
+        .allowsHitTesting(controlsShown)
+        .accessibilityHidden(!controlsShown)
+    }
+
+    private func grabber(_ g: NowPlayingLayout) -> some View {
+        Capsule()
+            .fill(style.grabber)
+            .frame(width: 36, height: 5)
+            .frame(width: g.grabber.width, height: g.grabber.height)
+            .offset(x: g.grabber.minX, y: g.grabber.minY + g.top)
+            .accessibilityElement()
+            .accessibilityLabel(messages.closePlayer)
+            .accessibilityAddTraits(.isButton)
+            .accessibilityAction { setExpanded(false) }
+    }
+
+    /// A 6 point track, red where it has played, with a thumb that swells under the finger. Touch anywhere on it and
+    /// the thumb jumps there; the times follow, the player's own updates wait, and the seek is reported once on release.
+    private func scrubber(_ g: NowPlayingLayout) -> some View {
+        let r = g.scrub
+        let scrubbing = scrubTime != nil
+        let thumb: CGFloat = 28
+        return ZStack(alignment: .leading) {
+            Capsule().fill(style.track).frame(height: 6)
+            Capsule().fill(style.accent).frame(width: max(r.width * progress, 0), height: 6)
+            if onSeek != nil {
+                Circle()
+                    .fill(style.thumb)
+                    .shadow(color: .black.opacity(0.22), radius: 3, y: 1)
+                    .frame(width: thumb, height: thumb)
+                    .scaleEffect(scrubbing ? 1 : 16 / thumb)
+                    .animation(scrubbing ? motion.press : motion.release, value: scrubbing)
+                    .offset(x: r.width * progress - thumb / 2)
+            }
+        }
+        .animation(creep, value: time)
+        .frame(width: r.width, height: r.height)
+        .contentShape(Rectangle())
+        .gesture(scrubGesture(width: r.width), isEnabled: canSeek)
+        .offset(x: r.minX, y: r.minY + g.top)
+        .accessibilityElement()
+        .accessibilityLabel(messages.position)
+        .accessibilityValue(String(localized: "\(nowPlayingSpoken(shownTime)) of \(nowPlayingSpoken(duration))", comment: "Now playing: the scrubber's VoiceOver value, the position of the length"))
         .accessibilityAdjustableAction { direction in
-            progress = min(max(progress + (direction == .increment ? 0.05 : -0.05), 0), 1)
+            guard canSeek else { return }
+            seek(to: shownTime + (direction == .increment ? 15 : -15))
         }
     }
 
-    private var transport: some View {
-        HStack(spacing: PieceLiquid.joined) {
-            skip("prev", system: "backward.fill", delta: -1)
-            play
-            skip("next", system: "forward.fill", delta: 1)
+    private func times(_ g: NowPlayingLayout) -> some View {
+        let r = g.times
+        return HStack(spacing: 8) {
+            if g.live {
+                Text(messages.live)
+                    .frame(maxWidth: .infinity, alignment: g.rtl ? .trailing : .leading)
+            } else {
+                Text(nowPlayingClock(shownTime, total: duration, rounding: .down))
+                Spacer(minLength: 0)
+                Text(nowPlayingClock(-(duration - shownTime), total: duration, rounding: .up))
+            }
         }
+        .font(.system(size: timeSize, weight: .semibold).monospacedDigit())
+        .foregroundStyle(style.secondaryLabel)
+        .lineLimit(1)
+        .frame(width: r.width, height: r.height)
+        .offset(x: r.minX, y: r.minY + g.top)
+        .accessibilityHidden(!g.live)
     }
 
-    private var play: some View {
-        Button {
-            isPlaying.toggle()
-            if haptics { plays += 1 }
-        } label: {
-            Image(systemName: isPlaying ? "pause.fill" : "play.fill")
-                .font(.body.weight(.semibold))
-                .foregroundStyle(isPlaying ? Color(red: 0.078, green: 0.078, blue: 0.078) : NowPlayingInk.ink)
-                .frame(width: 52, height: 52)
-                .contentShape(Circle())
+    // MARK: Bubbles
+
+    /// The red play bubble. It flies from the bar's end to the middle of the transport and swells as the card opens.
+    private func playButton(_ g: NowPlayingLayout) -> some View {
+        let side = shown ? NowPlayingLayout.playSide : g.playMiniSide
+        let center = shown ? g.playCard : g.playMini
+        return Button(action: playPause) {
+            ZStack {
+                Image(systemName: isPlaying ? "pause.fill" : "play.fill")
+                    // The triangle's weight sits left of its box; nudged so it reads centred.
+                    .offset(x: isPlaying ? 0 : 1.5)
+                    .id(isPlaying)
+                    .transition(motion.swap)
+            }
+            .font(.system(size: 28, weight: .semibold))
+            .foregroundStyle(style.accentInk)
+            .scaleEffect(side / NowPlayingLayout.playSide)
+            .animation(motion.snap, value: isPlaying)
+            .frame(width: side, height: side)
+            .contentShape(Circle())
+            .pieceLiquid(Circle(), tint: style.accent, interactive: false)
         }
-        .buttonStyle(PieceLiquidPressStyle(depth: 2.4))
-        .pieceLiquid(Circle(), tint: isPlaying ? Color(red: 1, green: 0, blue: 0) : nil, interactive: true)
-        .accessibilityLabel(isPlaying ? "Pause" : "Play")
+        .buttonStyle(PieceLiquidPressStyle())
+        .offset(x: center.x - side / 2, y: center.y - side / 2 + g.top)
+        .disabled(!isEnabled)
+        .accessibilityLabel(isPlaying ? messages.pause : messages.play)
+        .accessibilityHidden(!shown)
     }
 
-    private func skip(_ id: String, system: String, delta: Int) -> some View {
+    /// Forward, joined to play while collapsed; previous and next, apart from it while open. Each is born inside play
+    /// and melts back into it.
+    private func bubble(_ id: String, _ g: NowPlayingLayout) -> some View {
         let out = buds.isOut(id)
-        return Group {
-            if buds.contains(id) {
-                Button {
-                    onSkip(delta)
-                    if haptics { skips += 1 }
-                } label: {
-                    Image(systemName: system)
-                        .font(.body.weight(.semibold))
-                        .foregroundStyle(NowPlayingInk.ink)
-                        .pieceBudContent(out: out)
-                        .frame(width: 44, height: 44)
-                        .contentShape(Circle())
+        let mini = id == NowPlayingBud.forward
+        let side = mini ? g.playMiniSide : NowPlayingLayout.skipSide
+        let center = shown ? g.playCard : g.playMini
+        let dx: CGFloat = mini ? g.fwdOffset : (id == NowPlayingBud.previous ? -NowPlayingLayout.skipOffset : NowPlayingLayout.skipOffset)
+        return Button { skip(id) } label: {
+            Image(systemName: symbol(id))
+                .font(.system(size: mini ? 16 : 20, weight: .semibold))
+                .foregroundStyle(style.label)
+                .pieceBudContent(out: out)
+                .frame(width: side, height: side)
+                .contentShape(Circle())
+                .pieceLiquid(Circle(), interactive: false)
+        }
+        .buttonStyle(PieceLiquidPressStyle())
+        .pieceBud(out: out, rest: CGSize(width: dx, height: 0), home: .zero)
+        .offset(x: center.x - side / 2, y: center.y - side / 2 + g.top)
+        .disabled(!out || !isEnabled)
+        .accessibilityLabel(skipLabel(id))
+        .accessibilityHidden(!out || !shown)
+    }
+
+    private func symbol(_ id: String) -> String {
+        let back = id == NowPlayingBud.previous
+        switch skipping {
+        case .tracks:
+            return back ? "backward.fill" : "forward.fill"
+        case .seconds(let backSeconds, let forwardSeconds):
+            let n = back ? backSeconds : forwardSeconds
+            let named = [5, 10, 15, 30, 45, 60, 75, 90].contains(n)
+            return (back ? "gobackward" : "goforward") + (named ? ".\(n)" : "")
+        }
+    }
+
+    private func skipLabel(_ id: String) -> String {
+        let back = id == NowPlayingBud.previous
+        switch skipping {
+        case .tracks:
+            return back ? messages.previous : messages.next
+        case .seconds(let backSeconds, let forwardSeconds):
+            let amount = Duration.seconds(back ? backSeconds : forwardSeconds).formatted(.units(allowed: [.minutes, .seconds], width: .wide))
+            return String(localized: "\(back ? messages.skipBack : messages.skipForward), \(amount)", comment: "Now playing: a seconds skip button, its action and how far it jumps")
+        }
+    }
+
+    // MARK: Gestures
+
+    /// One drag for the surface. Collapsed: a tap opens and an upward pull stretches the bar with the finger. Open: a
+    /// downward drag carries the card, and a tap on the grabber closes it. Sideways drags are left alone.
+    private func surfaceDrag(_ g: NowPlayingLayout) -> some Gesture {
+        DragGesture(minimumDistance: 0, coordinateSpace: .global)
+            .updating($touching) { _, touching, _ in touching = true }
+            .onChanged { value in dragChanged(value.translation) }
+            .onEnded { value in
+                if drag == .pressing {
+                    drag = .idle
+                    pressing = false
+                    if !shown {
+                        setExpanded(true)
+                    } else if grabberContains(value.startLocation, g) {
+                        setExpanded(false)
+                    }
+                } else {
+                    letGo(translation: value.translation, velocity: value.velocity.height)
                 }
-                .buttonStyle(PieceLiquidPressStyle(depth: 2.2))
-                .pieceLiquid(Circle(), interactive: true)
-                .pieceBud(out: out, rest: .zero, home: CGSize(width: delta < 0 ? 28 : -28, height: 0))
-                .accessibilityLabel(delta < 0 ? "Previous" : "Next")
+            }
+    }
+
+    private func dragChanged(_ t: CGSize) {
+        if drag == .idle {
+            drag = .pressing
+            pressing = !shown
+        }
+        if drag == .pressing, hypot(t.width, t.height) > 8 {
+            drag = abs(t.height) > abs(t.width) ? (shown ? .dropping : .pulling) : .passing
+            pressing = false
+        }
+        switch drag {
+        case .pulling:
+            // The glass reaches up after the finger with a band's resistance. Under Reduce Motion it stays put.
+            stretch = reduceMotion ? 0 : PieceMotion.rubberBand(max(-t.height, 0), limit: NowPlayingLayout.pullLimit)
+        case .dropping:
+            drop = t.height >= 0 ? t.height : PieceMotion.rubberBand(t.height, limit: 36)
+        default:
+            break
+        }
+    }
+
+    /// The finger lifts (or the system takes the touch). A pull opens or springs back and a drop closes or springs
+    /// back, by where the flick would coast to.
+    private func letGo(translation t: CGSize, velocity v: CGFloat) {
+        let mode = drag
+        drag = .idle
+        pressing = false
+        switch mode {
+        case .pulling:
+            if PieceMotion.project(-t.height, velocity: -v) > 72 {
+                setExpanded(true, velocity: v)
+            } else {
+                // The bar's own speed: the finger's, slowed by the band.
+                let frame: CGFloat = 1 / 120
+                let pull = max(-t.height, 0)
+                let speed = (PieceMotion.rubberBand(max(pull - v * frame, 0), limit: NowPlayingLayout.pullLimit) - stretch) / frame
+                withAnimation(motion.settle(velocity: speed, from: stretch, to: 0)) { stretch = 0 }
+            }
+        case .dropping:
+            if PieceMotion.project(t.height, velocity: v) > max(110, layout.card.height * 0.22) {
+                setExpanded(false, velocity: v)
+            } else {
+                withAnimation(motion.settle(velocity: v, from: drop, to: 0)) { drop = 0 }
+            }
+        default:
+            break
+        }
+    }
+
+    /// Whether a touch (in the window) started on the grabber.
+    private func grabberContains(_ point: CGPoint, _ g: NowPlayingLayout) -> Bool {
+        g.grabber.contains(CGPoint(x: point.x - frame.minX, y: point.y - frame.minY - drop))
+    }
+
+    private func scrubGesture(width: CGFloat) -> some Gesture {
+        DragGesture(minimumDistance: 0)
+            .updating($scrubTouching) { _, touching, _ in touching = true }
+            .onChanged { value in
+                if scrubTime == nil { grabTick += 1 }
+                let x = min(max(value.location.x, 0), width)
+                scrubTime = duration * Double(x / max(width, 1))
+            }
+            .onEnded { _ in
+                guard let target = scrubTime else { return }
+                scrubTime = nil
+                seek(to: target)
+            }
+    }
+
+    // MARK: Actions
+
+    private func playPause() {
+        playTick += 1
+        onPlayPause()
+    }
+
+    private func skip(_ id: String) {
+        skipTick += 1
+        switch skipping {
+        case .tracks:
+            announcesTrack = true
+            onSkip?(id == NowPlayingBud.previous ? .previous : .next)
+        case .seconds(let back, let forward):
+            seek(to: shownTime + Double(id == NowPlayingBud.previous ? -back : forward))
+        }
+    }
+
+    /// Reports a seek once, and shows it until the player's time catches up.
+    private func seek(to target: TimeInterval) {
+        guard let onSeek, !live else { return }
+        let clamped = min(max(target, 0), duration)
+        pendingSeek = clamped
+        onSeek(clamped)
+    }
+
+    private func keySeek(_ seconds: TimeInterval) -> KeyPress.Result {
+        guard shown, canSeek else { return .ignored }
+        seek(to: shownTime + seconds)
+        return .handled
+    }
+
+    private func setExpanded(_ open: Bool, velocity: CGFloat? = nil) {
+        releaseVelocity = velocity
+        if expanded == open {
+            present(open)
+        } else {
+            expanded = open
+        }
+    }
+
+    // MARK: Choreography
+
+    /// Opens or closes, from a tap, a pull, a drag or the caller's binding. Opening: the forward bubble melts into
+    /// play, the glass grows into the card while the artwork, the lines and play fly, the card's controls blur in, and
+    /// previous and next bud out of play. Closing runs it backwards: the controls blur out, previous and next melt
+    /// home, the card folds into the bar, and forward buds back out.
+    private func present(_ open: Bool) {
+        let velocity = releaseVelocity
+        releaseVelocity = nil
+        choreography?.cancel()
+        let rm = reduceMotion
+        let g = layout
+        let skips = skipIDs
+        let forward = hasForward
+        choreography = Task { @MainActor in
+            if open {
+                if buds.contains(NowPlayingBud.forward) {
+                    Task { await buds.gather([NowPlayingBud.forward], reduceMotion: rm) }
+                }
+                withAnimation(motion.dismiss) { hairlineShown = false }
+                withAnimation(.easeOut(duration: 0.1)) { linesShown = false }
+                if rm {
+                    withAnimation(.easeOut(duration: 0.12)) { fliersShown = false }
+                    try? await Task.sleep(for: .milliseconds(120))
+                    guard !Task.isCancelled else { return }
+                }
+                let morph = velocity.map { motion.settle(velocity: $0, from: -stretch, to: g.card.minY, spring: PieceMotion.calm) } ?? motion.reveal
+                withAnimation(morph) {
+                    shown = true
+                    stretch = 0
+                    drop = 0
+                }
+                try? await Task.sleep(for: .milliseconds(rm ? 60 : 220))
+                guard !Task.isCancelled else { return }
+                withAnimation(motion.reveal) {
+                    controlsShown = true
+                    fliersShown = true
+                    linesShown = true
+                }
+                if !skips.isEmpty { await buds.bloom(skips, reduceMotion: rm, stagger: 0.06) }
+                try? await Task.sleep(for: .milliseconds(rm ? 40 : 220))
+                guard !Task.isCancelled else { return }
+                landTick += 1
+                titleFocused = true
+            } else {
+                withAnimation(motion.dismiss) { controlsShown = false }
+                withAnimation(.easeOut(duration: 0.1)) { linesShown = false }
+                let home = skips.filter { buds.contains($0) }
+                if !home.isEmpty { Task { await buds.gather(home, reduceMotion: rm) } }
+                try? await Task.sleep(for: .milliseconds(rm ? 0 : 110))
+                guard !Task.isCancelled else { return }
+                if rm {
+                    withAnimation(.easeOut(duration: 0.12)) { fliersShown = false }
+                    try? await Task.sleep(for: .milliseconds(120))
+                    guard !Task.isCancelled else { return }
+                }
+                let fold = velocity.map { motion.settle(velocity: $0, from: g.card.minY + drop, to: 0, spring: PieceMotion.calm) } ?? motion.dismiss
+                withAnimation(fold) {
+                    shown = false
+                    drop = 0
+                    stretch = 0
+                }
+                try? await Task.sleep(for: .milliseconds(rm ? 60 : 280))
+                guard !Task.isCancelled else { return }
+                withAnimation(motion.reveal) {
+                    hairlineShown = true
+                    fliersShown = true
+                    linesShown = true
+                }
+                if forward { await buds.bloom([NowPlayingBud.forward], reduceMotion: rm) }
+                try? await Task.sleep(for: .milliseconds(rm ? 40 : 160))
+                guard !Task.isCancelled else { return }
+                landTick += 1
             }
         }
     }
 
-    private var lift: some Gesture {
-        DragGesture(minimumDistance: 8)
-            .onChanged { value in
-                // A sideways drag belongs to the scrubber. Only a mostly vertical pull opens the player.
-                let vertical = abs(value.translation.height) >= abs(value.translation.width)
-                if !dragging, !vertical { return }
-                dragging = true
-                drag = value.translation.height
-            }
-            .onEnded { value in
-                let wasDragging = dragging
-                dragging = false
-                drag = 0
-                guard wasDragging else { return }
-                let motion = PieceMotion(reduceMotion: reduceMotion)
-                let from: CGFloat = expanded ? 1 : 0
-                let projected = from - value.predictedEndTranslation.height / travel
-                let open = projected > 0.5
-                if open != expanded, haptics { scrubs += 1 }
-                withAnimation(motion.settle(velocity: -value.velocity.height / travel, from: from, to: open ? 1 : 0)) {
-                    expanded = open
-                }
-            }
+    /// Keeps the bubbles in step when the skip mode or its handler changes underneath.
+    private func skipsChanged(_ ids: [String]) {
+        let wanted = shown ? ids : (ids.isEmpty ? [] : [NowPlayingBud.forward])
+        let leaving = buds.present.filter { !wanted.contains($0) }
+        let arriving = wanted.filter { !buds.contains($0) }
+        let rm = reduceMotion
+        Task {
+            if !leaving.isEmpty { await buds.gather(leaving, reduceMotion: rm) }
+            if !arriving.isEmpty { await buds.bloom(arriving, reduceMotion: rm) }
+        }
+    }
+
+    private func timeChanged(to new: TimeInterval) {
+        let now = Date()
+        let gap = now.timeIntervalSince(lastUpdate)
+        if gap > 0.05, gap < 1.5 { updateGap = gap }
+        lastUpdate = now
+        lastTime = new
+        if let pending = pendingSeek, abs(new - pending) < 1.2 { pendingSeek = nil }
+    }
+
+    private func trackChanged() {
+        scrubTime = nil
+        pendingSeek = nil
+        if announcesTrack {
+            announcesTrack = false
+            AccessibilityNotification.Announcement(String(localized: "\(shownTitle), \(artist)", comment: "Now playing: announced after a skip, the new title and artist")).post()
+        }
     }
 }
 
-private enum NowPlayingInk {
-    static let ink = Color(UIColor { @Sendable traits in
-        traits.userInterfaceStyle == .dark
-            ? UIColor(red: 0.957, green: 0.953, blue: 0.937, alpha: 1)
-            : UIColor(red: 0.078, green: 0.078, blue: 0.078, alpha: 1)
-    })
-    static let muted = Color(UIColor { @Sendable traits in
-        traits.userInterfaceStyle == .dark
-            ? UIColor(red: 0.651, green: 0.643, blue: 0.624, alpha: 1)
-            : UIColor(red: 0.361, green: 0.353, blue: 0.337, alpha: 1)
-    })
-    static let ground = Color(UIColor { @Sendable traits in
-        traits.userInterfaceStyle == .dark ? UIColor(white: 0.07, alpha: 1) : UIColor(red: 0.953, green: 0.949, blue: 0.933, alpha: 1)
+// MARK: - Layout
+
+/// Where everything sits, in the bar's coordinates (the bar's top left is the origin; the card is above it, at
+/// negative y). Line heights come from the system font, so Dynamic Type grows the bar and the card with the text.
+private struct NowPlayingLayout {
+    static let cardRadius: CGFloat = 34
+    static let playSide: CGFloat = 72
+    static let skipSide: CGFloat = 52
+    /// Previous and next rest apart from play.
+    static var skipOffset: CGFloat { playSide / 2 + PieceLiquid.apart + skipSide / 2 }
+    /// The most a pull stretches the bar, after the band.
+    static let pullLimit: CGFloat = 150
+
+    struct Sizes {
+        var miniTitle: CGFloat
+        var miniArtist: CGFloat
+        var cardTitle: CGFloat
+        var cardArtist: CGFloat
+        var time: CGFloat
+        var art: CGFloat
+        var button: CGFloat
+    }
+
+    var width: CGFloat = 0
+    var rtl = false
+    var live = false
+    var compact = false
+    var barH: CGFloat = 64
+    var bar = CGRect.zero
+    var miniArt = CGRect.zero
+    var miniTitle = CGRect.zero
+    var miniArtist = CGRect.zero
+    var hairline = CGRect.zero
+    var playMini = CGPoint.zero
+    var playMiniSide: CGFloat = 44
+    var fwdOffset: CGFloat = 48
+    var card = CGRect.zero
+    var cardArt = CGRect.zero
+    var artRadius: CGFloat = 22
+    var cardTitle = CGRect.zero
+    var cardArtist = CGRect.zero
+    var grabber = CGRect.zero
+    var scrub = CGRect.zero
+    var times = CGRect.zero
+    var playCard = CGPoint.zero
+    /// How far the stage reaches above the bar's top.
+    var top: CGFloat = 0
+    var stageHeight: CGFloat { top + barH + 24 }
+
+    static func make(width w: CGFloat, room: CGFloat, rtl: Bool, live: Bool, forward: Bool, sizes s: Sizes) -> NowPlayingLayout {
+        var g = NowPlayingLayout()
+        g.width = w
+        g.rtl = rtl
+        g.live = live
+
+        // The bar: artwork, the two lines and the hairline, then play and forward joined to its end.
+        let art = min(max(s.art, 44), 64)
+        let button = min(max(s.button, 44), 60)
+        let titleLine = nowPlayingLine(s.miniTitle), artistLine = nowPlayingLine(s.miniArtist)
+        let block = titleLine + 2 + artistLine + (live ? 0 : 7)
+        let barH = ceil(max(64, art + 20, block + 20))
+        g.barH = barH
+        let tail = button + PieceLiquid.joined + (forward ? button + PieceLiquid.joined : 0)
+        let barW = max(w - tail, barH * 2)
+        g.bar = CGRect(x: 0, y: 0, width: barW, height: barH)
+        let inset = (barH - art) / 2
+        g.miniArt = CGRect(x: inset, y: inset, width: art, height: art)
+        let x0 = inset + art + 12
+        // Clear of the capsule's round end at every height.
+        let lineWidth = max(barW - x0 - max(20, barH * 0.32), 24)
+        let y0 = (barH - block) / 2
+        g.miniTitle = CGRect(x: x0, y: y0, width: lineWidth, height: titleLine)
+        g.miniArtist = CGRect(x: x0, y: g.miniTitle.maxY + 2, width: lineWidth, height: artistLine)
+        g.hairline = CGRect(x: x0, y: g.miniArtist.maxY + 5, width: lineWidth, height: 2)
+        g.playMiniSide = button
+        g.playMini = CGPoint(x: barW + PieceLiquid.joined + button / 2, y: barH / 2)
+        g.fwdOffset = button + PieceLiquid.joined
+
+        // The card, above the transport row, which rests apart from it with its bottom on the bar's bottom.
+        let cardTitleLine = nowPlayingLine(s.cardTitle), cardArtistLine = nowPlayingLine(s.cardArtist), timeLine = nowPlayingLine(s.time)
+        let header: CGFloat = 34
+        let scrubH: CGFloat = live ? 0 : 30
+        let lines = cardTitleLine + 2 + cardArtistLine
+        let fixed = header + 18 + lines + 12 + scrubH + timeLine + 20
+        let transport = playSide + PieceLiquid.apart
+        let maxWidth = min(w, 440)
+        // The artwork fills the card's width, shrinking (and the card with it) when the height above the bar is short.
+        let artSide = min(maxWidth - 40, room - transport - fixed)
+        let bottom = barH - transport
+        g.playCard = CGPoint(x: w / 2, y: barH - playSide / 2)
+        var controlsTop: CGFloat
+        if artSide >= 150 {
+            let cw = min(maxWidth, artSide + 40), cx = (w - cw) / 2, ch = fixed + artSide
+            g.card = CGRect(x: cx, y: bottom - ch, width: cw, height: ch)
+            g.cardArt = CGRect(x: cx + (cw - artSide) / 2, y: g.card.minY + header, width: artSide, height: artSide)
+            g.cardTitle = CGRect(x: cx + 20, y: g.cardArt.maxY + 18, width: cw - 40, height: cardTitleLine)
+            g.cardArtist = CGRect(x: cx + 20, y: g.cardTitle.maxY + 2, width: cw - 40, height: cardArtistLine)
+            controlsTop = g.cardArtist.maxY + 12
+        } else {
+            // Short of room (landscape, the largest text sizes): a row with a small artwork beside the lines.
+            g.compact = true
+            g.artRadius = 14
+            let thumb: CGFloat = 64, row = max(thumb, lines)
+            let cw = maxWidth, cx = (w - cw) / 2, ch = header + row + 14 + scrubH + timeLine + 20
+            g.card = CGRect(x: cx, y: bottom - ch, width: cw, height: ch)
+            g.cardArt = CGRect(x: cx + 20, y: g.card.minY + header + (row - thumb) / 2, width: thumb, height: thumb)
+            let tx = g.cardArt.maxX + 14, ty = g.card.minY + header + (row - lines) / 2
+            g.cardTitle = CGRect(x: tx, y: ty, width: max(g.card.maxX - 20 - tx, 24), height: cardTitleLine)
+            g.cardArtist = CGRect(x: tx, y: g.cardTitle.maxY + 2, width: g.cardTitle.width, height: cardArtistLine)
+            controlsTop = g.card.minY + header + row + 14
+        }
+        g.scrub = CGRect(x: g.card.minX + 20, y: controlsTop, width: g.card.width - 40, height: scrubH)
+        g.times = CGRect(x: g.card.minX + 20, y: g.scrub.maxY, width: g.card.width - 40, height: timeLine)
+        g.grabber = CGRect(x: g.card.midX - 44, y: g.card.minY, width: 88, height: 26)
+        g.top = max(-g.card.minY, pullLimit) + 48
+
+        // Right to left mirrors the bar and the card's lines. The transport and the scrubber keep left to right, as
+        // media controls do, and the card is centred.
+        if rtl {
+            let flip = { (r: CGRect) in CGRect(x: w - r.maxX, y: r.minY, width: r.width, height: r.height) }
+            g.bar = flip(g.bar)
+            g.miniArt = flip(g.miniArt)
+            g.miniTitle = flip(g.miniTitle)
+            g.miniArtist = flip(g.miniArtist)
+            g.hairline = flip(g.hairline)
+            g.playMini.x = w - g.playMini.x
+            g.fwdOffset = -g.fwdOffset
+            g.cardArt = flip(g.cardArt)
+            g.cardTitle = flip(g.cardTitle)
+            g.cardArtist = flip(g.cardArtist)
+        }
+        return g
+    }
+}
+
+private enum NowPlayingBud {
+    static let forward = "forward"
+    static let previous = "previous"
+    static let next = "next"
+}
+
+private enum NowPlayingDrag: Equatable {
+    case idle, pressing, pulling, dropping, passing
+}
+
+/// A line that morphs letter by letter when it can, and otherwise truncates and blurs to its new text.
+private struct NowPlayingLine: View {
+    var text: String
+    var size: CGFloat
+    var color: Color
+    var morphs: Bool
+    var alignment: Alignment
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        ZStack(alignment: alignment) {
+            if morphs {
+                PieceMorphText(text: text, font: .system(size: size, weight: .semibold))
+            } else {
+                Text(text)
+                    .font(.system(size: size, weight: .semibold))
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+                    .id(text)
+                    .transition(PieceMotion(reduceMotion: reduceMotion).swap)
+            }
+        }
+        .foregroundStyle(color)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: alignment)
+        .animation(PieceMotion(reduceMotion: reduceMotion).snap, value: text)
+    }
+}
+
+/// Where VoiceOver lands when the player opens: the title, and only the title. `applies` is fixed per line, so the
+/// branch never changes a view's identity.
+private struct NowPlayingFocus: ViewModifier {
+    var focus: AccessibilityFocusState<Bool>.Binding
+    var applies: Bool
+
+    func body(content: Content) -> some View {
+        if applies {
+            content.accessibilityFocused(focus)
+        } else {
+            content
+        }
+    }
+}
+
+/// The artwork when none is given: a house tile with a note, scaling with the tile as it flies.
+private struct NowPlayingPlaceholder: View {
+    var tint: Color
+
+    var body: some View {
+        tint.overlay {
+            GeometryReader { proxy in
+                Image(systemName: "music.note")
+                    .resizable()
+                    .scaledToFit()
+                    .fontWeight(.semibold)
+                    .foregroundStyle(Color(red: 0.078, green: 0.078, blue: 0.078))
+                    .frame(width: proxy.size.width * 0.36, height: proxy.size.height * 0.36)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+        }
+    }
+}
+
+/// Reports the window's top safe area, which SwiftUI doesn't offer to a view sitting at the bottom of the screen.
+private struct NowPlayingSafeTop: UIViewRepresentable {
+    var report: @MainActor (CGFloat) -> Void
+
+    func makeUIView(context: Context) -> NowPlayingSafeTopView {
+        let view = NowPlayingSafeTopView()
+        view.isUserInteractionEnabled = false
+        view.report = report
+        return view
+    }
+
+    func updateUIView(_ view: NowPlayingSafeTopView, context: Context) {
+        view.report = report
+    }
+}
+
+private final class NowPlayingSafeTopView: UIView {
+    var report: (@MainActor (CGFloat) -> Void)?
+    private var last: CGFloat = -1
+
+    override func didMoveToWindow() {
+        super.didMoveToWindow()
+        send()
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        send()
+    }
+
+    override func safeAreaInsetsDidChange() {
+        super.safeAreaInsetsDidChange()
+        send()
+    }
+
+    private func send() {
+        guard let window else { return }
+        let top = window.safeAreaInsets.top
+        guard top != last else { return }
+        last = top
+        // After this layout pass, so SwiftUI isn't updated from inside one.
+        Task { @MainActor [weak self] in self?.report?(top) }
+    }
+}
+
+/// The system font's line height at a size, as SwiftUI lays out one line of it.
+private func nowPlayingLine(_ size: CGFloat) -> CGFloat {
+    ceil(UIFont.systemFont(ofSize: size, weight: .semibold).lineHeight)
+}
+
+/// The width of one line of text at a size.
+private func nowPlayingWidth(_ text: String, size: CGFloat) -> CGFloat {
+    ceil((text as NSString).size(withAttributes: [.font: UIFont.systemFont(ofSize: size, weight: .semibold)]).width)
+}
+
+/// Whether a line can morph letter by letter: left to right scripts without joined letters, and not too long.
+private func nowPlayingMorphs(_ text: String) -> Bool {
+    text.count <= 48 && text.unicodeScalars.allSatisfy { $0.value < 0x0590 }
+}
+
+/// A position as a clock, "1:12" (or "1:02:05" past an hour), counting whole seconds down or up.
+private func nowPlayingClock(_ seconds: TimeInterval, total: TimeInterval, rounding: FloatingPointRoundingRule) -> String {
+    let whole = seconds.rounded(rounding)
+    return Duration.seconds(whole).formatted(.time(pattern: total >= 3600 ? .hourMinuteSecond : .minuteSecond))
+}
+
+/// A position as VoiceOver reads it: "1 minute, 12 seconds".
+private func nowPlayingSpoken(_ seconds: TimeInterval) -> String {
+    Duration.seconds(max(seconds.rounded(.down), 0)).formatted(.units(allowed: [.hours, .minutes, .seconds], width: .wide))
+}
+
+/// A house-palette color that follows the interface style.
+private func nowPlayingAdaptive(light: UInt32, dark: UInt32, alpha: CGFloat = 1) -> Color {
+    Color(uiColor: UIColor { @Sendable traits in
+        let hex = traits.userInterfaceStyle == .dark ? dark : light
+        return UIColor(red: CGFloat((hex >> 16) & 0xFF) / 255, green: CGFloat((hex >> 8) & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: alpha)
     })
 }
 
 // MARK: - Example
 
-/// The pill over a dusk ground. It opens on its own, rests, and closes, and a drag still wins.
+/// Two tracks by one fictional artist, with a player that ticks twice a second, as an app's would.
 private struct NowPlayingExample: View {
+    @State private var track = 0
     @State private var playing = true
-    @State private var progress = 0.32
-    @State private var expanded = false
+    @State private var time: TimeInterval = 48
+    @State private var open = false
+
+    private let tracks: [(title: String, artist: String, duration: TimeInterval)] = [
+        ("Slow Mornings", "Aster Vale", 222),
+        ("Paper Lanterns", "Aster Vale", 245),
+    ]
 
     var body: some View {
-        ZStack {
-            NowPlayingInk.ground.ignoresSafeArea()
-            Circle().fill(Color(red: 0.804, green: 0.722, blue: 1)).frame(width: 260).offset(x: 90, y: -120)
-            Circle().fill(Color(red: 1, green: 0.851, blue: 0.463)).frame(width: 180).offset(x: -100, y: 140)
-            NowPlaying(
-                title: "Slow mornings",
-                artist: "House palette",
-                symbol: "sun.max.fill",
-                isPlaying: $playing,
-                progress: $progress,
-                expanded: $expanded
-            )
-            .padding(.horizontal, 24)
-        }
-        .task {
-            while !Task.isCancelled {
-                try? await Task.sleep(for: .seconds(2.6))
-                withAnimation(PieceMotion(reduceMotion: false).morph) { expanded.toggle() }
+        let current = tracks[track]
+        nowPlayingAdaptive(light: 0xF3F2EE, dark: 0x121212)
+            .ignoresSafeArea()
+            .safeAreaInset(edge: .bottom) {
+                NowPlaying(title: current.title, artist: current.artist, isPlaying: playing, time: time, duration: current.duration, expanded: $open,
+                           onPlayPause: { playing.toggle() },
+                           onSkip: { skip in
+                               track = (track + (skip == .next ? 1 : tracks.count - 1)) % tracks.count
+                               time = 0
+                           },
+                           onSeek: { time = $0 }) {
+                    NowPlayingExampleArtwork(track: track)
+                }
+                .padding(.horizontal, 12)
+                .padding(.bottom, 8)
+            }
+            .task(id: playing) {
+                while playing, !Task.isCancelled {
+                    try? await Task.sleep(for: .milliseconds(500))
+                    guard playing else { break }
+                    time = min(time + 0.5, tracks[track].duration)
+                }
+            }
+    }
+}
+
+/// Block art drawn in code: a butter sun over a sage hill on sky, then lilac with three hanging lanterns.
+private struct NowPlayingExampleArtwork: View {
+    var track: Int
+
+    var body: some View {
+        Canvas { context, size in
+            let w = size.width, h = size.height
+            func color(_ hex: UInt32) -> Color {
+                Color(red: Double((hex >> 16) & 0xFF) / 255, green: Double((hex >> 8) & 0xFF) / 255, blue: Double(hex & 0xFF) / 255)
+            }
+            if track % 2 == 0 {
+                context.fill(Path(CGRect(origin: .zero, size: size)), with: .color(color(0x9CC2FF)))
+                context.fill(Path(ellipseIn: CGRect(x: w * 0.52, y: h * 0.16, width: w * 0.3, height: w * 0.3)), with: .color(color(0xFFD976)))
+                var hill = Path()
+                hill.move(to: CGPoint(x: 0, y: h * 0.7))
+                hill.addCurve(to: CGPoint(x: w, y: h * 0.62), control1: CGPoint(x: w * 0.3, y: h * 0.48), control2: CGPoint(x: w * 0.62, y: h * 0.5))
+                hill.addLine(to: CGPoint(x: w, y: h))
+                hill.addLine(to: CGPoint(x: 0, y: h))
+                hill.closeSubpath()
+                context.fill(hill, with: .color(color(0xA9DCB7)))
+                var near = Path()
+                near.move(to: CGPoint(x: 0, y: h * 0.86))
+                near.addCurve(to: CGPoint(x: w, y: h * 0.84), control1: CGPoint(x: w * 0.36, y: h * 0.74), control2: CGPoint(x: w * 0.7, y: h * 0.8))
+                near.addLine(to: CGPoint(x: w, y: h))
+                near.addLine(to: CGPoint(x: 0, y: h))
+                near.closeSubpath()
+                context.fill(near, with: .color(color(0xE9D5B3)))
+            } else {
+                context.fill(Path(CGRect(origin: .zero, size: size)), with: .color(color(0xCDB8FF)))
+                let lanterns: [(x: CGFloat, y: CGFloat, r: CGFloat, hex: UInt32)] = [(0.26, 0.5, 0.15, 0xFFD976), (0.56, 0.36, 0.12, 0xE9D5B3), (0.78, 0.6, 0.1, 0x9CC2FF)]
+                for lantern in lanterns {
+                    var string = Path()
+                    string.move(to: CGPoint(x: w * lantern.x, y: 0))
+                    string.addLine(to: CGPoint(x: w * lantern.x, y: h * (lantern.y - lantern.r)))
+                    context.stroke(string, with: .color(color(0x141414)), lineWidth: max(w * 0.008, 0.5))
+                    context.fill(Path(ellipseIn: CGRect(x: w * (lantern.x - lantern.r), y: h * lantern.y - w * lantern.r, width: w * lantern.r * 2, height: w * lantern.r * 2)), with: .color(color(lantern.hex)))
+                }
             }
         }
     }
@@ -295,7 +1251,6 @@ private struct NowPlayingExample: View {
 
 #Preview("Light") {
     NowPlayingExample()
-        .preferredColorScheme(.light)
 }
 
 #Preview("Dark") {
@@ -308,7 +1263,7 @@ private struct NowPlayingExample: View {
 // The SwiftPieces motion language: shared spring tokens and gesture physics, with the same values in every
 // piece. Each piece carries a copy of only the parts it uses, so this file stands alone. Generated from
 // registry/foundation/PieceMotion.swift in the SwiftPieces repo; edit it there, not here.
-// swiftpieces-motion: 1.1.0 (core, momentum, pressMath)
+// swiftpieces-motion: 1.1.0 (core, momentum, rubberBand, pressMath)
 
 /// The SwiftPieces motion language: five spring tiers, and a named role for every moment a piece moves,
 /// each with its Reduce Motion substitute.
@@ -402,6 +1357,23 @@ extension PieceMotion {
 }
 
 extension PieceMotion {
+    /// A scroll view's edge resistance for a pull `overshoot` points past a limit; never reaches `limit`.
+    /// About 24 to 40 for thumbs and toggles, 60 to 120 for cards and sheets. Band the total pull, not deltas.
+    nonisolated static func rubberBand(_ overshoot: CGFloat, limit: CGFloat, coefficient: CGFloat = 0.55) -> CGFloat {
+        guard limit > 0, overshoot != 0 else { return 0 }
+        let banded = (1 - 1 / (abs(overshoot) * coefficient / limit + 1)) * limit
+        return overshoot < 0 ? -banded : banded
+    }
+
+    /// `value` inside `range` passes through unchanged; past either end it moves with rubber-band resistance.
+    nonisolated static func rubberBand(_ value: CGFloat, in range: ClosedRange<CGFloat>, limit: CGFloat, coefficient: CGFloat = 0.55) -> CGFloat {
+        if value < range.lowerBound { return range.lowerBound + rubberBand(value - range.lowerBound, limit: limit, coefficient: coefficient) }
+        if value > range.upperBound { return range.upperBound + rubberBand(value - range.upperBound, limit: limit, coefficient: coefficient) }
+        return value
+    }
+}
+
+extension PieceMotion {
     /// About `depth` points per edge, not a fixed percentage: an icon sinks to 0.92, a pill 0.95, a card 0.985.
     nonisolated static func pressScale(for size: CGSize, depth: CGFloat = 2.5) -> CGFloat {
         let side = (max(size.width, 1) * max(size.height, 1)).squareRoot()
@@ -425,7 +1397,7 @@ extension PieceMotion {
 // and melt back into each other, and the frosted fallback before iOS 26. Each piece carries a copy of only
 // the parts it uses, so this file stands alone. Generated from registry/foundation/PieceLiquid.swift in the
 // SwiftPieces repo; edit it there, not here. The rules are in LIQUID_GLASS.md.
-// swiftpieces-liquid: 1.7.0 (liquid, liquidPress, bud, morphText)
+// swiftpieces-liquid: 1.7.1 (liquid, liquidPress, bud, morphText)
 
 /// The liquid glass language: one merge distance, two rest gaps, and the springs a bubble leaves and comes home on.
 ///
@@ -735,18 +1707,37 @@ private final class PieceBuds {
 
 /// A label that changes letter by letter: letters both strings share hold still, the rest blur out and the new ones
 /// blur in a few milliseconds apart. Under Reduce Motion it cross-fades. VoiceOver reads the whole string.
+///
+/// Only text whose letters stand on their own is cut into letters: Latin, Greek, Cyrillic, CJK, digits and symbols.
+/// Those letters are laid out left to right whatever the layout direction, the order they read in, so "1.5×" stays
+/// "1.5×" in an Arabic or Hebrew interface instead of coming out backwards. Text in a right-to-left script, or in one
+/// whose letters join or reorder (Arabic, Hebrew, Devanagari, Thai and their neighbours), can't be cut apart without
+/// breaking it, so it changes as one: the old string blurs out where it stood while the new one blurs in.
 private struct PieceMorphText: View {
     var text: String
     var font: Font = .body.weight(.semibold)
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        let glyphs = Array(text)
-        HStack(spacing: 0) {
-            ForEach(glyphs.indices, id: \.self) { i in
-                Text(String(glyphs[i]))
-                    .id("\(i)\(glyphs[i])")
-                    .transition(transition(i))
+        Group {
+            if Self.splits(text) {
+                let glyphs = Array(text)
+                HStack(spacing: 0) {
+                    ForEach(glyphs.indices, id: \.self) { i in
+                        Text(String(glyphs[i]))
+                            .id("\(i)\(glyphs[i])")
+                            .transition(transition(i, scale: 0.6))
+                    }
+                }
+                // The letters' reading order, not the layout's: an HStack lays its children out backwards under a
+                // right-to-left layout.
+                .environment(\.layoutDirection, .leftToRight)
+            } else {
+                ZStack(alignment: .leading) {
+                    Text(text)
+                        .id(text)
+                        .transition(transition(0, scale: 0.9))
+                }
             }
         }
         .font(font)
@@ -755,10 +1746,33 @@ private struct PieceMorphText: View {
         .accessibilityLabel(text)
     }
 
-    private func transition(_ i: Int) -> AnyTransition {
+    private func transition(_ i: Int, scale: CGFloat) -> AnyTransition {
         guard !reduceMotion else { return .opacity }
-        return AnyTransition(.blurReplace(.downUp)).combined(with: .scale(scale: 0.6, anchor: .bottom))
+        return AnyTransition(.blurReplace(.downUp)).combined(with: .scale(scale: scale, anchor: .bottom))
             .animation(.spring(duration: 0.42, bounce: 0.3).delay(Double(i) * 0.022))
+    }
+
+    /// Whether `text` can be cut into letters that each read left to right on their own: no right-to-left script, no
+    /// script that joins or reorders its letters, and no bidirectional control characters.
+    private static func splits(_ text: String) -> Bool {
+        !text.unicodeScalars.contains { scalar in
+            switch scalar.value {
+            case 0x0590...0x08FF, // Hebrew, Arabic, Syriac, Thaana, NKo, Samaritan, Mandaic
+                 0x0900...0x0DFF, // Devanagari to Sinhala
+                 0x0E00...0x0FFF, // Thai, Lao, Tibetan
+                 0x1000...0x109F, // Myanmar
+                 0x1780...0x17FF, // Khmer
+                 0xA8E0...0xA8FF, // Devanagari Extended
+                 0xFB1D...0xFDFF, // Hebrew and Arabic presentation forms
+                 0xFE70...0xFEFF, // Arabic presentation forms B
+                 0x200E...0x200F, 0x202A...0x202E, 0x2066...0x2069, // bidirectional marks, embeddings and isolates
+                 0x10800...0x10FFF, // historic right-to-left scripts
+                 0x1E800...0x1EFFF: // Adlam and other right-to-left scripts
+                return true
+            default:
+                return false
+            }
+        }
     }
 }
 

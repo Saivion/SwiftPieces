@@ -1,47 +1,58 @@
 ---
 title: "Waveform Scrub"
-description: "A voice note you can scrub by dragging its waveform. The samples are the control: a glass playhead bulges out of a glass track and follows your finger, swelling while you hold it, while a time bubble buds off it on a liquid neck. Loud peaks tick. A play bubble rests apart and floods with signal while it plays."
+description: "A voice note player whose waveform is the scrubber: a red play button joined to a glass capsule of bars resampled from any number of samples to the width it gets, inked crisply mid-bar as your app's playback moves, a touch that drops the playhead under the finger, lifts the bars around it and buds a glass time bubble up out of the capsule that rides the finger and melts home as one seek is sent on release, a speed chip that morphs through 1×, 1.5× and 2×, quiet shimmering dots while the waveform loads, and a helper that reads the peaks of an audio file off the main thread."
 piece: "WaveformScrub"
 category: "media"
 minIOSVersion: "17.0"
 version: "1.0.0"
-tags: ["waveform","audio","scrub","voice","glass","haptics","media"]
+tags: ["waveform","audio","voice-note","scrub","playback","speed","media"]
 registryDependencies: []
 ---
 
 {/* GENERATED FILE. Edit registry/swift/media/WaveformScrub.swift or WaveformScrub.mdx instead. */}
 
-A waveform that is itself the scrubber, with a glass playhead melted into a glass track. `samples` are loudness from 0 to 1, left to right. `progress` is how far playback has reached, from 0 to 1. Drag anywhere on the track to move the playhead; it tracks the finger and keeps the flick's speed for a short coast.
+A voice note player whose waveform is the scrubber, for voice messages, audio notes, journals and podcast clips. One liquid glass control: a red play button joined to a glass capsule that holds the waveform and the time, with an optional speed chip joined to its far end. Played bars are inked in the text colour and the rest stay muted, cut exactly at the playhead, mid-bar. Touch the waveform and the playhead drops under the finger, the bars around it rise, and a glass bubble with the time buds up out of the capsule and rides the finger; let go and it melts home and `onSeek` fires once. A tap seeks too. While a finger is down the `time` you pass is ignored, so playback updates never fight the scrub, and after the seek the playhead holds where you left it until your player catches up. A vertical drag that starts on the waveform still scrolls an enclosing scroll view. Playback is your app's: the piece never runs a clock of its own. Pass the player's `time` and `isPlaying`; between your updates the playhead glides on at the current speed, so a timer that reports a few times a second still draws smooth progress. `WaveformScrub.samples(from:count:)` reads the peaks of an audio file for `samples`, off the main thread. ```swift @State private var player = VoiceNotePlayer(url: note.url)   // your AVAudioPlayer wrapper @State private var samples: [Float] = [] WaveformScrub(samples: samples, duration: player.duration, time: player.time, isPlaying: player.isPlaying, rate: $player.rate, onPlayPause: { player.toggle() }, onSeek: { player.seek(to: $0) }) .task { samples = (try? await WaveformScrub.samples(from: note.url)) ?? [] } ```
 
 ## Notes
 
-- `samples` are loudness from 0 to 1, left to right. `progress` is how far playback has reached, also from 0 to 1. `duration` is the length in seconds, used for the time bubble and for how fast `isPlaying` advances.
-- The samples are the control. Drag anywhere on the track and the playhead follows the finger, rubber-banding past either end. On release it coasts a little of the flick, then clamps. While the finger is down the playhead swells and a time bubble buds off it on a liquid neck; letting go melts the bubble home.
-- The track and the playhead sit in one `PieceLiquidGroup` with the play bubble held `PieceLiquid.apart`, so the playhead can neck into the track and the play bubble stays its own shape except while it is pressed. The play bubble uses `pieceLiquidPop` and fills with signal while `isPlaying` is true. On iOS 26 the shapes are Liquid Glass. On iOS 17, and under Reduce Transparency, they are frosted material or solid fills.
-- Playback advances `progress` on its own while `isPlaying` is true and the finger is up, wrapping at the end. A loud sample (0.82 or more) ticks once as the playhead enters it.
-- Haptics: that peak tick, and a light impact for play and pause. Pass `haptics: false` to stay silent.
-- VoiceOver reads the waveform as an adjustable control with the current time, and the play bubble as Play or Pause. Increment and decrement move `progress` by a twentieth.
-- Reduce Motion keeps playback, the ticks, and the time label, and drops the swell. The time bubble still appears and disappears.
-- Right to left flips the scrub.
-- `Style` (`.standard` is house ink, a quiet mute for unplayed bars, and signal on the playhead and on play): `ink`, `muted`, `accent`.
+- One liquid glass control: a red play button joined to a glass capsule that holds the waveform and the time, and, when you pass `rate`, a smaller speed chip joined to the capsule's far end. Joined parts rest 4 points apart, so short liquid necks hold them together. Red appears only on the play button. On iOS 26 this is Liquid Glass; before that, a frosted material; under Reduce Transparency, solid fills.
+- Playback is your app's. Pass your player's `time`, `duration` and `isPlaying`, start or pause it in `onPlayPause`, and move it in `onSeek`. The piece never runs a clock: between your updates the playhead glides on at the current speed for up to a second, so a periodic time observer or a timer that reports a few times a second still draws smooth progress, and a player that stops reporting never runs away.
+- `samples` are loudness from 0 to 1, any count. They are resampled to the bars that fit the width (3 point bars, 2 points apart by default): the peak of each stretch when there are more samples than bars, smoothly in between when there are fewer. The loudest sample reaches full height and silence is a dot. Played bars are inked in the text colour and the rest stay muted, cut exactly at the playhead, mid-bar.
+- Read `samples` from an audio file with `WaveformScrub.samples(from:count:)`: it decodes the file in chunks on a background thread (never the main actor), takes the peak of `count` equal stretches (160 by default) and scales them so the loudest is 1. Cancelling the calling task stops the read. Call it from `.task(id: url)` and store the result; it throws what `AVAudioFile` throws for a file it can't open.
+- Touch the waveform and the playhead drops under the finger at once, the bars around it rise, and a glass bubble with the time buds up out of the capsule above the finger on a liquid neck and rides with it. Let go and the bubble melts home and `onSeek` fires once, with the time in seconds. A tap seeks too. Past either end the playhead stops at the start or the end with a soft tick. While a finger is down the `time` you pass is ignored, and after the seek the playhead holds where you let go until your `time` arrives near it (or 1.5 seconds pass), so it never jumps back while your player catches up.
+- The bubble rises about 40 points above the control while a finger is down. Leave that room above it, or let it draw over what's there for that moment; at the very top of a scroll view, the scroll view's edge cuts it.
+- Scrolling is never blocked. Touches come from a UIKit recognizer that begins on a sideways move and fails on a vertical one, and enclosing scroll views, sheets and the back swipe wait for it to fail. Inside a scroll view the press waits about a tenth of a second, so starting a scroll on the waveform never flashes the scrub.
+- States: empty `samples` (the waveform is loading) shows a quiet row of dots with a soft light passing along them once a second (the dots hold still under Reduce Motion), and seeking still works. A `duration` of 0 (still unknown) turns seeking off. The time inside the capsule reads the total at the start and the elapsed time otherwise, in `0:42` form, or `1:12:30` from an hour; it keeps the width of the longest time, so the waveform never shifts. When the note has played to its end and stopped there, play turns to replay, and tapping it calls `onSeek(0)` and then `onPlayPause()`. Disabled (`.disabled(true)`), the control greys out, red included, and ignores touches.
+- The speed chip cycles through `rates` (1×, 1.5× and 2× by default) on each tap, writing the `rate` binding with a selection tick, and its label morphs letter by letter. It keeps the width of the widest speed, so the waveform never moves, and its target is 44 points tall. Set your player's rate from the binding (`AVAudioPlayer.enableRate` must be on). Pass no `rate` for a plain voice note without the chip.
+- Haptics: a light impact on play and pause, a selection tick when a finger grabs the waveform and when the speed changes, a soft tick when a scrub reaches the start or the end.
+- VoiceOver: the play button reads Play, Pause or Play again. The waveform is one adjustable element labelled "Voice note" with a value such as "12 seconds of 42 seconds"; swipe up or down to move 5 seconds through `onSeek`. The speed chip is a button, "Playback speed", with a value such as "1.5 times" or "Normal". A two-finger double tap plays or pauses from anywhere on the control.
+- Hardware keyboard: with the waveform focused, the arrow keys step 5 seconds (in reading order) and Space plays or pauses.
+- Reduce Motion: the bars don't rise, the bubble fades in and out in place instead of budding, the glyph and digit changes cross-fade, and a seek while paused lands on a short spring with no overshoot.
+- Dynamic Type: the text grows and the shapes follow it part way, up to 1.4 times, so the waveform keeps its room. The time inside the capsule and the speed stop growing at the largest standard size, the bubble at the first accessibility size. All text is one weight, semibold, with monospaced digits.
+- Right to left: play stays on the leading side (now the right), the speed chip moves to the left, the bars play from the right and the time sits on the left of the capsule. The transport glyphs and the speed label are never mirrored.
+- `Style` sets the play button's red and the glyph on it, the played and unplayed bars, the labels, the control's height (52 points, at least 44) and the bars' width and spacing. `Messages` replaces the VoiceOver labels, the speed label ("1.5×") and the position value ("12 seconds of 42 seconds"); every default goes through your String Catalog.
+- Wire it to `AVAudioPlayer`: keep the player in an `@Observable` model, publish `currentTime` from a timer or `CADisplayLink` while playing, call `player.currentTime = seconds` in `onSeek`, set `player.rate` when `rate` changes, and set `isPlaying` false in `audioPlayerDidFinishPlaying`. For `AVPlayer`, read the time from `addPeriodicTimeObserver(forInterval:)` and seek with `seek(to:toleranceBefore: .zero, toleranceAfter: .zero)`.
 
 ## Usage
 
 ```swift
 WaveformScrubExample()
-    .preferredColorScheme(.light)
 ```
 
 ## Parameters
 
 | Parameter | Description |
 | --- | --- |
-| `samples` | Bar heights from 0 to 1. An empty list draws a flat track. |
-| `progress` | Playback position from 0 to 1. |
-| `isPlaying` | Whether the note is advancing on its own. |
-| `duration` | Length of the note in seconds, used for the time bubble and for playback. |
-| `haptics` | A selection tick when the playhead crosses a loud peak, and a light tick for play and pause. |
-| `style` | Ink for played bars, mute for the rest, and the play bubble's tint. `.standard` uses house ink and signal. |
+| `samples` | Loudness from 0 to 1, oldest first, any count: they are resampled to the bars that fit, the peak of each stretch when there are more samples than bars, smoothly in between when there are fewer, and scaled so the loudest reaches full height. Empty while the waveform loads: a quiet row of dots shimmers once a second in its place (they hold still under Reduce Motion), and seeking still works. |
+| `duration` | The note's length in seconds. Formats the times and maps the waveform to seconds. Zero (still unknown) draws the waveform but turns seeking off. |
+| `time` | Where your player is, in seconds. Ignored while a finger is on the waveform. After a seek the playhead holds at the seek until `time` arrives near it, or 1.5 seconds pass. |
+| `isPlaying` | Whether your player is playing. Swaps play for pause, and lets the playhead glide between your `time` updates at the current speed. |
+| `rate` | The playback speed. Shows a speed chip joined to the end of the capsule that cycles through `rates` on each tap; set your player's rate from it. `nil`, the default, hides the chip. |
+| `rates` | The speeds the chip cycles through, in order. Defaults to 1×, 1.5× and 2×. |
+| `messages` | The piece's copy: VoiceOver labels and the speed label. Defaults are localizable through your String Catalog; replace any line, for example `title` with "Message from Ines". |
+| `style` | Colours, the control's height and the bars' width and spacing. Defaults to the SwiftPieces house palette, adapting to light and dark, with red for the play button. |
+| `onPlayPause` | Called when play or pause is tapped (and on Space or a two-finger double tap in VoiceOver). Start or pause your player. When the note has finished (`time` at `duration`, not playing), the button shows replay and `onSeek(0)` is called first. |
+| `onSeek` | Called once when a scrub or tap ends, for each VoiceOver or arrow key step of 5 seconds, and with 0 before a replay, with the time in seconds to move your player to. |
 
 ## Source
 
@@ -75,285 +86,983 @@ WaveformScrubExample()
 // SOFTWARE.
 
 import SwiftUI
+import UIKit
+import UIKit.UIGestureRecognizerSubclass
+import AVFoundation
+import Accelerate
 
-/// A waveform that is itself the scrubber, with a glass playhead melted into a glass track.
+/// A voice note player whose waveform is the scrubber, for voice messages, audio notes, journals and podcast clips.
 ///
-/// `samples` are loudness from 0 to 1, left to right. `progress` is how far playback has reached, from 0 to 1.
-/// Drag anywhere on the track to move the playhead; it tracks the finger and keeps the flick's speed for a short coast.
+/// One liquid glass control: a red play button joined to a glass capsule that holds the waveform and the time, with an
+/// optional speed chip joined to its far end. Played bars are inked in the text colour and the rest stay muted, cut
+/// exactly at the playhead, mid-bar. Touch the waveform and the playhead drops under the finger, the bars around it
+/// rise, and a glass bubble with the time buds up out of the capsule and rides the finger; let go and it melts home
+/// and `onSeek` fires once. A tap seeks too. While a finger is down the `time` you pass is ignored, so playback
+/// updates never fight the scrub, and after the seek the playhead holds where you left it until your player catches
+/// up. A vertical drag that starts on the waveform still scrolls an enclosing scroll view.
+///
+/// Playback is your app's: the piece never runs a clock of its own. Pass the player's `time` and `isPlaying`; between
+/// your updates the playhead glides on at the current speed, so a timer that reports a few times a second still
+/// draws smooth progress. `WaveformScrub.samples(from:count:)` reads the peaks of an audio file for `samples`, off
+/// the main thread.
+///
+/// ```swift
+/// @State private var player = VoiceNotePlayer(url: note.url)   // your AVAudioPlayer wrapper
+/// @State private var samples: [Float] = []
+///
+/// WaveformScrub(samples: samples, duration: player.duration, time: player.time, isPlaying: player.isPlaying,
+///               rate: $player.rate, onPlayPause: { player.toggle() }, onSeek: { player.seek(to: $0) })
+///     .task { samples = (try? await WaveformScrub.samples(from: note.url)) ?? [] }
+/// ```
 ///
 /// - Parameters:
-///   - samples: Bar heights from 0 to 1. An empty list draws a flat track.
-///   - progress: Playback position from 0 to 1.
-///   - isPlaying: Whether the note is advancing on its own.
-///   - duration: Length of the note in seconds, used for the time bubble and for playback.
-///   - haptics: A selection tick when the playhead crosses a loud peak, and a light tick for play and pause.
-///   - style: Ink for played bars, mute for the rest, and the play bubble's tint. `.standard` uses house ink and signal.
+///   - samples: Loudness from 0 to 1, oldest first, any count: they are resampled to the bars that fit, the peak of each stretch when there are more samples than bars, smoothly in between when there are fewer, and scaled so the loudest reaches full height. Empty while the waveform loads: a quiet row of dots shimmers once a second in its place (they hold still under Reduce Motion), and seeking still works.
+///   - duration: The note's length in seconds. Formats the times and maps the waveform to seconds. Zero (still unknown) draws the waveform but turns seeking off.
+///   - time: Where your player is, in seconds. Ignored while a finger is on the waveform. After a seek the playhead holds at the seek until `time` arrives near it, or 1.5 seconds pass.
+///   - isPlaying: Whether your player is playing. Swaps play for pause, and lets the playhead glide between your `time` updates at the current speed.
+///   - rate: The playback speed. Shows a speed chip joined to the end of the capsule that cycles through `rates` on each tap; set your player's rate from it. `nil`, the default, hides the chip.
+///   - rates: The speeds the chip cycles through, in order. Defaults to 1×, 1.5× and 2×.
+///   - messages: The piece's copy: VoiceOver labels and the speed label. Defaults are localizable through your String Catalog; replace any line, for example `title` with "Message from Ines".
+///   - style: Colours, the control's height and the bars' width and spacing. Defaults to the SwiftPieces house palette, adapting to light and dark, with red for the play button.
+///   - onPlayPause: Called when play or pause is tapped (and on Space or a two-finger double tap in VoiceOver). Start or pause your player. When the note has finished (`time` at `duration`, not playing), the button shows replay and `onSeek(0)` is called first.
+///   - onSeek: Called once when a scrub or tap ends, for each VoiceOver or arrow key step of 5 seconds, and with 0 before a replay, with the time in seconds to move your player to.
 public struct WaveformScrub: View {
-    /// Visual tuning.
-    public struct Style: Sendable {
-        public var ink: Color
-        public var muted: Color
-        public var accent: Color
 
+    // MARK: Messages
+
+    /// The piece's copy. Every default goes through `String(localized:)`, so it can be translated in your String
+    /// Catalog, and any line can be replaced: `.init(title: "Message from Ines")`.
+    public struct Messages: Sendable {
+        /// The waveform's VoiceOver label.
+        public var title: String
+        /// The play button's VoiceOver label.
+        public var play: String
+        /// The pause button's VoiceOver label.
+        public var pause: String
+        /// The play button's VoiceOver label once the note has finished.
+        public var replay: String
+        /// The speed chip's VoiceOver label.
+        public var speed: String
+        /// The speed chip's title for a rate, such as "1.5×".
+        public var rate: @Sendable (Double) -> String
+        /// The speed chip's VoiceOver value for a rate, such as "1.5 times".
+        public var rateValue: @Sendable (Double) -> String
+        /// The waveform's VoiceOver value from the spoken elapsed and total times, such as "12 seconds of 42 seconds".
+        public var position: @Sendable (_ elapsed: String, _ total: String) -> String
+
+        /// Pass only the lines you want to change.
         public init(
-            ink: Color = Style.adaptive(light: 0x141414, dark: 0xF4F3EF),
-            muted: Color = Style.adaptive(light: 0xC4C1BA, dark: 0x4A4946),
-            accent: Color = Color(red: 1, green: 0, blue: 0)
+            title: String = String(localized: "Voice note", comment: "Waveform scrub VoiceOver label of the waveform you can seek"),
+            play: String = String(localized: "Play", comment: "Waveform scrub button that starts playback"),
+            pause: String = String(localized: "Pause", comment: "Waveform scrub button that pauses playback"),
+            replay: String = String(localized: "Play again", comment: "Waveform scrub button that plays a finished note from the start"),
+            speed: String = String(localized: "Playback speed", comment: "Waveform scrub VoiceOver label of the speed chip"),
+            rate: @escaping @Sendable (Double) -> String = { rate in
+                String(localized: "\(rate.formatted(.number.precision(.fractionLength(0...2))))×", comment: "Waveform scrub speed chip, such as 1.5×")
+            },
+            rateValue: @escaping @Sendable (Double) -> String = { rate in
+                abs(rate - 1) < 0.001
+                    ? String(localized: "Normal", comment: "Waveform scrub VoiceOver value of the speed chip at 1×")
+                    : String(localized: "\(rate.formatted(.number.precision(.fractionLength(0...2)))) times", comment: "Waveform scrub VoiceOver value of the speed chip, such as 1.5 times")
+            },
+            position: @escaping @Sendable (_ elapsed: String, _ total: String) -> String = { elapsed, total in
+                String(localized: "\(elapsed) of \(total)", comment: "Waveform scrub VoiceOver value: elapsed time of total time, such as 12 seconds of 42 seconds")
+            }
         ) {
-            self.ink = ink
-            self.muted = muted
-            self.accent = accent
+            self.title = title
+            self.play = play
+            self.pause = pause
+            self.replay = replay
+            self.speed = speed
+            self.rate = rate
+            self.rateValue = rateValue
+            self.position = position
+        }
+
+        public static var standard: Messages { Messages() }
+    }
+
+    // MARK: Style
+
+    /// Colours and metrics. `.standard` is the house palette.
+    public struct Style: Sendable {
+        /// The play button's glass tint. Red, the one signal on the control.
+        public var accent: Color
+        /// The glyph on the play button.
+        public var accentInk: Color
+        /// Bars already played.
+        public var played: Color
+        /// Bars still to play, and the loading dots.
+        public var unplayed: Color
+        /// The speed chip's title and the time bubble.
+        public var label: Color
+        /// The time inside the capsule.
+        public var secondaryLabel: Color
+        /// The height of the capsule and the diameter of the play button, before Dynamic Type. At least 44.
+        public var height: CGFloat
+        /// The width of one bar. At least 1.
+        public var barWidth: CGFloat
+        /// The gap between bars.
+        public var barSpacing: CGFloat
+
+        /// Pass only what you want to change; `nil` keeps the house palette value.
+        public init(accent: Color? = nil, accentInk: Color? = nil, played: Color? = nil, unplayed: Color? = nil, label: Color? = nil, secondaryLabel: Color? = nil, height: CGFloat = 52, barWidth: CGFloat = 3, barSpacing: CGFloat = 2) {
+            self.accent = accent ?? Color(red: 1, green: 0, blue: 0)
+            self.accentInk = accentInk ?? Color(red: 0.078, green: 0.078, blue: 0.078)
+            self.played = played ?? waveformScrubColor(light: 0x141414, dark: 0xF4F3EF)
+            self.unplayed = unplayed ?? waveformScrubColor(light: 0x8B8984, dark: 0x6F6D69)
+            self.label = label ?? waveformScrubColor(light: 0x141414, dark: 0xF4F3EF)
+            self.secondaryLabel = secondaryLabel ?? waveformScrubColor(light: 0x5C5A56, dark: 0xA6A49F)
+            self.height = max(height, 44)
+            self.barWidth = max(barWidth, 1)
+            self.barSpacing = max(barSpacing, 0)
         }
 
         public static let standard = Style()
-
-        /// A color that follows the appearance, from two 0xRRGGBB values.
-        public static func adaptive(light: UInt32, dark: UInt32) -> Color {
-            Color(UIColor { @Sendable traits in
-                let hex = traits.userInterfaceStyle == .dark ? dark : light
-                return UIColor(red: CGFloat(hex >> 16 & 0xFF) / 255, green: CGFloat(hex >> 8 & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
-            })
-        }
     }
+
+    // MARK: State
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.layoutDirection) private var layoutDirection
-    @ScaledMetric(relativeTo: .body) private var trackHeight: CGFloat = 56
+    @Environment(\.isEnabled) private var isEnabled
+    /// How much Dynamic Type grows the control's shapes. The text grows on its own; the shapes follow it part way.
+    @ScaledMetric(relativeTo: .body) private var growth: CGFloat = 1
 
-    @Binding private var progress: Double
-    @Binding private var isPlaying: Bool
-    @State private var dragging = false
-    @State private var peaks = 0
-    @State private var plays = 0
-    @State private var lastPeak = -1
+    /// The playhead under the finger, from 0 to 1, while a scrub is live.
+    @State private var scrub: Double?
+    /// The playhead after a seek, held until the player's `time` arrives near it.
+    @State private var held: Double?
+    @State private var heldTarget: TimeInterval?
+    @State private var holdRun = 0
+    /// The last `time` reported while playing and when it arrived, so the playhead glides between reports.
+    @State private var reported = WaveformScrubReport(time: 0, at: .distantPast)
+    /// The finger, in the capsule's own coordinates, and where it lifts the bars, in the waveform's.
+    @State private var fingerX: CGFloat = 0
+    /// The time on the bubble: the finger's, kept as it melts home after the seek.
+    @State private var bubbleSeconds: TimeInterval = 0
+    @State private var focus: CGFloat = 0
+    @State private var lifted = false
+    @State private var atEdge = false
+    @State private var capsuleWidth: CGFloat = 0
+    @State private var waveFrame: CGRect = .zero
+    @State private var bubbleWidth: CGFloat = 0
+    @State private var chipSize: CGSize = .zero
+    /// The time bubble: home inside the capsule, out above the finger while a scrub is live.
     @State private var buds = PieceBuds()
+    @State private var playTick = 0
+    @State private var grabTick = 0
+    @State private var edgeTick = 0
+    @State private var rateTick = 0
 
-    private let samples: [Double]
-    private let duration: Double
-    private let haptics: Bool
+    private let levels: [Float]
+    private let isLoading: Bool
+    private let duration: TimeInterval
+    private let time: TimeInterval
+    private let isPlaying: Bool
+    private let rate: Binding<Double>?
+    private let rates: [Double]
+    private let messages: Messages
     private let style: Style
+    private let onPlayPause: () -> Void
+    private let onSeek: (TimeInterval) -> Void
 
     public init(
-        samples: [Double],
-        progress: Binding<Double>,
-        isPlaying: Binding<Bool>,
-        duration: Double = 18,
-        haptics: Bool = true,
-        style: Style = .standard
+        samples: [Float],
+        duration: TimeInterval,
+        time: TimeInterval,
+        isPlaying: Bool,
+        rate: Binding<Double>? = nil,
+        rates: [Double] = [1, 1.5, 2],
+        messages: Messages = .standard,
+        style: Style = .standard,
+        onPlayPause: @escaping () -> Void,
+        onSeek: @escaping (TimeInterval) -> Void
     ) {
-        self.samples = samples
-        self._progress = progress
-        self._isPlaying = isPlaying
-        self.duration = max(duration, 0.1)
-        self.haptics = haptics
+        // Non-finite samples count as silence, and the loudest reaches full height.
+        let clean = samples.map { $0.isFinite ? abs($0) : 0 }
+        let loudest = clean.max() ?? 0
+        self.levels = loudest > 0 ? clean.map { min($0 / loudest, 1) } : clean
+        self.isLoading = samples.isEmpty
+        self.duration = duration.isFinite ? max(duration, 0) : 0
+        self.time = time.isFinite ? time : 0
+        self.isPlaying = isPlaying
+        self.rate = rate
+        let speeds = rates.filter { $0.isFinite && $0 > 0 }
+        self.rates = speeds.isEmpty ? [1] : speeds
+        self.messages = messages
         self.style = style
+        self.onPlayPause = onPlayPause
+        self.onSeek = onSeek
     }
 
+    // MARK: Derived
+
+    private var motion: PieceMotion { PieceMotion(reduceMotion: reduceMotion) }
+    private var rtl: Bool { layoutDirection == .rightToLeft }
+    /// Shapes follow Dynamic Type up to 1.4 times, so the waveform keeps its room at the largest sizes.
+    private var grow: CGFloat { min(max(growth, 1), 1.4) }
+    private var height: CGFloat { style.height * grow }
+    private var chipHeight: CGFloat { 32 * grow }
+    private var bubbleHeight: CGFloat { 30 * grow }
+    /// The room above and below the bars inside the capsule.
+    private var waveInset: CGFloat { 10 * grow }
+    private var speed: Double { max(rate?.wrappedValue ?? 1, 0.01) }
+    private var canSeek: Bool { isEnabled && duration > 0 }
+    private var clamped: TimeInterval { min(max(time, 0), duration) }
+    /// Played through to the end and stopped there: the button offers a replay.
+    private var finished: Bool { duration > 0 && !isPlaying && scrub == nil && held == nil && time >= duration - 0.05 }
+    /// The playhead glides on between `time` reports while playing and nothing holds it.
+    private var gliding: Bool { isPlaying && scrub == nil && held == nil && duration > 0 }
+
+    /// Where the playhead is drawn, from 0 to 1, at `date`.
+    private func fraction(at date: Date) -> Double {
+        guard duration > 0 else { return 0 }
+        if let scrub { return scrub }
+        if let held { return held }
+        guard gliding else { return clamped / duration }
+        // At most a second past the last report, so a player that stops reporting never runs away.
+        let ahead = min(max(date.timeIntervalSince(reported.at), 0), 1) * speed
+        return min(max(reported.time + ahead, 0), duration) / duration
+    }
+
+    // MARK: Body
+
     public var body: some View {
-        PieceLiquidGroup(spacing: PieceLiquid.apart) {
-            HStack(alignment: .center, spacing: PieceLiquid.apart) {
-                track
+        // Read here, so this body observes the bubble: the reads below sit inside a timeline's closure.
+        let _ = (buds.present, buds.out)
+        PieceLiquidGroup {
+            HStack(spacing: PieceLiquid.joined) {
                 playButton
+                track
+                if let rate { speedChip(rate) }
             }
         }
         .fontWeight(.semibold)
-        .sensoryFeedback(.selection, trigger: peaks)
-        .sensoryFeedback(.impact(weight: SensoryFeedback.Weight.light, intensity: 0.75), trigger: plays)
-        .onAppear { notePeaks(progress) }
-        .onChange(of: progress) { _, new in notePeaks(new) }
-        .onChange(of: dragging) { _, down in
-            Task { @MainActor in
-                if down { await buds.bloom(["time"], reduceMotion: reduceMotion) }
-                else { await buds.gather(["time"], reduceMotion: reduceMotion) }
-            }
+        .dynamicTypeSize(...DynamicTypeSize.accessibility2)
+        // Disabled, the red goes grey with the rest rather than washing out to pink.
+        .saturation(isEnabled ? 1 : 0)
+        .opacity(isEnabled ? 1 : 0.45)
+        .sensoryFeedback(.impact(weight: .light), trigger: playTick)
+        .sensoryFeedback(.selection, trigger: grabTick)
+        .sensoryFeedback(.selection, trigger: rateTick)
+        .sensoryFeedback(.impact(flexibility: .soft), trigger: edgeTick)
+        .onAppear { reported = WaveformScrubReport(time: clamped, at: .now) }
+        .onChange(of: time) { _, new in
+            reported = WaveformScrubReport(time: min(max(new, 0), duration), at: .now)
+            // The player has caught up with the seek: let the playhead follow it again.
+            if let heldTarget, abs(new - heldTarget) <= max(0.6, speed) { release() }
         }
-        .task(id: isPlaying) {
-            guard isPlaying else { return }
-            while !Task.isCancelled, isPlaying {
-                try? await Task.sleep(for: .milliseconds(40))
-                if dragging || !isPlaying { continue }
-                let step = 0.04 / duration
-                let next = progress + step
-                progress = next >= 1 ? 0 : next
-            }
+        .onChange(of: isPlaying) { _, _ in reported = WaveformScrubReport(time: clamped, at: .now) }
+        // Another note in the same place: nothing held from the last one carries over.
+        .onChange(of: duration) { _, _ in
+            release()
+            scrub = nil
+        }
+        .task(id: holdRun) {
+            guard held != nil else { return }
+            try? await Task.sleep(for: .seconds(1.5))
+            guard !Task.isCancelled else { return }
+            release()
         }
         .accessibilityElement(children: .contain)
+        .accessibilityAction(.magicTap) { togglePlay() }
     }
 
+    // MARK: Play
+
+    private var glyph: String { isPlaying ? "pause.fill" : finished ? "arrow.counterclockwise" : "play.fill" }
+
+    /// The red play button, joined to the capsule. Its glyph blurs from play to pause and back.
+    private var playButton: some View {
+        Button(action: togglePlay) {
+            ZStack {
+                Image(systemName: glyph)
+                    .font(.system(size: 18 * grow, weight: .semibold))
+                    // The play triangle's weight sits left of its box; nudged so it reads centred.
+                    .offset(x: glyph == "play.fill" ? 1.5 * grow : 0)
+                    .id(glyph)
+                    .transition(motion.swap)
+            }
+            .animation(motion.snap, value: glyph)
+            .foregroundStyle(style.accentInk)
+            // Transport glyphs never mirror.
+            .environment(\.layoutDirection, .leftToRight)
+            .frame(width: height, height: height)
+            .contentShape(.circle)
+            .pieceLiquid(.circle, tint: style.accent, interactive: false)
+        }
+        .buttonStyle(PieceLiquidPressStyle())
+        .accessibilityLabel(isPlaying ? messages.pause : finished ? messages.replay : messages.play)
+    }
+
+    private func togglePlay() {
+        guard isEnabled else { return }
+        // A finished note plays again from the start: the playhead goes back at once, then the player starts.
+        if finished { seek(to: 0, animated: true) }
+        onPlayPause()
+        playTick += 1
+    }
+
+    // MARK: Track
+
+    /// The capsule and, under it, the time bubble that buds up out of it. Laid out left to right whatever the
+    /// language, so touches, the bubble and the bars share one set of coordinates; right to left mirrors the bars and
+    /// moves the time to the left by hand.
     private var track: some View {
-        GeometryReader { proxy in
-            let w = max(proxy.size.width, 1)
-            let knob: CGFloat = 34
-            let x = playheadX(in: w, knob: knob)
-            ZStack(alignment: .leading) {
-                bars
-                    .padding(.horizontal, 14)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .pieceLiquid(.capsule, interactive: false)
-                if buds.contains("time") {
-                    timeBubble(knob: knob)
-                        .offset(x: x + knob / 2 - 36, y: -6)
-                }
-                Circle()
-                    .fill(Color.clear)
-                    .frame(width: knob, height: knob)
-                    .pieceLiquid(Circle(), tint: style.accent, interactive: true)
-                    .pieceLiquidScale(dragging && !reduceMotion ? 1.08 : 1)
-                    .offset(x: x, y: (trackHeight - knob) / 2)
-                    .animation(dragging ? PieceMotion(reduceMotion: reduceMotion).press : PieceMotion(reduceMotion: reduceMotion).release, value: dragging)
-                    .allowsHitTesting(false)
-            }
-            .contentShape(Capsule())
-            .gesture(scrub(width: w))
+        ZStack(alignment: .leading) {
+            // Under the capsule, so at home it sits inside it and melts into it, never over the bars.
+            timeBubble
+            capsule
         }
-        .frame(height: trackHeight)
+        .frame(maxWidth: .infinity)
+        .frame(height: height)
+        .environment(\.layoutDirection, .leftToRight)
+    }
+
+    private var capsule: some View {
+        TimelineView(.animation(paused: !gliding)) { context in
+            let shown = fraction(at: context.date)
+            HStack(spacing: 10 * grow) {
+                if rtl { timeLabel(shown) }
+                waveform(shown)
+                if !rtl { timeLabel(shown) }
+            }
+            .padding(.leading, (rtl ? 16 : 18) * grow)
+            .padding(.trailing, (rtl ? 18 : 16) * grow)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .coordinateSpace(.named(WaveformScrubSpace.capsule))
+        .overlay {
+            WaveformScrubTouchLayer(isEnabled: canSeek) { handle($0) }
+                .accessibilityHidden(true)
+        }
+        .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { capsuleWidth = $0 }
+        .pieceLiquid(Capsule(), interactive: false)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("Waveform")
-        .accessibilityValue(timeLabel)
+        .accessibilityLabel(messages.title)
+        .accessibilityValue(spokenPosition)
+        .accessibilityAddTraits(isPlaying ? .updatesFrequently : [])
         .accessibilityAdjustableAction { direction in
-            let step = direction == .increment ? 0.05 : -0.05
-            progress = min(max(progress + step, 0), 1)
+            switch direction {
+            case .increment: step(by: 5)
+            case .decrement: step(by: -5)
+            @unknown default: break
+            }
+        }
+        // A hardware keyboard: the arrows step 5 seconds (in reading order), Space plays and pauses.
+        .focusable(isEnabled)
+        .onKeyPress(.rightArrow, phases: [.down, .repeat]) { _ in key(rtl ? -5 : 5) }
+        .onKeyPress(.leftArrow, phases: [.down, .repeat]) { _ in key(rtl ? 5 : -5) }
+        .onKeyPress(.space) {
+            guard isEnabled else { return .ignored }
+            togglePlay()
+            return .handled
         }
     }
 
-    private var bars: some View {
-        HStack(alignment: .center, spacing: 2) {
-            ForEach(Array(samples.enumerated()), id: \.offset) { index, sample in
-                let played = Double(index) / Double(max(samples.count - 1, 1)) <= progress
-                Capsule()
-                    .fill(played ? style.ink : style.muted)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: max(4, CGFloat(min(max(sample, 0), 1)) * (trackHeight - 18)))
-            }
+    /// The bars: muted, then the same bars inked and cut at the playhead, so the split falls mid-bar.
+    private func waveform(_ shown: Double) -> some View {
+        let span = WaveformScrubBars.span(width: waveFrame.width, bar: style.barWidth, spacing: style.barSpacing)
+        let split = span.offset + span.used * CGFloat(shown)
+        let bars = WaveformScrubBars(levels: levels, barWidth: style.barWidth, spacing: style.barSpacing, focus: focus, lift: lifted && !reduceMotion ? 1 : 0)
+        // The playhead never animates under the finger or while it glides; a seek while paused lands on `value`.
+        let landing: Animation? = scrub != nil || gliding ? nil : motion.value
+        return ZStack(alignment: .leading) {
+            bars.fill(style.unplayed)
+            if isLoading && !reduceMotion { shimmer(bars) }
+            bars.fill(style.played)
+                .mask(alignment: .leading) {
+                    Rectangle()
+                        .frame(width: max(split, 0))
+                        .animation(landing, value: split)
+                }
         }
+        // The bars rise under the finger and settle back with a little give.
+        .animation(lifted ? motion.snap : motion.release, value: lifted)
+        // Right to left, the note plays from the right.
+        .scaleEffect(x: rtl ? -1 : 1)
+        .padding(.vertical, waveInset)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .onGeometryChange(for: CGRect.self) { $0.frame(in: .named(WaveformScrubSpace.capsule)) } action: { waveFrame = $0 }
         .accessibilityHidden(true)
     }
 
-    private func timeBubble(knob: CGFloat) -> some View {
-        let out = buds.isOut("time")
-        return Text(timeLabel)
-            .font(.caption.weight(.semibold))
-            .foregroundStyle(WaveformScrub.adaptive(light: 0x141414, dark: 0xF4F3EF))
-            .pieceBudContent(out: out)
-            .frame(width: 72, height: 28)
-            .pieceLiquid(.capsule, interactive: false)
-            .pieceBud(out: out, rest: CGSize(width: 0, height: -(knob / 2 + 22)), home: CGSize(width: 0, height: 16))
-            .allowsHitTesting(false)
-            .accessibilityHidden(true)
-    }
-
-    private var playButton: some View {
-        Button {
-            isPlaying.toggle()
-            if haptics { plays += 1 }
-        } label: {
-            Image(systemName: isPlaying ? "pause.fill" : "play.fill")
-                .font(.body.weight(.semibold))
-                .foregroundStyle(isPlaying ? Color(red: 0.078, green: 0.078, blue: 0.078) : style.ink)
-                .frame(width: 52, height: 52)
-                .contentShape(Circle())
+    /// While the waveform loads: a soft band of light passes along the dots once a second.
+    private func shimmer(_ bars: WaveformScrubBars) -> some View {
+        TimelineView(.animation(minimumInterval: 1 / 30)) { context in
+            let period = 1.2
+            let phase = context.date.timeIntervalSinceReferenceDate.truncatingRemainder(dividingBy: period) / 0.9
+            GeometryReader { proxy in
+                let band = max(proxy.size.width * 0.35, 40)
+                let x = -band + (proxy.size.width + band) * CGFloat(min(phase, 1))
+                bars.fill(style.played.opacity(0.55))
+                    .mask(alignment: .leading) {
+                        LinearGradient(colors: [.clear, .black, .clear], startPoint: .leading, endPoint: .trailing)
+                            .frame(width: band)
+                            .offset(x: x)
+                            .opacity(phase <= 1 ? 1 : 0)
+                    }
+            }
         }
-        .buttonStyle(PieceLiquidPressStyle(depth: 2.4))
-        .pieceLiquid(Circle(), tint: isPlaying ? style.accent : nil, interactive: true)
-        .pieceLiquidPop(trigger: plays, amount: 0.06)
-        .accessibilityLabel(isPlaying ? "Pause" : "Play")
     }
 
-    private func playheadX(in width: CGFloat, knob: CGFloat) -> CGFloat {
-        let travel = max(width - knob, 1)
-        let t = layoutDirection == .rightToLeft ? 1 - progress : progress
-        return CGFloat(min(max(t, 0), 1)) * travel
+    /// The time inside the capsule: the total at the start and at the end, the elapsed time otherwise. It keeps the
+    /// width of the longest time, so the waveform never shifts as digits change.
+    private func timeLabel(_ shown: Double) -> some View {
+        let atStart = !isPlaying && scrub == nil && held == nil && clamped < 0.05
+        let text = atStart || finished ? clock(duration, rounding: true) : clock(shown * duration)
+        return ZStack(alignment: rtl ? .leading : .trailing) {
+            Text(clock(duration, rounding: true)).hidden()
+            Text(text)
+                .contentTransition(reduceMotion ? .opacity : .numericText(value: shown))
+                .animation(scrub == nil ? motion.value : nil, value: text)
+        }
+        .font(.footnote.weight(.semibold).monospacedDigit())
+        .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
+        .foregroundStyle(style.secondaryLabel)
+        .lineLimit(1)
+        .fixedSize()
+        .accessibilityHidden(true)
     }
 
-    private func scrub(width: CGFloat) -> some Gesture {
-        DragGesture(minimumDistance: 0)
-            .onChanged { value in
-                dragging = true
-                progress = fraction(at: value.location.x, width: width)
+    /// The time at the finger, on a glass bubble that buds up out of the capsule above it on a liquid neck. Always in
+    /// the hierarchy, shrunk to nothing between scrubs: glass inserted inside a scroll view would stay invisible until
+    /// its first animation ends, which is the whole bud.
+    private var timeBubble: some View {
+        let present = buds.contains("time")
+        let out = buds.isOut("time")
+        let half = bubbleWidth / 2
+        let room = capsuleWidth - bubbleWidth - 20
+        let center = room > 0 ? min(max(fingerX, half + 10), capsuleWidth - half - 10) : capsuleWidth / 2
+        let rise = height / 2 + PieceLiquid.joined + bubbleHeight / 2
+        return ZStack {
+            Text(clock(duration, rounding: true)).hidden()
+            Text(clock(bubbleSeconds))
+        }
+        .font(.subheadline.weight(.semibold).monospacedDigit())
+        .dynamicTypeSize(...DynamicTypeSize.accessibility1)
+        .foregroundStyle(style.label)
+        .lineLimit(1)
+        .pieceBudContent(out: out)
+        .padding(.horizontal, 12 * grow)
+        .frame(height: bubbleHeight)
+        .fixedSize()
+        .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { bubbleWidth = $0 }
+        .pieceLiquid(.capsule, interactive: false)
+        .pieceLiquidScale(present ? 1 : 0.001)
+        .pieceBud(out: out, rest: CGSize(width: 0, height: -rise), home: .zero)
+        .offset(x: center - half)
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
+    }
+
+    // MARK: Speed
+
+    /// A small glass chip joined to the capsule's end. It keeps the width of the widest speed, so the waveform never
+    /// moves, and its title morphs letter by letter.
+    private func speedChip(_ rate: Binding<Double>) -> some View {
+        Button { cycle(rate) } label: {
+            ZStack {
+                ForEach(rates, id: \.self) { Text(messages.rate($0)).hidden() }
+                PieceMorphText(text: messages.rate(rate.wrappedValue), font: .subheadline.weight(.semibold).monospacedDigit())
             }
-            .onEnded { value in
-                dragging = false
-                let motion = PieceMotion(reduceMotion: reduceMotion)
-                let from = fraction(at: value.location.x, width: width)
-                let sign: CGFloat = layoutDirection == .rightToLeft ? -1 : 1
-                let velocity = sign * value.velocity.width / max(width, 1)
-                // A short coast, then a clamp. Audio should not snap to a detent the ear did not ask for.
-                let coast = min(max(Double(PieceMotion.project(CGFloat(from), velocity: velocity * 0.35)), 0), 1)
-                withAnimation(motion.settle(velocity: velocity, from: CGFloat(from), to: CGFloat(coast))) {
-                    progress = coast
+            // A speed reads the same in every language ("1.5×"), and the morph lays its letters out one by one.
+            .environment(\.layoutDirection, .leftToRight)
+            // Grows to the largest standard size, so the waveform keeps its room at accessibility sizes.
+            .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
+            .foregroundStyle(style.label)
+            .lineLimit(1)
+            .padding(.horizontal, 12 * grow)
+            .frame(height: chipHeight)
+            .pieceLiquid(.capsule, interactive: false)
+            // A 44 point target around the smaller chip.
+            .frame(minHeight: 44)
+            .contentShape(.rect)
+        }
+        .buttonStyle(PieceLiquidPressStyle())
+        .accessibilityLabel(messages.speed)
+        .accessibilityValue(messages.rateValue(rate.wrappedValue))
+    }
+
+    /// The next speed in `rates` after the current one, wrapping round.
+    private func cycle(_ rate: Binding<Double>) {
+        let now = rate.wrappedValue
+        let next = rates.firstIndex { abs($0 - now) < 0.001 }.map { rates[($0 + 1) % rates.count] } ?? rates.first { $0 > now } ?? rates[0]
+        withAnimation(motion.morph) { rate.wrappedValue = next }
+        // The glide restarts from here at the new speed.
+        reported = WaveformScrubReport(time: fraction(at: .now) * duration, at: .now)
+        rateTick += 1
+    }
+
+    // MARK: Scrub
+
+    private func handle(_ touch: WaveformScrubTouch) {
+        switch touch {
+        case .press(let x): grab(at: x)
+        case .move(let x): drag(to: x)
+        case .end(let x, let tapped): lift(at: x, tapped: tapped)
+        case .cancel: abandon()
+        }
+    }
+
+    /// The finger lands: the playhead drops under it at once, the bars around it rise and the time buds out.
+    private func grab(at x: CGFloat) {
+        guard canSeek else { return }
+        let value = position(at: x)
+        held = nil
+        heldTarget = nil
+        scrub = value
+        fingerX = x
+        bubbleSeconds = value * duration
+        focus = splitX(value)
+        atEdge = value <= 0 || value >= 1
+        lifted = true
+        grabTick += 1
+        Task { await buds.bloom(["time"], reduceMotion: reduceMotion) }
+    }
+
+    /// Under the finger, never animated. A soft tick when it reaches either end.
+    private func drag(to x: CGFloat) {
+        guard scrub != nil else { return }
+        let value = position(at: x)
+        scrub = value
+        fingerX = x
+        bubbleSeconds = value * duration
+        focus = splitX(value)
+        let edge = value <= 0 || value >= 1
+        if edge && !atEdge { edgeTick += 1 }
+        atEdge = edge
+    }
+
+    /// The finger lifts: one seek, and the bubble melts home. A quick tap that never showed the scrub seeks too.
+    private func lift(at x: CGFloat, tapped: Bool) {
+        guard canSeek else { return abandon() }
+        let value = position(at: x)
+        let live = scrub != nil
+        scrub = nil
+        if tapped { grabTick += 1 }
+        seek(to: value * duration, animated: !live)
+        settle()
+    }
+
+    /// The system took the touch (a scroll began, a call came in): nothing is sought, the playhead goes back.
+    private func abandon() {
+        guard scrub != nil else { return }
+        scrub = nil
+        settle()
+    }
+
+    private func settle() {
+        lifted = false
+        Task { await buds.gather(["time"], reduceMotion: reduceMotion) }
+    }
+
+    /// Sends one seek and holds the playhead there until the player's `time` catches up with it.
+    private func seek(to seconds: TimeInterval, animated: Bool) {
+        guard duration > 0 else { return }
+        let target = min(max(seconds, 0), duration)
+        if animated {
+            withAnimation(motion.value) { held = target / duration }
+        } else {
+            held = target / duration
+        }
+        heldTarget = target
+        holdRun += 1
+        onSeek(target)
+    }
+
+    /// Lets the playhead follow the player's `time` again.
+    private func release() {
+        guard held != nil || heldTarget != nil else { return }
+        reported = WaveformScrubReport(time: clamped, at: .now)
+        held = nil
+        heldTarget = nil
+    }
+
+    /// A VoiceOver or keyboard step, from wherever the playhead is.
+    private func step(by seconds: TimeInterval) {
+        guard canSeek else { return }
+        seek(to: fraction(at: .now) * duration + seconds, animated: true)
+    }
+
+    private func key(_ seconds: TimeInterval) -> KeyPress.Result {
+        guard canSeek else { return .ignored }
+        step(by: seconds)
+        return .handled
+    }
+
+    /// The playhead, from 0 to 1, for a finger at `x` in the capsule's coordinates.
+    private func position(at x: CGFloat) -> Double {
+        let span = WaveformScrubBars.span(width: waveFrame.width, bar: style.barWidth, spacing: style.barSpacing)
+        guard span.used > 0 else { return 0 }
+        let local = rtl ? waveFrame.maxX - x : x - waveFrame.minX
+        return Double(min(max((local - span.offset) / span.used, 0), 1))
+    }
+
+    /// Where the playhead falls in the waveform's own (unmirrored) coordinates.
+    private func splitX(_ value: Double) -> CGFloat {
+        let span = WaveformScrubBars.span(width: waveFrame.width, bar: style.barWidth, spacing: style.barSpacing)
+        return span.offset + span.used * CGFloat(value)
+    }
+
+    // MARK: Time
+
+    /// `0:42`, or `1:12:30` for an hour or more.
+    private func clock(_ seconds: TimeInterval, rounding: Bool = false) -> String {
+        let whole = max(0, rounding ? seconds.rounded() : seconds.rounded(.down))
+        let pattern: Duration.TimeFormatStyle.Pattern = duration >= 3600 ? .hourMinuteSecond : .minuteSecond
+        return Duration.seconds(Int64(whole)).formatted(.time(pattern: pattern))
+    }
+
+    /// "12 seconds of 42 seconds", for VoiceOver.
+    private var spokenPosition: String {
+        let current = (scrub ?? held).map { $0 * duration } ?? clamped
+        let spoken: (TimeInterval) -> String = { seconds in
+            Duration.seconds(Int64(max(0, seconds.rounded(.down)))).formatted(.units(allowed: [.hours, .minutes, .seconds], width: .wide))
+        }
+        return messages.position(spoken(current), spoken(duration.rounded()))
+    }
+}
+
+// MARK: - Bars
+
+/// The last `time` reported and when it arrived.
+private struct WaveformScrubReport: Equatable {
+    var time: TimeInterval
+    var at: Date
+}
+
+private enum WaveformScrubSpace {
+    nonisolated static let capsule = "WaveformScrub.capsule"
+}
+
+/// Every bar of the waveform as one path: resampled to the bars that fit, centred on the line, at least a dot tall.
+/// The bars near `focus` rise by up to 30% as `lift` goes to 1.
+private struct WaveformScrubBars: Shape {
+    var levels: [Float]
+    var barWidth: CGFloat
+    var spacing: CGFloat
+    var focus: CGFloat
+    var lift: CGFloat
+
+    nonisolated var animatableData: CGFloat {
+        get { lift }
+        set { lift = newValue }
+    }
+
+    /// How many bars fit, how far in the first one starts (the leftover, split evenly) and the width they take.
+    nonisolated static func span(width: CGFloat, bar: CGFloat, spacing: CGFloat) -> (count: Int, offset: CGFloat, used: CGFloat) {
+        guard width >= bar, bar > 0 else { return (0, 0, 0) }
+        let count = max(Int(((width + spacing) / (bar + spacing)).rounded(.down)), 1)
+        let used = CGFloat(count) * bar + CGFloat(count - 1) * spacing
+        return (count, (width - used) / 2, used)
+    }
+
+    /// The level of bar `index` of `count`: the peak of its stretch of samples, or between two samples when there are
+    /// fewer samples than bars.
+    nonisolated static func level(_ index: Int, of count: Int, in levels: [Float]) -> CGFloat {
+        let n = levels.count
+        guard n > 0, count > 0 else { return 0 }
+        if n >= count {
+            let lower = index * n / count
+            let upper = max((index + 1) * n / count, lower + 1)
+            var peak: Float = 0
+            for i in lower..<min(upper, n) { peak = max(peak, levels[i]) }
+            return CGFloat(peak)
+        }
+        guard count > 1, n > 1 else { return CGFloat(levels[0]) }
+        let place = Double(index) * Double(n - 1) / Double(count - 1)
+        let below = Int(place.rounded(.down))
+        let above = min(below + 1, n - 1)
+        let t = Float(place - Double(below))
+        return CGFloat(levels[below] + (levels[above] - levels[below]) * t)
+    }
+
+    nonisolated func path(in rect: CGRect) -> Path {
+        let span = Self.span(width: rect.width, bar: barWidth, spacing: spacing)
+        var path = Path()
+        guard span.count > 0 else { return path }
+        // At rest the tallest bar leaves room to rise 30% inside the rect.
+        let tallest = rect.height / 1.3
+        let reach = (barWidth + spacing) * 5
+        for i in 0..<span.count {
+            let x = rect.minX + span.offset + CGFloat(i) * (barWidth + spacing)
+            var h = barWidth + (tallest - barWidth) * Self.level(i, of: span.count, in: levels)
+            if lift > 0 {
+                let distance = abs(x + barWidth / 2 - focus)
+                if distance < reach { h *= 1 + 0.3 * lift * (1 + cos(.pi * distance / reach)) / 2 }
+            }
+            let bar = CGRect(x: x, y: rect.midY - h / 2, width: barWidth, height: h)
+            path.addRoundedRect(in: bar, cornerSize: CGSize(width: barWidth / 2, height: barWidth / 2), style: .continuous)
+        }
+        return path
+    }
+}
+
+// MARK: - Touch
+
+/// What the finger does on the capsule, in its coordinates.
+private enum WaveformScrubTouch {
+    case press(CGFloat)
+    case move(CGFloat)
+    case end(CGFloat, tapped: Bool)
+    case cancel
+}
+
+/// The capsule's touches, from a UIKit recognizer: SwiftUI's drag would claim a vertical drag that should scroll.
+private struct WaveformScrubTouchLayer: UIViewRepresentable {
+    let isEnabled: Bool
+    let onTouch: (WaveformScrubTouch) -> Void
+
+    func makeUIView(context: Context) -> WaveformScrubTouchView { WaveformScrubTouchView() }
+
+    func updateUIView(_ view: WaveformScrubTouchView, context: Context) {
+        view.recognizer.onTouch = onTouch
+        view.recognizer.isEnabled = isEnabled
+    }
+}
+
+private final class WaveformScrubTouchView: UIView, UIGestureRecognizerDelegate {
+    let recognizer = WaveformScrubRecognizer()
+
+    init() {
+        super.init(frame: .zero)
+        backgroundColor = .clear
+        isAccessibilityElement = false
+        accessibilityElementsHidden = true
+        recognizer.delegate = self
+        addGestureRecognizer(recognizer)
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) { fatalError("init(coder:) is not supported") }
+
+    // Pans around it (a scroll view, a sheet's drag to dismiss, the back swipe) wait for the scrub to fail, which it
+    // does as soon as a drag turns out to be vertical, so they still scroll; a sideways drag scrubs.
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldBeRequiredToFailBy other: UIGestureRecognizer) -> Bool {
+        other.view !== self && other is UIPanGestureRecognizer
+    }
+}
+
+/// One finger on the waveform. It shows the press at once, or after a short wait inside a scroll view so a scroll
+/// never flashes the scrub; it begins on a sideways move, fails on a vertical one, and a lift before either is a tap.
+private final class WaveformScrubRecognizer: UIGestureRecognizer {
+    var onTouch: ((WaveformScrubTouch) -> Void)?
+    private var tracked: ObjectIdentifier?
+    private var start: CGPoint = .zero
+    private var pressed = false
+    private var waiting: Task<Void, Never>?
+
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent) {
+        super.touchesBegan(touches, with: event)
+        // A second finger changes nothing once one is tracked; two at once are not a scrub.
+        guard tracked == nil else { return }
+        guard touches.count == 1, let touch = touches.first, let view else { return fail() }
+        tracked = ObjectIdentifier(touch)
+        start = touch.location(in: view)
+        if insideScrollView {
+            waiting = Task { @MainActor [weak self] in
+                try? await Task.sleep(for: .milliseconds(110))
+                guard let self, !Task.isCancelled, self.state == .possible, !self.pressed else { return }
+                self.press()
+            }
+        } else {
+            press()
+        }
+    }
+
+    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent) {
+        super.touchesMoved(touches, with: event)
+        guard let touch = touches.first(where: { ObjectIdentifier($0) == tracked }), let view else { return }
+        let point = touch.location(in: view)
+        switch state {
+        case .possible:
+            let dx = point.x - start.x, dy = point.y - start.y
+            if abs(dx) >= 6, abs(dx) > abs(dy) {
+                waiting?.cancel()
+                if !pressed { press() }
+                state = .began
+                onTouch?(.move(point.x))
+            } else if abs(dy) >= 8 {
+                fail()
+            }
+        case .began, .changed:
+            state = .changed
+            onTouch?(.move(point.x))
+        default:
+            break
+        }
+    }
+
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent) {
+        super.touchesEnded(touches, with: event)
+        guard let touch = touches.first(where: { ObjectIdentifier($0) == tracked }), let view else { return }
+        waiting?.cancel()
+        let x = touch.location(in: view).x
+        switch state {
+        case .possible:
+            onTouch?(.end(x, tapped: !pressed))
+            state = .ended
+        case .began, .changed:
+            onTouch?(.end(x, tapped: false))
+            state = .ended
+        default:
+            break
+        }
+    }
+
+    override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent) {
+        super.touchesCancelled(touches, with: event)
+        guard touches.contains(where: { ObjectIdentifier($0) == tracked }) else { return }
+        waiting?.cancel()
+        if pressed { onTouch?(.cancel) }
+        state = state == .possible ? .failed : .cancelled
+    }
+
+    override func reset() {
+        super.reset()
+        waiting?.cancel()
+        waiting = nil
+        tracked = nil
+        pressed = false
+    }
+
+    private func press() {
+        pressed = true
+        onTouch?(.press(start.x))
+    }
+
+    private func fail() {
+        waiting?.cancel()
+        if pressed { onTouch?(.cancel) }
+        pressed = false
+        state = .failed
+    }
+
+    /// Whether a scroll view holds this one, so a press waits a beat to see if the finger is scrolling.
+    private var insideScrollView: Bool {
+        var next = view?.superview
+        while let current = next {
+            if let scroll = current as? UIScrollView, scroll.isScrollEnabled { return true }
+            next = current.superview
+        }
+        return false
+    }
+}
+
+// MARK: - Reading a file
+
+extension WaveformScrub {
+    /// The waveform of an audio file, for `samples`: the peak of each of `count` equal stretches of the file, scaled so
+    /// the loudest is 1.
+    ///
+    /// Reads and decodes the file in chunks on a background thread, never the main actor, so a long recording doesn't
+    /// stall the interface; cancelling the calling task stops the read. Any format `AVAudioFile` opens works (m4a,
+    /// caf, wav, mp3). A silent file returns zeros; an empty one returns an empty array.
+    ///
+    /// ```swift
+    /// .task(id: note.url) { samples = (try? await WaveformScrub.samples(from: note.url)) ?? [] }
+    /// ```
+    ///
+    /// - Parameters:
+    ///   - url: A local audio file.
+    ///   - count: How many samples to return. 160 is plenty for a phone-width waveform; the view resamples to the bars that fit.
+    nonisolated public static func samples(from url: URL, count: Int = 160) async throws -> [Float] {
+        guard count > 0 else { return [] }
+        let read = Task.detached(priority: .utility) { try WaveformScrubReader.peaks(of: url, count: count) }
+        return try await withTaskCancellationHandler {
+            try await read.value
+        } onCancel: {
+            read.cancel()
+        }
+    }
+}
+
+private enum WaveformScrubReader {
+    nonisolated static func peaks(of url: URL, count: Int) throws -> [Float] {
+        let file = try AVAudioFile(forReading: url)
+        let format = file.processingFormat
+        let total = file.length
+        guard total > 0, count > 0 else { return [] }
+        let chunk: AVAudioFrameCount = 32_768
+        guard let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: chunk) else { return [] }
+        let buckets = Int64(count)
+        var peaks = [Float](repeating: 0, count: count)
+        var position: Int64 = 0
+        while position < total {
+            try Task.checkCancellation()
+            try file.read(into: buffer, frameCount: AVAudioFrameCount(min(Int64(chunk), total - position)))
+            let frames = Int(buffer.frameLength)
+            guard frames > 0, let channels = buffer.floatChannelData else { break }
+            var i = 0
+            while i < frames {
+                // The bucket this frame falls in, and how many of the chunk's frames are still in it.
+                let frame = position + Int64(i)
+                let bucket = min(frame * buckets / total, buckets - 1)
+                let end = ((bucket + 1) * total + buckets - 1) / buckets
+                let run = max(min(Int(end - frame), frames - i), 1)
+                for c in 0..<Int(format.channelCount) {
+                    var peak: Float = 0
+                    vDSP_maxmgv(channels[c] + i, 1, &peak, vDSP_Length(run))
+                    if peak > peaks[Int(bucket)] { peaks[Int(bucket)] = peak }
                 }
+                i += run
             }
+            position += Int64(frames)
+        }
+        let loudest = peaks.max() ?? 0
+        guard loudest > 0 else { return peaks }
+        return peaks.map { min($0 / loudest, 1) }
     }
+}
 
-    private func fraction(at x: CGFloat, width: CGFloat) -> Double {
-        let raw = x / max(width, 1)
-        let directed = layoutDirection == .rightToLeft ? 1 - raw : raw
-        let banded = PieceMotion.rubberBand(CGFloat(directed), in: 0...1, limit: 0.06)
-        return Double(banded)
-    }
-
-    private var timeLabel: String {
-        let seconds = Int((progress * duration).rounded())
-        return String(format: "%d:%02d", seconds / 60, seconds % 60)
-    }
-
-    /// One tick per loud peak the playhead enters. Quiet bars and a peak it is already on stay silent.
-    private func notePeaks(_ value: Double) {
-        guard haptics, !samples.isEmpty else { return }
-        let index = min(max(Int((value * Double(samples.count - 1)).rounded()), 0), samples.count - 1)
-        guard index != lastPeak else { return }
-        let previous = lastPeak
-        lastPeak = index
-        guard previous >= 0, samples[index] >= 0.82 else { return }
-        peaks += 1
-    }
-
-    public static func adaptive(light: UInt32, dark: UInt32) -> Color {
-        Style.adaptive(light: light, dark: dark)
-    }
+/// A house-palette colour that follows the interface style.
+private func waveformScrubColor(light: UInt32, dark: UInt32) -> Color {
+    Color(uiColor: UIColor { @Sendable traits in
+        let hex = traits.userInterfaceStyle == .dark ? dark : light
+        return UIColor(red: CGFloat((hex >> 16) & 0xFF) / 255, green: CGFloat((hex >> 8) & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
+    })
 }
 
 // MARK: - Example
 
-/// A short spoken note: it plays, the playhead coasts through the loud peaks, and a drag takes over.
+/// A 42 second voice note with a speed chip. The task stands in for your audio player: it moves the time on while
+/// playing, at the chosen speed, and stops at the end.
 private struct WaveformScrubExample: View {
-    @State private var progress = 0.18
-    @State private var playing = true
+    @State private var time: TimeInterval = 0
+    @State private var isPlaying = false
+    @State private var rate = 1.0
+    private let duration: TimeInterval = 42
 
     var body: some View {
-        WaveformScrub(samples: Self.samples, progress: $progress, isPlaying: $playing, duration: 16)
-            .padding(.horizontal, 24)
-            .frame(maxWidth: 420)
+        WaveformScrub(samples: Self.samples, duration: duration, time: time, isPlaying: isPlaying, rate: $rate,
+                      onPlayPause: { isPlaying.toggle() }, onSeek: { time = $0 })
+            .padding(.horizontal, 20)
+            .frame(maxWidth: 440)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background { WaveformBackdrop() }
-    }
-
-    /// A handwritten envelope: quiet, a few loud words, quiet again.
-    private static let samples: [Double] = [
-        0.15, 0.22, 0.18, 0.4, 0.72, 0.95, 0.66, 0.3, 0.2, 0.16,
-        0.28, 0.55, 0.88, 0.7, 0.34, 0.18, 0.14, 0.2, 0.48, 0.9,
-        0.84, 0.4, 0.22, 0.16, 0.18, 0.36, 0.6, 0.44, 0.2, 0.12,
-    ]
-}
-
-private struct WaveformBackdrop: View {
-    var body: some View {
-        GeometryReader { proxy in
-            let w = proxy.size.width, h = proxy.size.height
-            ZStack {
-                WaveformScrub.adaptive(light: 0xF3F2EE, dark: 0x121212)
-                Capsule().fill(Color(red: 0.804, green: 0.722, blue: 1)).frame(width: w * 0.86, height: h * 0.22).position(x: w * 0.5, y: h * 0.34)
-                Circle().fill(Color(red: 1, green: 0.851, blue: 0.463)).frame(width: w * 0.46).position(x: w * 0.18, y: h * 0.7)
+            .background(waveformScrubColor(light: 0xF3F2EE, dark: 0x121212))
+            .task(id: isPlaying) {
+                while isPlaying, !Task.isCancelled {
+                    try? await Task.sleep(for: .milliseconds(250))
+                    guard isPlaying else { break }
+                    time = min(time + 0.25 * rate, duration)
+                    if time >= duration { isPlaying = false }
+                }
             }
-        }
-        .ignoresSafeArea()
-        .accessibilityHidden(true)
     }
+
+    /// A spoken note: five phrases with short pauses between them.
+    static let samples: [Float] = [
+        0.05, 0.32, 0.45, 0.27, 0.6, 0.8, 0.17, 0.42, 0.55, 0.22, 0.78, 0.99, 0.06, 0.04, 0.37, 0.49, 0.25,
+        0.67, 0.83, 0.29, 0.5, 0.63, 0.22, 0.31, 0.37, 0.19, 0.59, 0.73, 0.05, 0.04, 0.26, 0.33, 0.27, 0.47,
+        0.6, 0.26, 0.73, 0.88, 0.06, 0.06, 0.46, 0.54, 0.29, 0.67, 0.84, 0.2, 0.33, 0.41, 0.22, 0.72, 0.91,
+        0.28, 0.49, 0.62, 0.05, 0.06, 0.38, 0.46, 0.23, 0.55, 0.68, 0.23, 0.27, 0.35, 0.05,
+    ]
 }
 
 #Preview("Light") {
     WaveformScrubExample()
-        .preferredColorScheme(.light)
 }
 
 #Preview("Dark") {
@@ -366,7 +1075,7 @@ private struct WaveformBackdrop: View {
 // The SwiftPieces motion language: shared spring tokens and gesture physics, with the same values in every
 // piece. Each piece carries a copy of only the parts it uses, so this file stands alone. Generated from
 // registry/foundation/PieceMotion.swift in the SwiftPieces repo; edit it there, not here.
-// swiftpieces-motion: 1.1.0 (core, momentum, rubberBand, pressMath)
+// swiftpieces-motion: 1.1.0 (core, pressMath)
 
 /// The SwiftPieces motion language: five spring tiers, and a named role for every moment a piece moves,
 /// each with its Reduce Motion substitute.
@@ -435,48 +1144,6 @@ private struct PieceMotion {
 }
 
 extension PieceMotion {
-    /// Where a flick at `velocity` (pt/s) coasts to. 0.998 coasts like a scroll view; 0.99 suits detents.
-    nonisolated static func project(_ position: CGFloat, velocity: CGFloat, decelerationRate: CGFloat = 0.99) -> CGFloat {
-        position + velocity / 1000 * decelerationRate / (1 - decelerationRate)
-    }
-
-    /// The candidate closest to `value`.
-    nonisolated static func nearest(_ value: CGFloat, in candidates: [CGFloat]) -> CGFloat {
-        candidates.min { abs($0 - value) < abs($1 - value) } ?? value
-    }
-
-    /// A settle that leaves at the finger's speed (pt/s). One per axis, each on its own `.offset(x:)` / `.offset(y:)`:
-    /// a spring takes one velocity. SwiftUI's own velocity carry-over is unreliable; this always carries it.
-    func settle(velocity: CGFloat, from current: CGFloat, to target: CGFloat, spring: Spring = PieceMotion.elastic) -> Animation {
-        let spring = reduceMotion ? Spring(duration: 0.25, bounce: 0) : spring
-        let distance = target - current
-        guard abs(distance) >= 1 else { return .spring(spring) }
-        // In whole distances per second, capped near the spring's frequency: a hard flick adds give, not a slingshot.
-        // At exactly the frequency a critically damped spring cannot pass its target, so Reduce Motion stops there.
-        let cap = 2 * Double.pi / spring.duration * (reduceMotion ? 1 : 1.5)
-        let relative = min(max(Double(velocity / distance), -cap), cap)
-        return .interpolatingSpring(spring, initialVelocity: relative)
-    }
-}
-
-extension PieceMotion {
-    /// A scroll view's edge resistance for a pull `overshoot` points past a limit; never reaches `limit`.
-    /// About 24 to 40 for thumbs and toggles, 60 to 120 for cards and sheets. Band the total pull, not deltas.
-    nonisolated static func rubberBand(_ overshoot: CGFloat, limit: CGFloat, coefficient: CGFloat = 0.55) -> CGFloat {
-        guard limit > 0, overshoot != 0 else { return 0 }
-        let banded = (1 - 1 / (abs(overshoot) * coefficient / limit + 1)) * limit
-        return overshoot < 0 ? -banded : banded
-    }
-
-    /// `value` inside `range` passes through unchanged; past either end it moves with rubber-band resistance.
-    nonisolated static func rubberBand(_ value: CGFloat, in range: ClosedRange<CGFloat>, limit: CGFloat, coefficient: CGFloat = 0.55) -> CGFloat {
-        if value < range.lowerBound { return range.lowerBound + rubberBand(value - range.lowerBound, limit: limit, coefficient: coefficient) }
-        if value > range.upperBound { return range.upperBound + rubberBand(value - range.upperBound, limit: limit, coefficient: coefficient) }
-        return value
-    }
-}
-
-extension PieceMotion {
     /// About `depth` points per edge, not a fixed percentage: an icon sinks to 0.92, a pill 0.95, a card 0.985.
     nonisolated static func pressScale(for size: CGSize, depth: CGFloat = 2.5) -> CGFloat {
         let side = (max(size.width, 1) * max(size.height, 1)).squareRoot()
@@ -500,7 +1167,7 @@ extension PieceMotion {
 // and melt back into each other, and the frosted fallback before iOS 26. Each piece carries a copy of only
 // the parts it uses, so this file stands alone. Generated from registry/foundation/PieceLiquid.swift in the
 // SwiftPieces repo; edit it there, not here. The rules are in LIQUID_GLASS.md.
-// swiftpieces-liquid: 1.7.0 (liquid, liquidPress, liquidPop, bud)
+// swiftpieces-liquid: 1.7.1 (liquid, liquidPress, bud, morphText)
 
 /// The liquid glass language: one merge distance, two rest gaps, and the springs a bubble leaves and comes home on.
 ///
@@ -690,43 +1357,6 @@ private extension View {
     }
 }
 
-/// `piecePop` for glass: dips, swells past full size and lands each time `trigger` changes, on the same timings,
-/// through `pieceLiquidScale` so the glass and what it carries pop together. Driven from state rather than a
-/// keyframe animator, since the liquid scale can't be set from inside one. Still under Reduce Motion.
-private struct PieceLiquidPop: ViewModifier {
-    let trigger: AnyHashable
-    var amount: CGFloat = 0.08
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var scale: CGFloat = 1
-    @State private var run = 0
-
-    func body(content: Content) -> some View {
-        content
-            .pieceLiquidScale(scale)
-            .onChange(of: trigger) { _, _ in
-                guard !reduceMotion else { return }
-                run += 1
-                let mine = run
-                withAnimation(.easeInOut(duration: 0.08)) { scale = 1 - amount * 0.4 }
-                Task { @MainActor in
-                    try? await Task.sleep(for: .milliseconds(80))
-                    guard run == mine else { return }
-                    withAnimation(.spring(duration: 0.18, bounce: 0)) { scale = 1 + amount }
-                    try? await Task.sleep(for: .milliseconds(140))
-                    guard run == mine else { return }
-                    withAnimation(.spring(PieceMotion.expressive)) { scale = 1 }
-                }
-            }
-    }
-}
-
-private extension View {
-    /// Pops this view's glass each time `trigger` changes. Use a counter, never a Bool that can flip back before it fires.
-    func pieceLiquidPop(trigger: some Hashable & Sendable, amount: CGFloat = 0.08) -> some View {
-        modifier(PieceLiquidPop(trigger: AnyHashable(trigger), amount: amount))
-    }
-}
-
 /// The bud: how a bubble leaves and rejoins its parent, driven explicitly so every bubble shows the whole cycle.
 ///
 /// A bubble is born at `home`, inside its parent, where the two glass shapes are one. It springs out to `rest`, and
@@ -842,6 +1472,77 @@ private final class PieceBuds {
         var quiet = Transaction()
         quiet.disablesAnimations = true
         withTransaction(quiet) { present.removeAll { ids.contains($0) && !out.contains($0) && turn[$0] == mine[$0] } }
+    }
+}
+
+/// A label that changes letter by letter: letters both strings share hold still, the rest blur out and the new ones
+/// blur in a few milliseconds apart. Under Reduce Motion it cross-fades. VoiceOver reads the whole string.
+///
+/// Only text whose letters stand on their own is cut into letters: Latin, Greek, Cyrillic, CJK, digits and symbols.
+/// Those letters are laid out left to right whatever the layout direction, the order they read in, so "1.5×" stays
+/// "1.5×" in an Arabic or Hebrew interface instead of coming out backwards. Text in a right-to-left script, or in one
+/// whose letters join or reorder (Arabic, Hebrew, Devanagari, Thai and their neighbours), can't be cut apart without
+/// breaking it, so it changes as one: the old string blurs out where it stood while the new one blurs in.
+private struct PieceMorphText: View {
+    var text: String
+    var font: Font = .body.weight(.semibold)
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        Group {
+            if Self.splits(text) {
+                let glyphs = Array(text)
+                HStack(spacing: 0) {
+                    ForEach(glyphs.indices, id: \.self) { i in
+                        Text(String(glyphs[i]))
+                            .id("\(i)\(glyphs[i])")
+                            .transition(transition(i, scale: 0.6))
+                    }
+                }
+                // The letters' reading order, not the layout's: an HStack lays its children out backwards under a
+                // right-to-left layout.
+                .environment(\.layoutDirection, .leftToRight)
+            } else {
+                ZStack(alignment: .leading) {
+                    Text(text)
+                        .id(text)
+                        .transition(transition(0, scale: 0.9))
+                }
+            }
+        }
+        .font(font)
+        .fixedSize()
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(text)
+    }
+
+    private func transition(_ i: Int, scale: CGFloat) -> AnyTransition {
+        guard !reduceMotion else { return .opacity }
+        return AnyTransition(.blurReplace(.downUp)).combined(with: .scale(scale: scale, anchor: .bottom))
+            .animation(.spring(duration: 0.42, bounce: 0.3).delay(Double(i) * 0.022))
+    }
+
+    /// Whether `text` can be cut into letters that each read left to right on their own: no right-to-left script, no
+    /// script that joins or reorders its letters, and no bidirectional control characters.
+    private static func splits(_ text: String) -> Bool {
+        !text.unicodeScalars.contains { scalar in
+            switch scalar.value {
+            case 0x0590...0x08FF, // Hebrew, Arabic, Syriac, Thaana, NKo, Samaritan, Mandaic
+                 0x0900...0x0DFF, // Devanagari to Sinhala
+                 0x0E00...0x0FFF, // Thai, Lao, Tibetan
+                 0x1000...0x109F, // Myanmar
+                 0x1780...0x17FF, // Khmer
+                 0xA8E0...0xA8FF, // Devanagari Extended
+                 0xFB1D...0xFDFF, // Hebrew and Arabic presentation forms
+                 0xFE70...0xFEFF, // Arabic presentation forms B
+                 0x200E...0x200F, 0x202A...0x202E, 0x2066...0x2069, // bidirectional marks, embeddings and isolates
+                 0x10800...0x10FFF, // historic right-to-left scripts
+                 0x1E800...0x1EFFF: // Adlam and other right-to-left scripts
+                return true
+            default:
+                return false
+            }
+        }
     }
 }
 

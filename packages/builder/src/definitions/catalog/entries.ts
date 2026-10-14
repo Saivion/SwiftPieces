@@ -432,10 +432,10 @@ const elements: CatalogEntry[] = [
   free({
     kind: "elements", slug: "media", title: "Media", category: "Content",
     summary: "Images, carousels, stories, link previews, attachments, a cropper and avatars.",
-    description: "Visual content: image tiles, a paging carousel, a depth carousel, a story player, a link preview card, a tray of photo attachments, a photo cropper with aspect presets, a stack of avatars that fans out, and avatars with status.",
-    try: ["Swipe the carousels", "Tap the story to skip ahead", "Add a photo to the tray", "Pinch the photo in the cropper", "Tap the avatar stack"],
+    description: "Visual content: image tiles, a paging carousel, a depth carousel, a story player, a link preview card, a tray of photo attachments, a photo cropper with aspect presets, a voice note you scrub, a hold-to-record voice message button, a mini player that opens into the full player, a stack of avatars that fans out, and avatars with status.",
+    try: ["Swipe the carousels", "Tap the story to skip ahead", "Add a photo to the tray", "Pinch the photo in the cropper", "Hold the mic to record a voice message", "Tap the avatar stack"],
     interactions: ["swipe", "tap"],
-    components: ["image", "page-carousel", "depth-carousel", "story-strip", "link-preview", "attachment-tray", "photo-cropper", "fan-stack", "waveform-scrub", "image-compare", "now-playing", "avatar"],
+    components: ["image", "page-carousel", "depth-carousel", "story-strip", "link-preview", "attachment-tray", "photo-cropper", "fan-stack", "waveform-scrub", "voice-recorder", "now-playing", "avatar"],
     keywords: ["swiftui carousel", "swiftui image gallery", "swiftui stories"],
   }),
 ];

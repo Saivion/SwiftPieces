@@ -1,284 +1,1094 @@
 // swiftpieces:
 // title: Step Trail
-// description: "A row of glass stops with one capsule that carries the step you are on. Drag the capsule or flick the page: it follows your finger, stretches halfway between stops, rubber-bands past the ends and lands with the flick's speed while the title morphs. The stop it rests on grows from a dot into a labeled capsule, joined to its neighbours only while it is passing them."
+// description: "A liquid glass progress trail for checkout, booking, account setup and verification flows: every step a glass stop joined to the next by a short neck, done steps carrying a check, the current step a red capsule with its number and title, steps people already reached in full text and the rest muted; moving on stretches the red from one stop to the next and gathers it there while the old title blurs into a check, a tap goes back to any step already reached, a tap ahead of that shakes the stop and nothing moves, a sideways drag carries the capsule stop by stop with a tick each and gives at the last step it may reach, and when the titles don't fit the capsule keeps its number, the caption names the step and the stops shrink rather than wrap or clip."
 // category: navigation
 // minIOSVersion: "17.0"
 // version: "1.0.0"
 // added: "2026-10-12"
-// tags: [steps, pager, onboarding, glass, morph, drag, haptics]
+// tags: [steps, progress, checkout, wizard, onboarding, booking, navigation, glass, haptics, accessibility]
 
 import SwiftUI
+import UIKit
+import UIKit.UIGestureRecognizerSubclass
 
-/// A paged step with a glass capsule you can throw along a trail of stops.
+/// A step progress indicator for multi-step flows that shows where you are, what is done, and lets people go back
+/// without letting them jump ahead of what they have filled in.
 ///
-/// `selection` is the id of the current step. Dragging the trail or the page sets a continuous position and
-/// releases onto a stop. The page's title morphs; its detail fades with the landing.
+/// The stops are liquid glass resting joined, so the whole trail reads as one shape with short necks. Done steps
+/// carry a check, the current step is a red capsule with its number and title, steps people have already reached
+/// beyond the current one show their number in full text, and steps not reached yet show it muted. Moving to another
+/// step stretches the red from one stop to the other, its leading edge first, and gathers it there, while the titles
+/// and checks blur over.
+///
+/// Tap a done or reached step to go there. A tap on a step that hasn't been reached shakes that stop and nothing
+/// moves. Drag sideways along the trail to carry the capsule across the reachable steps, with a tick on each; it
+/// gives at the last one it may reach and lands where you let go. Vertical swipes still scroll the screen.
+///
+/// When the trail doesn't fit, the capsule drops its title (the caption names the step instead), and then the stops
+/// shrink. It never wraps and never clips. The trail hugs its content and starts at the leading edge, keeping the
+/// width of its widest step so nothing around it moves.
 ///
 /// - Parameters:
-///   - steps: Stops in order. Each has a title, an SF Symbol and a sentence of detail.
-///   - selection: Id of the selected step.
-///   - haptics: A selection tick each time the capsule lands on or crosses a stop.
-///   - style: Ink, muted detail and the capsule tint. `.standard` paints the capsule in signal red.
+///   - steps: The step titles, in order, such as `["Cart", "Address", "Payment", "Review"]`. They show in the current step's capsule and are read by VoiceOver. An empty list draws nothing. Titles longer than `Style.maximumTitleWidth` truncate in the capsule.
+///   - selection: The index of the current step. A tap, a drag or VoiceOver writes it; set it yourself to move on (a Continue button). `steps.count` shows every step done, for the moment a flow completes. Values outside `0...steps.count` are drawn clamped.
+///   - reached: The furthest step people have filled in, so they can return forward to it after going back. Steps up to it stay tappable and show their number in full text. `nil` (the default) is the selection, so only earlier steps can be revisited. Keep it in your own state, for example `furthest = max(furthest, step)`.
+///   - showsCaption: Shows a quiet caption under the trail, such as "Step 2 of 4". When the titles don't fit in the trail, the caption names the current step too.
+///   - messages: The built-in copy: the VoiceOver label ("Progress"), the caption, the spoken value, the finished state and the VoiceOver actions. Defaults are localizable through your String Catalog.
+///   - style: Colors and size. Defaults to the SwiftPieces house palette (a red current step on neutral glass), adapting to light and dark.
 public struct StepTrail: View {
-    /// One stop on the trail.
-    public struct Step: Identifiable, Hashable, Sendable {
-        public var id: String
-        public var title: String
-        public var symbol: String
-        public var detail: String
-
-        public init(id: String, title: String, symbol: String, detail: String) {
-            self.id = id
-            self.title = title
-            self.symbol = symbol
-            self.detail = detail
-        }
-    }
-
+    /// Colors and size. `.standard` is the house palette.
     public struct Style: Sendable {
-        public var ink: Color
-        public var muted: Color
+        /// The current step's capsule, painted inside its glass. Red in the house palette, and the only red.
         public var accent: Color
+        /// The number and title on the accent.
+        public var accentInk: Color
+        /// Checks on done steps, numbers of reached steps and the caption's step title.
+        public var label: Color
+        /// Numbers of steps not reached yet, and the caption.
+        public var secondaryLabel: Color
+        /// The stop diameter and capsule height at the default text size, at least 28. It follows Dynamic Type.
+        public var height: CGFloat
+        /// The longest a title runs in the capsule before it truncates, at the default text size.
+        public var maximumTitleWidth: CGFloat
 
-        public init(
-            ink: Color = Style.adaptive(light: 0x141414, dark: 0xF4F3EF),
-            muted: Color = Style.adaptive(light: 0x5C5A56, dark: 0xA6A49F),
-            accent: Color = Color(red: 1, green: 0, blue: 0)
-        ) {
-            self.ink = ink
-            self.muted = muted
-            self.accent = accent
+        /// Pass only what you want to change; `nil` keeps the house palette value.
+        public init(accent: Color? = nil, accentInk: Color? = nil, label: Color? = nil, secondaryLabel: Color? = nil, height: CGFloat = 34, maximumTitleWidth: CGFloat = 160) {
+            self.accent = accent ?? Color(red: 1, green: 0, blue: 0)
+            self.accentInk = accentInk ?? stepTrailColor(light: 0x141414, dark: 0x141414)
+            self.label = label ?? stepTrailColor(light: 0x141414, dark: 0xF4F3EF)
+            self.secondaryLabel = secondaryLabel ?? stepTrailColor(light: 0x5C5A56, dark: 0xA6A49F)
+            self.height = max(height, 28)
+            self.maximumTitleWidth = max(maximumTitleWidth, 40)
         }
 
         public static let standard = Style()
+    }
 
-        /// A color that follows the appearance, from two 0xRRGGBB values.
-        public static func adaptive(light: UInt32, dark: UInt32) -> Color {
-            Color(UIColor { @Sendable traits in
-                let hex = traits.userInterfaceStyle == .dark ? dark : light
-                return UIColor(red: CGFloat(hex >> 16 & 0xFF) / 255, green: CGFloat(hex >> 8 & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
-            })
+    /// The trail's copy. Every default goes through `String(localized:)`, so it can be translated in your String
+    /// Catalog, and any line can be replaced: `.init(label: "Checkout progress")`.
+    public struct Messages: Sendable {
+        /// What VoiceOver calls the trail.
+        public var label: String
+        /// The caption under the trail, such as "Step 2 of 4".
+        public var caption: @Sendable (_ position: Int, _ count: Int) -> String
+        /// What VoiceOver reads as the trail's value, such as "Step 2 of 4, Address".
+        public var value: @Sendable (_ position: Int, _ count: Int, _ title: String) -> String
+        /// The caption and the spoken value once every step is done.
+        public var complete: String
+        /// The VoiceOver action that goes to a step, such as "Go to Cart".
+        public var goTo: @Sendable (_ title: String) -> String
+
+        /// Pass only the lines you want to change.
+        public init(
+            label: String = String(localized: "Progress", comment: "Step trail: what VoiceOver calls the trail"),
+            caption: @escaping @Sendable (_ position: Int, _ count: Int) -> String = { position, count in
+                String(localized: "Step \(position) of \(count)", comment: "Step trail caption, such as Step 2 of 4")
+            },
+            value: @escaping @Sendable (_ position: Int, _ count: Int, _ title: String) -> String = { position, count, title in
+                String(localized: "Step \(position) of \(count), \(title)", comment: "Step trail value read by VoiceOver, such as Step 2 of 4, Address")
+            },
+            complete: String = String(localized: "Complete", comment: "Step trail caption and value once every step is done"),
+            goTo: @escaping @Sendable (_ title: String) -> String = { title in
+                String(localized: "Go to \(title)", comment: "Step trail VoiceOver action that goes to a step, such as Go to Cart")
+            }
+        ) {
+            self.label = label
+            self.caption = caption
+            self.value = value
+            self.complete = complete
+            self.goTo = goTo
         }
+
+        public static var standard: Messages { Messages() }
     }
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.layoutDirection) private var layoutDirection
-    @Binding private var selection: String
-    @State private var index: CGFloat = 0
-    @State private var dragging = false
-    @State private var origin: CGFloat?
-    @State private var crossings = 0
-    @State private var landed = 0
+    @Environment(\.isEnabled) private var isEnabled
+    /// How far the stops and their text follow Dynamic Type.
+    @ScaledMetric(relativeTo: .subheadline) private var textScale: CGFloat = 1
+    @ScaledMetric(relativeTo: .footnote) private var captionSize: CGFloat = 13
+    @Binding private var selection: Int
 
-    private let steps: [Step]
-    private let haptics: Bool
+    private let steps: [String]
+    private let reached: Int?
+    private let showsCaption: Bool
+    private let messages: Messages
     private let style: Style
 
-    public init(steps: [Step], selection: Binding<String>, haptics: Bool = true, style: Style = .standard) {
+    /// The step drawn as current: the selection, or the stop a drag is over. `steps.count` once every step is done.
+    @State private var shown: Int
+    /// How open each stop is, 0 a circle and 1 the capsule with its title. Animated on its own spring.
+    @State private var open: StepTrailOpenness
+    /// The red puck's two edges as step positions, each sprung on its own so the puck stretches between stops.
+    @State private var lowerEdge: Double
+    @State private var upperEdge: Double
+    /// How far, in points, a dragging finger pulls the puck's facing edge. Set directly under the finger.
+    @State private var pull: Double = 0
+    /// The stop a drag is over, while one is.
+    @State private var scrubbing: Int?
+    @State private var grabbed = false
+    @State private var pressed: Int?
+    @State private var pushing = false
+    /// Each refused stop's shake count.
+    @State private var shakes: [Int: Int] = [:]
+    @State private var titleWidths: [Int: CGFloat] = [:]
+    @State private var landings = 0
+    @State private var refusals = 0
+    @State private var completions = 0
+
+    public init(steps: [String], selection: Binding<Int>, reached: Int? = nil, showsCaption: Bool = true, messages: Messages = .standard, style: Style = .standard) {
         self.steps = steps
         self._selection = selection
-        self.haptics = haptics
+        self.reached = reached
+        self.showsCaption = showsCaption
+        self.messages = messages
         self.style = style
-        let start = CGFloat(steps.firstIndex(where: { $0.id == selection.wrappedValue }) ?? 0)
-        self._index = State(initialValue: start)
-        self._landed = State(initialValue: Int(start))
+        let count = steps.count
+        let start = min(max(selection.wrappedValue, 0), count)
+        self._shown = State(initialValue: start)
+        self._open = State(initialValue: StepTrailOpenness(open: start, count: count))
+        let edge = Double(min(start, max(count - 1, 0)))
+        self._lowerEdge = State(initialValue: edge)
+        self._upperEdge = State(initialValue: edge)
     }
 
     public var body: some View {
-        let motion = PieceMotion(reduceMotion: reduceMotion)
-        VStack(alignment: .leading, spacing: 22) {
-            page
+        if steps.isEmpty {
+            EmptyView()
+        } else {
             trail
-                .frame(height: 56)
         }
-        .fontWeight(.semibold)
-        .sensoryFeedback(.selection, trigger: crossings)
-        .onChange(of: selection) { _, id in
-            guard let next = steps.firstIndex(where: { $0.id == id }) else { return }
-            guard !dragging else { return }
-            withAnimation(motion.snap) { index = CGFloat(next) }
-        }
-        .onChange(of: index) { _, new in
-            let step = clamped(new)
-            guard step != landed else { return }
-            landed = step
-            if dragging, haptics { crossings += 1 }
-            let id = steps[step].id
-            if selection != id { selection = id }
-        }
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel("Steps")
-        .accessibilityValue(spoken)
-        .accessibilityAdjustableAction { direction in
-            let next = landed + (direction == .increment ? 1 : -1)
-            guard steps.indices.contains(next) else { return }
-            withAnimation(motion.snap) { index = CGFloat(next) }
-        }
-    }
-
-    private var spoken: String {
-        guard steps.indices.contains(landed) else { return "" }
-        let step = steps[landed]
-        return "\(step.title), \(landed + 1) of \(steps.count). \(step.detail)"
-    }
-
-    private func clamped(_ value: CGFloat) -> Int {
-        guard !steps.isEmpty else { return 0 }
-        return min(max(Int(value.rounded()), 0), steps.count - 1)
-    }
-
-    private var page: some View {
-        let motion = PieceMotion(reduceMotion: reduceMotion)
-        let step = steps.isEmpty ? nil : steps[clamped(index)]
-        return VStack(alignment: .leading, spacing: 8) {
-            if let step {
-                HStack(spacing: 8) {
-                    Image(systemName: step.symbol)
-                        .font(.body.weight(.semibold))
-                        .foregroundStyle(style.accent)
-                    PieceMorphText(text: step.title, font: .title3.weight(.semibold))
-                }
-                Text(step.detail)
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(style.muted)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .id(step.id)
-                    .transition(motion.transition(.opacity))
-            }
-        }
-        .foregroundStyle(style.ink)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .frame(minHeight: 88, alignment: .topLeading)
-        .contentShape(Rectangle())
-        .gesture(throwPage)
-        .animation(dragging ? nil : motion.morph, value: landed)
     }
 
     private var trail: some View {
-        GeometryReader { proxy in
-            let count = max(steps.count, 1)
-            let slot = proxy.size.width / CGFloat(count)
-            let between = abs(index - index.rounded())
-            let width = min(slot * 0.86 + between * slot * 0.7, proxy.size.width - 8)
-            let center = (index + 0.5) * slot
-            let leading = layoutDirection == .rightToLeft ? proxy.size.width - center - width / 2 : center - width / 2
-            PieceLiquidGroup {
-            ZStack(alignment: .leading) {
-                HStack(spacing: 0) {
-                    ForEach(steps) { step in
-                        Circle()
-                            .fill(Color.clear)
-                            .frame(width: 14, height: 14)
-                            .pieceLiquid(Circle(), interactive: false)
-                            .frame(width: slot, height: 44)
-                            .accessibilityHidden(true)
+        let rtl = layoutDirection == .rightToLeft
+        return ViewThatFits(in: .horizontal) {
+            block(metrics(titled: true, rtl: rtl))
+            block(metrics(titled: false, rtl: rtl))
+        }
+        .fontWeight(.semibold)
+        .background { titleProbe }
+        .saturation(isEnabled ? 1 : 0)
+        .opacity(isEnabled ? 1 : 0.45)
+        .sensoryFeedback(.selection, trigger: landings)
+        .sensoryFeedback(.impact(flexibility: .rigid), trigger: refusals)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(messages.label)
+        .accessibilityValue(spokenValue)
+        .accessibilityAdjustableAction { direction in
+            switch direction {
+            case .increment: step(by: 1, haptic: false)
+            case .decrement: step(by: -1, haptic: false)
+            @unknown default: break
+            }
+        }
+        .accessibilityActions {
+            ForEach(actionIndices, id: \.self) { index in
+                Button(messages.goTo(steps[index])) { go(to: index) }
+            }
+        }
+        .focusable(isEnabled)
+        .onKeyPress(.leftArrow) { step(by: rtl ? 1 : -1, haptic: true) ? .handled : .ignored }
+        .onKeyPress(.rightArrow) { step(by: rtl ? -1 : 1, haptic: true) ? .handled : .ignored }
+        .onChange(of: selection) { _, value in
+            // A drag owns the trail until it lands; the landing reconciles with whatever the selection is then.
+            guard scrubbing == nil else { return }
+            move(to: clamped(value))
+        }
+        .onChange(of: steps) { _, _ in place(clamped(selection)) }
+    }
+
+    // MARK: Layout
+
+    /// The trail and its caption in one size: titled, or numbers only (shrinking further when it must).
+    private func block(_ metrics: StepTrailMetrics) -> some View {
+        VStack(alignment: .leading, spacing: (10 * metrics.scale).rounded()) {
+            track(metrics)
+            if showsCaption {
+                caption(titled: metrics.titled)
+                    .frame(maxWidth: metrics.naturalWidth, alignment: .leading)
+            }
+        }
+    }
+
+    @ViewBuilder private func track(_ metrics: StepTrailMetrics) -> some View {
+        if metrics.titled {
+            trackView(metrics)
+        } else {
+            // Numbers only: as wide as the stops at full size, and narrower when that's all there is, the stops
+            // shrinking to fit rather than wrapping or running off the edge.
+            GeometryReader { proxy in
+                trackView(metrics.fitted(to: proxy.size.width))
+                    .frame(width: proxy.size.width, height: proxy.size.height)
+            }
+            .frame(idealWidth: metrics.naturalWidth, maxWidth: metrics.naturalWidth)
+            .frame(height: metrics.rowHeight)
+        }
+    }
+
+    private func trackView(_ metrics: StepTrailMetrics) -> some View {
+        StepTrailTrack(
+            steps: steps,
+            metrics: metrics,
+            shown: shown,
+            furthest: furthest,
+            open: open,
+            lower: lowerEdge,
+            upper: upperEdge,
+            pull: pull,
+            grabbed: grabbed,
+            pressed: pressed,
+            shakes: shakes,
+            completions: completions,
+            style: style,
+            isEnabled: isEnabled,
+            onTouch: handle
+        )
+    }
+
+    /// Sizes for one form of the trail, at the current text size.
+    private func metrics(titled: Bool, rtl: Bool) -> StepTrailMetrics {
+        // Past the second accessibility size the stops stop growing: the caption carries the larger text.
+        let scale = min(max(textScale, 1), 2.2)
+        let d = (style.height * scale).rounded()
+        let label = 15 * scale
+        let lead = (d * 0.85).rounded()
+        let tail = (d * 0.41).rounded()
+        let cap = style.maximumTitleWidth * scale
+        let titles = steps.indices.map { index in
+            min(titleWidths[index] ?? CGFloat(steps[index].count) * label * 0.56, cap).rounded(.up)
+        }
+        let widths = titled ? titles.map { lead + $0 + tail } : Array(repeating: d, count: steps.count)
+        let gap = PieceLiquid.joined
+        let rest = CGFloat(steps.count - 1) * (d + gap)
+        let natural = rest + (widths.max() ?? d)
+        return StepTrailMetrics(d: d, gap: gap, label: label, titleLead: lead, titled: titled, rtl: rtl, openWidths: widths, titleWidths: titles, naturalWidth: natural, frameWidth: natural, scale: scale)
+    }
+
+    /// Measures every title once at the capsule's font, so the trail can size its capsule and reserve its widest form.
+    private var titleProbe: some View {
+        let size = 15 * min(max(textScale, 1), 2.2)
+        return ZStack {
+            ForEach(Array(steps.enumerated()), id: \.offset) { index, title in
+                Text(title)
+                    .font(.system(size: size, weight: .semibold))
+                    .fixedSize()
+                    .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { width in
+                        var quiet = Transaction()
+                        quiet.disablesAnimations = true
+                        withTransaction(quiet) { titleWidths[index] = width }
+                    }
+            }
+        }
+        .hidden()
+        .accessibilityHidden(true)
+    }
+
+    // MARK: Caption
+
+    @ViewBuilder private func caption(titled: Bool) -> some View {
+        let count = steps.count
+        let font = Font.system(size: captionSize, weight: .semibold)
+        if shown >= count {
+            Text(messages.complete)
+                .font(font)
+                .foregroundStyle(style.secondaryLabel)
+                .transition(PieceMotion(reduceMotion: reduceMotion).swap)
+        } else if titled {
+            position(font: font)
+                .transition(PieceMotion(reduceMotion: reduceMotion).swap)
+        } else {
+            // The capsule has no room for its title here, so the caption names the step.
+            ViewThatFits(in: .horizontal) {
+                HStack(alignment: .firstTextBaseline, spacing: 6) {
+                    PieceMorphText(text: steps[shown], font: font)
+                        .foregroundStyle(style.label)
+                    position(font: font)
+                }
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(steps[shown])
+                        .font(font)
+                        .foregroundStyle(style.label)
+                        .fixedSize(horizontal: false, vertical: true)
+                    position(font: font)
+                }
+            }
+        }
+    }
+
+    private func position(font: Font) -> some View {
+        let position = min(shown, steps.count - 1) + 1
+        return Text(messages.caption(position, steps.count))
+            .font(font)
+            .foregroundStyle(style.secondaryLabel)
+            .fixedSize(horizontal: false, vertical: true)
+            .contentTransition(reduceMotion ? .opacity : .numericText(value: Double(position)))
+            // A count people read: it rolls without overshoot, whatever spring the trail moves on.
+            .animation(PieceMotion(reduceMotion: reduceMotion).value, value: position)
+    }
+
+    // MARK: State
+
+    private func clamped(_ value: Int) -> Int { min(max(value, 0), steps.count) }
+
+    /// The last step people may go to: the furthest reached, never past the last step.
+    private var furthest: Int {
+        let current = clamped(selection)
+        return min(max(current, reached ?? current), steps.count - 1)
+    }
+
+    private var actionIndices: [Int] {
+        let current = clamped(selection)
+        return (0...furthest).filter { $0 != current }
+    }
+
+    private var spokenValue: String {
+        guard shown < steps.count else { return messages.complete }
+        return messages.value(shown + 1, steps.count, steps[shown])
+    }
+
+    /// Draws `target` as current. The capsule closes on one stop and opens on the other on the morph spring, while
+    /// the puck's edge facing the target leads on the snap spring and the far edge follows a beat later on a looser
+    /// one, so the red stretches toward the target and gathers in on it. Under Reduce Motion the puck stays out of it:
+    /// the stops carry the tint themselves and it crossfades.
+    private func move(to target: Int) {
+        let count = steps.count
+        let from = shown
+        guard target != from, count > 0 else { return }
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        withAnimation(motion.morph) {
+            shown = target
+            open = StepTrailOpenness(open: target, count: count)
+        }
+        let edge = Double(min(target, count - 1))
+        if reduceMotion {
+            withTransaction(Self.instant) {
+                lowerEdge = edge
+                upperEdge = edge
+            }
+        } else {
+            let forward = edge >= (lowerEdge + upperEdge) / 2
+            // The far edge waits a beat and follows on a looser spring, so the red reaches across the neck before it
+            // lets go of the stop it leaves.
+            let lead = motion.snap, trail = motion.follow(PieceMotion.responsive, rank: 4).delay(0.05)
+            withAnimation(forward ? lead : trail) { upperEdge = edge }
+            withAnimation(forward ? trail : lead) { lowerEdge = edge }
+        }
+        if target == count, from < count { completions += 1 }
+    }
+
+    /// Puts the trail on `index` with no motion: new steps, or a size change.
+    private func place(_ index: Int) {
+        let count = steps.count
+        let edge = Double(min(index, max(count - 1, 0)))
+        withTransaction(Self.instant) {
+            shown = index
+            open = StepTrailOpenness(open: index, count: count)
+            lowerEdge = edge
+            upperEdge = edge
+            pull = 0
+            scrubbing = nil
+            grabbed = false
+            pressed = nil
+        }
+    }
+
+    /// A tap, a key or a VoiceOver action going to a step. Only steps up to `furthest` can be chosen.
+    private func go(to index: Int) {
+        guard index >= 0, index <= furthest, index != clamped(selection) else { return }
+        selection = index
+    }
+
+    /// One step back or on, within what has been reached. Returns whether it moved.
+    @discardableResult
+    private func step(by delta: Int, haptic: Bool) -> Bool {
+        let current = clamped(selection)
+        let next = min(current, steps.count - 1) + (current >= steps.count && delta < 0 ? 0 : delta)
+        guard next >= 0, next <= furthest, next != current else { return false }
+        selection = next
+        if haptic { landings += 1 }
+        return true
+    }
+
+    private func handle(_ touch: StepTrailGesture) {
+        guard isEnabled else { return }
+        switch touch {
+        case .press(let index):
+            pressed = index.flatMap { $0 <= furthest ? $0 : nil }
+        case .tap(let index):
+            pressed = nil
+            tap(index)
+        case .scrubBegan(let index):
+            scrubBegan(at: index)
+        case .scrubMoved(let position, let pitch, let limit):
+            scrubMoved(to: position, pitch: pitch, limit: limit)
+        case .scrubEnded(let velocity, let pitch, let limit):
+            scrubEnded(velocity: velocity, pitch: pitch, limit: limit)
+        case .scrubCancelled:
+            scrubEnded(velocity: 0, pitch: 1, limit: 1, cancelled: true)
+        }
+    }
+
+    /// A step that can be reached goes there with a tick; one that can't shakes, and nothing moves.
+    private func tap(_ index: Int) {
+        guard steps.indices.contains(index) else { return }
+        if index <= furthest {
+            guard index != clamped(selection) else { return }
+            selection = index
+            landings += 1
+        } else {
+            shakes[index, default: 0] += 1
+            refusals += 1
+        }
+    }
+
+    private func scrubBegan(at index: Int) {
+        guard furthest > 0 else { return }
+        let start = min(max(index, 0), furthest)
+        pressed = nil
+        pushing = false
+        scrubbing = start
+        withAnimation(PieceMotion(reduceMotion: reduceMotion).press) { grabbed = true }
+        if start != shown {
+            move(to: start)
+            landings += 1
+        }
+    }
+
+    /// `position` is where the finger holds the capsule's number, in steps (1.5 is halfway from the second stop to
+    /// the third). The capsule moves to a stop once the finger is a little past the midpoint, so it never flickers
+    /// between two, and between stops the puck's facing edge reaches toward the finger with rubber-band resistance,
+    /// which is all it does past the last step it may reach.
+    private func scrubMoved(to position: Double, pitch: CGFloat, limit: CGFloat) {
+        guard let current = scrubbing else { return }
+        var next = current
+        let nearest = Int(position.rounded())
+        if nearest != current, abs(position - Double(nearest)) < 0.35 { next = nearest }
+        next = min(max(next, 0), furthest)
+        if next != current {
+            scrubbing = next
+            move(to: next)
+            landings += 1
+        }
+        let reach = (position - Double(next)) * Double(pitch)
+        withTransaction(Self.instant) {
+            pull = reduceMotion ? 0 : Double(PieceMotion.rubberBand(CGFloat(reach), limit: limit))
+        }
+        // One rigid tick as the capsule is pushed against the last step it may reach, or the first; it rearms once
+        // the finger comes back.
+        let against = (next == furthest && position > Double(next) + 0.45) || (next == 0 && position < -0.45)
+        if against, !pushing {
+            pushing = true
+            refusals += 1
+        } else if !against, abs(position - Double(next)) < 0.3 {
+            pushing = false
+        }
+    }
+
+    /// The finger lifts: the capsule lands where it is and the binding changes once. The pull springs back at the
+    /// speed the finger left it.
+    private func scrubEnded(velocity: CGFloat, pitch: CGFloat, limit: CGFloat, cancelled: Bool = false) {
+        guard let landing = scrubbing else { return }
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        scrubbing = nil
+        pushing = false
+        withAnimation(motion.release) { grabbed = false }
+        let raw = CGFloat(pull)
+        let frame: CGFloat = 1 / 120
+        let speed = (PieceMotion.rubberBand(raw + velocity * frame, limit: limit) - raw) / frame
+        withAnimation(motion.settle(velocity: cancelled ? 0 : speed, from: raw, to: 0)) { pull = 0 }
+        if !cancelled, landing != clamped(selection) {
+            selection = landing
+        } else {
+            move(to: clamped(selection))
+        }
+    }
+
+    private static var instant: Transaction {
+        var transaction = Transaction(animation: nil)
+        transaction.disablesAnimations = true
+        return transaction
+    }
+}
+
+// MARK: - Track
+
+/// What a touch on the trail means, already resolved to stops.
+private enum StepTrailGesture {
+    /// A finger is down on a stop, or lifted (`nil`).
+    case press(Int?)
+    case tap(Int)
+    case scrubBegan(Int)
+    /// Where the finger holds the capsule's number, in steps; the stop pitch and the pull's limit, in points.
+    case scrubMoved(position: Double, pitch: CGFloat, limit: CGFloat)
+    case scrubEnded(velocity: CGFloat, pitch: CGFloat, limit: CGFloat)
+    case scrubCancelled
+}
+
+/// Sizes for one form of the trail. Lengths run from the trail's leading edge.
+private struct StepTrailMetrics {
+    var d: CGFloat
+    var gap: CGFloat
+    var label: CGFloat
+    var titleLead: CGFloat
+    var titled: Bool
+    var rtl: Bool
+    /// Each stop's width while it is the open capsule (the diameter when titles don't show).
+    var openWidths: [CGFloat]
+    var titleWidths: [CGFloat]
+    /// The widest the trail gets at full size: every other stop a circle, the widest capsule open.
+    var naturalWidth: CGFloat
+    /// The width it is drawn in. The trail starts at its leading edge.
+    var frameWidth: CGFloat
+    var scale: CGFloat
+
+    var rowHeight: CGFloat { max(d, 44) }
+    var pitch: CGFloat { d + gap }
+
+    /// Numbers only, shrunk to `width` when the stops at full size don't fit, never below 22 points.
+    func fitted(to width: CGFloat) -> StepTrailMetrics {
+        let count = CGFloat(openWidths.count)
+        guard count > 0, width > 0 else { return self }
+        let room = (width - (count - 1) * gap) / count
+        let size = min(d, max(room, 22)).rounded(.down)
+        var fitted = self
+        fitted.label = label * size / d
+        fitted.d = size
+        fitted.titleLead = (size * 0.85).rounded()
+        fitted.openWidths = Array(repeating: size, count: openWidths.count)
+        fitted.frameWidth = min(count * size + (count - 1) * gap, max(width, 0))
+        return fitted
+    }
+}
+
+/// Where everything sits for one frame of the openness.
+private struct StepTrailGeometry {
+    let metrics: StepTrailMetrics
+    /// Leading edge and width of each stop.
+    let x: [CGFloat]
+    let w: [CGFloat]
+    let openness: [Double]
+
+    init(metrics: StepTrailMetrics, open: [Double]) {
+        self.metrics = metrics
+        self.openness = open
+        var x: [CGFloat] = [], w: [CGFloat] = []
+        var cursor: CGFloat = 0
+        for (index, wide) in metrics.openWidths.enumerated() {
+            let amount = CGFloat(index < open.count ? max(open[index], 0) : 0)
+            let width = metrics.d + (wide - metrics.d) * amount
+            x.append(cursor)
+            w.append(width)
+            cursor += width + metrics.gap
+        }
+        self.x = x
+        self.w = w
+    }
+
+    /// How open a stop is this frame.
+    func open(_ index: Int) -> Double { index < openness.count ? min(max(openness[index], 0), 1) : 0 }
+
+    /// A stop's left edge on screen.
+    func screenX(_ index: Int) -> CGFloat {
+        metrics.rtl ? metrics.frameWidth - x[index] - w[index] : x[index]
+    }
+
+    /// An edge at a step position: between stops it runs from one stop's edge to the next, and past the ends it
+    /// carries on at the last spacing, so a spring's give reads past the first or last stop.
+    func edge(at position: Double, trailing: Bool) -> CGFloat {
+        let count = x.count
+        func at(_ index: Int) -> CGFloat { trailing ? x[index] + w[index] : x[index] }
+        guard count > 1 else { return at(0) + CGFloat(position) * metrics.pitch }
+        let index = min(max(Int(position.rounded(.down)), 0), count - 2)
+        let t = CGFloat(position - Double(index))
+        return at(index) + (at(index + 1) - at(index)) * t
+    }
+
+    /// The puck between its two edges, with a finger's pull on the edge facing it. Never narrower than a stop.
+    func puck(lower: Double, upper: Double, pull: Double) -> ClosedRange<CGFloat> {
+        var low = edge(at: min(lower, upper), trailing: false)
+        var high = edge(at: max(lower, upper), trailing: true)
+        if pull < 0 { low += CGFloat(pull) } else { high += CGFloat(pull) }
+        if high - low < metrics.d {
+            let mid = (low + high) / 2
+            low = mid - metrics.d / 2
+            high = mid + metrics.d / 2
+        }
+        return low...high
+    }
+
+    /// The puck on screen.
+    func screen(_ range: ClosedRange<CGFloat>) -> ClosedRange<CGFloat> {
+        metrics.rtl ? (metrics.frameWidth - range.upperBound)...(metrics.frameWidth - range.lowerBound) : range
+    }
+
+    /// The stop under a point on the trail, measured from its leading edge. The neck between two stops splits.
+    func stop(at leading: CGFloat) -> Int {
+        for index in x.indices where leading < x[index] + w[index] + metrics.gap / 2 { return index }
+        return max(x.count - 1, 0)
+    }
+}
+
+private enum StepTrailStatus { case done, current, ahead, unreached }
+
+/// The trail itself: glass stops joined by necks, and the red puck over them carrying every face in its ink, cut
+/// to its outline, while each stop's own face is cut away under it, so a face turns exactly under the puck's edge.
+/// Everything is laid out from three animated values (the openness and the puck's two edges), so the puck stays
+/// glued to the stops while they change width.
+private struct StepTrailTrack: View {
+    let steps: [String]
+    let metrics: StepTrailMetrics
+    let shown: Int
+    let furthest: Int
+    let open: StepTrailOpenness
+    let lower: Double
+    let upper: Double
+    let pull: Double
+    let grabbed: Bool
+    let pressed: Int?
+    let shakes: [Int: Int]
+    let completions: Int
+    let style: StepTrail.Style
+    let isEnabled: Bool
+    let onTouch: (StepTrailGesture) -> Void
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    /// Where in the capsule the finger took hold, from its number, so the capsule never jumps to the finger.
+    @State private var grabOffset: CGFloat = 0
+
+    var body: some View {
+        StepTrailAnimatedOpenness(value: open) { open in
+            StepTrailAnimatedNumber(value: lower) { lower in
+                StepTrailAnimatedNumber(value: upper) { upper in
+                    StepTrailAnimatedNumber(value: pull) { pull in
+                        drawing(open: open.values, lower: lower, upper: upper, pull: pull)
                     }
                 }
-                Text(steps.isEmpty ? "" : steps[clamped(index)].title)
-                    .font(.caption.weight(.semibold))
-                    .lineLimit(1)
-                    .foregroundStyle(Color(red: 0.078, green: 0.078, blue: 0.078))
-                    .padding(.horizontal, 10)
-                    .frame(width: max(width, 44), height: 36)
-                    .pieceLiquid(.capsule, tint: style.accent, interactive: true)
-                    .pieceLiquidPress(dragging, depth: 2)
-                    .offset(x: min(max(leading, 0), proxy.size.width - width))
-                    .animation(dragging || reduceMotion ? nil : PieceMotion(reduceMotion: reduceMotion).follow(rank: 1), value: index)
             }
-            }
-            .contentShape(Rectangle())
-            .gesture(scrub(slot: slot, count: count))
+        }
+        .frame(width: metrics.frameWidth, height: metrics.rowHeight)
+        // Laid out on screen coordinates; the stops and faces mirror themselves for right to left.
+        .environment(\.layoutDirection, .leftToRight)
+        .overlay {
+            StepTrailTouchSurface(isEnabled: isEnabled, scrubs: furthest > 0) { event in interpret(event) }
         }
     }
 
-    private var throwPage: some Gesture {
-        DragGesture(minimumDistance: 12)
-            .onChanged { value in
-                guard steps.count > 1 else { return }
-                if origin == nil { origin = index }
-                dragging = true
-                let sign: CGFloat = layoutDirection == .rightToLeft ? -1 : 1
-                let raw = (origin ?? index) - sign * value.translation.width / 180
-                index = PieceMotion.rubberBand(raw, in: 0...CGFloat(steps.count - 1), limit: 0.35)
-            }
-            .onEnded { value in release(value, span: 180, dragSign: -1) }
+    /// Under Reduce Motion the stops carry the red themselves and it crossfades; the puck stays home.
+    private var usesPuck: Bool { !reduceMotion }
+    private var complete: Bool { shown >= steps.count }
+
+    private func status(_ index: Int) -> StepTrailStatus {
+        if index < shown { return .done }
+        if index == shown { return .current }
+        return index <= furthest ? .ahead : .unreached
     }
 
-    private func scrub(slot: CGFloat, count: Int) -> some Gesture {
-        DragGesture(minimumDistance: 0)
-            .onChanged { value in
-                guard count > 1 else { return }
-                if origin == nil { origin = index }
-                dragging = true
-                let sign: CGFloat = layoutDirection == .rightToLeft ? -1 : 1
-                let raw = (origin ?? index) + sign * value.translation.width / max(slot, 1)
-                index = PieceMotion.rubberBand(raw, in: 0...CGFloat(count - 1), limit: 0.35)
+    private func drawing(open: [Double], lower: Double, upper: Double, pull: Double) -> some View {
+        let geometry = StepTrailGeometry(metrics: metrics, open: open)
+        let puck = geometry.screen(geometry.puck(lower: lower, upper: upper, pull: pull))
+        return PieceLiquidGroup {
+            ZStack(alignment: .leading) {
+                ForEach(steps.indices, id: \.self) { index in
+                    stop(index, geometry: geometry, puck: puck)
+                }
+                puckView(geometry: geometry, puck: puck)
             }
-            .onEnded { value in release(value, span: max(slot, 1), dragSign: 1) }
+            .frame(width: metrics.frameWidth, height: metrics.d, alignment: .leading)
+            // The flow completing lands as one beat across every stop.
+            .pieceLiquidPop(trigger: completions, amount: 0.06)
+        }
     }
 
-    /// `dragSign` matches the sign in front of the finger's translation, so a flick coasts the way the drag was going.
-    private func release(_ value: DragGesture.Value, span: CGFloat, dragSign: CGFloat) {
+    private func stop(_ index: Int, geometry: StepTrailGeometry, puck: ClosedRange<CGFloat>) -> some View {
+        let status = status(index)
+        let left = geometry.screenX(index)
+        let width = geometry.w[index]
+        let carriesRed = !usesPuck && status == .current
+        let color: Color = switch status {
+        case .done, .ahead: style.label
+        case .current: carriesRed ? style.accentInk : style.label
+        case .unreached: style.secondaryLabel
+        }
+        let cut = usesPuck && puck.upperBound > left && puck.lowerBound < left + width
+        return face(index, status: status, width: width, openness: geometry.open(index))
+            .foregroundStyle(color)
+            .mask {
+                if cut {
+                    StepTrailCutout(lower: puck.lowerBound - left, upper: puck.upperBound - left, height: metrics.d)
+                        .fill(style: FillStyle(eoFill: true))
+                } else {
+                    Rectangle()
+                }
+            }
+            .clipShape(.capsule)
+            .pieceLiquid(.capsule, tint: carriesRed ? style.accent : nil, interactive: false)
+            .pieceLiquidPress(pressed == index && status != .current, depth: 2)
+            .pieceShake(trigger: shakes[index] ?? 0, distance: 6)
+            .offset(x: left)
+    }
+
+    /// The red puck: every face in the accent's ink, laid out exactly as the stops lay theirs out, cut to its outline.
+    /// Once every step is done it is neutral glass over the last stop, drawing the same check the stop does.
+    private func puckView(geometry: StepTrailGeometry, puck: ClosedRange<CGFloat>) -> some View {
         let motion = PieceMotion(reduceMotion: reduceMotion)
-        let from = index
-        dragging = false
-        origin = nil
-        guard steps.count > 1 else { return }
-        let sign: CGFloat = layoutDirection == .rightToLeft ? -1 : 1
-        let velocity = dragSign * sign * value.velocity.width / span
-        let projected = PieceMotion.project(from, velocity: velocity)
-        let stops = (0..<steps.count).map { CGFloat($0) }
-        let target = min(max(PieceMotion.nearest(projected, in: stops), 0), CGFloat(steps.count - 1))
-        withAnimation(motion.settle(velocity: velocity, from: from, to: target)) {
-            index = target
+        let ink = complete ? style.label : style.accentInk
+        return ZStack(alignment: .leading) {
+            ForEach(steps.indices, id: \.self) { index in
+                face(index, status: status(index), width: geometry.w[index], openness: geometry.open(index))
+                    .offset(x: geometry.screenX(index) - puck.lowerBound)
+            }
         }
-        if haptics, Int(target.rounded()) != clamped(from) { crossings += 1 }
+        .foregroundStyle(ink)
+        .frame(width: puck.upperBound - puck.lowerBound, height: metrics.d, alignment: .leading)
+        .clipShape(.capsule)
+        .pieceLiquid(.capsule, tint: complete ? nil : style.accent, interactive: false)
+        .pieceLiquidPress(pressed == shown && !complete, depth: 2)
+        // Grabbed, it lifts a little; let go, it lands with a little give.
+        .pieceLiquidScale(grabbed && !reduceMotion ? 1.06 : 1)
+        .animation(grabbed ? motion.press : motion.release, value: grabbed)
+        // Inside a group glass ignores opacity, so under Reduce Motion the puck closes to nothing instead.
+        .pieceLiquidScale(usesPuck ? 1 : 0.001)
+        .offset(x: puck.lowerBound)
+        .allowsHitTesting(false)
     }
 
-    public static func adaptive(light: UInt32, dark: UInt32) -> Color {
-        Style.adaptive(light: light, dark: dark)
+    private func face(_ index: Int, status: StepTrailStatus, width: CGFloat, openness: Double) -> some View {
+        StepTrailFace(
+            number: index + 1,
+            title: steps[index],
+            done: status == .done,
+            openness: openness,
+            width: width,
+            titleWidth: index < metrics.titleWidths.count ? metrics.titleWidths[index] : 0,
+            metrics: metrics
+        )
     }
+
+    // MARK: Touch
+
+    /// Turns touches on screen into stops. Taps hit the stop under the finger as the trail is drawn now; a drag
+    /// holds the capsule where it was taken, and reports where that point is in steps, at an even pitch: with every
+    /// stop before the capsule a circle, its number always sits a whole pitch from the next.
+    private func interpret(_ event: StepTrailTouchSurface.Event) {
+        let target = StepTrailGeometry(metrics: metrics, open: StepTrailOpenness(open: shown, count: steps.count).values)
+        let leading = { (x: CGFloat) in metrics.rtl ? metrics.frameWidth - x : x }
+        let limit = metrics.d * 0.35
+        switch event {
+        case .down(let x):
+            onTouch(.press(target.stop(at: leading(x))))
+        case .up:
+            onTouch(.press(nil))
+        case .tap(let x):
+            onTouch(.tap(target.stop(at: leading(x))))
+        case .began(let x):
+            let point = leading(x)
+            let index = min(target.stop(at: point), furthest)
+            grabOffset = point - (CGFloat(index) * metrics.pitch + metrics.d / 2)
+            onTouch(.scrubBegan(index))
+        case .moved(let x):
+            let position = (leading(x) - grabOffset - metrics.d / 2) / metrics.pitch
+            onTouch(.scrubMoved(position: Double(position), pitch: metrics.pitch, limit: limit))
+        case .ended(let velocity):
+            onTouch(.scrubEnded(velocity: metrics.rtl ? -velocity : velocity, pitch: metrics.pitch, limit: limit))
+        case .cancelled:
+            onTouch(.scrubCancelled)
+        }
+    }
+}
+
+/// One stop's content: its number or check centred in the leading circle, and, in the titled form, its title after
+/// it. The title's presence follows the stop's openness frame by frame, so it blurs in as the capsule opens and out
+/// as it closes, identically in the stop and in the puck's copy; the number and the check blur over.
+private struct StepTrailFace: View {
+    let number: Int
+    let title: String
+    let done: Bool
+    /// How open the stop is this frame: 0 a circle, 1 the capsule.
+    let openness: Double
+    let width: CGFloat
+    let titleWidth: CGFloat
+    let metrics: StepTrailMetrics
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        let edge: Alignment = metrics.rtl ? .trailing : .leading
+        // The title arrives over the last two thirds of the opening and is gone in the first third of the closing.
+        let shows = min(max((openness - 0.35) / 0.65, 0), 1)
+        ZStack(alignment: edge) {
+            ZStack {
+                if done {
+                    Image(systemName: "checkmark")
+                        .font(.system(size: metrics.label * 0.9, weight: .semibold))
+                        .transition(motion.swap)
+                } else {
+                    Text(number, format: .number)
+                        .font(.system(size: metrics.label, weight: .semibold).monospacedDigit())
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.6)
+                        .transition(motion.swap)
+                }
+            }
+            .frame(width: metrics.d, height: metrics.d)
+            if metrics.titled {
+                Text(title)
+                    .font(.system(size: metrics.label, weight: .semibold))
+                    .lineLimit(1)
+                    .frame(width: titleWidth, alignment: edge)
+                    .blur(radius: reduceMotion ? 0 : (1 - shows) * 5)
+                    .opacity(shows)
+                    .padding(metrics.rtl ? .trailing : .leading, metrics.titleLead)
+            }
+        }
+        .frame(width: max(width, 0), height: metrics.d, alignment: edge)
+    }
+}
+
+/// Everything in a stop but the puck's stretch over it, for an even-odd fill: the stop's own face shows only
+/// where the puck is not.
+private struct StepTrailCutout: Shape {
+    var lower: CGFloat
+    var upper: CGFloat
+    var height: CGFloat
+
+    func path(in rect: CGRect) -> Path {
+        var path = Path(rect)
+        let width = max(upper - lower, 0)
+        path.addRoundedRect(in: CGRect(x: rect.minX + lower, y: rect.midY - height / 2, width: width, height: height), cornerSize: CGSize(width: height / 2, height: height / 2), style: .continuous)
+        return path
+    }
+}
+
+// MARK: - Animation
+
+/// How open each stop is, as one value SwiftUI can animate: every stop's openness springs on its own from wherever it
+/// is, so a step chosen while another is still opening retargets smoothly.
+#if compiler(>=6.2)
+nonisolated private struct StepTrailOpenness: VectorArithmetic, Sendable {
+    var values: [Double]
+}
+#else
+private struct StepTrailOpenness: VectorArithmetic, Sendable {
+    var values: [Double]
+}
+#endif
+
+extension StepTrailOpenness {
+    /// Stop `open` open, every other one a circle. Past the last step, none.
+    nonisolated init(open: Int, count: Int) {
+        values = (0..<max(count, 0)).map { $0 == open ? 1 : 0 }
+    }
+
+    nonisolated static var zero: StepTrailOpenness { StepTrailOpenness(values: []) }
+
+    nonisolated static func + (lhs: StepTrailOpenness, rhs: StepTrailOpenness) -> StepTrailOpenness {
+        combine(lhs, rhs, +)
+    }
+
+    nonisolated static func - (lhs: StepTrailOpenness, rhs: StepTrailOpenness) -> StepTrailOpenness {
+        combine(lhs, rhs, -)
+    }
+
+    nonisolated mutating func scale(by rhs: Double) {
+        values = values.map { $0 * rhs }
+    }
+
+    nonisolated var magnitudeSquared: Double {
+        values.reduce(0) { $0 + $1 * $1 }
+    }
+
+    /// Element by element; a shorter list counts as zeros, so a change in the number of steps still adds up.
+    nonisolated private static func combine(_ lhs: StepTrailOpenness, _ rhs: StepTrailOpenness, _ operation: (Double, Double) -> Double) -> StepTrailOpenness {
+        let count = max(lhs.values.count, rhs.values.count)
+        return StepTrailOpenness(values: (0..<count).map { index in
+            operation(index < lhs.values.count ? lhs.values[index] : 0, index < rhs.values.count ? rhs.values[index] : 0)
+        })
+    }
+}
+
+/// The openness, animated: SwiftUI interpolates it frame by frame and rebuilds the trail with it.
+private struct StepTrailAnimatedOpenness<Content: View>: View, Animatable {
+    var value: StepTrailOpenness
+    @ViewBuilder let content: (StepTrailOpenness) -> Content
+
+    nonisolated var animatableData: StepTrailOpenness {
+        get { value }
+        set { value = newValue }
+    }
+
+    var body: some View { content(value) }
+}
+
+/// One number animated on its own spring. Nested, each of the puck's edges keeps its own.
+private struct StepTrailAnimatedNumber<Content: View>: View, Animatable {
+    var value: Double
+    @ViewBuilder let content: (Double) -> Content
+
+    nonisolated var animatableData: Double {
+        get { value }
+        set { value = newValue }
+    }
+
+    var body: some View { content(value) }
+}
+
+// MARK: - Touch surface
+
+/// UIKit's recognizers under the trail, because SwiftUI can't start a drag only when it runs sideways: a tap, a
+/// sideways pan that leaves vertical swipes to the scroll view or sheet around it, and a touch-down observer that
+/// never claims the touch, so a press shows at once without blocking a scroll.
+private struct StepTrailTouchSurface: UIViewRepresentable {
+    enum Event {
+        case down(CGFloat), up, tap(CGFloat), began(CGFloat), moved(CGFloat), ended(velocity: CGFloat), cancelled
+    }
+
+    var isEnabled: Bool
+    var scrubs: Bool
+    var onEvent: (Event) -> Void
+
+    func makeCoordinator() -> Coordinator { Coordinator() }
+
+    func makeUIView(context: Context) -> UIView {
+        let view = UIView()
+        view.backgroundColor = .clear
+        view.isAccessibilityElement = false
+        view.accessibilityElementsHidden = true
+        let coordinator = context.coordinator
+        let down = StepTrailTouchDown()
+        down.onChange = { [weak coordinator] point in coordinator?.onEvent(point.map { .down($0.x) } ?? .up) }
+        down.delegate = coordinator
+        let tap = UITapGestureRecognizer(target: coordinator, action: #selector(Coordinator.tap(_:)))
+        let pan = UIPanGestureRecognizer(target: coordinator, action: #selector(Coordinator.pan(_:)))
+        pan.delegate = coordinator
+        for recognizer in [down, tap, pan] { view.addGestureRecognizer(recognizer) }
+        coordinator.pan = pan
+        return view
+    }
+
+    func updateUIView(_ view: UIView, context: Context) {
+        context.coordinator.onEvent = onEvent
+        context.coordinator.pan?.isEnabled = scrubs
+        view.isUserInteractionEnabled = isEnabled
+    }
+
+    @MainActor
+    final class Coordinator: NSObject, UIGestureRecognizerDelegate {
+        var onEvent: (Event) -> Void = { _ in }
+        weak var pan: UIPanGestureRecognizer?
+
+        @objc func tap(_ recognizer: UITapGestureRecognizer) {
+            if recognizer.state == .ended { onEvent(.tap(recognizer.location(in: recognizer.view).x)) }
+        }
+
+        @objc func pan(_ recognizer: UIPanGestureRecognizer) {
+            let x = recognizer.location(in: recognizer.view).x
+            switch recognizer.state {
+            case .began: onEvent(.began(x))
+            case .changed: onEvent(.moved(x))
+            case .ended: onEvent(.ended(velocity: recognizer.velocity(in: recognizer.view).x))
+            case .cancelled, .failed: onEvent(.cancelled)
+            default: break
+            }
+        }
+
+        /// The pan starts only for a mostly sideways drag, so vertical swipes stay with the screen.
+        func gestureRecognizerShouldBegin(_ recognizer: UIGestureRecognizer) -> Bool {
+            guard let pan = recognizer as? UIPanGestureRecognizer else { return true }
+            let velocity = pan.velocity(in: pan.view)
+            return abs(velocity.x) > abs(velocity.y)
+        }
+
+        /// The touch-down observer watches alongside everything else.
+        func gestureRecognizer(_ recognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith other: UIGestureRecognizer) -> Bool {
+            recognizer is StepTrailTouchDown || other is StepTrailTouchDown
+        }
+    }
+}
+
+/// Reports a finger arriving and leaving without ever recognizing, so it never takes a touch from anything else.
+private final class StepTrailTouchDown: UIGestureRecognizer {
+    var onChange: ((CGPoint?) -> Void)?
+    private var start: CGPoint?
+
+    init() {
+        super.init(target: nil, action: nil)
+        cancelsTouchesInView = false
+        delaysTouchesEnded = false
+    }
+
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent) {
+        super.touchesBegan(touches, with: event)
+        guard let touch = touches.first, start == nil else { return }
+        start = touch.location(in: view)
+        onChange?(start)
+    }
+
+    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent) {
+        super.touchesMoved(touches, with: event)
+        // A finger that travels lets its stop go: a drag or a scroll takes over from here.
+        if let touch = touches.first, let start, hypot(touch.location(in: view).x - start.x, touch.location(in: view).y - start.y) > 12 {
+            finish()
+        }
+    }
+
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent) {
+        super.touchesEnded(touches, with: event)
+        finish()
+    }
+
+    override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent) {
+        super.touchesCancelled(touches, with: event)
+        finish()
+    }
+
+    private func finish() {
+        if start != nil { onChange?(nil) }
+        start = nil
+        state = .failed
+    }
+
+    override func reset() {
+        super.reset()
+        start = nil
+    }
+}
+
+/// A house-palette color that follows the interface style.
+private func stepTrailColor(light: UInt32, dark: UInt32) -> Color {
+    Color(uiColor: UIColor { @Sendable traits in
+        let hex = traits.userInterfaceStyle == .dark ? dark : light
+        return UIColor(red: CGFloat((hex >> 16) & 0xFF) / 255, green: CGFloat((hex >> 8) & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
+    })
 }
 
 // MARK: - Example
 
+/// A checkout people went back in (Payment still reachable), and a six-step verification compressed to numbers.
 private struct StepTrailExample: View {
-    @State private var selection = "pack"
-
-    private let steps: [StepTrail.Step] = [
-        .init(id: "pack", title: "Pack", symbol: "suitcase.fill", detail: "Two days, one bag, the red jacket on top."),
-        .init(id: "train", title: "Train", symbol: "tram.fill", detail: "Platform 4, the slow one that hugs the coast."),
-        .init(id: "walk", title: "Walk", symbol: "figure.walk", detail: "Down through the pines before the light goes."),
-        .init(id: "stay", title: "Stay", symbol: "moon.fill", detail: "A room over the water and the windows open."),
-    ]
+    @State private var checkout = 1
+    @State private var furthest = 2
+    @State private var verification = 3
 
     var body: some View {
-        StepTrail(steps: steps, selection: $selection)
-            .padding(28)
-            .frame(maxWidth: 380)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background { StepTrailBackdrop() }
-    }
-}
-
-private struct StepTrailBackdrop: View {
-    var body: some View {
-        GeometryReader { proxy in
-            let w = proxy.size.width, h = proxy.size.height
-            ZStack {
-                StepTrail.adaptive(light: 0xF3F2EE, dark: 0x121212)
-                Capsule().fill(Color(red: 0.663, green: 0.863, blue: 0.718)).frame(width: w * 0.8, height: 80).position(x: w * 0.4, y: h * 0.3)
-                Circle().fill(Color(red: 1, green: 0.851, blue: 0.463)).frame(width: w * 0.4).position(x: w * 0.78, y: h * 0.72)
-            }
+        VStack(alignment: .leading, spacing: 36) {
+            StepTrail(steps: ["Cart", "Address", "Payment", "Review"], selection: $checkout, reached: furthest)
+                .onChange(of: checkout) { _, step in furthest = max(furthest, step) }
+            StepTrail(steps: ["Email", "Phone", "Address", "ID photo", "Selfie", "Review"], selection: $verification)
+                .frame(maxWidth: 240, alignment: .leading)
+            Button("Continue") { checkout = min(checkout + 1, 4) }
+                .fontWeight(.semibold)
+                .tint(Color(red: 1, green: 0, blue: 0))
         }
-        .ignoresSafeArea()
-        .accessibilityHidden(true)
+        .padding(24)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(stepTrailColor(light: 0xF3F2EE, dark: 0x121212))
     }
 }
 
 #Preview("Light") {
     StepTrailExample()
-        .preferredColorScheme(.light)
 }
 
 #Preview("Dark") {
@@ -291,7 +1101,7 @@ private struct StepTrailBackdrop: View {
 // The SwiftPieces motion language: shared spring tokens and gesture physics, with the same values in every
 // piece. Each piece carries a copy of only the parts it uses, so this file stands alone. Generated from
 // registry/foundation/PieceMotion.swift in the SwiftPieces repo; edit it there, not here.
-// swiftpieces-motion: 1.1.0 (core, follow, momentum, rubberBand, pressMath)
+// swiftpieces-motion: 1.1.0 (core, follow, momentum, rubberBand, pressMath, shake)
 
 /// The SwiftPieces motion language: five spring tiers, and a named role for every moment a piece moves,
 /// each with its Reduce Motion substitute.
@@ -432,6 +1242,36 @@ extension PieceMotion {
     }
 }
 
+/// A short decaying side-to-side shake for refused input, each time `trigger` changes. Under Reduce Motion it stays
+/// still (same view, no identity change): pair it with a color or message change and the error haptic.
+private struct PieceShake: ViewModifier {
+    let trigger: AnyHashable
+    var distance: CGFloat = 8
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func body(content: Content) -> some View {
+        let distance = reduceMotion ? 0 : distance
+        content.keyframeAnimator(initialValue: CGFloat(0), trigger: trigger) { view, x in
+            view.offset(x: x)
+        } keyframes: { _ in
+            KeyframeTrack {
+                CubicKeyframe(-distance, duration: 0.06)
+                CubicKeyframe(distance * 0.75, duration: 0.07)
+                CubicKeyframe(-distance * 0.5, duration: 0.07)
+                CubicKeyframe(distance * 0.25, duration: 0.06)
+                SpringKeyframe(0, duration: 0.12, spring: Spring(duration: 0.18, bounce: 0))
+            }
+        }
+    }
+}
+
+private extension View {
+    /// Shakes this view side to side once each time `trigger` changes, for input that was refused.
+    func pieceShake(trigger: some Hashable & Sendable, distance: CGFloat = 8) -> some View {
+        modifier(PieceShake(trigger: AnyHashable(trigger), distance: distance))
+    }
+}
+
 // swiftpieces-motion: end
 
 // MARK: - Piece liquid
@@ -440,7 +1280,7 @@ extension PieceMotion {
 // and melt back into each other, and the frosted fallback before iOS 26. Each piece carries a copy of only
 // the parts it uses, so this file stands alone. Generated from registry/foundation/PieceLiquid.swift in the
 // SwiftPieces repo; edit it there, not here. The rules are in LIQUID_GLASS.md.
-// swiftpieces-liquid: 1.7.0 (liquid, liquidPress, morphText)
+// swiftpieces-liquid: 1.7.1 (liquid, liquidPress, liquidPop, morphText)
 
 /// The liquid glass language: one merge distance, two rest gaps, and the springs a bubble leaves and comes home on.
 ///
@@ -630,20 +1470,76 @@ private extension View {
     }
 }
 
+/// `piecePop` for glass: dips, swells past full size and lands each time `trigger` changes, on the same timings,
+/// through `pieceLiquidScale` so the glass and what it carries pop together. Driven from state rather than a
+/// keyframe animator, since the liquid scale can't be set from inside one. Still under Reduce Motion.
+private struct PieceLiquidPop: ViewModifier {
+    let trigger: AnyHashable
+    var amount: CGFloat = 0.08
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var scale: CGFloat = 1
+    @State private var run = 0
+
+    func body(content: Content) -> some View {
+        content
+            .pieceLiquidScale(scale)
+            .onChange(of: trigger) { _, _ in
+                guard !reduceMotion else { return }
+                run += 1
+                let mine = run
+                withAnimation(.easeInOut(duration: 0.08)) { scale = 1 - amount * 0.4 }
+                Task { @MainActor in
+                    try? await Task.sleep(for: .milliseconds(80))
+                    guard run == mine else { return }
+                    withAnimation(.spring(duration: 0.18, bounce: 0)) { scale = 1 + amount }
+                    try? await Task.sleep(for: .milliseconds(140))
+                    guard run == mine else { return }
+                    withAnimation(.spring(PieceMotion.expressive)) { scale = 1 }
+                }
+            }
+    }
+}
+
+private extension View {
+    /// Pops this view's glass each time `trigger` changes. Use a counter, never a Bool that can flip back before it fires.
+    func pieceLiquidPop(trigger: some Hashable & Sendable, amount: CGFloat = 0.08) -> some View {
+        modifier(PieceLiquidPop(trigger: AnyHashable(trigger), amount: amount))
+    }
+}
+
 /// A label that changes letter by letter: letters both strings share hold still, the rest blur out and the new ones
 /// blur in a few milliseconds apart. Under Reduce Motion it cross-fades. VoiceOver reads the whole string.
+///
+/// Only text whose letters stand on their own is cut into letters: Latin, Greek, Cyrillic, CJK, digits and symbols.
+/// Those letters are laid out left to right whatever the layout direction, the order they read in, so "1.5×" stays
+/// "1.5×" in an Arabic or Hebrew interface instead of coming out backwards. Text in a right-to-left script, or in one
+/// whose letters join or reorder (Arabic, Hebrew, Devanagari, Thai and their neighbours), can't be cut apart without
+/// breaking it, so it changes as one: the old string blurs out where it stood while the new one blurs in.
 private struct PieceMorphText: View {
     var text: String
     var font: Font = .body.weight(.semibold)
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        let glyphs = Array(text)
-        HStack(spacing: 0) {
-            ForEach(glyphs.indices, id: \.self) { i in
-                Text(String(glyphs[i]))
-                    .id("\(i)\(glyphs[i])")
-                    .transition(transition(i))
+        Group {
+            if Self.splits(text) {
+                let glyphs = Array(text)
+                HStack(spacing: 0) {
+                    ForEach(glyphs.indices, id: \.self) { i in
+                        Text(String(glyphs[i]))
+                            .id("\(i)\(glyphs[i])")
+                            .transition(transition(i, scale: 0.6))
+                    }
+                }
+                // The letters' reading order, not the layout's: an HStack lays its children out backwards under a
+                // right-to-left layout.
+                .environment(\.layoutDirection, .leftToRight)
+            } else {
+                ZStack(alignment: .leading) {
+                    Text(text)
+                        .id(text)
+                        .transition(transition(0, scale: 0.9))
+                }
             }
         }
         .font(font)
@@ -652,10 +1548,33 @@ private struct PieceMorphText: View {
         .accessibilityLabel(text)
     }
 
-    private func transition(_ i: Int) -> AnyTransition {
+    private func transition(_ i: Int, scale: CGFloat) -> AnyTransition {
         guard !reduceMotion else { return .opacity }
-        return AnyTransition(.blurReplace(.downUp)).combined(with: .scale(scale: 0.6, anchor: .bottom))
+        return AnyTransition(.blurReplace(.downUp)).combined(with: .scale(scale: scale, anchor: .bottom))
             .animation(.spring(duration: 0.42, bounce: 0.3).delay(Double(i) * 0.022))
+    }
+
+    /// Whether `text` can be cut into letters that each read left to right on their own: no right-to-left script, no
+    /// script that joins or reorders its letters, and no bidirectional control characters.
+    private static func splits(_ text: String) -> Bool {
+        !text.unicodeScalars.contains { scalar in
+            switch scalar.value {
+            case 0x0590...0x08FF, // Hebrew, Arabic, Syriac, Thaana, NKo, Samaritan, Mandaic
+                 0x0900...0x0DFF, // Devanagari to Sinhala
+                 0x0E00...0x0FFF, // Thai, Lao, Tibetan
+                 0x1000...0x109F, // Myanmar
+                 0x1780...0x17FF, // Khmer
+                 0xA8E0...0xA8FF, // Devanagari Extended
+                 0xFB1D...0xFDFF, // Hebrew and Arabic presentation forms
+                 0xFE70...0xFEFF, // Arabic presentation forms B
+                 0x200E...0x200F, 0x202A...0x202E, 0x2066...0x2069, // bidirectional marks, embeddings and isolates
+                 0x10800...0x10FFF, // historic right-to-left scripts
+                 0x1E800...0x1EFFF: // Adlam and other right-to-left scripts
+                return true
+            default:
+                return false
+            }
+        }
     }
 }
 

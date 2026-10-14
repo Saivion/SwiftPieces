@@ -73,14 +73,14 @@ const map: Record<string, ComponentType> = {
   LocationPicker: dynamic(() => import("./location-picker").then((m) => m.LocationPickerPreview)),
   SpotlightTour: dynamic(() => import("./spotlight-tour").then((m) => m.SpotlightTourPreview)),
   ActivityHeatmap: dynamic(() => import("./activity-heatmap").then((m) => m.ActivityHeatmapPreview)),
-  ScrollIsland: dynamic(() => import("./crafted").then((m) => m.ScrollIslandPreview)),
-  StepTrail: dynamic(() => import("./crafted").then((m) => m.StepTrailPreview)),
-  WaveformScrub: dynamic(() => import("./crafted").then((m) => m.WaveformScrubPreview)),
-  ImageCompare: dynamic(() => import("./crafted").then((m) => m.ImageComparePreview)),
-  NowPlaying: dynamic(() => import("./crafted").then((m) => m.NowPlayingPreview)),
-  WalletStack: dynamic(() => import("./crafted").then((m) => m.WalletStackPreview)),
-  NoticeStack: dynamic(() => import("./crafted").then((m) => m.NoticeStackPreview)),
-  RangeLens: dynamic(() => import("./crafted").then((m) => m.RangeLensPreview)),
+  ScrollIsland: dynamic(() => import("./scroll-island").then((m) => m.ScrollIslandPreview)),
+  StepTrail: dynamic(() => import("./step-trail").then((m) => m.StepTrailPreview)),
+  WaveformScrub: dynamic(() => import("./waveform-scrub").then((m) => m.WaveformScrubPreview)),
+  VoiceRecorder: dynamic(() => import("./voice-recorder").then((m) => m.VoiceRecorderPreview)),
+  NowPlaying: dynamic(() => import("./now-playing").then((m) => m.NowPlayingPreview)),
+  WalletStack: dynamic(() => import("./wallet-stack").then((m) => m.WalletStackPreview)),
+  NoticeStack: dynamic(() => import("./notice-stack").then((m) => m.NoticeStackPreview)),
+  RangeLens: dynamic(() => import("./range-lens").then((m) => m.RangeLensPreview)),
 };
 
 /** One Picture Headline sticker on its own (the landing's floating mascot), from the preview's own chunk. */

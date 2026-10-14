@@ -4,12 +4,12 @@
   "defaultOpen": false,
   "pages": [
     "attachment-tray",
-    "image-compare",
     "link-preview",
     "now-playing",
     "photo-cropper",
     "photo-viewer",
     "story-strip",
+    "voice-recorder",
     "waveform-scrub"
   ]
 }

@@ -154,7 +154,7 @@ const media = family("Media", "MediaView", "Swipe the carousels, tap a story.", 
   ["Photo Cropper", nd("photo-cropper", {})],
   ["Fan Stack", nd("fan-stack", {})],
   ["Waveform Scrub", nd("waveform-scrub", {})],
-  ["Image Compare", nd("image-compare", {})],
+  ["Voice Recorder", nd("voice-recorder", {})],
   ["Now Playing", nd("now-playing", {})],
   ["Avatars", row({ spacing: 10 }, [nd("avatar", { initials: "AK", color: "orange", status: "online" }), nd("avatar", { initials: "JL", color: "teal" }), nd("avatar", { initials: "SR", color: "indigo", status: "busy" }), nd("avatar", { symbol: "person", color: "gray" })])],
 ]);

@@ -24,7 +24,7 @@ enum PreviewCatalog {
         // text, 2026-10-01
         "PictureHeadline",
         // crafted interactions, 2026-10-12
-        "ScrollIsland", "StepTrail", "WaveformScrub", "ImageCompare", "NowPlaying", "WalletStack", "NoticeStack", "RangeLens",
+        "ScrollIsland", "StepTrail", "WaveformScrub", "VoiceRecorder", "NowPlaying", "WalletStack", "NoticeStack", "RangeLens",
     ]
 
     @MainActor @ViewBuilder
@@ -186,8 +186,8 @@ enum PreviewCatalog {
             Stage { StepTrailScene() }
         case "WaveformScrub":
             Stage { WaveformScrubScene() }
-        case "ImageCompare":
-            Stage { ImageCompareScene() }
+        case "VoiceRecorder":
+            Stage { VoiceRecorderScene() }
         case "NowPlaying":
             Stage { NowPlayingScene() }
         case "WalletStack":
@@ -3441,171 +3441,585 @@ private struct SpotlightTourSceneRow: View {
 
 // MARK: - Crafted interactions
 
-private struct CraftedGround: View {
+// MARK: ScrollIsland
+
+/// The island over a recipe page drawn as plain placeholder blocks (a heading bar and paragraph lines per section),
+/// only so it has something to float over. A self-running loop through its bindings, mirroring the web preview: the
+/// page scrolls into Ingredients (the ring grows, the title morphs, the back-to-top bubble buds out), the island opens
+/// into the contents, the puck walks down to Serving and the page follows, the contents close, and back to top.
+private struct ScrollIslandScene: View {
+    @State private var section: String?
+    @State private var read: Double?
+    @State private var open = false
+
     var body: some View {
-        ZStack {
-            bmColor(light: 0xF3F2EE, dark: 0x121212)
-            Circle().fill(Color(red: 1, green: 0.851, blue: 0.463)).frame(width: 220).offset(x: 120, y: -80)
-            Circle().fill(Color(red: 0.612, green: 0.761, blue: 1)).frame(width: 180).offset(x: -110, y: 90)
-            Capsule().fill(Color(red: 0.663, green: 0.863, blue: 0.718)).frame(width: 240, height: 70).rotationEffect(.degrees(-8)).offset(x: -20, y: 40)
+        ScrollView {
+            LazyVStack(alignment: .leading, spacing: 28) {
+                ForEach(ScrollIslandSceneData.parts, id: \.id) { part in
+                    ScrollIslandScenePart(lines: part.lines)
+                        .id(part.id)
+                }
+            }
+            .scrollTargetLayout()
+            .padding(.horizontal, 22)
+            .padding(.top, 22)
+            .padding(.bottom, 300)
         }
-        .ignoresSafeArea()
+        .scrollIndicators(.hidden)
+        .scrollPosition(id: $section, anchor: .top)
+        .scrollIslandSceneReading($read)
+        .overlay(alignment: .bottom) {
+            ScrollIsland(sections: ScrollIslandSceneData.parts.map { .init(id: $0.id, title: $0.title, detail: $0.detail) },
+                         selection: $section, progress: read, isExpanded: $open)
+        }
+        .frame(width: 360, height: 540)
+        .background(bmColor(light: 0xF3F2EE, dark: 0x121212))
+        .clipShape(.rect(cornerRadius: 34, style: .continuous))
+        .task {
+            let parts = ScrollIslandSceneData.parts.map(\.id)
+            while !Task.isCancelled {
+                section = parts[0]
+                open = false
+                try? await Task.sleep(for: .seconds(1.6))
+                withAnimation(.easeInOut(duration: 1.1)) { section = parts[1] }
+                try? await Task.sleep(for: .seconds(1.8))
+                open = true
+                try? await Task.sleep(for: .seconds(1.2))
+                section = parts[2]
+                try? await Task.sleep(for: .seconds(0.45))
+                section = parts[3]
+                try? await Task.sleep(for: .seconds(0.8))
+                open = false
+                try? await Task.sleep(for: .seconds(2.0))
+                section = parts[0]
+                try? await Task.sleep(for: .seconds(1.8))
+            }
+        }
+    }
+}
+
+/// One section of the placeholder page: a heading bar and paragraph lines, no text.
+private struct ScrollIslandScenePart: View {
+    let lines: [CGFloat]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Capsule()
+                .fill(bmColor(light: 0xDCD9D1, dark: 0x3A3A3A))
+                .frame(width: 132, height: 16)
+                .padding(.bottom, 4)
+            ForEach(lines.indices, id: \.self) { i in
+                Capsule()
+                    .fill(bmColor(light: 0xFFFFFF, dark: 0x262626))
+                    .frame(width: 316 * lines[i], height: 10)
+            }
+        }
         .accessibilityHidden(true)
     }
 }
 
-private struct ScrollIslandScene: View {
-    @State private var position: CGFloat = 0
-    @State private var expanded = false
+private enum ScrollIslandSceneData {
+    struct Part {
+        let id: String
+        let title: String
+        let detail: String
+        let lines: [CGFloat]
+    }
 
-    private let stops: [ScrollIsland.Stop] = [
-        .init(id: "arrive", title: "Arrive", symbol: "airplane", detail: "Kansai, 14:20 · pocket Wi-Fi"),
-        .init(id: "fushimi", title: "Fushimi", symbol: "tram.fill", detail: "Day 2 · torii at dusk"),
-        .init(id: "arashiyama", title: "Arashiyama", symbol: "leaf.fill", detail: "Day 3 · 2.4 km along the river"),
-        .init(id: "nara", title: "Nara", symbol: "pawprint.fill", detail: "Day 4 · park before noon"),
+    static let parts: [Part] = [
+        Part(id: "overview", title: "Overview", detail: "1 min", lines: [1, 0.94, 0.98, 0.62, 1, 0.9, 0.48]),
+        Part(id: "ingredients", title: "Ingredients", detail: "2 min", lines: [0.96, 1, 0.88, 0.54, 1, 0.92, 0.97, 0.7, 0.86, 0.4]),
+        Part(id: "method", title: "Method", detail: "5 min", lines: [1, 0.9, 0.97, 1, 0.66, 0.94, 1, 0.88, 0.5, 1, 0.96, 0.72]),
+        Part(id: "serving", title: "Serving", detail: "2 min", lines: [0.98, 1, 0.84, 0.58, 0.92, 0.46]),
+        Part(id: "notes", title: "Notes", detail: "1 min", lines: [1, 0.9, 0.62, 0.86, 0.38]),
     ]
+}
+
+private extension View {
+    /// How far through the page the reader is, from the scroll offset (iOS 18). Before that the island estimates it.
+    @ViewBuilder func scrollIslandSceneReading(_ read: Binding<Double?>) -> some View {
+        if #available(iOS 18, *) {
+            onScrollGeometryChange(for: Double.self) { geometry in
+                let travel = geometry.contentSize.height + geometry.contentInsets.top + geometry.contentInsets.bottom - geometry.containerSize.height
+                return travel > 0 ? (geometry.contentOffset.y + geometry.contentInsets.top) / travel : 1
+            } action: { _, value in
+                read.wrappedValue = min(max(value, 0), 1)
+            }
+        } else {
+            self
+        }
+    }
+}
+
+// MARK: StepTrail
+
+/// The component alone on the plain ground: a checkout that moves on, goes back to Cart with Payment still reached,
+/// lands on Payment again and finishes on Review, over a six-step verification compressed to numbers.
+private struct StepTrailScene: View {
+    @State private var checkout = 0
+    @State private var furthest = 0
+    @State private var verification = 3
 
     var body: some View {
-        ZStack {
-            CraftedGround()
-            ScrollIsland(stops: stops, position: $position, expanded: $expanded)
-                .padding(.horizontal, 28)
+        VStack(alignment: .leading, spacing: 34) {
+            StepTrail(steps: ["Cart", "Address", "Payment", "Review"], selection: $checkout, reached: furthest)
+            // Narrower than the titles need, so it shows the compressed form: numbers, and the step named below.
+            StepTrail(steps: ["Email", "Phone", "Address", "ID photo", "Selfie", "Review"], selection: $verification)
+                .frame(maxWidth: 236, alignment: .leading)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(stepTrailSceneColor(light: 0xF3F2EE, dark: 0x121212))
+        .onChange(of: checkout) { _, step in furthest = max(furthest, step) }
         .task {
             while !Task.isCancelled {
-                try? await Task.sleep(for: .seconds(2.4))
-                let next = (Int(position.rounded()) + 1) % stops.count
-                withAnimation(.spring(duration: 0.32, bounce: 0.25)) { position = CGFloat(next) }
+                try? await Task.sleep(for: .seconds(1.4))
+                checkout = 1
+                try? await Task.sleep(for: .seconds(1.1))
+                checkout = 2
+                verification = 4
+                try? await Task.sleep(for: .seconds(1.3))
+                // Back to Cart: Address and Payment stay reached.
+                checkout = 0
+                try? await Task.sleep(for: .seconds(1.8))
+                // Forward again to Payment, as a drag along the trail lands there.
+                checkout = 2
+                try? await Task.sleep(for: .seconds(1.2))
+                checkout = 3
+                try? await Task.sleep(for: .seconds(1.4))
+                furthest = 0
+                checkout = 0
+                verification = 3
             }
         }
     }
 }
 
-private struct StepTrailScene: View {
-    @State private var selection = "pack"
-    private let steps: [StepTrail.Step] = [
-        .init(id: "pack", title: "Pack", symbol: "suitcase.fill", detail: "A light bag. The weather stays warm."),
-        .init(id: "train", title: "Train", symbol: "tram.fill", detail: "Reserved seats, window side."),
-        .init(id: "walk", title: "Walk", symbol: "figure.walk", detail: "Two kilometres along the river."),
-        .init(id: "stay", title: "Stay", symbol: "moon.fill", detail: "The inn keeps a room past ten."),
-    ]
-
-    var body: some View {
-        ZStack {
-            CraftedGround()
-            StepTrail(steps: steps, selection: $selection)
-                .padding(28)
-        }
-    }
+/// A house-palette color that follows the interface style.
+private func stepTrailSceneColor(light: UInt32, dark: UInt32) -> Color {
+    Color(uiColor: UIColor { @Sendable traits in
+        let hex = traits.userInterfaceStyle == .dark ? dark : light
+        return UIColor(red: CGFloat((hex >> 16) & 0xFF) / 255, green: CGFloat((hex >> 8) & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
+    })
 }
 
+// MARK: WaveformScrub
+
+/// A 42 second voice note on the plain ground, played by a stand-in player: it starts, speeds up to 1.5×, pauses,
+/// seeks while paused (the playhead lands without overshoot), plays out to the end (play turns to replay), and
+/// rests again. Scrubbing needs a finger, so the scene shows everything the app drives.
 private struct WaveformScrubScene: View {
-    @State private var progress = 0.18
-    @State private var playing = true
-    private let samples: [Double] = [0.15, 0.22, 0.4, 0.85, 0.55, 0.3, 0.7, 0.95, 0.6, 0.25, 0.45, 0.88, 0.5, 0.2, 0.35, 0.72, 0.4, 0.18, 0.62, 0.9, 0.48, 0.22, 0.3, 0.55]
+    @State private var time: TimeInterval = 0
+    @State private var isPlaying = false
+    @State private var rate = 1.0
+    private let duration: TimeInterval = 42
 
     var body: some View {
-        ZStack {
-            CraftedGround()
-            WaveformScrub(samples: samples, progress: $progress, isPlaying: $playing, duration: 18)
-                .padding(.horizontal, 28)
-        }
-    }
-}
-
-private struct ImageCompareScene: View {
-    @State private var split: CGFloat = 0.62
-
-    var body: some View {
-        ImageCompare(split: $split, beforeCaption: "Dawn", afterCaption: "Noon") {
-            ZStack {
-                Color(red: 0.18, green: 0.22, blue: 0.4)
-                Circle().fill(Color(red: 1, green: 0.55, blue: 0.35)).frame(width: 90).offset(x: -50, y: -60)
+        WaveformScrub(samples: WaveformScrubSceneData.samples, duration: duration, time: time, isPlaying: isPlaying, rate: $rate,
+                      onPlayPause: { isPlaying.toggle() }, onSeek: { time = $0 })
+            .padding(.horizontal, 24)
+            .frame(maxWidth: 440)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(waveformScrubSceneColor(light: 0xF3F2EE, dark: 0x121212))
+            // The app's player: moves the time on while playing, at the chosen speed, and stops at the end.
+            .task(id: isPlaying) {
+                while isPlaying, !Task.isCancelled {
+                    try? await Task.sleep(for: .milliseconds(250))
+                    guard isPlaying else { break }
+                    time = min(time + 0.25 * rate, duration)
+                    if time >= duration { isPlaying = false }
+                }
             }
-        } after: {
-            ZStack {
-                Color(red: 0.45, green: 0.72, blue: 0.95)
-                Circle().fill(Color(red: 1, green: 0.85, blue: 0.4)).frame(width: 100).offset(x: 60, y: -40)
-            }
-        }
-        .frame(width: 300, height: 420)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(CraftedGround())
-    }
-}
-
-private struct NowPlayingScene: View {
-    @State private var playing = true
-    @State private var progress = 0.32
-    @State private var expanded = false
-
-    var body: some View {
-        ZStack {
-            CraftedGround()
-            NowPlaying(title: "Slow mornings", artist: "House palette", symbol: "sun.max.fill", isPlaying: $playing, progress: $progress, expanded: $expanded)
-                .padding(.horizontal, 24)
-        }
-    }
-}
-
-private struct WalletStackScene: View {
-    @State private var selection: String?
-    private let cards: [WalletStack.Card] = [
-        .init(id: "rail", name: "Rail pass", detail: "Kyoto to Osaka", symbol: "tram.fill", tint: Color(red: 1, green: 0.851, blue: 0.463)),
-        .init(id: "ferry", name: "Ferry", detail: "Arashiyama, 16:10", symbol: "ferry.fill", tint: Color(red: 0.612, green: 0.761, blue: 1)),
-        .init(id: "inn", name: "Inn", detail: "Room 4, late checkout", symbol: "house.fill", tint: Color(red: 0.663, green: 0.863, blue: 0.718)),
-        .init(id: "museum", name: "Museum", detail: "Timed entry, 11:00", symbol: "ticket.fill", tint: Color(red: 0.804, green: 0.722, blue: 1)),
-    ]
-
-    var body: some View {
-        ZStack {
-            CraftedGround()
-            WalletStack(cards: cards, selection: $selection)
-                .padding(.horizontal, 28)
-                .padding(.top, 40)
-                .frame(maxHeight: .infinity, alignment: .top)
-        }
-    }
-}
-
-private struct NoticeStackScene: View {
-    @State private var notices: [NoticeStack.Notice] = [
-        .init(id: "gate", title: "Gate changed", message: "Boarding is now B12, ten minutes earlier.", symbol: "airplane"),
-        .init(id: "rain", title: "Rain at four", message: "The river walk is still fine if you leave now.", symbol: "cloud.rain.fill"),
-        .init(id: "table", title: "Table held", message: "Under the lanterns, for two, at 19:30.", symbol: "fork.knife"),
-    ]
-    @State private var expanded = false
-
-    var body: some View {
-        NoticeStack(notices: $notices, expanded: $expanded)
-            .padding(.horizontal, 28)
-            .padding(.top, 36)
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-            .background(CraftedGround())
-            .onChange(of: notices.isEmpty) { _, empty in
-                guard empty else { return }
-                Task { @MainActor in
+            .task {
+                while !Task.isCancelled {
+                    time = 0
+                    rate = 1
+                    isPlaying = false
+                    try? await Task.sleep(for: .seconds(1.4))
+                    isPlaying = true
+                    try? await Task.sleep(for: .seconds(2.6))
+                    withAnimation(.spring(duration: 0.4, bounce: 0.2)) { rate = 1.5 }
+                    try? await Task.sleep(for: .seconds(2.2))
+                    isPlaying = false
+                    try? await Task.sleep(for: .seconds(1.0))
+                    // A seek while paused, as a VoiceOver step or a chapter link would send.
+                    time = 38.5
                     try? await Task.sleep(for: .seconds(1.2))
-                    notices = [
-                        .init(id: "gate", title: "Gate changed", message: "Boarding is now B12, ten minutes earlier.", symbol: "airplane"),
-                        .init(id: "rain", title: "Rain at four", message: "The river walk is still fine if you leave now.", symbol: "cloud.rain.fill"),
-                        .init(id: "table", title: "Table held", message: "Under the lanterns, for two, at 19:30.", symbol: "fork.knife"),
-                    ]
+                    isPlaying = true
+                    // Plays out to the end at 1.5×: the button turns to replay.
+                    try? await Task.sleep(for: .seconds(4.0))
                 }
             }
     }
 }
 
-private struct RangeLensScene: View {
-    @State private var lower = 0.22
-    @State private var upper = 0.68
-    private let samples: [Double] = [0.2, 0.35, 0.55, 0.4, 0.7, 0.9, 0.6, 0.45, 0.8, 0.5, 0.3, 0.65, 0.85, 0.4, 0.25, 0.55, 0.75, 0.95, 0.6, 0.35, 0.5, 0.7, 0.4, 0.3, 0.6]
+private enum WaveformScrubSceneData {
+    /// A spoken note: five phrases with short pauses between them. The same envelope as the web preview.
+    static let samples: [Float] = [
+        0.05, 0.32, 0.45, 0.27, 0.6, 0.8, 0.17, 0.42, 0.55, 0.22, 0.78, 0.99, 0.06, 0.04, 0.37, 0.49, 0.25,
+        0.67, 0.83, 0.29, 0.5, 0.63, 0.22, 0.31, 0.37, 0.19, 0.59, 0.73, 0.05, 0.04, 0.26, 0.33, 0.27, 0.47,
+        0.6, 0.26, 0.73, 0.88, 0.06, 0.06, 0.46, 0.54, 0.29, 0.67, 0.84, 0.2, 0.33, 0.41, 0.22, 0.72, 0.91,
+        0.28, 0.49, 0.62, 0.05, 0.06, 0.38, 0.46, 0.23, 0.55, 0.68, 0.23, 0.27, 0.35, 0.05,
+    ]
+}
+
+private func waveformScrubSceneColor(light: UInt32, dark: UInt32) -> Color {
+    Color(uiColor: UIColor { @Sendable traits in
+        let hex = traits.userInterfaceStyle == .dark ? dark : light
+        return UIColor(red: CGFloat((hex >> 16) & 0xFF) / 255, green: CGFloat((hex >> 8) & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
+    })
+}
+
+// MARK: VoiceRecorder
+
+/// The composer alone on the plain ground, recording the simulated source (the catalog has no microphone), driven
+/// through its session exactly as push-to-talk code would: it rests, a held take starts (the mic swells red, the
+/// capsule buds out over the field with the clock and the speech bars, the lock lane buds up), locks hands-free (the
+/// lane melts home, the trash bubble buds out, the mic turns into the red send button), sends (everything melts back
+/// into the mic), then a second take is discarded: the capsule gathers into the bin, which tips closed and melts
+/// away. Mirrors the web storyboard; the drags themselves need a finger.
+private struct VoiceRecorderScene: View {
+    @State private var draft = ""
+    @State private var session = VoiceRecorder.Session(source: .simulated)
 
     var body: some View {
-        ZStack {
-            CraftedGround()
-            RangeLens(samples: samples, lower: $lower, upper: $upper)
-                .padding(28)
+        VoiceRecorder(session: session) { recording in
+            // The scene sends nowhere: the take's file is deleted at once.
+            try? FileManager.default.removeItem(at: recording.url)
+        } content: {
+            TextField("Message", text: $draft)
+                .padding(.horizontal, 18)
+                .frame(height: 52)
+                .background(Capsule().fill(voiceRecorderSceneColor(light: 0xEBE9E3, dark: 0x262626)))
         }
+        .padding(.horizontal, 24)
+        .frame(maxWidth: 460)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(voiceRecorderSceneColor(light: 0xF3F2EE, dark: 0x121212))
+        .task {
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(1.5))
+                session.press()
+                try? await Task.sleep(for: .seconds(2.2))
+                session.lock()
+                try? await Task.sleep(for: .seconds(1.8))
+                session.send()
+                try? await Task.sleep(for: .seconds(1.4))
+                session.press()
+                try? await Task.sleep(for: .seconds(1.6))
+                session.cancel()
+                try? await Task.sleep(for: .seconds(1.6))
+            }
+        }
+    }
+}
+
+private func voiceRecorderSceneColor(light: UInt32, dark: UInt32) -> Color {
+    Color(uiColor: UIColor { @Sendable traits in
+        let hex = traits.userInterfaceStyle == .dark ? dark : light
+        return UIColor(red: CGFloat((hex >> 16) & 0xFF) / 255, green: CGFloat((hex >> 8) & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
+    })
+}
+
+// MARK: NowPlaying
+
+/// The mini player on a plain ground, playing, with an app's clock ticking twice a second. It opens into the full
+/// player, skips to the next track (the title morphs, the artwork blurs into the new one), pauses, folds back into
+/// the bar and plays on.
+private struct NowPlayingScene: View {
+    @State private var track = 0
+    @State private var playing = true
+    @State private var time: TimeInterval = 48
+    @State private var open = false
+
+    private let tracks: [(title: String, artist: String, duration: TimeInterval)] = [
+        ("Slow Mornings", "Aster Vale", 222),
+        ("Paper Lanterns", "Aster Vale", 245),
+    ]
+
+    var body: some View {
+        let current = tracks[track]
+        NowPlayingSceneColor.ground
+            .ignoresSafeArea()
+            .safeAreaInset(edge: .bottom) {
+                NowPlaying(title: current.title, artist: current.artist, isPlaying: playing, time: time, duration: current.duration, expanded: $open,
+                           onPlayPause: { playing.toggle() },
+                           onSkip: { skip in
+                               track = (track + (skip == .next ? 1 : tracks.count - 1)) % tracks.count
+                               time = 0
+                           },
+                           onSeek: { time = $0 }) {
+                    NowPlayingSceneArtwork(track: track)
+                }
+                .frame(maxWidth: 440)
+                .padding(.horizontal, 12)
+                .padding(.bottom, 8)
+            }
+            .task(id: playing) {
+                while playing, !Task.isCancelled {
+                    try? await Task.sleep(for: .milliseconds(500))
+                    guard playing else { break }
+                    time = min(time + 0.5, tracks[track].duration)
+                }
+            }
+            .task {
+                while !Task.isCancelled {
+                    try? await Task.sleep(for: .seconds(1.6))
+                    open = true
+                    try? await Task.sleep(for: .seconds(2.2))
+                    track = 1
+                    time = 0
+                    try? await Task.sleep(for: .seconds(2.0))
+                    playing = false
+                    try? await Task.sleep(for: .seconds(1.2))
+                    open = false
+                    try? await Task.sleep(for: .seconds(1.6))
+                    track = 0
+                    time = 48
+                    playing = true
+                    try? await Task.sleep(for: .seconds(0.6))
+                }
+            }
+    }
+}
+
+/// The scene's ground, the house paper and charcoal.
+private enum NowPlayingSceneColor {
+    static let ground = Color(uiColor: UIColor { @Sendable traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 0.071, green: 0.071, blue: 0.071, alpha: 1)
+            : UIColor(red: 0.953, green: 0.949, blue: 0.933, alpha: 1)
+    })
+}
+
+/// Block art drawn in code, as the piece's own example: a butter sun over a sage hill on sky, then lilac with three
+/// hanging lanterns.
+private struct NowPlayingSceneArtwork: View {
+    var track: Int
+
+    var body: some View {
+        Canvas { context, size in
+            let w = size.width, h = size.height
+            func color(_ hex: UInt32) -> Color {
+                Color(red: Double((hex >> 16) & 0xFF) / 255, green: Double((hex >> 8) & 0xFF) / 255, blue: Double(hex & 0xFF) / 255)
+            }
+            if track % 2 == 0 {
+                context.fill(Path(CGRect(origin: .zero, size: size)), with: .color(color(0x9CC2FF)))
+                context.fill(Path(ellipseIn: CGRect(x: w * 0.52, y: h * 0.16, width: w * 0.3, height: w * 0.3)), with: .color(color(0xFFD976)))
+                var hill = Path()
+                hill.move(to: CGPoint(x: 0, y: h * 0.7))
+                hill.addCurve(to: CGPoint(x: w, y: h * 0.62), control1: CGPoint(x: w * 0.3, y: h * 0.48), control2: CGPoint(x: w * 0.62, y: h * 0.5))
+                hill.addLine(to: CGPoint(x: w, y: h))
+                hill.addLine(to: CGPoint(x: 0, y: h))
+                hill.closeSubpath()
+                context.fill(hill, with: .color(color(0xA9DCB7)))
+                var near = Path()
+                near.move(to: CGPoint(x: 0, y: h * 0.86))
+                near.addCurve(to: CGPoint(x: w, y: h * 0.84), control1: CGPoint(x: w * 0.36, y: h * 0.74), control2: CGPoint(x: w * 0.7, y: h * 0.8))
+                near.addLine(to: CGPoint(x: w, y: h))
+                near.addLine(to: CGPoint(x: 0, y: h))
+                near.closeSubpath()
+                context.fill(near, with: .color(color(0xE9D5B3)))
+            } else {
+                context.fill(Path(CGRect(origin: .zero, size: size)), with: .color(color(0xCDB8FF)))
+                let lanterns: [(x: CGFloat, y: CGFloat, r: CGFloat, hex: UInt32)] = [(0.26, 0.5, 0.15, 0xFFD976), (0.56, 0.36, 0.12, 0xE9D5B3), (0.78, 0.6, 0.1, 0x9CC2FF)]
+                for lantern in lanterns {
+                    var string = Path()
+                    string.move(to: CGPoint(x: w * lantern.x, y: 0))
+                    string.addLine(to: CGPoint(x: w * lantern.x, y: h * (lantern.y - lantern.r)))
+                    context.stroke(string, with: .color(color(0x141414)), lineWidth: max(w * 0.008, 0.5))
+                    context.fill(Path(ellipseIn: CGRect(x: w * (lantern.x - lantern.r), y: h * lantern.y - w * lantern.r, width: w * lantern.r * 2, height: w * lantern.r * 2)), with: .color(color(lantern.hex)))
+                }
+            }
+        }
+    }
+}
+
+// MARK: WalletStack
+
+/// The wallet alone on the plain ground: four passes stacked, the Rail pass rises and opens to its code while the
+/// others tuck into the pile and the close bubble buds out of its corner, it goes back, then the red concert ticket
+/// does the same. Driven through the selection binding, so it loops on its own. Mirrors the web preview.
+private struct WalletStackScene: View {
+    @State private var presented: String?
+
+    var body: some View {
+        WalletStack(passes: WalletStackScenePasses.all, selection: $presented)
+            .padding(.horizontal, 24)
+            .padding(.top, 24)
+            .frame(maxWidth: 440)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(WalletStackScenePasses.ground)
+            .task {
+                while !Task.isCancelled {
+                    presented = nil
+                    try? await Task.sleep(for: .seconds(1.4))
+                    presented = "rail"
+                    try? await Task.sleep(for: .seconds(2.8))
+                    presented = nil
+                    try? await Task.sleep(for: .seconds(1.6))
+                    presented = "concert"
+                    try? await Task.sleep(for: .seconds(2.8))
+                    presented = nil
+                    try? await Task.sleep(for: .seconds(1.2))
+                }
+            }
+    }
+}
+
+/// Four fictional passes, back to front, and the house ground.
+private enum WalletStackScenePasses {
+    static let ground = Color(uiColor: UIColor { @Sendable traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 0.071, green: 0.071, blue: 0.071, alpha: 1)
+            : UIColor(red: 0.953, green: 0.949, blue: 0.933, alpha: 1)
+    })
+
+    static let all: [WalletStack.Pass] = [
+        .init(id: "gallery", title: "Gallery day pass", subtitle: "Casa da Luz, Lisbon", symbol: "building.columns.fill", tint: .butter,
+              headerField: .init(label: "Entry", value: "11:00"),
+              fields: [.init(label: "Date", value: "Sat 25 Oct"), .init(label: "Guests", value: "2 adults"), .init(label: "Floors", value: "All")],
+              code: "GD-1180-0093"),
+        .init(id: "rail", title: "Rail pass", subtitle: "Lisbon to Porto", symbol: "tram.fill", tint: .sky,
+              headerField: .init(label: "Coach", value: "4"),
+              fields: [.init(label: "Departs", value: "08:42"), .init(label: "Arrives", value: "11:37"), .init(label: "Seat", value: "14A")],
+              code: "SP-2291-0742"),
+        .init(id: "concert", title: "Night Market Live", subtitle: "Riverside Pavilion", symbol: "music.note", tint: .red,
+              headerField: .init(label: "Doors", value: "19:30"),
+              fields: [.init(label: "Date", value: "Fri 24 Oct"), .init(label: "Section", value: "Floor"), .init(label: "Gate", value: "C")],
+              code: "NML-0424-1187"),
+        .init(id: "ferry", title: "River ferry", subtitle: "Cais do Sodré to Cacilhas", symbol: "ferry.fill", tint: .sage,
+              headerField: .init(label: "Boards", value: "17:10"),
+              fields: [.init(label: "Pier", value: "2"), .init(label: "Return", value: "Open"), .init(label: "Fare", value: "Adult")],
+              code: "RF-5530-0218"),
+    ]
+}
+
+// MARK: NoticeStack
+
+/// The stack alone on the plain ground, driven only through its bindings: a pile of three, a parcel notice
+/// dropping in on top, the pile spreading into a list as Show less and the clear button bud out, one notice
+/// melting away while the rest close up, and the list gathering back into the pile.
+private struct NoticeStackScene: View {
+    @State private var notices = NoticeStackSceneData.pile
+    @State private var expanded = false
+
+    var body: some View {
+        NoticeStack(notices: $notices, expanded: $expanded)
+            .padding(.horizontal, 20)
+            .frame(maxWidth: 440)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(NoticeStackSceneData.ground)
+            .task {
+                while !Task.isCancelled {
+                    expanded = false
+                    notices = NoticeStackSceneData.pile
+                    try? await Task.sleep(for: .seconds(1.6))
+                    notices.insert(NoticeStackSceneData.parcel, at: 0)
+                    try? await Task.sleep(for: .seconds(1.6))
+                    expanded = true
+                    try? await Task.sleep(for: .seconds(2.2))
+                    notices.removeAll { $0.id == "gate" }
+                    try? await Task.sleep(for: .seconds(1.8))
+                    expanded = false
+                    try? await Task.sleep(for: .seconds(1.8))
+                }
+            }
+    }
+}
+
+private enum NoticeStackSceneData {
+    static let ground = Color(uiColor: UIColor { @Sendable traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 0.071, green: 0.071, blue: 0.071, alpha: 1)
+            : UIColor(red: 0.953, green: 0.949, blue: 0.933, alpha: 1)
+    })
+
+    static var pile: [NoticeStack.Notice] {
+        [
+            .init(id: "gate", title: "Gate changed", message: "Boarding is now B12, ten minutes earlier.", symbol: "airplane", tint: .sky, date: .now.addingTimeInterval(-120)),
+            .init(id: "rain", title: "Rain at four", message: "The river walk is still fine if you leave now.", symbol: "cloud.rain.fill", tint: .lilac, date: .now.addingTimeInterval(-1_080)),
+            .init(id: "table", title: "Table held", message: "Under the lanterns, for two, at 19:30.", symbol: "fork.knife", tint: .butter, date: .now.addingTimeInterval(-3_600)),
+        ]
+    }
+
+    static var parcel: NoticeStack.Notice {
+        .init(id: "parcel", title: "At your door", message: "The parcel from Rua Augusta was left with the concierge.", symbol: "shippingbox.fill", tint: .sage, date: .now)
+    }
+}
+
+// MARK: RangeLens
+
+/// The component alone: a year of daily steps with the lens over the last six weeks. The window glides back through
+/// the summer two weeks at a time (the detail pans and rescales, the average rolls), widens, shows the whole year,
+/// and comes back to rest.
+private struct RangeLensScene: View {
+    @State private var days: [RangeLens.Sample]
+    @State private var window: ClosedRange<Date>
+
+    init() {
+        let days = RangeLensSceneData.steps()
+        _days = State(initialValue: days)
+        _window = State(initialValue: RangeLens.window(last: 42, of: days))
+    }
+
+    var body: some View {
+        RangeLens(samples: days, selection: $window, unit: "steps a day")
+            .padding(.horizontal, 24)
+            .frame(maxWidth: 460)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(RangeLensSceneData.ground)
+            .task {
+                while !Task.isCancelled {
+                    try? await Task.sleep(for: .seconds(1.6))
+                    // Back through the summer, two weeks a step.
+                    for step in 1...6 {
+                        window = RangeLensSceneData.window(days, endingDaysBack: 14 * step, length: 42)
+                        try? await Task.sleep(for: .milliseconds(650))
+                    }
+                    try? await Task.sleep(for: .seconds(0.6))
+                    // Wider: ten weeks.
+                    window = RangeLensSceneData.window(days, endingDaysBack: 84, length: 70)
+                    try? await Task.sleep(for: .seconds(1.4))
+                    // The whole year, then back to rest.
+                    if let first = days.first, let last = days.last { window = first.date...last.date }
+                    try? await Task.sleep(for: .seconds(1.9))
+                    window = RangeLens.window(last: 42, of: days)
+                }
+            }
+    }
+}
+
+/// A year of daily steps ending today: weekends higher, a summer rise, a holiday dip at the turn of the year and the
+/// odd rest day. The same shape as the piece's own example.
+private enum RangeLensSceneData {
+    static let ground = Color(uiColor: UIColor { @Sendable traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 0x12 / 255, green: 0x12 / 255, blue: 0x12 / 255, alpha: 1)
+            : UIColor(red: 0xF3 / 255, green: 0xF2 / 255, blue: 0xEE / 255, alpha: 1)
+    })
+
+    static func steps(days: Int = 365, calendar: Calendar = .current, now: Date = .now) -> [RangeLens.Sample] {
+        let today = calendar.startOfDay(for: now)
+        return (0..<days).compactMap { k in
+            guard let date = calendar.date(byAdding: .day, value: k - (days - 1), to: today) else { return nil }
+            let noise = Double((k * 7_919 + 13) % 101) / 100
+            let rest = Double((k * 4_021 + 71) % 97) / 96
+            let weekday = calendar.component(.weekday, from: date)
+            let month = calendar.component(.month, from: date)
+            let day = calendar.component(.day, from: date)
+            let dayOfYear = Double(calendar.ordinality(of: .day, in: .year, for: date) ?? 1)
+            let summer = exp(-pow((dayOfYear - 200) / 48, 2))
+            var steps = 7_400 + 2_300 * summer + (weekday == 7 ? 2_800 : weekday == 1 ? 1_900 : 0) + (noise - 0.5) * 2_800
+            if (month == 12 && day >= 23) || (month == 1 && day <= 1) { steps *= 0.5 }
+            if rest < 0.05 { steps = 2_400 + noise * 900 }
+            return RangeLens.Sample(date: date, value: max(steps, 600).rounded())
+        }
+    }
+
+    /// `length` days ending `endingDaysBack` days before the last one.
+    static func window(_ days: [RangeLens.Sample], endingDaysBack back: Int, length: Int) -> ClosedRange<Date> {
+        let end = max(days.count - 1 - back, 0)
+        let start = max(end - length + 1, 0)
+        return days[start].date...days[end].date
     }
 }

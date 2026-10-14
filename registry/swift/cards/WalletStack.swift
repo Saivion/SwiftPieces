@@ -1,207 +1,977 @@
 // swiftpieces:
 // title: Wallet Stack
-// description: "Passes stacked as liquid glass that melts into one shape where they overlap. Drag up and they fan apart through necks that thin and snap; drag down and they gather home. Tap a fanned pass to lift it forward, with a light tick, and tap it again to set it back into the stack."
+// description: "A wallet of tickets, boarding passes, memberships and loyalty cards as solid colour passes stacked so every header strip shows: tap one and it rises to the top and opens to its whole face with a real QR, Aztec, PDF417 or Code 128 code drawn by Core Image while the others slide down into a pile of narrowing slivers and a clear glass close bubble buds out of its corner, then drag it down with the finger's velocity, tap the pile, tap the bubble or press Escape to put it back; the strips draw closer when space runs short, the stack scrolls when there are many, and VoiceOver reads every pass, field and code."
 // category: cards
 // minIOSVersion: "17.0"
 // version: "1.0.0"
 // added: "2026-10-12"
-// tags: [wallet, cards, stack, fan, glass, drag, haptics]
+// tags: [wallet, pass, ticket, boarding-pass, qr-code, barcode, stack, cards, drag, haptics]
 
+import CoreImage
+import CoreImage.CIFilterBuiltins
 import SwiftUI
+import UIKit
 
-/// A stack of glass passes that fans open and lets one card lift forward.
+/// A wallet of passes and tickets: header strips stacked one over the next, and a tap brings one pass forward with
+/// its whole face and a scannable code while the rest tuck into a pile.
 ///
-/// Collapsed, the cards overlap inside the merge distance, so their glass is one shape. Fanned, they rest apart.
-/// `selection` is the id of the lifted card, or nil when every card is in the fan or the stack.
+/// Passes are content, solid blocks with dark ink, listed back to front: each header strip shows above the next pass
+/// and the last pass shows whole. Tap a pass and it rises to the top of the space it's given and opens to its code,
+/// drawn from `code` with Core Image, while the others slide down into a pile of slivers. A clear glass close bubble
+/// buds out of the pass's top corner. Drag the pass down (a flick is enough), tap the pile, tap the bubble or press
+/// Escape to put it back. When the stack is taller than its space the strips draw closer, then it scrolls.
+///
+/// Give it the space the passes may use, such as a whole screen under a title or a sheet. It scrolls its own passes,
+/// so don't put it inside another vertical scroll view.
+///
+/// ```swift
+/// @State private var presented: String?
+///
+/// WalletStack(passes: passes, selection: $presented)
+///     .padding(.horizontal, 20)
+/// ```
 ///
 /// - Parameters:
-///   - cards: Passes from front to back. Four or five read best.
-///   - selection: The lifted card's id, or nil.
-///   - haptics: A light tick when the fan opens, closes, or a card lifts.
-///   - style: Ink on the cards. Each card brings its own tint, painted inside the glass.
+///   - passes: The passes, back to front: the first sits at the top of the stack and the last shows whole. Ids must be unique. Make each one with ``WalletStack/Pass``, picking a house colour such as `.sky` or `.red` for its `tint`.
+///   - selection: The id of the presented pass, or `nil` for the stack. It changes as people present and put back passes; set it yourself to present one from a deep link or a notification. An id that isn't in `passes` shows the stack.
+///   - messages: The built-in copy: the close bubble, the pile and the hints VoiceOver reads. Defaults are localizable through your String Catalog; replace any line, for example `done` with "Close".
+///   - style: The passes' corner radius, the code tile's colours, the close bubble's glyph and the pile's slivers. Defaults to the SwiftPieces house palette.
 public struct WalletStack: View {
-    /// One pass in the stack.
-    public struct Card: Identifiable, Sendable {
-        public var id: String
-        public var name: String
-        public var detail: String
-        public var symbol: String
-        public var tint: Color
 
-        public init(id: String, name: String, detail: String, symbol: String, tint: Color) {
+    // MARK: Pass
+
+    /// One pass or ticket: a solid block with a header strip, a row or two of fields and an optional code.
+    public struct Pass: Identifiable, Sendable, Equatable {
+        /// A label over a value, such as "Seat" over "14A".
+        public struct Field: Sendable, Equatable, Hashable {
+            /// Small and quiet, drawn in capitals.
+            public var label: String
+            /// What people look for.
+            public var value: String
+
+            public init(label: String, value: String) {
+                self.label = label
+                self.value = value
+            }
+        }
+
+        /// A pass's colour and the ink drawn on it. The house blocks all read with the house's dark ink.
+        public struct Tint: Sendable, Equatable {
+            /// The pass itself.
+            public var fill: Color
+            /// Text and the symbol tile on the pass.
+            public var ink: Color
+
+            /// Your own colour. Pass an `ink` that reads on it, such as `.white` on a dark colour.
+            public init(_ fill: Color, ink: Color = Tint.houseInk) {
+                self.fill = fill
+                self.ink = ink
+            }
+
+            /// `#141414`, the ink every house block carries.
+            public static let houseInk = Color(red: 0.078, green: 0.078, blue: 0.078)
+            /// `#9CC2FF`.
+            public static let sky = Tint(Color(red: 0.612, green: 0.761, blue: 1))
+            /// `#FFD976`.
+            public static let butter = Tint(Color(red: 1, green: 0.851, blue: 0.463))
+            /// `#A9DCB7`.
+            public static let sage = Tint(Color(red: 0.663, green: 0.863, blue: 0.718))
+            /// `#CDB8FF`.
+            public static let lilac = Tint(Color(red: 0.804, green: 0.722, blue: 1))
+            /// `#E9D5B3`.
+            public static let sand = Tint(Color(red: 0.914, green: 0.835, blue: 0.702))
+            /// `#FF0000`, the house signal. Keep it for the one pass that matters most right now, such as tonight's ticket.
+            public static let red = Tint(Color(red: 1, green: 0, blue: 0))
+        }
+
+        /// How `code` is drawn. Every kind is generated on the device by Core Image.
+        public enum Symbology: Sendable, Equatable {
+            /// A square QR code: tickets, event passes and most memberships.
+            case qr
+            /// A square Aztec code, common on rail and airline boarding passes.
+            case aztec
+            /// A wide stacked PDF417 code, used by many airlines.
+            case pdf417
+            /// A wide Code 128 barcode for loyalty and library cards. Only ASCII text can be encoded.
+            case code128
+        }
+
+        public var id: String
+        /// The pass's name, such as "Rail pass". One line in the stack.
+        public var title: String
+        /// Under the title, such as "Lisbon to Porto".
+        public var subtitle: String?
+        /// An SF Symbol for the tile at the leading edge, such as "tram.fill". `nil` leaves the tile out.
+        public var symbol: String?
+        /// The pass's colour and ink.
+        public var tint: Tint
+        /// The one field on the header strip, at the trailing edge, so it shows even while the pass is stacked.
+        public var headerField: Field?
+        /// The fields under the header strip. They share one row when they fit and wrap when they don't.
+        public var fields: [Field]
+        /// The text the code encodes, also printed under it. `nil` shows no code.
+        public var code: String?
+        /// How the code is drawn.
+        public var symbology: Symbology
+
+        public init(
+            id: String,
+            title: String,
+            subtitle: String? = nil,
+            symbol: String? = nil,
+            tint: Tint = .sky,
+            headerField: Field? = nil,
+            fields: [Field] = [],
+            code: String? = nil,
+            symbology: Symbology = .qr
+        ) {
             self.id = id
-            self.name = name
-            self.detail = detail
+            self.title = title
+            self.subtitle = subtitle
             self.symbol = symbol
             self.tint = tint
+            self.headerField = headerField
+            self.fields = fields
+            self.code = code
+            self.symbology = symbology
         }
     }
 
-    public struct Style: Sendable {
-        public var ink: Color
-        public var muted: Color
+    // MARK: Messages
 
+    /// The built-in copy. Every default is localizable through your String Catalog.
+    public struct Messages: Sendable {
+        /// The close bubble's name for VoiceOver. It puts the presented pass back.
+        public var done: String
+        /// VoiceOver's hint on a pass in the stack.
+        public var showPass: String
+        /// The pile of the other passes while one is presented, for VoiceOver.
+        public var otherPasses: String
+        /// VoiceOver's hint on the pile and the close bubble.
+        public var putBack: String
+        /// Read before the code's text.
+        public var code: String
+
+        /// Pass only the lines you want to change.
         public init(
-            ink: Color = Color(red: 0.078, green: 0.078, blue: 0.078),
-            muted: Color = Color(red: 0.078, green: 0.078, blue: 0.078).opacity(0.62)
+            done: String = String(localized: "Done", comment: "Wallet stack: the close button that puts the presented pass back"),
+            showPass: String = String(localized: "Shows the whole pass", comment: "Wallet stack: VoiceOver hint on a pass in the stack"),
+            otherPasses: String = String(localized: "Other passes", comment: "Wallet stack: VoiceOver name of the pile of passes under the presented one"),
+            putBack: String = String(localized: "Puts the pass back", comment: "Wallet stack: VoiceOver hint on the pile and the close button"),
+            code: String = String(localized: "Code", comment: "Wallet stack: VoiceOver label read before a pass's code")
         ) {
-            self.ink = ink
-            self.muted = muted
+            self.done = done
+            self.showPass = showPass
+            self.otherPasses = otherPasses
+            self.putBack = putBack
+            self.code = code
+        }
+
+        public static var standard: Messages { Messages() }
+    }
+
+    // MARK: Style
+
+    /// The passes' corners, the code tile, the close bubble's glyph and the pile. `.standard` is the house palette.
+    public struct Style: Sendable {
+        /// The passes' corner radius.
+        public var cornerRadius: CGFloat
+        /// The tile the code sits on. White in both appearances, so every scanner reads it.
+        public var codeBackground: Color
+        /// The code's modules and the text under it.
+        public var codeInk: Color
+        /// The close bubble's glyph, on clear glass over your background.
+        public var label: Color
+        /// How much of each pass shows in the pile while another is presented.
+        public var sliver: CGFloat
+        /// How many passes the pile shows, front to back. The rest wait behind the last one.
+        public var pileDepth: Int
+
+        /// Pass only what you want to change; `nil` keeps the house palette value.
+        public init(cornerRadius: CGFloat = 22, codeBackground: Color? = nil, codeInk: Color? = nil, label: Color? = nil, sliver: CGFloat = 10, pileDepth: Int = 4) {
+            self.cornerRadius = max(cornerRadius, 0)
+            self.codeBackground = codeBackground ?? .white
+            self.codeInk = codeInk ?? Pass.Tint.houseInk
+            self.label = label ?? walletStackColor(light: 0x141414, dark: 0xF4F3EF)
+            self.sliver = max(sliver, 4)
+            self.pileDepth = min(max(pileDepth, 1), 8)
         }
 
         public static let standard = Style()
     }
 
+    // MARK: State
+
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @ScaledMetric(relativeTo: .body) private var closeSide: CGFloat = 36
     @Binding private var selection: String?
-    @State private var spread: CGFloat = 0
-    @State private var origin: CGFloat?
-    @State private var dragging = false
-    @State private var consumedDrag = false
-    @State private var ticks = 0
+    /// The scroll view's height, and where the content sits in it: the visible part of the content starts at
+    /// `-contentTop`. The scroll view's frame already sits inside the safe area; what it draws under the bars and the
+    /// home indicator is extra, so its insets are never subtracted.
+    @State private var viewportHeight: CGFloat = 0
+    @State private var contentTop: CGFloat = 0
+    /// Each pass's measured header strip, face without its code, and code area.
+    @State private var metrics: [String: WalletStackMetrics] = [:]
+    /// Where the visible area began when a pass was presented, so the pass stays put if the content then scrolls.
+    @State private var anchor: CGFloat?
+    /// The pass that was presented last: it leads the way back.
+    @State private var lastPresented: String?
+    /// A presented pass dragged down: set directly while the finger moves, never animated.
+    @State private var drag: CGFloat = 0
+    @State private var pastThreshold = false
+    /// How a dragged pass let go, so its way back leaves at the finger's speed.
+    @State private var release: WalletStackRelease?
+    @State private var buds = PieceBuds()
+    @State private var moveTick = 0
+    @State private var thresholdTick = 0
+    @AccessibilityFocusState private var focus: String?
 
-    private let cards: [Card]
-    private let haptics: Bool
+    private let passes: [Pass]
+    private let messages: Messages
     private let style: Style
+    /// A pull past this, or a flick that would carry past it, puts the pass back.
+    private let returnThreshold: CGFloat = 110
 
-    public init(cards: [Card], selection: Binding<String?>, haptics: Bool = true, style: Style = .standard) {
-        self.cards = cards
+    public init(passes: [Pass], selection: Binding<String?>, messages: Messages = .standard, style: Style = .standard) {
+        self.passes = passes
         self._selection = selection
-        self.haptics = haptics
+        self.messages = messages
         self.style = style
     }
 
     public var body: some View {
-        let motion = PieceMotion(reduceMotion: reduceMotion)
-        PieceLiquidGroup {
+        let frame = layout()
+        ScrollView(.vertical) {
             ZStack(alignment: .top) {
-                ForEach(Array(cards.enumerated()), id: \.element.id) { index, card in
-                    pass(card, index: index)
-                        .zIndex(selection == card.id ? 2 : 1 - Double(index) * 0.01)
+                ForEach(Array(passes.enumerated()), id: \.element.id) { index, pass in
+                    passView(pass, index: index, frame: frame)
+                }
+                if frame.presented != nil, frame.pileCount > 0 {
+                    pile(frame)
                 }
             }
-            .frame(height: stackHeight, alignment: .top)
+            .frame(maxWidth: .infinity)
+            .frame(height: max(frame.contentHeight, 1), alignment: .top)
+            .onGeometryChange(for: CGFloat.self) { $0.frame(in: .scrollView).minY } action: { contentTop = $0 }
         }
+        .scrollDisabled(frame.presented != nil && !frame.scrolls)
+        .scrollBounceBehavior(.basedOnSize)
+        .scrollIndicators(frame.presented == nil ? .automatic : .hidden)
+        .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { viewportHeight = $0 }
         .fontWeight(.semibold)
-        .simultaneousGesture(fan)
-        .sensoryFeedback(.impact(weight: SensoryFeedback.Weight.light, intensity: 0.75), trigger: ticks)
-        .animation(dragging ? nil : motion.morph, value: spread)
-        .animation(motion.snap, value: selection)
-        .accessibilityElement(children: .contain)
+        .sensoryFeedback(.impact(weight: .light), trigger: moveTick)
+        .sensoryFeedback(.selection, trigger: thresholdTick)
+        .onChange(of: presentedID) { old, new in changed(from: old, to: new) }
+        .onAppear {
+            if let presentedID {
+                lastPresented = presentedID
+                buds.place([budID(presentedID)])
+            }
+        }
     }
 
-    private var stackHeight: CGFloat {
-        let gap = 14 + spread * 62
-        return 96 + gap * CGFloat(max(cards.count - 1, 0)) + (selection == nil ? 0 : 24)
+    /// The selection, if it names a pass that's here.
+    private var presentedID: String? {
+        guard let selection, passes.contains(where: { $0.id == selection }) else { return nil }
+        return selection
     }
 
-    private func pass(_ card: Card, index: Int) -> some View {
-        let lifted = selection == card.id
-        let gap = 14 + spread * 62
-        let y = CGFloat(index) * gap - (lifted ? 22 : 0)
+    private func budID(_ id: String) -> String { "close-\(id)" }
+
+    // MARK: Layout
+
+    /// Where every pass goes for the current state: the stack, or one pass at the top and the rest in the pile.
+    private func layout() -> WalletStackFrame {
+        var frame = WalletStackFrame()
+        let count = passes.count
+        guard count > 0 else { return frame }
+        frame.presented = presentedID
+        // Each pass shows exactly its own header strip above the next. When the passes don't fit, the strips draw
+        // closer together by giving up their bottom padding, never their text; past that, the stack scrolls.
+        let headers = passes.map { metrics[$0.id].map(\.header).flatMap { $0 > 0 ? $0 : nil } ?? 76 }
+        let tightest = headers.map { max($0 - WalletStackFace.headerBottom + 6, $0 * 0.7) }
+        let visible = max(viewportHeight, 1)
+        let lastHeight = metrics[passes[count - 1].id].map(\.compact).flatMap { $0 > 0 ? $0 : nil } ?? 150
+        let bottomRoom: CGFloat = 20
+        let loose = headers.dropLast().reduce(0, +), tight = tightest.dropLast().reduce(0, +)
+        let room = visible - lastHeight - bottomRoom
+        let give = loose - tight > 0.5 ? min(max((room - tight) / (loose - tight), 0), 1) : 1
+        var y: CGFloat = 0
+        frame.restY = headers.indices.map { index in
+            defer { y += tightest[index] + (headers[index] - tightest[index]) * give }
+            return y
+        }
+        let rest = (frame.restY.last ?? 0) + lastHeight + bottomRoom
+        frame.contentHeight = rest
+
+        guard let presented = frame.presented, let presentedIndex = passes.firstIndex(where: { $0.id == presented }) else { return frame }
+        frame.presentedIndex = presentedIndex
+        let top = max(anchor ?? -contentTop, 0)
+        let row = closeRow
+        frame.passTop = top + row
+        let measured = metrics[presented] ?? WalletStackMetrics()
+        let full = max(measured.openCompact, measured.compact) + measured.code
+        let pileCount = min(count - 1, style.pileDepth)
+        frame.pileCount = pileCount
+        let front: CGFloat = 16
+        let stacked = CGFloat(max(pileCount - 1, 0)) * style.sliver + front
+        let atBottom = top + visible - stacked
+        let clear = frame.passTop + full + 24
+        frame.pileTop = max(atBottom, clear)
+        let needed = frame.pileTop + stacked
+        frame.scrolls = needed > top + visible + 0.5
+        frame.contentHeight = max(rest, needed)
+        // The pile's target runs on into the home indicator's area, where the front pass still shows.
+        frame.pileBottom = top + visible + 34
+        return frame
+    }
+
+    /// The room above a presented pass for its close bubble.
+    private var closeRow: CGFloat { bubbleSide + 12 }
+    private var bubbleSide: CGFloat { min(closeSide, 48) }
+
+    /// One pass's place: its offset from the top of the content and its scale about its top edge.
+    private func place(_ index: Int, _ frame: WalletStackFrame) -> (y: CGFloat, scale: CGFloat, depth: Int) {
+        guard let presentedIndex = frame.presentedIndex else { return (frame.restY[index], 1, 0) }
+        if index == presentedIndex { return (frame.passTop + drag, 1, 0) }
+        // Depth in the pile: 0 for the frontmost. Passes keep their stacking order, so nothing ever jumps in front.
+        let depth = passes.indices.filter { $0 > index && $0 != presentedIndex }.count
+        let shown = min(depth, frame.pileCount - 1)
+        let lift = min(max(drag, 0) / returnThreshold, 1) * 14
+        let y = frame.pileTop + CGFloat(frame.pileCount - 1 - shown) * style.sliver - lift
+        return (y, 1 - 0.04 * CGFloat(shown + 1), depth)
+    }
+
+    // MARK: Passes
+
+    private func passView(_ pass: Pass, index: Int, frame: WalletStackFrame) -> some View {
+        let presented = pass.id == frame.presented
+        let place = place(index, frame)
+        let others = frame.presented != nil && !presented
         return Button {
-            lift(card)
+            present(pass.id)
         } label: {
-            HStack(spacing: 12) {
-                Image(systemName: card.symbol)
-                    .font(.title3.weight(.semibold))
-                    .frame(width: 36, height: 36)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(card.name)
-                        .font(.subheadline.weight(.semibold))
-                    Text(card.detail)
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(style.muted)
-                }
-                Spacer(minLength: 0)
+            WalletStackFace(pass: pass, open: presented, style: style) { key, value in
+                guard metrics[pass.id, default: WalletStackMetrics()][keyPath: key] != value else { return }
+                metrics[pass.id, default: WalletStackMetrics()][keyPath: key] = value
             }
-            .foregroundStyle(style.ink)
-            .padding(.horizontal, 16)
-            .frame(maxWidth: .infinity, minHeight: 88, alignment: .leading)
-            .contentShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
         }
-        .buttonStyle(PieceLiquidPressStyle(depth: 2))
-        .pieceLiquid(RoundedRectangle(cornerRadius: 22, style: .continuous), tint: card.tint, interactive: true)
-        .pieceLiquidScale(lifted && !reduceMotion ? 1.03 : 1)
-        .offset(y: y)
-        .accessibilityLabel("\(card.name), \(card.detail)")
-        .accessibilityAddTraits(lifted ? .isSelected : [])
+        .buttonStyle(WalletStackPressStyle(enabled: frame.presented == nil))
+        .accessibilityRepresentation {
+            accessible(pass, presented: presented)
+        }
+        .accessibilityFocused($focus, equals: pass.id)
+        .accessibilityHidden(others)
+        // A UIKit pan: inside a scroll view a SwiftUI drag can lose its end, and the pass would stay where it was let go.
+        .overlay {
+            if presented {
+                WalletStackPan(isEnabled: !frame.scrolls, onChange: pull, onEnd: letGo)
+                    .accessibilityHidden(true)
+            }
+        }
+        .background(alignment: .topTrailing) {
+            if buds.contains(budID(pass.id)) { closeBubble(for: pass) }
+        }
+        .scaleEffect(place.scale, anchor: .top)
+        .offset(y: place.y)
+        .animation(animation(for: pass, index: index, depth: place.depth, frame: frame), value: frame.presented)
+        .allowsHitTesting(!others)
     }
 
-    private func lift(_ card: Card) {
-        // A flick that opened the fan also lands on a card. Ignore that tap.
-        guard spread > 0.5, !consumedDrag else { return }
+    /// The pass moving to or from the top leads and the rest follow a beat behind: into the pile front first, so the
+    /// presented pass is uncovered at once, and back into the stack top first, so each pass lands before the one that
+    /// covers it. A pass let go from a drag leaves at the finger's speed.
+    private func animation(for pass: Pass, index: Int, depth: Int, frame: WalletStackFrame) -> Animation {
         let motion = PieceMotion(reduceMotion: reduceMotion)
-        withAnimation(motion.snap) {
-            selection = selection == card.id ? nil : card.id
+        if frame.presented == nil, let release, release.id == pass.id {
+            return motion.settle(velocity: release.velocity, from: release.from, to: frame.restY.indices.contains(index) ? frame.restY[index] : 0, spring: PieceMotion.calm)
         }
-        if haptics { ticks += 1 }
+        let leading = pass.id == (frame.presented ?? lastPresented)
+        let order = frame.presented == nil ? passes.indices.filter { $0 < index && passes[$0].id != lastPresented }.count : depth
+        return motion.follow(PieceMotion.calm, rank: leading ? 0 : 1 + min(order, 4))
     }
 
-    private var fan: some Gesture {
-        DragGesture(minimumDistance: 8)
-            .onChanged { value in
-                if origin == nil { origin = spread }
-                dragging = true
-                if hypot(value.translation.width, value.translation.height) > 10 { consumedDrag = true }
-                let raw = (origin ?? spread) - value.translation.height / 150
-                spread = PieceMotion.rubberBand(raw, in: 0...1, limit: 0.28)
+    @ViewBuilder
+    private func accessible(_ pass: Pass, presented: Bool) -> some View {
+        if presented {
+            VStack(alignment: .leading) {
+                Text(pass.title).accessibilityAddTraits(.isHeader)
+                if let subtitle = pass.subtitle { Text(subtitle) }
+                ForEach(Array(((pass.headerField.map { [$0] } ?? []) + pass.fields).enumerated()), id: \.offset) { _, field in
+                    Text(field.label).accessibilityValue(Text(field.value))
+                }
+                if let code = pass.code {
+                    Text(messages.code).accessibilityValue(Text(code))
+                }
             }
-            .onEnded { value in
-                let motion = PieceMotion(reduceMotion: reduceMotion)
-                let from = spread
-                dragging = false
-                origin = nil
-                let blocked = consumedDrag
-                if blocked {
-                    Task { @MainActor in
-                        try? await Task.sleep(for: .milliseconds(80))
-                        consumedDrag = false
+            .accessibilityElement(children: .contain)
+            .accessibilityAction(.escape) { putBack() }
+        } else {
+            Button(summary(pass)) { present(pass.id) }
+                .accessibilityHint(messages.showPass)
+        }
+    }
+
+    /// "Rail pass, Lisbon to Porto, Coach, 4": what a stacked pass shows, in reading order.
+    private func summary(_ pass: Pass) -> String {
+        [pass.title, pass.subtitle, pass.headerField?.label, pass.headerField?.value].compactMap { $0 }.joined(separator: ", ")
+    }
+
+    // MARK: Close bubble and pile
+
+    /// Clear glass with an xmark, resting above the pass's top trailing corner. It is born behind the corner, so it
+    /// buds up out of the pass, and it slips back behind it to melt home.
+    private func closeBubble(for pass: Pass) -> some View {
+        let id = budID(pass.id)
+        let out = buds.isOut(id)
+        let side = bubbleSide
+        let target = max(44, side + 8)
+        return PieceLiquidGroup {
+            Button {
+                putBack()
+            } label: {
+                Image(systemName: "xmark")
+                    .font(.system(size: side * 0.4, weight: .semibold))
+                    .foregroundStyle(style.label)
+                    .pieceBudContent(out: out)
+                    .frame(width: side, height: side)
+                    .pieceLiquid(Circle(), interactive: true)
+                    .frame(width: target, height: target, alignment: .bottomTrailing)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(PieceLiquidPressStyle())
+            .keyboardShortcut(.cancelAction)
+            .accessibilityLabel(messages.done)
+            .accessibilityHint(messages.putBack)
+        }
+        .pieceBud(out: out, home: CGSize(width: 0, height: closeRow + side * 0.5))
+        .offset(y: -(target + 12))
+    }
+
+    /// The other passes' slivers: one target that puts the presented pass back.
+    private func pile(_ frame: WalletStackFrame) -> some View {
+        Button {
+            putBack()
+        } label: {
+            Color.clear
+                .frame(maxWidth: .infinity)
+                .frame(height: max(frame.pileBottom - frame.pileTop + 8, 44))
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .offset(y: frame.pileTop - 8)
+        .accessibilityLabel(messages.otherPasses)
+        .accessibilityHint(messages.putBack)
+    }
+
+    // MARK: Actions
+
+    private func present(_ id: String) {
+        guard presentedID == nil else { return }
+        selection = id
+    }
+
+    /// Puts the presented pass back. With a velocity it leaves from where the finger let go, at that speed.
+    private func putBack(velocity: CGFloat? = nil) {
+        guard let presented = presentedID else { return }
+        if let velocity {
+            release = WalletStackRelease(id: presented, velocity: velocity, from: layout().passTop + drag)
+        } else {
+            release = nil
+        }
+        drag = 0
+        pastThreshold = false
+        selection = nil
+    }
+
+    private func changed(from old: String?, to new: String?) {
+        moveTick += 1
+        // A selection changed from outside while a finger held the pass: the pull ends here.
+        drag = 0
+        pastThreshold = false
+        if let new {
+            if old == nil { anchor = max(-contentTop, 0) }
+            lastPresented = new
+            let reduce = reduceMotion
+            Task {
+                if let old { await buds.gather([budID(old)], reduceMotion: reduce) }
+            }
+            Task {
+                await buds.bloom([budID(new)], reduceMotion: reduce, delay: 0.16)
+            }
+            focus = new
+        } else {
+            anchor = nil
+            let reduce = reduceMotion
+            if let old {
+                Task { await buds.gather([budID(old)], reduceMotion: reduce) }
+                focus = old
+            }
+            // The way back has been drawn; a later return starts fresh.
+            release = nil
+        }
+    }
+
+    // MARK: Drag
+
+    /// Down on the presented pass: it follows the finger, and the stack's pile rises to meet it. Up, it gives a little.
+    private func pull(_ translation: CGFloat) {
+        guard presentedID != nil else { return }
+        drag = translation >= 0 ? translation : PieceMotion.rubberBand(translation, limit: 40)
+        let past = drag > returnThreshold
+        if past != pastThreshold {
+            pastThreshold = past
+            thresholdTick += 1
+        }
+    }
+
+    /// A pull past the threshold, or a flick that would carry past it, puts the pass back; anything less springs home,
+    /// as does a pan the system cancels.
+    private func letGo(velocity: CGFloat, cancelled: Bool) {
+        guard presentedID != nil else { return }
+        let carried = PieceMotion.project(drag, velocity: velocity)
+        if !cancelled, drag > returnThreshold || (carried > returnThreshold && velocity > 400) {
+            putBack(velocity: velocity)
+        } else {
+            springBack(velocity: cancelled ? 0 : velocity)
+        }
+    }
+
+    private func springBack(velocity: CGFloat = 0) {
+        guard drag != 0 else { return }
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        let animation = drag < 0 ? motion.rebound : motion.settle(velocity: velocity, from: drag, to: 0)
+        pastThreshold = false
+        withAnimation(animation) { drag = 0 }
+    }
+}
+
+// MARK: - Pass face
+
+/// What a pass draws: the header strip, its fields and, while it is presented, its code. Reports its heights so the
+/// stack can lay passes out by their strips.
+private struct WalletStackFace: View {
+    let pass: WalletStack.Pass
+    let open: Bool
+    let style: WalletStack.Style
+    let report: (WritableKeyPath<WalletStackMetrics, CGFloat>, CGFloat) -> Void
+
+    static let headerBottom: CGFloat = 16
+
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.colorSchemeContrast) private var contrast
+    @Environment(\.self) private var environment
+    @ScaledMetric(relativeTo: .body) private var tileSide: CGFloat = 40
+    @State private var code: UIImage?
+
+    var body: some View {
+        let shape = RoundedRectangle(cornerRadius: style.cornerRadius, style: .continuous)
+        VStack(spacing: 0) {
+            VStack(spacing: 0) {
+                header
+                    // The stack is laid out by closed strips; an open pass's wrapped title never moves it. Sizes, not
+                    // heights, are watched: a pass is first laid out at a passing width, and a height that changes
+                    // back to an earlier value is not always reported.
+                    .onGeometryChange(for: CGSize.self) { $0.size } action: { if !open { report(\.header, $0.height) } }
+                if !pass.fields.isEmpty { fields }
+            }
+            .onGeometryChange(for: CGSize.self) { $0.size } action: { report(open ? \.openCompact : \.compact, $0.height) }
+            if let text = pass.code {
+                codeArea(text)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .onGeometryChange(for: CGSize.self) { $0.size } action: { report(\.code, $0.height) }
+                    .frame(height: open ? nil : 0, alignment: .top)
+                    .clipped()
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .foregroundStyle(pass.tint.ink)
+        .background {
+            // A soft shadow that falls on the pass behind, so overlapping strips read as a stack in both appearances.
+            shape.fill(pass.tint.fill)
+                .shadow(color: .black.opacity(colorScheme == .dark ? 0.45 : 0.12), radius: 10, y: 2)
+        }
+        .contentShape(shape)
+        .task(id: WalletStackCodeKey(text: pass.code, symbology: pass.symbology)) {
+            guard let text = pass.code else {
+                code = nil
+                return
+            }
+            code = await WalletStackCode.image(text, symbology: pass.symbology)
+        }
+    }
+
+    private var accessibilityLayout: Bool { dynamicTypeSize.isAccessibilitySize }
+
+    /// One line in the stack, where the strips are a fixed height; more once the pass is open, or at accessibility sizes.
+    private var lines: Int { accessibilityLayout ? 4 : open ? 2 : 1 }
+
+    /// Secondary ink: quieter on the pass, full strength when Increase Contrast is on, and on a pass too dark or too
+    /// saturated for quieter ink to read. Even full ink on the red pass is only about 4.6:1, so its labels never fade.
+    private func quiet(_ opacity: Double) -> Double {
+        contrast == .increased || walletStackLuminance(pass.tint.fill, in: environment) < 0.4 ? 1 : opacity
+    }
+
+    // MARK: Header strip
+
+    private var header: some View {
+        Group {
+            if accessibilityLayout {
+                VStack(alignment: .leading, spacing: 10) {
+                    tile
+                    titles
+                    if let field = pass.headerField { fieldView(field, alignment: .leading) }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            } else {
+                HStack(alignment: .center, spacing: 12) {
+                    tile
+                    titles
+                    Spacer(minLength: 8)
+                    if let field = pass.headerField {
+                        fieldView(field, alignment: .trailing)
+                            .fixedSize()
                     }
                 }
-                let velocity = -value.velocity.height / 150
-                let projected = PieceMotion.project(from, velocity: velocity)
-                let target: CGFloat = projected > 0.5 ? 1 : 0
-                if target == 0 { selection = nil }
-                if target != (from > 0.5 ? 1 : 0), haptics { ticks += 1 }
-                withAnimation(motion.settle(velocity: velocity, from: from, to: target)) {
-                    spread = target
+            }
+        }
+        .padding(.horizontal, 18)
+        .padding(.top, 16)
+        .padding(.bottom, Self.headerBottom)
+    }
+
+    @ViewBuilder
+    private var tile: some View {
+        if let symbol = pass.symbol {
+            let side = min(tileSide, 56)
+            Image(systemName: symbol)
+                .font(.system(size: side * 0.45, weight: .semibold))
+                .foregroundStyle(pass.tint.fill)
+                .frame(width: side, height: side)
+                .background(pass.tint.ink, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                .accessibilityHidden(true)
+        }
+    }
+
+    private var titles: some View {
+        VStack(alignment: .leading, spacing: 1) {
+            Text(pass.title)
+                .font(.body)
+                .lineLimit(lines)
+            if let subtitle = pass.subtitle {
+                Text(subtitle)
+                    .font(.footnote)
+                    .foregroundStyle(pass.tint.ink.opacity(quiet(0.7)))
+                    .lineLimit(lines)
+            }
+        }
+        .layoutPriority(1)
+    }
+
+    private func fieldView(_ field: WalletStack.Pass.Field, alignment: HorizontalAlignment) -> some View {
+        VStack(alignment: alignment, spacing: 2) {
+            Text(field.label)
+                .font(.caption2)
+                .textCase(.uppercase)
+                .tracking(0.6)
+                .foregroundStyle(pass.tint.ink.opacity(quiet(0.64)))
+            Text(field.value)
+                .font(.body.monospacedDigit())
+        }
+        .lineLimit(accessibilityLayout ? 3 : 1)
+    }
+
+    // MARK: Fields
+
+    private var fields: some View {
+        WalletStackFlow(spacing: 20, lineSpacing: 12) {
+            ForEach(Array(pass.fields.enumerated()), id: \.offset) { _, field in
+                fieldView(field, alignment: .leading)
+            }
+        }
+        .padding(.horizontal, 18)
+        // A few points between the strip and the labels, so a pass settling from below never shows the fields behind it.
+        .padding(.top, 6)
+        .padding(.bottom, 18)
+    }
+
+    // MARK: Code
+
+    private var wide: Bool { pass.symbology == .pdf417 || pass.symbology == .code128 }
+
+    private func codeArea(_ text: String) -> some View {
+        VStack(spacing: 8) {
+            Group {
+                if let code {
+                    Image(uiImage: code)
+                        .renderingMode(.template)
+                        .interpolation(.none)
+                        .resizable()
+                } else {
+                    Color.clear
                 }
             }
+            .foregroundStyle(style.codeInk)
+            .frame(width: wide ? nil : 136, height: wide ? (pass.symbology == .code128 ? 64 : 76) : 136)
+            .frame(maxWidth: wide ? 288 : nil)
+            .accessibilityHidden(true)
+            Text(text)
+                .font(.footnote.monospaced())
+                .foregroundStyle(style.codeInk)
+                .lineLimit(1)
+                .minimumScaleFactor(0.6)
+                .accessibilityHidden(true)
+        }
+        .padding(14)
+        .background(style.codeBackground, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        // The code arrives just after the pass has opened and is gone the moment it starts to close.
+        .pieceBudContent(out: open)
+        .frame(maxWidth: .infinity)
+        .padding(.horizontal, 18)
+        .padding(.top, 2)
+        .padding(.bottom, 20)
     }
+}
+
+/// A vertical pan over the presented pass, in window points so the pass moving under the finger never feeds back
+/// into the reading. Horizontal pans aren't claimed, so they pass on to whatever is around the stack.
+private struct WalletStackPan: UIViewRepresentable {
+    var isEnabled: Bool
+    var onChange: (CGFloat) -> Void
+    var onEnd: (_ velocity: CGFloat, _ cancelled: Bool) -> Void
+
+    func makeUIView(context: Context) -> UIView {
+        let view = UIView()
+        view.backgroundColor = .clear
+        let pan = UIPanGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.pan(_:)))
+        pan.delegate = context.coordinator
+        view.addGestureRecognizer(pan)
+        return view
+    }
+
+    func updateUIView(_ view: UIView, context: Context) {
+        context.coordinator.parent = self
+        view.gestureRecognizers?.forEach { $0.isEnabled = isEnabled }
+    }
+
+    func makeCoordinator() -> Coordinator { Coordinator(parent: self) }
+
+    @MainActor final class Coordinator: NSObject, UIGestureRecognizerDelegate {
+        var parent: WalletStackPan
+
+        init(parent: WalletStackPan) {
+            self.parent = parent
+        }
+
+        @objc func pan(_ recognizer: UIPanGestureRecognizer) {
+            let translation = recognizer.translation(in: nil).y
+            switch recognizer.state {
+            case .changed: parent.onChange(translation)
+            case .ended: parent.onEnd(recognizer.velocity(in: nil).y, false)
+            case .cancelled, .failed: parent.onEnd(0, true)
+            default: break
+            }
+        }
+
+        func gestureRecognizerShouldBegin(_ recognizer: UIGestureRecognizer) -> Bool {
+            guard let pan = recognizer as? UIPanGestureRecognizer else { return true }
+            let velocity = pan.velocity(in: nil)
+            return abs(velocity.y) > abs(velocity.x)
+        }
+    }
+}
+
+/// A pass in the stack dips under the finger like any card; a presented one holds still.
+private struct WalletStackPressStyle: ButtonStyle {
+    var enabled: Bool
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label.piecePress(enabled && configuration.isPressed, depth: 2)
+    }
+}
+
+/// Fields left to right. One row spreads across the width, like a boarding pass; more than fits wraps onto rows.
+private struct WalletStackFlow: Layout {
+    var spacing: CGFloat
+    var lineSpacing: CGFloat
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let width = proposal.width ?? .infinity
+        let rows = rows(subviews, width: width)
+        let height = rows.reduce(0) { $0 + $1.height } + CGFloat(max(rows.count - 1, 0)) * lineSpacing
+        let widest = rows.map(\.width).max() ?? 0
+        return CGSize(width: width.isFinite ? width : widest, height: height)
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        let rows = rows(subviews, width: bounds.width)
+        var y = bounds.minY
+        for row in rows {
+            // A lone row spreads its fields across the width; wrapped rows stay packed to the leading edge.
+            let spread = rows.count == 1 && row.items.count > 1 ? (bounds.width - row.width) / CGFloat(row.items.count - 1) : 0
+            var x = bounds.minX
+            for item in row.items {
+                subviews[item.index].place(at: CGPoint(x: x, y: y), proposal: ProposedViewSize(item.size))
+                x += item.size.width + spacing + max(spread, 0)
+            }
+            y += row.height + lineSpacing
+        }
+    }
+
+    private func rows(_ subviews: Subviews, width: CGFloat) -> [WalletStackFlowRow] {
+        var rows: [WalletStackFlowRow] = []
+        var current = WalletStackFlowRow()
+        for index in subviews.indices {
+            let ideal = subviews[index].sizeThatFits(.unspecified)
+            let size = ideal.width > width ? subviews[index].sizeThatFits(ProposedViewSize(width: width, height: nil)) : ideal
+            if !current.items.isEmpty, current.width + spacing + size.width > width {
+                rows.append(current)
+                current = WalletStackFlowRow()
+            }
+            current.width += (current.items.isEmpty ? 0 : spacing) + size.width
+            current.height = max(current.height, size.height)
+            current.items.append(WalletStackFlowItem(index: index, size: size))
+        }
+        if !current.items.isEmpty { rows.append(current) }
+        return rows
+    }
+}
+
+private struct WalletStackFlowItem {
+    var index: Int
+    var size: CGSize
+}
+
+private struct WalletStackFlowRow {
+    var items: [WalletStackFlowItem] = []
+    var width: CGFloat = 0
+    var height: CGFloat = 0
+}
+
+// MARK: - Model
+
+/// A pass's measured heights.
+private struct WalletStackMetrics: Equatable {
+    var header: CGFloat = 0
+    var compact: CGFloat = 0
+    /// The face without its code while it is open, when its title may wrap.
+    var openCompact: CGFloat = 0
+    var code: CGFloat = 0
+}
+
+/// Where everything goes this frame.
+private struct WalletStackFrame {
+    var presented: String?
+    var presentedIndex: Int?
+    /// Each pass's offset in the stack.
+    var restY: [CGFloat] = []
+    var contentHeight: CGFloat = 0
+    var passTop: CGFloat = 0
+    var pileTop: CGFloat = 0
+    var pileBottom: CGFloat = 0
+    var pileCount = 0
+    /// The presented pass and the pile are taller than the space, so the content scrolls while it shows.
+    var scrolls = false
+}
+
+private struct WalletStackRelease: Equatable {
+    var id: String
+    var velocity: CGFloat
+    var from: CGFloat
+}
+
+private struct WalletStackCodeKey: Hashable {
+    var text: String?
+    var symbology: WalletStack.Pass.Symbology
+}
+
+/// Codes drawn by Core Image off the main actor: dark modules on clear, so the image takes the code ink as a template.
+nonisolated private enum WalletStackCode {
+    static func image(_ text: String, symbology: WalletStack.Pass.Symbology) async -> UIImage? {
+        await Task.detached(priority: .userInitiated) { make(text, symbology: symbology) }.value
+    }
+
+    static func make(_ text: String, symbology: WalletStack.Pass.Symbology) -> UIImage? {
+        let message = Data(text.utf8)
+        let output: CIImage?
+        switch symbology {
+        case .qr:
+            let filter = CIFilter.qrCodeGenerator()
+            filter.message = message
+            filter.correctionLevel = "M"
+            output = filter.outputImage
+        case .aztec:
+            let filter = CIFilter.aztecCodeGenerator()
+            filter.message = message
+            output = filter.outputImage
+        case .pdf417:
+            let filter = CIFilter.pdf417BarcodeGenerator()
+            filter.message = message
+            output = filter.outputImage
+        case .code128:
+            guard let ascii = text.data(using: .ascii) else { return nil }
+            let filter = CIFilter.code128BarcodeGenerator()
+            filter.message = ascii
+            filter.quietSpace = 0
+            output = filter.outputImage
+        }
+        guard let output else { return nil }
+        let mask = CIFilter.falseColor()
+        mask.inputImage = output
+        mask.color0 = CIColor(red: 0, green: 0, blue: 0, alpha: 1)
+        mask.color1 = CIColor(red: 0, green: 0, blue: 0, alpha: 0)
+        guard let image = mask.outputImage, let cgImage = CIContext().createCGImage(image, from: image.extent) else { return nil }
+        return UIImage(cgImage: cgImage)
+    }
+}
+
+/// An adaptive colour from two hex values, light and dark.
+private func walletStackColor(light: UInt32, dark: UInt32) -> Color {
+    Color(uiColor: UIColor { @Sendable traits in
+        let hex = traits.userInterfaceStyle == .dark ? dark : light
+        return UIColor(red: CGFloat((hex >> 16) & 0xFF) / 255, green: CGFloat((hex >> 8) & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
+    })
 }
 
 // MARK: - Example
 
-private struct WalletStackExample: View {
-    @State private var selection: String? = nil
+private enum WalletStackSample {
+    static let ground = walletStackColor(light: 0xF3F2EE, dark: 0x121212)
 
-    private let cards: [WalletStack.Card] = [
-        .init(id: "rail", name: "Rail pass", detail: "Kansai · 7 days", symbol: "tram.fill", tint: Color(red: 1, green: 0.851, blue: 0.463)),
-        .init(id: "ferry", name: "Ferry", detail: "Miyajima, noon", symbol: "ferry.fill", tint: Color(red: 0.612, green: 0.761, blue: 1)),
-        .init(id: "inn", name: "Inn", detail: "Two nights, river side", symbol: "house.fill", tint: Color(red: 0.663, green: 0.863, blue: 0.718)),
-        .init(id: "museum", name: "Museum", detail: "Timed entry, 16:00", symbol: "ticket.fill", tint: Color(red: 0.804, green: 0.722, blue: 1)),
+    static let passes: [WalletStack.Pass] = [
+        .init(id: "gallery", title: "Gallery day pass", subtitle: "Casa da Luz, Lisbon", symbol: "building.columns.fill", tint: .butter,
+              headerField: .init(label: "Entry", value: "11:00"),
+              fields: [.init(label: "Date", value: "Sat 25 Oct"), .init(label: "Guests", value: "2 adults"), .init(label: "Floors", value: "All")],
+              code: "GD-1180-0093"),
+        .init(id: "rail", title: "Rail pass", subtitle: "Lisbon to Porto", symbol: "tram.fill", tint: .sky,
+              headerField: .init(label: "Coach", value: "4"),
+              fields: [.init(label: "Departs", value: "08:42"), .init(label: "Arrives", value: "11:37"), .init(label: "Seat", value: "14A")],
+              code: "SP-2291-0742", symbology: .aztec),
+        .init(id: "concert", title: "Night Market Live", subtitle: "Riverside Pavilion", symbol: "music.note", tint: .red,
+              headerField: .init(label: "Doors", value: "19:30"),
+              fields: [.init(label: "Date", value: "Fri 24 Oct"), .init(label: "Section", value: "Floor"), .init(label: "Gate", value: "C")],
+              code: "NML-0424-1187"),
+        .init(id: "ferry", title: "River ferry", subtitle: "Cais do Sodré to Cacilhas", symbol: "ferry.fill", tint: .sage,
+              headerField: .init(label: "Boards", value: "17:10"),
+              fields: [.init(label: "Pier", value: "2"), .init(label: "Return", value: "Open"), .init(label: "Fare", value: "Adult")],
+              code: "RF-5530-0218"),
     ]
-
-    var body: some View {
-        WalletStack(cards: cards, selection: $selection)
-            .padding(.horizontal, 36)
-            .padding(.top, 48)
-            .frame(maxWidth: 360)
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-            .background(WalletGround.color)
-    }
 }
 
-private enum WalletGround {
-    static let color = Color(UIColor { @Sendable traits in
-        traits.userInterfaceStyle == .dark ? UIColor(white: 0.07, alpha: 1) : UIColor(red: 0.953, green: 0.949, blue: 0.933, alpha: 1)
-    })
+private struct WalletStackExample: View {
+    @State private var presented: String?
+
+    var body: some View {
+        WalletStack(passes: WalletStackSample.passes, selection: $presented)
+            .padding(.horizontal, 20)
+            .padding(.top, 12)
+            .background(WalletStackSample.ground)
+    }
 }
 
 #Preview("Light") {
     WalletStackExample()
-        .preferredColorScheme(.light)
 }
 
 #Preview("Dark") {
@@ -209,12 +979,18 @@ private enum WalletGround {
         .preferredColorScheme(.dark)
 }
 
+/// The relative luminance (WCAG) of `color` as it resolves in `environment`: 0 for black, 1 for white.
+private func walletStackLuminance(_ color: Color, in environment: EnvironmentValues) -> Double {
+    let c = color.resolve(in: environment)
+    return 0.2126 * Double(c.linearRed) + 0.7152 * Double(c.linearGreen) + 0.0722 * Double(c.linearBlue)
+}
+
 // MARK: - Piece motion
 //
 // The SwiftPieces motion language: shared spring tokens and gesture physics, with the same values in every
 // piece. Each piece carries a copy of only the parts it uses, so this file stands alone. Generated from
 // registry/foundation/PieceMotion.swift in the SwiftPieces repo; edit it there, not here.
-// swiftpieces-motion: 1.1.0 (core, momentum, rubberBand, pressMath)
+// swiftpieces-motion: 1.1.0 (core, follow, momentum, rubberBand, pressMath, press)
 
 /// The SwiftPieces motion language: five spring tiers, and a named role for every moment a piece moves,
 /// each with its Reduce Motion substitute.
@@ -283,6 +1059,21 @@ private struct PieceMotion {
 }
 
 extension PieceMotion {
+    /// Follow-through: rank 0 leads, each later rank arrives a beat later on a slightly looser spring. Safe to reverse.
+    func follow(_ spring: Spring = PieceMotion.elastic, rank: Int) -> Animation {
+        guard !reduceMotion else { return .spring(duration: 0.25, bounce: 0) }
+        let k = Double(min(max(rank, 0), 6))
+        return .spring(duration: spring.duration + 0.04 * k, bounce: min(spring.bounce + 0.02 * k, 0.55))
+    }
+
+    /// One-shot entrances only: item `index` waits 30ms per place, capped at the seventh. Exits go together.
+    func cascade(_ animation: Animation, index: Int, step: Double = 0.03) -> Animation {
+        guard !reduceMotion, index > 0 else { return animation }
+        return animation.delay(step * Double(min(index, 7)))
+    }
+}
+
+extension PieceMotion {
     /// Where a flick at `velocity` (pt/s) coasts to. 0.998 coasts like a scroll view; 0.99 suits detents.
     nonisolated static func project(_ position: CGFloat, velocity: CGFloat, decelerationRate: CGFloat = 0.99) -> CGFloat {
         position + velocity / 1000 * decelerationRate / (1 - decelerationRate)
@@ -340,6 +1131,41 @@ extension PieceMotion {
     }
 }
 
+/// Sinks on touch-down, leaning toward the touch if given, and springs back from the same lean. Under Reduce
+/// Motion it shades instead of moving (darker in light mode, lighter in dark), without turning transparent.
+private struct PiecePress: ViewModifier {
+    let pressed: Bool
+    var touch: CGPoint?
+    var depth: CGFloat = 2.5
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.colorScheme) private var colorScheme
+    @State private var size: CGSize = .zero
+    @State private var anchor: UnitPoint = .center
+
+    func body(content: Content) -> some View {
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        let scale = pressed && !reduceMotion ? PieceMotion.pressScale(for: size, depth: depth) : 1
+        content
+            .onGeometryChange(for: CGSize.self) { $0.size } action: { size = $0 }
+            .brightness(pressed && reduceMotion ? (colorScheme == .dark ? 0.1 : -0.08) : 0)
+            .scaleEffect(scale, anchor: anchor)
+            .animation(pressed ? motion.press : motion.release, value: pressed)
+            .onChange(of: pressed) { _, isPressed in
+                if isPressed { anchor = PieceMotion.pressAnchor(touch: touch, in: size) }
+            }
+            .onChange(of: touch) { _, touch in
+                if pressed, let touch { anchor = PieceMotion.pressAnchor(touch: touch, in: size) }
+            }
+    }
+}
+
+private extension View {
+    /// Sinks this view while `pressed`, leaning toward `touch` (in this view's coordinates) when given.
+    func piecePress(_ pressed: Bool, touch: CGPoint? = nil, depth: CGFloat = 2.5) -> some View {
+        modifier(PiecePress(pressed: pressed, touch: touch, depth: depth))
+    }
+}
+
 // swiftpieces-motion: end
 
 // MARK: - Piece liquid
@@ -348,7 +1174,7 @@ extension PieceMotion {
 // and melt back into each other, and the frosted fallback before iOS 26. Each piece carries a copy of only
 // the parts it uses, so this file stands alone. Generated from registry/foundation/PieceLiquid.swift in the
 // SwiftPieces repo; edit it there, not here. The rules are in LIQUID_GLASS.md.
-// swiftpieces-liquid: 1.7.0 (liquid, liquidPress)
+// swiftpieces-liquid: 1.7.1 (liquid, liquidPress, bud)
 
 /// The liquid glass language: one merge distance, two rest gaps, and the springs a bubble leaves and comes home on.
 ///
@@ -535,6 +1361,124 @@ private extension View {
     /// Sinks this view's glass while `pressed`, leaning toward `touch` (in this view's coordinates) when given.
     func pieceLiquidPress(_ pressed: Bool, touch: CGPoint? = nil, depth: CGFloat = 2.5) -> some View {
         modifier(PieceLiquidPress(pressed: pressed, touch: touch, depth: depth))
+    }
+}
+
+/// The bud: how a bubble leaves and rejoins its parent, driven explicitly so every bubble shows the whole cycle.
+///
+/// A bubble is born at `home`, inside its parent, where the two glass shapes are one. It springs out to `rest`, and
+/// while it is inside the merge distance a neck holds it to the parent, thinning as it goes, until it snaps free.
+/// Going home it springs back on a spring with no bounce, the neck reaches out and re-forms, and only once it has
+/// melted all the way in is it removed. Both offsets are relative to where the bubble is laid out. Under Reduce
+/// Motion it stays at `rest`: its content fades and its glass closes in place.
+private struct PieceBud: ViewModifier {
+    var out: Bool
+    var rest: CGSize
+    var home: CGSize
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func body(content: Content) -> some View {
+        if reduceMotion {
+            // No travel. Inside a group glass ignores opacity, so the glass closes to nothing in place on the short
+            // Reduce Motion ease while its content fades; the opacity covers a bubble outside a group.
+            content
+                .pieceLiquidScale(out ? 1 : 0.001)
+                .opacity(out ? 1 : 0)
+                .offset(rest)
+        } else {
+            // The glass shrinks through `pieceLiquidScale`, never a plain scaleEffect (see there), then moves.
+            content
+                .pieceLiquidScale(out ? 1 : PieceLiquid.homeScale)
+                .offset(out ? rest : home)
+        }
+    }
+}
+
+/// A bubble's own content, on its own clock: gone the moment the bubble heads home, so it never rides over the
+/// parent's content, and arriving just after the bubble leaves.
+private struct PieceBudContent: ViewModifier {
+    var out: Bool
+
+    func body(content: Content) -> some View {
+        content
+            .blur(radius: out ? 0 : 6)
+            .opacity(out ? 1 : 0)
+            .animation(out ? .easeOut(duration: 0.3).delay(0.1) : .easeOut(duration: 0.14), value: out)
+    }
+}
+
+private extension View {
+    /// Places a bubble at `rest` while `out`, and at `home` (inside its parent, shrunk) while not.
+    func pieceBud(out: Bool, rest: CGSize = .zero, home: CGSize) -> some View {
+        modifier(PieceBud(out: out, rest: rest, home: home))
+    }
+
+    /// Hides a bubble's icon or label while it is home. Put it on the content, inside the glass.
+    func pieceBudContent(out: Bool) -> some View {
+        modifier(PieceBudContent(out: out))
+    }
+}
+
+/// Which bubbles exist and which are out. A bubble is added home with no animation, sent out on the next frame,
+/// and called home before it is removed, so it always melts in rather than fading. Keep one in `@State`.
+@MainActor @Observable
+private final class PieceBuds {
+    private(set) var present: [String] = []
+    private(set) var out: Set<String> = []
+    /// The latest call for each bubble. A bloom or gather that has been overtaken (a bubble sent home while it was
+    /// still waiting to go out, or called out again while melting) leaves that bubble alone.
+    @ObservationIgnored private var turn: [String: Int] = [:]
+
+    func contains(_ id: String) -> Bool { present.contains(id) }
+    func isOut(_ id: String) -> Bool { out.contains(id) }
+
+    private func claim(_ ids: [String]) -> [String: Int] {
+        var mine: [String: Int] = [:]
+        for id in ids {
+            let next = (turn[id] ?? 0) + 1
+            turn[id] = next
+            mine[id] = next
+        }
+        return mine
+    }
+
+    /// Puts bubbles straight out at rest with no motion: a view's first frame, or a state restored.
+    func place(_ ids: [String]) {
+        _ = claim(ids)
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) {
+            for id in ids where !present.contains(id) { present.append(id) }
+            out.formUnion(ids)
+        }
+    }
+
+    /// Adds bubbles home, then sends each out, `stagger` seconds apart, after an optional `delay`.
+    func bloom(_ ids: [String], reduceMotion: Bool, stagger: Double = 0.05, delay: Double = 0) async {
+        let mine = claim(ids)
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) {
+            for id in ids where !present.contains(id) { present.append(id) }
+        }
+        try? await Task.sleep(for: .milliseconds(24 + Int(max(delay, 0) * 1000)))
+        let split = PieceLiquid.split(reduceMotion: reduceMotion)
+        for (i, id) in ids.enumerated() where turn[id] == mine[id] {
+            withAnimation(split.delay(reduceMotion ? 0 : Double(i) * stagger)) { _ = out.insert(id) }
+        }
+    }
+
+    /// Calls bubbles home, last first, then removes them once they have melted in.
+    func gather(_ ids: [String], reduceMotion: Bool, stagger: Double = 0.04) async {
+        let mine = claim(ids)
+        let home = PieceLiquid.home(reduceMotion: reduceMotion)
+        for (i, id) in ids.reversed().enumerated() {
+            withAnimation(home.delay(reduceMotion ? 0 : Double(i) * stagger)) { _ = out.remove(id) }
+        }
+        try? await Task.sleep(for: .milliseconds(Int((0.52 + Double(ids.count) * stagger) * 1000)))
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) { present.removeAll { ids.contains($0) && !out.contains($0) && turn[$0] == mine[$0] } }
     }
 }
 

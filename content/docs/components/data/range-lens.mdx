@@ -1,46 +1,55 @@
 ---
 title: "Range Lens"
-description: "A chart you read by dragging a glass lens across it. Grab the lens to move the window, or grab either edge to resize it; the lens follows your finger, flattens against the ends and lands with the flick. While you drag, a readout buds off the lens on a liquid neck and morphs its numbers, with a tick each time an edge crosses a sample, then melts home when you let go."
+description: "An overview and detail chart for long series like a year of daily steps, revenue, sleep or prices: a semibold readout of the window's average (or total, highest or lowest) with its dates, a detail chart of the window's bars that pans and rescales without overshooting under a red dashed average rule, and a strip of the whole series underneath with a liquid glass lens you drag to move and pull by its joined glass handles to resize, which swell and flood red while held, settle with the flick, rubber-band at the ends, tick at each week and never invert, plus tap to centre, double-tap to show everything, keyboard arrows and VoiceOver that steps the lens a week at a time."
 piece: "RangeLens"
 category: "data"
 minIOSVersion: "17.0"
 version: "1.0.0"
-tags: ["chart","brush","range","lens","glass","scrub","haptics"]
+tags: ["chart","overview","detail","brush","range","lens","glass","haptics","accessibility"]
 registryDependencies: []
 ---
 
 {/* GENERATED FILE. Edit registry/swift/data/RangeLens.swift or RangeLens.mdx instead. */}
 
-A series with a glass window you drag to choose the range you are reading. `lower` and `upper` are fractions of the series, from 0 to 1, `lower` before `upper`. The lens is a glass rounded rectangle melted over the bars it covers. A readout above it names the average inside the window.
+Overview and detail for a long series: a chart of the window you are reading, and a strip of the whole series under it with a glass lens you drag and resize to choose that window. The readout names the window's summary (the average by default) in a large numeral over its dates. The detail chart draws the window's samples as bars in the text color, with the window's average as a red dashed rule and an "avg" chip on the value axis; it pans with the lens and rescales without overshooting. The strip draws every sample in one `Canvas`, bright inside the window and dim outside, over the lens: a liquid glass slab with a glass handle joined to each end. Drag the slab to move the window, drag a handle (or within about 22 points of an edge) to resize it, tap the strip to centre the lens there, and double-tap to show everything and again to go back. Vertical swipes that start on the strip still scroll the screen or move a sheet. The bars are content; the lens is the control, so it is the only glass.
 
 ## Notes
 
-- `samples` are values from 0 to 1, left to right. `lower` and `upper` are fractions of the series, `lower` before `upper`, with a minimum span of about 8 percent. Bars inside the window use `ink`; bars outside use `muted`.
-- Drag the lens to move the window, keeping its width. Drag within about 28 points of either edge to resize that edge. The lens tracks the finger. On release a move coasts both edges together; a resize coasts the edge you held, and the other edge follows a beat later. The window clamps inside the series.
-- While the finger is down, a readout buds off the top of the lens on a liquid neck and morphs the average inside the window. Letting go melts it home. A caption above the chart keeps the average and the two percents either way.
-- The lens and the readout share a `PieceLiquidGroup`. The lens is interactive liquid glass with a light signal tint painted inside. On iOS 26 that is Liquid Glass. On iOS 17, and under Reduce Transparency, it is a frosted material or a solid fill.
-- Haptics: a selection tick when either edge crosses a sample. Pass `haptics: false` to stay silent.
-- VoiceOver reads one adjustable range, the caption, and shifts the window by a small step.
-- Reduce Motion keeps the window, the caption, and the ticks, and fades the readout instead of travelling it.
-- Right to left flips which edge is leading.
-- `Style` (`.standard` is house ink, a quiet mute, and a faint signal lens): `ink`, `muted`, `accent`.
+- Pass the whole series as `[RangeLens.Sample]` (a date and a value each) and bind the window as a `ClosedRange<Date>`, from the date of its first sample to the date of its last. Keep both in your own state; `RangeLens.window(last: 42, of: days)` gives a good opening window, the last six weeks of daily samples. Samples are sorted by date for you; negative and non-finite values draw as zero.
+- The readout names the window's `summary` (`.average`, the default, or `.total`, `.maximum`, `.minimum`) in a large numeral, with your `unit` beside it and the window's dates under it ("3 Mar – 14 Apr", with the year when the window crosses one or lies in an earlier year). `valueLabel` formats the numeral and what VoiceOver reads, for example a currency or minutes as a `Measurement`.
+- The detail chart draws the window's samples as bars in the text color. Its ceiling follows the window's highest sample with a little headroom, so the bars always fill it; when the window changes, the ceiling moves on the value role and never overshoots, and the gridlines, on round values at most four, slide with it. The window's average is a red dashed rule with an "avg" chip on the value axis (`showsAverage: false` hides it); the rule follows the bars while they move.
+- The strip draws every sample on one scale in one `Canvas`, on a quiet track: dim outside the window, bright inside it. The lens is the only glass: a slab over the window with a narrow glass handle joined to each end by a liquid neck, all in one `PieceLiquidGroup`. Bars outside the window lie under the glass; the window's bars sit on the slab, crisp. Month marks run under the strip (years for long series, weeks or days for short ones), thinned evenly so they never crowd, and January names its year.
+- Drag the slab to move the window: it follows the finger, swells a little while held, and past either end of the series gives with rubber-band resistance. Drag a handle, or within about 22 points of an edge, to resize: the handle swells and floods red while held, stops firmly at `minimumSpan` samples (a week by default) and never inverts. Let go and the lens coasts a little with the flick and lands on whole samples. A drag that starts off the lens brings the lens to the finger first.
+- Tap the strip beside the lens to centre the lens there. Double-tap to show the whole series, and double-tap again to go back to the window before it. A press held still for a moment also takes hold, for a careful move.
+- The selection is written live while the lens moves, whenever the whole samples it rests on change, and once more when it lands. Set the selection yourself and the lens glides there; a window wider than the series shows all of it.
+- Horizontal drags and held presses belong to the lens; vertical swipes that start on the strip still scroll the screen or move a sheet, since the strip's recognizers only begin for a mostly horizontal drag.
+- Haptics: a selection tick when the moving edge crosses into another week (another month for weekly samples, a year for monthly ones), a light tap when a handle is grabbed and on Show all, and a soft bump when the lens meets an end of the series or its minimum span. Never per frame.
+- States: an empty series shows `messages.empty` in place of the numeral, a baseline and the bare track, with no lens; one sample shows that sample; all zeros draw a flat strip and a zero axis. While your data loads, apply `.redacted(reason: .placeholder)`: the bars draw as quiet placeholders and the text redacts. Hundreds of samples stay smooth: both charts are single `Canvas` passes and the series is sorted and summed once per change, never on a drag step.
+- VoiceOver reads the readout ("Average 8,412 steps a day, 3 March to 14 April"), then the detail chart, which also plays the window's samples as an audio graph, then the lens: an adjustable element named "Range" whose value is the dates and the summary. Swipe up or down to move it a step (a week of daily samples); the Widen, Narrow and Show all (then Back to previous range) actions change its size and announce the result.
+- Hardware keyboard: with the strip focused, the left and right arrows move the window a step, up and down widen and narrow it, and Space toggles Show all.
+- Reduce Motion: the lens lands and resizes on a short spring with no overshoot and doesn't swell, the detail cross-fades to a new scale instead of growing, and the numeral and dates cross-fade instead of rolling. Under the finger the numeral and dates change in place in every mode, so they stay legible.
+- Dynamic Type scales the readout, the axis values and the marks (the axis and marks stop growing before they crowd the charts); the numeral and unit stack when they no longer fit on one line. Right to left, time runs from the right: the latest samples, the lens and the value axis sit on the left. All text is one weight, semibold.
+- `Style` sets the accent (the average rule, its chip and a held handle) and the ink on it, the text, secondary and axis colors, the dim color of the bars outside the window (a solid mix into the ground, never transparency), the gridlines, the track, the detail chart's height and the numeral size. Under Increase Contrast the bars outside the window take the secondary color. `Messages` replaces any line of built-in copy, such as `average: "Daily average"`.
 
 ## Usage
 
 ```swift
 RangeLensExample()
-    .preferredColorScheme(.light)
 ```
 
 ## Parameters
 
 | Parameter | Description |
 | --- | --- |
-| `samples` | Values from 0 to 1, left to right. Fewer than two draws an empty track. |
-| `lower` | Leading edge of the window, from 0 to 1. |
-| `upper` | Trailing edge of the window, from 0 to 1. |
-| `haptics` | A selection tick when either edge crosses a sample. |
-| `style` | Bar ink, the dim ink outside the lens, and the lens tint. `.standard` is house ink with a clear lens. |
+| `samples` | The series, one value per date: daily steps, revenue, hours slept, a price. Sorted by date for you. Values that are negative or not finite draw as zero. An empty series shows `messages.empty`; one sample shows that sample. |
+| `selection` | The window, from the date of its first sample to the date of its last. The lens writes it live while it moves and lands it on whole samples. Set it from outside and the lens glides there; a window wider than the series shows all of it. `RangeLens.window(last:of:)` makes a good starting value. |
+| `summary` | The figure the readout shows for the window: `.average` (the default), `.total`, `.maximum` or `.minimum`. |
+| `unit` | What the numbers count, shown after the numeral and read by VoiceOver, such as "steps a day". `nil` shows the numeral alone. |
+| `minimumSpan` | The fewest samples the window may cover. Resizing stops firmly there and the window never inverts. Defaults to 7, a week of daily samples. |
+| `showsAverage` | Draws the window's average as a red dashed rule across the detail chart with an "avg" chip on its value axis. |
+| `messages` | Built-in copy. Defaults are localizable through your String Catalog; replace any line, for example `average: "Daily average"`. |
+| `style` | Colors and sizes. Defaults to the SwiftPieces house palette with the red accent, adapting to light and dark. |
+| `valueLabel` | How a value reads in the readout and to VoiceOver, for example `{ $0.formatted(.currency(code: "EUR")) }`. Defaults to whole numbers from 100 up and one decimal below that. |
 
 ## Source
 
@@ -73,292 +82,1496 @@ RangeLensExample()
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+import Accessibility
 import SwiftUI
+import UIKit
 
-/// A series with a glass window you drag to choose the range you are reading.
+/// Overview and detail for a long series: a chart of the window you are reading, and a strip of the whole series
+/// under it with a glass lens you drag and resize to choose that window.
 ///
-/// `lower` and `upper` are fractions of the series, from 0 to 1, `lower` before `upper`. The lens is a glass
-/// rounded rectangle melted over the bars it covers. A readout above it names the average inside the window.
+/// The readout names the window's summary (the average by default) in a large numeral over its dates. The detail
+/// chart draws the window's samples as bars in the text color, with the window's average as a red dashed rule and
+/// an "avg" chip on the value axis; it pans with the lens and rescales without overshooting. The strip draws every
+/// sample in one `Canvas`, bright inside the window and dim outside, over the lens: a liquid glass slab with a glass
+/// handle joined to each end. Drag the slab to move the window, drag a handle (or within about 22 points of an
+/// edge) to resize it, tap the strip to centre the lens there, and double-tap to show everything and again to go
+/// back. Vertical swipes that start on the strip still scroll the screen or move a sheet.
+///
+/// The bars are content; the lens is the control, so it is the only glass.
 ///
 /// - Parameters:
-///   - samples: Values from 0 to 1, left to right. Fewer than two draws an empty track.
-///   - lower: Leading edge of the window, from 0 to 1.
-///   - upper: Trailing edge of the window, from 0 to 1.
-///   - haptics: A selection tick when either edge crosses a sample.
-///   - style: Bar ink, the dim ink outside the lens, and the lens tint. `.standard` is house ink with a clear lens.
+///   - samples: The series, one value per date: daily steps, revenue, hours slept, a price. Sorted by date for you. Values that are negative or not finite draw as zero. An empty series shows `messages.empty`; one sample shows that sample.
+///   - selection: The window, from the date of its first sample to the date of its last. The lens writes it live while it moves and lands it on whole samples. Set it from outside and the lens glides there; a window wider than the series shows all of it. `RangeLens.window(last:of:)` makes a good starting value.
+///   - summary: The figure the readout shows for the window: `.average` (the default), `.total`, `.maximum` or `.minimum`.
+///   - unit: What the numbers count, shown after the numeral and read by VoiceOver, such as "steps a day". `nil` shows the numeral alone.
+///   - minimumSpan: The fewest samples the window may cover. Resizing stops firmly there and the window never inverts. Defaults to 7, a week of daily samples.
+///   - showsAverage: Draws the window's average as a red dashed rule across the detail chart with an "avg" chip on its value axis.
+///   - messages: Built-in copy. Defaults are localizable through your String Catalog; replace any line, for example `average: "Daily average"`.
+///   - style: Colors and sizes. Defaults to the SwiftPieces house palette with the red accent, adapting to light and dark.
+///   - valueLabel: How a value reads in the readout and to VoiceOver, for example `{ $0.formatted(.currency(code: "EUR")) }`. Defaults to whole numbers from 100 up and one decimal below that.
 public struct RangeLens: View {
-    public struct Style: Sendable {
-        public var ink: Color
-        public var muted: Color
-        public var accent: Color
 
+    // MARK: Public types
+
+    /// One point of the series.
+    public struct Sample: Hashable, Sendable {
+        public var date: Date
+        public var value: Double
+
+        public init(date: Date, value: Double) {
+            self.date = date
+            self.value = value
+        }
+    }
+
+    /// The figure the readout shows for the window.
+    public enum Summary: Sendable, Hashable {
+        /// The mean of the window's samples, such as steps a day.
+        case average
+        /// The sum of the window's samples, such as revenue for the period.
+        case total
+        /// The window's highest sample.
+        case maximum
+        /// The window's lowest sample.
+        case minimum
+    }
+
+    /// The lens's copy. Every default goes through `String(localized:)`, so it can be translated in your String
+    /// Catalog, and any line can be replaced: `.init(average: "Daily average")`.
+    public struct Messages: Sendable {
+        /// The readout's caption for `.average`, and the start of what VoiceOver reads.
+        public var average: String
+        /// The readout's caption for `.total`.
+        public var total: String
+        /// The readout's caption for `.maximum`.
+        public var maximum: String
+        /// The readout's caption for `.minimum`.
+        public var minimum: String
+        /// The chip that marks the average rule on the detail chart's value axis.
+        public var averageMark: String
+        /// The lens's accessibility label.
+        public var range: String
+        /// The detail chart's accessibility label, and its audio graph title.
+        public var chart: String
+        /// The date axis of the audio graph.
+        public var dateAxis: String
+        /// Shown in place of the numeral while the series is empty.
+        public var empty: String
+        /// VoiceOver action that widens the window by a step.
+        public var widen: String
+        /// VoiceOver action that narrows the window by a step.
+        public var narrow: String
+        /// VoiceOver action that shows the whole series.
+        public var showAll: String
+        /// VoiceOver action that returns from the whole series to the window before it.
+        public var showPrevious: String
+        /// VoiceOver hint for the lens.
+        public var hint: String
+
+        /// Pass only the lines you want to change.
         public init(
-            ink: Color = Style.adaptive(light: 0x141414, dark: 0xF4F3EF),
-            muted: Color = Style.adaptive(light: 0xC4C1BA, dark: 0x4A4946),
-            accent: Color = Color(red: 1, green: 0, blue: 0)
+            average: String = String(localized: "Average", comment: "Range lens readout caption above the window's average"),
+            total: String = String(localized: "Total", comment: "Range lens readout caption above the window's total"),
+            maximum: String = String(localized: "Highest", comment: "Range lens readout caption above the window's highest value"),
+            minimum: String = String(localized: "Lowest", comment: "Range lens readout caption above the window's lowest value"),
+            averageMark: String = String(localized: "avg", comment: "Range lens: short chip marking the average line on the chart's value axis"),
+            range: String = String(localized: "Range", comment: "Range lens: accessibility label of the lens that picks the window"),
+            chart: String = String(localized: "Values in range", comment: "Range lens: accessibility label of the detail chart"),
+            dateAxis: String = String(localized: "Date", comment: "Range lens audio graph axis"),
+            empty: String = String(localized: "No data yet", comment: "Range lens readout while the series is empty"),
+            widen: String = String(localized: "Widen", comment: "Range lens VoiceOver action that makes the window longer"),
+            narrow: String = String(localized: "Narrow", comment: "Range lens VoiceOver action that makes the window shorter"),
+            showAll: String = String(localized: "Show all", comment: "Range lens VoiceOver action that shows the whole series"),
+            showPrevious: String = String(localized: "Back to previous range", comment: "Range lens VoiceOver action that returns to the window before Show all"),
+            hint: String = String(localized: "Swipe up or down to move a step. Drag to move, drag an edge to resize.", comment: "Range lens VoiceOver hint")
         ) {
-            self.ink = ink
-            self.muted = muted
-            self.accent = accent
+            self.average = average
+            self.total = total
+            self.maximum = maximum
+            self.minimum = minimum
+            self.averageMark = averageMark
+            self.range = range
+            self.chart = chart
+            self.dateAxis = dateAxis
+            self.empty = empty
+            self.widen = widen
+            self.narrow = narrow
+            self.showAll = showAll
+            self.showPrevious = showPrevious
+            self.hint = hint
+        }
+
+        public static var standard: Messages { Messages() }
+    }
+
+    /// Colors and sizes. `.standard` is the house palette with the red accent.
+    public struct Style: Sendable {
+        /// The average rule, its chip and a held handle.
+        public var accent: Color
+        /// Text and the grip on the accent.
+        public var accentInk: Color
+        /// The numeral, the detail bars and the strip's bars inside the window.
+        public var text: Color
+        /// The caption, unit, dates and the handles' grips.
+        public var secondary: Color
+        /// The axis labels.
+        public var tertiary: Color
+        /// The strip's bars outside the window: a solid mix into the ground, never transparency.
+        public var dim: Color
+        /// The detail chart's gridlines.
+        public var grid: Color
+        /// The track under the strip that the lens rides.
+        public var track: Color
+        /// The detail chart's plot height in points.
+        public var chartHeight: CGFloat
+        /// The readout numeral size in points; it scales with Dynamic Type.
+        public var numeralSize: CGFloat
+
+        /// Pass only what you want to change; `nil` keeps the house palette value.
+        public init(accent: Color? = nil, accentInk: Color? = nil, text: Color? = nil, secondary: Color? = nil, tertiary: Color? = nil, dim: Color? = nil, grid: Color? = nil, track: Color? = nil, chartHeight: CGFloat = 160, numeralSize: CGFloat = 32) {
+            self.accent = accent ?? RangeLensPalette.red
+            self.accentInk = accentInk ?? RangeLensPalette.ink
+            self.text = text ?? RangeLensPalette.text
+            self.secondary = secondary ?? RangeLensPalette.secondary
+            self.tertiary = tertiary ?? RangeLensPalette.tertiary
+            self.dim = dim ?? RangeLensPalette.dim
+            self.grid = grid ?? RangeLensPalette.grid
+            self.track = track ?? RangeLensPalette.track
+            self.chartHeight = max(chartHeight, 80)
+            self.numeralSize = max(numeralSize, 17)
         }
 
         public static let standard = Style()
-
-        /// A color that follows the appearance, from two 0xRRGGBB values.
-        public static func adaptive(light: UInt32, dark: UInt32) -> Color {
-            Color(UIColor { @Sendable traits in
-                let hex = traits.userInterfaceStyle == .dark ? dark : light
-                return UIColor(red: CGFloat(hex >> 16 & 0xFF) / 255, green: CGFloat(hex >> 8 & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
-            })
-        }
     }
 
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    /// The last `count` samples of a series as a selection, a good place to open: `RangeLens.window(last: 42, of: days)`
+    /// for the last six weeks of daily samples. An empty series gives today.
+    public static func window(last count: Int, of samples: [Sample]) -> ClosedRange<Date> {
+        let dates = samples.map(\.date).sorted()
+        guard let last = dates.last else { return Date()...Date() }
+        let first = dates[max(dates.count - max(count, 1), 0)]
+        return first...last
+    }
+
+    // MARK: State
+
+    @Environment(\.calendar) private var calendar
+    @Environment(\.locale) private var locale
     @Environment(\.layoutDirection) private var layoutDirection
-    @Binding private var lower: Double
-    @Binding private var upper: Double
-    @State private var mode: DragMode?
-    @State private var originLower: Double = 0
-    @State private var originUpper: Double = 1
-    @State private var ticks = 0
-    @State private var lastBucket = -1
-    @State private var buds = PieceBuds()
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.colorSchemeContrast) private var contrast
+    @Environment(\.displayScale) private var displayScale
+    @Environment(\.redactionReasons) private var redactionReasons
+    @Environment(\.isEnabled) private var isEnabled
+    @ScaledMetric(relativeTo: .largeTitle) private var numeralScale: CGFloat = 1
+    @ScaledMetric(relativeTo: .subheadline) private var unitScale: CGFloat = 15
+    @ScaledMetric(relativeTo: .footnote) private var captionScale: CGFloat = 13
+    @ScaledMetric(relativeTo: .caption2) private var axisScale: CGFloat = 11
 
-    private let samples: [Double]
-    private let haptics: Bool
+    @Binding private var selection: ClosedRange<Date>
+    /// The series, sorted and summed once per change of `samples`, never on a drag step.
+    @State private var cache = RangeLensCache()
+    /// The lens in samples, from the leading edge of its first sample to the trailing edge of its last. Fractional
+    /// while a finger moves it; whole once it lands.
+    @State private var span = RangeLensSpan(start: 0, end: 0)
+    @State private var hasSpan = false
+    /// What a finger holds, and where the lens was when it took hold.
+    @State private var grab: RangeLensGrab?
+    /// Until when a drag that began off the lens eases onto the finger instead of jumping there.
+    @State private var blendUntil = Date.distantPast
+    /// The detail chart's ceiling, animated on the value role so the bars rescale without overshooting.
+    @State private var top: Double = 1
+    /// The window before Show all, for the second double-tap.
+    @State private var previous: RangeLensSpan?
+    /// The last selection the lens wrote, so a change from outside can be told from its own.
+    @State private var written: ClosedRange<Date>?
+    @State private var lastBucket: Int?
+    @State private var atLimit = false
+    @State private var tick = 0
+    @State private var grabTick = 0
+    @State private var limitTick = 0
+
+    private let samples: [Sample]
+    private let summary: Summary
+    private let unit: String?
+    private let minimumSpan: Int
+    private let showsAverage: Bool
+    private let messages: Messages
     private let style: Style
-    private let minSpan = 0.08
-
-    private enum DragMode { case move, leading, trailing }
+    private let valueLabel: (Double) -> String
 
     public init(
-        samples: [Double],
-        lower: Binding<Double>,
-        upper: Binding<Double>,
-        haptics: Bool = true,
-        style: Style = .standard
+        samples: [Sample],
+        selection: Binding<ClosedRange<Date>>,
+        summary: Summary = .average,
+        unit: String? = nil,
+        minimumSpan: Int = 7,
+        showsAverage: Bool = true,
+        messages: Messages = .standard,
+        style: Style = .standard,
+        valueLabel: @escaping (Double) -> String = { abs($0) >= 100 ? $0.formatted(.number.precision(.fractionLength(0))) : $0.formatted(.number.precision(.fractionLength(0...1))) }
     ) {
         self.samples = samples
-        self._lower = lower
-        self._upper = upper
-        self.haptics = haptics
+        self._selection = selection
+        self.summary = summary
+        self.unit = unit
+        self.minimumSpan = max(minimumSpan, 1)
+        self.showsAverage = showsAverage
+        self.messages = messages
         self.style = style
+        self.valueLabel = valueLabel
     }
+
+    // MARK: Sizes
+
+    private static let lensHeight: CGFloat = 52
+    private static let handleWidth: CGFloat = 14
+    private static let barInset: CGFloat = 8
+
+    private var motion: PieceMotion { PieceMotion(reduceMotion: reduceMotion) }
+    private var isRTL: Bool { layoutDirection == .rightToLeft }
+    private var numeralSize: CGFloat { style.numeralSize * min(numeralScale, 1.7) }
+    private var unitSize: CGFloat { min(unitScale, 26) }
+    private var captionSize: CGFloat { min(captionScale, 24) }
+    private var axisSize: CGFloat { min(axisScale, 16) }
+    private var chipHeight: CGFloat { ceil(axisSize + 8) }
+    private var chartPad: CGFloat { ceil(chipHeight / 2) + 2 }
+    private var axisRow: CGFloat { ceil(axisSize * 1.3) + 8 }
+    private var redacted: Bool { redactionReasons.contains(.placeholder) }
+
+    // MARK: Body
 
     public var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(caption)
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(style.ink)
-                .accessibilityHidden(true)
-            chart
-                .frame(height: 148)
+        let model = cache.model(for: RangeLensModel.Key(samples: samples, calendar: calendar, locale: locale))
+        let shown = hasSpan ? span : model.span(for: selection, minimum: minimumSpan)
+        let window = model.window(of: shown, minimum: minimumSpan)
+        let ceiling = RangeLensScale(peak: window.map { model.peak($0) } ?? 0)
+
+        VStack(alignment: .leading, spacing: 18) {
+            readout(model, window)
+            detail(model, shown, window, scale: ceiling)
+            strip(model, shown, window)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .fontWeight(.semibold)
-        .sensoryFeedback(.selection, trigger: ticks)
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel("Range")
-        .accessibilityValue(caption)
-        .accessibilityAdjustableAction { direction in
-            let step = direction == .increment ? 0.04 : -0.04
-            shift(by: step)
+        .saturation(isEnabled ? 1 : 0)
+        .onAppear {
+            guard !hasSpan else { return }
+            span = model.span(for: selection, minimum: minimumSpan)
+            hasSpan = true
+            top = ceiling.top
+        }
+        // A window set from outside: the lens glides there. Its own writes are recognised and left alone.
+        .onChange(of: selection) { _, new in
+            guard grab == nil, new != written else { return }
+            let target = model.span(for: new, minimum: minimumSpan)
+            guard target != span else { return }
+            withAnimation(motion.morph) { span = target }
+        }
+        // New data: the lens keeps its dates.
+        .onChange(of: model.revision) { _, _ in
+            span = model.span(for: selection, minimum: minimumSpan)
+            previous = nil
+        }
+        // The detail rescales on the value role, so the bars never grow past their true height. Under Reduce Motion
+        // the chart cross-fades to the new scale instead (see `detail`).
+        .onChange(of: ceiling.top) { _, new in
+            if reduceMotion {
+                withAnimation(.easeInOut(duration: 0.25)) { top = new }
+            } else {
+                withAnimation(motion.value) { top = new }
+            }
+        }
+        .sensoryFeedback(.selection, trigger: tick)
+        .sensoryFeedback(.impact(weight: .light), trigger: grabTick)
+        .sensoryFeedback(.impact(flexibility: .soft, intensity: 0.7), trigger: limitTick)
+    }
+
+    // MARK: Readout
+
+    private var summaryTitle: String {
+        switch summary {
+        case .average: messages.average
+        case .total: messages.total
+        case .maximum: messages.maximum
+        case .minimum: messages.minimum
         }
     }
 
-    private var caption: String {
-        let average = windowAverage
-        let percent = Int((average * 100).rounded())
-        return "\(percent) average · \(Int((lower * 100).rounded())) to \(Int((upper * 100).rounded()))"
-    }
-
-    private var windowAverage: Double {
-        guard samples.count > 1 else { return 0 }
-        let start = min(max(Int(lower * Double(samples.count - 1)), 0), samples.count - 1)
-        let end = min(max(Int(upper * Double(samples.count - 1)), start), samples.count - 1)
-        let slice = samples[start...end]
-        return slice.reduce(0, +) / Double(slice.count)
-    }
-
-    private var chart: some View {
-        GeometryReader { proxy in
-            let width = max(proxy.size.width, 1)
-            let height = proxy.size.height
-            let x0 = CGFloat(lower) * width
-            let x1 = CGFloat(upper) * width
-            ZStack(alignment: .topLeading) {
-                bars(width: width, height: height)
-                PieceLiquidGroup {
-                    ZStack(alignment: .top) {
-                        Color.clear
-                            .frame(width: max(x1 - x0, 28), height: height - 8)
-                            .pieceLiquid(RoundedRectangle(cornerRadius: 18, style: .continuous), tint: style.accent.opacity(0.18), interactive: true)
-                        if buds.contains("read") {
-                            readout
-                        }
+    private func readout(_ model: RangeLensModel, _ window: ClosedRange<Int>?) -> some View {
+        VStack(alignment: .leading, spacing: 3) {
+            Text(summaryTitle)
+                .font(.system(size: captionSize, weight: .semibold))
+                .foregroundStyle(style.secondary)
+            if let window {
+                let value = model.value(summary, in: window)
+                ViewThatFits(in: .horizontal) {
+                    HStack(alignment: .firstTextBaseline, spacing: 6) {
+                        numeral(value)
+                        unitLabel
                     }
-                    .offset(x: x0)
+                    VStack(alignment: .leading, spacing: 2) {
+                        numeral(value)
+                        unitLabel
+                    }
+                }
+                let dates = model.dateRange(window, calendar: calendar, locale: locale)
+                // Under the finger the dates change at once, so a fast drag never ghosts; a programmatic change rolls.
+                Text(dates)
+                    .font(.system(size: captionSize, weight: .semibold))
+                    .monospacedDigit()
+                    .foregroundStyle(style.secondary)
+                    .contentTransition(grab != nil ? .identity : reduceMotion ? .opacity : .numericText())
+                    .animation(grab == nil ? motion.value : nil, value: dates)
+            } else {
+                Text(messages.empty)
+                    .font(.system(size: unitSize + 2, weight: .semibold))
+                    .foregroundStyle(style.secondary)
+                    .padding(.vertical, 6)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(window.map { readoutSentence(model, $0) } ?? messages.empty)
+    }
+
+    private func numeral(_ value: Double) -> some View {
+        Text(valueLabel(value))
+            .font(.system(size: numeralSize, weight: .semibold))
+            .monospacedDigit()
+            .tracking(-0.4)
+            .foregroundStyle(style.text)
+            .lineLimit(1)
+            .minimumScaleFactor(0.6)
+            // Under a finger it changes in place, so it stays legible; a programmatic change rolls on the value role.
+            .contentTransition(grab != nil ? .identity : reduceMotion ? .opacity : .numericText(value: value))
+            .animation(grab == nil ? motion.value : nil, value: value)
+    }
+
+    @ViewBuilder private var unitLabel: some View {
+        if let unit, !unit.isEmpty {
+            Text(unit)
+                .font(.system(size: unitSize, weight: .semibold))
+                .foregroundStyle(style.secondary)
+        }
+    }
+
+    // MARK: Detail chart
+
+    private func detail(_ model: RangeLensModel, _ shown: RangeLensSpan, _ window: ClosedRange<Int>?, scale: RangeLensScale) -> some View {
+        let input = RangeLensPainter.Detail(
+            model: model,
+            step: scale.step,
+            showsAverage: showsAverage && window != nil && !redacted,
+            redacted: redacted,
+            rtl: isRTL,
+            pad: chartPad,
+            axisSize: axisSize,
+            chipHeight: chipHeight,
+            averageMark: messages.averageMark,
+            displayScale: displayScale,
+            text: style.text,
+            label: style.tertiary,
+            grid: style.grid,
+            accent: style.accent,
+            accentInk: style.accentInk
+        )
+        return RangeLensAnimated(value: top) { top in
+            RangeLensAnimatedSpan(start: shown.start, end: shown.end) { start, end in
+                Canvas { context, size in
+                    RangeLensPainter.draw(input, start: start, end: end, top: top, in: &context, size: size)
                 }
             }
-            .contentShape(Rectangle())
-            .gesture(drag(width: width))
+        }
+        // Under Reduce Motion a new scale is a new picture that cross-fades in, rather than bars that move.
+        .id(reduceMotion ? top : 0)
+        .transition(.opacity)
+        .frame(height: style.chartHeight + chartPad * 2)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(messages.chart)
+        .accessibilityValue(window.map { readoutSentence(model, $0) } ?? messages.empty)
+        .accessibilityChartDescriptor(RangeLensChart(model: model, window: window, title: messages.chart, dateAxis: messages.dateAxis, valueAxis: unit ?? summaryTitle, rightToLeft: isRTL, valueLabel: valueLabel))
+    }
+
+    // MARK: Strip and lens
+
+    private func strip(_ model: RangeLensModel, _ shown: RangeLensSpan, _ window: ClosedRange<Int>?) -> some View {
+        GeometryReader { proxy in
+            let geometry = RangeLensGeometry(width: proxy.size.width, count: model.count, handle: Self.handleWidth, minimumLens: 20)
+            let input = RangeLensPainter.Strip(model: model, geometry: geometry, rtl: isRTL, rowHeight: Self.lensHeight, barInset: Self.barInset, axisSize: axisSize, redacted: redacted, inside: style.text, outside: contrast == .increased ? style.secondary : style.dim, label: style.tertiary, baseline: style.grid, track: style.track)
+            ZStack(alignment: .topLeading) {
+                // The bars outside the window lie under the glass, so a handle passes over them as a lens would; the
+                // window's own bars sit on the slab, crisp.
+                RangeLensAnimatedSpan(start: shown.start, end: shown.end) { start, end in
+                    Canvas { context, size in
+                        RangeLensPainter.drawStrip(input, layer: .under, start: start, end: end, in: &context, size: size)
+                    }
+                }
+                if model.count > 0 {
+                    lens(geometry, shown)
+                }
+                RangeLensAnimatedSpan(start: shown.start, end: shown.end) { start, end in
+                    Canvas { context, size in
+                        RangeLensPainter.drawStrip(input, layer: .over, start: start, end: end, in: &context, size: size)
+                    }
+                }
+                .allowsHitTesting(false)
+                RangeLensTouchSurface(isEnabled: isEnabled && model.count > 1) { event in
+                    handle(event, geometry: geometry, model: model)
+                }
+            }
+        }
+        .frame(height: Self.lensHeight + axisRow)
+        // Drawn and touched in physical coordinates; right to left is mirrored by hand, so time runs from the right.
+        .environment(\.layoutDirection, .leftToRight)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(messages.range)
+        .accessibilityValue(window.map { lensValue(model, $0) } ?? messages.empty)
+        .accessibilityHint(model.count > 1 ? messages.hint : "")
+        .accessibilityAdjustableAction { direction in
+            move(by: direction == .increment ? model.step : -model.step, model: model, announce: false)
+        }
+        .accessibilityAction(named: messages.widen) { resize(by: model.step, model: model) }
+        .accessibilityAction(named: messages.narrow) { resize(by: -model.step, model: model) }
+        .accessibilityAction(named: isAll(model) && previous != nil ? messages.showPrevious : messages.showAll) { toggleAll(model: model, announce: true) }
+        .accessibilityHidden(model.count == 0)
+        .focusable(isEnabled && model.count > 1)
+        .onKeyPress(.leftArrow, phases: [.down, .repeat]) { _ in
+            move(by: isRTL ? model.step : -model.step, model: model, announce: false)
+            return .handled
+        }
+        .onKeyPress(.rightArrow, phases: [.down, .repeat]) { _ in
+            move(by: isRTL ? -model.step : model.step, model: model, announce: false)
+            return .handled
+        }
+        .onKeyPress(.upArrow, phases: [.down, .repeat]) { _ in
+            resize(by: model.step, model: model)
+            return .handled
+        }
+        .onKeyPress(.downArrow, phases: [.down, .repeat]) { _ in
+            resize(by: -model.step, model: model)
+            return .handled
+        }
+        .onKeyPress(.space) {
+            toggleAll(model: model, announce: false)
+            return .handled
         }
     }
 
-    private func bars(width: CGFloat, height: CGFloat) -> some View {
-        HStack(alignment: .bottom, spacing: 3) {
-            ForEach(Array(samples.enumerated()), id: \.offset) { index, sample in
-                let t = Double(index) / Double(max(samples.count - 1, 1))
-                let inside = t >= lower && t <= upper
-                RoundedRectangle(cornerRadius: 3, style: .continuous)
-                    .fill(inside ? style.ink : style.muted)
-                    .frame(height: max(6, CGFloat(min(max(sample, 0), 1)) * (height - 16)))
+    /// The lens: a glass slab over the window with a glass handle joined to each end. Held, the slab swells a little;
+    /// a held handle swells and floods red. The swell and the tint move on their own clock (press and release), so
+    /// they never ride the spring the lens lands on.
+    private func lens(_ geometry: RangeLensGeometry, _ shown: RangeLensSpan) -> some View {
+        let frame = geometry.lens(shown)
+        let left = isRTL ? geometry.width - frame.upperBound : frame.lowerBound
+        let width = frame.upperBound - frame.lowerBound
+        let held = grab?.part
+        let swell: CGFloat = held == .body && !reduceMotion ? 3 : 0
+        let leading: RangeLensPart = isRTL ? .upper : .lower
+        let trailing: RangeLensPart = isRTL ? .lower : .upper
+        return PieceLiquidGroup {
+            HStack(spacing: PieceLiquid.joined) {
+                grip(held == leading)
+                Color.clear
+                    .pieceLiquid(RoundedRectangle(cornerRadius: 12 + swell, style: .continuous), interactive: false)
+                    .padding(-swell)
+                    .frame(width: width, height: Self.lensHeight)
+                grip(held == trailing)
             }
+            .offset(x: left - Self.handleWidth - PieceLiquid.joined)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
-        .padding(.bottom, 4)
+        .frame(width: geometry.width, height: Self.lensHeight, alignment: .leading)
         .accessibilityHidden(true)
     }
 
-    private var readout: some View {
-        let out = buds.isOut("read")
-        return PieceMorphText(text: "\(Int((windowAverage * 100).rounded()))", font: .caption.weight(.semibold))
-            .foregroundStyle(RangeLens.adaptive(light: 0x141414, dark: 0xF4F3EF))
-            .pieceBudContent(out: out)
-            .frame(minWidth: 44)
-            .padding(.horizontal, 8)
-            .frame(height: 26)
-            .pieceLiquid(.capsule, interactive: false)
-            .pieceBud(out: out, rest: CGSize(width: 0, height: -18), home: CGSize(width: 0, height: 20))
-            .frame(maxWidth: .infinity)
-            .allowsHitTesting(false)
+    private func grip(_ held: Bool) -> some View {
+        Capsule()
+            .fill(held ? style.accentInk : style.secondary)
+            .frame(width: 3, height: 16)
+            .frame(width: Self.handleWidth, height: Self.lensHeight)
+            .pieceLiquid(Capsule(), tint: held ? style.accent : nil, interactive: false)
+            .pieceLiquidScale(held && !reduceMotion ? 1.12 : 1)
     }
 
-    private func drag(width: CGFloat) -> some Gesture {
-        DragGesture(minimumDistance: 0)
-            .onChanged { value in
-                if mode == nil {
-                    originLower = lower
-                    originUpper = upper
-                    mode = hit(value.startLocation.x, width: width)
-                    if mode != nil { Task { @MainActor in await buds.bloom(["read"], reduceMotion: reduceMotion) } }
-                }
-                let sign: CGFloat = layoutDirection == .rightToLeft ? -1 : 1
-                let delta = Double(sign * value.translation.width / width)
-                apply(delta)
-                noteBucket()
+    // MARK: Touch
+
+    private func handle(_ event: RangeLensTouchEvent, geometry: RangeLensGeometry, model: RangeLensModel) {
+        guard model.count > 1, geometry.slot > 0 else { return }
+        let n = Double(model.count)
+        switch event {
+        case let .began(point, _):
+            let x = geometry.time(point.x, rtl: isRTL)
+            var origin = span
+            var part = geometry.part(at: x, of: span)
+            if part == nil {
+                // Off the lens: it comes to the finger, centred there, and the drag carries on from there.
+                let width = span.end - span.start
+                origin = clamp(RangeLensSpan(start: (geometry.slot(at: x) - width / 2).rounded(), end: 0), width: width, n: n)
+                withAnimation(motion.snap) { span = origin }
+                blendUntil = .now + 0.24
+                part = .body
+                tick += 1
             }
-            .onEnded { value in
-                let motion = PieceMotion(reduceMotion: reduceMotion)
-                let sign: CGFloat = layoutDirection == .rightToLeft ? -1 : 1
-                let velocity = Double(sign * value.velocity.width / width)
-                let fromLower = lower
-                let fromUpper = upper
-                mode = nil
-                var targetLower = Double(PieceMotion.project(CGFloat(fromLower), velocity: CGFloat(velocity)))
-                var targetUpper = Double(PieceMotion.project(CGFloat(fromUpper), velocity: CGFloat(velocity)))
-                // The lens keeps its width on a move. A resize coasts only the edge that was held.
-                if abs(fromUpper - fromLower - (originUpper - originLower)) < 0.001 {
-                    let span = fromUpper - fromLower
-                    targetLower = min(max(targetLower, 0), 1 - span)
-                    targetUpper = targetLower + span
-                } else {
-                    targetLower = min(max(targetLower, 0), fromUpper - minSpan)
-                    targetUpper = min(max(targetUpper, fromLower + minSpan), 1)
-                }
-                let nextLower = min(targetLower, targetUpper - minSpan)
-                let nextUpper = max(targetUpper, nextLower + minSpan)
-                withAnimation(motion.settle(velocity: CGFloat(velocity), from: CGFloat(fromLower), to: CGFloat(nextLower))) {
-                    lower = nextLower
-                }
-                withAnimation(motion.follow(rank: 1)) {
-                    upper = nextUpper
-                }
-                Task { @MainActor in await buds.gather(["read"], reduceMotion: reduceMotion) }
+            let held = part ?? .body
+            withAnimation(motion.press) { grab = RangeLensGrab(part: held, origin: origin, x: x) }
+            lastBucket = model.bucket(edge(of: origin, part: held, n: model.count))
+            atLimit = false
+            if held != .body { grabTick += 1 }
+        case let .moved(point):
+            guard let grab else { return }
+            let x = geometry.time(point.x, rtl: isRTL)
+            let next = tracked(grab, x: x, geometry: geometry, n: n)
+            if Date.now < blendUntil {
+                withAnimation(motion.press) { span = next.span }
+            } else {
+                span = next.span
             }
-    }
-
-    private func hit(_ x: CGFloat, width: CGFloat) -> DragMode {
-        let edge: CGFloat = 28
-        let leading = CGFloat(lower) * width
-        let trailing = CGFloat(upper) * width
-        if abs(x - leading) < edge { return layoutDirection == .rightToLeft ? .trailing : .leading }
-        if abs(x - trailing) < edge { return layoutDirection == .rightToLeft ? .leading : .trailing }
-        return .move
-    }
-
-    private func apply(_ delta: Double) {
-        switch mode {
-        case .move:
-            let span = originUpper - originLower
-            var start = originLower + delta
-            start = min(max(start, 0), 1 - span)
-            lower = start
-            upper = start + span
-        case .leading:
-            lower = min(max(originLower + delta, 0), originUpper - minSpan)
-        case .trailing:
-            upper = min(max(originUpper + delta, originLower + minSpan), 1)
-        case nil:
-            break
+            if next.limited != atLimit {
+                atLimit = next.limited
+                if next.limited { limitTick += 1 }
+            }
+            let bucket = model.bucket(edge(of: next.span, part: grab.part, n: model.count))
+            if bucket != lastBucket {
+                lastBucket = bucket
+                tick += 1
+            }
+            write(next.span, model: model)
+        case let .ended(_, velocity):
+            release(velocity: isRTL ? -velocity : velocity, geometry: geometry, model: model)
+        case .cancelled:
+            release(velocity: 0, geometry: geometry, model: model)
+        case let .tapped(point):
+            let x = geometry.time(point.x, rtl: isRTL)
+            guard geometry.part(at: x, of: span) == nil else { return }
+            let width = span.end - span.start
+            let target = clamp(RangeLensSpan(start: (geometry.slot(at: x) - width / 2).rounded(), end: 0), width: width, n: n)
+            guard target != span else { return }
+            withAnimation(motion.snap) { span = target }
+            tick += 1
+            write(target, model: model)
+        case .doubleTapped:
+            toggleAll(model: model, announce: false)
         }
     }
 
-    private func shift(by step: Double) {
-        let span = upper - lower
-        var start = lower + step
-        start = min(max(start, 0), 1 - span)
-        let motion = PieceMotion(reduceMotion: reduceMotion)
-        withAnimation(motion.snap) {
-            lower = start
-            upper = start + span
+    /// Where the lens is drawn for a finger at `x`: under it, stopped firmly at the minimum span, rubber-banded past
+    /// either end of the series.
+    private func tracked(_ grab: RangeLensGrab, x: CGFloat, geometry: RangeLensGeometry, n: Double) -> (span: RangeLensSpan, limited: Bool) {
+        let delta = Double((x - grab.x) / geometry.slot)
+        let origin = grab.origin
+        let minimum = min(Double(minimumSpan), n)
+        let band = { (over: Double) -> Double in
+            Double(PieceMotion.rubberBand(CGFloat(over) * geometry.slot, limit: 28)) / Double(geometry.slot)
+        }
+        switch grab.part {
+        case .body:
+            let width = origin.end - origin.start
+            var start = origin.start + delta
+            var limited = false
+            if start < 0 {
+                start = band(start)
+                limited = true
+            } else if start + width > n {
+                start = n - width + band(start + width - n)
+                limited = true
+            }
+            return (RangeLensSpan(start: start, end: start + width), limited)
+        case .lower:
+            var start = origin.start + delta
+            var limited = false
+            if start > origin.end - minimum {
+                start = origin.end - minimum
+                limited = true
+            } else if start < 0 {
+                start = band(start)
+                limited = true
+            }
+            return (RangeLensSpan(start: start, end: origin.end), limited)
+        case .upper:
+            var end = origin.end + delta
+            var limited = false
+            if end < origin.start + minimum {
+                end = origin.start + minimum
+                limited = true
+            } else if end > n {
+                end = n + band(end - n)
+                limited = true
+            }
+            return (RangeLensSpan(start: origin.start, end: end), limited)
         }
     }
 
-    private func noteBucket() {
-        guard haptics, samples.count > 1 else { return }
-        let bucket = Int((lower * Double(samples.count)).rounded()) + Int((upper * Double(samples.count)).rounded()) * 100
-        guard bucket != lastBucket else { return }
-        if lastBucket >= 0 { ticks += 1 }
-        lastBucket = bucket
+    /// Let go: the lens coasts a little with the finger's speed, lands on whole samples inside the series, and the
+    /// selection takes its final value once.
+    private func release(velocity: CGFloat, geometry: RangeLensGeometry, model: RangeLensModel) {
+        guard let held = grab?.part else { return }
+        let n = Double(model.count)
+        let minimum = min(Double(minimumSpan), n)
+        let slots = Double(PieceMotion.project(0, velocity: velocity) / geometry.slot)
+        var target = span
+        let from: Double
+        let to: Double
+        switch held {
+        case .body:
+            let width = (span.end - span.start).rounded()
+            target = clamp(RangeLensSpan(start: (span.start + slots).rounded(), end: 0), width: max(width, minimum), n: n)
+            from = span.start
+            to = target.start
+        case .lower:
+            let start = min(max((span.start + slots).rounded(), 0), (span.end.rounded()) - minimum)
+            target = RangeLensSpan(start: start, end: span.end.rounded())
+            from = span.start
+            to = target.start
+        case .upper:
+            let end = max(min((span.end + slots).rounded(), n), span.start.rounded() + minimum)
+            target = RangeLensSpan(start: span.start.rounded(), end: end)
+            from = span.end
+            to = target.end
+        }
+        let settle = motion.settle(velocity: velocity, from: CGFloat(from) * geometry.slot, to: CGFloat(to) * geometry.slot)
+        withAnimation(motion.release) { grab = nil }
+        withAnimation(settle) { span = target }
+        atLimit = false
+        if model.bucket(edge(of: target, part: held, n: model.count)) != lastBucket { tick += 1 }
+        lastBucket = nil
+        write(target, model: model)
     }
 
-    public static func adaptive(light: UInt32, dark: UInt32) -> Color {
-        Style.adaptive(light: light, dark: dark)
+    private func edge(of span: RangeLensSpan, part: RangeLensPart, n: Int) -> Int {
+        part == .upper ? min(max(Int(span.end.rounded()) - 1, 0), n - 1) : min(max(Int(span.start.rounded()), 0), n - 1)
+    }
+
+    private func clamp(_ proposed: RangeLensSpan, width: Double, n: Double) -> RangeLensSpan {
+        let width = min(max(width, 1), n)
+        let start = min(max(proposed.start, 0), n - width)
+        return RangeLensSpan(start: start, end: start + width)
+    }
+
+    /// Writes the window the lens rests on, once it changes, so the caller's state stays true while a finger moves.
+    private func write(_ span: RangeLensSpan, model: RangeLensModel) {
+        guard let window = model.window(of: span, minimum: minimumSpan) else { return }
+        let range = model.dates[window.lowerBound]...model.dates[window.upperBound]
+        guard range != selection else { return }
+        written = range
+        selection = range
+    }
+
+    // MARK: Steps (VoiceOver, keyboard)
+
+    private func isAll(_ model: RangeLensModel) -> Bool {
+        span.start <= 0 && span.end >= Double(model.count)
+    }
+
+    private func move(by step: Int, model: RangeLensModel, announce: Bool) {
+        guard model.count > 1 else { return }
+        let n = Double(model.count)
+        let width = (span.end - span.start).rounded()
+        let target = clamp(RangeLensSpan(start: span.start.rounded() + Double(step), end: 0), width: width, n: n)
+        guard target != span else { return }
+        withAnimation(motion.snap) { span = target }
+        tick += 1
+        write(target, model: model)
+        if announce, let window = model.window(of: target, minimum: minimumSpan) {
+            AccessibilityNotification.Announcement(lensValue(model, window)).post()
+        }
+    }
+
+    /// Widens or narrows from the window's start, keeping its end, so a window that ends today keeps ending today.
+    private func resize(by step: Int, model: RangeLensModel) {
+        guard model.count > 1 else { return }
+        let n = Double(model.count)
+        let minimum = min(Double(minimumSpan), n)
+        var start = min(max(span.start.rounded() - Double(step), 0), span.end.rounded() - minimum)
+        var end = span.end.rounded()
+        // Already at the start of the series: widen toward the end instead.
+        if step > 0, start == span.start.rounded() { end = min(end + Double(step), n) }
+        start = max(start, 0)
+        let target = RangeLensSpan(start: start, end: end)
+        guard target != span else { return }
+        withAnimation(motion.morph) { span = target }
+        tick += 1
+        write(target, model: model)
+        if let window = model.window(of: target, minimum: minimumSpan) {
+            AccessibilityNotification.Announcement(lensValue(model, window)).post()
+        }
+    }
+
+    /// Shows the whole series, and from there goes back to the window before it.
+    private func toggleAll(model: RangeLensModel, announce: Bool) {
+        guard model.count > 1 else { return }
+        let all = RangeLensSpan(start: 0, end: Double(model.count))
+        let target: RangeLensSpan
+        if isAll(model) {
+            guard let previous else { return }
+            target = previous
+            self.previous = nil
+        } else {
+            previous = RangeLensSpan(start: span.start.rounded(), end: span.end.rounded())
+            target = all
+        }
+        withAnimation(motion.morph) { span = target }
+        grabTick += 1
+        write(target, model: model)
+        if announce, let window = model.window(of: target, minimum: minimumSpan) {
+            AccessibilityNotification.Announcement(lensValue(model, window)).post()
+        }
+    }
+
+    // MARK: Spoken
+
+    private func readoutSentence(_ model: RangeLensModel, _ window: ClosedRange<Int>) -> String {
+        let value = valueLabel(model.value(summary, in: window))
+        let range = model.spokenRange(window, calendar: calendar, locale: locale)
+        if let unit, !unit.isEmpty {
+            return String(localized: "\(summaryTitle) \(value) \(unit), \(range)", comment: "Range lens VoiceOver readout, as in Average 8,412 steps a day, 3 March to 14 April")
+        }
+        return String(localized: "\(summaryTitle) \(value), \(range)", comment: "Range lens VoiceOver readout without a unit, as in Average 8,412, 3 March to 14 April")
+    }
+
+    private func lensValue(_ model: RangeLensModel, _ window: ClosedRange<Int>) -> String {
+        let range = model.spokenRange(window, calendar: calendar, locale: locale)
+        let value = valueLabel(model.value(summary, in: window))
+        if let unit, !unit.isEmpty {
+            return String(localized: "\(range), \(summaryTitle) \(value) \(unit)", comment: "Range lens VoiceOver value, as in 3 March to 14 April, Average 8,412 steps a day")
+        }
+        return String(localized: "\(range), \(summaryTitle) \(value)", comment: "Range lens VoiceOver value without a unit, as in 3 March to 14 April, Average 8,412")
+    }
+}
+
+// MARK: - Model
+
+/// The lens in samples: `start` is the leading edge of the first sample in the window, `end` the trailing edge of
+/// the last, so a window of one sample is one wide.
+private struct RangeLensSpan: Equatable {
+    var start: Double
+    var end: Double
+}
+
+private enum RangeLensPart: Equatable {
+    case lower, body, upper
+}
+
+private struct RangeLensGrab: Equatable {
+    var part: RangeLensPart
+    var origin: RangeLensSpan
+    /// Where the finger came down, in points along the time axis.
+    var x: CGFloat
+}
+
+/// The series, sorted, with running sums for constant-time averages and the marks the strip labels.
+private struct RangeLensModel {
+    struct Key: Equatable {
+        var samples: [RangeLens.Sample]
+        var calendar: Calendar
+        var locale: Locale
+    }
+
+    struct Mark {
+        var index: Int
+        var text: String
+        /// The mark names a year, so a thinned row keeps it.
+        var isYear = false
+    }
+
+    var revision = 0
+    let dates: [Date]
+    let values: [Double]
+    /// `prefix[i]` is the sum of the first `i` values.
+    let prefix: [Double]
+    let maximum: Double
+    /// The haptic buckets: a week for daily samples, a month for weekly ones, a year for monthly ones, a day for
+    /// anything finer. A tick plays when the moving edge crosses into another bucket.
+    let buckets: [Int]
+    /// How far a VoiceOver or keyboard step moves the lens: a bucket's worth of samples.
+    let step: Int
+    let marks: [Mark]
+    /// Whether the series spans more than one calendar year, so dates carry their year.
+    let latestYear: Int
+
+    var count: Int { values.count }
+
+    init(_ key: Key) {
+        let sorted = key.samples.enumerated().sorted { $0.element.date == $1.element.date ? $0.offset < $1.offset : $0.element.date < $1.element.date }.map(\.element)
+        dates = sorted.map(\.date)
+        values = sorted.map { $0.value.isFinite ? max($0.value, 0) : 0 }
+        var sums = [0.0]
+        sums.reserveCapacity(values.count + 1)
+        for value in values { sums.append(sums[sums.count - 1] + value) }
+        prefix = sums
+        maximum = values.max() ?? 0
+        let calendar = key.calendar
+
+        // How far apart the samples are, from the median gap, decides the ticks, the steps and the marks.
+        var gaps = zip(dates.dropFirst(), dates).map { $0.timeIntervalSince($1) }
+        gaps.sort()
+        let gap = gaps.isEmpty ? 86_400 : gaps[gaps.count / 2]
+        let day = 86_400.0
+        let bucketUnit: Calendar.Component
+        let perStep: Int
+        switch gap {
+        case ..<(day * 0.5): bucketUnit = .day; perStep = max(Int((day / max(gap, 1)).rounded()), 1)
+        case ..<(day * 3): bucketUnit = .weekOfYear; perStep = 7
+        case ..<(day * 20): bucketUnit = .month; perStep = 4
+        default: bucketUnit = .year; perStep = 3
+        }
+        step = perStep
+        buckets = dates.map { date in
+            let start = calendar.dateInterval(of: bucketUnit, for: date)?.start ?? date
+            return Int(start.timeIntervalSinceReferenceDate / 3_600)
+        }
+
+        // Marks under the strip: years for long series, months, then weeks, then days.
+        let total = (dates.last ?? .now).timeIntervalSince(dates.first ?? .now)
+        let markUnit: Calendar.Component = total > day * 800 ? .year : total > day * 62 ? .month : total > day * 6 ? .weekOfYear : .day
+        let years = Set(dates.map { calendar.component(.year, from: $0) })
+        var found: [Mark] = []
+        var last: Date?
+        for (index, date) in dates.enumerated() {
+            let start = calendar.dateInterval(of: markUnit, for: date)?.start ?? date
+            defer { last = start }
+            guard let last, last != start else { continue }
+            var text: String
+            var isYear = false
+            switch markUnit {
+            case .year:
+                text = date.formatted(.dateTime.year().locale(key.locale))
+                isYear = true
+            case .month:
+                // January names its year when the series crosses one, so the strip says where it is.
+                isYear = calendar.component(.month, from: date) == 1 && years.count > 1
+                text = isYear ? date.formatted(.dateTime.year().locale(key.locale)) : date.formatted(.dateTime.month(.abbreviated).locale(key.locale))
+            case .weekOfYear: text = date.formatted(.dateTime.day().month(.abbreviated).locale(key.locale))
+            default: text = date.formatted(.dateTime.weekday(.abbreviated).locale(key.locale))
+            }
+            found.append(Mark(index: index, text: text, isYear: isYear))
+        }
+        marks = found
+        latestYear = dates.last.map { calendar.component(.year, from: $0) } ?? 0
+    }
+
+    /// The span the lens draws for a selection: from its first sample on or after the lower date to its last on or
+    /// before the upper date, at least `minimum` wide, clamped to the series.
+    func span(for range: ClosedRange<Date>, minimum: Int) -> RangeLensSpan {
+        let n = count
+        guard n > 0 else { return RangeLensSpan(start: 0, end: 0) }
+        var lo = dates.firstIndex { $0 >= range.lowerBound } ?? (n - 1)
+        var hi = dates.lastIndex { $0 <= range.upperBound } ?? 0
+        if hi < lo { hi = lo }
+        let width = min(max(minimum, 1), n)
+        if hi - lo + 1 < width {
+            hi = min(lo + width - 1, n - 1)
+            lo = max(hi - width + 1, 0)
+        }
+        return RangeLensSpan(start: Double(lo), end: Double(hi + 1))
+    }
+
+    /// The whole samples a span rests on.
+    func window(of span: RangeLensSpan, minimum: Int) -> ClosedRange<Int>? {
+        let n = count
+        guard n > 0 else { return nil }
+        var lo = min(max(Int(span.start.rounded()), 0), n - 1)
+        var hi = min(max(Int(span.end.rounded()) - 1, lo), n - 1)
+        let width = min(max(minimum, 1), n)
+        if hi - lo + 1 < width {
+            hi = min(lo + width - 1, n - 1)
+            lo = max(hi - width + 1, 0)
+        }
+        return lo...hi
+    }
+
+    func value(_ summary: RangeLens.Summary, in window: ClosedRange<Int>) -> Double {
+        switch summary {
+        case .average: (prefix[window.upperBound + 1] - prefix[window.lowerBound]) / Double(window.count)
+        case .total: prefix[window.upperBound + 1] - prefix[window.lowerBound]
+        case .maximum: values[window].max() ?? 0
+        case .minimum: values[window].min() ?? 0
+        }
+    }
+
+    func peak(_ window: ClosedRange<Int>) -> Double {
+        values[window].max() ?? 0
+    }
+
+    /// The mean over a fractional span, each sample weighted by how much of it the span covers, so the average
+    /// rule glides with the bars instead of stepping.
+    func mean(from start: Double, to end: Double) -> Double {
+        let n = Double(count)
+        let a = min(max(start, 0), n), b = min(max(end, 0), n)
+        guard b - a > 0.0001 else { return 0 }
+        func cumulative(_ x: Double) -> Double {
+            let whole = Int(x.rounded(.down))
+            guard whole < count else { return prefix[count] }
+            return prefix[whole] + values[whole] * (x - Double(whole))
+        }
+        return (cumulative(b) - cumulative(a)) / (b - a)
+    }
+
+    func bucket(_ index: Int) -> Int? {
+        buckets.indices.contains(index) ? buckets[index] : nil
+    }
+
+    private func carriesYear(_ window: ClosedRange<Int>, calendar: Calendar) -> Bool {
+        let first = calendar.component(.year, from: dates[window.lowerBound])
+        let last = calendar.component(.year, from: dates[window.upperBound])
+        return first != last || last != latestYear
+    }
+
+    /// "3 Mar – 14 Apr", with the year when the window crosses one or lies in an earlier year.
+    func dateRange(_ window: ClosedRange<Int>, calendar: Calendar, locale: Locale) -> String {
+        let first = dates[window.lowerBound], last = dates[window.upperBound]
+        var style = Date.IntervalFormatStyle(locale: locale, calendar: calendar).day().month(.abbreviated)
+        if carriesYear(window, calendar: calendar) { style = style.year() }
+        guard first < last else {
+            var single = Date.FormatStyle(locale: locale, calendar: calendar).day().month(.abbreviated)
+            if carriesYear(window, calendar: calendar) { single = single.year() }
+            return first.formatted(single)
+        }
+        return (first..<last).formatted(style)
+    }
+
+    /// "3 March to 14 April", for VoiceOver, which reads a dash between dates unevenly.
+    func spokenRange(_ window: ClosedRange<Int>, calendar: Calendar, locale: Locale) -> String {
+        var style = Date.FormatStyle(locale: locale, calendar: calendar).day().month(.wide)
+        if carriesYear(window, calendar: calendar) { style = style.year() }
+        let first = dates[window.lowerBound].formatted(style), last = dates[window.upperBound].formatted(style)
+        guard first != last else { return first }
+        return String(localized: "\(first) to \(last)", comment: "Range lens VoiceOver date range, as in 3 March to 14 April")
+    }
+}
+
+/// Keeps the last model, so a drag step (which re-runs `body`) never sorts or sums the series again.
+@MainActor
+private final class RangeLensCache {
+    private var key: RangeLensModel.Key?
+    private var model: RangeLensModel?
+    private var revision = 0
+
+    nonisolated init() {}
+
+    func model(for key: RangeLensModel.Key) -> RangeLensModel {
+        if let model, self.key == key { return model }
+        revision += 1
+        var next = RangeLensModel(key)
+        next.revision = revision
+        self.key = key
+        model = next
+        return next
+    }
+}
+
+/// The detail chart's ceiling and the step between its gridlines. The ceiling follows the window's highest sample
+/// with a little headroom, so the bars always fill the chart and it rescales as the window moves; the gridlines stay
+/// on round values (5,000 apart for a peak of 13,240) and slide as it does.
+private struct RangeLensScale: Equatable {
+    var top: Double
+    var step: Double
+
+    init(peak: Double) {
+        guard peak.isFinite, peak > 0 else {
+            top = 1
+            step = 0
+            return
+        }
+        top = peak * 1.08
+        // The smallest round step (1, 2 or 5 of a power of ten) that leaves at most four gridlines.
+        let magnitude = pow(10, floor(log10(top)))
+        let top = top
+        step = [0.1, 0.2, 0.5, 1, 2, 5, 10].map { $0 * magnitude }.first { top / $0 <= 4 } ?? magnitude * 10
+    }
+}
+
+// MARK: - Geometry
+
+/// The strip's layout along the time axis, in points from the leading end: the bars sit inside the room the
+/// handles need at either end, one slot per sample.
+private struct RangeLensGeometry {
+    var width: CGFloat
+    var count: Int
+    var handle: CGFloat
+    var minimumLens: CGFloat
+
+    var inset: CGFloat { handle + PieceLiquid.joined }
+    var slot: CGFloat { count > 0 ? max(width - inset * 2, 1) / CGFloat(count) : 0 }
+
+    func x(_ slot: Double) -> CGFloat { inset + CGFloat(slot) * self.slot }
+    func slot(at x: CGFloat) -> Double { self.slot > 0 ? Double((x - inset) / self.slot) : 0 }
+
+    /// A point on screen as a point along time: mirrored right to left.
+    func time(_ x: CGFloat, rtl: Bool) -> CGFloat { rtl ? width - x : x }
+
+    /// The slab's extent along time, never narrower than `minimumLens` so it stays a shape you can see and hold.
+    func lens(_ span: RangeLensSpan) -> ClosedRange<CGFloat> {
+        let lo = x(span.start), hi = x(span.end)
+        let width = max(hi - lo, minimumLens)
+        // Centred on the window, but kept on the track at either end (a band past the end may still pull it out).
+        let floor = min(lo, inset), ceiling = max(hi, self.width - inset)
+        let start = min(max((lo + hi) / 2 - width / 2, floor), ceiling - width)
+        return start...(start + width)
+    }
+
+    /// Which part of the lens a finger at `x` takes: a handle within about 22 points of its edge (fewer on a narrow
+    /// lens, so the slab keeps a middle), the slab between, or nothing off the lens.
+    func part(at x: CGFloat, of span: RangeLensSpan) -> RangeLensPart? {
+        let frame = lens(span)
+        let reach = min(22, (frame.upperBound - frame.lowerBound) / 3)
+        let outer = handle + PieceLiquid.joined + 12
+        if x >= frame.lowerBound - outer, x <= frame.lowerBound + reach { return .lower }
+        if x <= frame.upperBound + outer, x >= frame.upperBound - reach { return .upper }
+        if x > frame.lowerBound, x < frame.upperBound { return .body }
+        return nil
+    }
+}
+
+// MARK: - Animation
+
+/// One value interpolated frame by frame and handed to its content. Nested, two of these keep two springs apart:
+/// the ceiling rescales on the value role while the window pans under the finger or lands on its own spring.
+private struct RangeLensAnimated<Content: View>: View, Animatable {
+    var value: Double
+    @ViewBuilder let content: (Double) -> Content
+
+    nonisolated var animatableData: Double {
+        get { value }
+        set { value = newValue }
+    }
+
+    var body: some View { content(value) }
+}
+
+/// The lens's two edges, interpolated together, so the bars, their colors and the glass land on one spring.
+private struct RangeLensAnimatedSpan<Content: View>: View, Animatable {
+    var start: Double
+    var end: Double
+    @ViewBuilder let content: (Double, Double) -> Content
+
+    nonisolated var animatableData: AnimatablePair<Double, Double> {
+        get { AnimatablePair(start, end) }
+        set {
+            start = newValue.first
+            end = newValue.second
+        }
+    }
+
+    var body: some View { content(start, end) }
+}
+
+// MARK: - Drawing
+
+private enum RangeLensPainter {
+    struct Detail {
+        var model: RangeLensModel
+        var step: Double
+        var showsAverage: Bool
+        var redacted: Bool
+        var rtl: Bool
+        var pad: CGFloat
+        var axisSize: CGFloat
+        var chipHeight: CGFloat
+        var averageMark: String
+        var displayScale: CGFloat
+        var text: Color
+        var label: Color
+        var grid: Color
+        var accent: Color
+        var accentInk: Color
+    }
+
+    /// The window's bars, gridlines with their values, and the average rule with its chip, in one pass. `start` and
+    /// `end` are the lens's live edges, so the bars slide by fractions of a sample while it moves; `top` is the
+    /// animated ceiling.
+    static func draw(_ input: Detail, start: Double, end: Double, top: Double, in context: inout GraphicsContext, size: CGSize) {
+        let model = input.model
+        let gutter = ceil(input.axisSize * 3) + 10
+        let plotWidth = max(size.width - gutter, 1)
+        // Room above for the chip and the top value, and below for the zero, which is centred on the baseline.
+        let plot = CGRect(x: 0, y: input.pad, width: plotWidth, height: max(size.height - input.pad * 2, 1))
+        let top = max(top, 0.0001)
+        let hairline = 1 / max(input.displayScale, 1)
+        let snap = { (y: CGFloat) -> CGFloat in (y * input.displayScale).rounded() / input.displayScale }
+        let mirror = { (rect: CGRect) -> CGRect in
+            input.rtl ? CGRect(x: size.width - rect.maxX, y: rect.minY, width: rect.width, height: rect.height) : rect
+        }
+        let yOf = { (value: Double) -> CGFloat in plot.maxY - CGFloat(value / top) * plot.height }
+
+        // The average and its chip, placed first so the gridline value under the chip can step aside.
+        let average = model.count > 0 && input.showsAverage ? model.mean(from: start, to: end) : nil
+        let chipText = context.resolve(Text(input.averageMark).font(.system(size: input.axisSize, weight: .semibold)).foregroundStyle(input.accentInk))
+        let chipSize = chipText.measure(in: CGSize(width: 200, height: 100))
+        let chipWidth = max(ceil(chipSize.width) + 12, input.chipHeight)
+        var chipY: CGFloat?
+        if let average, average > 0 {
+            chipY = min(max(yOf(average), plot.minY + input.chipHeight / 2 - input.pad + 2), plot.maxY - input.chipHeight / 2)
+        }
+
+        // Gridlines and their values on the axis side.
+        var lines = Path()
+        if input.step > 0 {
+            var tick = 0.0
+            while tick <= top * 1.0001 + input.step {
+                let y = yOf(tick)
+                if y >= plot.minY - 0.5, tick > 0 {
+                    lines.addRect(mirror(CGRect(x: 0, y: snap(y) - hairline / 2, width: plotWidth, height: hairline)))
+                }
+                if y >= plot.minY - 0.5, !input.redacted, chipY.map({ abs($0 - y) > input.chipHeight * 0.8 }) ?? true {
+                    let label = context.resolve(Text(tick.formatted(.number.notation(.compactName))).font(.system(size: input.axisSize, weight: .semibold)).monospacedDigit().foregroundStyle(input.label))
+                    let x = plotWidth + 8
+                    context.draw(label, at: CGPoint(x: input.rtl ? size.width - x : x, y: y), anchor: input.rtl ? .trailing : .leading)
+                }
+                tick += input.step
+            }
+        }
+        if input.step <= 0, !input.redacted {
+            // Nothing above zero: the baseline still names its value.
+            let zero = context.resolve(Text(0.0.formatted(.number)).font(.system(size: input.axisSize, weight: .semibold)).monospacedDigit().foregroundStyle(input.label))
+            let x = plotWidth + 8
+            context.draw(zero, at: CGPoint(x: input.rtl ? size.width - x : x, y: plot.maxY), anchor: input.rtl ? .trailing : .leading)
+        }
+        lines.addRect(mirror(CGRect(x: 0, y: snap(plot.maxY) - hairline, width: plotWidth, height: hairline)))
+        context.fill(lines, with: .color(input.grid))
+
+        // The bars that fall in the window, sliding by fractions of a sample, clipped to the plot.
+        let visible = max(end - start, 0.0001)
+        let slot = plotWidth / CGFloat(visible)
+        // Wide slots keep a gap; below a point and a half the bars touch, so a year reads as one clean silhouette.
+        let barWidth = slot < 1.5 ? slot : min(slot * (slot > 6 ? 0.62 : slot > 2.5 ? 0.7 : 0.8), 24)
+        let radius = min(barWidth / 2, 3)
+        var bars = Path()
+        if model.count > 0 {
+            let first = max(Int(start.rounded(.down)), 0)
+            let last = min(Int(end.rounded(.up)), model.count)
+            if first < last {
+                for index in first..<last {
+                    let value = model.values[index]
+                    guard value > 0 else { continue }
+                    let x = CGFloat(Double(index) - start) * slot + (slot - barWidth) / 2
+                    let height = max(CGFloat(value / top) * plot.height, 1)
+                    let rect = CGRect(x: x, y: plot.maxY - height, width: barWidth, height: height + radius)
+                    // Hairline bars are plain rects: a rounded rect narrower than a point draws as a smear.
+                    if barWidth < 2.5 {
+                        bars.addRect(mirror(rect))
+                    } else {
+                        bars.addRoundedRect(in: mirror(rect), cornerSize: CGSize(width: radius, height: radius), style: .continuous)
+                    }
+                }
+            }
+        }
+        context.drawLayer { layer in
+            layer.clip(to: Path(mirror(CGRect(x: 0, y: 0, width: plotWidth, height: plot.maxY))))
+            layer.fill(bars, with: .color(input.redacted ? input.grid : input.text))
+        }
+
+        // The average: a red dashed rule across the plot and its chip on the axis.
+        if let average, average > 0, let chipY {
+            let y = snap(yOf(average))
+            var rule = Path()
+            let a = mirror(CGRect(x: 0, y: y, width: plotWidth, height: 0))
+            rule.move(to: CGPoint(x: a.minX, y: y))
+            rule.addLine(to: CGPoint(x: a.maxX, y: y))
+            context.stroke(rule, with: .color(input.accent), style: StrokeStyle(lineWidth: 1.5, lineCap: .round, dash: [3, 4]))
+            let chip = mirror(CGRect(x: plotWidth + 4, y: chipY - input.chipHeight / 2, width: chipWidth, height: input.chipHeight))
+            context.fill(Path(roundedRect: chip, cornerRadius: input.chipHeight / 2, style: .continuous), with: .color(input.accent))
+            context.draw(chipText, at: CGPoint(x: chip.midX, y: chip.midY), anchor: .center)
+        }
+    }
+
+    struct Strip {
+        var model: RangeLensModel
+        var geometry: RangeLensGeometry
+        var rtl: Bool
+        var rowHeight: CGFloat
+        var barInset: CGFloat
+        var axisSize: CGFloat
+        var redacted: Bool
+        var inside: Color
+        var outside: Color
+        var label: Color
+        var baseline: Color
+        var track: Color
+    }
+
+    enum Layer { case under, over }
+
+    /// Every sample as a thin bar on one scale, and the marks under them. The `under` layer draws the bars outside
+    /// the lens, dim, and the marks; the `over` layer draws the bars inside it, bright, on the glass.
+    static func drawStrip(_ input: Strip, layer: Layer, start: Double, end: Double, in context: inout GraphicsContext, size: CGSize) {
+        let model = input.model
+        let g = input.geometry
+        let floor = input.rowHeight - input.barInset
+        let room = input.rowHeight - input.barInset * 2
+        let mirror = { (rect: CGRect) -> CGRect in
+            input.rtl ? CGRect(x: size.width - rect.maxX, y: rect.minY, width: rect.width, height: rect.height) : rect
+        }
+        // The track the lens rides: the strip's whole width, a quiet solid step off the ground.
+        if layer == .under {
+            context.fill(Path(roundedRect: CGRect(x: 0, y: 0, width: size.width, height: input.rowHeight), cornerRadius: 12, style: .continuous), with: .color(input.track))
+        }
+        guard model.count > 0, g.slot > 0 else { return }
+        let barWidth = min(max(g.slot * (g.slot > 3 ? 0.62 : 0.72), 0.5), 8)
+        let radius = min(barWidth / 2, 1.5)
+        let peak = max(model.maximum, 0.0001)
+        var bars = Path()
+        for index in 0..<model.count {
+            let value = model.values[index]
+            let height = value > 0 ? max(CGFloat(value / peak) * room, 1.5) : 1
+            let x = g.x(Double(index)) + (g.slot - barWidth) / 2
+            let rect = mirror(CGRect(x: x, y: floor - height, width: barWidth, height: height))
+            let center = Double(index) + 0.5
+            let inside = center > start && center < end
+            guard inside == (layer == .over) else { continue }
+            if barWidth < 2.5 {
+                bars.addRect(rect)
+            } else {
+                bars.addRoundedRect(in: rect, cornerSize: CGSize(width: radius, height: radius))
+            }
+        }
+        guard layer == .under else {
+            context.fill(bars, with: .color(input.redacted ? input.baseline : input.inside))
+            return
+        }
+        context.fill(bars, with: .color(input.redacted ? input.baseline : input.outside))
+
+        // Marks at their boundaries, every one or every second, third... whichever is the first that never crowds,
+        // so they stay evenly spaced; the stride keeps the mark that names a new year.
+        guard !input.redacted, !model.marks.isEmpty else { return }
+        let labels = model.marks.map { mark in
+            let text = context.resolve(Text(mark.text).font(.system(size: input.axisSize, weight: .semibold)).foregroundStyle(input.label))
+            return (x: g.x(Double(mark.index)), width: text.measure(in: CGSize(width: 200, height: 60)).width, text: text)
+        }
+        let anchor = model.marks.firstIndex { $0.isYear } ?? 0
+        var kept: [Int] = []
+        for stride in 1...max(labels.count, 1) {
+            let phase = anchor % stride
+            let picks = labels.indices.filter { $0 % stride == phase && labels[$0].x + labels[$0].width <= size.width - 2 }
+            let fits = zip(picks, picks.dropFirst()).allSatisfy { labels[$0].x + labels[$0].width + 14 <= labels[$1].x }
+            if fits {
+                kept = picks
+                break
+            }
+        }
+        let y = input.rowHeight + 6
+        for index in kept {
+            let label = labels[index]
+            context.draw(label.text, at: CGPoint(x: input.rtl ? size.width - label.x : label.x, y: y), anchor: input.rtl ? .topTrailing : .topLeading)
+        }
+    }
+}
+
+// MARK: - Touch surface
+
+private enum RangeLensTouchEvent {
+    /// A drag begins where the finger came down: from a horizontal pan, or from a press held still (`pressed`).
+    case began(CGPoint, pressed: Bool)
+    case moved(CGPoint)
+    /// Velocity along x in points per second.
+    case ended(CGPoint, velocity: CGFloat)
+    case cancelled
+    case tapped(CGPoint)
+    case doubleTapped(CGPoint)
+}
+
+/// UIKit recognizers over the strip, because SwiftUI has no drag that leaves an enclosing scroll view free to
+/// scroll: any drag gesture there claims the touch. The pan begins only for a mostly horizontal drag, and the press
+/// only for a finger held still, so a vertical swipe goes to the scroll view or sheet untouched. A single tap waits
+/// for the double tap to fail.
+private struct RangeLensTouchSurface: UIViewRepresentable {
+    var isEnabled: Bool
+    var onEvent: (RangeLensTouchEvent) -> Void
+
+    func makeCoordinator() -> Coordinator { Coordinator() }
+
+    func makeUIView(context: Context) -> UIView {
+        let view = UIView()
+        view.backgroundColor = .clear
+        view.isAccessibilityElement = false
+        view.accessibilityElementsHidden = true
+        let coordinator = context.coordinator
+        let press = UILongPressGestureRecognizer(target: coordinator, action: #selector(Coordinator.drag(_:)))
+        press.minimumPressDuration = 0.28
+        press.allowableMovement = 8
+        let pan = UIPanGestureRecognizer(target: coordinator, action: #selector(Coordinator.drag(_:)))
+        pan.delegate = coordinator
+        let double = UITapGestureRecognizer(target: coordinator, action: #selector(Coordinator.doubleTap(_:)))
+        double.numberOfTapsRequired = 2
+        let tap = UITapGestureRecognizer(target: coordinator, action: #selector(Coordinator.tap(_:)))
+        tap.require(toFail: double)
+        for recognizer in [press, pan, double, tap] { view.addGestureRecognizer(recognizer) }
+        coordinator.press = press
+        return view
+    }
+
+    func updateUIView(_ view: UIView, context: Context) {
+        context.coordinator.onEvent = onEvent
+        view.isUserInteractionEnabled = isEnabled
+    }
+
+    @MainActor
+    final class Coordinator: NSObject, UIGestureRecognizerDelegate {
+        var onEvent: (RangeLensTouchEvent) -> Void = { _ in }
+        weak var press: UILongPressGestureRecognizer?
+        /// Recent finger positions, for the velocity of a drag that began as a press.
+        private var trail: [(time: TimeInterval, x: CGFloat)] = []
+
+        @objc func drag(_ recognizer: UIGestureRecognizer) {
+            let point = recognizer.location(in: recognizer.view)
+            switch recognizer.state {
+            case .began:
+                var origin = point
+                if let pan = recognizer as? UIPanGestureRecognizer {
+                    let moved = pan.translation(in: pan.view)
+                    origin = CGPoint(x: point.x - moved.x, y: point.y - moved.y)
+                }
+                trail = [(CACurrentMediaTime(), point.x)]
+                onEvent(.began(origin, pressed: recognizer === press))
+                // The pan begins after a few points of travel; catch up to the finger at once.
+                if origin != point { onEvent(.moved(point)) }
+            case .changed:
+                trail.append((CACurrentMediaTime(), point.x))
+                if trail.count > 6 { trail.removeFirst(trail.count - 6) }
+                onEvent(.moved(point))
+            case .ended:
+                onEvent(.ended(point, velocity: velocity(of: recognizer)))
+            case .cancelled, .failed:
+                onEvent(.cancelled)
+            default:
+                break
+            }
+        }
+
+        @objc func tap(_ recognizer: UITapGestureRecognizer) {
+            onEvent(.tapped(recognizer.location(in: recognizer.view)))
+        }
+
+        @objc func doubleTap(_ recognizer: UITapGestureRecognizer) {
+            onEvent(.doubleTapped(recognizer.location(in: recognizer.view)))
+        }
+
+        private func velocity(of recognizer: UIGestureRecognizer) -> CGFloat {
+            if let pan = recognizer as? UIPanGestureRecognizer { return pan.velocity(in: pan.view).x }
+            // A press reports no velocity; read it off the last few positions, unless the finger has rested.
+            guard let last = trail.last, let first = trail.first, CACurrentMediaTime() - last.time < 0.08, last.time - first.time > 0.001 else { return 0 }
+            return (last.x - first.x) / CGFloat(last.time - first.time)
+        }
+
+        /// The pan only starts for a mostly horizontal drag, so vertical swipes stay with the screen.
+        func gestureRecognizerShouldBegin(_ recognizer: UIGestureRecognizer) -> Bool {
+            guard let pan = recognizer as? UIPanGestureRecognizer else { return true }
+            let velocity = pan.velocity(in: pan.view)
+            return abs(velocity.x) > abs(velocity.y)
+        }
+    }
+}
+
+// MARK: - Accessibility
+
+/// Lets VoiceOver play the window's samples as an audio graph and read each one.
+private struct RangeLensChart: AXChartDescriptorRepresentable {
+    let model: RangeLensModel
+    let window: ClosedRange<Int>?
+    let title: String
+    let dateAxis: String
+    let valueAxis: String
+    let rightToLeft: Bool
+    let valueLabel: (Double) -> String
+
+    func makeChartDescriptor() -> AXChartDescriptor {
+        let descriptor = AXChartDescriptor(title: title, summary: nil, xAxis: AXNumericDataAxisDescriptor(title: dateAxis, range: 0...1, gridlinePositions: []) { _ in "" }, yAxis: nil, additionalAxes: [], series: [])
+        updateChartDescriptor(descriptor)
+        return descriptor
+    }
+
+    func updateChartDescriptor(_ descriptor: AXChartDescriptor) {
+        guard let window else {
+            descriptor.series = []
+            return
+        }
+        let style = Date.FormatStyle.dateTime.day().month(.wide)
+        let names = window.map { model.dates[$0].formatted(style) }
+        let highest = max(model.peak(window), 1)
+        descriptor.title = title
+        descriptor.contentDirection = rightToLeft ? .rightToLeft : .leftToRight
+        descriptor.xAxis = AXNumericDataAxisDescriptor(title: dateAxis, range: 0...Double(max(window.count - 1, 1)), gridlinePositions: []) { position in
+            let index = Int(position.rounded())
+            return names.indices.contains(index) ? names[index] : ""
+        }
+        descriptor.yAxis = AXNumericDataAxisDescriptor(title: valueAxis, range: 0...highest, gridlinePositions: []) { value in
+            valueLabel(value)
+        }
+        let points = window.enumerated().map { offset, index in
+            AXDataPoint(x: Double(offset), y: model.values[index], label: "\(names[offset]), \(valueLabel(model.values[index]))")
+        }
+        descriptor.series = [AXDataSeriesDescriptor(name: title, isContinuous: false, dataPoints: points)]
+    }
+}
+
+// MARK: - Palette
+
+private enum RangeLensPalette {
+    static let red = Color(red: 1, green: 0, blue: 0)
+    static let ink = adaptive(light: 0x141414, dark: 0x141414)
+    static let ground = adaptive(light: 0xF3F2EE, dark: 0x121212)
+    static let text = adaptive(light: 0x141414, dark: 0xF4F3EF)
+    static let secondary = adaptive(light: 0x5C5A56, dark: 0xA6A49F)
+    static let tertiary = adaptive(light: 0x8B8984, dark: 0x6F6D69)
+    static let dim = adaptive(light: 0xB7B5B1, dark: 0x4D4C4A)
+    static let grid = adaptive(light: 0xE3E1DB, dark: 0x2A2A2A)
+    static let track = adaptive(light: 0xEFEDE8, dark: 0x1C1C1C)
+
+    static func adaptive(light: UInt32, dark: UInt32) -> Color {
+        Color(uiColor: UIColor { @Sendable traits in
+            let hex = traits.userInterfaceStyle == .dark ? dark : light
+            return UIColor(red: CGFloat((hex >> 16) & 0xFF) / 255, green: CGFloat((hex >> 8) & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
+        })
     }
 }
 
 // MARK: - Example
 
-private struct RangeLensExample: View {
-    @State private var lower = 0.25
-    @State private var upper = 0.7
-
-    var body: some View {
-        RangeLens(samples: Self.samples, lower: $lower, upper: $upper)
-            .padding(24)
-            .frame(maxWidth: 420)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(RangeLens.adaptive(light: 0xF3F2EE, dark: 0x121212))
-            .task {
-                while !Task.isCancelled {
-                    try? await Task.sleep(for: .seconds(2.4))
-                    withAnimation(PieceMotion(reduceMotion: false).snap) {
-                        if lower < 0.3 { lower = 0.48; upper = 0.86 } else { lower = 0.12; upper = 0.55 }
-                    }
-                }
-            }
+/// A year of daily steps ending today: weekends higher, a summer rise, a holiday dip at the turn of the year and the
+/// odd rest day. The same every time.
+private enum RangeLensSample {
+    static func steps(days: Int = 365, calendar: Calendar = .current, now: Date = .now) -> [RangeLens.Sample] {
+        let today = calendar.startOfDay(for: now)
+        return (0..<days).compactMap { k in
+            guard let date = calendar.date(byAdding: .day, value: k - (days - 1), to: today) else { return nil }
+            return RangeLens.Sample(date: date, value: value(k, date: date, calendar: calendar))
+        }
     }
 
-    private static let samples: [Double] = [
-        0.2, 0.28, 0.24, 0.36, 0.52, 0.48, 0.7, 0.86, 0.74, 0.6,
-        0.55, 0.4, 0.46, 0.63, 0.8, 0.92, 0.77, 0.58, 0.42, 0.3,
-        0.34, 0.5, 0.66, 0.6, 0.44,
-    ]
+    static func value(_ k: Int, date: Date, calendar: Calendar) -> Double {
+        let noise = Double((k * 7_919 + 13) % 101) / 100
+        let rest = Double((k * 4_021 + 71) % 97) / 96
+        let weekday = calendar.component(.weekday, from: date)
+        let month = calendar.component(.month, from: date)
+        let day = calendar.component(.day, from: date)
+        let dayOfYear = Double(calendar.ordinality(of: .day, in: .year, for: date) ?? 1)
+        let summer = exp(-pow((dayOfYear - 200) / 48, 2))
+        var steps = 7_400 + 2_300 * summer + (weekday == 7 ? 2_800 : weekday == 1 ? 1_900 : 0) + (noise - 0.5) * 2_800
+        if (month == 12 && day >= 23) || (month == 1 && day <= 1) { steps *= 0.5 }
+        if rest < 0.05 { steps = 2_400 + noise * 900 }
+        return max(steps, 600).rounded()
+    }
+}
+
+private struct RangeLensExample: View {
+    @State private var days = RangeLensSample.steps()
+    @State private var window: ClosedRange<Date>
+
+    init() {
+        let days = RangeLensSample.steps()
+        _days = State(initialValue: days)
+        _window = State(initialValue: RangeLens.window(last: 42, of: days))
+    }
+
+    var body: some View {
+        RangeLens(samples: days, selection: $window, unit: "steps a day")
+            .padding(20)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(RangeLensPalette.ground)
+    }
 }
 
 #Preview("Light") {
     RangeLensExample()
-        .preferredColorScheme(.light)
 }
 
 #Preview("Dark") {
@@ -366,12 +1579,28 @@ private struct RangeLensExample: View {
         .preferredColorScheme(.dark)
 }
 
+#Preview("Empty") {
+    RangeLensEmptyExample()
+}
+
+/// No data yet: the readout says so, the strip draws its baseline and there is no lens to drag.
+private struct RangeLensEmptyExample: View {
+    @State private var window = Date()...Date()
+
+    var body: some View {
+        RangeLens(samples: [], selection: $window, unit: "steps a day")
+            .padding(20)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(RangeLensPalette.ground)
+    }
+}
+
 // MARK: - Piece motion
 //
 // The SwiftPieces motion language: shared spring tokens and gesture physics, with the same values in every
 // piece. Each piece carries a copy of only the parts it uses, so this file stands alone. Generated from
 // registry/foundation/PieceMotion.swift in the SwiftPieces repo; edit it there, not here.
-// swiftpieces-motion: 1.1.0 (core, follow, momentum)
+// swiftpieces-motion: 1.1.0 (core, momentum, rubberBand)
 
 /// The SwiftPieces motion language: five spring tiers, and a named role for every moment a piece moves,
 /// each with its Reduce Motion substitute.
@@ -440,21 +1669,6 @@ private struct PieceMotion {
 }
 
 extension PieceMotion {
-    /// Follow-through: rank 0 leads, each later rank arrives a beat later on a slightly looser spring. Safe to reverse.
-    func follow(_ spring: Spring = PieceMotion.elastic, rank: Int) -> Animation {
-        guard !reduceMotion else { return .spring(duration: 0.25, bounce: 0) }
-        let k = Double(min(max(rank, 0), 6))
-        return .spring(duration: spring.duration + 0.04 * k, bounce: min(spring.bounce + 0.02 * k, 0.55))
-    }
-
-    /// One-shot entrances only: item `index` waits 30ms per place, capped at the seventh. Exits go together.
-    func cascade(_ animation: Animation, index: Int, step: Double = 0.03) -> Animation {
-        guard !reduceMotion, index > 0 else { return animation }
-        return animation.delay(step * Double(min(index, 7)))
-    }
-}
-
-extension PieceMotion {
     /// Where a flick at `velocity` (pt/s) coasts to. 0.998 coasts like a scroll view; 0.99 suits detents.
     nonisolated static func project(_ position: CGFloat, velocity: CGFloat, decelerationRate: CGFloat = 0.99) -> CGFloat {
         position + velocity / 1000 * decelerationRate / (1 - decelerationRate)
@@ -479,6 +1693,23 @@ extension PieceMotion {
     }
 }
 
+extension PieceMotion {
+    /// A scroll view's edge resistance for a pull `overshoot` points past a limit; never reaches `limit`.
+    /// About 24 to 40 for thumbs and toggles, 60 to 120 for cards and sheets. Band the total pull, not deltas.
+    nonisolated static func rubberBand(_ overshoot: CGFloat, limit: CGFloat, coefficient: CGFloat = 0.55) -> CGFloat {
+        guard limit > 0, overshoot != 0 else { return 0 }
+        let banded = (1 - 1 / (abs(overshoot) * coefficient / limit + 1)) * limit
+        return overshoot < 0 ? -banded : banded
+    }
+
+    /// `value` inside `range` passes through unchanged; past either end it moves with rubber-band resistance.
+    nonisolated static func rubberBand(_ value: CGFloat, in range: ClosedRange<CGFloat>, limit: CGFloat, coefficient: CGFloat = 0.55) -> CGFloat {
+        if value < range.lowerBound { return range.lowerBound + rubberBand(value - range.lowerBound, limit: limit, coefficient: coefficient) }
+        if value > range.upperBound { return range.upperBound + rubberBand(value - range.upperBound, limit: limit, coefficient: coefficient) }
+        return value
+    }
+}
+
 // swiftpieces-motion: end
 
 // MARK: - Piece liquid
@@ -487,7 +1718,7 @@ extension PieceMotion {
 // and melt back into each other, and the frosted fallback before iOS 26. Each piece carries a copy of only
 // the parts it uses, so this file stands alone. Generated from registry/foundation/PieceLiquid.swift in the
 // SwiftPieces repo; edit it there, not here. The rules are in LIQUID_GLASS.md.
-// swiftpieces-liquid: 1.7.0 (liquid, bud, morphText)
+// swiftpieces-liquid: 1.7.1 (liquid)
 
 /// The liquid glass language: one merge distance, two rest gaps, and the springs a bubble leaves and comes home on.
 ///
@@ -625,153 +1856,6 @@ private extension View {
     /// the glass but leaves its content full size and off centre. Animates like any other value.
     func pieceLiquidScale(_ scale: CGFloat) -> some View {
         transformEnvironment(\.pieceLiquidScale) { $0 *= scale }
-    }
-}
-
-/// The bud: how a bubble leaves and rejoins its parent, driven explicitly so every bubble shows the whole cycle.
-///
-/// A bubble is born at `home`, inside its parent, where the two glass shapes are one. It springs out to `rest`, and
-/// while it is inside the merge distance a neck holds it to the parent, thinning as it goes, until it snaps free.
-/// Going home it springs back on a spring with no bounce, the neck reaches out and re-forms, and only once it has
-/// melted all the way in is it removed. Both offsets are relative to where the bubble is laid out. Under Reduce
-/// Motion it stays at `rest`: its content fades and its glass closes in place.
-private struct PieceBud: ViewModifier {
-    var out: Bool
-    var rest: CGSize
-    var home: CGSize
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-
-    func body(content: Content) -> some View {
-        if reduceMotion {
-            // No travel. Inside a group glass ignores opacity, so the glass closes to nothing in place on the short
-            // Reduce Motion ease while its content fades; the opacity covers a bubble outside a group.
-            content
-                .pieceLiquidScale(out ? 1 : 0.001)
-                .opacity(out ? 1 : 0)
-                .offset(rest)
-        } else {
-            // The glass shrinks through `pieceLiquidScale`, never a plain scaleEffect (see there), then moves.
-            content
-                .pieceLiquidScale(out ? 1 : PieceLiquid.homeScale)
-                .offset(out ? rest : home)
-        }
-    }
-}
-
-/// A bubble's own content, on its own clock: gone the moment the bubble heads home, so it never rides over the
-/// parent's content, and arriving just after the bubble leaves.
-private struct PieceBudContent: ViewModifier {
-    var out: Bool
-
-    func body(content: Content) -> some View {
-        content
-            .blur(radius: out ? 0 : 6)
-            .opacity(out ? 1 : 0)
-            .animation(out ? .easeOut(duration: 0.3).delay(0.1) : .easeOut(duration: 0.14), value: out)
-    }
-}
-
-private extension View {
-    /// Places a bubble at `rest` while `out`, and at `home` (inside its parent, shrunk) while not.
-    func pieceBud(out: Bool, rest: CGSize = .zero, home: CGSize) -> some View {
-        modifier(PieceBud(out: out, rest: rest, home: home))
-    }
-
-    /// Hides a bubble's icon or label while it is home. Put it on the content, inside the glass.
-    func pieceBudContent(out: Bool) -> some View {
-        modifier(PieceBudContent(out: out))
-    }
-}
-
-/// Which bubbles exist and which are out. A bubble is added home with no animation, sent out on the next frame,
-/// and called home before it is removed, so it always melts in rather than fading. Keep one in `@State`.
-@MainActor @Observable
-private final class PieceBuds {
-    private(set) var present: [String] = []
-    private(set) var out: Set<String> = []
-    /// The latest call for each bubble. A bloom or gather that has been overtaken (a bubble sent home while it was
-    /// still waiting to go out, or called out again while melting) leaves that bubble alone.
-    @ObservationIgnored private var turn: [String: Int] = [:]
-
-    func contains(_ id: String) -> Bool { present.contains(id) }
-    func isOut(_ id: String) -> Bool { out.contains(id) }
-
-    private func claim(_ ids: [String]) -> [String: Int] {
-        var mine: [String: Int] = [:]
-        for id in ids {
-            let next = (turn[id] ?? 0) + 1
-            turn[id] = next
-            mine[id] = next
-        }
-        return mine
-    }
-
-    /// Puts bubbles straight out at rest with no motion: a view's first frame, or a state restored.
-    func place(_ ids: [String]) {
-        _ = claim(ids)
-        var quiet = Transaction()
-        quiet.disablesAnimations = true
-        withTransaction(quiet) {
-            for id in ids where !present.contains(id) { present.append(id) }
-            out.formUnion(ids)
-        }
-    }
-
-    /// Adds bubbles home, then sends each out, `stagger` seconds apart, after an optional `delay`.
-    func bloom(_ ids: [String], reduceMotion: Bool, stagger: Double = 0.05, delay: Double = 0) async {
-        let mine = claim(ids)
-        var quiet = Transaction()
-        quiet.disablesAnimations = true
-        withTransaction(quiet) {
-            for id in ids where !present.contains(id) { present.append(id) }
-        }
-        try? await Task.sleep(for: .milliseconds(24 + Int(max(delay, 0) * 1000)))
-        let split = PieceLiquid.split(reduceMotion: reduceMotion)
-        for (i, id) in ids.enumerated() where turn[id] == mine[id] {
-            withAnimation(split.delay(reduceMotion ? 0 : Double(i) * stagger)) { _ = out.insert(id) }
-        }
-    }
-
-    /// Calls bubbles home, last first, then removes them once they have melted in.
-    func gather(_ ids: [String], reduceMotion: Bool, stagger: Double = 0.04) async {
-        let mine = claim(ids)
-        let home = PieceLiquid.home(reduceMotion: reduceMotion)
-        for (i, id) in ids.reversed().enumerated() {
-            withAnimation(home.delay(reduceMotion ? 0 : Double(i) * stagger)) { _ = out.remove(id) }
-        }
-        try? await Task.sleep(for: .milliseconds(Int((0.52 + Double(ids.count) * stagger) * 1000)))
-        var quiet = Transaction()
-        quiet.disablesAnimations = true
-        withTransaction(quiet) { present.removeAll { ids.contains($0) && !out.contains($0) && turn[$0] == mine[$0] } }
-    }
-}
-
-/// A label that changes letter by letter: letters both strings share hold still, the rest blur out and the new ones
-/// blur in a few milliseconds apart. Under Reduce Motion it cross-fades. VoiceOver reads the whole string.
-private struct PieceMorphText: View {
-    var text: String
-    var font: Font = .body.weight(.semibold)
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-
-    var body: some View {
-        let glyphs = Array(text)
-        HStack(spacing: 0) {
-            ForEach(glyphs.indices, id: \.self) { i in
-                Text(String(glyphs[i]))
-                    .id("\(i)\(glyphs[i])")
-                    .transition(transition(i))
-            }
-        }
-        .font(font)
-        .fixedSize()
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(text)
-    }
-
-    private func transition(_ i: Int) -> AnyTransition {
-        guard !reduceMotion else { return .opacity }
-        return AnyTransition(.blurReplace(.downUp)).combined(with: .scale(scale: 0.6, anchor: .bottom))
-            .animation(.spring(duration: 0.42, bounce: 0.3).delay(Double(i) * 0.022))
     }
 }
 

@@ -1708,7 +1708,7 @@ private extension View {
 // and melt back into each other, and the frosted fallback before iOS 26. Each piece carries a copy of only
 // the parts it uses, so this file stands alone. Generated from registry/foundation/PieceLiquid.swift in the
 // SwiftPieces repo; edit it there, not here. The rules are in LIQUID_GLASS.md.
-// swiftpieces-liquid: 1.7.0 (liquid, bud, morphText)
+// swiftpieces-liquid: 1.7.1 (liquid, bud, morphText)
 
 /// The liquid glass language: one merge distance, two rest gaps, and the springs a bubble leaves and comes home on.
 ///
@@ -1969,18 +1969,37 @@ private final class PieceBuds {
 
 /// A label that changes letter by letter: letters both strings share hold still, the rest blur out and the new ones
 /// blur in a few milliseconds apart. Under Reduce Motion it cross-fades. VoiceOver reads the whole string.
+///
+/// Only text whose letters stand on their own is cut into letters: Latin, Greek, Cyrillic, CJK, digits and symbols.
+/// Those letters are laid out left to right whatever the layout direction, the order they read in, so "1.5×" stays
+/// "1.5×" in an Arabic or Hebrew interface instead of coming out backwards. Text in a right-to-left script, or in one
+/// whose letters join or reorder (Arabic, Hebrew, Devanagari, Thai and their neighbours), can't be cut apart without
+/// breaking it, so it changes as one: the old string blurs out where it stood while the new one blurs in.
 private struct PieceMorphText: View {
     var text: String
     var font: Font = .body.weight(.semibold)
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        let glyphs = Array(text)
-        HStack(spacing: 0) {
-            ForEach(glyphs.indices, id: \.self) { i in
-                Text(String(glyphs[i]))
-                    .id("\(i)\(glyphs[i])")
-                    .transition(transition(i))
+        Group {
+            if Self.splits(text) {
+                let glyphs = Array(text)
+                HStack(spacing: 0) {
+                    ForEach(glyphs.indices, id: \.self) { i in
+                        Text(String(glyphs[i]))
+                            .id("\(i)\(glyphs[i])")
+                            .transition(transition(i, scale: 0.6))
+                    }
+                }
+                // The letters' reading order, not the layout's: an HStack lays its children out backwards under a
+                // right-to-left layout.
+                .environment(\.layoutDirection, .leftToRight)
+            } else {
+                ZStack(alignment: .leading) {
+                    Text(text)
+                        .id(text)
+                        .transition(transition(0, scale: 0.9))
+                }
             }
         }
         .font(font)
@@ -1989,10 +2008,33 @@ private struct PieceMorphText: View {
         .accessibilityLabel(text)
     }
 
-    private func transition(_ i: Int) -> AnyTransition {
+    private func transition(_ i: Int, scale: CGFloat) -> AnyTransition {
         guard !reduceMotion else { return .opacity }
-        return AnyTransition(.blurReplace(.downUp)).combined(with: .scale(scale: 0.6, anchor: .bottom))
+        return AnyTransition(.blurReplace(.downUp)).combined(with: .scale(scale: scale, anchor: .bottom))
             .animation(.spring(duration: 0.42, bounce: 0.3).delay(Double(i) * 0.022))
+    }
+
+    /// Whether `text` can be cut into letters that each read left to right on their own: no right-to-left script, no
+    /// script that joins or reorders its letters, and no bidirectional control characters.
+    private static func splits(_ text: String) -> Bool {
+        !text.unicodeScalars.contains { scalar in
+            switch scalar.value {
+            case 0x0590...0x08FF, // Hebrew, Arabic, Syriac, Thaana, NKo, Samaritan, Mandaic
+                 0x0900...0x0DFF, // Devanagari to Sinhala
+                 0x0E00...0x0FFF, // Thai, Lao, Tibetan
+                 0x1000...0x109F, // Myanmar
+                 0x1780...0x17FF, // Khmer
+                 0xA8E0...0xA8FF, // Devanagari Extended
+                 0xFB1D...0xFDFF, // Hebrew and Arabic presentation forms
+                 0xFE70...0xFEFF, // Arabic presentation forms B
+                 0x200E...0x200F, 0x202A...0x202E, 0x2066...0x2069, // bidirectional marks, embeddings and isolates
+                 0x10800...0x10FFF, // historic right-to-left scripts
+                 0x1E800...0x1EFFF: // Adlam and other right-to-left scripts
+                return true
+            default:
+                return false
+            }
+        }
     }
 }
 
