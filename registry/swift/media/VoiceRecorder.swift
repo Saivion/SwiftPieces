@@ -1,0 +1,2361 @@
+// swiftpieces:
+// title: Voice Recorder
+// description: "The hold-to-record voice message button for chat, notes, journaling and support composers: press and hold the glass mic beside your field and it swells red as a glass recording capsule buds out of it over the field, with a live clock and speech bars scrolling toward the edge and a lock lane budding up above it; slide toward the leading edge and a glass bin buds out to take the recording, which tips closed and melts away, slide up the lane to lock for hands-free recording with a red send button and a trash bubble, or simply let go to send an .m4a with its duration and waveform samples ready for Waveform Scrub, with the microphone permission flow, a teaching hint for taps that are too short, a red countdown over the last ten seconds, interruptions and a simulated source for previews all handled."
+// category: media
+// minIOSVersion: "17.0"
+// version: "1.0.0"
+// added: "2026-10-12"
+// tags: [voice-message, audio, record, microphone, chat, composer, hold-to-record, media]
+// infoPlist: { NSMicrophoneUsageDescription: "Records voice messages you send." }
+
+import SwiftUI
+import UIKit
+import UIKit.UIGestureRecognizerSubclass
+import AVFoundation
+
+/// The hold-to-record voice message button for a chat, notes, journaling or support composer.
+///
+/// Your field sits at rest with a glass mic beside it. Press and hold the mic: after a short beat (so taps and
+/// scrolls never record) it swells red and a glass capsule buds out of it over your field, with the elapsed time and
+/// live speech bars scrolling toward the leading edge, while a lock lane buds up above it. Then one of three things:
+///
+/// - Let go to send. The capsule melts back into the mic and `onSend` gets a ``Recording``: an `.m4a` in the
+///   temporary directory, its duration, and loudness samples that drop straight into `WaveformScrub(samples:)`.
+/// - Slide toward the leading edge to discard. A glass bin buds out at the threshold; let go there (or keep going)
+///   and the capsule gathers into it, it tips closed and melts away, the file is deleted and `onCancel` runs.
+/// - Slide up the lane to lock. The recorder goes hands-free: the mic turns into a red send button and a trash bubble
+///   buds out of the capsule. Tap send to finish or trash to discard.
+///
+/// Holds shorter than `minimumDuration` and plain taps are discarded with a small hint that teaches the gesture. The
+/// first press asks for the microphone (add `NSMicrophoneUsageDescription` to your Info.plist); when access is off
+/// the hint offers Settings. Over the last ten seconds before `maximumDuration` the time counts down on red, and at
+/// the maximum the take is sent. A call, Siri, an alarm, a lost route, the app going to the background or the view
+/// going away discards a held take and stops a locked one, keeping it so Send and Delete still work.
+///
+/// ```swift
+/// @State private var draft = ""
+///
+/// VoiceRecorder { recording in
+///     chat.sendVoice(recording.url, duration: recording.duration, waveform: recording.samples)
+/// } content: {
+///     TextField("Message", text: $draft)
+/// }
+/// ```
+///
+/// Pass a ``Session`` you own to drive it from code (`start()`, `lock()`, `send()`, `cancel()`) or to read its
+/// `phase` and `level`; `Session(source: .simulated)` records a speech-like tone instead of the microphone, for
+/// previews and the simulator.
+///
+/// - Parameters:
+///   - session: The recorder's state and audio. Pass your own to drive it from code or read its phase and level, or a `Session(source: .simulated)` for previews and the simulator. `nil`, the default, keeps one inside the view that records from the microphone.
+///   - maximumDuration: The longest take, in seconds. Over the last ten seconds the time counts down on red, and at the maximum the take is sent, held or locked. Defaults to 5 minutes.
+///   - minimumDuration: The shortest take that is sent, in seconds. Anything shorter, and any tap on the mic, is discarded with a hint that teaches the gesture. Defaults to 0.6 seconds.
+///   - messages: The piece's copy: the hints, "Slide to cancel" and the VoiceOver labels. Defaults are localizable through your String Catalog; replace any line.
+///   - style: Colours, the control's height and the bars. Defaults to the SwiftPieces house palette, adapting to light and dark, with red for the recording mic, the send button and the countdown.
+///   - onSend: Called with each finished take. The file is yours: upload it, move it out of the temporary directory, or delete it once sent.
+///   - onCancel: Called when a take is discarded: slid away, deleted, or stopped by an interruption while held. The file is already deleted. Not called for takes that are too short.
+///   - content: Your composer, usually a text field. It fills the leading space at rest and hides under the recording capsule while recording.
+public struct VoiceRecorder: View {
+
+    // MARK: Recording
+
+    /// A finished take.
+    public struct Recording: Sendable, Hashable {
+        /// The audio, an AAC `.m4a` in the temporary directory. It is yours to upload, move or delete.
+        public var url: URL
+        /// The length in seconds.
+        public var duration: TimeInterval
+        /// Loudness from 0 to 1, oldest first, about 20 a second and at most 160 (the peak of each stretch for longer
+        /// takes). Pass it straight to `WaveformScrub(samples:)`.
+        public var samples: [Float]
+
+        public init(url: URL, duration: TimeInterval, samples: [Float]) {
+            self.url = url
+            self.duration = duration
+            self.samples = samples
+        }
+    }
+
+    // MARK: Source
+
+    /// Where a ``Session`` records from.
+    public enum Source: Sendable, Hashable {
+        /// The microphone, through `AVAudioRecorder`.
+        case microphone
+        /// A deterministic speech-like level, phrases with short pauses, and a soft tone shaped by it written to the
+        /// file. No microphone or permission is needed: for SwiftUI previews, the simulator and screenshots.
+        case simulated
+    }
+
+    // MARK: Messages
+
+    /// The piece's copy. Every default goes through `String(localized:)`, so it can be translated in your String
+    /// Catalog, and any line can be replaced: `.init(slideToCancel: "Slide to delete")`.
+    public struct Messages: Sendable {
+        /// The mic's VoiceOver label at rest, and its Record action.
+        public var record: String
+        /// The hint a tap or a too-short hold shows, and the mic's hint for Voice Control and Switch Control.
+        public var holdToRecord: String
+        /// The quiet hint inside the capsule while a take is held.
+        public var slideToCancel: String
+        /// The capsule's VoiceOver label, announced when a VoiceOver take starts.
+        public var recording: String
+        /// The send button's label.
+        public var send: String
+        /// The trash bubble's label.
+        public var delete: String
+        /// The hint when microphone access is off.
+        public var accessOff: String
+        /// The action in that hint, which opens Settings.
+        public var settings: String
+        /// The hint when an interruption stops a take.
+        public var stopped: String
+        /// The mic's VoiceOver hint: a double tap starts a hands-free take at once.
+        public var voiceOverHint: String
+        /// The capsule's VoiceOver value over the last ten seconds, from the spoken time left, such as "9 seconds left".
+        public var remaining: @Sendable (String) -> String
+
+        /// Pass only the lines you want to change.
+        public init(
+            record: String = String(localized: "Record voice message", comment: "Voice recorder: VoiceOver label of the mic button at rest"),
+            holdToRecord: String = String(localized: "Hold to record, release to send", comment: "Voice recorder: hint shown after a tap or a hold that was too short"),
+            slideToCancel: String = String(localized: "Slide to cancel", comment: "Voice recorder: hint inside the recording capsule while the mic is held"),
+            recording: String = String(localized: "Recording", comment: "Voice recorder: VoiceOver label of the recording capsule, announced when recording starts"),
+            send: String = String(localized: "Send", comment: "Voice recorder: the button that sends a hands-free recording"),
+            delete: String = String(localized: "Delete", comment: "Voice recorder: the button that discards a hands-free recording"),
+            accessOff: String = String(localized: "Microphone access is off", comment: "Voice recorder: hint when the app may not use the microphone"),
+            settings: String = String(localized: "Settings", comment: "Voice recorder: action in the microphone access hint that opens Settings"),
+            stopped: String = String(localized: "Recording stopped", comment: "Voice recorder: hint when a call or another interruption stopped the recording"),
+            voiceOverHint: String = String(localized: "Starts recording at once. Double tap Send when you are done.", comment: "Voice recorder: VoiceOver hint of the mic button"),
+            remaining: @escaping @Sendable (String) -> String = { time in
+                String(localized: "\(time) left", comment: "Voice recorder: VoiceOver value over the last ten seconds, such as 9 seconds left")
+            }
+        ) {
+            self.record = record
+            self.holdToRecord = holdToRecord
+            self.slideToCancel = slideToCancel
+            self.recording = recording
+            self.send = send
+            self.delete = delete
+            self.accessOff = accessOff
+            self.settings = settings
+            self.stopped = stopped
+            self.voiceOverHint = voiceOverHint
+            self.remaining = remaining
+        }
+
+        public static var standard: Messages { Messages() }
+    }
+
+    // MARK: Style
+
+    /// Colours and metrics. `.standard` is the house palette.
+    public struct Style: Sendable {
+        /// The mic while recording, the send button and the countdown. Red, the one signal.
+        public var accent: Color
+        /// Glyphs and digits drawn on `accent`.
+        public var accentInk: Color
+        /// The mic glyph at rest, the time, the hints and the trash glyph.
+        public var label: Color
+        /// "Slide to cancel" and the lock lane's glyphs.
+        public var secondaryLabel: Color
+        /// The live level bars.
+        public var bars: Color
+        /// The height of the capsule and the diameter of the mic, before Dynamic Type. At least 44.
+        public var height: CGFloat
+        /// The width of one bar. At least 1.
+        public var barWidth: CGFloat
+        /// The gap between bars.
+        public var barSpacing: CGFloat
+
+        /// Pass only what you want to change; `nil` keeps the house palette value.
+        public init(accent: Color? = nil, accentInk: Color? = nil, label: Color? = nil, secondaryLabel: Color? = nil, bars: Color? = nil, height: CGFloat = 52, barWidth: CGFloat = 3, barSpacing: CGFloat = 2) {
+            self.accent = accent ?? Color(red: 1, green: 0, blue: 0)
+            self.accentInk = accentInk ?? Color(red: 0.078, green: 0.078, blue: 0.078)
+            self.label = label ?? voiceRecorderColor(light: 0x141414, dark: 0xF4F3EF)
+            self.secondaryLabel = secondaryLabel ?? voiceRecorderColor(light: 0x5C5A56, dark: 0xA6A49F)
+            self.bars = bars ?? voiceRecorderColor(light: 0x141414, dark: 0xF4F3EF)
+            self.height = max(height, 44)
+            self.barWidth = max(barWidth, 1)
+            self.barSpacing = max(barSpacing, 0)
+        }
+
+        public static let standard = Style()
+    }
+
+    // MARK: State
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.accessibilityVoiceOverEnabled) private var voiceOver
+    @Environment(\.layoutDirection) private var layoutDirection
+    @Environment(\.isEnabled) private var isEnabled
+    @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.openURL) private var openURL
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    /// How much Dynamic Type grows the control's shapes. The text grows on its own; the shapes follow it part way.
+    @ScaledMetric(relativeTo: .body) private var growth: CGFloat = 1
+
+    @State private var ownSession = Session()
+    /// The capsule, the lock lane, the trash bubble and the hint: home inside the shape they come from, out at rest.
+    @State private var buds = PieceBuds()
+    @State private var width: CGFloat = 0
+    @State private var clockWidth: CGFloat = 0
+    @State private var hintTextWidth: CGFloat = 0
+    @State private var bubbleSize: CGSize = .zero
+    @State private var hintIdeal: CGFloat = 0
+    /// The finger: pressed before the hold lands, then how far the mic has travelled toward the leading edge and how
+    /// far the lock lane is stretched. Set directly while tracking, sprung home on release.
+    @State private var pressed = false
+    @State private var slide: CGFloat = 0
+    @State private var stretch: CGFloat = 0
+    @State private var axis: VoiceRecorderAxis?
+    @State private var armed = false
+    /// The touch already did its work (locked, discarded, refused): the rest of it is ignored.
+    @State private var resolved = false
+    @State private var sendOnLift = false
+    @State private var lockShut = false
+    /// Where the trash bubble melts to: into the capsule it buds from, or with the capsule into the mic on send.
+    @State private var trashToMic = false
+    /// A discard: the capsule gathers into the trash bubble at the leading end, the glyph tips, the bubble melts.
+    @State private var collapse = false
+    @State private var trashMelt = false
+    /// The bin has taken the take and is tipping closed: the field comes back under it from here.
+    @State private var binClosing = false
+    @State private var tips = 0
+    @State private var discardRun = 0
+    @State private var quietUntil = Date.distantPast
+    @State private var hint: VoiceRecorderHint = .hold
+    @State private var hintRun = 0
+    // Haptics, each a counter so a beat always fires.
+    @State private var startTick = 0
+    @State private var armTick = 0
+    @State private var lockTick = 0
+    @State private var cancelTick = 0
+    @State private var sendTick = 0
+    @State private var softTick = 0
+    @State private var maxTick = 0
+
+    private let external: Session?
+    private let maximumDuration: TimeInterval
+    private let minimumDuration: TimeInterval
+    private let messages: Messages
+    private let style: Style
+    private let onSend: (Recording) -> Void
+    private let onCancel: () -> Void
+    private let content: AnyView?
+
+    public init<Content: View>(
+        session: Session? = nil,
+        maximumDuration: TimeInterval = 300,
+        minimumDuration: TimeInterval = 0.6,
+        messages: Messages = .standard,
+        style: Style = .standard,
+        onSend: @escaping (Recording) -> Void,
+        onCancel: @escaping () -> Void = {},
+        @ViewBuilder content: () -> Content
+    ) {
+        self.init(session: session, maximumDuration: maximumDuration, minimumDuration: minimumDuration, messages: messages, style: style, onSend: onSend, onCancel: onCancel, content: AnyView(content()))
+    }
+
+    /// The recorder on its own: the mic at the trailing end, and the capsule across the whole width while recording.
+    public init(
+        session: Session? = nil,
+        maximumDuration: TimeInterval = 300,
+        minimumDuration: TimeInterval = 0.6,
+        messages: Messages = .standard,
+        style: Style = .standard,
+        onSend: @escaping (Recording) -> Void,
+        onCancel: @escaping () -> Void = {}
+    ) {
+        self.init(session: session, maximumDuration: maximumDuration, minimumDuration: minimumDuration, messages: messages, style: style, onSend: onSend, onCancel: onCancel, content: nil)
+    }
+
+    private init(session: Session?, maximumDuration: TimeInterval, minimumDuration: TimeInterval, messages: Messages, style: Style, onSend: @escaping (Recording) -> Void, onCancel: @escaping () -> Void, content: AnyView?) {
+        self.external = session
+        let longest = maximumDuration.isFinite ? max(maximumDuration, 1) : 300
+        self.maximumDuration = longest
+        self.minimumDuration = minimumDuration.isFinite ? min(max(minimumDuration, 0), longest) : 0.6
+        self.messages = messages
+        self.style = style
+        self.onSend = onSend
+        self.onCancel = onCancel
+        self.content = content
+    }
+
+    // MARK: Derived
+
+    private var session: Session { external ?? ownSession }
+    private var phase: Session.Phase { session.phase }
+    private var motion: PieceMotion { PieceMotion(reduceMotion: reduceMotion) }
+    private var rtl: Bool { layoutDirection == .rightToLeft }
+    /// Shapes follow Dynamic Type up to 1.4 times, so the bars keep their room at the largest sizes.
+    private var grow: CGFloat { min(max(growth, 1), 1.4) }
+    /// The mic's diameter and the capsule's height.
+    private var side: CGFloat { style.height * grow }
+    private var swell: CGFloat { phase == .holding && !reduceMotion ? 1.1 : 1 }
+    /// The mic's radius as drawn: a held mic swells a little.
+    private var micRadius: CGFloat { side / 2 * swell }
+    private var laneWidth: CGFloat { side * 0.8 }
+    private var laneHeight: CGFloat { side * 1.55 }
+    /// How far up the lane the finger goes to lock.
+    private var lockReach: CGFloat { 56 * grow }
+    /// How far toward the leading edge the finger goes to arm the discard. Past 1.7 times that it discards at once.
+    private var cancelReach: CGFloat { max(min(110 * grow, (width - side) * 0.42), 40) }
+    private var recording: Bool { phase != .idle }
+    private var trashOut: Bool { buds.isOut("trash") }
+    /// The field hides once the capsule is on its way out, and returns as it melts home (after a discard, as the bin
+    /// tips closed, so the field is back under the bin while it melts away).
+    private var covered: Bool { phase != .idle || buds.isOut("capsule") || (buds.isOut("trash") && !trashMelt && !binClosing) }
+
+    /// A point `s` in from the trailing edge, as an x in the band, which is laid out left to right in every language.
+    private func x(_ s: CGFloat) -> CGFloat { rtl ? s : width - s }
+
+    // MARK: Body
+
+    public var body: some View {
+        ZStack(alignment: .bottom) {
+            row
+            band
+        }
+        .fontWeight(.semibold)
+        // Disabled, the red goes grey with the rest rather than washing out to pink.
+        .saturation(isEnabled ? 1 : 0)
+        .sensoryFeedback(.impact(weight: .medium), trigger: startTick)
+        .sensoryFeedback(.selection, trigger: armTick)
+        .sensoryFeedback(.impact(flexibility: .rigid), trigger: lockTick)
+        .sensoryFeedback(.warning, trigger: cancelTick)
+        .sensoryFeedback(.impact(weight: .light), trigger: sendTick)
+        .sensoryFeedback(.impact(flexibility: .soft), trigger: softTick)
+        .sensoryFeedback(.success, trigger: maxTick)
+        .onAppear { session.configure(maximum: maximumDuration, minimum: minimumDuration) }
+        .onChange(of: maximumDuration) { _, _ in session.configure(maximum: maximumDuration, minimum: minimumDuration) }
+        .onChange(of: minimumDuration) { _, _ in session.configure(maximum: maximumDuration, minimum: minimumDuration) }
+        .onChange(of: session.phase) { old, new in phaseChanged(from: old, to: new) }
+        .onChange(of: session.notice) { _, notice in
+            if let notice { show(notice.hint) }
+        }
+        .onChange(of: session.outbox) { _, box in
+            if let box { onSend(box.recording) }
+        }
+        // The app going to the background, a pulled-down Control Center or a disabled control stops the take.
+        .onChange(of: scenePhase) { _, new in
+            if new != .active { session.interrupt() }
+        }
+        .onChange(of: isEnabled) { _, enabled in
+            if !enabled { session.cancel() }
+        }
+        .onDisappear { session.interrupt() }
+        .accessibilityElement(children: .contain)
+        .accessibilityAction(.magicTap) {
+            switch phase {
+            case .idle: session.start()
+            case .locked, .stopped: session.send()
+            case .holding: break
+            }
+        }
+    }
+
+    /// Your content and the mic's place, the mic resting apart from it at the trailing end.
+    private var row: some View {
+        HStack(alignment: .bottom, spacing: PieceLiquid.apart) {
+            Group {
+                if let content { content } else { Color.clear }
+            }
+            .frame(maxWidth: .infinity, minHeight: side, alignment: .leading)
+            .opacity(covered ? 0 : 1)
+            .animation(covered ? .easeOut(duration: 0.16) : .easeOut(duration: 0.26).delay(0.12), value: covered)
+            .allowsHitTesting(!covered)
+            .accessibilityHidden(covered)
+            Color.clear
+                .frame(width: side, height: side)
+                .accessibilityHidden(true)
+        }
+    }
+
+    /// Every glass shape, in one liquid group along the bottom of the row: the capsule and the trash bubble over the
+    /// content, the mic at the trailing end, and the lane and the hint above it.
+    private var band: some View {
+        PieceLiquidGroup {
+            ZStack {
+                lane
+                hintBubble
+                trash
+                capsule
+                mic
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: side)
+        }
+        .background {
+            shortcuts
+            hintMeasure
+        }
+        .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { width = $0 }
+        .dynamicTypeSize(...DynamicTypeSize.accessibility3)
+        // Laid out left to right in every language, so touches and offsets share one direction; right to left places
+        // the parts by hand.
+        .environment(\.layoutDirection, .leftToRight)
+    }
+
+    // MARK: Mic
+
+    private var micGlyph: String {
+        phase == .locked || phase == .stopped ? "arrow.up" : "mic.fill"
+    }
+
+    /// The mic: neutral glass at rest, swollen and red while held, the red send button while locked. It follows the
+    /// finger toward the leading edge while a discard is being dragged.
+    private var mic: some View {
+        let red = recording
+        let scale: CGFloat = pressed && !reduceMotion ? 0.92 : swell
+        return ZStack {
+            Image(systemName: micGlyph)
+                .font(.system(size: 20 * grow, weight: .semibold))
+                .id(micGlyph)
+                .transition(motion.swap)
+        }
+        .animation(motion.snap, value: micGlyph)
+        .foregroundStyle(red ? style.accentInk : style.label)
+        .frame(width: side, height: side)
+        .overlay {
+            VoiceRecorderTouchLayer(isEnabled: isEnabled) { handle($0) }
+                .accessibilityHidden(true)
+        }
+        .contentShape(.circle)
+        .pieceLiquid(.circle, tint: red ? style.accent : nil, interactive: false)
+        .animation(red ? motion.press : motion.dismiss, value: red)
+        .brightness(pressed && reduceMotion ? -0.06 : 0)
+        .pieceLiquidScale(scale)
+        .animation(pressed ? motion.press : motion.release, value: scale)
+        .offset(x: rtl ? slide : -slide)
+        .position(x: x(side / 2), y: side / 2)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(phase == .idle ? messages.record : messages.send)
+        .accessibilityHint(phase == .idle ? (voiceOver ? messages.voiceOverHint : messages.holdToRecord) : "")
+        .accessibilityAddTraits(.isButton)
+        .accessibilityAction { activateMic() }
+        .accessibilityActions {
+            if phase == .idle {
+                Button(messages.record) { session.start() }
+            } else {
+                Button(messages.send) { session.send() }
+                Button(messages.delete) { session.cancel() }
+            }
+        }
+        .accessibilityAction(.escape) { session.cancel() }
+        .accessibilitySortPriority(1)
+    }
+
+    /// VoiceOver can't hold and drag: a double tap starts a hands-free take at once, and sends it once it runs.
+    private func activateMic() {
+        switch phase {
+        case .idle: session.start()
+        case .locked, .stopped: session.send()
+        case .holding: session.release()
+        }
+    }
+
+    // MARK: Capsule
+
+    /// Where the capsule spans, as distances in from the trailing edge, and its liquid scale. Home is a small circle
+    /// inside the mic (or, for a discard, the trash bubble at the leading end); out it runs from the leading edge to a
+    /// joined gap before the mic, following the mic while a discard is dragged and leaving room for the trash bubble.
+    private func capsuleSpan(out: Bool) -> (trail: CGFloat, lead: CGFloat, scale: CGFloat) {
+        if collapse && !reduceMotion { return (width - side, width, out ? 1 : PieceLiquid.homeScale) }
+        if !out && !reduceMotion { return (0, side, PieceLiquid.homeScale) }
+        // A joined gap from the held, swollen mic; the unswollen send button rests a little further, still necked.
+        let trail = side * 1.025 + PieceLiquid.joined + slide
+        let lead = trashOut ? width - side - PieceLiquid.joined : width
+        return (trail, max(lead, trail + side), out ? 1 : 0.001)
+    }
+
+    private var capsule: some View {
+        let present = buds.contains("capsule")
+        let out = buds.isOut("capsule")
+        let span = capsuleSpan(out: out)
+        let full = capsuleSpan(out: true)
+        // Toward the mic while it buds out and melts home; toward the trash while it gathers into it.
+        let anchor: Alignment = collapse != rtl ? .leading : .trailing
+        return VoiceRecorderCapsuleContent(
+            session: session, messages: messages, style: style, maximum: maximumDuration, grow: grow, rtl: rtl,
+            reduceMotion: reduceMotion, compact: dynamicTypeSize.isAccessibilitySize || compactHint(full.lead - full.trail),
+            hintVisible: phase == .holding && !trashOut, hintProgress: min(slide / cancelReach, 1),
+            clockWidth: $clockWidth, hintTextWidth: $hintTextWidth
+        )
+        .pieceBudContent(out: out && !collapse)
+        .frame(width: max(full.lead - full.trail, side), height: side)
+        .frame(width: max(span.lead - span.trail, 0), height: side, alignment: anchor)
+        .clipShape(Capsule())
+        .pieceLiquid(Capsule(), interactive: false)
+        .pieceLiquidScale(present ? span.scale : 0.001)
+        .position(x: x((span.lead + span.trail) / 2), y: side / 2)
+        .allowsHitTesting(false)
+        .accessibilityHidden(!recording)
+        .accessibilitySortPriority(2)
+    }
+
+    /// Whether "Slide to cancel" would squeeze the bars below a readable run in a capsule this wide.
+    private func compactHint(_ width: CGFloat) -> Bool {
+        let fixed = (9 + 14 + 20) * grow + clockWidth + hintTextWidth + 15 * grow
+        return width - fixed < 56 * grow
+    }
+
+    /// The liquid scale of a shape that buds out of a smaller parent by growing from a small circle inside it: home it
+    /// is shrunk inside the parent; under Reduce Motion it stays at rest and its glass closes in place instead.
+    private func budScale(present: Bool, out: Bool) -> CGFloat {
+        guard present else { return 0.001 }
+        if out { return 1 }
+        return reduceMotion ? 0.001 : PieceLiquid.homeScale
+    }
+
+    // MARK: Lane
+
+    /// The lock lane: a narrow glass capsule joined above the mic, with an open lock over a drifting chevron. It
+    /// stretches up with the finger; at the top the lock shuts and the lane melts back into the mic.
+    private var lane: some View {
+        let present = buds.contains("lane")
+        let out = buds.isOut("lane")
+        let atRest = out || reduceMotion
+        let height = atRest ? laneHeight + stretch : laneWidth
+        let centerY = atRest ? side / 2 - micRadius - PieceLiquid.joined - height / 2 : side / 2
+        let glyph = lockShut ? "lock.fill" : "lock.open.fill"
+        return VStack(spacing: 6 * grow) {
+            ZStack {
+                Image(systemName: glyph)
+                    .id(glyph)
+                    .transition(motion.swap)
+            }
+            .font(.system(size: 15 * grow, weight: .semibold))
+            .foregroundStyle(lockShut ? style.label : style.secondaryLabel)
+            .animation(motion.snap, value: glyph)
+            VoiceRecorderDrift(axis: .vertical, distance: -3 * grow, active: out && !lockShut && !reduceMotion) {
+                Image(systemName: "chevron.up")
+                    .font(.system(size: 11 * grow, weight: .semibold))
+                    .foregroundStyle(style.secondaryLabel)
+            }
+            .opacity(Double(max(0, 1 - stretch / (lockReach * 0.6))))
+        }
+        .padding(.top, 13 * grow)
+        .pieceBudContent(out: out)
+        .frame(width: laneWidth, height: max(height, laneWidth), alignment: .top)
+        .clipShape(Capsule())
+        .pieceLiquid(Capsule(), interactive: false)
+        .pieceLiquidScale(budScale(present: present, out: out))
+        .offset(x: rtl ? slide : -slide)
+        .position(x: x(side / 2), y: centerY)
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
+    }
+
+    // MARK: Trash
+
+    /// The trash bubble, joined to the capsule's leading end: the delete button while locked, the bin a dragged
+    /// discard buds out at the threshold, and where every discarded take gathers, tips closed and melts away.
+    private var trash: some View {
+        let present = buds.contains("trash")
+        let out = buds.isOut("trash")
+        let restX = x(width - side / 2)
+        let micX = x(side / 2)
+        let intoCapsule = (side * 0.5 + PieceLiquid.joined + side * PieceLiquid.homeScale * 0.5) * (rtl ? -1 : 1)
+        let home = CGSize(width: trashToMic ? micX - restX : intoCapsule, height: 0)
+        let usable = phase == .locked || phase == .stopped
+        return Button { session.cancel() } label: {
+            Image(systemName: "trash")
+                .font(.system(size: 18 * grow, weight: .semibold))
+                .foregroundStyle(style.label)
+                .keyframeAnimator(initialValue: 0.0, trigger: tips) { glyph, angle in
+                    glyph.rotationEffect(.degrees(angle), anchor: .bottom)
+                } keyframes: { _ in
+                    KeyframeTrack {
+                        SpringKeyframe(reduceMotion ? 0 : -16, duration: 0.14, spring: PieceMotion.tight)
+                        SpringKeyframe(0, duration: 0.42, spring: PieceMotion.elastic)
+                    }
+                }
+                .pieceBudContent(out: out && !trashMelt)
+                .frame(width: side, height: side)
+                .contentShape(.circle)
+                .pieceLiquid(.circle, interactive: false)
+        }
+        .buttonStyle(PieceLiquidPressStyle())
+        .disabled(!usable)
+        .pieceLiquidScale(present && !trashMelt ? 1 : 0.001)
+        .pieceBud(out: out, rest: .zero, home: home)
+        .position(x: restX, y: side / 2)
+        .accessibilityLabel(messages.delete)
+        .accessibilityHidden(!usable)
+        .accessibilitySortPriority(3)
+    }
+
+    // MARK: Hint
+
+    private var hintText: String {
+        switch hint {
+        case .hold: messages.holdToRecord
+        case .accessOff: messages.accessOff
+        case .stopped: messages.stopped
+        }
+    }
+
+    /// A small glass hint that buds up out of the mic and melts home a couple of seconds later: how to record, that
+    /// access is off (with Settings), or that a take was stopped.
+    private var hintBubble: some View {
+        let present = buds.contains("hint")
+        let out = buds.isOut("hint")
+        let atRest = out || reduceMotion
+        // Grows out of a small circle inside the mic to its full size, trailing edge over the mic's.
+        let size = atRest ? bubbleSize : CGSize(width: side, height: side)
+        let center = atRest
+            ? CGPoint(x: x(bubbleSize.width / 2), y: -hintGap - bubbleSize.height / 2)
+            : CGPoint(x: x(side / 2), y: side / 2)
+        let shape = RoundedRectangle(cornerRadius: min(size.height / 2, 18), style: .continuous)
+        let action = hint == .accessOff
+        return Button {
+            if action, let url = URL(string: UIApplication.openSettingsURLString) { openURL(url) }
+        } label: {
+            hintLabel
+                .frame(width: bubbleSize.width, height: bubbleSize.height)
+                .pieceBudContent(out: out)
+                .frame(width: max(size.width, 1), height: max(size.height, 1), alignment: rtl ? .leading : .trailing)
+                .clipShape(shape)
+                .pieceLiquid(shape, interactive: false)
+                .contentShape(.rect)
+        }
+        .buttonStyle(PieceLiquidPressStyle())
+        .disabled(!action)
+        .allowsHitTesting(action && out)
+        .pieceLiquidScale(budScale(present: present, out: out))
+        .position(center)
+        .accessibilityHidden(!out)
+        .accessibilityLabel(action ? "\(messages.accessOff), \(messages.settings)" : hintText)
+    }
+
+    /// Joined above the mic at rest; apart while the capsule is out, so the hint never necks to it along its length.
+    private var hintGap: CGFloat {
+        buds.contains("capsule") ? PieceLiquid.apart : PieceLiquid.joined
+    }
+
+    private var hintLabel: some View {
+        HStack(spacing: 8 * grow) {
+            Text(hintText)
+                .foregroundStyle(hint == .accessOff ? style.secondaryLabel : style.label)
+            if hint == .accessOff {
+                Text(messages.settings)
+                    .foregroundStyle(style.label)
+            }
+        }
+        .font(.subheadline.weight(.semibold))
+        .multilineTextAlignment(rtl ? .trailing : .leading)
+        // The words in the reading direction of the language, inside a band laid out left to right.
+        .environment(\.layoutDirection, layoutDirection)
+        .padding(.horizontal, 15 * grow)
+        .padding(.vertical, 9 * grow)
+        .frame(minHeight: 36 * grow)
+    }
+
+    /// Measures the hint off screen: one line when it fits the width, wrapped when it doesn't.
+    private var hintMeasure: some View {
+        ZStack {
+            hintLabel
+                .fixedSize()
+                .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { hintIdeal = $0 }
+            hintLabel
+                .frame(width: max(min(hintIdeal, width), side))
+                .fixedSize(horizontal: false, vertical: true)
+                .onGeometryChange(for: CGSize.self) { $0.size } action: { bubbleSize = $0 }
+        }
+        .hidden()
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
+    }
+
+    private func show(_ kind: VoiceRecorderHint) {
+        hint = kind
+        hintRun += 1
+        let run = hintRun
+        softTick += 1
+        if voiceOver {
+            let text = kind == .accessOff ? "\(messages.accessOff). \(messages.settings)" : hintText
+            AccessibilityNotification.Announcement(text).post()
+        }
+        Task {
+            await buds.bloom(["hint"], reduceMotion: reduceMotion)
+            try? await Task.sleep(for: .seconds(kind == .accessOff ? 4 : 2.2))
+            guard hintRun == run else { return }
+            await buds.gather(["hint"], reduceMotion: reduceMotion)
+        }
+    }
+
+    // MARK: Keyboard
+
+    /// A hardware keyboard while hands-free: Return sends and Escape deletes.
+    @ViewBuilder private var shortcuts: some View {
+        if phase == .locked || phase == .stopped {
+            ZStack {
+                Button(messages.send) { session.send() }
+                    .keyboardShortcut(.defaultAction)
+                Button(messages.delete) { session.cancel() }
+                    .keyboardShortcut(.cancelAction)
+            }
+            .opacity(0)
+            .frame(width: 0, height: 0)
+            .allowsHitTesting(false)
+            .accessibilityHidden(true)
+        }
+    }
+
+    // MARK: Gesture
+
+    private func handle(_ touch: VoiceRecorderTouch) {
+        switch touch {
+        case .down:
+            resolved = false
+            sendOnLift = false
+            withAnimation(motion.press) { pressed = true }
+        case .failed:
+            withAnimation(motion.release) { pressed = false }
+        case .tap:
+            withAnimation(motion.release) { pressed = false }
+            switch phase {
+            case .idle: if Date.now >= quietUntil { session.tap() }
+            case .locked, .stopped: session.send()
+            case .holding: break
+            }
+        case .hold:
+            withAnimation(motion.release) { pressed = false }
+            switch phase {
+            case .idle:
+                guard Date.now >= quietUntil else { resolved = true; return }
+                session.press()
+            case .locked, .stopped:
+                sendOnLift = true
+            case .holding:
+                break
+            }
+        case .move(let translation):
+            track(translation)
+        case .end(let translation, let velocity):
+            lift(translation, velocity: velocity)
+        case .cancel:
+            // The system took the touch (an alert, a call): a held take can't be finished, so it stops.
+            if phase == .holding, !resolved { session.interrupt() }
+            settleHome(velocity: .zero)
+            axis = nil
+        }
+    }
+
+    /// The finger moving while a take is held: the first few points decide whether it is dragging a discard toward
+    /// the leading edge or stretching the lock lane up. Tracked directly, never animated.
+    private func track(_ translation: CGSize) {
+        guard phase == .holding, !resolved else { return }
+        let lead = rtl ? translation.width : -translation.width
+        let up = -translation.height
+        let distance = hypot(translation.width, translation.height)
+        let before = axis
+        if axis == nil, distance > 10 {
+            if lead >= up, lead > 0 { axis = .cancel } else if up > lead, up > 0 { axis = .lock }
+        } else if axis != nil, distance < 6 {
+            axis = nil
+        }
+        // Dragging a discard, the lock lane has no job: it melts into the mic, and buds back if the finger returns.
+        if before != .cancel, axis == .cancel {
+            Task { await buds.gather(["lane"], reduceMotion: reduceMotion) }
+        } else if before == .cancel, axis != .cancel {
+            Task { await buds.bloom(["lane"], reduceMotion: reduceMotion) }
+        }
+        switch axis {
+        case .cancel:
+            let travel = max(lead, 0)
+            slide = travel <= cancelReach ? travel : cancelReach + PieceMotion.rubberBand(travel - cancelReach, limit: 28)
+            stretch = 0
+            arm(travel >= cancelReach)
+            if travel >= cancelReach * 1.7 {
+                resolved = true
+                session.cancel()
+            }
+        case .lock:
+            let rise = max(up, 0)
+            stretch = min(rise, lockReach)
+            slide = 0
+            arm(false)
+            if rise >= lockReach {
+                resolved = true
+                session.lock()
+            }
+        case nil:
+            slide = 0
+            stretch = 0
+            arm(false)
+        }
+    }
+
+    /// Past the threshold the trash bubble buds out at the leading end, with a selection tick; back short of it, it
+    /// melts home.
+    private func arm(_ on: Bool) {
+        guard on != armed else { return }
+        armed = on
+        armTick += 1
+        trashToMic = false
+        if on { trashMelt = false; binClosing = false }
+        Task {
+            if on { await buds.bloom(["trash"], reduceMotion: reduceMotion) } else { await buds.gather(["trash"], reduceMotion: reduceMotion) }
+        }
+    }
+
+    private func lift(_ translation: CGSize, velocity: CGSize) {
+        defer { axis = nil }
+        if sendOnLift {
+            sendOnLift = false
+            session.send()
+            return
+        }
+        guard phase == .holding, !resolved else {
+            settleHome(velocity: velocity)
+            return
+        }
+        resolved = true
+        if armed { session.cancel() } else { session.release() }
+        settleHome(velocity: velocity)
+    }
+
+    /// The mic and the lane spring home from wherever the finger left them, at the finger's speed.
+    private func settleHome(velocity: CGSize) {
+        let lead = rtl ? velocity.width : -velocity.width
+        if slide != 0 { withAnimation(motion.settle(velocity: lead, from: slide, to: 0)) { slide = 0 } }
+        if stretch != 0 { withAnimation(motion.settle(velocity: -velocity.height, from: stretch, to: 0)) { stretch = 0 } }
+    }
+
+    // MARK: Phases
+
+    private func phaseChanged(from old: Session.Phase, to new: Session.Phase) {
+        switch new {
+        case .holding:
+            startTick += 1
+            begin()
+            Task { await buds.bloom(["capsule", "lane"], reduceMotion: reduceMotion, stagger: 0.08) }
+        case .locked where old == .holding:
+            // Locked: the lock shuts with a rigid tick, the lane melts home, the trash buds out of the capsule.
+            lockTick += 1
+            lockShut = true
+            trashToMic = false
+            Task {
+                try? await Task.sleep(for: .milliseconds(170))
+                guard phase == .locked || phase == .stopped else { return }
+                withAnimation(PieceLiquid.home(reduceMotion: reduceMotion)) { stretch = 0 }
+                Task { await buds.gather(["lane"], reduceMotion: reduceMotion) }
+                trashMelt = false
+                binClosing = false
+                await buds.bloom(["trash"], reduceMotion: reduceMotion)
+            }
+        case .locked:
+            // Started hands-free, from VoiceOver or your code: the capsule, then the trash.
+            startTick += 1
+            begin()
+            if voiceOver { AccessibilityNotification.Announcement(messages.recording).post() }
+            Task {
+                await buds.bloom(["capsule"], reduceMotion: reduceMotion)
+                trashMelt = false
+                binClosing = false
+                await buds.bloom(["trash"], reduceMotion: reduceMotion, delay: 0.2)
+            }
+        case .stopped:
+            break
+        case .idle:
+            armed = false
+            switch session.ending {
+            case .sent, .sentAtMaximum, .tooShort:
+                if session.ending == .sent { sendTick += 1 } else if session.ending == .sentAtMaximum { maxTick += 1 }
+                meltHome()
+            case .cancelled, .interrupted:
+                if session.ending == .cancelled { cancelTick += 1 }
+                discard()
+                onCancel()
+            }
+        }
+    }
+
+    /// A take begins: whatever a previous one left behind is cleared without motion.
+    private func begin() {
+        discardRun += 1
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) {
+            collapse = false
+            lockShut = false
+            trashToMic = false
+            armed = false
+        }
+        // A bin still melting from the last discard finishes melting rather than coming back.
+        if buds.contains("trash") {
+            withAnimation(PieceLiquid.home(reduceMotion: reduceMotion)) { trashMelt = true }
+            Task { await buds.gather(["trash"], reduceMotion: reduceMotion, stagger: 0) }
+        }
+        hintRun += 1
+        if buds.contains("hint") { Task { await buds.gather(["hint"], reduceMotion: reduceMotion) } }
+    }
+
+    /// Sent, or too short: everything melts back into the mic.
+    private func meltHome() {
+        trashToMic = true
+        if slide != 0 || stretch != 0 {
+            withAnimation(motion.settle) {
+                slide = 0
+                stretch = 0
+            }
+        }
+        Task { await buds.gather(["capsule", "lane", "trash"], reduceMotion: reduceMotion, stagger: 0.03) }
+    }
+
+    /// Discarded: the capsule gathers into the trash bubble at the leading end, the glyph tips closed, and the bubble
+    /// melts away. New presses wait until the capsule is gone.
+    private func discard() {
+        discardRun += 1
+        let run = discardRun
+        quietUntil = .now.addingTimeInterval(0.6)
+        trashToMic = false
+        withAnimation(motion.dismiss) { collapse = true }
+        if slide != 0 || stretch != 0 {
+            withAnimation(motion.settle) {
+                slide = 0
+                stretch = 0
+            }
+        }
+        Task {
+            if !buds.isOut("trash") { Task { await buds.bloom(["trash"], reduceMotion: reduceMotion) } }
+            Task { await buds.gather(["capsule", "lane"], reduceMotion: reduceMotion) }
+            try? await Task.sleep(for: .milliseconds(reduceMotion ? 200 : 360))
+            guard discardRun == run else { return }
+            tips += 1
+            binClosing = true
+            try? await Task.sleep(for: .milliseconds(reduceMotion ? 300 : 440))
+            guard discardRun == run else { return }
+            withAnimation(PieceLiquid.home(reduceMotion: reduceMotion)) { trashMelt = true }
+            try? await Task.sleep(for: .milliseconds(520))
+            guard discardRun == run else { return }
+            await buds.gather(["trash"], reduceMotion: reduceMotion, stagger: 0)
+            guard discardRun == run else { return }
+            var quiet = Transaction()
+            quiet.disablesAnimations = true
+            withTransaction(quiet) {
+                collapse = false
+                trashMelt = false
+                binClosing = false
+            }
+        }
+    }
+}
+
+// MARK: - Session
+
+extension VoiceRecorder {
+    /// The recorder's state and audio. Keep one in `@State` and pass it to `VoiceRecorder(session:)` to drive the
+    /// recorder from code (a keyboard shortcut, a push-to-talk button, a test) or to read what it is doing.
+    ///
+    /// Recording runs off the main actor; `phase`, `level` and `elapsed` update on it about 30 times a second while a
+    /// take runs. One session drives one recorder view.
+    @MainActor @Observable
+    public final class Session {
+        /// What the recorder is doing.
+        public enum Phase: Sendable, Hashable {
+            /// At rest.
+            case idle
+            /// Recording while a finger holds the mic (or after `press()`, until `release()`).
+            case holding
+            /// Recording hands-free, after sliding up to lock, a VoiceOver double tap or `start()`.
+            case locked
+            /// A hands-free take stopped by an interruption. It is kept: `send()` sends it, `cancel()` deletes it.
+            case stopped
+        }
+
+        /// What the recorder is doing.
+        public private(set) var phase: Phase = .idle
+        /// The live input level, smoothed, from 0 (silence) to 1. Zero at rest.
+        public private(set) var level: Float = 0
+        /// Seconds recorded in the current take.
+        public private(set) var elapsed: TimeInterval = 0
+        /// Where it records from.
+        public let source: Source
+
+        /// Whether a take is being recorded right now.
+        public var isRecording: Bool { phase == .holding || phase == .locked }
+
+        // The view reads these.
+        fileprivate private(set) var history: [Float] = []
+        fileprivate private(set) var peak: Float = 0
+        fileprivate private(set) var startedAt: Date?
+        fileprivate private(set) var ending = VoiceRecorderEnding.sent
+        fileprivate private(set) var notice: VoiceRecorderNotice?
+        fileprivate private(set) var outbox: VoiceRecorderOutbox?
+
+        @ObservationIgnored private let engine = VoiceRecorderEngine()
+        @ObservationIgnored private var maximum: TimeInterval = 300
+        @ObservationIgnored private var minimum: TimeInterval = 0.6
+        @ObservationIgnored private var take = 0
+        @ObservationIgnored private var clock: ContinuousClock.Instant?
+        /// When the take was asked for, and whether the audio has started: a take is too short by how long it was
+        /// held, so a slow microphone start never turns a real hold into a hint.
+        @ObservationIgnored private var asked: ContinuousClock.Instant = .now
+        @ObservationIgnored private var started = false
+        @ObservationIgnored private var meter: Task<Void, Never>?
+        @ObservationIgnored private var stopping: Task<(URL, TimeInterval)?, Never>?
+        @ObservationIgnored private var observers: [any NSObjectProtocol] = []
+        @ObservationIgnored private var asking = false
+        @ObservationIgnored private var sequence = 0
+
+        /// - Parameter source: `.microphone`, the default, or `.simulated` for previews and the simulator.
+        public init(source: Source = .microphone) {
+            self.source = source
+        }
+
+        // MARK: Driving it from code
+
+        /// Starts a hands-free take at once, as a VoiceOver double tap does. Asks for the microphone first if needed.
+        public func start() {
+            guard phase == .idle else { return }
+            begin(locked: true)
+        }
+
+        /// Starts a held take, as a finger landing on the mic does: `release()` sends it (or discards it as too short).
+        /// For push-to-talk from your own control.
+        public func press() {
+            guard phase == .idle else { return }
+            begin(locked: false)
+        }
+
+        /// Ends a held take as lifting the finger does: sends it, or discards it with a hint when it is too short.
+        public func release() {
+            guard phase == .holding else { return }
+            finish()
+        }
+
+        /// Turns a held take hands-free, as sliding up the lane does.
+        public func lock() {
+            guard phase == .holding else { return }
+            phase = .locked
+        }
+
+        /// Finishes the take and sends it through `onSend`, held, locked or stopped.
+        public func send() {
+            guard phase != .idle else { return }
+            finish()
+        }
+
+        /// Discards the take and deletes its file, then calls `onCancel`.
+        public func cancel() {
+            guard phase != .idle else { return }
+            drop(.cancelled)
+        }
+
+        // MARK: The view
+
+        fileprivate func configure(maximum: TimeInterval, minimum: TimeInterval) {
+            self.maximum = maximum
+            self.minimum = minimum
+        }
+
+        /// A tap on the mic: teaches the gesture, or asks for the microphone first.
+        fileprivate func tap() {
+            guard phase == .idle else { return }
+            if source == .microphone {
+                switch AVAudioApplication.shared.recordPermission {
+                case .undetermined: return ask()
+                case .granted: break
+                default: return post(.accessOff)
+                }
+            }
+            post(.hold)
+        }
+
+        /// A call, Siri, an alarm, a lost route, the app leaving the foreground or the view going away: a held take is
+        /// discarded, a hands-free one stops and is kept.
+        fileprivate func interrupt() {
+            switch phase {
+            case .holding:
+                drop(.interrupted)
+                post(.stopped)
+            case .locked where !started:
+                // Nothing recorded yet: nothing to keep.
+                drop(.interrupted)
+                post(.stopped)
+            case .locked:
+                let mine = take
+                let duration = elapsed
+                let samples = history + [peak]
+                endMeter()
+                level = 0
+                phase = .stopped
+                stopping = Task { await engine.stop(take: mine, duration: duration, levels: samples) }
+                post(.stopped)
+            case .idle, .stopped:
+                break
+            }
+        }
+
+        // MARK: Takes
+
+        private func begin(locked: Bool) {
+            if source == .microphone {
+                switch AVAudioApplication.shared.recordPermission {
+                case .granted: break
+                case .undetermined: return ask()
+                default: return post(.accessOff)
+                }
+            }
+            take += 1
+            let mine = take
+            history = []
+            peak = 0
+            level = 0
+            elapsed = 0
+            clock = .now
+            asked = .now
+            started = false
+            startedAt = .now
+            stopping = nil
+            phase = locked ? .locked : .holding
+            let simulated = source == .simulated
+            Task {
+                let started = await engine.start(take: mine, simulated: simulated)
+                guard take == mine, isRecording else { return }
+                guard started else {
+                    // The microphone couldn't start (another app holds it, or the hardware refused): nothing to keep.
+                    drop(.interrupted)
+                    post(.stopped)
+                    return
+                }
+                clock = .now
+                startedAt = .now
+                self.started = true
+                // The simulated source listens too, so interruptions can be tried without a microphone.
+                observe()
+                runMeter(mine)
+            }
+        }
+
+        /// Sends the take, or discards it as too short.
+        private func finish(atMaximum: Bool = false) {
+            let mine = take
+            let duration = elapsed
+            let held = ContinuousClock.now - asked
+            if !started || (held < .seconds(minimum) && duration < minimum), !atMaximum {
+                drop(.tooShort)
+                post(.hold)
+                return
+            }
+            let samples = Self.samples(history + [peak])
+            let pending = phase == .stopped ? stopping : nil
+            endMeter()
+            stopping = nil
+            ending = atMaximum ? .sentAtMaximum : .sent
+            level = 0
+            phase = .idle
+            Task {
+                let take: (URL, TimeInterval)?
+                if let pending { take = await pending.value } else { take = await engine.stop(take: mine, duration: duration, levels: samples) }
+                guard let take else { return }
+                sequence += 1
+                outbox = VoiceRecorderOutbox(id: sequence, recording: Recording(url: take.0, duration: take.1, samples: samples))
+            }
+        }
+
+        /// Ends the take without sending it and deletes what was recorded.
+        private func drop(_ why: VoiceRecorderEnding) {
+            let mine = take
+            let pending = phase == .stopped ? stopping : nil
+            endMeter()
+            stopping = nil
+            ending = why
+            level = 0
+            phase = .idle
+            take += 1
+            Task {
+                if let pending {
+                    if let kept = await pending.value { await engine.delete(kept.0) }
+                } else {
+                    await engine.discard(take: mine)
+                }
+            }
+        }
+
+        private func post(_ hint: VoiceRecorderHint) {
+            sequence += 1
+            notice = VoiceRecorderNotice(id: sequence, hint: hint)
+        }
+
+        /// The first press asks for the microphone and records nothing; the answer shows the matching hint.
+        private func ask() {
+            guard !asking else { return }
+            // Asking without a usage description would end the app: say so instead.
+            guard Bundle.main.object(forInfoDictionaryKey: "NSMicrophoneUsageDescription") != nil else {
+                #if DEBUG
+                print("VoiceRecorder: add NSMicrophoneUsageDescription to your Info.plist to record from the microphone.")
+                #endif
+                return post(.accessOff)
+            }
+            asking = true
+            Task {
+                let granted = await AVAudioApplication.requestRecordPermission()
+                asking = false
+                post(granted ? .hold : .accessOff)
+            }
+        }
+
+        // MARK: Level
+
+        private func runMeter(_ mine: Int) {
+            meter?.cancel()
+            meter = Task { [weak self] in
+                while !Task.isCancelled {
+                    try? await Task.sleep(for: .milliseconds(33))
+                    guard let self, !Task.isCancelled, self.take == mine, self.isRecording else { return }
+                    let raw: Float
+                    if self.source == .simulated {
+                        raw = VoiceRecorderSpeech.level(at: self.elapsed)
+                    } else {
+                        let power = await self.engine.power()
+                        guard !Task.isCancelled, self.take == mine, self.isRecording else { return }
+                        raw = VoiceRecorderSpeech.level(decibels: power)
+                    }
+                    self.advance(raw)
+                }
+            }
+        }
+
+        private func endMeter() {
+            meter?.cancel()
+            meter = nil
+            for observer in observers { NotificationCenter.default.removeObserver(observer) }
+            observers = []
+        }
+
+        /// One meter reading: the clock, the smoothed level, and the 20-a-second peaks the bars and samples use.
+        private func advance(_ raw: Float) {
+            guard let clock else { return }
+            let span = ContinuousClock.now - clock
+            elapsed = Double(span.components.seconds) + Double(span.components.attoseconds) / 1e18
+            level += (raw - level) * (raw > level ? 0.6 : 0.25)
+            let window = Int(elapsed / 0.05)
+            if history.count < window {
+                history.append(peak)
+                peak = 0
+                while history.count < window { history.append(raw) }
+            }
+            peak = max(peak, raw)
+            if elapsed >= maximum { finish(atMaximum: true) }
+        }
+
+        /// At most 160 samples: the peak of each stretch for longer takes.
+        private static func samples(_ levels: [Float], limit: Int = 160) -> [Float] {
+            guard levels.count > limit else { return levels }
+            return (0..<limit).map { i in
+                let lower = i * levels.count / limit
+                let upper = max((i + 1) * levels.count / limit, lower + 1)
+                return levels[lower..<min(upper, levels.count)].max() ?? 0
+            }
+        }
+
+        // MARK: Interruptions
+
+        private func observe() {
+            let center = NotificationCenter.default
+            observers = [
+                center.addObserver(forName: AVAudioSession.interruptionNotification, object: nil, queue: .main) { [weak self] note in
+                    let type = note.userInfo?[AVAudioSessionInterruptionTypeKey] as? UInt
+                    guard type == AVAudioSession.InterruptionType.began.rawValue else { return }
+                    MainActor.assumeIsolated { self?.interrupt() }
+                },
+                center.addObserver(forName: AVAudioSession.routeChangeNotification, object: nil, queue: .main) { [weak self] note in
+                    let reason = note.userInfo?[AVAudioSessionRouteChangeReasonKey] as? UInt
+                    guard reason == AVAudioSession.RouteChangeReason.oldDeviceUnavailable.rawValue else { return }
+                    MainActor.assumeIsolated { self?.interrupt() }
+                },
+                center.addObserver(forName: AVAudioSession.mediaServicesWereResetNotification, object: nil, queue: .main) { [weak self] _ in
+                    MainActor.assumeIsolated { self?.interrupt() }
+                },
+            ]
+        }
+    }
+}
+
+// MARK: - Capsule content
+
+/// Inside the capsule: the time (with a breathing red dot, or counting down on red over the last ten seconds), the
+/// live bars, and "Slide to cancel" while a take is held. Its own view, so the clock and the bars update without the
+/// rest of the recorder. It is the capsule's VoiceOver element: "Recording", with the time as its value.
+private struct VoiceRecorderCapsuleContent: View {
+    let session: VoiceRecorder.Session
+    let messages: VoiceRecorder.Messages
+    let style: VoiceRecorder.Style
+    let maximum: TimeInterval
+    let grow: CGFloat
+    let rtl: Bool
+    let reduceMotion: Bool
+    let compact: Bool
+    let hintVisible: Bool
+    let hintProgress: CGFloat
+    @Binding var clockWidth: CGFloat
+    @Binding var hintTextWidth: CGFloat
+
+    var body: some View {
+        HStack(spacing: 10 * grow) {
+            if rtl {
+                cancelHint
+                bars
+                clock
+            } else {
+                clock
+                bars
+                cancelHint
+            }
+        }
+        .padding(.leading, (rtl ? 15 : 9) * grow)
+        .padding(.trailing, (rtl ? 9 : 15) * grow)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(messages.recording)
+        .accessibilityValue(spokenTime)
+    }
+
+    private var counting: Bool {
+        session.isRecording && maximum > 10 && maximum - session.elapsed <= 10
+    }
+
+    private var spokenTime: String {
+        let spoken: (TimeInterval) -> String = { seconds in
+            Duration.seconds(Int64(max(0, seconds))).formatted(.units(allowed: [.hours, .minutes, .seconds], width: .wide))
+        }
+        return counting ? messages.remaining(spoken((maximum - session.elapsed).rounded(.up))) : spoken(session.elapsed.rounded(.down))
+    }
+
+    private var clock: some View {
+        let elapsed = session.elapsed
+        let live = session.isRecording
+        let counting = counting
+        let long = maximum >= 3600
+        let text = counting ? Self.format(max(maximum - elapsed, 0).rounded(.up), long: long) : Self.format(elapsed, long: long)
+        return HStack(spacing: 6 * grow) {
+            // Ink on the red block over the last ten seconds.
+            VoiceRecorderDot(color: counting ? style.accentInk : live ? style.accent : style.secondaryLabel, breathing: live && !reduceMotion, size: 8 * grow)
+            ZStack(alignment: .leading) {
+                Text(Self.format(maximum, long: long)).hidden()
+                Text(text)
+                    .contentTransition(reduceMotion ? .opacity : .numericText(countsDown: counting))
+                    .animation(PieceMotion(reduceMotion: reduceMotion).value, value: text)
+            }
+            .font(.footnote.weight(.semibold).monospacedDigit())
+            .foregroundStyle(counting ? style.accentInk : style.label)
+        }
+        .padding(.horizontal, 7 * grow)
+        .padding(.vertical, 3 * grow)
+        // The last ten seconds: the time on a red block, with ink digits, so it reads in both appearances.
+        .background { Capsule().fill(style.accent).opacity(counting ? 1 : 0) }
+        .animation(PieceMotion(reduceMotion: reduceMotion).snap, value: counting)
+        .lineLimit(1)
+        .fixedSize()
+        .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
+        .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { clockWidth = $0 }
+    }
+
+    private var bars: some View {
+        VoiceRecorderBars(session: session, color: style.bars, barWidth: style.barWidth, spacing: style.barSpacing, rtl: rtl)
+            .padding(.vertical, 10 * grow)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    /// "‹ Slide to cancel": it drifts gently toward the leading edge, and as the finger drags a discard it is eaten
+    /// from its far end and fades, so the bars keep their room while the capsule shortens.
+    private var cancelHint: some View {
+        let p = hintProgress
+        let shown = hintVisible ? max(0, 1 - p) : 0
+        return HStack(spacing: 4 * grow) {
+            if rtl && !compact { label }
+            VoiceRecorderDrift(axis: .horizontal, distance: (rtl ? 3 : -3) * grow, active: hintVisible && !reduceMotion) {
+                Image(systemName: rtl ? "chevron.right" : "chevron.left")
+                    .font(.system(size: 11 * grow, weight: .semibold))
+            }
+            if !rtl && !compact { label }
+        }
+        .foregroundStyle(style.secondaryLabel)
+        .lineLimit(1)
+        .fixedSize()
+        // Gone quickly when the take locks, while its room closes on the slower morph.
+        .opacity(hintVisible ? max(0, 1 - p * 1.25) : 0)
+        .animation(hintVisible ? .easeOut(duration: 0.25) : .easeOut(duration: 0.1), value: hintVisible)
+        .frame(width: max(fullHintWidth * shown, 0), alignment: rtl ? .trailing : .leading)
+        .clipped()
+        .animation(PieceMotion(reduceMotion: reduceMotion).morph, value: hintVisible)
+        .accessibilityHidden(true)
+    }
+
+    private var label: some View {
+        Text(messages.slideToCancel)
+            .font(.footnote.weight(.semibold))
+            .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
+            .background {
+                // Measured even when compact, so the capsule knows whether the words would fit.
+                Text(messages.slideToCancel).font(.footnote.weight(.semibold)).fixedSize().hidden()
+                    .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { hintTextWidth = $0 }
+            }
+    }
+
+    private var fullHintWidth: CGFloat {
+        (compact ? 0 : hintTextWidth + 4 * grow) + 11 * grow
+    }
+
+    /// `0:07`, or `1:02:07` when takes can run an hour.
+    static func format(_ seconds: TimeInterval, long: Bool) -> String {
+        let whole = max(0, seconds.rounded(.down))
+        return Duration.seconds(Int64(whole)).formatted(.time(pattern: long ? .hourMinuteSecond : .minuteSecond))
+    }
+}
+
+/// The recording dot: red and breathing once a second while recording, still and muted once stopped.
+private struct VoiceRecorderDot: View {
+    let color: Color
+    let breathing: Bool
+    let size: CGFloat
+
+    var body: some View {
+        TimelineView(.animation(minimumInterval: 1 / 30, paused: !breathing)) { context in
+            let t = context.date.timeIntervalSinceReferenceDate
+            let breath = breathing ? 0.5 + 0.5 * cos(2 * .pi * t) : 1
+            Circle()
+                .fill(color)
+                .frame(width: size, height: size)
+                .opacity(0.4 + 0.6 * breath)
+                .scaleEffect(0.86 + 0.14 * breath)
+        }
+        .frame(width: size, height: size)
+    }
+}
+
+/// A gentle ambient drift along one axis, once every 1.4 seconds: the cancel chevron toward the leading edge, the
+/// lock chevron up. Still under Reduce Motion.
+private struct VoiceRecorderDrift<Content: View>: View {
+    let axis: Axis
+    let distance: CGFloat
+    let active: Bool
+    @ViewBuilder var content: Content
+
+    var body: some View {
+        TimelineView(.animation(minimumInterval: 1 / 30, paused: !active)) { context in
+            let t = context.date.timeIntervalSinceReferenceDate
+            let wave = active ? 0.5 - 0.5 * cos(2 * .pi * t / 1.4) : 0
+            content.offset(x: axis == .horizontal ? distance * wave : 0, y: axis == .vertical ? distance * wave : 0)
+        }
+    }
+}
+
+// MARK: - Bars
+
+/// The live level bars, WaveformScrub's bar style: one bar every tenth of a second, the newest sliding in beside the
+/// mic and the rest scrolling toward the leading edge. Before there is sound the row is quiet dots.
+private struct VoiceRecorderBars: View {
+    let session: VoiceRecorder.Session
+    let color: Color
+    let barWidth: CGFloat
+    let spacing: CGFloat
+    let rtl: Bool
+
+    var body: some View {
+        let history = session.history
+        let peak = session.peak
+        let live = session.isRecording
+        let started = session.startedAt
+        let frozen = session.elapsed
+        return TimelineView(.animation(paused: !live)) { context in
+            let elapsed = live ? max(context.date.timeIntervalSince(started ?? context.date), 0) : frozen
+            Canvas { canvas, size in
+                canvas.fill(Self.path(in: size, history: history, peak: peak, elapsed: elapsed, bar: barWidth, pitch: barWidth + spacing), with: .color(color))
+            }
+        }
+        .mask {
+            LinearGradient(stops: [.init(color: .clear, location: 0), .init(color: .black, location: 0.14), .init(color: .black, location: 0.96), .init(color: .clear, location: 1)], startPoint: .leading, endPoint: .trailing)
+        }
+        // Right to left, the newest bar sits on the left, beside the mic.
+        .scaleEffect(x: rtl ? -1 : 1)
+        .accessibilityHidden(true)
+    }
+
+    /// Bars at 10 a second from the 20-a-second peaks, centred on the line, at least a dot tall.
+    nonisolated static func path(in size: CGSize, history: [Float], peak: Float, elapsed: TimeInterval, bar: CGFloat, pitch: CGFloat) -> Path {
+        var path = Path()
+        guard size.width > 0, size.height > 0, pitch > 0 else { return path }
+        let complete = history.count / 2
+        let into = CGFloat(min(max(elapsed * 10 - Double(complete), 0), 1))
+        var live = peak
+        if history.count % 2 == 1 { live = max(live, history[history.count - 1]) }
+        func add(_ level: Float, _ x: CGFloat) {
+            let h = bar + (size.height - bar) * CGFloat(min(max(level, 0), 1))
+            path.addRoundedRect(in: CGRect(x: x, y: (size.height - h) / 2, width: bar, height: h), cornerSize: CGSize(width: bar / 2, height: bar / 2), style: .continuous)
+        }
+        var x = size.width - bar + pitch * (1 - into)
+        add(live, x)
+        var i = complete - 1
+        x -= pitch
+        while x > -bar {
+            add(i >= 0 ? max(history[2 * i], history[2 * i + 1]) : 0, x)
+            i -= 1
+            x -= pitch
+        }
+        return path
+    }
+}
+
+// MARK: - Model
+
+private enum VoiceRecorderAxis {
+    case cancel
+    case lock
+}
+
+private enum VoiceRecorderHint: Equatable {
+    case hold
+    case accessOff
+    case stopped
+}
+
+private enum VoiceRecorderEnding: Equatable {
+    case sent
+    case sentAtMaximum
+    case tooShort
+    case cancelled
+    case interrupted
+}
+
+private struct VoiceRecorderNotice: Equatable {
+    let id: Int
+    let hint: VoiceRecorderHint
+}
+
+private struct VoiceRecorderOutbox: Equatable {
+    let id: Int
+    let recording: VoiceRecorder.Recording
+}
+
+// MARK: - Audio
+
+/// The microphone, off the main actor. Takes are numbered so a late start never revives a take that has already
+/// ended, and every take puts the audio session back the way it found it.
+private actor VoiceRecorderEngine {
+    private var current = 0
+    private var ended = 0
+    private var recorder: AVAudioRecorder?
+    private var file: URL?
+    private var simulated = false
+    private var saved: (category: AVAudioSession.Category, mode: AVAudioSession.Mode, options: AVAudioSession.CategoryOptions)?
+
+    /// Starts take `take`. False when it already ended, or the microphone couldn't start.
+    func start(take: Int, simulated: Bool) -> Bool {
+        guard take > ended else { return false }
+        if current != 0 { tearDown(deleting: true) }
+        let url = URL.temporaryDirectory.appending(path: "voice-\(UUID().uuidString).m4a")
+        self.simulated = simulated
+        if simulated {
+            current = take
+            file = url
+            return true
+        }
+        let audio = AVAudioSession.sharedInstance()
+        saved = (audio.category, audio.mode, audio.categoryOptions)
+        do {
+            try audio.setCategory(.playAndRecord, mode: .default, options: [.defaultToSpeaker, .allowBluetoothHFP])
+            try audio.setActive(true)
+            let recorder = try AVAudioRecorder(url: url, settings: [
+                AVFormatIDKey: Int(kAudioFormatMPEG4AAC),
+                AVSampleRateKey: 24_000,
+                AVNumberOfChannelsKey: 1,
+                AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue,
+            ])
+            recorder.isMeteringEnabled = true
+            guard recorder.prepareToRecord(), recorder.record() else {
+                recorder.deleteRecording()
+                restore()
+                return false
+            }
+            self.recorder = recorder
+            file = url
+            current = take
+            return true
+        } catch {
+            try? FileManager.default.removeItem(at: url)
+            restore()
+            return false
+        }
+    }
+
+    /// The average input power in decibels, or nil while nothing records.
+    func power() -> Float? {
+        guard let recorder, recorder.isRecording else { return nil }
+        recorder.updateMeters()
+        return recorder.averagePower(forChannel: 0)
+    }
+
+    /// Stops take `take` and keeps its file, with its length in seconds.
+    func stop(take: Int, duration: TimeInterval, levels: [Float]) -> (URL, TimeInterval)? {
+        guard take == current, let file else { return nil }
+        ended = max(ended, take)
+        if simulated {
+            guard VoiceRecorderTone.write(to: file, duration: duration, levels: levels) else {
+                tearDown(deleting: true)
+                return nil
+            }
+        } else {
+            recorder?.stop()
+        }
+        recorder = nil
+        self.file = nil
+        current = 0
+        restore()
+        let length = (try? AVAudioFile(forReading: file)).map { Double($0.length) / max($0.fileFormat.sampleRate, 1) } ?? duration
+        return (file, length > 0 ? length : duration)
+    }
+
+    /// Ends take `take` and deletes what it recorded.
+    func discard(take: Int) {
+        ended = max(ended, take)
+        guard take == current else { return }
+        tearDown(deleting: true)
+    }
+
+    /// Deletes a kept take's file.
+    func delete(_ url: URL) {
+        try? FileManager.default.removeItem(at: url)
+    }
+
+    private func tearDown(deleting: Bool) {
+        recorder?.stop()
+        if deleting, let file { try? FileManager.default.removeItem(at: file) }
+        recorder = nil
+        file = nil
+        current = 0
+        restore()
+    }
+
+    /// Back to the category the app had, letting other apps' audio resume.
+    private func restore() {
+        guard let saved else { return }
+        self.saved = nil
+        let audio = AVAudioSession.sharedInstance()
+        try? audio.setActive(false, options: .notifyOthersOnDeactivation)
+        try? audio.setCategory(saved.category, mode: saved.mode, options: saved.options)
+    }
+}
+
+/// Levels: the microphone's power as loudness, and the simulated source's speech.
+private enum VoiceRecorderSpeech {
+    /// Decibels to loudness from 0 to 1: a quiet room near 0, speech around a half, a raised voice near 1.
+    nonisolated static func level(decibels: Float?) -> Float {
+        guard let decibels, decibels.isFinite else { return 0 }
+        let floor: Float = -52
+        let linear = min(max((decibels - floor) / -floor, 0), 1)
+        return pow(linear, 1.5)
+    }
+
+    /// Loudness from 0 to 1 at `t` seconds: four phrases of quick syllables with short pauses, every 6.4 seconds.
+    /// Deterministic, so previews and screenshots repeat.
+    nonisolated static func level(at t: TimeInterval) -> Float {
+        let local = t.truncatingRemainder(dividingBy: 6.4)
+        let phrases: [(start: Double, end: Double, loudness: Double)] = [(0.12, 1.6, 0.95), (1.95, 3.3, 0.8), (3.7, 4.45, 0.7), (4.85, 6.05, 1)]
+        let grain = noise(Int((t * 20).rounded(.down)))
+        guard let phrase = phrases.first(where: { local >= $0.start && local <= $0.end }) else {
+            return Float(0.02 + 0.03 * grain)
+        }
+        let envelope = min(min((local - phrase.start) / 0.12, 1), min((phrase.end - local) / 0.15, 1))
+        let syllable = abs(sin(.pi * 4.4 * t + 1.2 * sin(1.3 * t)))
+        return Float(min(max(envelope * phrase.loudness * (0.35 + 0.65 * syllable) * (0.75 + 0.25 * grain), 0.03), 1))
+    }
+
+    /// A repeatable value from 0 to 1 for a whole number.
+    nonisolated static func noise(_ i: Int) -> Double {
+        var x = UInt32(truncatingIfNeeded: i) &* 0x9E37_79B1
+        x ^= x >> 15
+        x = x &* 0x85EB_CA77
+        x ^= x >> 13
+        return Double(x % 10_000) / 10_000
+    }
+}
+
+/// The simulated source's file: a soft voiced tone shaped by the take's levels, so the URL plays back and its
+/// waveform reads like the bars did.
+private enum VoiceRecorderTone {
+    nonisolated static func write(to url: URL, duration: TimeInterval, levels: [Float]) -> Bool {
+        let rate = 16_000.0
+        do {
+            let file = try AVAudioFile(forWriting: url, settings: [
+                AVFormatIDKey: Int(kAudioFormatMPEG4AAC),
+                AVSampleRateKey: rate,
+                AVNumberOfChannelsKey: 1,
+                AVEncoderAudioQualityKey: AVAudioQuality.medium.rawValue,
+            ], commonFormat: .pcmFormatFloat32, interleaved: false)
+            let total = AVAudioFrameCount(max(duration, 0.1) * rate)
+            let chunk: AVAudioFrameCount = 4_096
+            guard let buffer = AVAudioPCMBuffer(pcmFormat: file.processingFormat, frameCapacity: chunk), let channel = buffer.floatChannelData?[0] else { return false }
+            var written: AVAudioFrameCount = 0
+            var phase = 0.0
+            while written < total {
+                let count = min(chunk, total - written)
+                buffer.frameLength = count
+                for i in 0..<Int(count) {
+                    let t = Double(written + AVAudioFrameCount(i)) / rate
+                    // The levels are 20 a second; between two of them the loudness eases from one to the next.
+                    let place = t * 20, below = Int(place)
+                    let a = below < levels.count ? Double(levels[below]) : 0
+                    let b = below + 1 < levels.count ? Double(levels[below + 1]) : a
+                    let loudness = a + (b - a) * (place - Double(below))
+                    phase += 2 * .pi * (150 + 14 * sin(2 * .pi * 2.7 * t)) / rate
+                    channel[i] = Float(0.42 * loudness * (0.7 * sin(phase) + 0.3 * sin(2 * phase)))
+                }
+                try file.write(from: buffer)
+                written += count
+            }
+            return true
+        } catch {
+            try? FileManager.default.removeItem(at: url)
+            return false
+        }
+    }
+}
+
+// MARK: - Touch
+
+/// What the finger does on the mic, in the window's coordinates (the mic moves with it).
+private enum VoiceRecorderTouch {
+    /// Touch-down, before the hold lands.
+    case down
+    /// Lifted before the hold landed.
+    case tap
+    /// Moved too far before the hold landed: a scroll, not a press.
+    case failed
+    /// Held long enough: record.
+    case hold
+    case move(CGSize)
+    case end(CGSize, velocity: CGSize)
+    /// The system took the touch.
+    case cancel
+}
+
+/// The mic's touches, from a UIKit recognizer: a SwiftUI long press can't hand over to a tracked drag, and would
+/// fight an enclosing scroll view.
+private struct VoiceRecorderTouchLayer: UIViewRepresentable {
+    let isEnabled: Bool
+    let onTouch: (VoiceRecorderTouch) -> Void
+
+    func makeUIView(context: Context) -> VoiceRecorderTouchView { VoiceRecorderTouchView() }
+
+    func updateUIView(_ view: VoiceRecorderTouchView, context: Context) {
+        view.recognizer.onTouch = onTouch
+        view.recognizer.isEnabled = isEnabled
+    }
+}
+
+private final class VoiceRecorderTouchView: UIView, UIGestureRecognizerDelegate {
+    let recognizer = VoiceRecorderPressRecognizer()
+
+    init() {
+        super.init(frame: .zero)
+        backgroundColor = .clear
+        isAccessibilityElement = false
+        accessibilityElementsHidden = true
+        recognizer.delegate = self
+        addGestureRecognizer(recognizer)
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) { fatalError("init(coder:) is not supported") }
+
+    // Pans around it (a scroll view, a sheet's drag to dismiss) wait for the press to fail, which it does as soon as
+    // the finger moves before the hold lands, so they still scroll; once recording, nothing steals the drag.
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldBeRequiredToFailBy other: UIGestureRecognizer) -> Bool {
+        other.view !== self && other is UIPanGestureRecognizer
+    }
+}
+
+/// One finger on the mic. It reports the touch at once, begins after a short hold (0.18 s) if the finger stayed put,
+/// fails if it moved first, then tracks the finger until it lifts. A lift before the hold is a tap.
+private final class VoiceRecorderPressRecognizer: UIGestureRecognizer {
+    var onTouch: ((VoiceRecorderTouch) -> Void)?
+    private var tracked: ObjectIdentifier?
+    private var start: CGPoint = .zero
+    private var last: CGPoint = .zero
+    private var lastTime: TimeInterval = 0
+    private var velocity: CGSize = .zero
+    private var waiting: Task<Void, Never>?
+
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent) {
+        super.touchesBegan(touches, with: event)
+        // A second finger changes nothing once one is tracked; two at once are not a press.
+        guard tracked == nil else { return }
+        guard touches.count == 1, let touch = touches.first else {
+            state = .failed
+            return
+        }
+        tracked = ObjectIdentifier(touch)
+        start = touch.location(in: nil)
+        last = start
+        lastTime = CACurrentMediaTime()
+        velocity = .zero
+        onTouch?(.down)
+        waiting = Task { @MainActor [weak self] in
+            try? await Task.sleep(for: .milliseconds(180))
+            guard let self, !Task.isCancelled, self.state == .possible, self.tracked != nil else { return }
+            self.state = .began
+            self.onTouch?(.hold)
+        }
+    }
+
+    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent) {
+        super.touchesMoved(touches, with: event)
+        guard let touch = touches.first(where: { ObjectIdentifier($0) == tracked }) else { return }
+        let point = touch.location(in: nil)
+        let now = CACurrentMediaTime()
+        let dt = max(now - lastTime, 0.001)
+        let fresh = CGSize(width: (point.x - last.x) / dt, height: (point.y - last.y) / dt)
+        // A little smoothing, so one jittery event never decides the release.
+        velocity = CGSize(width: velocity.width * 0.3 + fresh.width * 0.7, height: velocity.height * 0.3 + fresh.height * 0.7)
+        last = point
+        lastTime = now
+        let translation = CGSize(width: point.x - start.x, height: point.y - start.y)
+        switch state {
+        case .possible:
+            if hypot(translation.width, translation.height) > 10 {
+                waiting?.cancel()
+                state = .failed
+                onTouch?(.failed)
+            }
+        case .began, .changed:
+            state = .changed
+            onTouch?(.move(translation))
+        default:
+            break
+        }
+    }
+
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent) {
+        super.touchesEnded(touches, with: event)
+        guard let touch = touches.first(where: { ObjectIdentifier($0) == tracked }) else { return }
+        waiting?.cancel()
+        let point = touch.location(in: nil)
+        // A finger that rested before lifting has no speed.
+        if CACurrentMediaTime() - lastTime > 0.08 { velocity = .zero }
+        switch state {
+        case .possible:
+            state = .ended
+            onTouch?(.tap)
+        case .began, .changed:
+            onTouch?(.end(CGSize(width: point.x - start.x, height: point.y - start.y), velocity: velocity))
+            state = .ended
+        default:
+            break
+        }
+    }
+
+    override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent) {
+        super.touchesCancelled(touches, with: event)
+        guard touches.contains(where: { ObjectIdentifier($0) == tracked }) else { return }
+        waiting?.cancel()
+        if state == .began || state == .changed {
+            onTouch?(.cancel)
+            state = .cancelled
+        } else {
+            onTouch?(.failed)
+            state = .failed
+        }
+    }
+
+    override func reset() {
+        super.reset()
+        waiting?.cancel()
+        waiting = nil
+        tracked = nil
+    }
+}
+
+/// A house-palette colour that follows the interface style.
+private func voiceRecorderColor(light: UInt32, dark: UInt32) -> Color {
+    Color(uiColor: UIColor { @Sendable traits in
+        let hex = traits.userInterfaceStyle == .dark ? dark : light
+        return UIColor(red: CGFloat((hex >> 16) & 0xFF) / 255, green: CGFloat((hex >> 8) & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
+    })
+}
+
+// MARK: - Example
+
+/// A composer on the plain ground. The session records the simulated source, since a preview has no microphone;
+/// in your app leave `session` out and the recorder uses the microphone.
+private struct VoiceRecorderExample: View {
+    @State private var draft = ""
+    @State private var session = VoiceRecorder.Session(source: .simulated)
+
+    var body: some View {
+        VoiceRecorder(session: session) { recording in
+            print("Sent", recording.duration, recording.url.lastPathComponent)
+        } content: {
+            TextField("Message", text: $draft)
+                .padding(.horizontal, 18)
+                .frame(height: 52)
+                .background(Capsule().fill(voiceRecorderColor(light: 0xEBE9E3, dark: 0x262626)))
+        }
+        .padding(.horizontal, 16)
+        .padding(.bottom, 24)
+        .frame(maxWidth: 520)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+        .background(voiceRecorderColor(light: 0xF3F2EE, dark: 0x121212))
+    }
+}
+
+#Preview("Light") {
+    VoiceRecorderExample()
+}
+
+#Preview("Dark") {
+    VoiceRecorderExample()
+        .preferredColorScheme(.dark)
+}
+
+// MARK: - Piece motion
+//
+// The SwiftPieces motion language: shared spring tokens and gesture physics, with the same values in every
+// piece. Each piece carries a copy of only the parts it uses, so this file stands alone. Generated from
+// registry/foundation/PieceMotion.swift in the SwiftPieces repo; edit it there, not here.
+// swiftpieces-motion: 1.1.0 (core, momentum, rubberBand, pressMath)
+
+/// The SwiftPieces motion language: five spring tiers, and a named role for every moment a piece moves,
+/// each with its Reduce Motion substitute.
+///
+/// Build one from the environment, `PieceMotion(reduceMotion: reduceMotion)`, and pick the role that names
+/// what just happened. Never animate the tracking of a finger: set gesture state directly in `onChanged`, so the
+/// surface stays under the finger, and spring only the release.
+private struct PieceMotion {
+    var reduceMotion = false
+
+    // Tiers. Overshoot and settle times are measured from rest with SwiftUI's Spring.
+    /// No overshoot, 90% in about 90ms. A press arriving under the finger.
+    static var tight: Spring { Spring(duration: 0.14, bounce: 0) }
+    /// About 2.8% overshoot, 90% in about 140ms. Snapping to a detent, page or segment.
+    static var responsive: Spring { Spring(duration: 0.32, bounce: 0.25) }
+    /// About 8.4% overshoot. Visible give: a release, a return from past an edge, a drag settling home.
+    static var elastic: Spring { Spring(duration: 0.42, bounce: 0.38) }
+    /// About 15% overshoot. A resolved action landing. At most once per interaction.
+    static var expressive: Spring { Spring(duration: 0.48, bounce: 0.48) }
+    /// About 1.5% overshoot, unhurried. Opening large surfaces and ambient change.
+    static var calm: Spring { Spring(duration: 0.5, bounce: 0.2) }
+
+    /// Reduce Motion: settles become this short spring with no overshoot.
+    private static var still: Animation { .spring(duration: 0.25, bounce: 0) }
+
+    // Roles.
+    /// Touch-down. Starts on the same frame and never bounces under the finger.
+    var press: Animation { .spring(Self.tight) }
+    /// The finger lifts off a pressed surface, which springs back through rest.
+    var release: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A dragged thing comes to rest. With a gesture's velocity, use `settle(velocity:from:to:)` instead.
+    var settle: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// Lands on a detent, page or segment.
+    var snap: Animation { reduceMotion ? Self.still : .spring(Self.responsive) }
+    /// A number, a chart value or anything else people read moves to its new value. Never overshoots, so it
+    /// never shows a value that isn't true.
+    var value: Animation { reduceMotion ? Self.still : .spring(duration: 0.35, bounce: 0) }
+    /// Comes back from past a limit: a pull beyond the edge, a value pushed against its bound.
+    var rebound: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A shape or container changes size, corner radius or form, with a little give at the end.
+    var morph: Animation { reduceMotion ? Self.still : .spring(duration: 0.4, bounce: 0.2) }
+    /// Something appears, opens or expands. Opening is a little slower than closing.
+    var reveal: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.calm) }
+    /// Something leaves, closes or collapses. Quick and firm, out of the way.
+    var dismiss: Animation { reduceMotion ? .easeIn(duration: 0.18) : .spring(duration: 0.3, bounce: 0.08) }
+    /// A resolved action lands: a check, a sent state, a reaction.
+    var success: Animation { reduceMotion ? .easeOut(duration: 0.24) : .spring(Self.expressive) }
+    /// A refused action. Firm, no wobble; `pieceShake` adds the movement.
+    var error: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.responsive) }
+    /// Slow ambient change. Loops themselves stop under Reduce Motion: check `allowsAmbient`.
+    var ambient: Animation { reduceMotion ? .easeInOut(duration: 0.3) : .spring(Self.calm) }
+
+    /// Loops, drifts, idle breathing and parallax run only when this is true.
+    var allowsAmbient: Bool { !reduceMotion }
+
+    /// A moving transition, or a plain fade under Reduce Motion.
+    func transition(_ transition: AnyTransition) -> AnyTransition {
+        reduceMotion ? .opacity : transition
+    }
+
+    /// For content replaced inside a container that stays put (a label, a glyph, a count): the old content
+    /// blurs out as the new one sharpens in. A fade under Reduce Motion.
+    @MainActor var swap: AnyTransition {
+        reduceMotion ? .opacity : AnyTransition(.blurReplace)
+    }
+}
+
+extension PieceMotion {
+    /// Where a flick at `velocity` (pt/s) coasts to. 0.998 coasts like a scroll view; 0.99 suits detents.
+    nonisolated static func project(_ position: CGFloat, velocity: CGFloat, decelerationRate: CGFloat = 0.99) -> CGFloat {
+        position + velocity / 1000 * decelerationRate / (1 - decelerationRate)
+    }
+
+    /// The candidate closest to `value`.
+    nonisolated static func nearest(_ value: CGFloat, in candidates: [CGFloat]) -> CGFloat {
+        candidates.min { abs($0 - value) < abs($1 - value) } ?? value
+    }
+
+    /// A settle that leaves at the finger's speed (pt/s). One per axis, each on its own `.offset(x:)` / `.offset(y:)`:
+    /// a spring takes one velocity. SwiftUI's own velocity carry-over is unreliable; this always carries it.
+    func settle(velocity: CGFloat, from current: CGFloat, to target: CGFloat, spring: Spring = PieceMotion.elastic) -> Animation {
+        let spring = reduceMotion ? Spring(duration: 0.25, bounce: 0) : spring
+        let distance = target - current
+        guard abs(distance) >= 1 else { return .spring(spring) }
+        // In whole distances per second, capped near the spring's frequency: a hard flick adds give, not a slingshot.
+        // At exactly the frequency a critically damped spring cannot pass its target, so Reduce Motion stops there.
+        let cap = 2 * Double.pi / spring.duration * (reduceMotion ? 1 : 1.5)
+        let relative = min(max(Double(velocity / distance), -cap), cap)
+        return .interpolatingSpring(spring, initialVelocity: relative)
+    }
+}
+
+extension PieceMotion {
+    /// A scroll view's edge resistance for a pull `overshoot` points past a limit; never reaches `limit`.
+    /// About 24 to 40 for thumbs and toggles, 60 to 120 for cards and sheets. Band the total pull, not deltas.
+    nonisolated static func rubberBand(_ overshoot: CGFloat, limit: CGFloat, coefficient: CGFloat = 0.55) -> CGFloat {
+        guard limit > 0, overshoot != 0 else { return 0 }
+        let banded = (1 - 1 / (abs(overshoot) * coefficient / limit + 1)) * limit
+        return overshoot < 0 ? -banded : banded
+    }
+
+    /// `value` inside `range` passes through unchanged; past either end it moves with rubber-band resistance.
+    nonisolated static func rubberBand(_ value: CGFloat, in range: ClosedRange<CGFloat>, limit: CGFloat, coefficient: CGFloat = 0.55) -> CGFloat {
+        if value < range.lowerBound { return range.lowerBound + rubberBand(value - range.lowerBound, limit: limit, coefficient: coefficient) }
+        if value > range.upperBound { return range.upperBound + rubberBand(value - range.upperBound, limit: limit, coefficient: coefficient) }
+        return value
+    }
+}
+
+extension PieceMotion {
+    /// About `depth` points per edge, not a fixed percentage: an icon sinks to 0.92, a pill 0.95, a card 0.985.
+    nonisolated static func pressScale(for size: CGSize, depth: CGFloat = 2.5) -> CGFloat {
+        let side = (max(size.width, 1) * max(size.height, 1)).squareRoot()
+        return min(max(1 - depth * 2 / side, 0.92), 0.985)
+    }
+
+    /// An anchor partway from the center toward the touch, so the press leans into the finger without tipping.
+    nonisolated static func pressAnchor(touch: CGPoint?, in size: CGSize, lean: CGFloat = 0.6) -> UnitPoint {
+        guard let touch, size.width > 0, size.height > 0 else { return .center }
+        let x = min(max(touch.x / size.width, 0), 1)
+        let y = min(max(touch.y / size.height, 0), 1)
+        return UnitPoint(x: 0.5 + (x - 0.5) * lean, y: 0.5 + (y - 0.5) * lean)
+    }
+}
+
+// swiftpieces-motion: end
+
+// MARK: - Piece liquid
+//
+// The SwiftPieces liquid glass language: glass shapes that merge through a neck, bubbles that bud out of
+// and melt back into each other, and the frosted fallback before iOS 26. Each piece carries a copy of only
+// the parts it uses, so this file stands alone. Generated from registry/foundation/PieceLiquid.swift in the
+// SwiftPieces repo; edit it there, not here. The rules are in LIQUID_GLASS.md.
+// swiftpieces-liquid: 1.7.1 (liquid, liquidPress, bud)
+
+/// The liquid glass language: one merge distance, two rest gaps, and the springs a bubble leaves and comes home on.
+///
+/// Glass shapes inside one `PieceLiquidGroup` melt into each other through a neck when they come within `merge`
+/// points. Parts of one control rest `joined`, inside that distance, so the neck holds; separate actions rest
+/// `apart`, outside it, so they only goo while one buds out of, or melts back into, another.
+private enum PieceLiquid {
+    /// Glass shapes closer than this share a neck.
+    static let merge: CGFloat = 20
+    /// The gap between parts of one control (a stepper's buttons, a progress pill and its stop): the neck holds,
+    /// short and smooth, about two thirds of the shapes' height at its waist. Joined parts read best at one height.
+    static let joined: CGFloat = 4
+    /// The gap between separate actions (menu items, confirm and cancel, chips): they rest as their own bubbles.
+    static let apart: CGFloat = 26
+    /// How far a bubble shrinks while it is home inside its parent.
+    static let homeScale: CGFloat = 0.72
+
+    /// A bubble leaving its parent: slow enough that the neck's stretch and snap read.
+    static func split(reduceMotion: Bool) -> Animation {
+        reduceMotion ? .easeOut(duration: 0.2) : .spring(duration: 0.62, bounce: 0.22)
+    }
+
+    /// A bubble going home. No bounce: a bounce would carry it out through the far side of its parent.
+    static func home(reduceMotion: Bool) -> Animation {
+        reduceMotion ? .easeIn(duration: 0.18) : .spring(duration: 0.5, bounce: 0)
+    }
+}
+
+/// A group of glass shapes that merge into one liquid surface. On iOS 26 it is a `GlassEffectContainer`; before
+/// that, and under Reduce Transparency, the shapes draw on their own and simply don't merge. `lift` adds the soft
+/// shadow liquid glass floats on in light mode.
+private struct PieceLiquidGroup<Content: View>: View {
+    var spacing: CGFloat = PieceLiquid.merge
+    var lift = true
+    @ViewBuilder var content: Content
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        container
+            .shadow(color: .black.opacity(lift && colorScheme == .light ? 0.07 : 0), radius: 18, y: 8)
+    }
+
+    @ViewBuilder private var container: some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26, *), !reduceTransparency {
+            GlassEffectContainer(spacing: spacing) { content }
+        } else {
+            content
+        }
+        #else
+        content
+        #endif
+    }
+}
+
+/// One liquid glass shape: Liquid Glass on iOS 26, carrying `tint` as a solid colour and swelling under a press when
+/// `interactive`; a frosted Material with a light rim and a soft shadow before that; a solid fill under Reduce
+/// Transparency.
+///
+/// The tint is painted inside clear glass rather than tinting the glass. Tinted glass in a group bleeds its colour
+/// through every neck as a smear, so a red button would glow into the white pill it is joined to; painted inside,
+/// the colour stays crisp to the shape's edge, the necks between shapes are clear glass, and a tint change animates
+/// like any colour (tinted glass snaps).
+private struct PieceLiquidSurface<S: Shape>: ViewModifier {
+    var shape: S
+    var tint: Color?
+    var interactive: Bool
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.pieceLiquidScale) private var scale
+
+    func body(content: Content) -> some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26, *), !reduceTransparency {
+            // Scaled as two parts, content and outline, about the same centre. A scaleEffect on a glass view inside a
+            // GlassEffectContainer shrinks the glass but leaves what it carries full size, pinned to its corner.
+            content
+                .background { shape.fill(tint ?? .clear) }
+                .scaleEffect(scale)
+                .glassEffect(glass, in: shape.scale(scale))
+        } else {
+            fallback(content).scaleEffect(scale)
+        }
+        #else
+        fallback(content).scaleEffect(scale)
+        #endif
+    }
+
+    #if compiler(>=6.2)
+    @available(iOS 26, *)
+    private var glass: Glass {
+        interactive ? Glass.regular.interactive() : .regular
+    }
+    #endif
+
+    private func fallback(_ content: Content) -> some View {
+        let dark = colorScheme == .dark
+        return content
+            .background {
+                if reduceTransparency {
+                    shape.fill(tint ?? (dark ? Color(white: 0.17) : Color(white: 0.97)))
+                } else {
+                    ZStack {
+                        shape.fill(.regularMaterial)
+                        if let tint { shape.fill(tint.opacity(0.88)) }
+                    }
+                }
+            }
+            .overlay { shape.stroke(Color.white.opacity(dark ? 0.14 : 0.7), lineWidth: 0.5) }
+            .shadow(color: .black.opacity(dark ? 0.32 : 0.08), radius: 10, y: 5)
+    }
+}
+
+private struct PieceLiquidScaleKey: EnvironmentKey {
+    static let defaultValue: CGFloat = 1
+}
+
+private extension EnvironmentValues {
+    /// How much the liquid shapes below are scaled, about their own centres. Nested scales multiply.
+    var pieceLiquidScale: CGFloat {
+        get { self[PieceLiquidScaleKey.self] }
+        set { self[PieceLiquidScaleKey.self] = newValue }
+    }
+}
+
+private extension View {
+    /// Draws this view on a liquid glass `shape`. Put it inside a `PieceLiquidGroup` so it can merge with its neighbours.
+    func pieceLiquid<S: Shape>(_ shape: S, tint: Color? = nil, interactive: Bool = true) -> some View {
+        modifier(PieceLiquidSurface(shape: shape, tint: tint, interactive: interactive))
+    }
+
+    /// Scales the liquid glass shapes in this view, content and outline together, about their own centres. Use it
+    /// instead of `scaleEffect` on a glass view (a press, a lift, a swell): inside a group a plain `scaleEffect` shrinks
+    /// the glass but leaves its content full size and off centre. Animates like any other value.
+    func pieceLiquidScale(_ scale: CGFloat) -> some View {
+        transformEnvironment(\.pieceLiquidScale) { $0 *= scale }
+    }
+}
+
+/// The press for a glass control: the same size-aware sink and lean as `piecePress`, applied through
+/// `pieceLiquidScale` so the glass and what it carries sink together (a plain scaleEffect on glass leaves the content
+/// behind). Put the glass inside what it presses: the label of a button, the view this modifies. Under Reduce Motion
+/// it shades instead of moving.
+private struct PieceLiquidPress: ViewModifier {
+    let pressed: Bool
+    var touch: CGPoint?
+    var depth: CGFloat = 2.5
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.colorScheme) private var colorScheme
+    @State private var size: CGSize = .zero
+    @State private var anchor: UnitPoint = .center
+
+    func body(content: Content) -> some View {
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        let scale = pressed && !reduceMotion ? PieceMotion.pressScale(for: size, depth: depth) : 1
+        // A scale about `anchor` is a scale about the centre plus this shift toward the anchor.
+        let lean = CGSize(width: (anchor.x - 0.5) * size.width * (1 - scale), height: (anchor.y - 0.5) * size.height * (1 - scale))
+        content
+            .onGeometryChange(for: CGSize.self) { $0.size } action: { size = $0 }
+            .brightness(pressed && reduceMotion ? (colorScheme == .dark ? 0.1 : -0.08) : 0)
+            .pieceLiquidScale(scale)
+            .offset(lean)
+            .animation(pressed ? motion.press : motion.release, value: pressed)
+            .onChange(of: pressed) { _, isPressed in
+                if isPressed { anchor = PieceMotion.pressAnchor(touch: touch, in: size) }
+            }
+            .onChange(of: touch) { _, touch in
+                if pressed, let touch { anchor = PieceMotion.pressAnchor(touch: touch, in: size) }
+            }
+    }
+}
+
+/// `PiecePressStyle` for glass buttons: the label (with its `.pieceLiquid` inside) sinks as one.
+private struct PieceLiquidPressStyle: ButtonStyle {
+    var depth: CGFloat = 2.5
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label.pieceLiquidPress(configuration.isPressed, depth: depth)
+    }
+}
+
+private extension View {
+    /// Sinks this view's glass while `pressed`, leaning toward `touch` (in this view's coordinates) when given.
+    func pieceLiquidPress(_ pressed: Bool, touch: CGPoint? = nil, depth: CGFloat = 2.5) -> some View {
+        modifier(PieceLiquidPress(pressed: pressed, touch: touch, depth: depth))
+    }
+}
+
+/// The bud: how a bubble leaves and rejoins its parent, driven explicitly so every bubble shows the whole cycle.
+///
+/// A bubble is born at `home`, inside its parent, where the two glass shapes are one. It springs out to `rest`, and
+/// while it is inside the merge distance a neck holds it to the parent, thinning as it goes, until it snaps free.
+/// Going home it springs back on a spring with no bounce, the neck reaches out and re-forms, and only once it has
+/// melted all the way in is it removed. Both offsets are relative to where the bubble is laid out. Under Reduce
+/// Motion it stays at `rest`: its content fades and its glass closes in place.
+private struct PieceBud: ViewModifier {
+    var out: Bool
+    var rest: CGSize
+    var home: CGSize
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func body(content: Content) -> some View {
+        if reduceMotion {
+            // No travel. Inside a group glass ignores opacity, so the glass closes to nothing in place on the short
+            // Reduce Motion ease while its content fades; the opacity covers a bubble outside a group.
+            content
+                .pieceLiquidScale(out ? 1 : 0.001)
+                .opacity(out ? 1 : 0)
+                .offset(rest)
+        } else {
+            // The glass shrinks through `pieceLiquidScale`, never a plain scaleEffect (see there), then moves.
+            content
+                .pieceLiquidScale(out ? 1 : PieceLiquid.homeScale)
+                .offset(out ? rest : home)
+        }
+    }
+}
+
+/// A bubble's own content, on its own clock: gone the moment the bubble heads home, so it never rides over the
+/// parent's content, and arriving just after the bubble leaves.
+private struct PieceBudContent: ViewModifier {
+    var out: Bool
+
+    func body(content: Content) -> some View {
+        content
+            .blur(radius: out ? 0 : 6)
+            .opacity(out ? 1 : 0)
+            .animation(out ? .easeOut(duration: 0.3).delay(0.1) : .easeOut(duration: 0.14), value: out)
+    }
+}
+
+private extension View {
+    /// Places a bubble at `rest` while `out`, and at `home` (inside its parent, shrunk) while not.
+    func pieceBud(out: Bool, rest: CGSize = .zero, home: CGSize) -> some View {
+        modifier(PieceBud(out: out, rest: rest, home: home))
+    }
+
+    /// Hides a bubble's icon or label while it is home. Put it on the content, inside the glass.
+    func pieceBudContent(out: Bool) -> some View {
+        modifier(PieceBudContent(out: out))
+    }
+}
+
+/// Which bubbles exist and which are out. A bubble is added home with no animation, sent out on the next frame,
+/// and called home before it is removed, so it always melts in rather than fading. Keep one in `@State`.
+@MainActor @Observable
+private final class PieceBuds {
+    private(set) var present: [String] = []
+    private(set) var out: Set<String> = []
+    /// The latest call for each bubble. A bloom or gather that has been overtaken (a bubble sent home while it was
+    /// still waiting to go out, or called out again while melting) leaves that bubble alone.
+    @ObservationIgnored private var turn: [String: Int] = [:]
+
+    func contains(_ id: String) -> Bool { present.contains(id) }
+    func isOut(_ id: String) -> Bool { out.contains(id) }
+
+    private func claim(_ ids: [String]) -> [String: Int] {
+        var mine: [String: Int] = [:]
+        for id in ids {
+            let next = (turn[id] ?? 0) + 1
+            turn[id] = next
+            mine[id] = next
+        }
+        return mine
+    }
+
+    /// Puts bubbles straight out at rest with no motion: a view's first frame, or a state restored.
+    func place(_ ids: [String]) {
+        _ = claim(ids)
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) {
+            for id in ids where !present.contains(id) { present.append(id) }
+            out.formUnion(ids)
+        }
+    }
+
+    /// Adds bubbles home, then sends each out, `stagger` seconds apart, after an optional `delay`.
+    func bloom(_ ids: [String], reduceMotion: Bool, stagger: Double = 0.05, delay: Double = 0) async {
+        let mine = claim(ids)
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) {
+            for id in ids where !present.contains(id) { present.append(id) }
+        }
+        try? await Task.sleep(for: .milliseconds(24 + Int(max(delay, 0) * 1000)))
+        let split = PieceLiquid.split(reduceMotion: reduceMotion)
+        for (i, id) in ids.enumerated() where turn[id] == mine[id] {
+            withAnimation(split.delay(reduceMotion ? 0 : Double(i) * stagger)) { _ = out.insert(id) }
+        }
+    }
+
+    /// Calls bubbles home, last first, then removes them once they have melted in.
+    func gather(_ ids: [String], reduceMotion: Bool, stagger: Double = 0.04) async {
+        let mine = claim(ids)
+        let home = PieceLiquid.home(reduceMotion: reduceMotion)
+        for (i, id) in ids.reversed().enumerated() {
+            withAnimation(home.delay(reduceMotion ? 0 : Double(i) * stagger)) { _ = out.remove(id) }
+        }
+        try? await Task.sleep(for: .milliseconds(Int((0.52 + Double(ids.count) * stagger) * 1000)))
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) { present.removeAll { ids.contains($0) && !out.contains($0) && turn[$0] == mine[$0] } }
+    }
+}
+
+// swiftpieces-liquid: end

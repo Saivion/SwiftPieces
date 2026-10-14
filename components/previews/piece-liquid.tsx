@@ -333,9 +333,24 @@ export function BudContent({ out, children, className }: { out: boolean; childre
 }
 
 /**
+ * Text that can't be cut into letters without breaking it, as `PieceMorphText.splits` decides: a right-to-left script,
+ * a script whose letters join or reorder (Arabic, Hebrew, Devanagari, Thai and their neighbours), or a bidirectional
+ * control character.
+ */
+const UNSPLITTABLE = /[֐-ࣿऀ-෿฀-࿿က-႟ក-៿꣠-ꣿיִ-﷿ﹰ-﻿‎‏‪-‮⁦-⁩\u{10800}-\u{10FFF}\u{1E800}-\u{1EFFF}]/u;
+
+/** A string's letters as people see them (grapheme clusters), so an emoji or an accented letter stays whole. */
+const letters = (s: string): string[] =>
+  typeof Intl !== "undefined" && "Segmenter" in Intl
+    ? Array.from(new Intl.Segmenter(undefined, { granularity: "grapheme" }).segment(s), (x) => x.segment)
+    : Array.from(s);
+
+/**
  * A label that changes letter by letter, like `PieceMorphText`: letters both strings share hold still, the old ones
  * that change blur out where they stood while the new ones blur in a few milliseconds apart (app/globals.css,
  * `pv-lq-in` and `pv-lq-out`), so there is never a blank beat. Screen readers get the whole string.
+ * As in Swift, the letters are laid out left to right whatever the page's direction, the order they read in, and text
+ * that can't be cut into letters (`UNSPLITTABLE`) changes as one word instead.
  */
 export function MorphText({ text, className, style }: { text: string; className?: string; style?: CSSProperties }) {
   const [shown, setShown] = useState(text);
@@ -347,9 +362,19 @@ export function MorphText({ text, className, style }: { text: string; className?
     const t = window.setTimeout(() => setLeaving(null), 280);
     return () => window.clearTimeout(t);
   }, [text, shown]);
-  const now = Array.from(shown), before = leaving ? Array.from(leaving) : [];
+  if (UNSPLITTABLE.test(shown) || (leaving !== null && UNSPLITTABLE.test(leaving))) {
+    // One word, keyed by its text so a new string blurs in while the old one blurs out where it stood, at the start edge.
+    return (
+      <span className={className} style={{ position: "relative", display: "inline-flex", whiteSpace: "pre", ...style }} aria-label={shown}>
+        <span key={shown} aria-hidden className="pv-lq-in">{shown}</span>
+        {leaving ? <span aria-hidden className="pv-lq-out pointer-events-none absolute top-0" style={{ insetInlineStart: 0, whiteSpace: "pre" }}>{leaving}</span> : null}
+      </span>
+    );
+  }
+  const now = letters(shown), before = leaving ? letters(leaving) : [];
   return (
-    <span className={className} style={{ position: "relative", display: "inline-flex", whiteSpace: "pre", ...style }} aria-label={shown}>
+    // Left to right whatever the page's direction: a flex row in a right-to-left page lays its letters out backwards.
+    <span className={className} style={{ position: "relative", display: "inline-flex", whiteSpace: "pre", direction: "ltr", unicodeBidi: "isolate", ...style }} aria-label={shown}>
       {now.map((ch, i) => (
         // A letter both strings share keeps its element, so its arrival never plays again.
         <span key={`${i}${ch}`} aria-hidden className="pv-lq-in" style={{ animationDelay: `${i * 22}ms` }}>{ch}</span>

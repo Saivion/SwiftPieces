@@ -4054,6 +4054,142 @@
     }
   },
   {
+    "url": "/docs/components/cards/wallet-stack",
+    "title": "Wallet Stack",
+    "description": "A wallet of tickets, boarding passes, memberships and loyalty cards as solid colour passes stacked so every header strip shows: tap one and it rises to the top and opens to its whole face with a real QR, Aztec, PDF417 or Code 128 code drawn by Core Image while the others slide down into a pile of narrowing slivers and a clear glass close bubble buds out of its corner, then drag it down with the finger's velocity, tap the pile, tap the bubble or press Escape to put it back; the strips draw closer when space runs short, the stack scrolls when there are many, and VoiceOver reads every pass, field and code.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Components",
+      "Categories · 14",
+      "Cards"
+    ],
+    "structuredData": {
+      "contents": [
+        {
+          "content": "A wallet of passes and tickets: header strips stacked one over the next, and a tap brings one pass forward with its whole face and a scannable code while the rest tuck into a pile. Passes are content, solid blocks with dark ink, listed back to front: each header strip shows above the next pass and the last pass shows whole. Tap a pass and it rises to the top of the space it's given and opens to its code, drawn from `code` with Core Image, while the others slide down into a pile of slivers. A clear glass close bubble buds out of the pass's top corner. Drag the pass down (a flick is enough), tap the pile, tap the bubble or press Escape to put it back. When the stack is taller than its space the strips draw closer, then it scrolls. Give it the space the passes may use, such as a whole screen under a title or a sheet. It scrolls its own passes, so don't put it inside another vertical scroll view. `swift @State private var presented: String? WalletStack(passes: passes, selection: $presented) .padding(.horizontal, 20) `"
+        },
+        {
+          "heading": "notes",
+          "content": "Passes are content: solid house blocks with dark ink, listed back to front. The only glass is the close bubble, clear Liquid Glass in its own `PieceLiquidGroup`. On iOS 17 to 25 it is a frosted material; under Reduce Transparency, a solid fill."
+        },
+        {
+          "heading": "notes",
+          "content": "Give it the space the passes may use, such as a screen under a title or a sheet, with your own horizontal padding. It scrolls its own passes, so don't put it inside another vertical `ScrollView`. The pile and the front pass carry on under the home indicator, the way a wallet runs off the bottom of the screen."
+        },
+        {
+          "heading": "notes",
+          "content": "In the stack each pass shows exactly its own header strip (symbol tile, title, subtitle and the header field) and the last pass shows whole. When the passes don't fit, the strips draw closer by giving up their bottom padding, never their text; past that the stack scrolls."
+        },
+        {
+          "heading": "notes",
+          "content": "Tap a pass, or set `selection`, and it rises to the top of the visible area and opens to its code while the others slide down into a pile of slivers, `Style.sliver` apart and a little narrower each, at most `pileDepth` deep. Passes keep their stacking order throughout: the ones in front slide off the chosen pass and the ones behind slip under it, so nothing ever jumps in front. Then the close bubble buds up out of the pass's top trailing corner and rests above it."
+        },
+        {
+          "heading": "notes",
+          "content": "Put it back by dragging it down past 110 points or flicking it down: it follows the finger, the pile rises to meet it with a tick as the pull crosses the threshold, and it leaves at the finger's speed and sinks into its place as the passes in front rise over it. A shorter drag springs back. Tapping the pile, tapping the bubble, Escape on a hardware keyboard and the VoiceOver escape gesture all put it back too. The drag is a UIKit pan on the presented pass only, so it never fights the scroll view or a sheet, and sideways drags pass through."
+        },
+        {
+          "heading": "notes",
+          "content": "Codes are generated on the device by Core Image, off the main actor: `.qr` (correction level M), `.aztec`, `.pdf417` and `.code128` (ASCII only; other text shows without bars). They sit on a white tile in both appearances, drawn pixel-crisp, with the code's text printed under them. A pass with `code: nil` opens without a code area."
+        },
+        {
+          "heading": "notes",
+          "content": "`selection` is the presented pass's id. Set it from a deep link or a notification to present that pass; an id that isn't in `passes` shows the stack, and removing the presented pass puts the stack back. Changing it to another id swaps passes in one move."
+        },
+        {
+          "heading": "notes",
+          "content": "Tints: `.sky`, `.butter`, `.sage`, `.lilac`, `.sand` and `.red`, the house signal, which is best kept for the one pass that matters most right now, such as tonight's ticket. Your own colours take `Tint(color, ink:)` with an ink that reads on them."
+        },
+        {
+          "heading": "notes",
+          "content": "Long titles and subtitles truncate to one line in the stack and wrap to two once the pass is open. Fields share one row, spread across the pass like a boarding pass, and wrap onto more rows when they don't fit."
+        },
+        {
+          "heading": "notes",
+          "content": "Haptics: a light impact when a pass is presented and when it goes back, and a selection tick each time a drag crosses the return threshold."
+        },
+        {
+          "heading": "notes",
+          "content": "VoiceOver: each stacked pass is a button that reads its title, subtitle and header field (\"Rail pass, Lisbon to Porto, Coach, 4\") with the hint \"Shows the whole pass\". Presented, focus moves to the pass, which reads its title as a heading, then every field and the code; the other passes are hidden, the pile is a button \"Other passes\" and the bubble is \"Done\". On the way back focus returns to the pass."
+        },
+        {
+          "heading": "notes",
+          "content": "Reduce Motion: passes move on a short ease with no overshoot, the code fades in place and the bubble appears and leaves where it rests. Increase Contrast draws the subtitles and field labels in full ink."
+        },
+        {
+          "heading": "notes",
+          "content": "Dynamic Type: strips and fields grow with the text, and at accessibility sizes the header stacks its tile, titles and field. When an open pass is taller than the space, the stack scrolls so its code can be reached. Right to left mirrors the header, the fields and the bubble; codes are never mirrored."
+        },
+        {
+          "heading": "notes",
+          "content": "`Style` sets the passes' corner radius, the code tile and its ink, the bubble's glyph, the sliver height and the pile's depth. `Messages` replaces the copy VoiceOver reads, such as `done: \"Close\"`."
+        },
+        {
+          "heading": "notes",
+          "content": "Wire it up with your passes in state and the presented id beside them:"
+        },
+        {
+          "heading": "parameters",
+          "content": "Parameter"
+        },
+        {
+          "heading": "parameters",
+          "content": "Description"
+        },
+        {
+          "heading": "parameters",
+          "content": "`passes`"
+        },
+        {
+          "heading": "parameters",
+          "content": "The passes, back to front: the first sits at the top of the stack and the last shows whole. Ids must be unique. Make each one with `WalletStack/Pass`, picking a house colour such as `.sky` or `.red` for its `tint`."
+        },
+        {
+          "heading": "parameters",
+          "content": "`selection`"
+        },
+        {
+          "heading": "parameters",
+          "content": "The id of the presented pass, or `nil` for the stack. It changes as people present and put back passes; set it yourself to present one from a deep link or a notification. An id that isn't in `passes` shows the stack."
+        },
+        {
+          "heading": "parameters",
+          "content": "`messages`"
+        },
+        {
+          "heading": "parameters",
+          "content": "The built-in copy: the close bubble, the pile and the hints VoiceOver reads. Defaults are localizable through your String Catalog; replace any line, for example `done` with \"Close\"."
+        },
+        {
+          "heading": "parameters",
+          "content": "`style`"
+        },
+        {
+          "heading": "parameters",
+          "content": "The passes' corner radius, the code tile's colours, the close bubble's glyph and the pile's slivers. Defaults to the SwiftPieces house palette."
+        }
+      ],
+      "headings": [
+        {
+          "id": "notes",
+          "content": "Notes"
+        },
+        {
+          "id": "usage",
+          "content": "Usage"
+        },
+        {
+          "id": "parameters",
+          "content": "Parameters"
+        },
+        {
+          "id": "source",
+          "content": "Source"
+        }
+      ]
+    }
+  },
+  {
     "url": "/docs/components/controls/commit-button",
     "title": "Commit Button",
     "description": "A liquid glass async action button driven by one idle/loading/success/error/disabled phase: the signal glass capsule draws in around its label as a glass bubble buds out of its end carrying a spinning ring; on success the ring closes on a check and both turn sage, then the bubble melts home as the label morphs to its success title; an error morphs the label to the message on butter glass, turns the bubble into a retry and shakes.",
@@ -5203,6 +5339,182 @@
         {
           "heading": "parameters",
           "content": "Delta chip tints, decimal dimming, and roll tinting. Defaults to `.standard`: sage for up, red for down, dimmed decimals, no tint while rolling."
+        }
+      ],
+      "headings": [
+        {
+          "id": "notes",
+          "content": "Notes"
+        },
+        {
+          "id": "usage",
+          "content": "Usage"
+        },
+        {
+          "id": "parameters",
+          "content": "Parameters"
+        },
+        {
+          "id": "source",
+          "content": "Source"
+        }
+      ]
+    }
+  },
+  {
+    "url": "/docs/components/data/range-lens",
+    "title": "Range Lens",
+    "description": "An overview and detail chart for long series like a year of daily steps, revenue, sleep or prices: a semibold readout of the window's average (or total, highest or lowest) with its dates, a detail chart of the window's bars that pans and rescales without overshooting under a red dashed average rule, and a strip of the whole series underneath with a liquid glass lens you drag to move and pull by its joined glass handles to resize, which swell and flood red while held, settle with the flick, rubber-band at the ends, tick at each week and never invert, plus tap to centre, double-tap to show everything, keyboard arrows and VoiceOver that steps the lens a week at a time.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Components",
+      "Categories · 14",
+      "Data"
+    ],
+    "structuredData": {
+      "contents": [
+        {
+          "content": "Overview and detail for a long series: a chart of the window you are reading, and a strip of the whole series under it with a glass lens you drag and resize to choose that window. The readout names the window's summary (the average by default) in a large numeral over its dates. The detail chart draws the window's samples as bars in the text color, with the window's average as a red dashed rule and an \"avg\" chip on the value axis; it pans with the lens and rescales without overshooting. The strip draws every sample in one `Canvas`, bright inside the window and dim outside, over the lens: a liquid glass slab with a glass handle joined to each end. Drag the slab to move the window, drag a handle (or within about 22 points of an edge) to resize it, tap the strip to centre the lens there, and double-tap to show everything and again to go back. Vertical swipes that start on the strip still scroll the screen or move a sheet. The bars are content; the lens is the control, so it is the only glass."
+        },
+        {
+          "heading": "notes",
+          "content": "Pass the whole series as `[RangeLens.Sample]` (a date and a value each) and bind the window as a `ClosedRange<Date>`, from the date of its first sample to the date of its last. Keep both in your own state; `RangeLens.window(last: 42, of: days)` gives a good opening window, the last six weeks of daily samples. Samples are sorted by date for you; negative and non-finite values draw as zero."
+        },
+        {
+          "heading": "notes",
+          "content": "The readout names the window's `summary` (`.average`, the default, or `.total`, `.maximum`, `.minimum`) in a large numeral, with your `unit` beside it and the window's dates under it (\"3 Mar – 14 Apr\", with the year when the window crosses one or lies in an earlier year). `valueLabel` formats the numeral and what VoiceOver reads, for example a currency or minutes as a `Measurement`."
+        },
+        {
+          "heading": "notes",
+          "content": "The detail chart draws the window's samples as bars in the text color. Its ceiling follows the window's highest sample with a little headroom, so the bars always fill it; when the window changes, the ceiling moves on the value role and never overshoots, and the gridlines, on round values at most four, slide with it. The window's average is a red dashed rule with an \"avg\" chip on the value axis (`showsAverage: false` hides it); the rule follows the bars while they move."
+        },
+        {
+          "heading": "notes",
+          "content": "The strip draws every sample on one scale in one `Canvas`, on a quiet track: dim outside the window, bright inside it. The lens is the only glass: a slab over the window with a narrow glass handle joined to each end by a liquid neck, all in one `PieceLiquidGroup`. Bars outside the window lie under the glass; the window's bars sit on the slab, crisp. Month marks run under the strip (years for long series, weeks or days for short ones), thinned evenly so they never crowd, and January names its year."
+        },
+        {
+          "heading": "notes",
+          "content": "Drag the slab to move the window: it follows the finger, swells a little while held, and past either end of the series gives with rubber-band resistance. Drag a handle, or within about 22 points of an edge, to resize: the handle swells and floods red while held, stops firmly at `minimumSpan` samples (a week by default) and never inverts. Let go and the lens coasts a little with the flick and lands on whole samples. A drag that starts off the lens brings the lens to the finger first."
+        },
+        {
+          "heading": "notes",
+          "content": "Tap the strip beside the lens to centre the lens there. Double-tap to show the whole series, and double-tap again to go back to the window before it. A press held still for a moment also takes hold, for a careful move."
+        },
+        {
+          "heading": "notes",
+          "content": "The selection is written live while the lens moves, whenever the whole samples it rests on change, and once more when it lands. Set the selection yourself and the lens glides there; a window wider than the series shows all of it."
+        },
+        {
+          "heading": "notes",
+          "content": "Horizontal drags and held presses belong to the lens; vertical swipes that start on the strip still scroll the screen or move a sheet, since the strip's recognizers only begin for a mostly horizontal drag."
+        },
+        {
+          "heading": "notes",
+          "content": "Haptics: a selection tick when the moving edge crosses into another week (another month for weekly samples, a year for monthly ones), a light tap when a handle is grabbed and on Show all, and a soft bump when the lens meets an end of the series or its minimum span. Never per frame."
+        },
+        {
+          "heading": "notes",
+          "content": "States: an empty series shows `messages.empty` in place of the numeral, a baseline and the bare track, with no lens; one sample shows that sample; all zeros draw a flat strip and a zero axis. While your data loads, apply `.redacted(reason: .placeholder)`: the bars draw as quiet placeholders and the text redacts. Hundreds of samples stay smooth: both charts are single `Canvas` passes and the series is sorted and summed once per change, never on a drag step."
+        },
+        {
+          "heading": "notes",
+          "content": "VoiceOver reads the readout (\"Average 8,412 steps a day, 3 March to 14 April\"), then the detail chart, which also plays the window's samples as an audio graph, then the lens: an adjustable element named \"Range\" whose value is the dates and the summary. Swipe up or down to move it a step (a week of daily samples); the Widen, Narrow and Show all (then Back to previous range) actions change its size and announce the result."
+        },
+        {
+          "heading": "notes",
+          "content": "Hardware keyboard: with the strip focused, the left and right arrows move the window a step, up and down widen and narrow it, and Space toggles Show all."
+        },
+        {
+          "heading": "notes",
+          "content": "Reduce Motion: the lens lands and resizes on a short spring with no overshoot and doesn't swell, the detail cross-fades to a new scale instead of growing, and the numeral and dates cross-fade instead of rolling. Under the finger the numeral and dates change in place in every mode, so they stay legible."
+        },
+        {
+          "heading": "notes",
+          "content": "Dynamic Type scales the readout, the axis values and the marks (the axis and marks stop growing before they crowd the charts); the numeral and unit stack when they no longer fit on one line. Right to left, time runs from the right: the latest samples, the lens and the value axis sit on the left. All text is one weight, semibold."
+        },
+        {
+          "heading": "notes",
+          "content": "`Style` sets the accent (the average rule, its chip and a held handle) and the ink on it, the text, secondary and axis colors, the dim color of the bars outside the window (a solid mix into the ground, never transparency), the gridlines, the track, the detail chart's height and the numeral size. Under Increase Contrast the bars outside the window take the secondary color. `Messages` replaces any line of built-in copy, such as `average: \"Daily average\"`."
+        },
+        {
+          "heading": "parameters",
+          "content": "Parameter"
+        },
+        {
+          "heading": "parameters",
+          "content": "Description"
+        },
+        {
+          "heading": "parameters",
+          "content": "`samples`"
+        },
+        {
+          "heading": "parameters",
+          "content": "The series, one value per date: daily steps, revenue, hours slept, a price. Sorted by date for you. Values that are negative or not finite draw as zero. An empty series shows `messages.empty`; one sample shows that sample."
+        },
+        {
+          "heading": "parameters",
+          "content": "`selection`"
+        },
+        {
+          "heading": "parameters",
+          "content": "The window, from the date of its first sample to the date of its last. The lens writes it live while it moves and lands it on whole samples. Set it from outside and the lens glides there; a window wider than the series shows all of it. `RangeLens.window(last:of:)` makes a good starting value."
+        },
+        {
+          "heading": "parameters",
+          "content": "`summary`"
+        },
+        {
+          "heading": "parameters",
+          "content": "The figure the readout shows for the window: `.average` (the default), `.total`, `.maximum` or `.minimum`."
+        },
+        {
+          "heading": "parameters",
+          "content": "`unit`"
+        },
+        {
+          "heading": "parameters",
+          "content": "What the numbers count, shown after the numeral and read by VoiceOver, such as \"steps a day\". `nil` shows the numeral alone."
+        },
+        {
+          "heading": "parameters",
+          "content": "`minimumSpan`"
+        },
+        {
+          "heading": "parameters",
+          "content": "The fewest samples the window may cover. Resizing stops firmly there and the window never inverts. Defaults to 7, a week of daily samples."
+        },
+        {
+          "heading": "parameters",
+          "content": "`showsAverage`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Draws the window's average as a red dashed rule across the detail chart with an \"avg\" chip on its value axis."
+        },
+        {
+          "heading": "parameters",
+          "content": "`messages`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Built-in copy. Defaults are localizable through your String Catalog; replace any line, for example `average: \"Daily average\"`."
+        },
+        {
+          "heading": "parameters",
+          "content": "`style`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Colors and sizes. Defaults to the SwiftPieces house palette with the red accent, adapting to light and dark."
+        },
+        {
+          "heading": "parameters",
+          "content": "`valueLabel`"
+        },
+        {
+          "heading": "parameters",
+          "content": "How a value reads in the readout and to VoiceOver, for example `{ $0.formatted(.currency(code: \"EUR\")) }`. Defaults to whole numbers from 100 up and one decimal below that."
         }
       ],
       "headings": [
@@ -10094,6 +10406,218 @@
     }
   },
   {
+    "url": "/docs/components/media/now-playing",
+    "title": "Now Playing",
+    "description": "A mini player that grows into the full player in one continuous liquid glass motion: a glass bar with the artwork, the title over the artist and a red progress hairline, with a red play bubble and a forward bubble joined to its end. Tap it or pull it up and the bar stretches with the finger, then settles open with the flick's speed: the same glass grows into a card, the artwork, title and play button fly to their places, and previous and next bud out of play. Scrub the track with a swelling thumb while the times follow, skip with a letter by letter title morph and a blurred artwork swap, and drag the card down to fold it back into the bar. Playback stays the app's: the piece shows the time it is given and reports taps, skips and seeks.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Components",
+      "Categories · 14",
+      "Media"
+    ],
+    "structuredData": {
+      "contents": [
+        {
+          "content": "A mini player that grows into the full player: one liquid glass shape that morphs from a bar into a card. Collapsed, it is a glass bar with the artwork, the title over the artist and a red progress hairline, with a red play bubble and a forward bubble joined to its end. Tap it, or pull it up (it stretches with the finger), and the same glass grows into a card: the artwork, title and play button fly to their places, previous and next bud out of play, and a scrubber and the times blur in. Drag the card down, or tap its grabber, to fold it back. Playback is the app's. The piece never runs a clock: it shows the `time` it is given, and calls back when people play, pause, skip or seek. Put it in the bottom safe area inset of your screen; the card opens over the content above the bar. `swift .safeAreaInset(edge: .bottom) { NowPlaying(title: track.title, artist: track.artist, isPlaying: player.isPlaying, time: player.time, duration: track.duration, expanded: $showsPlayer, onPlayPause: { player.toggle() }, onSkip: { player.skip($0) }, onSeek: { player.seek(to: $0) }) { track.artwork.resizable().scaledToFill() } .padding(.horizontal, 12) } `"
+        },
+        {
+          "heading": "notes",
+          "content": "Put it in the bottom safe area inset of your main screen, `.safeAreaInset(edge: .bottom) { NowPlaying(…).padding(.horizontal, 12) }`. Its layout size is only the bar, so your scroll content stops above it, and the card opens over the content above the bar, never past the top safe area."
+        },
+        {
+          "heading": "notes",
+          "content": "Playback is yours. The piece never runs a clock: pass your player's `time`, `duration` and `isPlaying`, and act in `onPlayPause`, `onSkip` and `onSeek`. Time updates are eased linearly over the gap between them, so a player that reports once a second still creeps smoothly."
+        },
+        {
+          "heading": "notes",
+          "content": "Collapsed, it is a glass bar (the artwork, the title over the artist, a red progress hairline) with a red play bubble and a forward bubble joined to its end on liquid necks. Tap the bar, or pull it up: the glass stretches after the finger with a rubber band's resistance, and a pull or flick that would carry past 72 points opens it; a shorter one springs back."
+        },
+        {
+          "heading": "notes",
+          "content": "Opening is one continuous morph: forward melts into play, the same glass grows into the card, the artwork flies from its tile to its square, play flies to the middle of the transport and swells, and previous and next bud out of play and rest apart from it. The title and artist blur out as they leave the bar and back in at the card's size, so they never cross the growing artwork. A pull carries the finger's speed into the morph."
+        },
+        {
+          "heading": "notes",
+          "content": "Drag the card down from anywhere but the scrubber and it follows the finger; let go past about a fifth of its height, or flick, and it closes: the controls blur out, previous and next melt home, the card folds into the bar and forward buds back out. Tap the grabber to close it too. `expanded` follows every change, and setting it from your code runs the same choreography."
+        },
+        {
+          "heading": "notes",
+          "content": "The scrubber: touch the track anywhere and the thumb jumps under the finger and swells; the times follow, your player's updates are ignored while the finger is down, and `onSeek` fires once on release. The thumb then holds the new position until your `time` catches up (or a second and a half passes), so it never jumps back. `onSeek: nil` makes it a read-only progress bar."
+        },
+        {
+          "heading": "notes",
+          "content": "Skipping: `.tracks` calls `onSkip(.previous)` or `onSkip(.next)`; the title morphs letter by letter and the artwork blurs into the new one when your title changes. `.seconds(back: 15, forward: 30)` (or `.podcast`) shows `gobackward.15` and `goforward.30` and seeks through `onSeek` instead. Without a handler the skip bubbles don't appear."
+        },
+        {
+          "heading": "notes",
+          "content": "States: a `duration` of `0` is a live stream (no hairline, no scrubber, Live in place of the times); an empty `title` shows \"Not playing\"; long titles truncate in one line; the default artwork is a sand tile with a note."
+        },
+        {
+          "heading": "notes",
+          "content": "The card's artwork fills its width and the card hugs the height left above the bar: on a short window it shrinks, and in landscape or at the largest text sizes the card switches to a row with a small artwork beside the lines."
+        },
+        {
+          "heading": "notes",
+          "content": "VoiceOver: collapsed, the bar is one button, \"Now playing, Slow Mornings, Aster Vale\", valued Playing or Paused, with Play or Pause, Next track and Open player actions. Open, focus moves to the title (a header); the scrubber is adjustable in steps of 15 seconds and reads \"1 minute, 12 seconds of 3 minutes, 42 seconds\"; the transport and the grabber (\"Close player\") are buttons, and the escape gesture closes. A skip announces the new title and artist."
+        },
+        {
+          "heading": "notes",
+          "content": "Hardware keyboard: Space plays or pauses, Return opens, Escape closes, and the left and right arrows seek 15 seconds while open."
+        },
+        {
+          "heading": "notes",
+          "content": "Reduce Motion: no stretch under the finger, the glass changes shape on a short ease without overshoot, the artwork and lines fade out and back in at their new places instead of flying, and the bubbles fade in place."
+        },
+        {
+          "heading": "notes",
+          "content": "Dynamic Type: the lines, the artwork tile and the mini buttons scale, the bar grows taller and the lines truncate; the card's line heights follow, and its artwork gives way first. Right to left mirrors the bar and the card's lines; the transport, the scrubber and the hairline keep left to right, as media controls do."
+        },
+        {
+          "heading": "notes",
+          "content": "Haptics: a light impact on play and pause, a selection tick on skip and when a finger grabs the scrubber, and a soft impact when the player lands open or closed."
+        },
+        {
+          "heading": "notes",
+          "content": "Red marks three things only: the play bubble, the progress hairline and the played part of the track. Everything else is clear glass and house ink. All text is one weight, semibold."
+        },
+        {
+          "heading": "notes",
+          "content": "`Style` sets the accent and its ink, the label colours, the track, the thumb, the grabber and the placeholder tile. `Messages` replaces any of the copy and the VoiceOver strings, such as `untitled: \"Nothing queued\"`."
+        },
+        {
+          "heading": "parameters",
+          "content": "Parameter"
+        },
+        {
+          "heading": "parameters",
+          "content": "Description"
+        },
+        {
+          "heading": "parameters",
+          "content": "`title`"
+        },
+        {
+          "heading": "parameters",
+          "content": "The track, episode or station. It morphs letter by letter when it changes, and truncates when it doesn't fit. An empty title shows `messages.untitled`."
+        },
+        {
+          "heading": "parameters",
+          "content": "`artist`"
+        },
+        {
+          "heading": "parameters",
+          "content": "The secondary line: the artist, show or author."
+        },
+        {
+          "heading": "parameters",
+          "content": "`isPlaying`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Whether the app is playing. The red play bubble shows pause while it is `true`."
+        },
+        {
+          "heading": "parameters",
+          "content": "`time`"
+        },
+        {
+          "heading": "parameters",
+          "content": "The playback position in seconds, from your player. Updates between ticks are eased, so the hairline and the scrubber creep smoothly at any update rate. While people scrub, updates are ignored."
+        },
+        {
+          "heading": "parameters",
+          "content": "`duration`"
+        },
+        {
+          "heading": "parameters",
+          "content": "The length in seconds. `0` (or any value that isn't positive and finite) is a live stream: the hairline, the scrubber and the times give way to `messages.live`."
+        },
+        {
+          "heading": "parameters",
+          "content": "`expanded`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Whether the full player is open. Bind it to open or close the player from your own code; any change animates."
+        },
+        {
+          "heading": "parameters",
+          "content": "`skipping`"
+        },
+        {
+          "heading": "parameters",
+          "content": "What the skip buttons do: `.tracks` (previous and next, through `onSkip`, the default) or `.seconds(back:forward:)` for podcasts and audiobooks (through `onSeek`)."
+        },
+        {
+          "heading": "parameters",
+          "content": "`messages`"
+        },
+        {
+          "heading": "parameters",
+          "content": "The built-in copy and VoiceOver strings. Defaults are localizable through your String Catalog; replace any line."
+        },
+        {
+          "heading": "parameters",
+          "content": "`style`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Colors. Defaults to the SwiftPieces house palette, adapting to light and dark, with red for play, the hairline and the played part of the track."
+        },
+        {
+          "heading": "parameters",
+          "content": "`onPlayPause`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Called when the play bubble is tapped (or Space is pressed). Toggle your player here."
+        },
+        {
+          "heading": "parameters",
+          "content": "`onSkip`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Called with `.previous` or `.next` in `.tracks` mode. `nil` hides the skip bubbles."
+        },
+        {
+          "heading": "parameters",
+          "content": "`onSeek`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Called once with the new position when a scrub ends, a seconds skip is tapped, or VoiceOver adjusts the scrubber. `nil` makes the scrubber a read-only display."
+        },
+        {
+          "heading": "parameters",
+          "content": "`artwork`"
+        },
+        {
+          "heading": "parameters",
+          "content": "The artwork, filled into a square. Omit it for a house tile with a note. It blurs into the new one whenever the title or artist changes."
+        }
+      ],
+      "headings": [
+        {
+          "id": "notes",
+          "content": "Notes"
+        },
+        {
+          "id": "usage",
+          "content": "Usage"
+        },
+        {
+          "id": "parameters",
+          "content": "Parameters"
+        },
+        {
+          "id": "source",
+          "content": "Source"
+        }
+      ]
+    }
+  },
+  {
     "url": "/docs/components/media/photo-cropper",
     "title": "Photo Cropper",
     "description": "A crop step for profile photos, posts and listings that keeps the picked photo covering a frame of the chosen aspect at every zoom and offset, pinches around the fingers while it pans, rubber-bands past its limits and springs back with a red flash on the frame and a rigid tick at a zoom limit, morphs between circle, square, 4:5, 16:9 and the photo's own shape without losing the subject as a red liquid glass puck stretches along the aspect chips' glass track, turns a quarter at a time, fades in a rule-of-thirds grid under the finger, floats its zoom level over the photo on glass, and renders the crop off the main thread at the original's full resolution together with its pixel rect and rotation for cropping again on a server.",
@@ -10582,6 +11106,386 @@
     }
   },
   {
+    "url": "/docs/components/media/voice-recorder",
+    "title": "Voice Recorder",
+    "description": "The hold-to-record voice message button for chat, notes, journaling and support composers: press and hold the glass mic beside your field and it swells red as a glass recording capsule buds out of it over the field, with a live clock and speech bars scrolling toward the edge and a lock lane budding up above it; slide toward the leading edge and a glass bin buds out to take the recording, which tips closed and melts away, slide up the lane to lock for hands-free recording with a red send button and a trash bubble, or simply let go to send an .m4a with its duration and waveform samples ready for Waveform Scrub, with the microphone permission flow, a teaching hint for taps that are too short, a red countdown over the last ten seconds, interruptions and a simulated source for previews all handled.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Components",
+      "Categories · 14",
+      "Media"
+    ],
+    "structuredData": {
+      "contents": [
+        {
+          "content": "The hold-to-record voice message button for a chat, notes, journaling or support composer. Your field sits at rest with a glass mic beside it. Press and hold the mic: after a short beat (so taps and scrolls never record) it swells red and a glass capsule buds out of it over your field, with the elapsed time and live speech bars scrolling toward the leading edge, while a lock lane buds up above it. Then one of three things: - Let go to send. The capsule melts back into the mic and `onSend` gets a `Recording`: an `.m4a` in the temporary directory, its duration, and loudness samples that drop straight into `WaveformScrub(samples:)`. - Slide toward the leading edge to discard. A glass bin buds out at the threshold; let go there (or keep going) and the capsule gathers into it, it tips closed and melts away, the file is deleted and `onCancel` runs. - Slide up the lane to lock. The recorder goes hands-free: the mic turns into a red send button and a trash bubble buds out of the capsule. Tap send to finish or trash to discard. Holds shorter than `minimumDuration` and plain taps are discarded with a small hint that teaches the gesture. The first press asks for the microphone (add `NSMicrophoneUsageDescription` to your Info.plist); when access is off the hint offers Settings. Over the last ten seconds before `maximumDuration` the time counts down on red, and at the maximum the take is sent. A call, Siri, an alarm, a lost route, the app going to the background or the view going away discards a held take and stops a locked one, keeping it so Send and Delete still work. `swift @State private var draft = \"\" VoiceRecorder { recording in chat.sendVoice(recording.url, duration: recording.duration, waveform: recording.samples) } content: { TextField(\"Message\", text: $draft) } ` Pass a `Session` you own to drive it from code (`start()`, `lock()`, `send()`, `cancel()`) or to read its `phase` and `level`; `Session(source: .simulated)` records a speech-like tone instead of the microphone, for previews and the simulator."
+        },
+        {
+          "heading": "notes",
+          "content": "One liquid glass control beside your field. At rest a glass mic rests apart from your content at the trailing end. Recording, the mic swells red and a glass capsule buds out of it over your content, joined to it by a short neck, while a narrow lock lane buds up out of it above. Hands-free, a trash bubble buds out of the capsule's leading end and the mic becomes a red send button. Red appears only on the recording mic, the send button, the recording dot and the last-ten-seconds countdown. On iOS 26 this is Liquid Glass; before that, a frosted material; under Reduce Transparency, solid fills."
+        },
+        {
+          "heading": "notes",
+          "content": "Put it where your composer is, usually in `.safeAreaInset(edge: .bottom)` under a chat `ScrollView`, and pass your field as `content`. Your content is shown as it is (style it yourself) and fills the leading space; it fades out under the capsule while recording and comes back as the capsule melts home. Without `content` the mic rests alone at the trailing end and the capsule spans the whole width."
+        },
+        {
+          "heading": "notes",
+          "content": "Add `NSMicrophoneUsageDescription` to your Info.plist (the piece's metadata carries \"Records voice messages you send.\"). The first press asks for the microphone and records nothing; when access is granted the hint \"Hold to record, release to send\" buds out, and when it is off the hint reads \"Microphone access is off\" with Settings, which opens your app's settings. Without the usage description it never asks (asking would end the app): it shows the access hint and, in debug builds, prints a reminder."
+        },
+        {
+          "heading": "notes",
+          "content": "Press and hold: after 0.18 seconds with the finger still, recording starts with a medium tap. A quicker tap, or a hold shorter than `minimumDuration` (0.6 seconds), is discarded and teaches the gesture with the hint. A finger that moves first is a scroll: the press gives way and the enclosing scroll view or sheet moves as usual. Once recording, nothing steals the drag."
+        },
+        {
+          "heading": "notes",
+          "content": "Let go to send. The capsule melts back into the mic with a light tap and `onSend` gets a `Recording`: `url`, an AAC `.m4a` (24 kHz, mono) in the temporary directory that is now yours to upload, move or delete; `duration` in seconds; and `samples`, loudness from 0 to 1 at about 20 a second (at most 160, the peak of each stretch), ready for `WaveformScrub(samples:duration:…)`."
+        },
+        {
+          "heading": "notes",
+          "content": "Slide toward the leading edge to discard. The mic follows the finger, the capsule shortens with it, \"Slide to cancel\" is eaten from its far end and fades, and the lock lane melts away. At the threshold (110 points, less on narrow screens) a glass bin buds out at the leading end with a selection tick; let go there, or keep going well past it, and the capsule gathers into the bin, which tips closed and melts away with a warning tap. The file is deleted and `onCancel` runs. Back short of the threshold, the bin melts home and everything returns."
+        },
+        {
+          "heading": "notes",
+          "content": "Slide up to lock. The lane stretches with the finger; 56 points up the lock shuts with a rigid tick, the lane melts into the mic, the trash bubble buds out of the capsule and the mic turns into the red send button. Tap send to finish, tap trash to discard. A hold on the send button sends when it lifts."
+        },
+        {
+          "heading": "notes",
+          "content": "The capsule shows a red dot that breathes once a second, the elapsed time (`0:07`, `1:02:07` when takes can run an hour; monospaced, so nothing shifts) and live bars, one every tenth of a second, scrolling toward the leading edge from beside the mic. Before there is sound the row is quiet dots. Over the last ten seconds before `maximumDuration` (5 minutes) the time counts down on a red block with ink digits, and at the maximum the take is sent, held or locked, with a success tap."
+        },
+        {
+          "heading": "notes",
+          "content": "Interruptions: a call, Siri, an alarm, a lost audio route, reset media services, the app leaving the foreground, the control being disabled or the view going away discard a held take (the hint reads \"Recording stopped\" and `onCancel` runs) and stop a hands-free one, keeping it: the dot greys, the time and bars freeze, and Send and Delete still work. The audio session is set to play and record for each take and put back to the app's own category afterwards with `.notifyOthersOnDeactivation`, so other apps' audio resumes."
+        },
+        {
+          "heading": "notes",
+          "content": "Recording runs off the main actor. Takes are numbered, so a release during a slow microphone start never leaves a recorder running, and every discarded take's file is deleted. A take is too short by how long it was held, so a slow start never turns a real hold into a hint."
+        },
+        {
+          "heading": "notes",
+          "content": "`VoiceRecorder.Session` is the recorder's state and audio. Keep one in `@State` and pass `session:` to drive it from code: `start()` (hands-free at once), `press()` and `release()` (push-to-talk from your own control), `lock()`, `send()` and `cancel()`. Read `phase` (`.idle`, `.holding`, `.locked`, `.stopped`), `level` (0 to 1, live) and `elapsed`, for example to dim the conversation while recording. One session drives one recorder."
+        },
+        {
+          "heading": "notes",
+          "content": "`Session(source: .simulated)` records no microphone and needs no permission: a deterministic speech-like level (phrases with short pauses) drives the bars, and the sent file is a soft tone shaped by it, so the URL plays and its waveform matches. Use it in SwiftUI previews, on the simulator and for screenshots."
+        },
+        {
+          "heading": "notes",
+          "content": "Haptics: medium when recording starts, a selection tick at the discard threshold (both ways), rigid when it locks, a warning on discard, light on send, soft with a hint, success when the maximum sends it. Never per frame."
+        },
+        {
+          "heading": "notes",
+          "content": "VoiceOver can't hold and drag, so the mic is a button, \"Record voice message\": a double tap starts a hands-free take at once, \"Recording\" is announced, and Send and Delete are buttons. The capsule is one element, \"Recording\", whose value is the elapsed time (\"12 seconds\", or \"9 seconds left\" in the countdown); it stays quiet while recording. The mic's actions are Record, and while recording Send and Delete. Escape (the two-finger scrub) deletes, and a two-finger double tap starts or sends. Hints are announced."
+        },
+        {
+          "heading": "notes",
+          "content": "Hardware keyboard: while hands-free, Return sends and Escape deletes."
+        },
+        {
+          "heading": "notes",
+          "content": "Reduce Motion: the mic doesn't swell, the chevrons don't drift, the capsule, lane, bin and hints open and close in place instead of budding, the bin doesn't tip, and digit changes fade. The bars still move: they are information. Pressed buttons dim instead of sinking."
+        },
+        {
+          "heading": "notes",
+          "content": "Dynamic Type: the capsule, mic and glyphs grow with the text, part way and up to 1.4 times, so the bars keep their room; the time stops growing at the largest standard size. At accessibility sizes \"Slide to cancel\" drops to its chevron, and hints wrap onto more lines. All text is one weight, semibold."
+        },
+        {
+          "heading": "notes",
+          "content": "Right to left mirrors everything: the mic sits on the left, discards slide to the right (the leading edge), the bars scroll right and the chevron points right. Hints wrap in the reading direction."
+        },
+        {
+          "heading": "notes",
+          "content": "`Style` sets the red accent and the ink on it, the label and secondary label colours, the bars' colour, width and spacing, and the control's height (52 points, at least 44). `Messages` replaces any of the copy, such as `slideToCancel: \"Slide to delete\"` or `holdToRecord`; every default goes through your String Catalog."
+        },
+        {
+          "heading": "notes",
+          "content": "Wire it up: in `onSend`, upload `recording.url` (or move it into your app's storage first), keep `duration` and `samples` with the message, and show it with `WaveformScrub(samples: message.samples, duration: message.duration, …)`. Delete the file once it is uploaded."
+        },
+        {
+          "heading": "parameters",
+          "content": "Parameter"
+        },
+        {
+          "heading": "parameters",
+          "content": "Description"
+        },
+        {
+          "heading": "parameters",
+          "content": "`session`"
+        },
+        {
+          "heading": "parameters",
+          "content": "The recorder's state and audio. Pass your own to drive it from code or read its phase and level, or a `Session(source: .simulated)` for previews and the simulator. `nil`, the default, keeps one inside the view that records from the microphone."
+        },
+        {
+          "heading": "parameters",
+          "content": "`maximumDuration`"
+        },
+        {
+          "heading": "parameters",
+          "content": "The longest take, in seconds. Over the last ten seconds the time counts down on red, and at the maximum the take is sent, held or locked. Defaults to 5 minutes."
+        },
+        {
+          "heading": "parameters",
+          "content": "`minimumDuration`"
+        },
+        {
+          "heading": "parameters",
+          "content": "The shortest take that is sent, in seconds. Anything shorter, and any tap on the mic, is discarded with a hint that teaches the gesture. Defaults to 0.6 seconds."
+        },
+        {
+          "heading": "parameters",
+          "content": "`messages`"
+        },
+        {
+          "heading": "parameters",
+          "content": "The piece's copy: the hints, \"Slide to cancel\" and the VoiceOver labels. Defaults are localizable through your String Catalog; replace any line."
+        },
+        {
+          "heading": "parameters",
+          "content": "`style`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Colours, the control's height and the bars. Defaults to the SwiftPieces house palette, adapting to light and dark, with red for the recording mic, the send button and the countdown."
+        },
+        {
+          "heading": "parameters",
+          "content": "`onSend`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Called with each finished take. The file is yours: upload it, move it out of the temporary directory, or delete it once sent."
+        },
+        {
+          "heading": "parameters",
+          "content": "`onCancel`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Called when a take is discarded: slid away, deleted, or stopped by an interruption while held. The file is already deleted. Not called for takes that are too short."
+        },
+        {
+          "heading": "parameters",
+          "content": "`content`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Your composer, usually a text field. It fills the leading space at rest and hides under the recording capsule while recording."
+        }
+      ],
+      "headings": [
+        {
+          "id": "notes",
+          "content": "Notes"
+        },
+        {
+          "id": "usage",
+          "content": "Usage"
+        },
+        {
+          "id": "parameters",
+          "content": "Parameters"
+        },
+        {
+          "id": "source",
+          "content": "Source"
+        }
+      ]
+    }
+  },
+  {
+    "url": "/docs/components/media/waveform-scrub",
+    "title": "Waveform Scrub",
+    "description": "A voice note player whose waveform is the scrubber: a red play button joined to a glass capsule of bars resampled from any number of samples to the width it gets, inked crisply mid-bar as your app's playback moves, a touch that drops the playhead under the finger, lifts the bars around it and buds a glass time bubble up out of the capsule that rides the finger and melts home as one seek is sent on release, a speed chip that morphs through 1×, 1.5× and 2×, quiet shimmering dots while the waveform loads, and a helper that reads the peaks of an audio file off the main thread.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Components",
+      "Categories · 14",
+      "Media"
+    ],
+    "structuredData": {
+      "contents": [
+        {
+          "content": "A voice note player whose waveform is the scrubber, for voice messages, audio notes, journals and podcast clips. One liquid glass control: a red play button joined to a glass capsule that holds the waveform and the time, with an optional speed chip joined to its far end. Played bars are inked in the text colour and the rest stay muted, cut exactly at the playhead, mid-bar. Touch the waveform and the playhead drops under the finger, the bars around it rise, and a glass bubble with the time buds up out of the capsule and rides the finger; let go and it melts home and `onSeek` fires once. A tap seeks too. While a finger is down the `time` you pass is ignored, so playback updates never fight the scrub, and after the seek the playhead holds where you left it until your player catches up. A vertical drag that starts on the waveform still scrolls an enclosing scroll view. Playback is your app's: the piece never runs a clock of its own. Pass the player's `time` and `isPlaying`; between your updates the playhead glides on at the current speed, so a timer that reports a few times a second still draws smooth progress. `WaveformScrub.samples(from:count:)` reads the peaks of an audio file for `samples`, off the main thread. `swift @State private var player = VoiceNotePlayer(url: note.url)   // your AVAudioPlayer wrapper @State private var samples: [Float] = [] WaveformScrub(samples: samples, duration: player.duration, time: player.time, isPlaying: player.isPlaying, rate: $player.rate, onPlayPause: { player.toggle() }, onSeek: { player.seek(to: $0) }) .task { samples = (try? await WaveformScrub.samples(from: note.url)) ?? [] } `"
+        },
+        {
+          "heading": "notes",
+          "content": "One liquid glass control: a red play button joined to a glass capsule that holds the waveform and the time, and, when you pass `rate`, a smaller speed chip joined to the capsule's far end. Joined parts rest 4 points apart, so short liquid necks hold them together. Red appears only on the play button. On iOS 26 this is Liquid Glass; before that, a frosted material; under Reduce Transparency, solid fills."
+        },
+        {
+          "heading": "notes",
+          "content": "Playback is your app's. Pass your player's `time`, `duration` and `isPlaying`, start or pause it in `onPlayPause`, and move it in `onSeek`. The piece never runs a clock: between your updates the playhead glides on at the current speed for up to a second, so a periodic time observer or a timer that reports a few times a second still draws smooth progress, and a player that stops reporting never runs away."
+        },
+        {
+          "heading": "notes",
+          "content": "`samples` are loudness from 0 to 1, any count. They are resampled to the bars that fit the width (3 point bars, 2 points apart by default): the peak of each stretch when there are more samples than bars, smoothly in between when there are fewer. The loudest sample reaches full height and silence is a dot. Played bars are inked in the text colour and the rest stay muted, cut exactly at the playhead, mid-bar."
+        },
+        {
+          "heading": "notes",
+          "content": "Read `samples` from an audio file with `WaveformScrub.samples(from:count:)`: it decodes the file in chunks on a background thread (never the main actor), takes the peak of `count` equal stretches (160 by default) and scales them so the loudest is 1. Cancelling the calling task stops the read. Call it from `.task(id: url)` and store the result; it throws what `AVAudioFile` throws for a file it can't open."
+        },
+        {
+          "heading": "notes",
+          "content": "Touch the waveform and the playhead drops under the finger at once, the bars around it rise, and a glass bubble with the time buds up out of the capsule above the finger on a liquid neck and rides with it. Let go and the bubble melts home and `onSeek` fires once, with the time in seconds. A tap seeks too. Past either end the playhead stops at the start or the end with a soft tick. While a finger is down the `time` you pass is ignored, and after the seek the playhead holds where you let go until your `time` arrives near it (or 1.5 seconds pass), so it never jumps back while your player catches up."
+        },
+        {
+          "heading": "notes",
+          "content": "The bubble rises about 40 points above the control while a finger is down. Leave that room above it, or let it draw over what's there for that moment; at the very top of a scroll view, the scroll view's edge cuts it."
+        },
+        {
+          "heading": "notes",
+          "content": "Scrolling is never blocked. Touches come from a UIKit recognizer that begins on a sideways move and fails on a vertical one, and enclosing scroll views, sheets and the back swipe wait for it to fail. Inside a scroll view the press waits about a tenth of a second, so starting a scroll on the waveform never flashes the scrub."
+        },
+        {
+          "heading": "notes",
+          "content": "States: empty `samples` (the waveform is loading) shows a quiet row of dots with a soft light passing along them once a second (the dots hold still under Reduce Motion), and seeking still works. A `duration` of 0 (still unknown) turns seeking off. The time inside the capsule reads the total at the start and the elapsed time otherwise, in `0:42` form, or `1:12:30` from an hour; it keeps the width of the longest time, so the waveform never shifts. When the note has played to its end and stopped there, play turns to replay, and tapping it calls `onSeek(0)` and then `onPlayPause()`. Disabled (`.disabled(true)`), the control greys out, red included, and ignores touches."
+        },
+        {
+          "heading": "notes",
+          "content": "The speed chip cycles through `rates` (1×, 1.5× and 2× by default) on each tap, writing the `rate` binding with a selection tick, and its label morphs letter by letter. It keeps the width of the widest speed, so the waveform never moves, and its target is 44 points tall. Set your player's rate from the binding (`AVAudioPlayer.enableRate` must be on). Pass no `rate` for a plain voice note without the chip."
+        },
+        {
+          "heading": "notes",
+          "content": "Haptics: a light impact on play and pause, a selection tick when a finger grabs the waveform and when the speed changes, a soft tick when a scrub reaches the start or the end."
+        },
+        {
+          "heading": "notes",
+          "content": "VoiceOver: the play button reads Play, Pause or Play again. The waveform is one adjustable element labelled \"Voice note\" with a value such as \"12 seconds of 42 seconds\"; swipe up or down to move 5 seconds through `onSeek`. The speed chip is a button, \"Playback speed\", with a value such as \"1.5 times\" or \"Normal\". A two-finger double tap plays or pauses from anywhere on the control."
+        },
+        {
+          "heading": "notes",
+          "content": "Hardware keyboard: with the waveform focused, the arrow keys step 5 seconds (in reading order) and Space plays or pauses."
+        },
+        {
+          "heading": "notes",
+          "content": "Reduce Motion: the bars don't rise, the bubble fades in and out in place instead of budding, the glyph and digit changes cross-fade, and a seek while paused lands on a short spring with no overshoot."
+        },
+        {
+          "heading": "notes",
+          "content": "Dynamic Type: the text grows and the shapes follow it part way, up to 1.4 times, so the waveform keeps its room. The time inside the capsule and the speed stop growing at the largest standard size, the bubble at the first accessibility size. All text is one weight, semibold, with monospaced digits."
+        },
+        {
+          "heading": "notes",
+          "content": "Right to left: play stays on the leading side (now the right), the speed chip moves to the left, the bars play from the right and the time sits on the left of the capsule. The transport glyphs and the speed label are never mirrored."
+        },
+        {
+          "heading": "notes",
+          "content": "`Style` sets the play button's red and the glyph on it, the played and unplayed bars, the labels, the control's height (52 points, at least 44) and the bars' width and spacing. `Messages` replaces the VoiceOver labels, the speed label (\"1.5×\") and the position value (\"12 seconds of 42 seconds\"); every default goes through your String Catalog."
+        },
+        {
+          "heading": "notes",
+          "content": "Wire it to `AVAudioPlayer`: keep the player in an `@Observable` model, publish `currentTime` from a timer or `CADisplayLink` while playing, call `player.currentTime = seconds` in `onSeek`, set `player.rate` when `rate` changes, and set `isPlaying` false in `audioPlayerDidFinishPlaying`. For `AVPlayer`, read the time from `addPeriodicTimeObserver(forInterval:)` and seek with `seek(to:toleranceBefore: .zero, toleranceAfter: .zero)`."
+        },
+        {
+          "heading": "parameters",
+          "content": "Parameter"
+        },
+        {
+          "heading": "parameters",
+          "content": "Description"
+        },
+        {
+          "heading": "parameters",
+          "content": "`samples`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Loudness from 0 to 1, oldest first, any count: they are resampled to the bars that fit, the peak of each stretch when there are more samples than bars, smoothly in between when there are fewer, and scaled so the loudest reaches full height. Empty while the waveform loads: a quiet row of dots shimmers once a second in its place (they hold still under Reduce Motion), and seeking still works."
+        },
+        {
+          "heading": "parameters",
+          "content": "`duration`"
+        },
+        {
+          "heading": "parameters",
+          "content": "The note's length in seconds. Formats the times and maps the waveform to seconds. Zero (still unknown) draws the waveform but turns seeking off."
+        },
+        {
+          "heading": "parameters",
+          "content": "`time`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Where your player is, in seconds. Ignored while a finger is on the waveform. After a seek the playhead holds at the seek until `time` arrives near it, or 1.5 seconds pass."
+        },
+        {
+          "heading": "parameters",
+          "content": "`isPlaying`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Whether your player is playing. Swaps play for pause, and lets the playhead glide between your `time` updates at the current speed."
+        },
+        {
+          "heading": "parameters",
+          "content": "`rate`"
+        },
+        {
+          "heading": "parameters",
+          "content": "The playback speed. Shows a speed chip joined to the end of the capsule that cycles through `rates` on each tap; set your player's rate from it. `nil`, the default, hides the chip."
+        },
+        {
+          "heading": "parameters",
+          "content": "`rates`"
+        },
+        {
+          "heading": "parameters",
+          "content": "The speeds the chip cycles through, in order. Defaults to 1×, 1.5× and 2×."
+        },
+        {
+          "heading": "parameters",
+          "content": "`messages`"
+        },
+        {
+          "heading": "parameters",
+          "content": "The piece's copy: VoiceOver labels and the speed label. Defaults are localizable through your String Catalog; replace any line, for example `title` with \"Message from Ines\"."
+        },
+        {
+          "heading": "parameters",
+          "content": "`style`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Colours, the control's height and the bars' width and spacing. Defaults to the SwiftPieces house palette, adapting to light and dark, with red for the play button."
+        },
+        {
+          "heading": "parameters",
+          "content": "`onPlayPause`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Called when play or pause is tapped (and on Space or a two-finger double tap in VoiceOver). Start or pause your player. When the note has finished (`time` at `duration`, not playing), the button shows replay and `onSeek(0)` is called first."
+        },
+        {
+          "heading": "parameters",
+          "content": "`onSeek`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Called once when a scrub or tap ends, for each VoiceOver or arrow key step of 5 seconds, and with 0 before a replay, with the time in seconds to move your player to."
+        }
+      ],
+      "headings": [
+        {
+          "id": "notes",
+          "content": "Notes"
+        },
+        {
+          "id": "usage",
+          "content": "Usage"
+        },
+        {
+          "id": "parameters",
+          "content": "Parameters"
+        },
+        {
+          "id": "source",
+          "content": "Source"
+        }
+      ]
+    }
+  },
+  {
     "url": "/docs/components/motion/drag-to-dismiss",
     "title": "Drag to Dismiss",
     "description": "A modifier that lets a photo, card, or sheet follow a two-axis drag, rounds and shrinks it toward the finger with progress over a styled scrim, then springs back or is tossed off along the drag vector at the speed of the flick past a distance or velocity threshold. A liquid glass close bubble drops in at the top as the drag gets going, and a \"Release to close\" pill buds out of it on a liquid neck the moment the drag passes the threshold, melting back in if it falls short.",
@@ -11014,6 +11918,318 @@
     }
   },
   {
+    "url": "/docs/components/navigation/scroll-island",
+    "title": "Scroll Island",
+    "description": "A floating liquid glass island for long screens such as articles, recipes, docs, settings and product pages: it names the section in view and rings it in red with how much of the page has been read, morphs the title letter by letter as the page scrolls, buds a joined back-to-top bubble once the reader leaves the first section, scrubs sections under a sideways drag with a tick for each, and on a tap or a swipe up grows the same glass into a contents panel where a red puck stretches from row to row under the finger and the pick scrolls the page straight there.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Components",
+      "Categories · 14",
+      "Navigation"
+    ],
+    "structuredData": {
+      "contents": [
+        {
+          "content": "A floating section island for long scrolling screens: which part am I in, how much is left, and a way to jump. The island names the section in view, rings it with how much of the page has been read, and opens in place into the screen's contents. It reads and writes the same selection your scroll view's `scrollPosition(id:)` does, so scrolling the page moves the island and picking a section scrolls the page. Put it over the scroll view with `.overlay(alignment: .bottom)`: it keeps above the home indicator and the keyboard, and only takes touches on itself, so the page behind it keeps scrolling. `swift @State private var section: Recipe.Part.ID? @State private var read: Double? ScrollView { LazyVStack { ForEach(recipe.parts) { RecipePart($0).id($0.id) } } .scrollTargetLayout() } .scrollPosition(id: $section, anchor: .top) .overlay(alignment: .bottom) { ScrollIsland(sections: recipe.parts.map { .init(id: $0.id, title: $0.title, detail: $0.readingTime) }, selection: $section, progress: read) } ` How much has been read, from the scroll offset (iOS 18; leave `read` nil before that and the island estimates it): `swift .onScrollGeometryChange(for: Double.self) { geometry in let travel = geometry.contentSize.height + geometry.contentInsets.top + geometry.contentInsets.bottom - geometry.containerSize.height return travel > 0 ? (geometry.contentOffset.y + geometry.contentInsets.top) / travel : 1 } action: { _, fraction in read = min(max(fraction, 0), 1) } `"
+        },
+        {
+          "heading": "notes",
+          "content": "Put it over a long `ScrollView` with `.overlay(alignment: .bottom)`, and give the island the same binding as the scroll view's `scrollPosition(id:)`: each section's view carries `.id(section.id)` inside a `.scrollTargetLayout()`. Scrolling the page updates the island; a pick, a scrub, an arrow key or the back-to-top bubble sets the binding, and the scroll view takes the page there. A `nil` selection reads as the first section."
+        },
+        {
+          "heading": "notes",
+          "content": "It sits 8 points above the bottom safe area and 16 from each side, rides above the keyboard, and only takes touches on its own glass, so the page behind it keeps scrolling everywhere else."
+        },
+        {
+          "heading": "notes",
+          "content": "Closed, it is one glass capsule hugging its bar: a 26 point ring whose red arc is the part of the page read, the section's title (it morphs letter by letter as the page moves on, and truncates with an ellipsis when it can't fit), a quiet \"3 of 6\" and a chevron. One section shows its title alone; an empty list draws nothing."
+        },
+        {
+          "heading": "notes",
+          "content": "Pass `progress` from the scroll offset for a true reading (the doc comment and the example show the iOS 18 `onScrollGeometryChange` that computes it). `nil` estimates it from the section's place. The arc tracks a scroll as it goes and sweeps without overshoot after a jump."
+        },
+        {
+          "heading": "notes",
+          "content": "Once the reader is past the first section a round back-to-top bubble buds out of the island's leading end and rests joined to it on a short liquid neck. Tapping it selects the first section; it melts back into the island when the page is back at the top, and while the contents are open. `showsTopButton: false` leaves it out."
+        },
+        {
+          "heading": "notes",
+          "content": "Tap the island, or swipe up on it, and the same glass grows upward in place into the contents (up to `style.maxWidth`, 360 by default, and about 60% of the space it is given). The bar stays where it was, now reading the contents title and how much has been read; the rows arrive once the glass has grown and leave before it shrinks. Longer lists scroll inside the panel, opened on the current section."
+        },
+        {
+          "heading": "notes",
+          "content": "In the contents the current section sits on a red puck with its title in dark ink. Press a row, or slide over the rows (a swipe up that carries on onto a row does the same, like a menu), and the puck follows: its leading edge first and the far edge a beat behind, so it stretches toward each row and gathers on it, with a selection tick per row. Let go and the page jumps there as the panel melts back into the pill. Lifting off the rows, or a touch the system takes, picks nothing. When the rows scroll, a tap picks instead."
+        },
+        {
+          "heading": "notes",
+          "content": "Drag the closed island sideways to step through sections live, one per 32 points, with a tick for each; the title morphs as you go, the island gives with rubber-band resistance past the first and last, and letting go commits. The axis is decided after 8 points, so a swipe up opens it rather than scrubbing. Right to left mirrors the drag: later sections lie toward the trailing side."
+        },
+        {
+          "heading": "notes",
+          "content": "Bind `isExpanded` to open or close the contents from your own controls (a toolbar button, say) or to know when they are open; omit it and the island keeps that state itself. A selection that changes while the contents are open moves the puck."
+        },
+        {
+          "heading": "notes",
+          "content": "VoiceOver: closed, the island is one adjustable button, \"Contents\", with a value such as \"Method, Section 3 of 6, 62% read\" and the hint \"Shows every section\"; swipe up or down to step sections, double-tap to open. Open, focus moves into the list onto the current section; each row is a button with the selected trait and its reading time as the value, the bar closes the contents, and Escape (the two-finger scrub) closes them too. The bubble reads \"Back to top\"."
+        },
+        {
+          "heading": "notes",
+          "content": "Hardware keyboard: focus the island, then the left and right arrows step sections and Return, Space or the up arrow opens the contents; open, the up and down arrows move the puck, Return or Space picks and Escape closes."
+        },
+        {
+          "heading": "notes",
+          "content": "Reduce Motion: the glass grows and shrinks on a short ease, the puck slides on one short spring without stretching, the title cross-fades instead of morphing, the bubble appears and leaves in place, the scrub has no lift or give, and a press shades instead of sinking. Reduce Transparency draws solid surfaces through the shared foundation."
+        },
+        {
+          "heading": "notes",
+          "content": "Dynamic Type: the bar, the ring, the rows and the bubble scale. At the accessibility sizes the closed island drops the quiet position (VoiceOver still reads it) so the title keeps its room, and the contents scroll sooner. All text is one weight, semibold."
+        },
+        {
+          "heading": "notes",
+          "content": "Haptics: a selection tick for each section a scrub or the puck crosses, an arrow key or the bubble; a light impact when the contents open and close."
+        },
+        {
+          "heading": "notes",
+          "content": "Red is the read arc and the puck, nothing else. `Style` sets the accent, the ink on it, the label and secondary label colours, the ring's track and `maxWidth`. `Messages` replaces any of the copy: the contents title (such as \"On this page\"), the bubble's label, the hints, and the position, spoken position and read amount as closures over formatted numbers."
+        },
+        {
+          "heading": "parameters",
+          "content": "Parameter"
+        },
+        {
+          "heading": "parameters",
+          "content": "Description"
+        },
+        {
+          "heading": "parameters",
+          "content": "`sections`"
+        },
+        {
+          "heading": "parameters",
+          "content": "The screen's sections, in page order. Each has the `id` its view carries in the scroll view, a title and an optional short detail shown at the end of its row in the contents, such as a reading time. One section shows its title alone; none draws nothing."
+        },
+        {
+          "heading": "parameters",
+          "content": "`selection`"
+        },
+        {
+          "heading": "parameters",
+          "content": "The section in view, the same binding as the scroll view's `scrollPosition(id:)`. Scrolling the page updates it; picking a section, scrubbing the island or the back-to-top bubble sets it, which scrolls the page there. `nil` reads as the first section."
+        },
+        {
+          "heading": "parameters",
+          "content": "`progress`"
+        },
+        {
+          "heading": "parameters",
+          "content": "How much of the page has been read, from 0 to 1, drawn as the red arc of the ring and read out as \"62% read\". Compute it from the scroll offset (on iOS 18, `onScrollGeometryChange`). `nil` estimates it from the section's place in the list."
+        },
+        {
+          "heading": "parameters",
+          "content": "`isExpanded`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Bind it to open or close the contents from your own controls, such as a toolbar button, or to know when they are open. Omit it and the island keeps this state itself."
+        },
+        {
+          "heading": "parameters",
+          "content": "`showsTopButton`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Buds a round back-to-top bubble out of the island's leading end while the reader is past the first section. Defaults to `true`."
+        },
+        {
+          "heading": "parameters",
+          "content": "`messages`"
+        },
+        {
+          "heading": "parameters",
+          "content": "The island's copy. Defaults are localizable through your String Catalog; replace any line, such as `contents` with \"On this page\"."
+        },
+        {
+          "heading": "parameters",
+          "content": "`style`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Colors and the widest the island and its contents may grow. Defaults to the SwiftPieces house palette, adapting to light and dark, with red for the read arc and the contents' selection puck."
+        }
+      ],
+      "headings": [
+        {
+          "id": "notes",
+          "content": "Notes"
+        },
+        {
+          "id": "usage",
+          "content": "Usage"
+        },
+        {
+          "id": "parameters",
+          "content": "Parameters"
+        },
+        {
+          "id": "source",
+          "content": "Source"
+        }
+      ]
+    }
+  },
+  {
+    "url": "/docs/components/navigation/step-trail",
+    "title": "Step Trail",
+    "description": "A liquid glass progress trail for checkout, booking, account setup and verification flows: every step a glass stop joined to the next by a short neck, done steps carrying a check, the current step a red capsule with its number and title, steps people already reached in full text and the rest muted; moving on stretches the red from one stop to the next and gathers it there while the old title blurs into a check, a tap goes back to any step already reached, a tap ahead of that shakes the stop and nothing moves, a sideways drag carries the capsule stop by stop with a tick each and gives at the last step it may reach, and when the titles don't fit the capsule keeps its number, the caption names the step and the stops shrink rather than wrap or clip.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Components",
+      "Categories · 14",
+      "Navigation"
+    ],
+    "structuredData": {
+      "contents": [
+        {
+          "content": "A step progress indicator for multi-step flows that shows where you are, what is done, and lets people go back without letting them jump ahead of what they have filled in. The stops are liquid glass resting joined, so the whole trail reads as one shape with short necks. Done steps carry a check, the current step is a red capsule with its number and title, steps people have already reached beyond the current one show their number in full text, and steps not reached yet show it muted. Moving to another step stretches the red from one stop to the other, its leading edge first, and gathers it there, while the titles and checks blur over. Tap a done or reached step to go there. A tap on a step that hasn't been reached shakes that stop and nothing moves. Drag sideways along the trail to carry the capsule across the reachable steps, with a tick on each; it gives at the last one it may reach and lands where you let go. Vertical swipes still scroll the screen. When the trail doesn't fit, the capsule drops its title (the caption names the step instead), and then the stops shrink. It never wraps and never clips. The trail hugs its content and starts at the leading edge, keeping the width of its widest step so nothing around it moves."
+        },
+        {
+          "heading": "notes",
+          "content": "Put it at the top of a checkout, booking, account setup or verification flow and bind `selection` to the step your flow shows: `StepTrail(steps: [\"Cart\", \"Address\", \"Payment\", \"Review\"], selection: $step)`. Your Continue button moves on with `step += 1`; the trail never changes steps on its own except when a person taps or drags it."
+        },
+        {
+          "heading": "notes",
+          "content": "To let people return forward after going back, keep the furthest step they have filled in and pass it as `reached`: `.onChange(of: step) { _, value in furthest = max(furthest, value) }`. Without it, only earlier steps can be revisited. Lower `furthest` yourself when an edit invalidates later steps."
+        },
+        {
+          "heading": "notes",
+          "content": "Every stop is liquid glass, resting joined, so the trail reads as one shape with short necks. Done steps carry a check, the current step is a red capsule with its number and title in dark ink, steps already reached beyond the current one show their number in full text and steps not reached yet show it muted. Red marks the current step and nothing else."
+        },
+        {
+          "heading": "notes",
+          "content": "Moving to another step closes one capsule and opens the other while the red stretches across: the edge facing the move leads and the far edge lets go a beat later, so the red reaches over the neck and gathers on the new stop. The old title blurs out as its capsule shrinks into a circle and its check blurs in; the new title blurs in as the capsule opens. A move made while another is still landing picks up from where everything is."
+        },
+        {
+          "heading": "notes",
+          "content": "Tap a done or reached step to go there, with a selection tick. A tap on a step that hasn't been reached shakes that stop with a firm tick and nothing moves. A tap on the current step does nothing."
+        },
+        {
+          "heading": "notes",
+          "content": "Drag sideways along the trail to carry the capsule across the reachable steps. It lifts under the finger, moves to a stop once the finger is a little past the midpoint (so it never flickers between two), ticks on each, and between stops its facing edge reaches toward the finger with rubber-band resistance. At the last step it may reach it only gives, with one firm tick, and let go it lands where it is: the binding changes once, on release. The drag starts only when it runs sideways, so vertical swipes that begin on the trail still scroll the screen or move a sheet."
+        },
+        {
+          "heading": "notes",
+          "content": "Set `selection` to `steps.count` when the flow completes: every stop shows a check, the red drains from the last capsule and the trail lands with one small beat. The caption and VoiceOver read \"Complete\". Tapping a done step from there goes back to it, like any other done step; disable the trail if the flow is final."
+        },
+        {
+          "heading": "notes",
+          "content": "When the titles don't fit, the capsule keeps only its number and the caption names the step (\"ID photo Step 4 of 6\"); when the numbers don't fit either, the stops shrink to fit. It never wraps and never clips. The trail hugs its content, starts at the leading edge and keeps the width of its widest step, so nothing around it moves as the capsule changes. Whether titles show is decided by the longest title, so the form never flips between steps. Titles longer than `Style.maximumTitleWidth` truncate."
+        },
+        {
+          "heading": "notes",
+          "content": "An empty `steps` draws nothing; a single step shows its capsule. Values of `selection` outside `0...steps.count` are drawn clamped, and a change to `steps` puts the trail on the selection without motion."
+        },
+        {
+          "heading": "notes",
+          "content": "VoiceOver reads the trail as one adjustable element: the label \"Progress\" and a value such as \"Step 2 of 4, Address\". Swipe up and down to move within the reached steps, or use the Go to actions for each reachable step. With a hardware keyboard, focus the trail and use the left and right arrow keys (mirrored right to left)."
+        },
+        {
+          "heading": "notes",
+          "content": "Reduce Motion: the red stays in the stops and crossfades from one to the other with no stretch, the capsules resize on a short spring with no overshoot, the checks, numbers and titles fade, the shake and the lift stay still, and a press shades instead of sinking."
+        },
+        {
+          "heading": "notes",
+          "content": "Dynamic Type grows the stops, numbers and titles until they are a little over twice their size, and the caption all the way; when they no longer fit, the title moves to the caption and the stops shrink to fit. Right to left mirrors the trail: it starts at the right, the number sits at the capsule's right end and a drag runs the other way."
+        },
+        {
+          "heading": "notes",
+          "content": "Haptics: a selection tick when a tap, a key or a drag lands on a step and for each stop a drag crosses, and a firm tick for a refused tap or a drag pushed against its last step. Changes your app makes stay silent, so the trail never doubles your own feedback."
+        },
+        {
+          "heading": "notes",
+          "content": "On iOS 26 the stops are Liquid Glass and merge through their necks; before that, and under Reduce Transparency, they draw as frosted or solid stops on their own. `.disabled(true)` shows the progress dimmed and ignores touches."
+        },
+        {
+          "heading": "notes",
+          "content": "`Style` sets the accent (the current capsule) and the ink on it, the label and secondary label colors, the stop height (34 by default, at least 28) and the longest title. `Messages` replaces any line of copy: the VoiceOver label, the caption, the spoken value, the finished state and the Go to action, for example `.init(label: \"Checkout progress\")`. All of them are localizable through your String Catalog."
+        },
+        {
+          "heading": "parameters",
+          "content": "Parameter"
+        },
+        {
+          "heading": "parameters",
+          "content": "Description"
+        },
+        {
+          "heading": "parameters",
+          "content": "`steps`"
+        },
+        {
+          "heading": "parameters",
+          "content": "The step titles, in order, such as `[\"Cart\", \"Address\", \"Payment\", \"Review\"]`. They show in the current step's capsule and are read by VoiceOver. An empty list draws nothing. Titles longer than `Style.maximumTitleWidth` truncate in the capsule."
+        },
+        {
+          "heading": "parameters",
+          "content": "`selection`"
+        },
+        {
+          "heading": "parameters",
+          "content": "The index of the current step. A tap, a drag or VoiceOver writes it; set it yourself to move on (a Continue button). `steps.count` shows every step done, for the moment a flow completes. Values outside `0...steps.count` are drawn clamped."
+        },
+        {
+          "heading": "parameters",
+          "content": "`reached`"
+        },
+        {
+          "heading": "parameters",
+          "content": "The furthest step people have filled in, so they can return forward to it after going back. Steps up to it stay tappable and show their number in full text. `nil` (the default) is the selection, so only earlier steps can be revisited. Keep it in your own state, for example `furthest = max(furthest, step)`."
+        },
+        {
+          "heading": "parameters",
+          "content": "`showsCaption`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Shows a quiet caption under the trail, such as \"Step 2 of 4\". When the titles don't fit in the trail, the caption names the current step too."
+        },
+        {
+          "heading": "parameters",
+          "content": "`messages`"
+        },
+        {
+          "heading": "parameters",
+          "content": "The built-in copy: the VoiceOver label (\"Progress\"), the caption, the spoken value, the finished state and the VoiceOver actions. Defaults are localizable through your String Catalog."
+        },
+        {
+          "heading": "parameters",
+          "content": "`style`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Colors and size. Defaults to the SwiftPieces house palette (a red current step on neutral glass), adapting to light and dark."
+        }
+      ],
+      "headings": [
+        {
+          "id": "notes",
+          "content": "Notes"
+        },
+        {
+          "id": "usage",
+          "content": "Usage"
+        },
+        {
+          "id": "parameters",
+          "content": "Parameters"
+        },
+        {
+          "id": "source",
+          "content": "Source"
+        }
+      ]
+    }
+  },
+  {
     "url": "/docs/components/navigation/stretch-header",
     "title": "Stretch Header",
     "description": "A hero header for your own ScrollView and NavigationStack: a semibold display title and uppercase eyebrow over a solid block hero that stretches on overscroll, a title that shrinks toward the real navigation bar, a row of liquid glass stat pills that pins under the bar, and a solid bar that fades in.",
@@ -11399,6 +12615,146 @@
         {
           "heading": "parameters",
           "content": "Async handler for the primary button. Cancel melts back into the button, which spins and reads Working until it returns, then turns sage with a check and Done that the tile answers a beat later, then the card dismisses."
+        }
+      ],
+      "headings": [
+        {
+          "id": "notes",
+          "content": "Notes"
+        },
+        {
+          "id": "usage",
+          "content": "Usage"
+        },
+        {
+          "id": "parameters",
+          "content": "Parameters"
+        },
+        {
+          "id": "source",
+          "content": "Source"
+        }
+      ]
+    }
+  },
+  {
+    "url": "/docs/components/sheets/notice-stack",
+    "title": "Notice Stack",
+    "description": "In-app notices grouped the way notification stacks work: the newest on top as a glass card with its tinted symbol tile, title, relative time and message, two narrower peeks of the rest melted into it as one liquid shape, new notices dropping in from above with a soft tick, a tap that spreads the pile into a list while Show less and a clear button bud out of the top card, cards that follow a sideways swipe and fly off at your speed while the next one rises out of its peek, and a clear button that stretches into a red Clear all capsule so clearing takes a second, confirming tap.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Components",
+      "Categories · 14",
+      "Sheets"
+    ],
+    "structuredData": {
+      "contents": [
+        {
+          "content": "A pile of in-app notices (alerts, reminders, delivery updates, system messages), newest first. Collapsed, the newest notice shows in full on a glass card, with up to two narrower peeks of the rest beneath it, melted into one liquid shape. Tap the pile and it spreads into a list while Show less and a clear button bud out of the top card. Swipe a card sideways (the top one while collapsed, any of them in the list): it follows the finger, and past 40% of the width, or with a flick, it flies off and leaves `notices`, while the rest close up. The clear button stretches into a red Clear all capsule; a second tap sends every card off. Insert a notice at the front of `notices` and it drops in from above. `swift @State private var notices: [NoticeStack.Notice] = [] @State private var expanded = false NoticeStack(notices: $notices, expanded: $expanded) { notice in open(notice) } `"
+        },
+        {
+          "heading": "notes",
+          "content": "`notices` is the stack, newest first, and the source of truth: a swipe or Clear all removes from it, and you add, update and remove notices the same way. Each `Notice` has a unique `id`, a title, an optional message, an SF Symbol on a solid tile (`tint: .sky`, `.butter`, `.sage`, `.lilac`, `.sand`, `.red` for the one that can't wait, `.neutral` for system messages, or `.init(color, ink:)`), and an optional `date`."
+        },
+        {
+          "heading": "notes",
+          "content": "Collapsed, the newest notice shows in full and up to two peeks of the rest sit under it, each 10 points narrower per side and 10 points lower, cut to the front card's height, so the glass of the pile is one liquid shape. More notices still show two peeks. The peeks' words stay hidden so they never print over the front card."
+        },
+        {
+          "heading": "notes",
+          "content": "Insert a notice at index 0 and it drops in from above as a drop of glass, the pile settling under it, with a soft tick and a VoiceOver announcement. Remove one yourself and it melts into the pile while the rest close up. Empty draws nothing, so your screen decides what to show instead."
+        },
+        {
+          "heading": "notes",
+          "content": "Tap the pile and it spreads into a list, 12 points apart (`Style.spacing`), while Show less and a clear button bud out of the top card on liquid necks. With a single notice, a tap calls `onSelect` instead. In the list, a tap calls `onSelect` with that notice; leave `onSelect` out and cards only expand and collapse."
+        },
+        {
+          "heading": "notes",
+          "content": "Swipe a card sideways (the front card while collapsed, any card in the list): it follows the finger, and the next card's words show in the columns it uncovers. Past 40% of the width, or with a flick that would carry it there, it flies off at the finger's speed on a spring with no bounce, leaves `notices` while still on its way out, and the rest close up; collapsed, the next card rises out of its peek. Short of that it springs back from where you let go."
+        },
+        {
+          "heading": "notes",
+          "content": "The clear button stretches into a red Clear all capsule, its words arriving letter by letter. Tap it again and the cards leave one after another from the bottom while the header melts into the top card, which goes last. Tap anywhere else in the stack, or wait three seconds, and it folds back into the clear button."
+        },
+        {
+          "heading": "notes",
+          "content": "Times read \"now\", \"4m\", \"2h\", \"3d\", then a date after a week, through `Duration` and date formatters, and stay current every minute. VoiceOver reads them as \"4 minutes ago\"."
+        },
+        {
+          "heading": "notes",
+          "content": "Swipes come from a UIKit pan that starts only for a mostly horizontal drag, so the stack sits in a `ScrollView`, a `List` or a sheet without stealing vertical scrolls or the sheet's pull. When the list can grow long, put the stack in a scroll view."
+        },
+        {
+          "heading": "notes",
+          "content": "VoiceOver: the collapsed pile is one button (\"3 notices. Gate changed. Boarding is now B12, ten minutes earlier.\", hint \"Shows all\") with Dismiss and Clear all actions. In the list every card is its own element with `onSelect` as its activation and a Dismiss action, Show less and Clear all are buttons, focus moves to the first card when the list opens, and Escape (the two finger scrub) closes it. Arrivals, dismissals and Clear all are announced."
+        },
+        {
+          "heading": "notes",
+          "content": "Reduce Motion: cards no longer fly or drop in. A dismissed card slides a short way while its glass closes in place, an arrival opens in place, the list opens and closes on short eases without overshoot, and the header's bubbles fade and close where they are. Letters crossfade."
+        },
+        {
+          "heading": "notes",
+          "content": "Dynamic Type: cards grow, titles wrap to three lines and messages to eight, and at accessibility sizes the tile moves above the words so they keep the width. The tile, its symbol and the header scale with the text, and the header keeps 44 point targets. All text is one weight, semibold. Right to left mirrors the cards and the header, and swipes follow the finger."
+        },
+        {
+          "heading": "notes",
+          "content": "Haptics: a soft tick when a notice arrives, a light tap when the list opens or closes, a firm tick when a swipe commits, a selection tick when the clear button arms, and success when Clear all runs."
+        },
+        {
+          "heading": "notes",
+          "content": "The cards and header are liquid glass in one group, spaced below the list's gap, so separate cards never neck at rest and only melt while they spread, gather or leave. On iOS 26 this is Liquid Glass; before that a frosted material; under Reduce Transparency solid fills. Red appears only on Clear all, and on a tile whose tint is `.red`."
+        },
+        {
+          "heading": "notes",
+          "content": "`Style` sets the title and secondary colors, the Clear all red and its ink, the cards' corner radius and the list's gap (at least 10 points). `Messages` replaces any copy, such as `showLess: \"Collapse\"`, and its `count`, `arrived` and `dismissed` closures shape the VoiceOver strings."
+        },
+        {
+          "heading": "parameters",
+          "content": "Parameter"
+        },
+        {
+          "heading": "parameters",
+          "content": "Description"
+        },
+        {
+          "heading": "parameters",
+          "content": "`notices`"
+        },
+        {
+          "heading": "parameters",
+          "content": "The notices, newest first, each with a unique `id`. Swipes and Clear all remove from it; insert at index 0 to show a new one, which drops in with a soft tick. Remove one yourself and it melts into the pile. Empty draws nothing, so your screen decides what to show instead."
+        },
+        {
+          "heading": "parameters",
+          "content": "`expanded`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Whether the pile is spread into a list. Tapping the pile, Show less and Escape set it, and it returns to `false` when the last notice goes."
+        },
+        {
+          "heading": "parameters",
+          "content": "`style`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Colors, the cards' corner radius and the gap between cards in the list. Defaults to the SwiftPieces house palette, adapting to light and dark, with red for Clear all."
+        },
+        {
+          "heading": "parameters",
+          "content": "`messages`"
+        },
+        {
+          "heading": "parameters",
+          "content": "The built-in copy, such as \"Show less\", \"Clear all\" and the VoiceOver announcements. Defaults are localizable through your String Catalog; replace any line."
+        },
+        {
+          "heading": "parameters",
+          "content": "`onSelect`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Called with the notice tapped in the list, or the only notice when there is one. While the pile holds several, a tap spreads it instead. `nil`, the default, leaves cards to expand and collapse only."
         }
       ],
       "headings": [

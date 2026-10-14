@@ -1,7 +1,8 @@
 // Free SwiftPieces that solve everyday app problems: a section index scrubber, drag-to-select, an
 // attachment tray, a feed that follows new content, address autocomplete, a signature pad, link previews,
 // a photo cropper, a map location picker, a spotlight tour and an activity heatmap, plus a picture
-// headline (text with living pictures between its words). One file per piece in ./utility, each exporting its definition.
+// headline (text with living pictures between its words) and eight crafted interactions. One file per piece in
+// ./utility, each exporting its definition.
 import type { SwiftPieceDefinition } from "../core/schema.js";
 import * as indexScrubber from "./utility/index-scrubber.js";
 import * as dragSelectGrid from "./utility/drag-select-grid.js";
@@ -15,8 +16,16 @@ import * as locationPicker from "./utility/location-picker.js";
 import * as spotlightTour from "./utility/spotlight-tour.js";
 import * as activityHeatmap from "./utility/activity-heatmap.js";
 import * as pictureHeadline from "./utility/picture-headline.js";
+import * as scrollIsland from "./utility/scroll-island.js";
+import * as stepTrail from "./utility/step-trail.js";
+import * as waveformScrub from "./utility/waveform-scrub.js";
+import * as voiceRecorder from "./utility/voice-recorder.js";
+import * as nowPlaying from "./utility/now-playing.js";
+import * as walletStack from "./utility/wallet-stack.js";
+import * as noticeStack from "./utility/notice-stack.js";
+import * as rangeLens from "./utility/range-lens.js";
 
-const all = [indexScrubber, dragSelectGrid, attachmentTray, followScroll, addressField, signaturePad, linkPreview, photoCropper, locationPicker, spotlightTour, activityHeatmap, pictureHeadline];
+const all = [indexScrubber, dragSelectGrid, attachmentTray, followScroll, addressField, signaturePad, linkPreview, photoCropper, locationPicker, spotlightTour, activityHeatmap, pictureHeadline, scrollIsland, stepTrail, waveformScrub, voiceRecorder, nowPlaying, walletStack, noticeStack, rangeLens];
 
 export const utilityPieces: SwiftPieceDefinition[] = all.flatMap((m) => (m.definition ? [m.definition] : []));
 

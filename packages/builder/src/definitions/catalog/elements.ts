@@ -34,6 +34,7 @@ const cards = family("Cards", "CardsView", "Tap, flip and tilt.", [
   ["Flip Card", nd("flip-card", {})],
   ["Motion Card", nd("motion-card", { height: 180 }, [nd("text", { text: "Tilt me", style: "title2", weight: "bold", color: "black" })])],
   ["Parallax Card", nd("parallax-card", {})],
+  ["Wallet Stack", nd("wallet-stack", {})],
 ]);
 
 const textFields = family("Text Fields", "TextFieldsView", "Every one of these takes typing.", [
@@ -95,6 +96,8 @@ const tabs = family("Tabs and Docks", "TabsView", "Switch between views.", [
   ["Tracking Tabs", nd("tracking-tabs", {})],
   ["Segmented control", nd("segmented", { options: "Posts, Replies, Likes", selected: 0, label: "Show" })],
   ["Floating Dock", row({}, [nd("spacer"), nd("floating-dock", { items: "Home, Search, Inbox, Profile" }), nd("spacer")])],
+  ["Scroll Island", nd("scroll-island", {})],
+  ["Step Trail", nd("step-trail", {})],
 ]);
 
 const sheets = family(
@@ -104,6 +107,7 @@ const sheets = family(
     ["Confirm Sheet", nd("confirm-sheet", {})],
     ["Permission Sheet", nd("permission-sheet", {})],
     ["Toast", nd("toast", {})],
+    ["Notice Stack", nd("notice-stack", {})],
     ["Spotlight Tour", nd("button", { title: "Take the tour", style: "tinted", icon: "sparkles", link: l.to("tour") })],
   ],
   () => [
@@ -119,6 +123,7 @@ const charts = family("Charts and Numbers", "ChartsView", "Scrub and tap for exa
   ["Live Stat", nd("live-stat", {})],
   ["Odometer", nd("odometer", {})],
   ["Activity Heatmap", nd("activity-heatmap", {})],
+  ["Range Lens", nd("range-lens", {})],
 ]);
 
 const feedback = family("Loading and Feedback", "FeedbackView", "How an app says what's happening.", [
@@ -148,6 +153,9 @@ const media = family("Media", "MediaView", "Swipe the carousels, tap a story.", 
   ["Attachment Tray", nd("attachment-tray", {})],
   ["Photo Cropper", nd("photo-cropper", {})],
   ["Fan Stack", nd("fan-stack", {})],
+  ["Waveform Scrub", nd("waveform-scrub", {})],
+  ["Voice Recorder", nd("voice-recorder", {})],
+  ["Now Playing", nd("now-playing", {})],
   ["Avatars", row({ spacing: 10 }, [nd("avatar", { initials: "AK", color: "orange", status: "online" }), nd("avatar", { initials: "JL", color: "teal" }), nd("avatar", { initials: "SR", color: "indigo", status: "busy" }), nd("avatar", { symbol: "person", color: "gray" })])],
 ]);
 

@@ -1,0 +1,1653 @@
+// swiftpieces:
+// title: Scroll Island
+// description: "A floating liquid glass island for long screens such as articles, recipes, docs, settings and product pages: it names the section in view and rings it in red with how much of the page has been read, morphs the title letter by letter as the page scrolls, buds a joined back-to-top bubble once the reader leaves the first section, scrubs sections under a sideways drag with a tick for each, and on a tap or a swipe up grows the same glass into a contents panel where a red puck stretches from row to row under the finger and the pick scrolls the page straight there."
+// category: navigation
+// minIOSVersion: "17.0"
+// version: "1.0.0"
+// added: "2026-10-12"
+// tags: [island, scroll, sections, contents, progress, jump, table-of-contents, glass]
+
+import SwiftUI
+
+/// A floating section island for long scrolling screens: which part am I in, how much is left, and a way to jump.
+///
+/// The island names the section in view, rings it with how much of the page has been read, and opens in place into
+/// the screen's contents. It reads and writes the same selection your scroll view's `scrollPosition(id:)` does, so
+/// scrolling the page moves the island and picking a section scrolls the page. Put it over the scroll view with
+/// `.overlay(alignment: .bottom)`: it keeps above the home indicator and the keyboard, and only takes touches on
+/// itself, so the page behind it keeps scrolling.
+///
+/// ```swift
+/// @State private var section: Recipe.Part.ID?
+/// @State private var read: Double?
+///
+/// ScrollView {
+///     LazyVStack { ForEach(recipe.parts) { RecipePart($0).id($0.id) } }
+///         .scrollTargetLayout()
+/// }
+/// .scrollPosition(id: $section, anchor: .top)
+/// .overlay(alignment: .bottom) {
+///     ScrollIsland(sections: recipe.parts.map { .init(id: $0.id, title: $0.title, detail: $0.readingTime) },
+///                  selection: $section, progress: read)
+/// }
+/// ```
+///
+/// How much has been read, from the scroll offset (iOS 18; leave `read` nil before that and the island estimates it):
+///
+/// ```swift
+/// .onScrollGeometryChange(for: Double.self) { geometry in
+///     let travel = geometry.contentSize.height + geometry.contentInsets.top + geometry.contentInsets.bottom - geometry.containerSize.height
+///     return travel > 0 ? (geometry.contentOffset.y + geometry.contentInsets.top) / travel : 1
+/// } action: { _, fraction in
+///     read = min(max(fraction, 0), 1)
+/// }
+/// ```
+///
+/// - Parameters:
+///   - sections: The screen's sections, in page order. Each has the `id` its view carries in the scroll view, a title and an optional short detail shown at the end of its row in the contents, such as a reading time. One section shows its title alone; none draws nothing.
+///   - selection: The section in view, the same binding as the scroll view's `scrollPosition(id:)`. Scrolling the page updates it; picking a section, scrubbing the island or the back-to-top bubble sets it, which scrolls the page there. `nil` reads as the first section.
+///   - progress: How much of the page has been read, from 0 to 1, drawn as the red arc of the ring and read out as "62% read". Compute it from the scroll offset (on iOS 18, `onScrollGeometryChange`). `nil` estimates it from the section's place in the list.
+///   - isExpanded: Bind it to open or close the contents from your own controls, such as a toolbar button, or to know when they are open. Omit it and the island keeps this state itself.
+///   - showsTopButton: Buds a round back-to-top bubble out of the island's leading end while the reader is past the first section. Defaults to `true`.
+///   - messages: The island's copy. Defaults are localizable through your String Catalog; replace any line, such as `contents` with "On this page".
+///   - style: Colors and the widest the island and its contents may grow. Defaults to the SwiftPieces house palette, adapting to light and dark, with red for the read arc and the contents' selection puck.
+public struct ScrollIsland<ID: Hashable & Sendable>: View {
+
+    // MARK: Section
+
+    /// One section of the page, as the island and its contents show it.
+    public struct Section: Identifiable, Hashable, Sendable {
+        /// The id the section's view carries in the scroll view, so `scrollPosition(id:)` can reach it.
+        public var id: ID
+        /// The section's title, shown on the island while it is in view and as its row in the contents.
+        public var title: String
+        /// A short detail at the end of the section's row in the contents, such as "4 min". `nil` shows none.
+        public var detail: String?
+
+        public init(id: ID, title: String, detail: String? = nil) {
+            self.id = id
+            self.title = title
+            self.detail = detail
+        }
+    }
+
+    // MARK: Messages
+
+    /// The island's copy. Every default goes through `String(localized:)`, so your String Catalog translates it.
+    public struct Messages: Sendable {
+        /// The contents panel's title, and the island's name for VoiceOver.
+        public var contents: String
+        /// The back-to-top bubble's VoiceOver label.
+        public var backToTop: String
+        /// VoiceOver's hint on the closed island.
+        public var openHint: String
+        /// VoiceOver's hint on the open panel's bar.
+        public var closeHint: String
+        /// The quiet position on the closed island, such as "3 of 6".
+        public var position: @Sendable (_ number: Int, _ count: Int) -> String
+        /// The position as VoiceOver reads it, such as "Section 3 of 6".
+        public var spokenPosition: @Sendable (_ number: Int, _ count: Int) -> String
+        /// How much of the page has been read, such as "62% read".
+        public var read: @Sendable (_ fraction: Double) -> String
+
+        /// Pass only the lines you want to change.
+        public init(
+            contents: String = String(localized: "Contents", comment: "Scroll island: title of the panel that lists the page's sections"),
+            backToTop: String = String(localized: "Back to top", comment: "Scroll island: VoiceOver label of the bubble that scrolls to the first section"),
+            openHint: String = String(localized: "Shows every section", comment: "Scroll island: VoiceOver hint on the closed island"),
+            closeHint: String = String(localized: "Closes the contents", comment: "Scroll island: VoiceOver hint on the open panel's bar"),
+            position: @escaping @Sendable (_ number: Int, _ count: Int) -> String = { number, count in
+                String(localized: "\(number.formatted()) of \(count.formatted())", comment: "Scroll island: the section's place on the island, such as 3 of 6")
+            },
+            spokenPosition: @escaping @Sendable (_ number: Int, _ count: Int) -> String = { number, count in
+                String(localized: "Section \(number.formatted()) of \(count.formatted())", comment: "Scroll island: the section's place as VoiceOver reads it")
+            },
+            read: @escaping @Sendable (_ fraction: Double) -> String = { fraction in
+                String(localized: "\(fraction.formatted(.percent.precision(.fractionLength(0)))) read", comment: "Scroll island: how much of the page has been read, such as 62% read")
+            }
+        ) {
+            self.contents = contents
+            self.backToTop = backToTop
+            self.openHint = openHint
+            self.closeHint = closeHint
+            self.position = position
+            self.spokenPosition = spokenPosition
+            self.read = read
+        }
+
+        public static var standard: Messages { Messages() }
+    }
+
+    // MARK: Style
+
+    /// Colors and the island's widest size. `.standard` is the house palette.
+    public struct Style: Sendable {
+        /// The read arc of the ring and the puck under the current section in the contents. The house signal red.
+        public var accent: Color
+        /// Text on the puck.
+        public var onAccent: Color
+        /// Titles.
+        public var label: Color
+        /// The position, the read amount, row numbers and details.
+        public var secondaryLabel: Color
+        /// The ring's track, under the read arc.
+        public var track: Color
+        /// The widest the island and its contents panel grow, in points. They also keep 16 points from each side.
+        public var maxWidth: CGFloat
+
+        /// Pass only what you want to change; `nil` keeps the house palette value.
+        public init(accent: Color? = nil, onAccent: Color? = nil, label: Color? = nil, secondaryLabel: Color? = nil, track: Color? = nil, maxWidth: CGFloat = 360) {
+            self.accent = accent ?? Color(red: 1, green: 0, blue: 0)
+            self.onAccent = onAccent ?? scrollIslandAdaptive(light: 0x141414, dark: 0x141414)
+            self.label = label ?? scrollIslandAdaptive(light: 0x141414, dark: 0xF4F3EF)
+            self.secondaryLabel = secondaryLabel ?? scrollIslandAdaptive(light: 0x5C5A56, dark: 0xA6A49F)
+            self.track = track ?? scrollIslandAdaptive(light: 0xDCD9D1, dark: 0x4A4946)
+            self.maxWidth = max(maxWidth, 200)
+        }
+
+        public static var standard: Style { Style() }
+    }
+
+    // MARK: State
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.layoutDirection) private var layoutDirection
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.isEnabled) private var isEnabled
+    @Environment(\.colorScheme) private var colorScheme
+    @ScaledMetric(relativeTo: .body) private var barHeight: CGFloat = 48
+    @ScaledMetric(relativeTo: .body) private var ringSize: CGFloat = 26
+    @ScaledMetric(relativeTo: .body) private var ringStroke: CGFloat = 2.5
+    @ScaledMetric(relativeTo: .body) private var rowHeight: CGFloat = 44
+    @ScaledMetric(relativeTo: .body) private var titleSize: CGFloat = 17
+    @ScaledMetric(relativeTo: .footnote) private var metaSize: CGFloat = 13
+    @ScaledMetric(relativeTo: .footnote) private var chevronSize: CGFloat = 12
+
+    @Binding private var selection: ID?
+    private let expandedBinding: Binding<Bool>?
+    @State private var localExpanded = false
+    /// The space the island is given (the scroll view it floats over), for the panel's size and the rows' places.
+    @State private var container: CGSize = .zero
+    /// The section the island's title shows. It follows the section in view on the morph spring, so the glass
+    /// resizes around the new title in one motion.
+    @State private var shownIndex = 0
+    /// A section a finger or a key is on but hasn't picked yet: a scrub on the closed island, the puck in the panel.
+    @State private var candidate: Int?
+    @State private var shownProgress: Double = 0
+    /// The puck's edges, in rows from the top of the list, each sprung on its own so the puck stretches as it travels.
+    @State private var puckTop: CGFloat = 0
+    @State private var puckBottom: CGFloat = 1
+    @State private var touch: Touch = .idle
+    @GestureState private var touching = false
+    @GestureState private var touchingRows = false
+    @State private var pressed = false
+    @State private var islandSize: CGSize = .zero
+    @State private var scrubOrigin = 0
+    /// How far a scrub has pulled the island past the first or last section, banded. Set under the finger, never animated.
+    @State private var pull: CGFloat = 0
+    @State private var closedAt = Date.distantPast
+    /// The back-to-top bubble: out while the reader is past the first section, melted into the island otherwise.
+    @State private var buds = PieceBuds()
+    @State private var ticks = 0
+    @State private var toggles = 0
+    @FocusState private var keyboardFocus: Bool
+    @AccessibilityFocusState private var focusedRow: Int?
+    @AccessibilityFocusState private var islandFocus: Bool
+
+    private let sections: [Section]
+    private let progress: Double?
+    private let showsTopButton: Bool
+    private let messages: Messages
+    private let style: Style
+
+    /// Space around the island inside what it is given, and inside the panel around its rows.
+    private let margin: CGFloat = 16
+    private let bottomGap: CGFloat = 8
+    private let inset: CGFloat = 6
+    private let rowsGap: CGFloat = 2
+    private let panelRadius: CGFloat = 26
+    /// Points of sideways drag per section while scrubbing the closed island.
+    private let scrubStep: CGFloat = 32
+    private let space = "ScrollIsland"
+
+    private enum Touch: Equatable {
+        case idle, undecided, scrubbing, picking, cancelled
+        /// Opened by a swipe up; the finger becomes a pick once it reaches another row.
+        case opening(startY: CGFloat)
+    }
+
+    public init(
+        sections: [Section],
+        selection: Binding<ID?>,
+        progress: Double? = nil,
+        isExpanded: Binding<Bool>? = nil,
+        showsTopButton: Bool = true,
+        messages: Messages = .standard,
+        style: Style = .standard
+    ) {
+        self.sections = sections
+        self._selection = selection
+        self.progress = progress
+        self.expandedBinding = isExpanded
+        self.showsTopButton = showsTopButton
+        self.messages = messages
+        self.style = style
+    }
+
+    // MARK: Derived
+
+    private var count: Int { sections.count }
+    private var motion: PieceMotion { PieceMotion(reduceMotion: reduceMotion) }
+
+    private var currentIndex: Int {
+        guard let selection, let index = sections.firstIndex(where: { $0.id == selection }) else { return 0 }
+        return index
+    }
+
+    private var displayIndex: Int { clamp(candidate ?? currentIndex) }
+    private var puckRow: Int { clamp(candidate ?? currentIndex) }
+    private var isOpen: Bool { count > 1 && (expandedBinding?.wrappedValue ?? localExpanded) }
+    private var wantsTop: Bool { showsTopButton && count > 1 && currentIndex > 0 && !isOpen }
+
+    private var readFraction: Double {
+        if let progress { return progress.isFinite ? min(max(progress, 0), 1) : 0 }
+        return count > 0 ? (Double(currentIndex) + 0.5) / Double(count) : 0
+    }
+
+    private var panelWidth: CGFloat {
+        let room = container.width > 0 ? container.width - margin * 2 : style.maxWidth
+        return max(min(room, style.maxWidth), barHeight * 3)
+    }
+
+    private var rowsHeight: CGFloat { CGFloat(count) * rowHeight }
+    /// The rows' window: all of them, up to about 60% of the space with the bar, and they scroll beyond that.
+    private var rowsViewport: CGFloat {
+        let room = (container.height > 0 ? container.height * 0.6 : 420) - barHeight - inset - rowsGap
+        return min(rowsHeight, max(room, rowHeight * 2.5))
+    }
+    private var scrolls: Bool { rowsViewport < rowsHeight - 0.5 }
+    private var panelHeight: CGFloat { barHeight + inset + rowsViewport + rowsGap }
+    private var titleFont: Font { .system(size: titleSize, weight: .semibold) }
+    private var metaFont: Font { .system(size: metaSize, weight: .semibold).monospacedDigit() }
+
+    private func clamp(_ index: Int) -> Int { min(max(index, 0), max(count - 1, 0)) }
+
+    // MARK: Body
+
+    public var body: some View {
+        // Read here, so this body observes the bubble: the island's room and the pair's centring read it too.
+        let _ = (buds.present, buds.out)
+        ZStack(alignment: .bottom) {
+            if !sections.isEmpty {
+                island
+                    .padding(.horizontal, margin)
+                    .padding(.bottom, bottomGap)
+            }
+        }
+        // Here rather than on the island, so the island's own frame moves with its glass.
+        // Opening grows the glass at once and the rows arrive after it; closing lets the rows go first.
+        .animation(isOpen ? motion.reveal : motion.dismiss.delay(reduceMotion ? 0 : 0.08), value: isOpen)
+        // Fills what it is given so it can size the panel against it; only the glass takes touches.
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+        .coordinateSpace(.named(space))
+        .onGeometryChange(for: CGSize.self) { $0.size } action: { container = $0 }
+        .fontWeight(.semibold)
+        .opacity(isEnabled ? 1 : 0.45)
+        .sensoryFeedback(.selection, trigger: ticks)
+        .sensoryFeedback(.impact(weight: .light), trigger: toggles)
+        .onAppear {
+            shownIndex = displayIndex
+            shownProgress = readFraction
+            place(currentIndex)
+            if wantsTop { buds.place(["top"]) }
+        }
+        .onChange(of: displayIndex) { _, index in
+            // The title, the count and the glass around them change as one, on the morph spring.
+            withAnimation(motion.morph) { shownIndex = index }
+        }
+        .onChange(of: readFraction) { old, new in
+            // A scroll tracks as it goes; a jump (a pick, back to top) sweeps the arc without overshoot.
+            if abs(new - old) > 0.06 {
+                withAnimation(motion.value) { shownProgress = new }
+            } else {
+                shownProgress = new
+            }
+        }
+        .onChange(of: isOpen) { _, open in openChanged(open) }
+        .onChange(of: puckRow) { _, row in
+            if isOpen { fly(to: row) } else { place(row) }
+        }
+        .onChange(of: wantsTop) { _, _ in
+            // After a close, the bubble waits for the glass to settle back into the island before it buds.
+            updateTop(delay: Date().timeIntervalSince(closedAt) < 0.15 ? 0.45 : 0)
+        }
+        .onChange(of: count) { _, _ in
+            candidate = nil
+            place(currentIndex)
+        }
+        // A touch the system takes never reaches onEnded: nothing commits, and the island lets go.
+        .onChange(of: touching) { _, now in if !now { cancelTouch() } }
+        .onChange(of: touchingRows) { _, now in if !now { cancelTouch() } }
+    }
+
+    // MARK: Island
+
+    /// One glass shape: a capsule hugging the bar while closed, and grown upward into the contents panel while open.
+    /// The bar stays at its bottom either way, so the ring and the finger never move.
+    private var island: some View {
+        let open = isOpen
+        let scrubbing = touch == .scrubbing
+        let shape = RoundedRectangle(cornerRadius: open ? min(panelRadius, barHeight / 2 + 2) : barHeight / 2, style: .continuous)
+        let bubbleOut = buds.isOut("top")
+        // While the panel is open, the bubble has no say in the island's layout: it melts home on its own spring, and
+        // a layout change landing on that spring mid-morph would pull the open panel's content off its glass.
+        let room = bubbleOut && !open ? barHeight + PieceLiquid.joined : 0
+        let width: CGFloat? = open ? panelWidth : nil
+        let widest = max(panelWidth - room, barHeight * 2)
+        let height = open ? panelHeight : barHeight
+        // Pressed it sinks a few points, scrubbed it lifts a little like a tab under the finger; glass and content
+        // together. Under Reduce Motion a press shades instead.
+        let sink = pressed && !reduceMotion ? PieceMotion.pressScale(for: islandSize, depth: 2) : 1
+        let scale = sink * (scrubbing && !reduceMotion ? 1.03 : 1)
+        // Two layers in one fixed room the size of the open panel, bottom aligned: the glass in its group, and the
+        // bar and rows over it. A glass container's own frame jumps to a new size while what it holds animates, so
+        // anything placed against a changing container drifts; inside a room that never changes size, the glass and
+        // the content follow one layout and stay together.
+        return ZStack(alignment: .bottom) {
+            PieceLiquidGroup {
+                // The glass alone, sized by a hidden copy of the bar so it matches the content to the point. The
+                // content rides over the group rather than inside the glass, where a second shape merged in (the
+                // bubble) would slide it against its glass while the shape grows.
+                ScrollIslandHug(width: width, maxWidth: widest) { barFace.hidden() }
+                    .frame(height: height, alignment: .bottom)
+                    .pieceLiquid(shape, interactive: false)
+                    .pieceLiquidScale(scale)
+                    .background(alignment: .bottomLeading) {
+                        // Behind the island, so a bubble melting home slips under its leading end.
+                        if buds.contains("top") { topBubble(out: bubbleOut) }
+                    }
+                    .frame(width: panelWidth, height: panelHeight, alignment: .bottom)
+            }
+            access(
+                ScrollIslandHug(width: width, maxWidth: widest) { bar }
+                    .frame(height: height, alignment: .bottom)
+                    .overlay(alignment: .bottom) {
+                        rowsArea.padding(.bottom, barHeight)
+                    }
+                    .clipShape(shape)
+                    .brightness(pressed && reduceMotion ? (colorScheme == .dark ? 0.1 : -0.08) : 0)
+                    .scaleEffect(scale)
+                    .onGeometryChange(for: CGSize.self) { $0.size } action: { islandSize = $0 },
+                open: open
+            )
+            .frame(width: panelWidth, height: panelHeight, alignment: .bottom)
+        }
+        .animation(pressed || scrubbing ? motion.press : motion.release, value: scale)
+        // Moved as a whole, outside the glass: an offset that changes inside a glass group while a shape there is
+        // changing size slides the glass against its content. The scrub's give, and the shift that keeps the island
+        // and its bubble (resting on the leading side) centred together. Offsets read from the leading edge here, as
+        // SwiftUI mirrors them in a right-to-left layout.
+        .offset(x: pull + room / 2)
+    }
+
+    /// The island's keyboard and VoiceOver: one adjustable button while closed, a container of rows while open.
+    private func access(_ content: some View, open: Bool) -> some View {
+        content
+        .focusable(count > 1 && isEnabled)
+        .focused($keyboardFocus)
+        .focusEffectDisabled()
+        .onKeyPress(keys: [.upArrow, .downArrow, .leftArrow, .rightArrow, .return, .space, .escape], phases: [.down, .repeat]) { key($0) }
+        .accessibilityElement(children: open ? .contain : .ignore)
+        .accessibilityLabel(messages.contents)
+        .accessibilityValue(open ? "" : spokenValue)
+        .accessibilityHint(open || count < 2 ? "" : messages.openHint)
+        .accessibilityAddTraits(open || count < 2 ? [] : .isButton)
+        .accessibilityAction { if count > 1, !isOpen { setOpen(true) } }
+        // Keyed to the count alone: switching it on open would give the island a new identity and rebuild its glass.
+        .modifier(ScrollIslandAdjustable(enabled: count > 1) { if !isOpen { step($0) } })
+        .accessibilityAction(.escape) { setOpen(false) }
+        .accessibilityFocused($islandFocus)
+    }
+
+    /// "Method, Section 3 of 6, 62% read".
+    private var spokenValue: String {
+        let index = displayIndex
+        guard count > 0 else { return "" }
+        let parts = count > 1
+            ? [sections[index].title, messages.spokenPosition(index + 1, count), messages.read(readFraction)]
+            : [sections[index].title, messages.read(readFraction)]
+        return parts.joined(separator: ", ")
+    }
+
+    /// The bar as it looks: the ring, the title, and the position with a chevron. In the open panel the same bar reads
+    /// "Contents" and how much has been read. The glass is sized by a hidden copy of it.
+    private var barFace: some View {
+        let open = isOpen
+        let index = clamp(shownIndex)
+        // At the accessibility sizes the title gets the room; VoiceOver still reads the position.
+        let roomy = !dynamicTypeSize.isAccessibilitySize
+        // The closed and the open labels are two layers that blur across, so no letter is added or removed while the
+        // glass changes shape around them. The closed ones size the island; the open ones ride over them.
+        return HStack(spacing: 10) {
+            ring
+            ScrollIslandTitle(text: sections[index].title, font: titleFont)
+                .modifier(ScrollIslandFade(shown: !open, reduceMotion: reduceMotion))
+                .overlay(alignment: .leading) {
+                    Text(messages.contents)
+                        .font(titleFont)
+                        .lineLimit(1)
+                        .fixedSize()
+                        .modifier(ScrollIslandFade(shown: open, reduceMotion: reduceMotion))
+                }
+                .foregroundStyle(style.label)
+            Spacer(minLength: 0)
+            if count > 1 {
+                HStack(spacing: 6) {
+                    if roomy {
+                        PieceMorphText(text: messages.position(index + 1, count), font: metaFont)
+                            .modifier(ScrollIslandFade(shown: !open, reduceMotion: reduceMotion))
+                            .overlay(alignment: .trailing) {
+                                PieceMorphText(text: messages.read(readFraction), font: metaFont)
+                                    .modifier(ScrollIslandFade(shown: open, reduceMotion: reduceMotion))
+                            }
+                    }
+                    Image(systemName: "chevron.up")
+                        .font(.system(size: chevronSize, weight: .semibold))
+                        .rotationEffect(.degrees(open ? 180 : 0))
+                }
+                .foregroundStyle(style.secondaryLabel)
+                .fixedSize()
+            }
+        }
+        .padding(.leading, (barHeight - ringSize) / 2)
+        .padding(.trailing, 16)
+        .frame(maxWidth: .infinity)
+        .frame(height: barHeight)
+    }
+
+    /// The bar people touch.
+    private var bar: some View {
+        barFace
+        .contentShape(.rect)
+        .gesture(islandGesture, isEnabled: count > 1 && isEnabled)
+        // Open, the bar is its own button among the rows: it closes the contents.
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(messages.contents)
+        .accessibilityValue(messages.read(readFraction))
+        .accessibilityHint(messages.closeHint)
+        .accessibilityAddTraits(.isButton)
+        .accessibilityAction { setOpen(false) }
+    }
+
+    /// The read fraction as a red arc over a quiet track, starting at the top.
+    private var ring: some View {
+        ZStack {
+            Circle()
+                .stroke(style.track, lineWidth: ringStroke)
+            Circle()
+                .trim(from: 0, to: shownProgress)
+                .stroke(style.accent, style: StrokeStyle(lineWidth: ringStroke, lineCap: .round))
+                .rotationEffect(.degrees(-90))
+        }
+        .padding(ringStroke / 2)
+        .frame(width: ringSize, height: ringSize)
+        .accessibilityHidden(true)
+    }
+
+    // MARK: Top bubble
+
+    /// A round glass bubble joined to the island's leading end. Home is inside that end, shrunk, where the two are one.
+    private func topBubble(out: Bool) -> some View {
+        Button { backToTop() } label: {
+            Image(systemName: "arrow.up")
+                .font(.system(size: titleSize, weight: .semibold))
+                .foregroundStyle(style.label)
+                .pieceBudContent(out: out)
+                .frame(width: barHeight, height: barHeight)
+                .pieceLiquid(.circle, interactive: false)
+                .contentShape(.circle)
+        }
+        .buttonStyle(PieceLiquidPressStyle())
+        .pieceBud(out: out, rest: CGSize(width: -(barHeight + PieceLiquid.joined), height: 0), home: .zero)
+        // At home it is part of the island: not a control, and not read.
+        .allowsHitTesting(out)
+        .accessibilityHidden(!out)
+        .accessibilityLabel(messages.backToTop)
+    }
+
+    // MARK: Rows
+
+    /// The contents: every section on a row, the current one on the red puck. Laid out at the panel's width whether
+    /// it shows or not, so nothing reflows as the glass grows around it.
+    private var rowsArea: some View {
+        let open = isOpen
+        let width = panelWidth - inset * 2
+        return Group {
+            if scrolls {
+                ScrollViewReader { proxy in
+                    ScrollView(.vertical) {
+                        rowList(width: width)
+                    }
+                    .scrollIndicators(.hidden)
+                    .onChange(of: isOpen) { _, now in
+                        if now { proxy.scrollTo(puckRow, anchor: .center) }
+                    }
+                    .onChange(of: puckRow) { _, row in
+                        guard isOpen else { return }
+                        withAnimation(motion.value) { proxy.scrollTo(row) }
+                    }
+                }
+            } else {
+                // Every row in view: a finger lands on a row, slides the puck from row to row, and lets go to pick.
+                rowList(width: width)
+                    .highPriorityGesture(rowsGesture, isEnabled: open && isEnabled)
+            }
+        }
+        .frame(width: width, height: rowsViewport)
+        .padding(.top, inset)
+        .padding(.bottom, rowsGap)
+        .allowsHitTesting(open)
+        .accessibilityHidden(!open)
+    }
+
+    /// The rows twice, cut by the puck's outline: in their own colors outside it and in ink inside it, so a title
+    /// turns exactly under the puck's edge as it passes.
+    private func rowList(width: CGFloat) -> some View {
+        let open = isOpen
+        let arrive: Animation = open ? .easeOut(duration: 0.26).delay(reduceMotion ? 0 : 0.16) : .easeOut(duration: 0.12)
+        return VStack(spacing: 0) {
+            ForEach(sections.indices, id: \.self) { index in
+                Button { tapRow(index) } label: {
+                    rowFace(index, onPuck: false)
+                }
+                .buttonStyle(ScrollIslandRowStyle())
+                .id(index)
+                .accessibilityLabel(sections[index].title)
+                .accessibilityValue(sections[index].detail ?? "")
+                .accessibilityAddTraits(index == currentIndex ? .isSelected : [])
+                .accessibilityFocused($focusedRow, equals: index)
+            }
+        }
+        .mask {
+            edges { top, bottom in
+                ScrollIslandPuckShape(top: top * rowHeight, bottom: bottom * rowHeight, inverted: true)
+                    .fill(style: FillStyle(eoFill: true))
+            }
+        }
+        .overlay(alignment: .top) {
+            VStack(spacing: 0) {
+                ForEach(sections.indices, id: \.self) { index in rowFace(index, onPuck: true) }
+            }
+            .mask {
+                edges { top, bottom in
+                    ScrollIslandPuckShape(top: top * rowHeight, bottom: bottom * rowHeight)
+                }
+            }
+            .allowsHitTesting(false)
+            .accessibilityHidden(true)
+        }
+        .background(alignment: .top) { puck }
+        // The rows and the puck arrive once the glass has grown and leave before it shrinks. A fade, not a blur: a blur
+        // over the puck's masks drops rows on device.
+        .opacity(open ? 1 : 0)
+        .animation(arrive, value: open)
+        .frame(width: width, height: rowsHeight, alignment: .top)
+    }
+
+    private func rowFace(_ index: Int, onPuck: Bool) -> some View {
+        let section = sections[index]
+        let primary = onPuck ? style.onAccent : style.label
+        let secondary = onPuck ? style.onAccent.opacity(0.62) : style.secondaryLabel
+        return HStack(spacing: 12) {
+            Text(verbatim: (index + 1).formatted())
+                .font(metaFont)
+                .foregroundStyle(secondary)
+                .frame(width: CGFloat(String(count).count) * metaSize * 0.62 + 2, alignment: .leading)
+            Text(section.title)
+                .font(titleFont)
+                .foregroundStyle(primary)
+                .lineLimit(1)
+            Spacer(minLength: 8)
+            if let detail = section.detail {
+                Text(detail)
+                    .font(metaFont)
+                    .foregroundStyle(secondary)
+                    .lineLimit(1)
+                    .fixedSize()
+            }
+        }
+        .padding(.horizontal, 14)
+        .frame(height: rowHeight)
+        .contentShape(.rect)
+    }
+
+    /// The red puck under the current row, between its live edges. It is painted inside the panel's glass, the way
+    /// the foundation paints a tint, rather than being glass of its own: nested glass lags a glass shape that is
+    /// changing size, ignores the rows' fade and stays unseen inside a scroll view, so it would flash on the wrong row.
+    private var puck: some View {
+        edges { top, bottom in
+            Capsule()
+                .fill(style.accent)
+                .frame(height: max(bottom - top, 0) * rowHeight)
+                .offset(y: top * rowHeight)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .accessibilityHidden(true)
+    }
+
+    /// The puck's two edges, each animated on its own spring, handed to `content` frame by frame.
+    private func edges<Content: View>(@ViewBuilder _ content: @escaping (CGFloat, CGFloat) -> Content) -> some View {
+        ScrollIslandEdge(value: puckTop) { top in
+            ScrollIslandEdge(value: puckBottom) { bottom in
+                content(top, bottom)
+            }
+        }
+    }
+
+    // MARK: Gestures
+
+    /// On the bar: a tap opens or closes; sideways scrubs sections while closed; up opens, and a finger that carries
+    /// on onto another row picks it on release, like a menu.
+    private var islandGesture: some Gesture {
+        DragGesture(minimumDistance: 0, coordinateSpace: .named(space))
+            .updating($touching) { _, state, _ in state = true }
+            .onChanged { drag in islandChanged(drag) }
+            .onEnded { drag in islandEnded(drag) }
+    }
+
+    /// On the rows, when they all fit: the puck goes to the row under the finger and follows it row by row.
+    private var rowsGesture: some Gesture {
+        DragGesture(minimumDistance: 0, coordinateSpace: .named(space))
+            .updating($touchingRows) { _, state, _ in state = true }
+            .onChanged { drag in
+                if touch == .idle { touch = .picking }
+                guard touch == .picking else { return }
+                aim(row(at: drag.location))
+            }
+            .onEnded { drag in
+                let row = touch == .picking ? row(at: drag.location) : nil
+                touch = .idle
+                if let row { pick(row) } else { candidate = nil }
+            }
+    }
+
+    private func islandChanged(_ drag: DragGesture.Value) {
+        let dx = drag.translation.width, dy = drag.translation.height
+        switch touch {
+        case .idle:
+            touch = .undecided
+            pressed = true
+        case .undecided:
+            // The axis is decided once the finger has moved a few points, so a press that drifts stays a tap.
+            guard hypot(dx, dy) > 8 else { return }
+            pressed = false
+            if !isOpen, abs(dx) > abs(dy) {
+                touch = .scrubbing
+                scrubOrigin = currentIndex
+                scrub(dx)
+            } else if dy < 0 {
+                if !isOpen { setOpen(true) }
+                touch = scrolls ? .cancelled : .opening(startY: drag.location.y)
+            } else {
+                touch = .cancelled
+            }
+        case .scrubbing:
+            scrub(dx)
+        case .opening(let startY):
+            // The finger becomes a pick once it reaches a row other than the current one, or travels a row's height.
+            guard let row = row(at: drag.location), row != currentIndex || abs(drag.location.y - startY) > rowHeight * 0.75 else { return }
+            touch = .picking
+            aim(row)
+        case .picking:
+            aim(row(at: drag.location))
+        case .cancelled:
+            break
+        }
+    }
+
+    private func islandEnded(_ drag: DragGesture.Value) {
+        let ended = touch
+        touch = .idle
+        pressed = false
+        switch ended {
+        case .undecided:
+            setOpen(!isOpen)
+        case .scrubbing:
+            endScrub(velocity: drag.velocity.width)
+        case .picking:
+            if let candidate { pick(candidate) }
+        default:
+            break
+        }
+    }
+
+    /// The system took the touch, or a gesture ended without a decision: nothing commits.
+    private func cancelTouch() {
+        guard touch != .idle else { return }
+        if touch == .scrubbing || touch == .picking { candidate = nil }
+        touch = .idle
+        pressed = false
+        if pull != 0 { withAnimation(motion.settle) { pull = 0 } }
+    }
+
+    /// One section per `scrubStep` of travel, toward the trailing side for later sections. Past the first or last
+    /// the island gives with rubber-band resistance instead. A drag's translation is on screen while the island's
+    /// offset reads from the leading edge, so a right-to-left layout turns the one into the other.
+    private func scrub(_ dx: CGFloat) {
+        let raw = CGFloat(scrubOrigin) + leading(dx) / scrubStep
+        let held = min(max(raw, 0), CGFloat(count - 1))
+        let next = Int(held.rounded())
+        if next != displayIndex { ticks += 1 }
+        candidate = next
+        let over = (raw - held) * scrubStep
+        pull = reduceMotion ? 0 : PieceMotion.rubberBand(over, limit: 14)
+    }
+
+    private func endScrub(velocity: CGFloat) {
+        let target = candidate ?? currentIndex
+        // Committed and cleared together, so the title already showing the pick doesn't morph again.
+        if target != currentIndex { commit(target) }
+        candidate = nil
+        guard pull != 0 else { return }
+        // Past an end the band springs back at the finger's speed, slowed the way the band slowed it.
+        withAnimation(motion.settle(velocity: leading(velocity) * 0.2, from: pull, to: 0)) { pull = 0 }
+    }
+
+    /// A horizontal amount on screen, measured from the leading edge.
+    private func leading(_ x: CGFloat) -> CGFloat { layoutDirection == .rightToLeft ? -x : x }
+
+    /// The row under a point in the island's space, or `nil` once the finger leaves the rows.
+    private func row(at point: CGPoint) -> Int? {
+        let bottom = container.height - bottomGap - barHeight - rowsGap
+        let top = bottom - rowsViewport
+        guard count > 0, abs(point.x - container.width / 2) <= panelWidth / 2 + 24, point.y >= top - 24, point.y <= bottom + 4 else { return nil }
+        return clamp(Int(((point.y - top) / rowHeight).rounded(.down)))
+    }
+
+    /// Moves the puck to a row (or back to the current one for `nil`), with a tick for each row it lands on.
+    private func aim(_ row: Int?) {
+        let before = puckRow
+        candidate = row
+        if let row, row != before { ticks += 1 }
+    }
+
+    // MARK: Actions
+
+    private func setOpen(_ open: Bool) {
+        guard open != isOpen, !open || count > 1 else { return }
+        if let expandedBinding { expandedBinding.wrappedValue = open } else { localExpanded = open }
+    }
+
+    private func openChanged(_ open: Bool) {
+        toggles += 1
+        if open {
+            candidate = nil
+            place(currentIndex)
+            // VoiceOver moves into the list, onto the current section, once the rows have arrived.
+            Task { @MainActor in
+                try? await Task.sleep(for: .milliseconds(420))
+                if isOpen { focusedRow = currentIndex }
+            }
+        } else {
+            candidate = nil
+            closedAt = Date()
+            if focusedRow != nil {
+                focusedRow = nil
+                islandFocus = true
+            }
+        }
+        updateTop(delay: open ? 0 : 0.45)
+    }
+
+    /// A row tapped (or activated by VoiceOver or Full Keyboard Access): the puck goes there, then the panel closes.
+    private func tapRow(_ index: Int) {
+        guard isOpen else { return }
+        candidate = index
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(reduceMotion ? 60 : 180))
+            if isOpen, candidate == index { pick(index) }
+        }
+    }
+
+    private func pick(_ index: Int) {
+        if index != currentIndex { commit(index) }
+        candidate = nil
+        setOpen(false)
+    }
+
+    private func backToTop() {
+        guard currentIndex != 0 else { return }
+        ticks += 1
+        commit(0)
+    }
+
+    /// One section on, or back: VoiceOver's adjustable action and the arrow keys on the closed island.
+    private func step(_ delta: Int) {
+        let next = clamp(currentIndex + delta)
+        guard next != currentIndex else { return }
+        ticks += 1
+        commit(next)
+    }
+
+    /// Writes the pick to the binding; the scroll view's `scrollPosition(id:)` takes the page there.
+    private func commit(_ index: Int) {
+        guard sections.indices.contains(index) else { return }
+        selection = sections[index].id
+    }
+
+    private func key(_ press: KeyPress) -> KeyPress.Result {
+        let forward: KeyEquivalent = layoutDirection == .rightToLeft ? .leftArrow : .rightArrow
+        let back: KeyEquivalent = layoutDirection == .rightToLeft ? .rightArrow : .leftArrow
+        let first = press.phase == .down
+        if isOpen {
+            switch press.key {
+            case .upArrow: move(-1)
+            case .downArrow: move(1)
+            case .return, .space: if first { pick(puckRow) }
+            case .escape: if first { setOpen(false) }
+            default: return .ignored
+            }
+            return .handled
+        }
+        switch press.key {
+        case forward: step(1)
+        case back: step(-1)
+        case .return, .space, .upArrow: if first { setOpen(true) }
+        default: return .ignored
+        }
+        return .handled
+    }
+
+    private func move(_ delta: Int) {
+        let next = clamp(puckRow + delta)
+        guard next != puckRow else { return }
+        candidate = next
+        ticks += 1
+    }
+
+    // MARK: Puck and bubble motion
+
+    /// Sets the puck on a row with no animation.
+    private func place(_ index: Int) {
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) {
+            puckTop = CGFloat(index)
+            puckBottom = CGFloat(index + 1)
+        }
+    }
+
+    /// Moves the puck edge by edge: the edge facing the new row leads on the snap spring and the far edge follows a
+    /// beat later on a looser one, so the puck stretches toward the row and gathers on it. Under Reduce Motion both
+    /// share one short spring, so it slides without stretching.
+    private func fly(to index: Int) {
+        let down = CGFloat(index) + 0.5 > (puckTop + puckBottom) / 2
+        let lead = motion.snap, trail = motion.follow(PieceMotion.responsive, rank: 2)
+        withAnimation(down ? lead : trail) { puckBottom = CGFloat(index + 1) }
+        withAnimation(down ? trail : lead) { puckTop = CGFloat(index) }
+    }
+
+    /// Buds the back-to-top bubble out of the island, or melts it home, to match where the reader is.
+    private func updateTop(delay: Double) {
+        let want = wantsTop
+        Task { @MainActor in
+            if want, !buds.isOut("top") {
+                await buds.bloom(["top"], reduceMotion: reduceMotion, delay: delay)
+            } else if !want, buds.contains("top") {
+                await buds.gather(["top"], reduceMotion: reduceMotion)
+            }
+        }
+    }
+}
+
+// MARK: - Helpers
+
+
+/// The bar's width: `width` when given (the open panel), otherwise its natural width up to `maxWidth`, so the closed
+/// capsule hugs its title in the same layout pass that changes it.
+private struct ScrollIslandHug: Layout {
+    var width: CGFloat?
+    var maxWidth: CGFloat
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        guard let bar = subviews.first else { return .zero }
+        let natural = bar.sizeThatFits(.unspecified)
+        return CGSize(width: width ?? min(natural.width.rounded(.up) + 1, maxWidth), height: natural.height)
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        subviews.first?.place(at: bounds.origin, proposal: ProposedViewSize(bounds.size))
+    }
+}
+
+/// A title that morphs letter by letter while it fits, and truncates with an ellipsis when it can't.
+private struct ScrollIslandTitle: View {
+    var text: String
+    var font: Font
+
+    var body: some View {
+        ViewThatFits(in: .horizontal) {
+            PieceMorphText(text: text, font: font)
+            Text(text)
+                .font(font)
+                .lineLimit(1)
+                .truncationMode(.tail)
+        }
+    }
+}
+
+/// One edge of the puck, animated on its own: SwiftUI interpolates `value` frame by frame and rebuilds the content
+/// with it. Two nested give the two edges separate springs; one shape holding both would animate them as one value.
+private struct ScrollIslandEdge<Content: View>: View, Animatable {
+    var value: CGFloat
+    @ViewBuilder let content: (CGFloat) -> Content
+
+    nonisolated var animatableData: CGFloat {
+        get { value }
+        set { value = newValue }
+    }
+
+    var body: some View { content(value) }
+}
+
+/// A capsule across the full width between two edges, in points from the top. `inverted` adds the whole rect around
+/// it, so an even-odd fill draws everything but the capsule.
+private struct ScrollIslandPuckShape: Shape {
+    var top: CGFloat
+    var bottom: CGFloat
+    var inverted = false
+
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        if inverted { path.addRect(rect.insetBy(dx: -8, dy: -8)) }
+        path.addPath(Capsule().path(in: CGRect(x: rect.minX, y: rect.minY + top, width: rect.width, height: max(bottom - top, 0))))
+        return path
+    }
+}
+
+/// One of the bar's two label layers: blurs out quickly as it gives way, and blurs in a beat later once the glass
+/// has mostly changed shape. A fade under Reduce Motion.
+private struct ScrollIslandFade: ViewModifier {
+    var shown: Bool
+    var reduceMotion: Bool
+
+    func body(content: Content) -> some View {
+        content
+            .blur(radius: shown || reduceMotion ? 0 : 5)
+            .opacity(shown ? 1 : 0)
+            .animation(shown ? .easeOut(duration: 0.24).delay(reduceMotion ? 0 : 0.2) : .easeOut(duration: 0.12), value: shown)
+    }
+}
+
+/// Rows press with no look of their own: the puck shows the touch.
+private struct ScrollIslandRowStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+    }
+}
+
+/// VoiceOver's adjustable action, only where there is somewhere to adjust to. Never switch `enabled` while the island
+/// is on screen for anything but a change of sections: it changes the island's identity.
+private struct ScrollIslandAdjustable: ViewModifier {
+    var enabled: Bool
+    var action: (Int) -> Void
+
+    func body(content: Content) -> some View {
+        if enabled {
+            content.accessibilityAdjustableAction { direction in
+                switch direction {
+                case .increment: action(1)
+                case .decrement: action(-1)
+                @unknown default: break
+                }
+            }
+        } else {
+            content
+        }
+    }
+}
+
+/// A house-palette color that follows the interface style.
+private func scrollIslandAdaptive(light: UInt32, dark: UInt32) -> Color {
+    Color(uiColor: UIColor { @Sendable traits in
+        let hex = traits.userInterfaceStyle == .dark ? dark : light
+        return UIColor(red: CGFloat((hex >> 16) & 0xFF) / 255, green: CGFloat((hex >> 8) & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
+    })
+}
+
+// MARK: - Example
+
+/// A recipe page with its sections in a scroll view, and the island over it.
+private struct ScrollIslandExample: View {
+    @State private var section: String?
+    @State private var read: Double?
+
+    var body: some View {
+        ScrollView {
+            LazyVStack(alignment: .leading, spacing: 36) {
+                ForEach(ScrollIslandRecipe.parts) { part in
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text(part.title)
+                            .font(.title2)
+                        ForEach(part.paragraphs, id: \.self) { paragraph in
+                            Text(paragraph)
+                                .foregroundStyle(scrollIslandAdaptive(light: 0x5C5A56, dark: 0xA6A49F))
+                        }
+                    }
+                    .id(part.id)
+                }
+            }
+            .scrollTargetLayout()
+            .padding(.horizontal, 24)
+            .padding(.top, 24)
+            .padding(.bottom, 360)
+        }
+        .scrollPosition(id: $section, anchor: .top)
+        .scrollIslandReadingProgress($read)
+        .overlay(alignment: .bottom) {
+            ScrollIsland(sections: ScrollIslandRecipe.parts.map { .init(id: $0.id, title: $0.title, detail: $0.readingTime) }, selection: $section, progress: read)
+        }
+        .foregroundStyle(scrollIslandAdaptive(light: 0x141414, dark: 0xF4F3EF))
+        .fontWeight(.semibold)
+        .background(scrollIslandAdaptive(light: 0xF3F2EE, dark: 0x121212))
+    }
+}
+
+private extension View {
+    /// How far through the scroll view the reader is, 0 to 1. Needs iOS 18; before that it stays `nil` and the island
+    /// estimates it from the section in view.
+    @ViewBuilder func scrollIslandReadingProgress(_ fraction: Binding<Double?>) -> some View {
+        if #available(iOS 18, *) {
+            onScrollGeometryChange(for: Double.self) { geometry in
+                let travel = geometry.contentSize.height + geometry.contentInsets.top + geometry.contentInsets.bottom - geometry.containerSize.height
+                return travel > 0 ? (geometry.contentOffset.y + geometry.contentInsets.top) / travel : 1
+            } action: { _, value in
+                fraction.wrappedValue = min(max(value, 0), 1)
+            }
+        } else {
+            self
+        }
+    }
+}
+
+/// A fictional recipe, in parts.
+private enum ScrollIslandRecipe {
+    struct Part: Identifiable {
+        let id: String
+        let title: String
+        let minutes: Double
+        let paragraphs: [String]
+
+        var readingTime: String {
+            Measurement(value: minutes, unit: UnitDuration.minutes).formatted(.measurement(width: .abbreviated, usage: .asProvided))
+        }
+    }
+
+    static let parts: [Part] = [
+        Part(id: "overview", title: "Overview", minutes: 1, paragraphs: [
+            "A slow pot of white beans with charred leeks, lemon and plenty of olive oil. It feeds four, keeps for three days and tastes better on the second.",
+            "Most of the time is the beans simmering on their own, so start them before anything else.",
+        ]),
+        Part(id: "ingredients", title: "Ingredients", minutes: 2, paragraphs: [
+            "Two leeks, trimmed and halved lengthways. Two tins of white beans with their liquid, or 300 g dried and soaked overnight.",
+            "One lemon, four cloves of garlic, a sprig of rosemary, 500 ml of stock and good olive oil to finish.",
+        ]),
+        Part(id: "method", title: "Method", minutes: 5, paragraphs: [
+            "Char the leeks cut side down in a dry pan until they blacken in places, about eight minutes, then slice them into short lengths.",
+            "Warm the garlic and rosemary in oil, add the beans, stock and leeks, and simmer gently for 25 minutes until it thickens.",
+            "Mash a ladle of beans against the side of the pot to make it creamy, then season with lemon and salt.",
+        ]),
+        Part(id: "serving", title: "Serving", minutes: 2, paragraphs: [
+            "Spoon into warm bowls with a slick of oil, grated lemon zest and toasted bread on the side.",
+            "A bitter salad of radicchio and orange cuts through the richness.",
+        ]),
+        Part(id: "notes", title: "Notes", minutes: 1, paragraphs: [
+            "The stew thickens overnight. Loosen it with a splash of water as it warms.",
+            "In summer, swap the leeks for fennel.",
+        ]),
+    ]
+}
+
+#Preview("Light") {
+    ScrollIslandExample()
+}
+
+#Preview("Dark") {
+    ScrollIslandExample()
+        .preferredColorScheme(.dark)
+}
+
+// MARK: - Piece motion
+//
+// The SwiftPieces motion language: shared spring tokens and gesture physics, with the same values in every
+// piece. Each piece carries a copy of only the parts it uses, so this file stands alone. Generated from
+// registry/foundation/PieceMotion.swift in the SwiftPieces repo; edit it there, not here.
+// swiftpieces-motion: 1.1.0 (core, follow, momentum, rubberBand, pressMath)
+
+/// The SwiftPieces motion language: five spring tiers, and a named role for every moment a piece moves,
+/// each with its Reduce Motion substitute.
+///
+/// Build one from the environment, `PieceMotion(reduceMotion: reduceMotion)`, and pick the role that names
+/// what just happened. Never animate the tracking of a finger: set gesture state directly in `onChanged`, so the
+/// surface stays under the finger, and spring only the release.
+private struct PieceMotion {
+    var reduceMotion = false
+
+    // Tiers. Overshoot and settle times are measured from rest with SwiftUI's Spring.
+    /// No overshoot, 90% in about 90ms. A press arriving under the finger.
+    static var tight: Spring { Spring(duration: 0.14, bounce: 0) }
+    /// About 2.8% overshoot, 90% in about 140ms. Snapping to a detent, page or segment.
+    static var responsive: Spring { Spring(duration: 0.32, bounce: 0.25) }
+    /// About 8.4% overshoot. Visible give: a release, a return from past an edge, a drag settling home.
+    static var elastic: Spring { Spring(duration: 0.42, bounce: 0.38) }
+    /// About 15% overshoot. A resolved action landing. At most once per interaction.
+    static var expressive: Spring { Spring(duration: 0.48, bounce: 0.48) }
+    /// About 1.5% overshoot, unhurried. Opening large surfaces and ambient change.
+    static var calm: Spring { Spring(duration: 0.5, bounce: 0.2) }
+
+    /// Reduce Motion: settles become this short spring with no overshoot.
+    private static var still: Animation { .spring(duration: 0.25, bounce: 0) }
+
+    // Roles.
+    /// Touch-down. Starts on the same frame and never bounces under the finger.
+    var press: Animation { .spring(Self.tight) }
+    /// The finger lifts off a pressed surface, which springs back through rest.
+    var release: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A dragged thing comes to rest. With a gesture's velocity, use `settle(velocity:from:to:)` instead.
+    var settle: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// Lands on a detent, page or segment.
+    var snap: Animation { reduceMotion ? Self.still : .spring(Self.responsive) }
+    /// A number, a chart value or anything else people read moves to its new value. Never overshoots, so it
+    /// never shows a value that isn't true.
+    var value: Animation { reduceMotion ? Self.still : .spring(duration: 0.35, bounce: 0) }
+    /// Comes back from past a limit: a pull beyond the edge, a value pushed against its bound.
+    var rebound: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A shape or container changes size, corner radius or form, with a little give at the end.
+    var morph: Animation { reduceMotion ? Self.still : .spring(duration: 0.4, bounce: 0.2) }
+    /// Something appears, opens or expands. Opening is a little slower than closing.
+    var reveal: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.calm) }
+    /// Something leaves, closes or collapses. Quick and firm, out of the way.
+    var dismiss: Animation { reduceMotion ? .easeIn(duration: 0.18) : .spring(duration: 0.3, bounce: 0.08) }
+    /// A resolved action lands: a check, a sent state, a reaction.
+    var success: Animation { reduceMotion ? .easeOut(duration: 0.24) : .spring(Self.expressive) }
+    /// A refused action. Firm, no wobble; `pieceShake` adds the movement.
+    var error: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.responsive) }
+    /// Slow ambient change. Loops themselves stop under Reduce Motion: check `allowsAmbient`.
+    var ambient: Animation { reduceMotion ? .easeInOut(duration: 0.3) : .spring(Self.calm) }
+
+    /// Loops, drifts, idle breathing and parallax run only when this is true.
+    var allowsAmbient: Bool { !reduceMotion }
+
+    /// A moving transition, or a plain fade under Reduce Motion.
+    func transition(_ transition: AnyTransition) -> AnyTransition {
+        reduceMotion ? .opacity : transition
+    }
+
+    /// For content replaced inside a container that stays put (a label, a glyph, a count): the old content
+    /// blurs out as the new one sharpens in. A fade under Reduce Motion.
+    @MainActor var swap: AnyTransition {
+        reduceMotion ? .opacity : AnyTransition(.blurReplace)
+    }
+}
+
+extension PieceMotion {
+    /// Follow-through: rank 0 leads, each later rank arrives a beat later on a slightly looser spring. Safe to reverse.
+    func follow(_ spring: Spring = PieceMotion.elastic, rank: Int) -> Animation {
+        guard !reduceMotion else { return .spring(duration: 0.25, bounce: 0) }
+        let k = Double(min(max(rank, 0), 6))
+        return .spring(duration: spring.duration + 0.04 * k, bounce: min(spring.bounce + 0.02 * k, 0.55))
+    }
+
+    /// One-shot entrances only: item `index` waits 30ms per place, capped at the seventh. Exits go together.
+    func cascade(_ animation: Animation, index: Int, step: Double = 0.03) -> Animation {
+        guard !reduceMotion, index > 0 else { return animation }
+        return animation.delay(step * Double(min(index, 7)))
+    }
+}
+
+extension PieceMotion {
+    /// Where a flick at `velocity` (pt/s) coasts to. 0.998 coasts like a scroll view; 0.99 suits detents.
+    nonisolated static func project(_ position: CGFloat, velocity: CGFloat, decelerationRate: CGFloat = 0.99) -> CGFloat {
+        position + velocity / 1000 * decelerationRate / (1 - decelerationRate)
+    }
+
+    /// The candidate closest to `value`.
+    nonisolated static func nearest(_ value: CGFloat, in candidates: [CGFloat]) -> CGFloat {
+        candidates.min { abs($0 - value) < abs($1 - value) } ?? value
+    }
+
+    /// A settle that leaves at the finger's speed (pt/s). One per axis, each on its own `.offset(x:)` / `.offset(y:)`:
+    /// a spring takes one velocity. SwiftUI's own velocity carry-over is unreliable; this always carries it.
+    func settle(velocity: CGFloat, from current: CGFloat, to target: CGFloat, spring: Spring = PieceMotion.elastic) -> Animation {
+        let spring = reduceMotion ? Spring(duration: 0.25, bounce: 0) : spring
+        let distance = target - current
+        guard abs(distance) >= 1 else { return .spring(spring) }
+        // In whole distances per second, capped near the spring's frequency: a hard flick adds give, not a slingshot.
+        // At exactly the frequency a critically damped spring cannot pass its target, so Reduce Motion stops there.
+        let cap = 2 * Double.pi / spring.duration * (reduceMotion ? 1 : 1.5)
+        let relative = min(max(Double(velocity / distance), -cap), cap)
+        return .interpolatingSpring(spring, initialVelocity: relative)
+    }
+}
+
+extension PieceMotion {
+    /// A scroll view's edge resistance for a pull `overshoot` points past a limit; never reaches `limit`.
+    /// About 24 to 40 for thumbs and toggles, 60 to 120 for cards and sheets. Band the total pull, not deltas.
+    nonisolated static func rubberBand(_ overshoot: CGFloat, limit: CGFloat, coefficient: CGFloat = 0.55) -> CGFloat {
+        guard limit > 0, overshoot != 0 else { return 0 }
+        let banded = (1 - 1 / (abs(overshoot) * coefficient / limit + 1)) * limit
+        return overshoot < 0 ? -banded : banded
+    }
+
+    /// `value` inside `range` passes through unchanged; past either end it moves with rubber-band resistance.
+    nonisolated static func rubberBand(_ value: CGFloat, in range: ClosedRange<CGFloat>, limit: CGFloat, coefficient: CGFloat = 0.55) -> CGFloat {
+        if value < range.lowerBound { return range.lowerBound + rubberBand(value - range.lowerBound, limit: limit, coefficient: coefficient) }
+        if value > range.upperBound { return range.upperBound + rubberBand(value - range.upperBound, limit: limit, coefficient: coefficient) }
+        return value
+    }
+}
+
+extension PieceMotion {
+    /// About `depth` points per edge, not a fixed percentage: an icon sinks to 0.92, a pill 0.95, a card 0.985.
+    nonisolated static func pressScale(for size: CGSize, depth: CGFloat = 2.5) -> CGFloat {
+        let side = (max(size.width, 1) * max(size.height, 1)).squareRoot()
+        return min(max(1 - depth * 2 / side, 0.92), 0.985)
+    }
+
+    /// An anchor partway from the center toward the touch, so the press leans into the finger without tipping.
+    nonisolated static func pressAnchor(touch: CGPoint?, in size: CGSize, lean: CGFloat = 0.6) -> UnitPoint {
+        guard let touch, size.width > 0, size.height > 0 else { return .center }
+        let x = min(max(touch.x / size.width, 0), 1)
+        let y = min(max(touch.y / size.height, 0), 1)
+        return UnitPoint(x: 0.5 + (x - 0.5) * lean, y: 0.5 + (y - 0.5) * lean)
+    }
+}
+
+// swiftpieces-motion: end
+
+// MARK: - Piece liquid
+//
+// The SwiftPieces liquid glass language: glass shapes that merge through a neck, bubbles that bud out of
+// and melt back into each other, and the frosted fallback before iOS 26. Each piece carries a copy of only
+// the parts it uses, so this file stands alone. Generated from registry/foundation/PieceLiquid.swift in the
+// SwiftPieces repo; edit it there, not here. The rules are in LIQUID_GLASS.md.
+// swiftpieces-liquid: 1.7.1 (liquid, liquidPress, bud, morphText)
+
+/// The liquid glass language: one merge distance, two rest gaps, and the springs a bubble leaves and comes home on.
+///
+/// Glass shapes inside one `PieceLiquidGroup` melt into each other through a neck when they come within `merge`
+/// points. Parts of one control rest `joined`, inside that distance, so the neck holds; separate actions rest
+/// `apart`, outside it, so they only goo while one buds out of, or melts back into, another.
+private enum PieceLiquid {
+    /// Glass shapes closer than this share a neck.
+    static let merge: CGFloat = 20
+    /// The gap between parts of one control (a stepper's buttons, a progress pill and its stop): the neck holds,
+    /// short and smooth, about two thirds of the shapes' height at its waist. Joined parts read best at one height.
+    static let joined: CGFloat = 4
+    /// The gap between separate actions (menu items, confirm and cancel, chips): they rest as their own bubbles.
+    static let apart: CGFloat = 26
+    /// How far a bubble shrinks while it is home inside its parent.
+    static let homeScale: CGFloat = 0.72
+
+    /// A bubble leaving its parent: slow enough that the neck's stretch and snap read.
+    static func split(reduceMotion: Bool) -> Animation {
+        reduceMotion ? .easeOut(duration: 0.2) : .spring(duration: 0.62, bounce: 0.22)
+    }
+
+    /// A bubble going home. No bounce: a bounce would carry it out through the far side of its parent.
+    static func home(reduceMotion: Bool) -> Animation {
+        reduceMotion ? .easeIn(duration: 0.18) : .spring(duration: 0.5, bounce: 0)
+    }
+}
+
+/// A group of glass shapes that merge into one liquid surface. On iOS 26 it is a `GlassEffectContainer`; before
+/// that, and under Reduce Transparency, the shapes draw on their own and simply don't merge. `lift` adds the soft
+/// shadow liquid glass floats on in light mode.
+private struct PieceLiquidGroup<Content: View>: View {
+    var spacing: CGFloat = PieceLiquid.merge
+    var lift = true
+    @ViewBuilder var content: Content
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        container
+            .shadow(color: .black.opacity(lift && colorScheme == .light ? 0.07 : 0), radius: 18, y: 8)
+    }
+
+    @ViewBuilder private var container: some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26, *), !reduceTransparency {
+            GlassEffectContainer(spacing: spacing) { content }
+        } else {
+            content
+        }
+        #else
+        content
+        #endif
+    }
+}
+
+/// One liquid glass shape: Liquid Glass on iOS 26, carrying `tint` as a solid colour and swelling under a press when
+/// `interactive`; a frosted Material with a light rim and a soft shadow before that; a solid fill under Reduce
+/// Transparency.
+///
+/// The tint is painted inside clear glass rather than tinting the glass. Tinted glass in a group bleeds its colour
+/// through every neck as a smear, so a red button would glow into the white pill it is joined to; painted inside,
+/// the colour stays crisp to the shape's edge, the necks between shapes are clear glass, and a tint change animates
+/// like any colour (tinted glass snaps).
+private struct PieceLiquidSurface<S: Shape>: ViewModifier {
+    var shape: S
+    var tint: Color?
+    var interactive: Bool
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.pieceLiquidScale) private var scale
+
+    func body(content: Content) -> some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26, *), !reduceTransparency {
+            // Scaled as two parts, content and outline, about the same centre. A scaleEffect on a glass view inside a
+            // GlassEffectContainer shrinks the glass but leaves what it carries full size, pinned to its corner.
+            content
+                .background { shape.fill(tint ?? .clear) }
+                .scaleEffect(scale)
+                .glassEffect(glass, in: shape.scale(scale))
+        } else {
+            fallback(content).scaleEffect(scale)
+        }
+        #else
+        fallback(content).scaleEffect(scale)
+        #endif
+    }
+
+    #if compiler(>=6.2)
+    @available(iOS 26, *)
+    private var glass: Glass {
+        interactive ? Glass.regular.interactive() : .regular
+    }
+    #endif
+
+    private func fallback(_ content: Content) -> some View {
+        let dark = colorScheme == .dark
+        return content
+            .background {
+                if reduceTransparency {
+                    shape.fill(tint ?? (dark ? Color(white: 0.17) : Color(white: 0.97)))
+                } else {
+                    ZStack {
+                        shape.fill(.regularMaterial)
+                        if let tint { shape.fill(tint.opacity(0.88)) }
+                    }
+                }
+            }
+            .overlay { shape.stroke(Color.white.opacity(dark ? 0.14 : 0.7), lineWidth: 0.5) }
+            .shadow(color: .black.opacity(dark ? 0.32 : 0.08), radius: 10, y: 5)
+    }
+}
+
+private struct PieceLiquidScaleKey: EnvironmentKey {
+    static let defaultValue: CGFloat = 1
+}
+
+private extension EnvironmentValues {
+    /// How much the liquid shapes below are scaled, about their own centres. Nested scales multiply.
+    var pieceLiquidScale: CGFloat {
+        get { self[PieceLiquidScaleKey.self] }
+        set { self[PieceLiquidScaleKey.self] = newValue }
+    }
+}
+
+private extension View {
+    /// Draws this view on a liquid glass `shape`. Put it inside a `PieceLiquidGroup` so it can merge with its neighbours.
+    func pieceLiquid<S: Shape>(_ shape: S, tint: Color? = nil, interactive: Bool = true) -> some View {
+        modifier(PieceLiquidSurface(shape: shape, tint: tint, interactive: interactive))
+    }
+
+    /// Scales the liquid glass shapes in this view, content and outline together, about their own centres. Use it
+    /// instead of `scaleEffect` on a glass view (a press, a lift, a swell): inside a group a plain `scaleEffect` shrinks
+    /// the glass but leaves its content full size and off centre. Animates like any other value.
+    func pieceLiquidScale(_ scale: CGFloat) -> some View {
+        transformEnvironment(\.pieceLiquidScale) { $0 *= scale }
+    }
+}
+
+/// The press for a glass control: the same size-aware sink and lean as `piecePress`, applied through
+/// `pieceLiquidScale` so the glass and what it carries sink together (a plain scaleEffect on glass leaves the content
+/// behind). Put the glass inside what it presses: the label of a button, the view this modifies. Under Reduce Motion
+/// it shades instead of moving.
+private struct PieceLiquidPress: ViewModifier {
+    let pressed: Bool
+    var touch: CGPoint?
+    var depth: CGFloat = 2.5
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.colorScheme) private var colorScheme
+    @State private var size: CGSize = .zero
+    @State private var anchor: UnitPoint = .center
+
+    func body(content: Content) -> some View {
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        let scale = pressed && !reduceMotion ? PieceMotion.pressScale(for: size, depth: depth) : 1
+        // A scale about `anchor` is a scale about the centre plus this shift toward the anchor.
+        let lean = CGSize(width: (anchor.x - 0.5) * size.width * (1 - scale), height: (anchor.y - 0.5) * size.height * (1 - scale))
+        content
+            .onGeometryChange(for: CGSize.self) { $0.size } action: { size = $0 }
+            .brightness(pressed && reduceMotion ? (colorScheme == .dark ? 0.1 : -0.08) : 0)
+            .pieceLiquidScale(scale)
+            .offset(lean)
+            .animation(pressed ? motion.press : motion.release, value: pressed)
+            .onChange(of: pressed) { _, isPressed in
+                if isPressed { anchor = PieceMotion.pressAnchor(touch: touch, in: size) }
+            }
+            .onChange(of: touch) { _, touch in
+                if pressed, let touch { anchor = PieceMotion.pressAnchor(touch: touch, in: size) }
+            }
+    }
+}
+
+/// `PiecePressStyle` for glass buttons: the label (with its `.pieceLiquid` inside) sinks as one.
+private struct PieceLiquidPressStyle: ButtonStyle {
+    var depth: CGFloat = 2.5
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label.pieceLiquidPress(configuration.isPressed, depth: depth)
+    }
+}
+
+private extension View {
+    /// Sinks this view's glass while `pressed`, leaning toward `touch` (in this view's coordinates) when given.
+    func pieceLiquidPress(_ pressed: Bool, touch: CGPoint? = nil, depth: CGFloat = 2.5) -> some View {
+        modifier(PieceLiquidPress(pressed: pressed, touch: touch, depth: depth))
+    }
+}
+
+/// The bud: how a bubble leaves and rejoins its parent, driven explicitly so every bubble shows the whole cycle.
+///
+/// A bubble is born at `home`, inside its parent, where the two glass shapes are one. It springs out to `rest`, and
+/// while it is inside the merge distance a neck holds it to the parent, thinning as it goes, until it snaps free.
+/// Going home it springs back on a spring with no bounce, the neck reaches out and re-forms, and only once it has
+/// melted all the way in is it removed. Both offsets are relative to where the bubble is laid out. Under Reduce
+/// Motion it stays at `rest`: its content fades and its glass closes in place.
+private struct PieceBud: ViewModifier {
+    var out: Bool
+    var rest: CGSize
+    var home: CGSize
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func body(content: Content) -> some View {
+        if reduceMotion {
+            // No travel. Inside a group glass ignores opacity, so the glass closes to nothing in place on the short
+            // Reduce Motion ease while its content fades; the opacity covers a bubble outside a group.
+            content
+                .pieceLiquidScale(out ? 1 : 0.001)
+                .opacity(out ? 1 : 0)
+                .offset(rest)
+        } else {
+            // The glass shrinks through `pieceLiquidScale`, never a plain scaleEffect (see there), then moves.
+            content
+                .pieceLiquidScale(out ? 1 : PieceLiquid.homeScale)
+                .offset(out ? rest : home)
+        }
+    }
+}
+
+/// A bubble's own content, on its own clock: gone the moment the bubble heads home, so it never rides over the
+/// parent's content, and arriving just after the bubble leaves.
+private struct PieceBudContent: ViewModifier {
+    var out: Bool
+
+    func body(content: Content) -> some View {
+        content
+            .blur(radius: out ? 0 : 6)
+            .opacity(out ? 1 : 0)
+            .animation(out ? .easeOut(duration: 0.3).delay(0.1) : .easeOut(duration: 0.14), value: out)
+    }
+}
+
+private extension View {
+    /// Places a bubble at `rest` while `out`, and at `home` (inside its parent, shrunk) while not.
+    func pieceBud(out: Bool, rest: CGSize = .zero, home: CGSize) -> some View {
+        modifier(PieceBud(out: out, rest: rest, home: home))
+    }
+
+    /// Hides a bubble's icon or label while it is home. Put it on the content, inside the glass.
+    func pieceBudContent(out: Bool) -> some View {
+        modifier(PieceBudContent(out: out))
+    }
+}
+
+/// Which bubbles exist and which are out. A bubble is added home with no animation, sent out on the next frame,
+/// and called home before it is removed, so it always melts in rather than fading. Keep one in `@State`.
+@MainActor @Observable
+private final class PieceBuds {
+    private(set) var present: [String] = []
+    private(set) var out: Set<String> = []
+    /// The latest call for each bubble. A bloom or gather that has been overtaken (a bubble sent home while it was
+    /// still waiting to go out, or called out again while melting) leaves that bubble alone.
+    @ObservationIgnored private var turn: [String: Int] = [:]
+
+    func contains(_ id: String) -> Bool { present.contains(id) }
+    func isOut(_ id: String) -> Bool { out.contains(id) }
+
+    private func claim(_ ids: [String]) -> [String: Int] {
+        var mine: [String: Int] = [:]
+        for id in ids {
+            let next = (turn[id] ?? 0) + 1
+            turn[id] = next
+            mine[id] = next
+        }
+        return mine
+    }
+
+    /// Puts bubbles straight out at rest with no motion: a view's first frame, or a state restored.
+    func place(_ ids: [String]) {
+        _ = claim(ids)
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) {
+            for id in ids where !present.contains(id) { present.append(id) }
+            out.formUnion(ids)
+        }
+    }
+
+    /// Adds bubbles home, then sends each out, `stagger` seconds apart, after an optional `delay`.
+    func bloom(_ ids: [String], reduceMotion: Bool, stagger: Double = 0.05, delay: Double = 0) async {
+        let mine = claim(ids)
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) {
+            for id in ids where !present.contains(id) { present.append(id) }
+        }
+        try? await Task.sleep(for: .milliseconds(24 + Int(max(delay, 0) * 1000)))
+        let split = PieceLiquid.split(reduceMotion: reduceMotion)
+        for (i, id) in ids.enumerated() where turn[id] == mine[id] {
+            withAnimation(split.delay(reduceMotion ? 0 : Double(i) * stagger)) { _ = out.insert(id) }
+        }
+    }
+
+    /// Calls bubbles home, last first, then removes them once they have melted in.
+    func gather(_ ids: [String], reduceMotion: Bool, stagger: Double = 0.04) async {
+        let mine = claim(ids)
+        let home = PieceLiquid.home(reduceMotion: reduceMotion)
+        for (i, id) in ids.reversed().enumerated() {
+            withAnimation(home.delay(reduceMotion ? 0 : Double(i) * stagger)) { _ = out.remove(id) }
+        }
+        try? await Task.sleep(for: .milliseconds(Int((0.52 + Double(ids.count) * stagger) * 1000)))
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) { present.removeAll { ids.contains($0) && !out.contains($0) && turn[$0] == mine[$0] } }
+    }
+}
+
+/// A label that changes letter by letter: letters both strings share hold still, the rest blur out and the new ones
+/// blur in a few milliseconds apart. Under Reduce Motion it cross-fades. VoiceOver reads the whole string.
+///
+/// Only text whose letters stand on their own is cut into letters: Latin, Greek, Cyrillic, CJK, digits and symbols.
+/// Those letters are laid out left to right whatever the layout direction, the order they read in, so "1.5×" stays
+/// "1.5×" in an Arabic or Hebrew interface instead of coming out backwards. Text in a right-to-left script, or in one
+/// whose letters join or reorder (Arabic, Hebrew, Devanagari, Thai and their neighbours), can't be cut apart without
+/// breaking it, so it changes as one: the old string blurs out where it stood while the new one blurs in.
+private struct PieceMorphText: View {
+    var text: String
+    var font: Font = .body.weight(.semibold)
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        Group {
+            if Self.splits(text) {
+                let glyphs = Array(text)
+                HStack(spacing: 0) {
+                    ForEach(glyphs.indices, id: \.self) { i in
+                        Text(String(glyphs[i]))
+                            .id("\(i)\(glyphs[i])")
+                            .transition(transition(i, scale: 0.6))
+                    }
+                }
+                // The letters' reading order, not the layout's: an HStack lays its children out backwards under a
+                // right-to-left layout.
+                .environment(\.layoutDirection, .leftToRight)
+            } else {
+                ZStack(alignment: .leading) {
+                    Text(text)
+                        .id(text)
+                        .transition(transition(0, scale: 0.9))
+                }
+            }
+        }
+        .font(font)
+        .fixedSize()
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(text)
+    }
+
+    private func transition(_ i: Int, scale: CGFloat) -> AnyTransition {
+        guard !reduceMotion else { return .opacity }
+        return AnyTransition(.blurReplace(.downUp)).combined(with: .scale(scale: scale, anchor: .bottom))
+            .animation(.spring(duration: 0.42, bounce: 0.3).delay(Double(i) * 0.022))
+    }
+
+    /// Whether `text` can be cut into letters that each read left to right on their own: no right-to-left script, no
+    /// script that joins or reorders its letters, and no bidirectional control characters.
+    private static func splits(_ text: String) -> Bool {
+        !text.unicodeScalars.contains { scalar in
+            switch scalar.value {
+            case 0x0590...0x08FF, // Hebrew, Arabic, Syriac, Thaana, NKo, Samaritan, Mandaic
+                 0x0900...0x0DFF, // Devanagari to Sinhala
+                 0x0E00...0x0FFF, // Thai, Lao, Tibetan
+                 0x1000...0x109F, // Myanmar
+                 0x1780...0x17FF, // Khmer
+                 0xA8E0...0xA8FF, // Devanagari Extended
+                 0xFB1D...0xFDFF, // Hebrew and Arabic presentation forms
+                 0xFE70...0xFEFF, // Arabic presentation forms B
+                 0x200E...0x200F, 0x202A...0x202E, 0x2066...0x2069, // bidirectional marks, embeddings and isolates
+                 0x10800...0x10FFF, // historic right-to-left scripts
+                 0x1E800...0x1EFFF: // Adlam and other right-to-left scripts
+                return true
+            default:
+                return false
+            }
+        }
+    }
+}
+
+// swiftpieces-liquid: end

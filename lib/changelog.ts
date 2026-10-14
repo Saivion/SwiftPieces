@@ -7,6 +7,27 @@ import type { ChangelogEntry } from "@/components/changelog/changelog-grid";
  */
 export const changelog: ChangelogEntry[] = [
   {
+    slug: "crafted-pieces",
+    date: "Oct 12, 2026",
+    title: "Eight crafted pieces",
+    summary: "Eight free pieces for problems apps meet every day: where you are on a long page, a checkout's progress, recording and playing voice messages, a mini player, passes and tickets, a pile of notices, and a long chart you read in windows. The previous New set joins the general library.",
+    points: [
+      "Scroll Island: a floating glass island names the section you are reading and rings how much is read. Tap it for the page's contents and jump anywhere, drag it sideways to step through sections, and a back-to-top bubble buds out once you leave the top.",
+      "Step Trail: a checkout's progress as one liquid trail. The red capsule stretches from step to step, taps go back to any step you have reached, and a drag carries it along.",
+      "Waveform Scrub: a voice note whose waveform is the scrubber. A time bubble buds above your finger, one seek fires on release, a speed chip cycles 1×, 1.5× and 2×, and a reader turns an audio file into samples off the main thread.",
+      "Voice Recorder: hold the mic to record a voice message. Slide toward the edge to cancel, slide up to lock and record hands-free, and let go to send a file with its waveform, ready for Waveform Scrub.",
+      "Now Playing: a mini player you tap or pull up into the full player as one glass shape, with flying artwork, a scrubber, and previous and next budding out of play.",
+      "Wallet Stack: tickets and passes stacked by their strips. Tap one to bring it forward with a real QR code while the rest tuck into a pile, and drag it down to put it back.",
+      "Notice Stack: notices pile into one glass shape, spread into a list, swipe away at your finger's speed, and clear with a confirming red Clear all. New ones drop in from above.",
+      "Range Lens: overview and detail for long series. A readout and a detail chart with its average follow a glass lens you drag and resize on a strip of the whole series.",
+      "Morphing labels keep their letters in reading order in right-to-left layouts, and text in scripts whose letters join, such as Arabic, Hebrew or Hindi, changes as a whole word.",
+      "Each piece is liquid glass on iOS 26 through the shared liquid language, with a frosted fallback from iOS 17. Reduce Motion, Reduce Transparency, VoiceOver and Dynamic Type are covered.",
+      "The pieces that shipped on Sep 29, 2026 leave the New badge and join the general set. The badge now marks this wave.",
+    ],
+    visual: "cards",
+    tint: "red",
+  },
+  {
     slug: "cli-0-3-4",
     date: "Oct 12, 2026",
     title: "CLI 0.3.4",

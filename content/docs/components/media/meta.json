@@ -5,8 +5,11 @@
   "pages": [
     "attachment-tray",
     "link-preview",
+    "now-playing",
     "photo-cropper",
     "photo-viewer",
-    "story-strip"
+    "story-strip",
+    "voice-recorder",
+    "waveform-scrub"
   ]
 }
