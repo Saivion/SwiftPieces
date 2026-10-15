@@ -43,7 +43,7 @@ export const tiers: Tier[] = [
   {
     id: "bronze",
     name: "Bronze",
-    price: 100,
+    price: 49,
     audience: "company",
     pitch: "For studios and indie teams who build on SwiftPieces.",
     perks: ["Logo on this page", "Logo in the GitHub README", "Everything in Supporter"],
@@ -51,7 +51,7 @@ export const tiers: Tier[] = [
   {
     id: "silver",
     name: "Silver",
-    price: 300,
+    price: 99,
     audience: "company",
     pitch: "For tools and companies that want to reach iOS developers where they read.",
     perks: ["Large logo on this page", "Logo on every docs page", "A thank-you post from @saivion on X", "Everything in Bronze"],
@@ -59,7 +59,7 @@ export const tiers: Tier[] = [
   {
     id: "gold",
     name: "Gold",
-    price: 750,
+    price: 199,
     audience: "company",
     pitch: "The headline placement, limited to three sponsors at a time.",
     perks: ["Largest logo on the swiftpieces.com homepage", "Top of this page and the README", "One SwiftPieces Pro license for your team", "Everything in Silver"],
