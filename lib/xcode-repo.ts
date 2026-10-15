@@ -4,7 +4,7 @@
 // pieces' sources read from this site's own registry.
 import { createRegistry, decodeProject, FREE_LIMITS, freeDefinitions, validateProject } from "@swiftpieces/builder";
 import { advertiseRefs, uploadPack, xcodeRepo, type GitRepo } from "@swiftpieces/builder/export";
-import { loadFullRegistryItem } from "@/lib/registry";
+import { loadFullRegistryItem } from "@/lib/registry-items";
 
 const registry = createRegistry(freeDefinitions);
 
