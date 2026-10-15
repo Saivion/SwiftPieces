@@ -1,46 +1,130 @@
 "use client";
 import { NewBadge } from "@/components/ui/new-badge";
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import type { RegistryIndexEntry } from "@/lib/registry-schema";
 import { PreviewFrame } from "@/components/previews/frame";
 import { PiecePreview } from "@/components/previews";
 import { RevealGroup, RevealItem } from "@/components/effects/reveal";
-import { Panel, PanelBody, PanelMedia, Index } from "@/components/ui/panel";
 import { piecePath } from "@/lib/registry-paths";
 import { cn } from "@/lib/cn";
 import { categoryTitle } from "@/lib/categories";
 
-export function ComponentCard({ item, index }: { item: RegistryIndexEntry; index?: number }) {
+/**
+ * Tile shapes for the masonry grid, none wider than the 4:3 stage the pieces are drawn on. A piece
+ * keeps its shape across filters and pages because it is picked from its name. In the single phone
+ * column every tile is 4:3, since there is nothing to stagger against.
+ */
+const SHAPES = [
+  { aspect: "aspect-[4/3]", ratio: 4 / 3 },
+  { aspect: "aspect-[4/3] sm:aspect-square", ratio: 1 },
+  { aspect: "aspect-[4/3] sm:aspect-[4/5]", ratio: 4 / 5 },
+  { aspect: "aspect-[4/3] sm:aspect-[3/4]", ratio: 3 / 4 },
+] as const;
+const SHAPE_MIX = [0, 0, 1, 1, 2, 3];
+
+/** Glass pieces paint their own wallpaper edge to edge on the 4:3 stage, so they keep it exactly. */
+function shapeOf({ name, category }: RegistryIndexEntry) {
+  if (category === "glass") return SHAPES[0];
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
+  return SHAPES[SHAPE_MIX[h % SHAPE_MIX.length]];
+}
+
+type Spot = { left: number; top: number; width: number };
+
+/**
+ * Lays tiles out as masonry: each one drops into the shortest column. Heights come from the known
+ * shapes, so nothing is measured but the container. The column count and gap are read from the
+ * grid's own responsive classes, so the breakpoints live in one place. Until this runs (server
+ * render, first paint) the same tiles sit in that plain grid, so there is never an empty frame.
+ */
+function useMasonry(ratios: number[]) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [layout, setLayout] = useState<{ height: number; spots: Spot[] } | null>(null);
+  const key = ratios.join();
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    let last = "";
+    const place = () => {
+      const css = getComputedStyle(el);
+      const cols = Math.max(1, css.gridTemplateColumns.split(" ").filter(Boolean).length);
+      const gap = parseFloat(css.columnGap) || 0;
+      const width = el.clientWidth;
+      const sig = `${cols}:${width}`;
+      if (sig === last) return;
+      last = sig;
+      const colW = (width - gap * (cols - 1)) / cols;
+      const heights = new Array<number>(cols).fill(0);
+      const spots = ratios.map((r) => {
+        const c = heights.indexOf(Math.min(...heights));
+        const spot = { left: c * (colW + gap), top: heights[c], width: colW };
+        heights[c] += colW / (cols === 1 ? SHAPES[0].ratio : r) + gap;
+        return spot;
+      });
+      setLayout({ height: Math.max(0, Math.max(...heights) - gap), spots });
+    };
+    place();
+    const ro = new ResizeObserver(place);
+    ro.observe(el);
+    return () => ro.disconnect();
+    // `key` stands in for `ratios`, which is a new array on every render.
+  }, [key]);
+  return { ref, layout };
+}
+
+/**
+ * One tile: just the live preview. The name is the link's accessible label and shows on hover or
+ * keyboard focus; on touch screens, which cannot hover, it is always shown. New stays pinned.
+ */
+export function ComponentCard({ item, style }: { item: RegistryIndexEntry; style?: CSSProperties }) {
+  const shape = shapeOf(item);
+  // Backgrounds are full-bleed and fill any shape; a 4:3 tile is already the stage's own shape.
+  const fill = item.category === "backgrounds" || shape === SHAPES[0];
   return (
-    <RevealItem>
-      <Link href={piecePath(item)} className="group block h-full">
-        <Panel hover className="h-full">
-          <PanelMedia>
-            <PreviewFrame tone={item.category === "backgrounds" ? "black" : "dark"}>
+    <RevealItem style={style}>
+      <Link href={piecePath(item)} aria-label={item.title} className="card card-hover group relative block overflow-hidden">
+        <PreviewFrame aspect={shape.aspect} tone={item.category === "backgrounds" ? "black" : "dark"} className="rounded-none">
+          {fill ? (
+            <PiecePreview name={item.name} />
+          ) : (
+            // Pieces are composed on a 4:3 stage, so they keep one, centred in the tile on the same ground.
+            <div className="absolute inset-x-0 top-[calc(50%-37.5cqw)] aspect-[4/3] [container-type:size]">
               <PiecePreview name={item.name} />
-            </PreviewFrame>
-          </PanelMedia>
-          <PanelBody>
-            <div className="flex items-center justify-between gap-3">
-              <p className="p-item min-w-0 truncate">{item.title}</p>
-              {item.isNew ? <NewBadge /> : null}
             </div>
-            <p className="p-body mt-2 line-clamp-2 text-[13px]">{item.description}</p>
-          </PanelBody>
-        </Panel>
+          )}
+        </PreviewFrame>
+        {item.isNew ? (
+          <NewBadge solid className="absolute top-3 left-3 z-10" />
+        ) : null}
+        <span
+          aria-hidden
+          className={cn(
+            "pointer-events-none absolute bottom-3 left-3 z-10 max-w-[calc(100%-24px)] truncate rounded-[5px] bg-black/75 px-2 py-1 text-[12px] font-medium text-white backdrop-blur-md",
+            "translate-y-1 opacity-0 transition duration-300 ease-[var(--ease-out)] group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100",
+            "[@media(hover:none)]:translate-y-0 [@media(hover:none)]:opacity-100",
+          )}
+        >
+          {item.title}
+        </span>
       </Link>
     </RevealItem>
   );
 }
 
 function CardGrid({ items, narrow }: { items: RegistryIndexEntry[]; narrow?: boolean }) {
+  const { ref, layout } = useMasonry(items.map((i) => shapeOf(i).ratio));
   return (
-    <RevealGroup className={cn("grid gap-4 sm:grid-cols-2 lg:grid-cols-3", !narrow && "xl:grid-cols-4")} stagger={0.04}>
-      {items.map((item, i) => (
-        <ComponentCard key={item.name} item={item} index={i} />
-      ))}
-    </RevealGroup>
+    <div ref={ref} className={cn("relative grid items-start gap-4 sm:grid-cols-2 lg:grid-cols-3", !narrow && "xl:grid-cols-4")} style={layout ? { height: layout.height } : undefined}>
+      {/* `contents` makes the tiles the grid's own items, so the reveal group adds no box of its own. */}
+      <RevealGroup className="contents" stagger={0.04}>
+        {items.map((item, i) => {
+          const spot = layout?.spots[i];
+          return <ComponentCard key={item.name} item={item} style={spot ? { position: "absolute", left: spot.left, top: spot.top, width: spot.width } : undefined} />;
+        })}
+      </RevealGroup>
+    </div>
   );
 }
 
