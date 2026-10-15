@@ -1,0 +1,738 @@
+// swiftpieces:
+// title: Aura Reveal
+// description: An image slot for generated or slow-loading pictures. While the picture is on its way the slot is a living aura, drawn by a Metal shader, that stirs harder as progress climbs, with a liquid glass status chip whose words morph letter by letter joined to a percentage bubble. When the picture lands the aura flares and the image opens out of it from the centre, sharpening as it grows; a failure greys the aura and offers Retry.
+// category: media
+// minIOSVersion: "17.0"
+// version: "1.0.0"
+// added: "2026-10-15"
+// tags: [image, loading, placeholder, generation, ai, progress, aura, gradient, shader, metal, glass]
+// shaders: [AuraReveal.metal]
+
+import SwiftUI
+
+/// A picture slot that shows an aura while its image is generated or downloaded, then reveals the image out of it. Copy
+/// `AuraReveal.metal` alongside this file; its `auraReveal` kernel compiles into your app's default Metal library.
+///
+/// Drive it with `phase`: `.loading` with a status line and optional progress while you wait, `.loaded` with the image,
+/// or `.failed` with a message. The reveal plays when the phase changes to `.loaded`; a slot that first appears already
+/// loaded shows its image at once.
+///
+/// - Parameters:
+///   - phase: Where the picture is: loading, loaded or failed.
+///   - label: What the picture shows, for VoiceOver once it has loaded.
+///   - aspectRatio: Width over height of the slot.
+///   - cornerRadius: Corner radius of the slot.
+///   - style: The aura's colours while loading and after a failure, and the chips' ink and Retry colours.
+///   - onRetry: Optional. Adds a Retry button to the failed chip.
+public struct AuraReveal: View {
+    /// Where the picture is.
+    public enum Phase {
+        /// On its way. `progress` runs 0 to 1, or `nil` when it isn't known; `status` says what is happening.
+        case loading(status: String, progress: Double? = nil)
+        /// Arrived.
+        case loaded(Image)
+        /// Didn't arrive. `message` says why, in a few words.
+        case failed(String)
+
+        fileprivate var kind: Int {
+            switch self {
+            case .loading: 0
+            case .loaded: 1
+            case .failed: 2
+            }
+        }
+    }
+
+    /// Colours for the slot. Defaults follow the SwiftPieces house palette and adapt to light and dark.
+    public struct Style: Sendable {
+        /// The aura while loading, up to four colours; fewer repeat.
+        public var aura: [Color]
+        /// The aura after a failure: quiet greys.
+        public var failed: [Color]
+        /// Text on the glass chips.
+        public var ink: Color
+        /// The Retry bubble's tint.
+        public var retry: Color
+        /// The Retry bubble's label.
+        public var retryInk: Color
+
+        public init(
+            aura: [Color] = [Color(red: 0.804, green: 0.722, blue: 1), Color(red: 1, green: 0.851, blue: 0.463), Color(red: 0.612, green: 0.761, blue: 1), Color(red: 1, green: 0.75, blue: 0.82)],
+            failed: [Color] = [Color(white: 0.78), Color(white: 0.7), Color(white: 0.84), Color(white: 0.74)],
+            ink: Color = Style.adaptive(0x141414, 0xF4F3EF),
+            retry: Color = Color(red: 1, green: 0, blue: 0),
+            retryInk: Color = Color(red: 0.078, green: 0.078, blue: 0.078)
+        ) {
+            self.aura = aura
+            self.failed = failed
+            self.ink = ink
+            self.retry = retry
+            self.retryInk = retryInk
+        }
+
+        public static let standard = Style()
+
+        /// A color that resolves to `light` or `dark` hex by the current appearance.
+        public static func adaptive(_ light: UInt32, _ dark: UInt32) -> Color {
+            Color(uiColor: UIColor { @Sendable traits in traits.userInterfaceStyle == .dark ? rgb(dark) : rgb(light) })
+        }
+
+        nonisolated private static func rgb(_ hex: UInt32) -> UIColor {
+            UIColor(red: CGFloat((hex >> 16) & 0xFF) / 255, green: CGFloat((hex >> 8) & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
+        }
+    }
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    /// The image has opened all the way out of the aura.
+    @State private var revealed: Bool
+    /// The aura flares for a moment as the image lands.
+    @State private var flare = false
+
+    private let phase: Phase
+    private let label: String
+    private let aspectRatio: CGFloat
+    private let cornerRadius: CGFloat
+    private let style: Style
+    private let retryTitle: String
+    private let onRetry: (() -> Void)?
+
+    public init(phase: Phase, label: String = "Generated image", aspectRatio: CGFloat = 1, cornerRadius: CGFloat = 28, style: Style = .standard, retryTitle: String = "Retry", onRetry: (() -> Void)? = nil) {
+        self.phase = phase
+        self.label = label
+        self.aspectRatio = aspectRatio
+        self.cornerRadius = cornerRadius
+        self.style = style
+        self.retryTitle = retryTitle
+        self.onRetry = onRetry
+        _revealed = State(initialValue: phase.kind == 1)
+    }
+
+    private var motion: PieceMotion { PieceMotion(reduceMotion: reduceMotion) }
+
+    /// The aura stirs harder as progress climbs, and flares as the image lands.
+    private var energy: Double {
+        if flare { return 1 }
+        switch phase {
+        case .loading(_, let progress): return 0.35 + 0.45 * (progress ?? 0.4)
+        case .loaded, .failed: return 0
+        }
+    }
+
+    public var body: some View {
+        let shape = RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+        Color.clear
+            .aspectRatio(aspectRatio, contentMode: .fit)
+            .overlay {
+                AuraField(
+                    shape: Rectangle(),
+                    colors: phase.kind == 2 ? style.failed : style.aura,
+                    energy: energy,
+                    scale: 1.1,
+                    animates: phase.kind == 0 || flare
+                )
+                .brightness(flare ? 0.08 : 0)
+                .opacity(revealed ? 0 : 1)
+            }
+            .overlay {
+                if case .loaded(let image) = phase {
+                    image
+                        .resizable()
+                        .scaledToFill()
+                        .blur(radius: revealed || reduceMotion ? 0 : 24)
+                        .scaleEffect(revealed || reduceMotion ? 1 : 1.08)
+                        .opacity(revealed ? 1 : 0)
+                        // Opens out of the centre on a soft edge; under Reduce Motion it cross-fades instead.
+                        .mask {
+                            Circle()
+                                .scale(revealed || reduceMotion ? 2.6 : 0.05)
+                                .blur(radius: 24)
+                        }
+                        .accessibilityLabel(label)
+                }
+            }
+            .overlay(alignment: .bottomLeading) {
+                chips
+                    .padding(12)
+            }
+            .clipShape(shape)
+            .fontWeight(.semibold)
+            .sensoryFeedback(trigger: phase.kind) { _, kind in
+                switch kind {
+                case 1: SensoryFeedback.success
+                case 2: SensoryFeedback.error
+                default: nil
+                }
+            }
+            .onChange(of: phase.kind) { _, kind in
+                guard kind == 1 else {
+                    revealed = false
+                    return
+                }
+                Task { await reveal() }
+            }
+    }
+
+    /// The status chip joined to the percentage while loading, or the failure joined to Retry.
+    @ViewBuilder private var chips: some View {
+        switch phase {
+        case .loading(let status, let progress):
+            PieceLiquidGroup {
+                HStack(spacing: PieceLiquid.joined) {
+                    PieceMorphText(text: status, font: .subheadline.weight(.semibold))
+                        .padding(.horizontal, 14)
+                        .frame(height: 36)
+                        .pieceLiquid(.capsule, interactive: false)
+                    if let progress {
+                        Text("\(Int((min(max(progress, 0), 1) * 100).rounded()))%")
+                            .font(.subheadline.weight(.semibold))
+                            .monospacedDigit()
+                            .contentTransition(.numericText())
+                            .animation(motion.value, value: progress)
+                            .padding(.horizontal, 12)
+                            .frame(minWidth: 36, minHeight: 36)
+                            .pieceLiquid(.capsule, interactive: false)
+                            .accessibilityLabel("\(Int((min(max(progress, 0), 1) * 100).rounded())) percent")
+                    }
+                }
+            }
+            .foregroundStyle(style.ink)
+            .accessibilityElement(children: .combine)
+            .transition(motion.transition(.opacity.combined(with: .scale(scale: 0.9, anchor: .bottomLeading))))
+        case .failed(let message):
+            PieceLiquidGroup {
+                HStack(spacing: PieceLiquid.joined) {
+                    Text(message)
+                        .font(.subheadline.weight(.semibold))
+                        .lineLimit(2)
+                        .padding(.horizontal, 14)
+                        .frame(minHeight: 36)
+                        .pieceLiquid(.capsule, interactive: false)
+                    if let onRetry {
+                        Button(action: onRetry) {
+                            Text(retryTitle)
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundStyle(style.retryInk)
+                                .padding(.horizontal, 14)
+                                .frame(height: 36)
+                                .pieceLiquid(.capsule, tint: style.retry)
+                        }
+                        .buttonStyle(PieceLiquidPressStyle())
+                    }
+                }
+            }
+            .foregroundStyle(style.ink)
+            .transition(motion.transition(.opacity.combined(with: .scale(scale: 0.9, anchor: .bottomLeading))))
+        case .loaded:
+            EmptyView()
+        }
+    }
+
+    /// The aura flares, then the image opens out of it.
+    private func reveal() async {
+        revealed = false
+        withAnimation(motion.ambient) { flare = true }
+        try? await Task.sleep(for: .milliseconds(reduceMotion ? 0 : 260))
+        withAnimation(reduceMotion ? .easeOut(duration: 0.3) : .spring(duration: 0.9, bounce: 0)) {
+            revealed = true
+            flare = false
+        }
+    }
+}
+
+// MARK: - Aura
+
+/// The aura: `auraReveal` from AuraReveal.metal over a shape, its loop advanced by an `AuraClock`. The timeline runs while
+/// `animates`, and for a moment after the energy changes so it can ease there; never under Reduce Motion, where the aura
+/// holds still and takes each new energy at once.
+private struct AuraField<S: Shape>: View {
+    let shape: S
+    let colors: [Color]
+    var energy: Double = 0
+    var scale: Double = 1
+    var animates = true
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var clock = AuraClock()
+    @State private var easing = false
+
+    var body: some View {
+        let pools = (0..<4).map { colors.isEmpty ? Color.white : colors[$0 % colors.count] }
+        TimelineView(.animation(minimumInterval: 1.0 / 30, paused: reduceMotion || !(animates || easing))) { context in
+            let frame = clock.advance(to: context.date, energy: energy, still: reduceMotion)
+            shape
+                .fill(.white)
+                .colorEffect(ShaderLibrary.auraReveal(
+                    .boundingRect, .float(frame.phase), .float(frame.energy), .float(Float(scale)),
+                    .color(pools[0]), .color(pools[1]), .color(pools[2]), .color(pools[3])
+                ))
+        }
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
+        .task(id: energy) {
+            easing = true
+            do {
+                try await Task.sleep(for: .seconds(1.6))
+                easing = false
+            } catch {}
+        }
+    }
+}
+
+/// The aura's loop and energy. The phase advances with the frame's time, faster with more energy, and wraps at 2π,
+/// where the kernel's paths all close. The energy eases toward its goal, so a change of state quickens the aura rather
+/// than jumping it. Not observed, so a frame never invalidates the view, and a repeated date advances nothing.
+@MainActor private final class AuraClock {
+    private var phase = 0.0
+    private var energy: Double?
+    private var last: Date?
+
+    nonisolated init() {}
+
+    func advance(to date: Date, energy goal: Double, still: Bool) -> (phase: Float, energy: Float) {
+        let dt = last.map { min(max(date.timeIntervalSince($0), 0), 0.1) } ?? 0
+        if last.map({ date > $0 }) ?? true { last = date }
+        let current = energy ?? goal
+        let next = still ? goal : current + (goal - current) * (1 - exp(-dt / 0.4))
+        energy = next
+        // About a minute and a half a loop at rest, and a little over twice as fast at full energy.
+        phase = (phase + (still ? 0 : dt * 0.066 * (1 + 1.4 * next))).truncatingRemainder(dividingBy: 2 * Double.pi)
+        return (Float(phase), Float(next))
+    }
+}
+
+// MARK: - Example
+
+/// An image generator: a prompt, the slot loading through a few stages, and the picture opening out of the aura.
+private struct AuraRevealExample: View {
+    @Environment(\.colorScheme) private var colorScheme
+    @State private var phase: AuraReveal.Phase = .loading(status: "Reading your prompt", progress: 0)
+    @State private var run = 0
+
+    private static let stages = ["Reading your prompt", "Sketching the hills", "Adding evening light", "Finishing"]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 18) {
+            Text("A tram climbing a hill at dusk, flat colours")
+                .font(.title3)
+            AuraReveal(phase: phase, label: "A yellow tram on a hill under a lilac sky", aspectRatio: 4 / 5) {
+                run += 1
+            }
+            Button("Generate again") { run += 1 }
+                .buttonStyle(.bordered)
+        }
+        .fontWeight(.semibold)
+        .padding(20)
+        .frame(maxHeight: .infinity, alignment: .top)
+        .background(colorScheme == .dark ? Color(red: 0.071, green: 0.071, blue: 0.071) : Color(red: 0.953, green: 0.949, blue: 0.933))
+        .task(id: run) { await generate() }
+    }
+
+    /// Steps through the stages, failing every third run so the retry shows too.
+    private func generate() async {
+        for step in 0...20 {
+            let progress = Double(step) / 20
+            withAnimation { phase = .loading(status: Self.stages[min(step / 6, Self.stages.count - 1)], progress: progress) }
+            do { try await Task.sleep(for: .milliseconds(160)) } catch { return }
+        }
+        if run % 3 == 2 {
+            withAnimation { phase = .failed("The server is busy") }
+            return
+        }
+        let renderer = ImageRenderer(content: Artwork())
+        renderer.scale = 3
+        if let image = renderer.uiImage { phase = .loaded(Image(uiImage: image)) }
+    }
+
+    /// A flat composition: a lilac sky, a butter sun, a sage hill and a red tram.
+    private struct Artwork: View {
+        var body: some View {
+            ZStack(alignment: .topLeading) {
+                Color(red: 0.804, green: 0.722, blue: 1)
+                Circle()
+                    .fill(Color(red: 1, green: 0.851, blue: 0.463))
+                    .frame(width: 150, height: 150)
+                    .offset(x: 170, y: 60)
+                Ellipse()
+                    .fill(Color(red: 0.663, green: 0.863, blue: 0.718))
+                    .frame(width: 560, height: 360)
+                    .offset(x: -120, y: 250)
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .fill(Color(red: 1, green: 0, blue: 0))
+                    .frame(width: 130, height: 70)
+                    .rotationEffect(.degrees(-14))
+                    .offset(x: 90, y: 238)
+            }
+            .frame(width: 320, height: 400)
+            .clipped()
+        }
+    }
+}
+
+#Preview("Light") {
+    AuraRevealExample()
+        .preferredColorScheme(.light)
+}
+
+#Preview("Dark") {
+    AuraRevealExample()
+        .preferredColorScheme(.dark)
+}
+
+// MARK: - Piece motion
+//
+// The SwiftPieces motion language: shared spring tokens and gesture physics, with the same values in every
+// piece. Each piece carries a copy of only the parts it uses, so this file stands alone. Generated from
+// registry/foundation/PieceMotion.swift in the SwiftPieces repo; edit it there, not here.
+// swiftpieces-motion: 1.1.0 (core, pressMath)
+
+/// The SwiftPieces motion language: five spring tiers, and a named role for every moment a piece moves,
+/// each with its Reduce Motion substitute.
+///
+/// Build one from the environment, `PieceMotion(reduceMotion: reduceMotion)`, and pick the role that names
+/// what just happened. Never animate the tracking of a finger: set gesture state directly in `onChanged`, so the
+/// surface stays under the finger, and spring only the release.
+private struct PieceMotion {
+    var reduceMotion = false
+
+    // Tiers. Overshoot and settle times are measured from rest with SwiftUI's Spring.
+    /// No overshoot, 90% in about 90ms. A press arriving under the finger.
+    static var tight: Spring { Spring(duration: 0.14, bounce: 0) }
+    /// About 2.8% overshoot, 90% in about 140ms. Snapping to a detent, page or segment.
+    static var responsive: Spring { Spring(duration: 0.32, bounce: 0.25) }
+    /// About 8.4% overshoot. Visible give: a release, a return from past an edge, a drag settling home.
+    static var elastic: Spring { Spring(duration: 0.42, bounce: 0.38) }
+    /// About 15% overshoot. A resolved action landing. At most once per interaction.
+    static var expressive: Spring { Spring(duration: 0.48, bounce: 0.48) }
+    /// About 1.5% overshoot, unhurried. Opening large surfaces and ambient change.
+    static var calm: Spring { Spring(duration: 0.5, bounce: 0.2) }
+
+    /// Reduce Motion: settles become this short spring with no overshoot.
+    private static var still: Animation { .spring(duration: 0.25, bounce: 0) }
+
+    // Roles.
+    /// Touch-down. Starts on the same frame and never bounces under the finger.
+    var press: Animation { .spring(Self.tight) }
+    /// The finger lifts off a pressed surface, which springs back through rest.
+    var release: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A dragged thing comes to rest. With a gesture's velocity, use `settle(velocity:from:to:)` instead.
+    var settle: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// Lands on a detent, page or segment.
+    var snap: Animation { reduceMotion ? Self.still : .spring(Self.responsive) }
+    /// A number, a chart value or anything else people read moves to its new value. Never overshoots, so it
+    /// never shows a value that isn't true.
+    var value: Animation { reduceMotion ? Self.still : .spring(duration: 0.35, bounce: 0) }
+    /// Comes back from past a limit: a pull beyond the edge, a value pushed against its bound.
+    var rebound: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A shape or container changes size, corner radius or form, with a little give at the end.
+    var morph: Animation { reduceMotion ? Self.still : .spring(duration: 0.4, bounce: 0.2) }
+    /// Something appears, opens or expands. Opening is a little slower than closing.
+    var reveal: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.calm) }
+    /// Something leaves, closes or collapses. Quick and firm, out of the way.
+    var dismiss: Animation { reduceMotion ? .easeIn(duration: 0.18) : .spring(duration: 0.3, bounce: 0.08) }
+    /// A resolved action lands: a check, a sent state, a reaction.
+    var success: Animation { reduceMotion ? .easeOut(duration: 0.24) : .spring(Self.expressive) }
+    /// A refused action. Firm, no wobble; `pieceShake` adds the movement.
+    var error: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.responsive) }
+    /// Slow ambient change. Loops themselves stop under Reduce Motion: check `allowsAmbient`.
+    var ambient: Animation { reduceMotion ? .easeInOut(duration: 0.3) : .spring(Self.calm) }
+
+    /// Loops, drifts, idle breathing and parallax run only when this is true.
+    var allowsAmbient: Bool { !reduceMotion }
+
+    /// A moving transition, or a plain fade under Reduce Motion.
+    func transition(_ transition: AnyTransition) -> AnyTransition {
+        reduceMotion ? .opacity : transition
+    }
+
+    /// For content replaced inside a container that stays put (a label, a glyph, a count): the old content
+    /// blurs out as the new one sharpens in. A fade under Reduce Motion.
+    @MainActor var swap: AnyTransition {
+        reduceMotion ? .opacity : AnyTransition(.blurReplace)
+    }
+}
+
+extension PieceMotion {
+    /// About `depth` points per edge, not a fixed percentage: an icon sinks to 0.92, a pill 0.95, a card 0.985.
+    nonisolated static func pressScale(for size: CGSize, depth: CGFloat = 2.5) -> CGFloat {
+        let side = (max(size.width, 1) * max(size.height, 1)).squareRoot()
+        return min(max(1 - depth * 2 / side, 0.92), 0.985)
+    }
+
+    /// An anchor partway from the center toward the touch, so the press leans into the finger without tipping.
+    nonisolated static func pressAnchor(touch: CGPoint?, in size: CGSize, lean: CGFloat = 0.6) -> UnitPoint {
+        guard let touch, size.width > 0, size.height > 0 else { return .center }
+        let x = min(max(touch.x / size.width, 0), 1)
+        let y = min(max(touch.y / size.height, 0), 1)
+        return UnitPoint(x: 0.5 + (x - 0.5) * lean, y: 0.5 + (y - 0.5) * lean)
+    }
+}
+
+// swiftpieces-motion: end
+
+// MARK: - Piece liquid
+//
+// The SwiftPieces liquid glass language: glass shapes that merge through a neck, bubbles that bud out of
+// and melt back into each other, and the frosted fallback before iOS 26. Each piece carries a copy of only
+// the parts it uses, so this file stands alone. Generated from registry/foundation/PieceLiquid.swift in the
+// SwiftPieces repo; edit it there, not here. The rules are in LIQUID_GLASS.md.
+// swiftpieces-liquid: 1.7.1 (liquid, liquidPress, morphText)
+
+/// The liquid glass language: one merge distance, two rest gaps, and the springs a bubble leaves and comes home on.
+///
+/// Glass shapes inside one `PieceLiquidGroup` melt into each other through a neck when they come within `merge`
+/// points. Parts of one control rest `joined`, inside that distance, so the neck holds; separate actions rest
+/// `apart`, outside it, so they only goo while one buds out of, or melts back into, another.
+private enum PieceLiquid {
+    /// Glass shapes closer than this share a neck.
+    static let merge: CGFloat = 20
+    /// The gap between parts of one control (a stepper's buttons, a progress pill and its stop): the neck holds,
+    /// short and smooth, about two thirds of the shapes' height at its waist. Joined parts read best at one height.
+    static let joined: CGFloat = 4
+    /// The gap between separate actions (menu items, confirm and cancel, chips): they rest as their own bubbles.
+    static let apart: CGFloat = 26
+    /// How far a bubble shrinks while it is home inside its parent.
+    static let homeScale: CGFloat = 0.72
+
+    /// A bubble leaving its parent: slow enough that the neck's stretch and snap read.
+    static func split(reduceMotion: Bool) -> Animation {
+        reduceMotion ? .easeOut(duration: 0.2) : .spring(duration: 0.62, bounce: 0.22)
+    }
+
+    /// A bubble going home. No bounce: a bounce would carry it out through the far side of its parent.
+    static func home(reduceMotion: Bool) -> Animation {
+        reduceMotion ? .easeIn(duration: 0.18) : .spring(duration: 0.5, bounce: 0)
+    }
+}
+
+/// A group of glass shapes that merge into one liquid surface. On iOS 26 it is a `GlassEffectContainer`; before
+/// that, and under Reduce Transparency, the shapes draw on their own and simply don't merge. `lift` adds the soft
+/// shadow liquid glass floats on in light mode.
+private struct PieceLiquidGroup<Content: View>: View {
+    var spacing: CGFloat = PieceLiquid.merge
+    var lift = true
+    @ViewBuilder var content: Content
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        container
+            .shadow(color: .black.opacity(lift && colorScheme == .light ? 0.07 : 0), radius: 18, y: 8)
+    }
+
+    @ViewBuilder private var container: some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26, *), !reduceTransparency {
+            GlassEffectContainer(spacing: spacing) { content }
+        } else {
+            content
+        }
+        #else
+        content
+        #endif
+    }
+}
+
+/// One liquid glass shape: Liquid Glass on iOS 26, carrying `tint` as a solid colour and swelling under a press when
+/// `interactive`; a frosted Material with a light rim and a soft shadow before that; a solid fill under Reduce
+/// Transparency.
+///
+/// The tint is painted inside clear glass rather than tinting the glass. Tinted glass in a group bleeds its colour
+/// through every neck as a smear, so a red button would glow into the white pill it is joined to; painted inside,
+/// the colour stays crisp to the shape's edge, the necks between shapes are clear glass, and a tint change animates
+/// like any colour (tinted glass snaps).
+private struct PieceLiquidSurface<S: Shape>: ViewModifier {
+    var shape: S
+    var tint: Color?
+    var interactive: Bool
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.pieceLiquidScale) private var scale
+
+    func body(content: Content) -> some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26, *), !reduceTransparency {
+            // Scaled as two parts, content and outline, about the same centre. A scaleEffect on a glass view inside a
+            // GlassEffectContainer shrinks the glass but leaves what it carries full size, pinned to its corner.
+            content
+                .background { shape.fill(tint ?? .clear) }
+                .scaleEffect(scale)
+                .glassEffect(glass, in: shape.scale(scale))
+        } else {
+            fallback(content).scaleEffect(scale)
+        }
+        #else
+        fallback(content).scaleEffect(scale)
+        #endif
+    }
+
+    #if compiler(>=6.2)
+    @available(iOS 26, *)
+    private var glass: Glass {
+        interactive ? Glass.regular.interactive() : .regular
+    }
+    #endif
+
+    private func fallback(_ content: Content) -> some View {
+        let dark = colorScheme == .dark
+        return content
+            .background {
+                if reduceTransparency {
+                    shape.fill(tint ?? (dark ? Color(white: 0.17) : Color(white: 0.97)))
+                } else {
+                    ZStack {
+                        shape.fill(.regularMaterial)
+                        if let tint { shape.fill(tint.opacity(0.88)) }
+                    }
+                }
+            }
+            .overlay { shape.stroke(Color.white.opacity(dark ? 0.14 : 0.7), lineWidth: 0.5) }
+            .shadow(color: .black.opacity(dark ? 0.32 : 0.08), radius: 10, y: 5)
+    }
+}
+
+private struct PieceLiquidScaleKey: EnvironmentKey {
+    static let defaultValue: CGFloat = 1
+}
+
+private extension EnvironmentValues {
+    /// How much the liquid shapes below are scaled, about their own centres. Nested scales multiply.
+    var pieceLiquidScale: CGFloat {
+        get { self[PieceLiquidScaleKey.self] }
+        set { self[PieceLiquidScaleKey.self] = newValue }
+    }
+}
+
+private extension View {
+    /// Draws this view on a liquid glass `shape`. Put it inside a `PieceLiquidGroup` so it can merge with its neighbours.
+    func pieceLiquid<S: Shape>(_ shape: S, tint: Color? = nil, interactive: Bool = true) -> some View {
+        modifier(PieceLiquidSurface(shape: shape, tint: tint, interactive: interactive))
+    }
+
+    /// Scales the liquid glass shapes in this view, content and outline together, about their own centres. Use it
+    /// instead of `scaleEffect` on a glass view (a press, a lift, a swell): inside a group a plain `scaleEffect` shrinks
+    /// the glass but leaves its content full size and off centre. Animates like any other value.
+    func pieceLiquidScale(_ scale: CGFloat) -> some View {
+        transformEnvironment(\.pieceLiquidScale) { $0 *= scale }
+    }
+}
+
+/// The press for a glass control: the same size-aware sink and lean as `piecePress`, applied through
+/// `pieceLiquidScale` so the glass and what it carries sink together (a plain scaleEffect on glass leaves the content
+/// behind). Put the glass inside what it presses: the label of a button, the view this modifies. Under Reduce Motion
+/// it shades instead of moving.
+private struct PieceLiquidPress: ViewModifier {
+    let pressed: Bool
+    var touch: CGPoint?
+    var depth: CGFloat = 2.5
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.colorScheme) private var colorScheme
+    @State private var size: CGSize = .zero
+    @State private var anchor: UnitPoint = .center
+
+    func body(content: Content) -> some View {
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        let scale = pressed && !reduceMotion ? PieceMotion.pressScale(for: size, depth: depth) : 1
+        // A scale about `anchor` is a scale about the centre plus this shift toward the anchor.
+        let lean = CGSize(width: (anchor.x - 0.5) * size.width * (1 - scale), height: (anchor.y - 0.5) * size.height * (1 - scale))
+        content
+            .onGeometryChange(for: CGSize.self) { $0.size } action: { size = $0 }
+            .brightness(pressed && reduceMotion ? (colorScheme == .dark ? 0.1 : -0.08) : 0)
+            .pieceLiquidScale(scale)
+            .offset(lean)
+            .animation(pressed ? motion.press : motion.release, value: pressed)
+            .onChange(of: pressed) { _, isPressed in
+                if isPressed { anchor = PieceMotion.pressAnchor(touch: touch, in: size) }
+            }
+            .onChange(of: touch) { _, touch in
+                if pressed, let touch { anchor = PieceMotion.pressAnchor(touch: touch, in: size) }
+            }
+    }
+}
+
+/// `PiecePressStyle` for glass buttons: the label (with its `.pieceLiquid` inside) sinks as one.
+private struct PieceLiquidPressStyle: ButtonStyle {
+    var depth: CGFloat = 2.5
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label.pieceLiquidPress(configuration.isPressed, depth: depth)
+    }
+}
+
+private extension View {
+    /// Sinks this view's glass while `pressed`, leaning toward `touch` (in this view's coordinates) when given.
+    func pieceLiquidPress(_ pressed: Bool, touch: CGPoint? = nil, depth: CGFloat = 2.5) -> some View {
+        modifier(PieceLiquidPress(pressed: pressed, touch: touch, depth: depth))
+    }
+}
+
+/// A label that changes letter by letter: letters both strings share hold still, the rest blur out and the new ones
+/// blur in a few milliseconds apart. Under Reduce Motion it cross-fades. VoiceOver reads the whole string.
+///
+/// Only text whose letters stand on their own is cut into letters: Latin, Greek, Cyrillic, CJK, digits and symbols.
+/// Those letters are laid out left to right whatever the layout direction, the order they read in, so "1.5×" stays
+/// "1.5×" in an Arabic or Hebrew interface instead of coming out backwards. Text in a right-to-left script, or in one
+/// whose letters join or reorder (Arabic, Hebrew, Devanagari, Thai and their neighbours), can't be cut apart without
+/// breaking it, so it changes as one: the old string blurs out where it stood while the new one blurs in.
+private struct PieceMorphText: View {
+    var text: String
+    var font: Font = .body.weight(.semibold)
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        Group {
+            if Self.splits(text) {
+                let glyphs = Array(text)
+                HStack(spacing: 0) {
+                    ForEach(glyphs.indices, id: \.self) { i in
+                        Text(String(glyphs[i]))
+                            .id("\(i)\(glyphs[i])")
+                            .transition(transition(i, scale: 0.6))
+                    }
+                }
+                // The letters' reading order, not the layout's: an HStack lays its children out backwards under a
+                // right-to-left layout.
+                .environment(\.layoutDirection, .leftToRight)
+            } else {
+                ZStack(alignment: .leading) {
+                    Text(text)
+                        .id(text)
+                        .transition(transition(0, scale: 0.9))
+                }
+            }
+        }
+        .font(font)
+        .fixedSize()
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(text)
+    }
+
+    private func transition(_ i: Int, scale: CGFloat) -> AnyTransition {
+        guard !reduceMotion else { return .opacity }
+        return AnyTransition(.blurReplace(.downUp)).combined(with: .scale(scale: scale, anchor: .bottom))
+            .animation(.spring(duration: 0.42, bounce: 0.3).delay(Double(i) * 0.022))
+    }
+
+    /// Whether `text` can be cut into letters that each read left to right on their own: no right-to-left script, no
+    /// script that joins or reorders its letters, and no bidirectional control characters.
+    private static func splits(_ text: String) -> Bool {
+        !text.unicodeScalars.contains { scalar in
+            switch scalar.value {
+            case 0x0590...0x08FF, // Hebrew, Arabic, Syriac, Thaana, NKo, Samaritan, Mandaic
+                 0x0900...0x0DFF, // Devanagari to Sinhala
+                 0x0E00...0x0FFF, // Thai, Lao, Tibetan
+                 0x1000...0x109F, // Myanmar
+                 0x1780...0x17FF, // Khmer
+                 0xA8E0...0xA8FF, // Devanagari Extended
+                 0xFB1D...0xFDFF, // Hebrew and Arabic presentation forms
+                 0xFE70...0xFEFF, // Arabic presentation forms B
+                 0x200E...0x200F, 0x202A...0x202E, 0x2066...0x2069, // bidirectional marks, embeddings and isolates
+                 0x10800...0x10FFF, // historic right-to-left scripts
+                 0x1E800...0x1EFFF: // Adlam and other right-to-left scripts
+                return true
+            default:
+                return false
+            }
+        }
+    }
+}
+
+// swiftpieces-liquid: end

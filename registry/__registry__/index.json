@@ -46,6 +46,56 @@
   },
   {
     "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "AuraComposer",
+    "slug": "aura-composer",
+    "type": "registry:component",
+    "title": "Aura Composer",
+    "description": "A chat composer on liquid glass with a living aura behind it, drawn by a Metal shader. The field grows with the message and the send bubble rests joined to it by a liquid neck, turning signal red once there is something to send. Focus the field and the aura wakes and drifts; while the assistant answers it brightens and churns, and the send bubble becomes stop. An optional attach button sits inside the field.",
+    "category": "ai",
+    "license": "MIT+Commons-Clause",
+    "version": "1.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "composer",
+      "chat",
+      "input",
+      "ai",
+      "aura",
+      "gradient",
+      "shader",
+      "metal",
+      "glass"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [
+      {
+        "path": "registry/swift/ai/AuraComposer.metal",
+        "type": "registry:shader",
+        "target": "SwiftPieces/AI/AuraComposer.metal"
+      }
+    ],
+    "files": [
+      {
+        "path": "registry/swift/ai/AuraComposer.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/AI/AuraComposer.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/ai/aura-composer",
+    "added": "2026-10-15",
+    "isNew": true,
+    "liquidGlass": true,
+    "metal": true
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
     "name": "PromptChips",
     "slug": "prompt-chips",
     "type": "registry:component",
@@ -722,104 +772,6 @@
   },
   {
     "$schema": "https://swiftpieces.com/schema/registry-item.json",
-    "name": "MeltButton",
-    "slug": "melt-button",
-    "type": "registry:component",
-    "title": "Melt Button",
-    "description": "A round liquid glass button whose SF Symbol is molten metal, drawn by a Metal layer shader. Change the symbol and the old one melts into a blob and pours itself into the new one, play into pause, plus into a check; press it and the metal slumps under your finger. The shader cuts a blurred field of both symbols at its surface and shades the inside as chrome, so the morph works between any two symbols.",
-    "category": "controls",
-    "license": "MIT+Commons-Clause",
-    "version": "1.0.0",
-    "minIOSVersion": "17.0",
-    "swiftToolsVersion": "6.1",
-    "tags": [
-      "button",
-      "symbol",
-      "morph",
-      "shader",
-      "metal",
-      "liquid",
-      "glass",
-      "chrome"
-    ],
-    "dependencies": [],
-    "registryDependencies": [],
-    "spmDependencies": [],
-    "requiredCapabilities": [],
-    "infoPlist": {},
-    "assets": [],
-    "shaders": [
-      {
-        "path": "registry/swift/controls/MeltButton.metal",
-        "type": "registry:shader",
-        "target": "SwiftPieces/Controls/MeltButton.metal"
-      }
-    ],
-    "files": [
-      {
-        "path": "registry/swift/controls/MeltButton.swift",
-        "type": "registry:component",
-        "target": "SwiftPieces/Controls/MeltButton.swift"
-      }
-    ],
-    "preview": {},
-    "docs": "https://swiftpieces.com/docs/components/controls/melt-button",
-    "added": "2026-10-15",
-    "isNew": true,
-    "liquidGlass": true,
-    "metal": true
-  },
-  {
-    "$schema": "https://swiftpieces.com/schema/registry-item.json",
-    "name": "MercuryToggle",
-    "slug": "mercury-toggle",
-    "type": "registry:component",
-    "title": "Mercury Toggle",
-    "description": "A switch whose thumb is a bead of mercury in a liquid glass track, drawn by a Metal color shader. Two drops melt into one through a smooth minimum, so a flip stretches the bead into a slug that pulls itself round at the far end and rings for a moment; dragging it drags the liquid after your finger. The track fills with the brand red when on.",
-    "category": "controls",
-    "license": "MIT+Commons-Clause",
-    "version": "1.0.0",
-    "minIOSVersion": "17.0",
-    "swiftToolsVersion": "6.1",
-    "tags": [
-      "toggle",
-      "switch",
-      "shader",
-      "metal",
-      "mercury",
-      "liquid",
-      "glass",
-      "drag"
-    ],
-    "dependencies": [],
-    "registryDependencies": [],
-    "spmDependencies": [],
-    "requiredCapabilities": [],
-    "infoPlist": {},
-    "assets": [],
-    "shaders": [
-      {
-        "path": "registry/swift/controls/MercuryToggle.metal",
-        "type": "registry:shader",
-        "target": "SwiftPieces/Controls/MercuryToggle.metal"
-      }
-    ],
-    "files": [
-      {
-        "path": "registry/swift/controls/MercuryToggle.swift",
-        "type": "registry:component",
-        "target": "SwiftPieces/Controls/MercuryToggle.swift"
-      }
-    ],
-    "preview": {},
-    "docs": "https://swiftpieces.com/docs/components/controls/mercury-toggle",
-    "added": "2026-10-15",
-    "isNew": true,
-    "liquidGlass": true,
-    "metal": true
-  },
-  {
-    "$schema": "https://swiftpieces.com/schema/registry-item.json",
     "name": "TimerDial",
     "slug": "timer-dial",
     "type": "registry:component",
@@ -944,56 +896,6 @@
     "isNew": false,
     "liquidGlass": true,
     "metal": false
-  },
-  {
-    "$schema": "https://swiftpieces.com/schema/registry-item.json",
-    "name": "MercuryGauge",
-    "slug": "mercury-gauge",
-    "type": "registry:component",
-    "title": "Mercury Gauge",
-    "description": "A level gauge filled with liquid metal, drawn by a Metal color shader inside a liquid glass tube. When the value changes the mercury runs to it with its front leaning into the run, lands without overshooting the true value, and rings for a moment; at zero it gathers into a single drop. For storage, battery, goals and uploads, with a title and a rolling percentage.",
-    "category": "data",
-    "license": "MIT+Commons-Clause",
-    "version": "1.0.0",
-    "minIOSVersion": "17.0",
-    "swiftToolsVersion": "6.1",
-    "tags": [
-      "gauge",
-      "progress",
-      "meter",
-      "level",
-      "shader",
-      "metal",
-      "mercury",
-      "liquid",
-      "glass"
-    ],
-    "dependencies": [],
-    "registryDependencies": [],
-    "spmDependencies": [],
-    "requiredCapabilities": [],
-    "infoPlist": {},
-    "assets": [],
-    "shaders": [
-      {
-        "path": "registry/swift/data/MercuryGauge.metal",
-        "type": "registry:shader",
-        "target": "SwiftPieces/Data/MercuryGauge.metal"
-      }
-    ],
-    "files": [
-      {
-        "path": "registry/swift/data/MercuryGauge.swift",
-        "type": "registry:component",
-        "target": "SwiftPieces/Data/MercuryGauge.swift"
-      }
-    ],
-    "preview": {},
-    "docs": "https://swiftpieces.com/docs/components/data/mercury-gauge",
-    "added": "2026-10-15",
-    "isNew": true,
-    "liquidGlass": true,
-    "metal": true
   },
   {
     "$schema": "https://swiftpieces.com/schema/registry-item.json",
@@ -1868,6 +1770,57 @@
   },
   {
     "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "MoodCheckIn",
+    "slug": "mood-check-in",
+    "type": "registry:component",
+    "title": "Mood Check-in",
+    "description": "A mood picker for journals and wellbeing apps. A panel of living aura, drawn by a Metal shader, carries the mood's own colours and blends from one mood into the next as you drag the glass thumb along the scale, quickening under your finger, while the mood's name morphs letter by letter. Release and it snaps to the nearest mood with a tick for each one it passes; VoiceOver adjusts it a mood at a time.",
+    "category": "inputs",
+    "license": "MIT+Commons-Clause",
+    "version": "1.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "mood",
+      "slider",
+      "picker",
+      "wellbeing",
+      "journal",
+      "aura",
+      "gradient",
+      "shader",
+      "metal",
+      "glass"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [
+      {
+        "path": "registry/swift/inputs/MoodCheckIn.metal",
+        "type": "registry:shader",
+        "target": "SwiftPieces/Inputs/MoodCheckIn.metal"
+      }
+    ],
+    "files": [
+      {
+        "path": "registry/swift/inputs/MoodCheckIn.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Inputs/MoodCheckIn.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/inputs/mood-check-in",
+    "added": "2026-10-15",
+    "isNew": true,
+    "liquidGlass": true,
+    "metal": true
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
     "name": "RangeSlider",
     "slug": "range-slider",
     "type": "registry:component",
@@ -2408,6 +2361,58 @@
   },
   {
     "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "AuraReveal",
+    "slug": "aura-reveal",
+    "type": "registry:component",
+    "title": "Aura Reveal",
+    "description": "An image slot for generated or slow-loading pictures. While the picture is on its way the slot is a living aura, drawn by a Metal shader, that stirs harder as progress climbs, with a liquid glass status chip whose words morph letter by letter joined to a percentage bubble. When the picture lands the aura flares and the image opens out of it from the centre, sharpening as it grows; a failure greys the aura and offers Retry.",
+    "category": "media",
+    "license": "MIT+Commons-Clause",
+    "version": "1.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "image",
+      "loading",
+      "placeholder",
+      "generation",
+      "ai",
+      "progress",
+      "aura",
+      "gradient",
+      "shader",
+      "metal",
+      "glass"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [
+      {
+        "path": "registry/swift/media/AuraReveal.metal",
+        "type": "registry:shader",
+        "target": "SwiftPieces/Media/AuraReveal.metal"
+      }
+    ],
+    "files": [
+      {
+        "path": "registry/swift/media/AuraReveal.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Media/AuraReveal.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/media/aura-reveal",
+    "added": "2026-10-15",
+    "isNew": true,
+    "liquidGlass": true,
+    "metal": true
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
     "name": "LinkPreview",
     "slug": "link-preview",
     "type": "registry:component",
@@ -2705,6 +2710,57 @@
     "isNew": false,
     "liquidGlass": true,
     "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "BreathPacer",
+    "slug": "breath-pacer",
+    "type": "registry:component",
+    "title": "Breath Pacer",
+    "description": "A guided breathing exercise for meditation and wellbeing apps. An orb of living aura, drawn by a Metal shader, swells as you breathe in, rests full through the hold and sinks as you breathe out, while the cue morphs letter by letter and the seconds count down inside it. A liquid glass bar holds the cycle count joined to Start and Stop. Box, 4-7-8 and coherent patterns ship, or set your own; each phase lands with a soft tap and is announced to VoiceOver.",
+    "category": "motion",
+    "license": "MIT+Commons-Clause",
+    "version": "1.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "breathing",
+      "meditation",
+      "wellbeing",
+      "timer",
+      "exercise",
+      "aura",
+      "gradient",
+      "shader",
+      "metal",
+      "glass"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [
+      {
+        "path": "registry/swift/motion/BreathPacer.metal",
+        "type": "registry:shader",
+        "target": "SwiftPieces/Motion/BreathPacer.metal"
+      }
+    ],
+    "files": [
+      {
+        "path": "registry/swift/motion/BreathPacer.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Motion/BreathPacer.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/motion/breath-pacer",
+    "added": "2026-10-15",
+    "isNew": true,
+    "liquidGlass": true,
+    "metal": true
   },
   {
     "$schema": "https://swiftpieces.com/schema/registry-item.json",
@@ -3288,54 +3344,6 @@
     "isNew": false,
     "liquidGlass": true,
     "metal": false
-  },
-  {
-    "$schema": "https://swiftpieces.com/schema/registry-item.json",
-    "name": "MercuryText",
-    "slug": "mercury-text",
-    "type": "registry:component",
-    "title": "Mercury Text",
-    "description": "Text, SF Symbols or any view turned into liquid metal by a Metal layer shader. The shader reads the glyphs' own coverage as height, bevels every edge from it, and reflects a studio whose horizon ripples like mercury across the letters, with a thin-film fringe on the bevels. A finger or pointer slides the reflections. Mercury, holographic, gold and brand red finishes; still and readable under Reduce Motion.",
-    "category": "text",
-    "license": "MIT+Commons-Clause",
-    "version": "1.0.0",
-    "minIOSVersion": "17.0",
-    "swiftToolsVersion": "6.1",
-    "tags": [
-      "text",
-      "headline",
-      "symbol",
-      "shader",
-      "metal",
-      "chrome",
-      "liquid"
-    ],
-    "dependencies": [],
-    "registryDependencies": [],
-    "spmDependencies": [],
-    "requiredCapabilities": [],
-    "infoPlist": {},
-    "assets": [],
-    "shaders": [
-      {
-        "path": "registry/swift/text/MercuryText.metal",
-        "type": "registry:shader",
-        "target": "SwiftPieces/Text/MercuryText.metal"
-      }
-    ],
-    "files": [
-      {
-        "path": "registry/swift/text/MercuryText.swift",
-        "type": "registry:component",
-        "target": "SwiftPieces/Text/MercuryText.swift"
-      }
-    ],
-    "preview": {},
-    "docs": "https://swiftpieces.com/docs/components/text/mercury-text",
-    "added": "2026-10-15",
-    "isNew": true,
-    "liquidGlass": false,
-    "metal": true
   },
   {
     "$schema": "https://swiftpieces.com/schema/registry-item.json",

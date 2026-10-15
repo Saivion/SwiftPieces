@@ -4,6 +4,7 @@
   "defaultOpen": false,
   "pages": [
     "assistant-orb",
+    "aura-composer",
     "prompt-chips",
     "source-stack",
     "streaming-reply",

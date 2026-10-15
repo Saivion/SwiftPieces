@@ -7,16 +7,16 @@ import type { ChangelogEntry } from "@/components/changelog/changelog-grid";
  */
 export const changelog: ChangelogEntry[] = [
   {
-    slug: "liquid-metal",
+    slug: "aura",
     date: "Oct 15, 2026",
-    title: "Liquid metal",
-    summary: "Four free pieces drawn by Metal shaders in SwiftUI, each a different way in: a layer shader that melts one SF Symbol into the next, another that turns any text or symbol into metal, and color shaders that render a liquid thumb and a liquid level. All four reflect the same studio, whose horizon ripples like mercury.",
+    title: "Aura",
+    summary: "Four free pieces built around a living aura: soft pools of colour drifting like a mesh gradient, drawn by a Metal shader in SwiftUI. Each one uses the aura to say something, what an assistant is doing, how you feel, when to breathe, how close a picture is, and sits on liquid glass like the rest of the catalog.",
     points: [
-      "Melt Button: a round glass button whose SF Symbol is molten metal. Change the symbol and the old one melts into a blob and pours itself into the new one, play into pause, plus into a check, and a press makes the metal slump under your finger.",
-      "Mercury Gauge: a level of liquid metal in a glass tube for storage, battery or goals. A new value sends the mercury running with its front leaning into the run; it lands without passing the true value and rings for a moment, and at zero it gathers into one drop.",
-      "Mercury Text: a layer shader that reads any view's own coverage as height, so text, SF Symbols and shapes all get beveled liquid metal edges. Drag across it to slide the reflections.",
-      "Mercury Toggle: a switch whose thumb is a bead of mercury in a liquid glass track. Two drops melt into one, so a flip stretches it into a slug that pulls itself round and rings, and dragging it drags the liquid after your finger.",
-      "Each ships as a .swift file and a .metal file; the kernel compiles into your app's default library, so there is nothing to configure. Timelines pause when nothing moves, and Reduce Motion holds the metal still.",
+      "Aura Composer: a chat composer whose aura wakes when you focus the field and brightens and churns while the assistant answers. The send bubble rests joined to the field, turns signal red once there is something to send, and becomes stop while responding.",
+      "Mood Check-in: a mood scale for journals and wellbeing apps. The aura blends from one mood's colours into the next as you drag the glass thumb, the mood's name morphs letter by letter, and a release snaps to the nearest mood with a tick for each one passed.",
+      "Breath Pacer: a guided breathing exercise. The aura orb swells as you breathe in and sinks as you breathe out while the cue morphs and the seconds count down. Box, 4-7-8 and coherent patterns ship, and each phase lands with a soft tap and a VoiceOver announcement.",
+      "Aura Reveal: an image slot for generated or slow-loading pictures. The aura stirs harder as progress climbs under a glass status chip, then flares and opens the picture out of its centre. A failure greys it and offers Retry.",
+      "Each ships as a .swift file and a .metal file; the kernel compiles into your app's default library, so there is nothing to configure. The aura only animates while it has something to say, and Reduce Motion holds it still.",
       "The pieces that shipped on Oct 12, 2026 leave the New badge and join the general set. The badge now marks this wave.",
     ],
     visual: "cards",

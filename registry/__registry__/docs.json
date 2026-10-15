@@ -2546,6 +2546,146 @@
     }
   },
   {
+    "url": "/docs/components/ai/aura-composer",
+    "title": "Aura Composer",
+    "description": "A chat composer on liquid glass with a living aura behind it, drawn by a Metal shader. The field grows with the message and the send bubble rests joined to it by a liquid neck, turning signal red once there is something to send. Focus the field and the aura wakes and drifts; while the assistant answers it brightens and churns, and the send bubble becomes stop. An optional attach button sits inside the field.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Components",
+      "Categories · 14",
+      "AI"
+    ],
+    "structuredData": {
+      "contents": [
+        {
+          "content": "A chat composer: a growing text field on liquid glass, a send bubble joined to it, and an aura behind both that tells the person what the assistant is doing. Copy `AuraComposer.metal` alongside this file; its `auraComposer` kernel compiles into your app's default Metal library. The aura has three moods. At rest it is a faint still glow in the composer's colours. With the field focused it wakes and drifts. While `isResponding` it brightens and churns, and the send bubble turns into stop. Sending clears the field and hands the trimmed text to `onSend`."
+        },
+        {
+          "heading": "notes",
+          "content": "The aura is the `auraComposer` color shader in `AuraComposer.metal`: four colour pools drifting on slow closed paths over a wash of their average, blended by soft weights the way a mesh gradient blends its points, with a little grain so it never bands. It fills a rounded rectangle behind the glass, a little larger than the composer and blurred, so the glass carries its colour and its light spills past the edges. Copy the `.metal` file next to the `.swift` file and the kernel compiles into your app's default library."
+        },
+        {
+          "heading": "notes",
+          "content": "The aura has three moods, each a glow and an energy: at rest a faint still glow (0.35); focused it wakes and drifts (0.7); while `isResponding` it brightens, and its pools leave their paths on a quicker wander, so it churns rather than just speeds up (1). Set the three glows with `Style.glow`. Energy eases between moods, so a change of state never jumps the aura."
+        },
+        {
+          "heading": "notes",
+          "content": "The aura's timeline runs only while the field is focused or the assistant is responding, and for a moment after either changes so the energy can settle. At rest it draws once. Its loop wraps at 2π, where every path closes, so it has no seam however long it runs."
+        },
+        {
+          "heading": "notes",
+          "content": "The field and the send bubble are liquid glass in one `PieceLiquidGroup`, resting `PieceLiquid.joined` apart so a liquid neck holds them as one control. The field grows to six lines and the bubble stays at the bottom edge. The bubble is neutral glass until the trimmed draft has text, then signal red with an ink arrow; while responding it is ink with a stop square, and the symbol swaps with `.symbolEffect(.replace)`."
+        },
+        {
+          "heading": "notes",
+          "content": "Sending hands the trimmed draft to `onSend`, clears the field, pops the bubble and plays a light impact. Stop calls `onStop` with a rigid impact. Drive `isResponding` from your own state: the composer never sets it."
+        },
+        {
+          "heading": "notes",
+          "content": "`onAttach` adds a plus inside the field's leading edge, pressed like a chip."
+        },
+        {
+          "heading": "notes",
+          "content": "Reduce Motion holds the aura still: it keeps its colours and takes each mood's glow at once. Reduce Transparency draws the field and bubble as solid fills, and the aura still glows behind them."
+        },
+        {
+          "heading": "notes",
+          "content": "VoiceOver reads the field by its placeholder, and the bubble as Send or Stop responding. Replace the button labels with `labels:` to localize them."
+        },
+        {
+          "heading": "parameters",
+          "content": "Parameter"
+        },
+        {
+          "heading": "parameters",
+          "content": "Description"
+        },
+        {
+          "heading": "parameters",
+          "content": "`text`"
+        },
+        {
+          "heading": "parameters",
+          "content": "The draft. The composer clears it on send."
+        },
+        {
+          "heading": "parameters",
+          "content": "`placeholder`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Shown in the empty field."
+        },
+        {
+          "heading": "parameters",
+          "content": "`isResponding`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Whether the assistant is answering. The send bubble becomes stop, and the aura brightens."
+        },
+        {
+          "heading": "parameters",
+          "content": "`style`"
+        },
+        {
+          "heading": "parameters",
+          "content": "The aura's colours, the send bubble's colours and the field's ink. `.standard` is the house lilac, sky,"
+        },
+        {
+          "heading": "parameters",
+          "content": "`labels`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Accessibility labels for the buttons, for localization."
+        },
+        {
+          "heading": "parameters",
+          "content": "`onAttach`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Optional. Adds an attach button inside the field's leading edge."
+        },
+        {
+          "heading": "parameters",
+          "content": "`onStop`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Called when the person taps stop while `isResponding`."
+        },
+        {
+          "heading": "parameters",
+          "content": "`onSend`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Called with the trimmed draft."
+        }
+      ],
+      "headings": [
+        {
+          "id": "notes",
+          "content": "Notes"
+        },
+        {
+          "id": "usage",
+          "content": "Usage"
+        },
+        {
+          "id": "parameters",
+          "content": "Parameters"
+        },
+        {
+          "id": "source",
+          "content": "Source"
+        }
+      ]
+    }
+  },
+  {
     "url": "/docs/components/ai/prompt-chips",
     "title": "Prompt Chips",
     "description": "Liquid glass prompt chips above a composer, in a snapping horizontal row or a grid of columns, each keyed by a tinted glyph disc. They cascade in one after another as they appear. A tap presses the chip and swells it with a pop of its disc, and the other chips flow into it, nearest first, melting into its glass; then the gathered chip condenses into a drop that falls into the composer as the chips close, handing it the text.",
@@ -4734,158 +4874,6 @@
     }
   },
   {
-    "url": "/docs/components/controls/melt-button",
-    "title": "Melt Button",
-    "description": "A round liquid glass button whose SF Symbol is molten metal, drawn by a Metal layer shader. Change the symbol and the old one melts into a blob and pours itself into the new one, play into pause, plus into a check; press it and the metal slumps under your finger. The shader cuts a blurred field of both symbols at its surface and shades the inside as chrome, so the morph works between any two symbols.",
-    "breadcrumbs": [
-      "SwiftPieces",
-      "Components",
-      "Categories · 14",
-      "Controls"
-    ],
-    "structuredData": {
-      "contents": [
-        {
-          "content": "A glass button with a liquid metal symbol that melts from one symbol into the next. Copy `MeltButton.metal` alongside this file; its `meltButton` kernel compiles into your app's default Metal library. Drive `systemImage` from state, `isPlaying ? \"pause.fill\" : \"play.fill\"`, and every change melts the old symbol into the new one. Filled symbols melt best: the metal is cut from the symbol's area, so hairline strokes thin away. VoiceOver reads `label`, and the button acts on `action` like any `Button`."
-        },
-        {
-          "heading": "parameters",
-          "content": "Parameter"
-        },
-        {
-          "heading": "parameters",
-          "content": "Description"
-        },
-        {
-          "heading": "parameters",
-          "content": "`label`"
-        },
-        {
-          "heading": "parameters",
-          "content": "What the button does, for VoiceOver and Voice Control. Update it with the symbol."
-        },
-        {
-          "heading": "parameters",
-          "content": "`systemImage`"
-        },
-        {
-          "heading": "parameters",
-          "content": "The SF Symbol to show. A change melts into it."
-        },
-        {
-          "heading": "parameters",
-          "content": "`size`"
-        },
-        {
-          "heading": "parameters",
-          "content": "The button's diameter in points; scales with Dynamic Type."
-        },
-        {
-          "heading": "parameters",
-          "content": "`tint`"
-        },
-        {
-          "heading": "parameters",
-          "content": "The metal's colour: white (default) is chrome; a warm white reads as gold."
-        },
-        {
-          "heading": "parameters",
-          "content": "`action`"
-        },
-        {
-          "heading": "parameters",
-          "content": "What a tap does."
-        }
-      ],
-      "headings": [
-        {
-          "id": "usage",
-          "content": "Usage"
-        },
-        {
-          "id": "parameters",
-          "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
-        }
-      ]
-    }
-  },
-  {
-    "url": "/docs/components/controls/mercury-toggle",
-    "title": "Mercury Toggle",
-    "description": "A switch whose thumb is a bead of mercury in a liquid glass track, drawn by a Metal color shader. Two drops melt into one through a smooth minimum, so a flip stretches the bead into a slug that pulls itself round at the far end and rings for a moment; dragging it drags the liquid after your finger. The track fills with the brand red when on.",
-    "breadcrumbs": [
-      "SwiftPieces",
-      "Components",
-      "Categories · 14",
-      "Controls"
-    ],
-    "structuredData": {
-      "contents": [
-        {
-          "content": "An on and off switch with a mercury bead for a thumb. Copy `MercuryToggle.metal` alongside this file; its `mercuryToggle` kernel compiles into your app's default Metal library. Tap the switch to flip it, or drag the bead: it follows your finger and lands on the side you let go nearer, or the side you flicked toward. VoiceOver, Switch Control and keyboard focus see a standard toggle."
-        },
-        {
-          "heading": "parameters",
-          "content": "Parameter"
-        },
-        {
-          "heading": "parameters",
-          "content": "Description"
-        },
-        {
-          "heading": "parameters",
-          "content": "`title`"
-        },
-        {
-          "heading": "parameters",
-          "content": "The setting's name. Shown beside the switch unless `showsTitle` is false, and always read by VoiceOver."
-        },
-        {
-          "heading": "parameters",
-          "content": "`isOn`"
-        },
-        {
-          "heading": "parameters",
-          "content": "The binding the switch flips."
-        },
-        {
-          "heading": "parameters",
-          "content": "`tint`"
-        },
-        {
-          "heading": "parameters",
-          "content": "The track's fill when on. The brand red, `#FF0000`, by default."
-        },
-        {
-          "heading": "parameters",
-          "content": "`showsTitle`"
-        },
-        {
-          "heading": "parameters",
-          "content": "Shows the title to the leading side, the way `Toggle` lays out in a row."
-        }
-      ],
-      "headings": [
-        {
-          "id": "usage",
-          "content": "Usage"
-        },
-        {
-          "id": "parameters",
-          "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
-        }
-      ]
-    }
-  },
-  {
     "url": "/docs/components/controls/timer-dial",
     "title": "Timer Dial",
     "description": "A countdown ring you set by dragging a liquid glass knob around it like the Timer dial, with a tick per step and a heavier detent every 5s. A solid ring over a minute-tick scale, semibold display numerals, a breathing signal warning zone, a sage finish, optional glass start, pause and reset bubbles that bud out of each other, and a determinate progress mode.",
@@ -5370,86 +5358,6 @@
           "id": "notes",
           "content": "Notes"
         },
-        {
-          "id": "usage",
-          "content": "Usage"
-        },
-        {
-          "id": "parameters",
-          "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
-        }
-      ]
-    }
-  },
-  {
-    "url": "/docs/components/data/mercury-gauge",
-    "title": "Mercury Gauge",
-    "description": "A level gauge filled with liquid metal, drawn by a Metal color shader inside a liquid glass tube. When the value changes the mercury runs to it with its front leaning into the run, lands without overshooting the true value, and rings for a moment; at zero it gathers into a single drop. For storage, battery, goals and uploads, with a title and a rolling percentage.",
-    "breadcrumbs": [
-      "SwiftPieces",
-      "Components",
-      "Categories · 14",
-      "Data"
-    ],
-    "structuredData": {
-      "contents": [
-        {
-          "content": "A gauge of liquid metal in a glass tube. Copy `MercuryGauge.metal` alongside this file; its `mercuryGauge` kernel compiles into your app's default Metal library. The level itself never overshoots, so the gauge never shows a value that isn't true; only the shape of the mercury's front leans and rings. VoiceOver reads the title and the percentage."
-        },
-        {
-          "heading": "parameters",
-          "content": "Parameter"
-        },
-        {
-          "heading": "parameters",
-          "content": "Description"
-        },
-        {
-          "heading": "parameters",
-          "content": "`title`"
-        },
-        {
-          "heading": "parameters",
-          "content": "What the gauge measures, shown above the tube."
-        },
-        {
-          "heading": "parameters",
-          "content": "`value`"
-        },
-        {
-          "heading": "parameters",
-          "content": "The current value."
-        },
-        {
-          "heading": "parameters",
-          "content": "`range`"
-        },
-        {
-          "heading": "parameters",
-          "content": "The values the tube spans, `0...1` by default. Values outside it pin to the ends."
-        },
-        {
-          "heading": "parameters",
-          "content": "`valueText`"
-        },
-        {
-          "heading": "parameters",
-          "content": "The readout beside the title. `nil` shows the percentage of the range, rolling as it changes."
-        },
-        {
-          "heading": "parameters",
-          "content": "`tint`"
-        },
-        {
-          "heading": "parameters",
-          "content": "The metal's colour: a cool silver by default."
-        }
-      ],
-      "headings": [
         {
           "id": "usage",
           "content": "Usage"
@@ -8514,6 +8422,138 @@
     }
   },
   {
+    "url": "/docs/components/inputs/mood-check-in",
+    "title": "Mood Check-in",
+    "description": "A mood picker for journals and wellbeing apps. A panel of living aura, drawn by a Metal shader, carries the mood's own colours and blends from one mood into the next as you drag the glass thumb along the scale, quickening under your finger, while the mood's name morphs letter by letter. Release and it snaps to the nearest mood with a tick for each one it passes; VoiceOver adjusts it a mood at a time.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Components",
+      "Categories · 14",
+      "Inputs"
+    ],
+    "structuredData": {
+      "contents": [
+        {
+          "content": "A mood scale over an aura that takes on the colours of the mood under the thumb. Copy `MoodCheckIn.metal` alongside this file; its `moodCheckIn` kernel compiles into your app's default Metal library. `value` runs from 0 (the first mood) to 1 (the last). Dragging moves it continuously and the aura blends between the two nearest moods' colours; on release it snaps to the nearest mood unless `snaps` is off. Read the chosen mood with `MoodCheckIn.mood(at:in:)`."
+        },
+        {
+          "heading": "notes",
+          "content": "The aura is the `moodCheckIn` color shader in `MoodCheckIn.metal`: four colour pools drifting on slow closed paths over a wash of their average, blended like a mesh gradient. Copy the `.metal` file next to the `.swift` file and the kernel compiles into your app's default library."
+        },
+        {
+          "heading": "notes",
+          "content": "Each `Mood` carries a name and up to four colours. Between two moods each pool blends from the lower mood's colour to the upper's, resolved in the current environment, so the panel moves through every shade between them as the thumb travels rather than switching at the midpoint. `MoodCheckIn.standardMoods` runs Drained, Low, Okay, Good and Great, from cool greys and lilac to butter and coral."
+        },
+        {
+          "heading": "notes",
+          "content": "`value` runs 0 to 1. The thumb follows the finger directly with no animation, gives a few points past either end with rubber-band resistance, and swells on liquid glass tinted with the aura's lead colour. While it is held the aura quickens. On release it settles on the nearest mood with the settle spring, or stays where it was let go when `snaps` is false. Read the chosen mood with `MoodCheckIn.mood(at:in:)`."
+        },
+        {
+          "heading": "notes",
+          "content": "A selection tick plays each time the nearest mood changes, so a sweep across the scale ticks once per mood."
+        },
+        {
+          "heading": "notes",
+          "content": "The mood's name morphs letter by letter as it changes: letters both names share hold still and the rest blur through."
+        },
+        {
+          "heading": "notes",
+          "content": "The text over the aura is always dark ink (`Style.ink`), since the aura is light in both appearances. The track, ticks and end labels follow the appearance."
+        },
+        {
+          "heading": "notes",
+          "content": "VoiceOver reads the control as one adjustable element: the prompt as its label, the mood's name as its value, and a swipe up or down moves a whole mood."
+        },
+        {
+          "heading": "notes",
+          "content": "Reduce Motion holds the aura still while keeping its colours, and every settle becomes a short spring with no overshoot."
+        },
+        {
+          "heading": "parameters",
+          "content": "Parameter"
+        },
+        {
+          "heading": "parameters",
+          "content": "Description"
+        },
+        {
+          "heading": "parameters",
+          "content": "`value`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Bound position on the scale, 0 to 1."
+        },
+        {
+          "heading": "parameters",
+          "content": "`moods`"
+        },
+        {
+          "heading": "parameters",
+          "content": "The moods from one end of the scale to the other, each with its name and up to four aura colours."
+        },
+        {
+          "heading": "parameters",
+          "content": "`prompt`"
+        },
+        {
+          "heading": "parameters",
+          "content": "The question over the mood's name, and the control's accessibility label."
+        },
+        {
+          "heading": "parameters",
+          "content": "`snaps`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Whether a release settles on the nearest mood."
+        },
+        {
+          "heading": "parameters",
+          "content": "`height`"
+        },
+        {
+          "heading": "parameters",
+          "content": "The aura panel's height."
+        },
+        {
+          "heading": "parameters",
+          "content": "`cornerRadius`"
+        },
+        {
+          "heading": "parameters",
+          "content": "The aura panel's corner radius."
+        },
+        {
+          "heading": "parameters",
+          "content": "`style`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Ink, track and end-label colours."
+        }
+      ],
+      "headings": [
+        {
+          "id": "notes",
+          "content": "Notes"
+        },
+        {
+          "id": "usage",
+          "content": "Usage"
+        },
+        {
+          "id": "parameters",
+          "content": "Parameters"
+        },
+        {
+          "id": "source",
+          "content": "Source"
+        }
+      ]
+    }
+  },
+  {
     "url": "/docs/components/inputs/range-slider",
     "title": "Range Slider",
     "description": "A liquid glass dual-thumb slider: two glass bubble thumbs joined by a tinted glass span over a quiet line, with a glass readout chip joined above each thumb on a liquid neck; drag either thumb or touch the track to pull the nearest one over, the thumbs stay under the finger and land on their step when you let go, values snap to a step without floating drift, the thumbs never cross and keep a minimum gap, a thumb pulled past the end of the track gives with rubber-band resistance and springs back, a grabbed thumb swells and its chip takes the span's tint, as the thumbs meet one chip melts into the other to read as one range, and every step ticks a selection haptic with a firmer impact at a bound or the gap.",
@@ -10486,6 +10526,130 @@
     }
   },
   {
+    "url": "/docs/components/media/aura-reveal",
+    "title": "Aura Reveal",
+    "description": "An image slot for generated or slow-loading pictures. While the picture is on its way the slot is a living aura, drawn by a Metal shader, that stirs harder as progress climbs, with a liquid glass status chip whose words morph letter by letter joined to a percentage bubble. When the picture lands the aura flares and the image opens out of it from the centre, sharpening as it grows; a failure greys the aura and offers Retry.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Components",
+      "Categories · 14",
+      "Media"
+    ],
+    "structuredData": {
+      "contents": [
+        {
+          "content": "A picture slot that shows an aura while its image is generated or downloaded, then reveals the image out of it. Copy `AuraReveal.metal` alongside this file; its `auraReveal` kernel compiles into your app's default Metal library. Drive it with `phase`: `.loading` with a status line and optional progress while you wait, `.loaded` with the image, or `.failed` with a message. The reveal plays when the phase changes to `.loaded`; a slot that first appears already loaded shows its image at once."
+        },
+        {
+          "heading": "notes",
+          "content": "The aura is the `auraReveal` color shader in `AuraReveal.metal`: four colour pools drifting on slow closed paths over a wash of their average, blended like a mesh gradient. Copy the `.metal` file next to the `.swift` file and the kernel compiles into your app's default library."
+        },
+        {
+          "heading": "notes",
+          "content": "Drive the slot with `phase`. `.loading(status:progress:)` shows the aura with a glass status chip, and a percentage bubble joined to it when progress is known; the aura stirs harder as progress climbs. Pass `nil` progress for work with no measure, and the chip shows the status alone."
+        },
+        {
+          "heading": "notes",
+          "content": "The status morphs letter by letter when it changes, so stage names like \"Sketching\" and \"Adding light\" read as one line updating rather than labels swapping."
+        },
+        {
+          "heading": "notes",
+          "content": "When the phase changes to `.loaded`, the aura flares for a moment, then the image opens out of the slot's centre on a soft-edged mask while it sharpens from a blur and settles from 108% to full size, and the aura fades under it. A success haptic plays as it lands. A slot that first appears already loaded shows its image at once, so scrolling back to it never replays the reveal."
+        },
+        {
+          "heading": "notes",
+          "content": "`.failed` greys the aura and stills it, plays an error haptic and shows the message on a glass chip; with `onRetry` a signal red Retry bubble rests joined to it."
+        },
+        {
+          "heading": "notes",
+          "content": "The aura's timeline runs only while loading and through the flare."
+        },
+        {
+          "heading": "notes",
+          "content": "VoiceOver reads the status and percentage as one element while loading, and the image by `label` once it has loaded."
+        },
+        {
+          "heading": "notes",
+          "content": "Reduce Motion holds the aura still and cross-fades the picture in without the blur, scale or opening mask."
+        },
+        {
+          "heading": "parameters",
+          "content": "Parameter"
+        },
+        {
+          "heading": "parameters",
+          "content": "Description"
+        },
+        {
+          "heading": "parameters",
+          "content": "`phase`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Where the picture is: loading, loaded or failed."
+        },
+        {
+          "heading": "parameters",
+          "content": "`label`"
+        },
+        {
+          "heading": "parameters",
+          "content": "What the picture shows, for VoiceOver once it has loaded."
+        },
+        {
+          "heading": "parameters",
+          "content": "`aspectRatio`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Width over height of the slot."
+        },
+        {
+          "heading": "parameters",
+          "content": "`cornerRadius`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Corner radius of the slot."
+        },
+        {
+          "heading": "parameters",
+          "content": "`style`"
+        },
+        {
+          "heading": "parameters",
+          "content": "The aura's colours while loading and after a failure, and the chips' ink and Retry colours."
+        },
+        {
+          "heading": "parameters",
+          "content": "`onRetry`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Optional. Adds a Retry button to the failed chip."
+        }
+      ],
+      "headings": [
+        {
+          "id": "notes",
+          "content": "Notes"
+        },
+        {
+          "id": "usage",
+          "content": "Usage"
+        },
+        {
+          "id": "parameters",
+          "content": "Parameters"
+        },
+        {
+          "id": "source",
+          "content": "Source"
+        }
+      ]
+    }
+  },
+  {
     "url": "/docs/components/media/link-preview",
     "title": "Link Preview",
     "description": "A rich card for any URL that holds its final size while a skeleton sweeps, then settles the page's image and title into place under a liquid glass host chip that is there from the first frame (riding over the picture on the large card), fetched once with LinkPresentation, shared by every card showing the same link and cached so scrolling never refetches, falling back to a quiet card with the address when a page cannot be read, opening on tap and offering Copy Link and Share on long press.",
@@ -11695,6 +11859,142 @@
         {
           "heading": "parameters",
           "content": "Called once when a scrub or tap ends, for each VoiceOver or arrow key step of 5 seconds, and with 0 before a replay, with the time in seconds to move your player to."
+        }
+      ],
+      "headings": [
+        {
+          "id": "notes",
+          "content": "Notes"
+        },
+        {
+          "id": "usage",
+          "content": "Usage"
+        },
+        {
+          "id": "parameters",
+          "content": "Parameters"
+        },
+        {
+          "id": "source",
+          "content": "Source"
+        }
+      ]
+    }
+  },
+  {
+    "url": "/docs/components/motion/breath-pacer",
+    "title": "Breath Pacer",
+    "description": "A guided breathing exercise for meditation and wellbeing apps. An orb of living aura, drawn by a Metal shader, swells as you breathe in, rests full through the hold and sinks as you breathe out, while the cue morphs letter by letter and the seconds count down inside it. A liquid glass bar holds the cycle count joined to Start and Stop. Box, 4-7-8 and coherent patterns ship, or set your own; each phase lands with a soft tap and is announced to VoiceOver.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Components",
+      "Categories · 14",
+      "Motion"
+    ],
+    "structuredData": {
+      "contents": [
+        {
+          "content": "A paced breathing exercise around an aura orb. Copy `BreathPacer.metal` alongside this file; its `breathPacer` kernel compiles into your app's default Metal library. Bind `isRunning` to start and stop it from outside, or let the bar's button do it. A run goes through `cycles` rounds of the pattern and then stops itself and calls `onComplete`; stopping early resets it, and the next start begins again from the first breath in."
+        },
+        {
+          "heading": "notes",
+          "content": "The orb is the `breathPacer` color shader in `BreathPacer.metal`, filling a circle and softened at the edge: four colour pools drifting on slow closed paths over a wash of their average, blended like a mesh gradient. Copy the `.metal` file next to the `.swift` file and the kernel compiles into your app's default library."
+        },
+        {
+          "heading": "notes",
+          "content": "A run walks the pattern's phases in order, skipping any hold of 0. Breathing in, the orb eases from 62% to full size over the whole phase; it rests full through the hold, eases back down breathing out and rests small through the hold after. The aura stirs most through the breath in and the hold at the top, and settles on the way out."
+        },
+        {
+          "heading": "notes",
+          "content": "The seconds count down inside the orb with a numeric transition. A phase with a fractional length, like coherent breathing's 5.5 seconds, shows its first number for the fraction and then counts whole seconds."
+        },
+        {
+          "heading": "notes",
+          "content": "Each phase lands with a soft impact and is posted as a VoiceOver announcement, so the exercise can be followed with eyes closed. The last cycle plays a success haptic, sets `isRunning` to false and calls `onComplete`."
+        },
+        {
+          "heading": "notes",
+          "content": "Stopping part way cancels the run and the orb sinks back to rest; the next start begins again from the first breath in. `cycles: nil` runs until stopped."
+        },
+        {
+          "heading": "notes",
+          "content": "The bar is liquid glass in one group: the cycle count, or the pattern and number of cycles at rest, joined to Start (signal red) or Stop (neutral glass)."
+        },
+        {
+          "heading": "notes",
+          "content": "`.box` (4-4-4-4), `.relax` (4-7-8) and `.coherent` (5.5 in, 5.5 out) ship; build your own with `BreathPacer.Pattern(name:inhale:holdIn:exhale:holdOut:)`. Every string, including the cycle count, is in `labels:` for localization."
+        },
+        {
+          "heading": "notes",
+          "content": "Reduce Motion keeps the orb at full size and brightens it instead as the breath fills, so the pacing still reads, and holds the aura still."
+        },
+        {
+          "heading": "notes",
+          "content": "The aura's timeline runs only while the exercise runs."
+        },
+        {
+          "heading": "parameters",
+          "content": "Parameter"
+        },
+        {
+          "heading": "parameters",
+          "content": "Description"
+        },
+        {
+          "heading": "parameters",
+          "content": "`isRunning`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Whether the exercise is running."
+        },
+        {
+          "heading": "parameters",
+          "content": "`pattern`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Seconds for each phase. `.box`, `.relax` (4-7-8) and `.coherent` ship; holds of 0 are skipped."
+        },
+        {
+          "heading": "parameters",
+          "content": "`cycles`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Rounds before it stops itself; `nil` runs until stopped."
+        },
+        {
+          "heading": "parameters",
+          "content": "`size`"
+        },
+        {
+          "heading": "parameters",
+          "content": "The orb's diameter when full; scales with Dynamic Type."
+        },
+        {
+          "heading": "parameters",
+          "content": "`style`"
+        },
+        {
+          "heading": "parameters",
+          "content": "The aura's colours, the ink on the orb and the button's colours."
+        },
+        {
+          "heading": "parameters",
+          "content": "`labels`"
+        },
+        {
+          "heading": "parameters",
+          "content": "The cues, buttons and cycle count, for localization."
+        },
+        {
+          "heading": "parameters",
+          "content": "`onComplete`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Called when the last cycle ends."
         }
       ],
       "headings": [
@@ -13810,102 +14110,6 @@
           "id": "notes",
           "content": "Notes"
         },
-        {
-          "id": "usage",
-          "content": "Usage"
-        },
-        {
-          "id": "parameters",
-          "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
-        }
-      ]
-    }
-  },
-  {
-    "url": "/docs/components/text/mercury-text",
-    "title": "Mercury Text",
-    "description": "Text, SF Symbols or any view turned into liquid metal by a Metal layer shader. The shader reads the glyphs' own coverage as height, bevels every edge from it, and reflects a studio whose horizon ripples like mercury across the letters, with a thin-film fringe on the bevels. A finger or pointer slides the reflections. Mercury, holographic, gold and brand red finishes; still and readable under Reduce Motion.",
-    "breadcrumbs": [
-      "SwiftPieces",
-      "Components",
-      "Categories · 14",
-      "Text"
-    ],
-    "structuredData": {
-      "contents": [
-        {
-          "content": "A headline in liquid metal. For a symbol or any other view, use `.mercury()`. Copy `MercuryText.metal` alongside this file; its `mercuryText` kernel compiles into your app's default Metal library. The shader bevels whatever the view draws from its own edges, so heavy, rounded type shows the metal best. The text stays real text: VoiceOver reads it, it wraps and it scales with Dynamic Type."
-        },
-        {
-          "heading": "parameters",
-          "content": "Parameter"
-        },
-        {
-          "heading": "parameters",
-          "content": "Description"
-        },
-        {
-          "heading": "parameters",
-          "content": "`text`"
-        },
-        {
-          "heading": "parameters",
-          "content": "The words to draw."
-        },
-        {
-          "heading": "parameters",
-          "content": "`size`"
-        },
-        {
-          "heading": "parameters",
-          "content": "Point size; scales with Dynamic Type."
-        },
-        {
-          "heading": "parameters",
-          "content": "`design`"
-        },
-        {
-          "heading": "parameters",
-          "content": "The font design. `.rounded` (default) gives the bevels the most to catch."
-        },
-        {
-          "heading": "parameters",
-          "content": "`finish`"
-        },
-        {
-          "heading": "parameters",
-          "content": "The metal: `.mercury` (default), `.holographic`, `.gold` or `.signal`, the brand red. Or your own `Finish(tint:iridescence:)`."
-        },
-        {
-          "heading": "parameters",
-          "content": "`bevel`"
-        },
-        {
-          "heading": "parameters",
-          "content": "How far in from each edge the bevel reaches, in points. `nil` derives it from the size."
-        },
-        {
-          "heading": "parameters",
-          "content": "`flow`"
-        },
-        {
-          "heading": "parameters",
-          "content": "How fast the reflections ripple. 0 holds them still."
-        },
-        {
-          "heading": "parameters",
-          "content": "`followsTouch`"
-        },
-        {
-          "heading": "parameters",
-          "content": "A finger or pointer on the text slides the reflections toward it, and they glide home when it lifts."
-        }
-      ],
-      "headings": [
         {
           "id": "usage",
           "content": "Usage"

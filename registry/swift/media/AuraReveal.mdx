@@ -1,0 +1,10 @@
+## Notes
+
+- The aura is the `auraReveal` color shader in `AuraReveal.metal`: four colour pools drifting on slow closed paths over a wash of their average, blended like a mesh gradient. Copy the `.metal` file next to the `.swift` file and the kernel compiles into your app's default library.
+- Drive the slot with `phase`. `.loading(status:progress:)` shows the aura with a glass status chip, and a percentage bubble joined to it when progress is known; the aura stirs harder as progress climbs. Pass `nil` progress for work with no measure, and the chip shows the status alone.
+- The status morphs letter by letter when it changes, so stage names like "Sketching" and "Adding light" read as one line updating rather than labels swapping.
+- When the phase changes to `.loaded`, the aura flares for a moment, then the image opens out of the slot's centre on a soft-edged mask while it sharpens from a blur and settles from 108% to full size, and the aura fades under it. A success haptic plays as it lands. A slot that first appears already loaded shows its image at once, so scrolling back to it never replays the reveal.
+- `.failed` greys the aura and stills it, plays an error haptic and shows the message on a glass chip; with `onRetry` a signal red Retry bubble rests joined to it.
+- The aura's timeline runs only while loading and through the flare.
+- VoiceOver reads the status and percentage as one element while loading, and the image by `label` once it has loaded.
+- Reduce Motion holds the aura still and cross-fades the picture in without the blur, scale or opening mask.

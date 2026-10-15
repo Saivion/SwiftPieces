@@ -30,6 +30,39 @@ The assistant's mark while it thinks. Copy `AssistantOrb.metal` alongside this f
 - `size`: Diameter of the ball in points. 160 by default; the view is always a square of this side.
 - `palette`: The eight colours of the wave, ground, crest and rim. `.siri` by default; build your own with `Palette(bands:ground:crest:rimCool:rimWarm:)` from hex or `Color`. A change crossfades on a calm spring.
 
+## Aura Composer (`AuraComposer`)
+
+URL: https://swiftpieces.com/docs/components/ai/aura-composer
+Category: AI. iOS 17.0+. Liquid Glass on iOS 26 with a Material fallback. Metal shader.
+Files: AuraComposer.swift, AuraComposer.metal
+Install: npx swiftpieces add AuraComposer
+
+A chat composer on liquid glass with a living aura behind it, drawn by a Metal shader. The field grows with the message and the send bubble rests joined to it by a liquid neck, turning signal red once there is something to send. Focus the field and the aura wakes and drifts; while the assistant answers it brightens and churns, and the send bubble becomes stop. An optional attach button sits inside the field.
+
+A chat composer: a growing text field on liquid glass, a send bubble joined to it, and an aura behind both that tells the person what the assistant is doing. Copy `AuraComposer.metal` alongside this file; its `auraComposer` kernel compiles into your app's default Metal library. The aura has three moods. At rest it is a faint still glow in the composer's colours. With the field focused it wakes and drifts. While `isResponding` it brightens and churns, and the send bubble turns into stop. Sending clears the field and hands the trimmed text to `onSend`.
+
+### Notes
+
+- The aura is the `auraComposer` color shader in `AuraComposer.metal`: four colour pools drifting on slow closed paths over a wash of their average, blended by soft weights the way a mesh gradient blends its points, with a little grain so it never bands. It fills a rounded rectangle behind the glass, a little larger than the composer and blurred, so the glass carries its colour and its light spills past the edges. Copy the `.metal` file next to the `.swift` file and the kernel compiles into your app's default library.
+- The aura has three moods, each a glow and an energy: at rest a faint still glow (0.35); focused it wakes and drifts (0.7); while `isResponding` it brightens, and its pools leave their paths on a quicker wander, so it churns rather than just speeds up (1). Set the three glows with `Style.glow`. Energy eases between moods, so a change of state never jumps the aura.
+- The aura's timeline runs only while the field is focused or the assistant is responding, and for a moment after either changes so the energy can settle. At rest it draws once. Its loop wraps at 2π, where every path closes, so it has no seam however long it runs.
+- The field and the send bubble are liquid glass in one `PieceLiquidGroup`, resting `PieceLiquid.joined` apart so a liquid neck holds them as one control. The field grows to six lines and the bubble stays at the bottom edge. The bubble is neutral glass until the trimmed draft has text, then signal red with an ink arrow; while responding it is ink with a stop square, and the symbol swaps with `.symbolEffect(.replace)`.
+- Sending hands the trimmed draft to `onSend`, clears the field, pops the bubble and plays a light impact. Stop calls `onStop` with a rigid impact. Drive `isResponding` from your own state: the composer never sets it.
+- `onAttach` adds a plus inside the field's leading edge, pressed like a chip.
+- Reduce Motion holds the aura still: it keeps its colours and takes each mood's glow at once. Reduce Transparency draws the field and bubble as solid fills, and the aura still glows behind them.
+- VoiceOver reads the field by its placeholder, and the bubble as Send or Stop responding. Replace the button labels with `labels:` to localize them.
+
+### Parameters
+
+- `text`: The draft. The composer clears it on send.
+- `placeholder`: Shown in the empty field.
+- `isResponding`: Whether the assistant is answering. The send bubble becomes stop, and the aura brightens.
+- `style`: The aura's colours, the send bubble's colours and the field's ink. `.standard` is the house lilac, sky,
+- `labels`: Accessibility labels for the buttons, for localization.
+- `onAttach`: Optional. Adds an attach button inside the field's leading edge.
+- `onStop`: Called when the person taps stop while `isResponding`.
+- `onSend`: Called with the trimmed draft.
+
 ## Prompt Chips (`PromptChips`)
 
 URL: https://swiftpieces.com/docs/components/ai/prompt-chips
@@ -581,43 +614,6 @@ Hold to confirm, in liquid glass. The tint sweeps through the glass from the lea
 - `style`: Label, fill, ink and committed colors plus height. `.standard` is the house palette with a signal fill.
 - `action`: Called once when the hold completes. VoiceOver's activate action calls it directly.
 
-## Melt Button (`MeltButton`)
-
-URL: https://swiftpieces.com/docs/components/controls/melt-button
-Category: Controls. iOS 17.0+. Liquid Glass on iOS 26 with a Material fallback. Metal shader.
-Files: MeltButton.swift, MeltButton.metal
-Install: npx swiftpieces add MeltButton
-
-A round liquid glass button whose SF Symbol is molten metal, drawn by a Metal layer shader. Change the symbol and the old one melts into a blob and pours itself into the new one, play into pause, plus into a check; press it and the metal slumps under your finger. The shader cuts a blurred field of both symbols at its surface and shades the inside as chrome, so the morph works between any two symbols.
-
-A glass button with a liquid metal symbol that melts from one symbol into the next. Copy `MeltButton.metal` alongside this file; its `meltButton` kernel compiles into your app's default Metal library. Drive `systemImage` from state, `isPlaying ? "pause.fill" : "play.fill"`, and every change melts the old symbol into the new one. Filled symbols melt best: the metal is cut from the symbol's area, so hairline strokes thin away. VoiceOver reads `label`, and the button acts on `action` like any `Button`.
-
-### Parameters
-
-- `label`: What the button does, for VoiceOver and Voice Control. Update it with the symbol.
-- `systemImage`: The SF Symbol to show. A change melts into it.
-- `size`: The button's diameter in points; scales with Dynamic Type.
-- `tint`: The metal's colour: white (default) is chrome; a warm white reads as gold.
-- `action`: What a tap does.
-
-## Mercury Toggle (`MercuryToggle`)
-
-URL: https://swiftpieces.com/docs/components/controls/mercury-toggle
-Category: Controls. iOS 17.0+. Liquid Glass on iOS 26 with a Material fallback. Metal shader.
-Files: MercuryToggle.swift, MercuryToggle.metal
-Install: npx swiftpieces add MercuryToggle
-
-A switch whose thumb is a bead of mercury in a liquid glass track, drawn by a Metal color shader. Two drops melt into one through a smooth minimum, so a flip stretches the bead into a slug that pulls itself round at the far end and rings for a moment; dragging it drags the liquid after your finger. The track fills with the brand red when on.
-
-An on and off switch with a mercury bead for a thumb. Copy `MercuryToggle.metal` alongside this file; its `mercuryToggle` kernel compiles into your app's default Metal library. Tap the switch to flip it, or drag the bead: it follows your finger and lands on the side you let go nearer, or the side you flicked toward. VoiceOver, Switch Control and keyboard focus see a standard toggle.
-
-### Parameters
-
-- `title`: The setting's name. Shown beside the switch unless `showsTitle` is false, and always read by VoiceOver.
-- `isOn`: The binding the switch flips.
-- `tint`: The track's fill when on. The brand red, `#FF0000`, by default.
-- `showsTitle`: Shows the title to the leading side, the way `Toggle` lays out in a row.
-
 ## Timer Dial (`TimerDial`)
 
 URL: https://swiftpieces.com/docs/components/controls/timer-dial
@@ -731,25 +727,6 @@ KPI tile with a rolling value, delta chip, and a scrubbable sparkline that expan
 - `tint`: Sparkline color. Defaults to the style's `line`.
 - `expanded`: Optional binding to the expanded state, for driving it from outside.
 - `style`: Tile, text, and chip colors. Defaults to `.standard`, a neutral glass tile; `.block(_:)` tints the glass with a color block and dark ink.
-
-## Mercury Gauge (`MercuryGauge`)
-
-URL: https://swiftpieces.com/docs/components/data/mercury-gauge
-Category: Data. iOS 17.0+. Liquid Glass on iOS 26 with a Material fallback. Metal shader.
-Files: MercuryGauge.swift, MercuryGauge.metal
-Install: npx swiftpieces add MercuryGauge
-
-A level gauge filled with liquid metal, drawn by a Metal color shader inside a liquid glass tube. When the value changes the mercury runs to it with its front leaning into the run, lands without overshooting the true value, and rings for a moment; at zero it gathers into a single drop. For storage, battery, goals and uploads, with a title and a rolling percentage.
-
-A gauge of liquid metal in a glass tube. Copy `MercuryGauge.metal` alongside this file; its `mercuryGauge` kernel compiles into your app's default Metal library. The level itself never overshoots, so the gauge never shows a value that isn't true; only the shape of the mercury's front leans and rings. VoiceOver reads the title and the percentage.
-
-### Parameters
-
-- `title`: What the gauge measures, shown above the tube.
-- `value`: The current value.
-- `range`: The values the tube spans, `0...1` by default. Values outside it pin to the ends.
-- `valueText`: The readout beside the title. `nil` shows the percentage of the range, rolling as it changes.
-- `tint`: The metal's colour: a cool silver by default.
 
 ## Odometer (`Odometer`)
 
@@ -1499,6 +1476,38 @@ A map you drag under a fixed pin to choose an exact spot, with the address of wh
 - `style`: Colors, the card's corner radius and the map's look. Defaults to the SwiftPieces house palette, adapting to light and dark, with the red pin and Confirm.
 - `onConfirm`: Called with the place when Confirm is tapped. Tapped while the address is still on its way, Confirm waits for it (up to four seconds) and then hands over what it has. `nil` hides the button, for pickers inside your own form.
 
+## Mood Check-in (`MoodCheckIn`)
+
+URL: https://swiftpieces.com/docs/components/inputs/mood-check-in
+Category: Inputs. iOS 17.0+. Liquid Glass on iOS 26 with a Material fallback. Metal shader.
+Files: MoodCheckIn.swift, MoodCheckIn.metal
+Install: npx swiftpieces add MoodCheckIn
+
+A mood picker for journals and wellbeing apps. A panel of living aura, drawn by a Metal shader, carries the mood's own colours and blends from one mood into the next as you drag the glass thumb along the scale, quickening under your finger, while the mood's name morphs letter by letter. Release and it snaps to the nearest mood with a tick for each one it passes; VoiceOver adjusts it a mood at a time.
+
+A mood scale over an aura that takes on the colours of the mood under the thumb. Copy `MoodCheckIn.metal` alongside this file; its `moodCheckIn` kernel compiles into your app's default Metal library. `value` runs from 0 (the first mood) to 1 (the last). Dragging moves it continuously and the aura blends between the two nearest moods' colours; on release it snaps to the nearest mood unless `snaps` is off. Read the chosen mood with `MoodCheckIn.mood(at:in:)`.
+
+### Notes
+
+- The aura is the `moodCheckIn` color shader in `MoodCheckIn.metal`: four colour pools drifting on slow closed paths over a wash of their average, blended like a mesh gradient. Copy the `.metal` file next to the `.swift` file and the kernel compiles into your app's default library.
+- Each `Mood` carries a name and up to four colours. Between two moods each pool blends from the lower mood's colour to the upper's, resolved in the current environment, so the panel moves through every shade between them as the thumb travels rather than switching at the midpoint. `MoodCheckIn.standardMoods` runs Drained, Low, Okay, Good and Great, from cool greys and lilac to butter and coral.
+- `value` runs 0 to 1. The thumb follows the finger directly with no animation, gives a few points past either end with rubber-band resistance, and swells on liquid glass tinted with the aura's lead colour. While it is held the aura quickens. On release it settles on the nearest mood with the settle spring, or stays where it was let go when `snaps` is false. Read the chosen mood with `MoodCheckIn.mood(at:in:)`.
+- A selection tick plays each time the nearest mood changes, so a sweep across the scale ticks once per mood.
+- The mood's name morphs letter by letter as it changes: letters both names share hold still and the rest blur through.
+- The text over the aura is always dark ink (`Style.ink`), since the aura is light in both appearances. The track, ticks and end labels follow the appearance.
+- VoiceOver reads the control as one adjustable element: the prompt as its label, the mood's name as its value, and a swipe up or down moves a whole mood.
+- Reduce Motion holds the aura still while keeping its colours, and every settle becomes a short spring with no overshoot.
+
+### Parameters
+
+- `value`: Bound position on the scale, 0 to 1.
+- `moods`: The moods from one end of the scale to the other, each with its name and up to four aura colours.
+- `prompt`: The question over the mood's name, and the control's accessibility label.
+- `snaps`: Whether a release settles on the nearest mood.
+- `height`: The aura panel's height.
+- `cornerRadius`: The aura panel's corner radius.
+- `style`: Ink, track and end-label colours.
+
 ## Range Slider (`RangeSlider`)
 
 URL: https://swiftpieces.com/docs/components/inputs/range-slider
@@ -1984,6 +1993,37 @@ A strip of photo and video attachments with an add tile, per-item loading, retry
 - `style`: Colors and tile metrics. Defaults to the SwiftPieces house palette, adapting to light and dark.
 - `onSelect`: Called when a loaded tile is tapped, for example to open it full screen. When `nil`, loaded tiles have no tap action.
 
+## Aura Reveal (`AuraReveal`)
+
+URL: https://swiftpieces.com/docs/components/media/aura-reveal
+Category: Media. iOS 17.0+. Liquid Glass on iOS 26 with a Material fallback. Metal shader.
+Files: AuraReveal.swift, AuraReveal.metal
+Install: npx swiftpieces add AuraReveal
+
+An image slot for generated or slow-loading pictures. While the picture is on its way the slot is a living aura, drawn by a Metal shader, that stirs harder as progress climbs, with a liquid glass status chip whose words morph letter by letter joined to a percentage bubble. When the picture lands the aura flares and the image opens out of it from the centre, sharpening as it grows; a failure greys the aura and offers Retry.
+
+A picture slot that shows an aura while its image is generated or downloaded, then reveals the image out of it. Copy `AuraReveal.metal` alongside this file; its `auraReveal` kernel compiles into your app's default Metal library. Drive it with `phase`: `.loading` with a status line and optional progress while you wait, `.loaded` with the image, or `.failed` with a message. The reveal plays when the phase changes to `.loaded`; a slot that first appears already loaded shows its image at once.
+
+### Notes
+
+- The aura is the `auraReveal` color shader in `AuraReveal.metal`: four colour pools drifting on slow closed paths over a wash of their average, blended like a mesh gradient. Copy the `.metal` file next to the `.swift` file and the kernel compiles into your app's default library.
+- Drive the slot with `phase`. `.loading(status:progress:)` shows the aura with a glass status chip, and a percentage bubble joined to it when progress is known; the aura stirs harder as progress climbs. Pass `nil` progress for work with no measure, and the chip shows the status alone.
+- The status morphs letter by letter when it changes, so stage names like "Sketching" and "Adding light" read as one line updating rather than labels swapping.
+- When the phase changes to `.loaded`, the aura flares for a moment, then the image opens out of the slot's centre on a soft-edged mask while it sharpens from a blur and settles from 108% to full size, and the aura fades under it. A success haptic plays as it lands. A slot that first appears already loaded shows its image at once, so scrolling back to it never replays the reveal.
+- `.failed` greys the aura and stills it, plays an error haptic and shows the message on a glass chip; with `onRetry` a signal red Retry bubble rests joined to it.
+- The aura's timeline runs only while loading and through the flare.
+- VoiceOver reads the status and percentage as one element while loading, and the image by `label` once it has loaded.
+- Reduce Motion holds the aura still and cross-fades the picture in without the blur, scale or opening mask.
+
+### Parameters
+
+- `phase`: Where the picture is: loading, loaded or failed.
+- `label`: What the picture shows, for VoiceOver once it has loaded.
+- `aspectRatio`: Width over height of the slot.
+- `cornerRadius`: Corner radius of the slot.
+- `style`: The aura's colours while loading and after a failure, and the chips' ink and Retry colours.
+- `onRetry`: Optional. Adds a Retry button to the failed chip.
+
 ## Link Preview (`LinkPreview`)
 
 URL: https://swiftpieces.com/docs/components/media/link-preview
@@ -2272,6 +2312,39 @@ A voice note player whose waveform is the scrubber, for voice messages, audio no
 - `style`: Colours, the control's height and the bars' width and spacing. Defaults to the SwiftPieces house palette, adapting to light and dark, with red for the play button.
 - `onPlayPause`: Called when play or pause is tapped (and on Space or a two-finger double tap in VoiceOver). Start or pause your player. When the note has finished (`time` at `duration`, not playing), the button shows replay and `onSeek(0)` is called first.
 - `onSeek`: Called once when a scrub or tap ends, for each VoiceOver or arrow key step of 5 seconds, and with 0 before a replay, with the time in seconds to move your player to.
+
+## Breath Pacer (`BreathPacer`)
+
+URL: https://swiftpieces.com/docs/components/motion/breath-pacer
+Category: Motion. iOS 17.0+. Liquid Glass on iOS 26 with a Material fallback. Metal shader.
+Files: BreathPacer.swift, BreathPacer.metal
+Install: npx swiftpieces add BreathPacer
+
+A guided breathing exercise for meditation and wellbeing apps. An orb of living aura, drawn by a Metal shader, swells as you breathe in, rests full through the hold and sinks as you breathe out, while the cue morphs letter by letter and the seconds count down inside it. A liquid glass bar holds the cycle count joined to Start and Stop. Box, 4-7-8 and coherent patterns ship, or set your own; each phase lands with a soft tap and is announced to VoiceOver.
+
+A paced breathing exercise around an aura orb. Copy `BreathPacer.metal` alongside this file; its `breathPacer` kernel compiles into your app's default Metal library. Bind `isRunning` to start and stop it from outside, or let the bar's button do it. A run goes through `cycles` rounds of the pattern and then stops itself and calls `onComplete`; stopping early resets it, and the next start begins again from the first breath in.
+
+### Notes
+
+- The orb is the `breathPacer` color shader in `BreathPacer.metal`, filling a circle and softened at the edge: four colour pools drifting on slow closed paths over a wash of their average, blended like a mesh gradient. Copy the `.metal` file next to the `.swift` file and the kernel compiles into your app's default library.
+- A run walks the pattern's phases in order, skipping any hold of 0. Breathing in, the orb eases from 62% to full size over the whole phase; it rests full through the hold, eases back down breathing out and rests small through the hold after. The aura stirs most through the breath in and the hold at the top, and settles on the way out.
+- The seconds count down inside the orb with a numeric transition. A phase with a fractional length, like coherent breathing's 5.5 seconds, shows its first number for the fraction and then counts whole seconds.
+- Each phase lands with a soft impact and is posted as a VoiceOver announcement, so the exercise can be followed with eyes closed. The last cycle plays a success haptic, sets `isRunning` to false and calls `onComplete`.
+- Stopping part way cancels the run and the orb sinks back to rest; the next start begins again from the first breath in. `cycles: nil` runs until stopped.
+- The bar is liquid glass in one group: the cycle count, or the pattern and number of cycles at rest, joined to Start (signal red) or Stop (neutral glass).
+- `.box` (4-4-4-4), `.relax` (4-7-8) and `.coherent` (5.5 in, 5.5 out) ship; build your own with `BreathPacer.Pattern(name:inhale:holdIn:exhale:holdOut:)`. Every string, including the cycle count, is in `labels:` for localization.
+- Reduce Motion keeps the orb at full size and brightens it instead as the breath fills, so the pacing still reads, and holds the aura still.
+- The aura's timeline runs only while the exercise runs.
+
+### Parameters
+
+- `isRunning`: Whether the exercise is running.
+- `pattern`: Seconds for each phase. `.box`, `.relax` (4-7-8) and `.coherent` ship; holds of 0 are skipped.
+- `cycles`: Rounds before it stops itself; `nil` runs until stopped.
+- `size`: The orb's diameter when full; scales with Dynamic Type.
+- `style`: The aura's colours, the ink on the orb and the button's colours.
+- `labels`: The cues, buttons and cycle count, for localization.
+- `onComplete`: Called when the last cycle ends.
 
 ## Drag to Dismiss (`DragToDismiss`)
 
@@ -2784,27 +2857,6 @@ Liquid Glass applied to text outlines via Core Text glyph paths. The glyph path 
 - `tint`: Optional glass tint. The Material fallback blends it in at `style.fallbackTintAmount`.
 - `scalesWithDynamicType`: Set false to pin the point size.
 - `style`: Line alignment and leading, fallback specular strength, depth shadow and the Reduce Transparency fill.
-
-## Mercury Text (`MercuryText`)
-
-URL: https://swiftpieces.com/docs/components/text/mercury-text
-Category: Text. iOS 17.0+. Metal shader.
-Files: MercuryText.swift, MercuryText.metal
-Install: npx swiftpieces add MercuryText
-
-Text, SF Symbols or any view turned into liquid metal by a Metal layer shader. The shader reads the glyphs' own coverage as height, bevels every edge from it, and reflects a studio whose horizon ripples like mercury across the letters, with a thin-film fringe on the bevels. A finger or pointer slides the reflections. Mercury, holographic, gold and brand red finishes; still and readable under Reduce Motion.
-
-A headline in liquid metal. For a symbol or any other view, use `.mercury()`. Copy `MercuryText.metal` alongside this file; its `mercuryText` kernel compiles into your app's default Metal library. The shader bevels whatever the view draws from its own edges, so heavy, rounded type shows the metal best. The text stays real text: VoiceOver reads it, it wraps and it scales with Dynamic Type.
-
-### Parameters
-
-- `text`: The words to draw.
-- `size`: Point size; scales with Dynamic Type.
-- `design`: The font design. `.rounded` (default) gives the bevels the most to catch.
-- `finish`: The metal: `.mercury` (default), `.holographic`, `.gold` or `.signal`, the brand red. Or your own `Finish(tint:iridescence:)`.
-- `bevel`: How far in from each edge the bevel reaches, in points. `nil` derives it from the size.
-- `flow`: How fast the reflections ripple. 0 holds them still.
-- `followsTouch`: A finger or pointer on the text slides the reflections toward it, and they glide home when it lifts.
 
 ## Picture Headline (`PictureHeadline`)
 

@@ -25,8 +25,8 @@ enum PreviewCatalog {
         "PictureHeadline",
         // crafted interactions, 2026-10-12
         "ScrollIsland", "StepTrail", "WaveformScrub", "VoiceRecorder", "NowPlaying", "WalletStack", "NoticeStack", "RangeLens",
-        // liquid metal, 2026-10-15
-        "MeltButton", "MercuryGauge", "MercuryText", "MercuryToggle",
+        // aura, 2026-10-15
+        "AuraComposer", "MoodCheckIn", "BreathPacer", "AuraReveal",
     ]
 
     @MainActor @ViewBuilder
@@ -198,15 +198,15 @@ enum PreviewCatalog {
             Stage { NoticeStackScene() }
         case "RangeLens":
             Stage { RangeLensScene() }
-        // liquid metal
-        case "MeltButton":
-            Stage(dark: true) { MeltButtonScene() }
-        case "MercuryGauge":
-            Stage(dark: true) { MercuryGaugeScene() }
-        case "MercuryText":
-            Stage(dark: true) { MercuryTextScene() }
-        case "MercuryToggle":
-            Stage(dark: true) { MercuryToggleScene() }
+        // aura
+        case "AuraComposer":
+            Stage { AuraComposerScene() }
+        case "MoodCheckIn":
+            Stage { MoodCheckInScene() }
+        case "BreathPacer":
+            Stage { BreathPacerScene() }
+        case "AuraReveal":
+            Stage { AuraRevealScene() }
         default:
             Text("Unknown piece: \(name)")
         }
@@ -4035,90 +4035,92 @@ private enum RangeLensSceneData {
     }
 }
 
-// MARK: - liquid metal scenes
+// MARK: - aura scenes
 
-/// Play and pause, and an add that becomes a check, each melting into the next symbol in turn.
-private struct MeltButtonScene: View {
-    @State private var playing = false
-    @State private var added = false
+/// A question typed into the composer and sent, then the aura churning while the reply streams, and settling after.
+private struct AuraComposerScene: View {
+    @State private var draft = ""
+    @State private var responding = false
 
     var body: some View {
-        HStack(spacing: 32) {
-            MeltButton(playing ? "Pause" : "Play", systemImage: playing ? "pause.fill" : "play.fill", size: 88) { playing.toggle() }
-            MeltButton(added ? "Added" : "Add", systemImage: added ? "checkmark" : "plus", size: 88, tint: Color(red: 1, green: 0.86, blue: 0.62)) { added.toggle() }
-        }
-        .task {
-            while !Task.isCancelled {
-                try? await Task.sleep(for: .seconds(1.3))
-                playing.toggle()
-                try? await Task.sleep(for: .seconds(0.65))
-                added.toggle()
+        AuraComposer(text: $draft, isResponding: responding, onAttach: {}) { _ in }
+            .padding(.horizontal, 20)
+            .task {
+                while !Task.isCancelled {
+                    for word in "Plan a slow Saturday in Lisbon".split(separator: " ") {
+                        try? await Task.sleep(for: .milliseconds(160))
+                        draft += (draft.isEmpty ? "" : " ") + word
+                    }
+                    try? await Task.sleep(for: .seconds(0.6))
+                    draft = ""
+                    responding = true
+                    try? await Task.sleep(for: .seconds(2.4))
+                    responding = false
+                    try? await Task.sleep(for: .seconds(1))
+                }
             }
-        }
     }
 }
 
-/// Two gauges stepping between values, so the mercury runs, leans into the run and rings as it lands.
-private struct MercuryGaugeScene: View {
-    @State private var step = 0
-    private let storage = [0.72, 0.31, 0.9, 0.12]
-    private let battery = [0.34, 0.86, 0.05, 0.6]
+/// The thumb swept from Drained up to Great and back to Good, the aura blending through each mood.
+private struct MoodCheckInScene: View {
+    @State private var value = 0.25
 
     var body: some View {
-        VStack(spacing: 30) {
-            MercuryGauge("Storage", value: storage[step % storage.count])
-            MercuryGauge("Battery", value: battery[step % battery.count])
-        }
-        .font(.system(size: 20))
-        .foregroundStyle(.white)
-        .padding(.horizontal, 40)
-        .fontWeight(.semibold)
-        .task {
-            while !Task.isCancelled {
-                try? await Task.sleep(for: .seconds(1.6))
-                step += 1
+        MoodCheckIn(value: $value)
+            .padding(.horizontal, 24)
+            .task {
+                let stops = [0.0, 1.0, 0.75, 0.25]
+                var i = 0
+                while !Task.isCancelled {
+                    try? await Task.sleep(for: .seconds(1.6))
+                    withAnimation(.smooth(duration: 1.1)) { value = stops[i % stops.count] }
+                    i += 1
+                }
             }
-        }
     }
 }
 
-/// A headline in mercury over symbols in the other finishes.
-private struct MercuryTextScene: View {
+/// Box breathing, running from the start.
+private struct BreathPacerScene: View {
+    @State private var running = true
+
     var body: some View {
-        VStack(spacing: 24) {
-            MercuryText("Metal", size: 96)
-            HStack(spacing: 26) {
-                Image(systemName: "bolt.fill").mercury(.holographic, bevel: 5)
-                Image(systemName: "star.fill").mercury(.gold, bevel: 5)
-                Image(systemName: "heart.fill").mercury(.signal, bevel: 5)
-            }
-            .font(.system(size: 48))
-        }
-        .fontWeight(.semibold)
+        BreathPacer(isRunning: $running, pattern: BreathPacer.Pattern(name: "Quick", inhale: 2.5, holdIn: 1, exhale: 2.5), cycles: nil)
     }
 }
 
-/// Two switches flipping in turn, so the bead stretches and pulls itself round.
-private struct MercuryToggleScene: View {
-    @State private var live = true
-    @State private var voice = false
+/// The slot loading through its stages, then the picture opening out of the aura.
+private struct AuraRevealScene: View {
+    @State private var phase: AuraReveal.Phase = .loading(status: "Sketching", progress: 0)
 
     var body: some View {
-        VStack(spacing: 26) {
-            MercuryToggle("Live mode", isOn: $live)
-            MercuryToggle("Voice replies", isOn: $voice)
-        }
-        .font(.system(size: 20))
-        .foregroundStyle(.white)
-        .padding(.horizontal, 40)
-        .fontWeight(.semibold)
-        .task {
-            while !Task.isCancelled {
-                try? await Task.sleep(for: .seconds(1.4))
-                live.toggle()
-                try? await Task.sleep(for: .seconds(0.7))
-                voice.toggle()
+        AuraReveal(phase: phase, aspectRatio: 4 / 5)
+            .padding(.horizontal, 40)
+            .task {
+                let stages = ["Sketching", "Adding light", "Finishing"]
+                while !Task.isCancelled {
+                    for step in 0...12 {
+                        withAnimation { phase = .loading(status: stages[min(step / 5, stages.count - 1)], progress: Double(step) / 12) }
+                        try? await Task.sleep(for: .milliseconds(180))
+                    }
+                    let picture = ImageRenderer(content: AuraRevealSceneArt())
+                    picture.scale = 3
+                    if let image = picture.uiImage { phase = .loaded(Image(uiImage: image)) }
+                    try? await Task.sleep(for: .seconds(2.4))
+                }
             }
+    }
+}
+
+private struct AuraRevealSceneArt: View {
+    var body: some View {
+        ZStack(alignment: .topLeading) {
+            Color(red: 0.804, green: 0.722, blue: 1)
+            Circle().fill(Color(red: 1, green: 0.851, blue: 0.463)).frame(width: 150, height: 150).offset(x: 170, y: 60)
+            Ellipse().fill(Color(red: 0.663, green: 0.863, blue: 0.718)).frame(width: 560, height: 360).offset(x: -120, y: 250)
         }
+        .frame(width: 320, height: 400)
+        .clipped()
     }
 }

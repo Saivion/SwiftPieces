@@ -1,0 +1,11 @@
+## Notes
+
+- The orb is the `breathPacer` color shader in `BreathPacer.metal`, filling a circle and softened at the edge: four colour pools drifting on slow closed paths over a wash of their average, blended like a mesh gradient. Copy the `.metal` file next to the `.swift` file and the kernel compiles into your app's default library.
+- A run walks the pattern's phases in order, skipping any hold of 0. Breathing in, the orb eases from 62% to full size over the whole phase; it rests full through the hold, eases back down breathing out and rests small through the hold after. The aura stirs most through the breath in and the hold at the top, and settles on the way out.
+- The seconds count down inside the orb with a numeric transition. A phase with a fractional length, like coherent breathing's 5.5 seconds, shows its first number for the fraction and then counts whole seconds.
+- Each phase lands with a soft impact and is posted as a VoiceOver announcement, so the exercise can be followed with eyes closed. The last cycle plays a success haptic, sets `isRunning` to false and calls `onComplete`.
+- Stopping part way cancels the run and the orb sinks back to rest; the next start begins again from the first breath in. `cycles: nil` runs until stopped.
+- The bar is liquid glass in one group: the cycle count, or the pattern and number of cycles at rest, joined to Start (signal red) or Stop (neutral glass).
+- `.box` (4-4-4-4), `.relax` (4-7-8) and `.coherent` (5.5 in, 5.5 out) ship; build your own with `BreathPacer.Pattern(name:inhale:holdIn:exhale:holdOut:)`. Every string, including the cycle count, is in `labels:` for localization.
+- Reduce Motion keeps the orb at full size and brightens it instead as the breath fills, so the pacing still reads, and holds the aura still.
+- The aura's timeline runs only while the exercise runs.

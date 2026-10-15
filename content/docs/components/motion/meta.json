@@ -3,6 +3,7 @@
   "description": "Gesture modifiers with real physics.",
   "defaultOpen": false,
   "pages": [
+    "breath-pacer",
     "drag-to-dismiss"
   ]
 }

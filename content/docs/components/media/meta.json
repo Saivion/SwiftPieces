@@ -4,6 +4,7 @@
   "defaultOpen": false,
   "pages": [
     "attachment-tray",
+    "aura-reveal",
     "link-preview",
     "now-playing",
     "photo-cropper",

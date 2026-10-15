@@ -1,0 +1,10 @@
+## Notes
+
+- The aura is the `moodCheckIn` color shader in `MoodCheckIn.metal`: four colour pools drifting on slow closed paths over a wash of their average, blended like a mesh gradient. Copy the `.metal` file next to the `.swift` file and the kernel compiles into your app's default library.
+- Each `Mood` carries a name and up to four colours. Between two moods each pool blends from the lower mood's colour to the upper's, resolved in the current environment, so the panel moves through every shade between them as the thumb travels rather than switching at the midpoint. `MoodCheckIn.standardMoods` runs Drained, Low, Okay, Good and Great, from cool greys and lilac to butter and coral.
+- `value` runs 0 to 1. The thumb follows the finger directly with no animation, gives a few points past either end with rubber-band resistance, and swells on liquid glass tinted with the aura's lead colour. While it is held the aura quickens. On release it settles on the nearest mood with the settle spring, or stays where it was let go when `snaps` is false. Read the chosen mood with `MoodCheckIn.mood(at:in:)`.
+- A selection tick plays each time the nearest mood changes, so a sweep across the scale ticks once per mood.
+- The mood's name morphs letter by letter as it changes: letters both names share hold still and the rest blur through.
+- The text over the aura is always dark ink (`Style.ink`), since the aura is light in both appearances. The track, ticks and end labels follow the appearance.
+- VoiceOver reads the control as one adjustable element: the prompt as its label, the mood's name as its value, and a swipe up or down moves a whole mood.
+- Reduce Motion holds the aura still while keeping its colours, and every settle becomes a short spring with no overshoot.

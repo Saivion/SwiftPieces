@@ -1,0 +1,903 @@
+---
+title: "Breath Pacer"
+description: "A guided breathing exercise for meditation and wellbeing apps. An orb of living aura, drawn by a Metal shader, swells as you breathe in, rests full through the hold and sinks as you breathe out, while the cue morphs letter by letter and the seconds count down inside it. A liquid glass bar holds the cycle count joined to Start and Stop. Box, 4-7-8 and coherent patterns ship, or set your own; each phase lands with a soft tap and is announced to VoiceOver."
+piece: "BreathPacer"
+category: "motion"
+minIOSVersion: "17.0"
+version: "1.0.0"
+tags: ["breathing","meditation","wellbeing","timer","exercise","aura","gradient","shader","metal","glass"]
+registryDependencies: []
+---
+
+{/* GENERATED FILE. Edit registry/swift/motion/BreathPacer.swift or BreathPacer.mdx instead. */}
+
+A paced breathing exercise around an aura orb. Copy `BreathPacer.metal` alongside this file; its `breathPacer` kernel compiles into your app's default Metal library. Bind `isRunning` to start and stop it from outside, or let the bar's button do it. A run goes through `cycles` rounds of the pattern and then stops itself and calls `onComplete`; stopping early resets it, and the next start begins again from the first breath in.
+
+## Notes
+
+- The orb is the `breathPacer` color shader in `BreathPacer.metal`, filling a circle and softened at the edge: four colour pools drifting on slow closed paths over a wash of their average, blended like a mesh gradient. Copy the `.metal` file next to the `.swift` file and the kernel compiles into your app's default library.
+- A run walks the pattern's phases in order, skipping any hold of 0. Breathing in, the orb eases from 62% to full size over the whole phase; it rests full through the hold, eases back down breathing out and rests small through the hold after. The aura stirs most through the breath in and the hold at the top, and settles on the way out.
+- The seconds count down inside the orb with a numeric transition. A phase with a fractional length, like coherent breathing's 5.5 seconds, shows its first number for the fraction and then counts whole seconds.
+- Each phase lands with a soft impact and is posted as a VoiceOver announcement, so the exercise can be followed with eyes closed. The last cycle plays a success haptic, sets `isRunning` to false and calls `onComplete`.
+- Stopping part way cancels the run and the orb sinks back to rest; the next start begins again from the first breath in. `cycles: nil` runs until stopped.
+- The bar is liquid glass in one group: the cycle count, or the pattern and number of cycles at rest, joined to Start (signal red) or Stop (neutral glass).
+- `.box` (4-4-4-4), `.relax` (4-7-8) and `.coherent` (5.5 in, 5.5 out) ship; build your own with `BreathPacer.Pattern(name:inhale:holdIn:exhale:holdOut:)`. Every string, including the cycle count, is in `labels:` for localization.
+- Reduce Motion keeps the orb at full size and brightens it instead as the breath fills, so the pacing still reads, and holds the aura still.
+- The aura's timeline runs only while the exercise runs.
+
+## Usage
+
+```swift
+BreathPacerExample()
+    .preferredColorScheme(.light)
+```
+
+## Parameters
+
+| Parameter | Description |
+| --- | --- |
+| `isRunning` | Whether the exercise is running. |
+| `pattern` | Seconds for each phase. `.box`, `.relax` (4-7-8) and `.coherent` ship; holds of 0 are skipped. |
+| `cycles` | Rounds before it stops itself; `nil` runs until stopped. |
+| `size` | The orb's diameter when full; scales with Dynamic Type. |
+| `style` | The aura's colours, the ink on the orb and the button's colours. |
+| `labels` | The cues, buttons and cycle count, for localization. |
+| `onComplete` | Called when the last cycle ends. |
+
+## Source
+
+<Tabs items={["BreathPacer.swift", "BreathPacer.metal"]}>
+<Tab value="BreathPacer.swift">
+
+```swift title="BreathPacer.swift"
+// Copyright (c) 2026 Saivion Hayes
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, and distribute the Software as part of
+// an application, website, or product, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// Commons Clause Restriction
+//
+// You may use this Software, including for any commercial purpose, so long as
+// you do not sell, sublicense, or redistribute the components themselves, whether
+// alone, in a bundle, or as a ported version.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
+import SwiftUI
+
+/// A paced breathing exercise around an aura orb. Copy `BreathPacer.metal` alongside this file; its `breathPacer` kernel
+/// compiles into your app's default Metal library.
+///
+/// Bind `isRunning` to start and stop it from outside, or let the bar's button do it. A run goes through `cycles`
+/// rounds of the pattern and then stops itself and calls `onComplete`; stopping early resets it, and the next start
+/// begins again from the first breath in.
+///
+/// - Parameters:
+///   - isRunning: Whether the exercise is running.
+///   - pattern: Seconds for each phase. `.box`, `.relax` (4-7-8) and `.coherent` ship; holds of 0 are skipped.
+///   - cycles: Rounds before it stops itself; `nil` runs until stopped.
+///   - size: The orb's diameter when full; scales with Dynamic Type.
+///   - style: The aura's colours, the ink on the orb and the button's colours.
+///   - labels: The cues, buttons and cycle count, for localization.
+///   - onComplete: Called when the last cycle ends.
+public struct BreathPacer: View {
+    /// Seconds for each phase of one breath.
+    public struct Pattern: Sendable, Hashable {
+        public var name: String
+        public var inhale: Double
+        public var holdIn: Double
+        public var exhale: Double
+        public var holdOut: Double
+
+        public init(name: String, inhale: Double, holdIn: Double = 0, exhale: Double, holdOut: Double = 0) {
+            self.name = name
+            self.inhale = max(inhale, 0.5)
+            self.holdIn = max(holdIn, 0)
+            self.exhale = max(exhale, 0.5)
+            self.holdOut = max(holdOut, 0)
+        }
+
+        /// Four seconds in, four held, four out, four held.
+        public static let box = Pattern(name: "Box", inhale: 4, holdIn: 4, exhale: 4, holdOut: 4)
+        /// Four in, seven held, eight out.
+        public static let relax = Pattern(name: "4-7-8", inhale: 4, holdIn: 7, exhale: 8)
+        /// Five and a half in and five and a half out, about six breaths a minute.
+        public static let coherent = Pattern(name: "Coherent", inhale: 5.5, exhale: 5.5)
+
+        fileprivate func seconds(_ phase: Phase) -> Double {
+            switch phase {
+            case .inhale: inhale
+            case .holdIn: holdIn
+            case .exhale: exhale
+            case .holdOut: holdOut
+            }
+        }
+    }
+
+    /// Colours for the pacer. Defaults follow the SwiftPieces house palette and adapt to light and dark.
+    public struct Style: Sendable {
+        /// The aura's colour pools, up to four; fewer repeat.
+        public var aura: [Color]
+        /// The cue and countdown on the orb. The aura is light, so this stays dark in both appearances.
+        public var ink: Color
+        /// The Start button's tint.
+        public var start: Color
+        /// The Start button's label.
+        public var startInk: Color
+        /// The bar's text.
+        public var label: Color
+
+        public init(
+            aura: [Color] = [Color(red: 0.612, green: 0.761, blue: 1), Color(red: 0.804, green: 0.722, blue: 1), Color(red: 0.663, green: 0.863, blue: 0.718), Color(red: 0.75, green: 0.9, blue: 0.98)],
+            ink: Color = Color(red: 0.078, green: 0.078, blue: 0.078),
+            start: Color = Color(red: 1, green: 0, blue: 0),
+            startInk: Color = Color(red: 0.078, green: 0.078, blue: 0.078),
+            label: Color = Style.adaptive(0x141414, 0xF4F3EF)
+        ) {
+            self.aura = aura
+            self.ink = ink
+            self.start = start
+            self.startInk = startInk
+            self.label = label
+        }
+
+        public static let standard = Style()
+
+        /// A color that resolves to `light` or `dark` hex by the current appearance.
+        public static func adaptive(_ light: UInt32, _ dark: UInt32) -> Color {
+            Color(uiColor: UIColor { @Sendable traits in traits.userInterfaceStyle == .dark ? rgb(dark) : rgb(light) })
+        }
+
+        nonisolated private static func rgb(_ hex: UInt32) -> UIColor {
+            UIColor(red: CGFloat((hex >> 16) & 0xFF) / 255, green: CGFloat((hex >> 8) & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
+        }
+    }
+
+    /// Every string the pacer shows or announces.
+    public struct Labels: Sendable {
+        public var ready: String
+        public var inhale: String
+        public var hold: String
+        public var exhale: String
+        public var start: String
+        public var stop: String
+        /// The bar's count while running, from the cycle and the total (`nil` when it runs until stopped).
+        public var cycle: @Sendable (Int, Int?) -> String
+        /// The bar's text at rest, from the pattern's name and the number of cycles.
+        public var summary: @Sendable (String, Int?) -> String
+
+        public init(
+            ready: String = "Ready",
+            inhale: String = "Breathe in",
+            hold: String = "Hold",
+            exhale: String = "Breathe out",
+            start: String = "Start",
+            stop: String = "Stop",
+            cycle: @escaping @Sendable (Int, Int?) -> String = { cycle, total in total.map { "Cycle \(cycle) of \($0)" } ?? "Cycle \(cycle)" },
+            summary: @escaping @Sendable (String, Int?) -> String = { name, total in total.map { "\(name) · \($0) cycles" } ?? name }
+        ) {
+            self.ready = ready
+            self.inhale = inhale
+            self.hold = hold
+            self.exhale = exhale
+            self.start = start
+            self.stop = stop
+            self.cycle = cycle
+            self.summary = summary
+        }
+    }
+
+    fileprivate enum Phase: CaseIterable {
+        case inhale, holdIn, exhale, holdOut
+    }
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Binding private var isRunning: Bool
+    @ScaledMetric(relativeTo: .largeTitle) private var size: CGFloat = 260
+    @State private var phase: Phase?
+    /// How full the lungs are, 0 to 1, animated over each phase.
+    @State private var fullness = 0.0
+    @State private var remaining = 0
+    @State private var cycle = 0
+    @State private var phaseTick = 0
+    @State private var completions = 0
+
+    private let pattern: Pattern
+    private let cycles: Int?
+    private let style: Style
+    private let labels: Labels
+    private let onComplete: (() -> Void)?
+
+    public init(isRunning: Binding<Bool>, pattern: Pattern = .box, cycles: Int? = 4, size: CGFloat = 260, style: Style = .standard, labels: Labels = Labels(), onComplete: (() -> Void)? = nil) {
+        _isRunning = isRunning
+        _size = ScaledMetric(wrappedValue: size, relativeTo: .largeTitle)
+        self.pattern = pattern
+        self.cycles = cycles.map { max($0, 1) }
+        self.style = style
+        self.labels = labels
+        self.onComplete = onComplete
+    }
+
+    private var motion: PieceMotion { PieceMotion(reduceMotion: reduceMotion) }
+
+    private var cue: String {
+        switch phase {
+        case .inhale: labels.inhale
+        case .holdIn, .holdOut: labels.hold
+        case .exhale: labels.exhale
+        case nil: labels.ready
+        }
+    }
+
+    /// The aura stirs most through the breath in and the hold at the top, and settles on the way out.
+    private var energy: Double {
+        switch phase {
+        case .inhale: 0.45
+        case .holdIn: 0.6
+        case .exhale: 0.15
+        case .holdOut, nil: 0
+        }
+    }
+
+    public var body: some View {
+        VStack(spacing: 32) {
+            orb
+            bar
+        }
+        .fontWeight(.semibold)
+        .sensoryFeedback(.impact(flexibility: .soft, intensity: 0.7), trigger: phaseTick)
+        .sensoryFeedback(.success, trigger: completions)
+        .task(id: isRunning) {
+            if isRunning {
+                await run()
+            } else {
+                rest()
+            }
+        }
+    }
+
+    /// The aura orb with the cue and countdown. It swells with the breath; under Reduce Motion it keeps its size and
+    /// brightens instead.
+    private var orb: some View {
+        let still = reduceMotion
+        return ZStack {
+            AuraField(shape: Circle(), colors: style.aura, energy: energy, scale: 0.95, animates: isRunning)
+                .blur(radius: size * 0.03)
+                .scaleEffect(still ? 1 : 0.62 + 0.38 * fullness)
+                .opacity(still ? 0.55 + 0.45 * fullness : 1)
+            VStack(spacing: 2) {
+                PieceMorphText(text: cue, font: .system(.title3, weight: .semibold))
+                if phase != nil {
+                    Text("\(remaining)")
+                        .font(.system(size: size * 0.2, weight: .semibold))
+                        .monospacedDigit()
+                        .contentTransition(.numericText(countsDown: true))
+                        .animation(motion.value, value: remaining)
+                        .transition(motion.transition(.scale(scale: 0.6).combined(with: .opacity)))
+                }
+            }
+            .foregroundStyle(style.ink)
+            .animation(motion.reveal, value: phase == nil)
+        }
+        .frame(width: size, height: size)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(phase == nil ? labels.ready : "\(cue), \(remaining)")
+    }
+
+    /// The cycle count joined to Start or Stop, as one glass bar.
+    private var bar: some View {
+        PieceLiquidGroup {
+            HStack(spacing: PieceLiquid.joined) {
+                Text(isRunning ? labels.cycle(max(cycle, 1), cycles) : labels.summary(pattern.name, cycles))
+                    .font(.subheadline.weight(.semibold))
+                    .monospacedDigit()
+                    .contentTransition(.numericText())
+                    .foregroundStyle(style.label)
+                    .padding(.horizontal, 18)
+                    .frame(height: 48)
+                    .pieceLiquid(.capsule, interactive: false)
+                Button {
+                    isRunning.toggle()
+                } label: {
+                    Text(isRunning ? labels.stop : labels.start)
+                        .font(.body.weight(.semibold))
+                        .foregroundStyle(isRunning ? style.label : style.startInk)
+                        .padding(.horizontal, 22)
+                        .frame(height: 48)
+                        .pieceLiquid(.capsule, tint: isRunning ? nil : style.start)
+                }
+                .buttonStyle(PieceLiquidPressStyle())
+            }
+            .animation(motion.morph, value: isRunning)
+        }
+    }
+
+    /// Breathes through the pattern `cycles` times, then stops itself. Returns early when cancelled by a stop.
+    private func run() async {
+        var round = 0
+        while cycles.map({ round < $0 }) ?? true {
+            round += 1
+            cycle = round
+            for step in Phase.allCases where pattern.seconds(step) > 0 {
+                guard await breathe(step) else { return }
+            }
+        }
+        completions += 1
+        isRunning = false
+        onComplete?()
+    }
+
+    /// One phase: the orb eases to its new fullness over the phase's length while the seconds count down. False if the
+    /// run was stopped part way.
+    private func breathe(_ step: Phase) async -> Bool {
+        let length = pattern.seconds(step)
+        phase = step
+        phaseTick += 1
+        AccessibilityNotification.Announcement(cue).post()
+        switch step {
+        case .inhale: withAnimation(.easeInOut(duration: length)) { fullness = 1 }
+        case .exhale: withAnimation(.easeInOut(duration: length)) { fullness = 0 }
+        case .holdIn, .holdOut: break
+        }
+        var left = length
+        while left > 0.01 {
+            remaining = Int(left.rounded(.up))
+            // Sleep to the next whole second, so a 5.5 second phase shows 6 for half a second and then counts down.
+            let wait = left - Double(remaining - 1)
+            do { try await Task.sleep(for: .seconds(wait)) } catch { return false }
+            left -= wait
+        }
+        return true
+    }
+
+    /// Stopped: the orb sinks back to rest and the cue returns to ready.
+    private func rest() {
+        withAnimation(motion.dismiss) {
+            fullness = 0
+            phase = nil
+        }
+        cycle = 0
+    }
+}
+
+// MARK: - Aura
+
+/// The aura: `breathPacer` from BreathPacer.metal over a shape, its loop advanced by an `AuraClock`. The timeline runs while
+/// `animates`, and for a moment after the energy changes so it can ease there; never under Reduce Motion, where the aura
+/// holds still and takes each new energy at once.
+private struct AuraField<S: Shape>: View {
+    let shape: S
+    let colors: [Color]
+    var energy: Double = 0
+    var scale: Double = 1
+    var animates = true
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var clock = AuraClock()
+    @State private var easing = false
+
+    var body: some View {
+        let pools = (0..<4).map { colors.isEmpty ? Color.white : colors[$0 % colors.count] }
+        TimelineView(.animation(minimumInterval: 1.0 / 30, paused: reduceMotion || !(animates || easing))) { context in
+            let frame = clock.advance(to: context.date, energy: energy, still: reduceMotion)
+            shape
+                .fill(.white)
+                .colorEffect(ShaderLibrary.breathPacer(
+                    .boundingRect, .float(frame.phase), .float(frame.energy), .float(Float(scale)),
+                    .color(pools[0]), .color(pools[1]), .color(pools[2]), .color(pools[3])
+                ))
+        }
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
+        .task(id: energy) {
+            easing = true
+            do {
+                try await Task.sleep(for: .seconds(1.6))
+                easing = false
+            } catch {}
+        }
+    }
+}
+
+/// The aura's loop and energy. The phase advances with the frame's time, faster with more energy, and wraps at 2π,
+/// where the kernel's paths all close. The energy eases toward its goal, so a change of state quickens the aura rather
+/// than jumping it. Not observed, so a frame never invalidates the view, and a repeated date advances nothing.
+@MainActor private final class AuraClock {
+    private var phase = 0.0
+    private var energy: Double?
+    private var last: Date?
+
+    nonisolated init() {}
+
+    func advance(to date: Date, energy goal: Double, still: Bool) -> (phase: Float, energy: Float) {
+        let dt = last.map { min(max(date.timeIntervalSince($0), 0), 0.1) } ?? 0
+        if last.map({ date > $0 }) ?? true { last = date }
+        let current = energy ?? goal
+        let next = still ? goal : current + (goal - current) * (1 - exp(-dt / 0.4))
+        energy = next
+        // About a minute and a half a loop at rest, and a little over twice as fast at full energy.
+        phase = (phase + (still ? 0 : dt * 0.066 * (1 + 1.4 * next))).truncatingRemainder(dividingBy: 2 * Double.pi)
+        return (Float(phase), Float(next))
+    }
+}
+
+// MARK: - Example
+
+/// A wind-down screen: pick a pattern and breathe through four rounds.
+private struct BreathPacerExample: View {
+    @Environment(\.colorScheme) private var colorScheme
+    @State private var running = false
+    @State private var pattern = BreathPacer.Pattern.box
+
+    var body: some View {
+        VStack(spacing: 28) {
+            Picker("Pattern", selection: $pattern) {
+                Text("Box").tag(BreathPacer.Pattern.box)
+                Text("4-7-8").tag(BreathPacer.Pattern.relax)
+                Text("Coherent").tag(BreathPacer.Pattern.coherent)
+            }
+            .pickerStyle(.segmented)
+            .disabled(running)
+            BreathPacer(isRunning: $running, pattern: pattern, cycles: 4)
+        }
+        .fontWeight(.semibold)
+        .padding(24)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(colorScheme == .dark ? Color(red: 0.071, green: 0.071, blue: 0.071) : Color(red: 0.953, green: 0.949, blue: 0.933))
+    }
+}
+
+#Preview("Light") {
+    BreathPacerExample()
+        .preferredColorScheme(.light)
+}
+
+#Preview("Dark") {
+    BreathPacerExample()
+        .preferredColorScheme(.dark)
+}
+
+// MARK: - Piece motion
+//
+// The SwiftPieces motion language: shared spring tokens and gesture physics, with the same values in every
+// piece. Each piece carries a copy of only the parts it uses, so this file stands alone. Generated from
+// registry/foundation/PieceMotion.swift in the SwiftPieces repo; edit it there, not here.
+// swiftpieces-motion: 1.1.0 (core, pressMath)
+
+/// The SwiftPieces motion language: five spring tiers, and a named role for every moment a piece moves,
+/// each with its Reduce Motion substitute.
+///
+/// Build one from the environment, `PieceMotion(reduceMotion: reduceMotion)`, and pick the role that names
+/// what just happened. Never animate the tracking of a finger: set gesture state directly in `onChanged`, so the
+/// surface stays under the finger, and spring only the release.
+private struct PieceMotion {
+    var reduceMotion = false
+
+    // Tiers. Overshoot and settle times are measured from rest with SwiftUI's Spring.
+    /// No overshoot, 90% in about 90ms. A press arriving under the finger.
+    static var tight: Spring { Spring(duration: 0.14, bounce: 0) }
+    /// About 2.8% overshoot, 90% in about 140ms. Snapping to a detent, page or segment.
+    static var responsive: Spring { Spring(duration: 0.32, bounce: 0.25) }
+    /// About 8.4% overshoot. Visible give: a release, a return from past an edge, a drag settling home.
+    static var elastic: Spring { Spring(duration: 0.42, bounce: 0.38) }
+    /// About 15% overshoot. A resolved action landing. At most once per interaction.
+    static var expressive: Spring { Spring(duration: 0.48, bounce: 0.48) }
+    /// About 1.5% overshoot, unhurried. Opening large surfaces and ambient change.
+    static var calm: Spring { Spring(duration: 0.5, bounce: 0.2) }
+
+    /// Reduce Motion: settles become this short spring with no overshoot.
+    private static var still: Animation { .spring(duration: 0.25, bounce: 0) }
+
+    // Roles.
+    /// Touch-down. Starts on the same frame and never bounces under the finger.
+    var press: Animation { .spring(Self.tight) }
+    /// The finger lifts off a pressed surface, which springs back through rest.
+    var release: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A dragged thing comes to rest. With a gesture's velocity, use `settle(velocity:from:to:)` instead.
+    var settle: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// Lands on a detent, page or segment.
+    var snap: Animation { reduceMotion ? Self.still : .spring(Self.responsive) }
+    /// A number, a chart value or anything else people read moves to its new value. Never overshoots, so it
+    /// never shows a value that isn't true.
+    var value: Animation { reduceMotion ? Self.still : .spring(duration: 0.35, bounce: 0) }
+    /// Comes back from past a limit: a pull beyond the edge, a value pushed against its bound.
+    var rebound: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A shape or container changes size, corner radius or form, with a little give at the end.
+    var morph: Animation { reduceMotion ? Self.still : .spring(duration: 0.4, bounce: 0.2) }
+    /// Something appears, opens or expands. Opening is a little slower than closing.
+    var reveal: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.calm) }
+    /// Something leaves, closes or collapses. Quick and firm, out of the way.
+    var dismiss: Animation { reduceMotion ? .easeIn(duration: 0.18) : .spring(duration: 0.3, bounce: 0.08) }
+    /// A resolved action lands: a check, a sent state, a reaction.
+    var success: Animation { reduceMotion ? .easeOut(duration: 0.24) : .spring(Self.expressive) }
+    /// A refused action. Firm, no wobble; `pieceShake` adds the movement.
+    var error: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.responsive) }
+    /// Slow ambient change. Loops themselves stop under Reduce Motion: check `allowsAmbient`.
+    var ambient: Animation { reduceMotion ? .easeInOut(duration: 0.3) : .spring(Self.calm) }
+
+    /// Loops, drifts, idle breathing and parallax run only when this is true.
+    var allowsAmbient: Bool { !reduceMotion }
+
+    /// A moving transition, or a plain fade under Reduce Motion.
+    func transition(_ transition: AnyTransition) -> AnyTransition {
+        reduceMotion ? .opacity : transition
+    }
+
+    /// For content replaced inside a container that stays put (a label, a glyph, a count): the old content
+    /// blurs out as the new one sharpens in. A fade under Reduce Motion.
+    @MainActor var swap: AnyTransition {
+        reduceMotion ? .opacity : AnyTransition(.blurReplace)
+    }
+}
+
+extension PieceMotion {
+    /// About `depth` points per edge, not a fixed percentage: an icon sinks to 0.92, a pill 0.95, a card 0.985.
+    nonisolated static func pressScale(for size: CGSize, depth: CGFloat = 2.5) -> CGFloat {
+        let side = (max(size.width, 1) * max(size.height, 1)).squareRoot()
+        return min(max(1 - depth * 2 / side, 0.92), 0.985)
+    }
+
+    /// An anchor partway from the center toward the touch, so the press leans into the finger without tipping.
+    nonisolated static func pressAnchor(touch: CGPoint?, in size: CGSize, lean: CGFloat = 0.6) -> UnitPoint {
+        guard let touch, size.width > 0, size.height > 0 else { return .center }
+        let x = min(max(touch.x / size.width, 0), 1)
+        let y = min(max(touch.y / size.height, 0), 1)
+        return UnitPoint(x: 0.5 + (x - 0.5) * lean, y: 0.5 + (y - 0.5) * lean)
+    }
+}
+
+// swiftpieces-motion: end
+
+// MARK: - Piece liquid
+//
+// The SwiftPieces liquid glass language: glass shapes that merge through a neck, bubbles that bud out of
+// and melt back into each other, and the frosted fallback before iOS 26. Each piece carries a copy of only
+// the parts it uses, so this file stands alone. Generated from registry/foundation/PieceLiquid.swift in the
+// SwiftPieces repo; edit it there, not here. The rules are in LIQUID_GLASS.md.
+// swiftpieces-liquid: 1.7.1 (liquid, liquidPress, morphText)
+
+/// The liquid glass language: one merge distance, two rest gaps, and the springs a bubble leaves and comes home on.
+///
+/// Glass shapes inside one `PieceLiquidGroup` melt into each other through a neck when they come within `merge`
+/// points. Parts of one control rest `joined`, inside that distance, so the neck holds; separate actions rest
+/// `apart`, outside it, so they only goo while one buds out of, or melts back into, another.
+private enum PieceLiquid {
+    /// Glass shapes closer than this share a neck.
+    static let merge: CGFloat = 20
+    /// The gap between parts of one control (a stepper's buttons, a progress pill and its stop): the neck holds,
+    /// short and smooth, about two thirds of the shapes' height at its waist. Joined parts read best at one height.
+    static let joined: CGFloat = 4
+    /// The gap between separate actions (menu items, confirm and cancel, chips): they rest as their own bubbles.
+    static let apart: CGFloat = 26
+    /// How far a bubble shrinks while it is home inside its parent.
+    static let homeScale: CGFloat = 0.72
+
+    /// A bubble leaving its parent: slow enough that the neck's stretch and snap read.
+    static func split(reduceMotion: Bool) -> Animation {
+        reduceMotion ? .easeOut(duration: 0.2) : .spring(duration: 0.62, bounce: 0.22)
+    }
+
+    /// A bubble going home. No bounce: a bounce would carry it out through the far side of its parent.
+    static func home(reduceMotion: Bool) -> Animation {
+        reduceMotion ? .easeIn(duration: 0.18) : .spring(duration: 0.5, bounce: 0)
+    }
+}
+
+/// A group of glass shapes that merge into one liquid surface. On iOS 26 it is a `GlassEffectContainer`; before
+/// that, and under Reduce Transparency, the shapes draw on their own and simply don't merge. `lift` adds the soft
+/// shadow liquid glass floats on in light mode.
+private struct PieceLiquidGroup<Content: View>: View {
+    var spacing: CGFloat = PieceLiquid.merge
+    var lift = true
+    @ViewBuilder var content: Content
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        container
+            .shadow(color: .black.opacity(lift && colorScheme == .light ? 0.07 : 0), radius: 18, y: 8)
+    }
+
+    @ViewBuilder private var container: some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26, *), !reduceTransparency {
+            GlassEffectContainer(spacing: spacing) { content }
+        } else {
+            content
+        }
+        #else
+        content
+        #endif
+    }
+}
+
+/// One liquid glass shape: Liquid Glass on iOS 26, carrying `tint` as a solid colour and swelling under a press when
+/// `interactive`; a frosted Material with a light rim and a soft shadow before that; a solid fill under Reduce
+/// Transparency.
+///
+/// The tint is painted inside clear glass rather than tinting the glass. Tinted glass in a group bleeds its colour
+/// through every neck as a smear, so a red button would glow into the white pill it is joined to; painted inside,
+/// the colour stays crisp to the shape's edge, the necks between shapes are clear glass, and a tint change animates
+/// like any colour (tinted glass snaps).
+private struct PieceLiquidSurface<S: Shape>: ViewModifier {
+    var shape: S
+    var tint: Color?
+    var interactive: Bool
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.pieceLiquidScale) private var scale
+
+    func body(content: Content) -> some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26, *), !reduceTransparency {
+            // Scaled as two parts, content and outline, about the same centre. A scaleEffect on a glass view inside a
+            // GlassEffectContainer shrinks the glass but leaves what it carries full size, pinned to its corner.
+            content
+                .background { shape.fill(tint ?? .clear) }
+                .scaleEffect(scale)
+                .glassEffect(glass, in: shape.scale(scale))
+        } else {
+            fallback(content).scaleEffect(scale)
+        }
+        #else
+        fallback(content).scaleEffect(scale)
+        #endif
+    }
+
+    #if compiler(>=6.2)
+    @available(iOS 26, *)
+    private var glass: Glass {
+        interactive ? Glass.regular.interactive() : .regular
+    }
+    #endif
+
+    private func fallback(_ content: Content) -> some View {
+        let dark = colorScheme == .dark
+        return content
+            .background {
+                if reduceTransparency {
+                    shape.fill(tint ?? (dark ? Color(white: 0.17) : Color(white: 0.97)))
+                } else {
+                    ZStack {
+                        shape.fill(.regularMaterial)
+                        if let tint { shape.fill(tint.opacity(0.88)) }
+                    }
+                }
+            }
+            .overlay { shape.stroke(Color.white.opacity(dark ? 0.14 : 0.7), lineWidth: 0.5) }
+            .shadow(color: .black.opacity(dark ? 0.32 : 0.08), radius: 10, y: 5)
+    }
+}
+
+private struct PieceLiquidScaleKey: EnvironmentKey {
+    static let defaultValue: CGFloat = 1
+}
+
+private extension EnvironmentValues {
+    /// How much the liquid shapes below are scaled, about their own centres. Nested scales multiply.
+    var pieceLiquidScale: CGFloat {
+        get { self[PieceLiquidScaleKey.self] }
+        set { self[PieceLiquidScaleKey.self] = newValue }
+    }
+}
+
+private extension View {
+    /// Draws this view on a liquid glass `shape`. Put it inside a `PieceLiquidGroup` so it can merge with its neighbours.
+    func pieceLiquid<S: Shape>(_ shape: S, tint: Color? = nil, interactive: Bool = true) -> some View {
+        modifier(PieceLiquidSurface(shape: shape, tint: tint, interactive: interactive))
+    }
+
+    /// Scales the liquid glass shapes in this view, content and outline together, about their own centres. Use it
+    /// instead of `scaleEffect` on a glass view (a press, a lift, a swell): inside a group a plain `scaleEffect` shrinks
+    /// the glass but leaves its content full size and off centre. Animates like any other value.
+    func pieceLiquidScale(_ scale: CGFloat) -> some View {
+        transformEnvironment(\.pieceLiquidScale) { $0 *= scale }
+    }
+}
+
+/// The press for a glass control: the same size-aware sink and lean as `piecePress`, applied through
+/// `pieceLiquidScale` so the glass and what it carries sink together (a plain scaleEffect on glass leaves the content
+/// behind). Put the glass inside what it presses: the label of a button, the view this modifies. Under Reduce Motion
+/// it shades instead of moving.
+private struct PieceLiquidPress: ViewModifier {
+    let pressed: Bool
+    var touch: CGPoint?
+    var depth: CGFloat = 2.5
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.colorScheme) private var colorScheme
+    @State private var size: CGSize = .zero
+    @State private var anchor: UnitPoint = .center
+
+    func body(content: Content) -> some View {
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        let scale = pressed && !reduceMotion ? PieceMotion.pressScale(for: size, depth: depth) : 1
+        // A scale about `anchor` is a scale about the centre plus this shift toward the anchor.
+        let lean = CGSize(width: (anchor.x - 0.5) * size.width * (1 - scale), height: (anchor.y - 0.5) * size.height * (1 - scale))
+        content
+            .onGeometryChange(for: CGSize.self) { $0.size } action: { size = $0 }
+            .brightness(pressed && reduceMotion ? (colorScheme == .dark ? 0.1 : -0.08) : 0)
+            .pieceLiquidScale(scale)
+            .offset(lean)
+            .animation(pressed ? motion.press : motion.release, value: pressed)
+            .onChange(of: pressed) { _, isPressed in
+                if isPressed { anchor = PieceMotion.pressAnchor(touch: touch, in: size) }
+            }
+            .onChange(of: touch) { _, touch in
+                if pressed, let touch { anchor = PieceMotion.pressAnchor(touch: touch, in: size) }
+            }
+    }
+}
+
+/// `PiecePressStyle` for glass buttons: the label (with its `.pieceLiquid` inside) sinks as one.
+private struct PieceLiquidPressStyle: ButtonStyle {
+    var depth: CGFloat = 2.5
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label.pieceLiquidPress(configuration.isPressed, depth: depth)
+    }
+}
+
+private extension View {
+    /// Sinks this view's glass while `pressed`, leaning toward `touch` (in this view's coordinates) when given.
+    func pieceLiquidPress(_ pressed: Bool, touch: CGPoint? = nil, depth: CGFloat = 2.5) -> some View {
+        modifier(PieceLiquidPress(pressed: pressed, touch: touch, depth: depth))
+    }
+}
+
+/// A label that changes letter by letter: letters both strings share hold still, the rest blur out and the new ones
+/// blur in a few milliseconds apart. Under Reduce Motion it cross-fades. VoiceOver reads the whole string.
+///
+/// Only text whose letters stand on their own is cut into letters: Latin, Greek, Cyrillic, CJK, digits and symbols.
+/// Those letters are laid out left to right whatever the layout direction, the order they read in, so "1.5×" stays
+/// "1.5×" in an Arabic or Hebrew interface instead of coming out backwards. Text in a right-to-left script, or in one
+/// whose letters join or reorder (Arabic, Hebrew, Devanagari, Thai and their neighbours), can't be cut apart without
+/// breaking it, so it changes as one: the old string blurs out where it stood while the new one blurs in.
+private struct PieceMorphText: View {
+    var text: String
+    var font: Font = .body.weight(.semibold)
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        Group {
+            if Self.splits(text) {
+                let glyphs = Array(text)
+                HStack(spacing: 0) {
+                    ForEach(glyphs.indices, id: \.self) { i in
+                        Text(String(glyphs[i]))
+                            .id("\(i)\(glyphs[i])")
+                            .transition(transition(i, scale: 0.6))
+                    }
+                }
+                // The letters' reading order, not the layout's: an HStack lays its children out backwards under a
+                // right-to-left layout.
+                .environment(\.layoutDirection, .leftToRight)
+            } else {
+                ZStack(alignment: .leading) {
+                    Text(text)
+                        .id(text)
+                        .transition(transition(0, scale: 0.9))
+                }
+            }
+        }
+        .font(font)
+        .fixedSize()
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(text)
+    }
+
+    private func transition(_ i: Int, scale: CGFloat) -> AnyTransition {
+        guard !reduceMotion else { return .opacity }
+        return AnyTransition(.blurReplace(.downUp)).combined(with: .scale(scale: scale, anchor: .bottom))
+            .animation(.spring(duration: 0.42, bounce: 0.3).delay(Double(i) * 0.022))
+    }
+
+    /// Whether `text` can be cut into letters that each read left to right on their own: no right-to-left script, no
+    /// script that joins or reorders its letters, and no bidirectional control characters.
+    private static func splits(_ text: String) -> Bool {
+        !text.unicodeScalars.contains { scalar in
+            switch scalar.value {
+            case 0x0590...0x08FF, // Hebrew, Arabic, Syriac, Thaana, NKo, Samaritan, Mandaic
+                 0x0900...0x0DFF, // Devanagari to Sinhala
+                 0x0E00...0x0FFF, // Thai, Lao, Tibetan
+                 0x1000...0x109F, // Myanmar
+                 0x1780...0x17FF, // Khmer
+                 0xA8E0...0xA8FF, // Devanagari Extended
+                 0xFB1D...0xFDFF, // Hebrew and Arabic presentation forms
+                 0xFE70...0xFEFF, // Arabic presentation forms B
+                 0x200E...0x200F, 0x202A...0x202E, 0x2066...0x2069, // bidirectional marks, embeddings and isolates
+                 0x10800...0x10FFF, // historic right-to-left scripts
+                 0x1E800...0x1EFFF: // Adlam and other right-to-left scripts
+                return true
+            default:
+                return false
+            }
+        }
+    }
+}
+
+// swiftpieces-liquid: end
+```
+
+</Tab>
+<Tab value="BreathPacer.metal">
+
+```cpp title="BreathPacer.metal"
+// Copyright (c) 2026 Saivion Hayes
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, and distribute the Software as part of
+// an application, website, or product, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// Commons Clause Restriction
+//
+// You may use this Software, including for any commercial purpose, so long as
+// you do not sell, sublicense, or redistribute the components themselves, whether
+// alone, in a bundle, or as a ported version.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
+#include <metal_stdlib>
+#include <SwiftUI/SwiftUI_Metal.h>
+using namespace metal;
+
+// An aura: four colour pools drifting on slow closed paths over a wash of their average, blended by soft weights the
+// way a mesh gradient blends its points, with a little grain so it never bands. Every path runs at a whole-number
+// rate on one phase, so the loop has no seam when the view wraps the phase at 2π.
+//
+// bounds   the shape's bounding rect in points, from `.boundingRect`
+// phase    the loop's phase, 0 to 2π, advanced by the view
+// energy   0 at rest to 1 at full: the pools wander off their paths, tighten and brighten
+// scale    how much of the aura shows across the layer's longer side; larger shows more pools at once
+// c0...c3  the pool colours
+[[ stitchable ]] half4 breathPacer(float2 position, half4 color, float4 bounds, float phase, float energy, float scale, half4 c0, half4 c1, half4 c2, half4 c3) {
+    if (color.a <= 0.0h) { return half4(0.0h); }
+    float2 size = bounds.zw;
+    float side = max(max(size.x, size.y), 1.0);
+    float2 p = (position - bounds.xy - size * 0.5) / side * scale;
+
+    float3 pools[4] = { float3(c0.rgb), float3(c1.rgb), float3(c2.rgb), float3(c3.rgb) };
+    float2 rates[4] = { float2(3.0, 2.0), float2(2.0, 5.0), float2(4.0, 3.0), float2(5.0, 4.0) };
+    float3 wash = (pools[0] + pools[1] + pools[2] + pools[3]) * 0.25;
+    float3 sum = wash * 0.5;
+    float total = 0.5;
+    for (int i = 0; i < 4; i++) {
+        float fi = float(i);
+        float2 centre = 0.42 * float2(sin(phase * rates[i].x + fi * 1.9), cos(phase * rates[i].y + fi * 2.7));
+        // With energy the pools leave their paths on a quicker wander, so a busy aura churns rather than just speeds up.
+        centre += 0.12 * energy * float2(sin(phase * (13.0 + fi) + fi), cos(phase * (11.0 + fi) + fi * 1.3));
+        float2 d = p - centre;
+        float w = exp(-dot(d, d) / (0.16 + 0.06 * energy));
+        sum += pools[i] * w;
+        total += w;
+    }
+    float3 aura = sum / total * (1.0 + 0.12 * energy);
+    float grain = fract(sin(dot(position, float2(127.1, 311.7))) * 43758.5453) - 0.5;
+    aura = clamp(aura + grain * 0.02, 0.0, 1.0);
+    return half4(half3(aura) * color.a, color.a);
+}
+```
+
+</Tab>
+</Tabs>
