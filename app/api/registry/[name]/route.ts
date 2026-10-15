@@ -1,4 +1,5 @@
-import { getRegistryIndex, getRegistryItem, loadFullRegistryItem } from "@/lib/registry";
+import { getRegistryIndex, getRegistryItem } from "@/lib/registry";
+import { loadFullRegistryItem } from "@/lib/registry-items";
 
 // Public registry protocol. /r/[name].json rewrites here. Everything in the
 // free registry is open source, so this route is fully static and unauthenticated.

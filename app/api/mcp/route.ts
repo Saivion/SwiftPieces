@@ -1,5 +1,6 @@
 import { createMcpHandler } from "@/lib/mcp/server";
-import { getRegistryIndex, getRegistryItem, loadFullRegistryItem, cliCommand } from "@/lib/registry";
+import { getRegistryIndex, getRegistryItem, cliCommand } from "@/lib/registry";
+import { loadFullRegistryItem } from "@/lib/registry-items";
 import { pro, site } from "@/lib/site";
 import { categoryIds } from "@/lib/categories";
 
