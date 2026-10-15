@@ -483,7 +483,7 @@ function writeLlms(items: RegistryItem[]) {
     "",
     "## Tools",
     "",
-    `- [App Library](${SITE_URL}/apps): App Store apps remixed as original SwiftUI screens to try, take apart and remix in the browser Playground. Three are free; the rest come with Pro.`,
+    `- [App Library](${SITE_URL}/apps): App Store apps remixed as original SwiftUI screens to try, take apart and remix in the browser Playground. Five are free; the rest come with Pro.`,
     `- [Styles](${SITE_URL}/styles): make one style for every screen (accent, light and dark, iOS fonts, corners, cards, buttons, spacing, motion) on live SwiftUI components. A style travels as a short code (SP2-…) that the Playground's Style tab and its \`?style=\` links read, and exports as Theme.swift.`,
     "",
   ];

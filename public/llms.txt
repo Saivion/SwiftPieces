@@ -26,7 +26,7 @@ Rules for Liquid Glass: gate with `#available(iOS 26, *)` and a Material fallbac
 
 ## Tools
 
-- [App Library](https://swiftpieces.com/apps): App Store apps remixed as original SwiftUI screens to try, take apart and remix in the browser Playground. Three are free; the rest come with Pro.
+- [App Library](https://swiftpieces.com/apps): App Store apps remixed as original SwiftUI screens to try, take apart and remix in the browser Playground. Five are free; the rest come with Pro.
 - [Styles](https://swiftpieces.com/styles): make one style for every screen (accent, light and dark, iOS fonts, corners, cards, buttons, spacing, motion) on live SwiftUI components. A style travels as a short code (SP2-…) that the Playground's Style tab and its `?style=` links read, and exports as Theme.swift.
 
 ## Guides
@@ -59,7 +59,7 @@ Rules for Liquid Glass: gate with `#available(iOS 26, *)` and a Material fallbac
 
 ## SwiftPieces Pro
 
-A separate paid library for building whole apps: 54 screens, 48 flows, 12 app templates and a 31-item Build Kit (production-ready SwiftUI screens, flows that string them into whole journeys from first run to settings, complete Xcode projects, and agent skills that build the rest in the same design) at https://pro.swiftpieces.com/library, plus Pro remixing in the Playground at https://swiftpieces.com/apps (all 20 apps in the App Library, remix any app with AI, keep up to 100 remixes). One plan with lifetime access; plan and pricing: https://pro.swiftpieces.com/pro. Pro MCP endpoint: https://pro.swiftpieces.com/api/mcp (license key required): search_library, get_item, list_kit, get_kit_item, apply_design_skill, apply_recipe.
+A separate paid library for building whole apps: 54 screens, 48 flows, 12 app templates and a 31-item Build Kit (production-ready SwiftUI screens, flows that string them into whole journeys from first run to settings, complete Xcode projects, and agent skills that build the rest in the same design) at https://pro.swiftpieces.com/library, plus Pro remixing in the Playground at https://swiftpieces.com/apps (all 42 apps in the App Library, remix any app with AI, keep up to 100 remixes). One plan with lifetime access; plan and pricing: https://pro.swiftpieces.com/pro. Pro MCP endpoint: https://pro.swiftpieces.com/api/mcp (license key required): search_library, get_item, list_kit, get_kit_item, apply_design_skill, apply_recipe.
 
 ## AI (https://swiftpieces.com/components/ai)
 

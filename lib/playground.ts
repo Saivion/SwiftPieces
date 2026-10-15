@@ -1,6 +1,6 @@
 // The Free Playground: where an app's recreated screens open. One page per app in the library
 // (/playground/lungy), running that app's recreation, with the App Store screenshots it answers
-// beside it. There is no catalog to browse here: people arrive from an app (/apps/lungy). Three apps
+// beside it. There is no catalog to browse here: people arrive from an app (/apps/lungy). Five apps
 // are free; a Pro app's page shows its screens blurred until a Pro account opens it (lib/pro-apps.ts).
 import { createCatalog, type CatalogEntry } from "@swiftpieces/builder";
 import { patternsCatalogSource } from "@swiftpieces/builder/catalog";
