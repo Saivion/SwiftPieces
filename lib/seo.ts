@@ -19,7 +19,7 @@ import { site } from "@/lib/site";
  * is re-rendered (scripts/og/render.sh), as README.md does for the banner, so X, Slack and the rest
  * fetch the new card instead of the one they cached under the old URL.
  */
-export const DEFAULT_OG_IMAGE = { url: `${site.url}/opengraph-image.png?v=10`, width: 1200, height: 630, alt: `${site.name}` };
+export const DEFAULT_OG_IMAGE = { url: `${site.url}/opengraph-image.png?v=11`, width: 1200, height: 630, alt: `${site.name}` };
 
 /** Longest meta description before search results start cutting it off. */
 const DESCRIPTION_MAX = 155;
