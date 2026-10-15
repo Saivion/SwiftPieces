@@ -14,9 +14,12 @@ const tones: Record<string, string> = {
   Beta: "bg-[color-mix(in_srgb,var(--beta)_15%,transparent)] text-[var(--beta)]",
 };
 
-export function NewBadge({ className, children = "New" }: { className?: string; children?: string }) {
+/** `solid` fills New with its pink and dark ink, for a badge laid over a preview where the soft tint would get lost. */
+const solid = "bg-[var(--new)] text-[#2a0714] shadow-[0_2px_8px_rgb(0_0_0/0.18)]";
+
+export function NewBadge({ className, children = "New", solid: isSolid = false }: { className?: string; children?: string; solid?: boolean }) {
   return (
-    <span className={cn("inline-flex h-[18px] shrink-0 items-center rounded-[5px] px-1.5 text-[10px] leading-none font-semibold", tones[children] ?? tones.New, className)}>
+    <span className={cn("inline-flex h-[18px] shrink-0 items-center rounded-[5px] px-1.5 text-[10px] leading-none font-semibold", isSolid ? solid : (tones[children] ?? tones.New), className)}>
       {children}
     </span>
   );
