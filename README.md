@@ -1,6 +1,6 @@
 <div align="center">
   <a href="https://swiftpieces.com">
-    <img src="app/opengraph-image.png?v=10" alt="SwiftPieces" width="100%" />
+    <img src="app/opengraph-image.png?v=11" alt="SwiftPieces" width="100%" />
   </a>
 </div>
 

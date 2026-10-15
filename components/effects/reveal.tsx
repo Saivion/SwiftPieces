@@ -66,6 +66,6 @@ export function RevealGroup({ children, className, stagger = 0.07 }: { children:
 }
 
 /** A child of RevealGroup. The group drives the animation, so this only carries layout. */
-export function RevealItem({ children, className }: { children: ReactNode; className?: string }) {
-  return <div className={className}>{children}</div>;
+export function RevealItem({ children, className, style }: { children: ReactNode; className?: string; style?: CSSProperties }) {
+  return <div className={className} style={style}>{children}</div>;
 }
