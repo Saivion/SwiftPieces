@@ -5,6 +5,7 @@
   "pages": [
     "expandable-text",
     "glass-text",
+    "mercury-text",
     "picture-headline",
     "text-reveal"
   ]

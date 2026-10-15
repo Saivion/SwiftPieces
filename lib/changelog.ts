@@ -7,6 +7,22 @@ import type { ChangelogEntry } from "@/components/changelog/changelog-grid";
  */
 export const changelog: ChangelogEntry[] = [
   {
+    slug: "liquid-metal",
+    date: "Oct 15, 2026",
+    title: "Liquid metal",
+    summary: "Four free pieces drawn by Metal shaders in SwiftUI, each a different way in: a color shader that rings a button, one that fills a badge, a layer shader that turns any text or symbol into metal, and one that renders a liquid thumb. All four reflect the same studio, whose horizon ripples like mercury.",
+    points: [
+      "Metal Halo: a ring of liquid metal around any button. A hot spot wanders round the chrome with a thin-film fringe and a soft bloom, a finger or pointer bends the ring toward it, and the ring dims to plain steel while there is nothing to send.",
+      "Chrome Badge: a polished capsule for New, Pro or Beta. Its bevel and domed face reflect a rippling studio, a rainbow film colours the edge and a glint sweeps across now and then. Chrome, gold, graphite and brand red finishes.",
+      "Mercury Text: a layer shader that reads any view's own coverage as height, so text, SF Symbols and shapes all get beveled liquid metal edges. Drag across it to slide the reflections.",
+      "Mercury Toggle: a switch whose thumb is a bead of mercury in a liquid glass track. Two drops melt into one, so a flip stretches it into a slug that pulls itself round and rings, and dragging it drags the liquid after your finger.",
+      "Each ships as a .swift file and a .metal file; the kernel compiles into your app's default library, so there is nothing to configure. Timelines pause when nothing moves, and Reduce Motion holds the metal still.",
+      "The pieces that shipped on Oct 12, 2026 leave the New badge and join the general set. The badge now marks this wave.",
+    ],
+    visual: "cards",
+    tint: "blue",
+  },
+  {
     slug: "crafted-pieces",
     date: "Oct 12, 2026",
     title: "Eight crafted pieces",

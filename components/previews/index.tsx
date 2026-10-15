@@ -81,6 +81,10 @@ const map: Record<string, ComponentType> = {
   WalletStack: dynamic(() => import("./wallet-stack").then((m) => m.WalletStackPreview)),
   NoticeStack: dynamic(() => import("./notice-stack").then((m) => m.NoticeStackPreview)),
   RangeLens: dynamic(() => import("./range-lens").then((m) => m.RangeLensPreview)),
+  MetalHalo: dynamic(() => import("./metal").then((m) => m.MetalHaloPreview)),
+  ChromeBadge: dynamic(() => import("./metal").then((m) => m.ChromeBadgePreview)),
+  MercuryText: dynamic(() => import("./metal").then((m) => m.MercuryTextPreview)),
+  MercuryToggle: dynamic(() => import("./metal").then((m) => m.MercuryTogglePreview)),
 };
 
 /** One Picture Headline sticker on its own (the landing's floating mascot), from the preview's own chunk. */

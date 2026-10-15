@@ -25,6 +25,8 @@ enum PreviewCatalog {
         "PictureHeadline",
         // crafted interactions, 2026-10-12
         "ScrollIsland", "StepTrail", "WaveformScrub", "VoiceRecorder", "NowPlaying", "WalletStack", "NoticeStack", "RangeLens",
+        // liquid metal, 2026-10-15
+        "MetalHalo", "ChromeBadge", "MercuryText", "MercuryToggle",
     ]
 
     @MainActor @ViewBuilder
@@ -196,6 +198,15 @@ enum PreviewCatalog {
             Stage { NoticeStackScene() }
         case "RangeLens":
             Stage { RangeLensScene() }
+        // liquid metal
+        case "MetalHalo":
+            Stage(dark: true) { MetalHaloScene() }
+        case "ChromeBadge":
+            Stage(dark: true) { ChromeBadgeScene() }
+        case "MercuryText":
+            Stage(dark: true) { MercuryTextScene() }
+        case "MercuryToggle":
+            Stage(dark: true) { MercuryToggleScene() }
         default:
             Text("Unknown piece: \(name)")
         }
@@ -4021,5 +4032,96 @@ private enum RangeLensSceneData {
         let end = max(days.count - 1 - back, 0)
         let start = max(end - length + 1, 0)
         return days[start].date...days[end].date
+    }
+}
+
+// MARK: - liquid metal scenes
+
+/// An agent's prompt bar: the send button wears the halo, its hot spot wandering round the chrome.
+private struct MetalHaloScene: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 18) {
+            Text("Build anything…")
+                .font(.system(size: 17))
+                .foregroundStyle(.white.opacity(0.4))
+            HStack(spacing: 10) {
+                Image(systemName: "plus")
+                    .frame(width: 44, height: 44)
+                    .background(Circle().fill(Color(white: 0.16)))
+                Spacer()
+                Text("Agent")
+                    .padding(.horizontal, 16)
+                    .frame(height: 44)
+                    .background(Capsule().fill(Color(white: 0.16)))
+                Image(systemName: "arrow.up")
+                    .frame(width: 44, height: 44)
+                    .background(Circle().fill(Color(white: 0.06)))
+                    .metalHalo(.circle)
+            }
+            .font(.system(size: 17))
+            .foregroundStyle(.white.opacity(0.85))
+        }
+        .padding(16)
+        .background(RoundedRectangle(cornerRadius: 26, style: .continuous).fill(Color(white: 0.11)))
+        .padding(24)
+        .fontWeight(.semibold)
+    }
+}
+
+/// A setting with its New badge, the glint sweeping across.
+private struct ChromeBadgeScene: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 30) {
+            HStack(spacing: 14) {
+                Text("Live mode").font(.system(size: 34)).foregroundStyle(.white.opacity(0.8))
+                ChromeBadge("New", size: 18)
+            }
+            HStack(spacing: 14) {
+                Text("Agents").font(.system(size: 34)).foregroundStyle(.white.opacity(0.8))
+                ChromeBadge("Pro", systemImage: "sparkles", finish: .gold, size: 18)
+            }
+        }
+        .fontWeight(.semibold)
+    }
+}
+
+/// A headline in mercury over symbols in the other finishes.
+private struct MercuryTextScene: View {
+    var body: some View {
+        VStack(spacing: 24) {
+            MercuryText("Metal", size: 96)
+            HStack(spacing: 26) {
+                Image(systemName: "bolt.fill").mercury(.holographic, bevel: 5)
+                Image(systemName: "star.fill").mercury(.gold, bevel: 5)
+                Image(systemName: "heart.fill").mercury(.signal, bevel: 5)
+            }
+            .font(.system(size: 48))
+        }
+        .fontWeight(.semibold)
+    }
+}
+
+/// Two switches flipping in turn, so the bead stretches and pulls itself round.
+private struct MercuryToggleScene: View {
+    @State private var live = true
+    @State private var voice = false
+
+    var body: some View {
+        VStack(spacing: 26) {
+            MercuryToggle("Live mode", isOn: $live)
+            MercuryToggle("Voice replies", isOn: $voice)
+        }
+        .font(.system(size: 20))
+        .foregroundStyle(.white)
+        .padding(.horizontal, 40)
+        .fontWeight(.semibold)
+        .task {
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(1.4))
+                live.toggle()
+                try? await Task.sleep(for: .seconds(0.7))
+                voice.toggle()
+            }
+        }
     }
 }

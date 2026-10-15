@@ -1,6 +1,6 @@
 # SwiftPieces: full text
 
-> 77 free SwiftUI components for iOS, one Swift file each, MIT + Commons Clause. Index: https://swiftpieces.com/llms.txt. Source for any piece: https://swiftpieces.com/r/<Name>.json or its docs page.
+> 81 free SwiftUI components for iOS, one Swift file each, MIT + Commons Clause. Index: https://swiftpieces.com/llms.txt. Source for any piece: https://swiftpieces.com/r/<Name>.json or its docs page.
 
 # Components
 
@@ -581,6 +581,45 @@ Hold to confirm, in liquid glass. The tint sweeps through the glass from the lea
 - `style`: Label, fill, ink and committed colors plus height. `.standard` is the house palette with a signal fill.
 - `action`: Called once when the hold completes. VoiceOver's activate action calls it directly.
 
+## Mercury Toggle (`MercuryToggle`)
+
+URL: https://swiftpieces.com/docs/components/controls/mercury-toggle
+Category: Controls. iOS 17.0+. Liquid Glass on iOS 26 with a Material fallback. Metal shader.
+Files: MercuryToggle.swift, MercuryToggle.metal
+Install: npx swiftpieces add MercuryToggle
+
+A switch whose thumb is a bead of mercury in a liquid glass track, drawn by a Metal color shader. Two drops melt into one through a smooth minimum, so a flip stretches the bead into a slug that pulls itself round at the far end and rings for a moment; dragging it drags the liquid after your finger. The track fills with the brand red when on.
+
+An on and off switch with a mercury bead for a thumb. Copy `MercuryToggle.metal` alongside this file; its `mercuryToggle` kernel compiles into your app's default Metal library. Tap the switch to flip it, or drag the bead: it follows your finger and lands on the side you let go nearer, or the side you flicked toward. VoiceOver, Switch Control and keyboard focus see a standard toggle.
+
+### Parameters
+
+- `title`: The setting's name. Shown beside the switch unless `showsTitle` is false, and always read by VoiceOver.
+- `isOn`: The binding the switch flips.
+- `tint`: The track's fill when on. The brand red, `#FF0000`, by default.
+- `showsTitle`: Shows the title to the leading side, the way `Toggle` lays out in a row.
+
+## Metal Halo (`MetalHalo`)
+
+URL: https://swiftpieces.com/docs/components/controls/metal-halo
+Category: Controls. iOS 17.0+. Liquid Glass on iOS 26 with a Material fallback. Metal shader.
+Files: MetalHalo.swift, MetalHalo.metal
+Install: npx swiftpieces add MetalHalo
+
+A ring of liquid metal around any button, drawn by a Metal color shader. A hot spot wanders around the chrome with a thin-film fringe and a soft bloom, the reflections ripple like mercury, and a finger or pointer bends the ring toward it and draws the hot spot to where it touches. Dims to plain steel when the control is inactive.
+
+A liquid metal ring for a button. Apply with `.metalHalo()`, and copy `MetalHalo.metal` alongside this file; its `metalHalo` kernel compiles into your app's default Metal library. The ring is drawn just inside the outline you name, so it never changes the layout, and the bloom spills out around it. Put it on the label inside a `Button` so the ring sinks with the press. It draws nothing you can hit and adds no accessibility element: the button keeps its own label.
+
+### Parameters
+
+- `outline`: The shape to ring: `.circle` (default), `.capsule`, or `.rounded(_:)` with a corner radius.
+- `width`: Ring width in points.
+- `glow`: Bloom strength around the hot spot, 0 for none.
+- `glowTint`: The bloom's colour. `nil` (default) is a cool white in dark mode and a light blue in light mode.
+- `speed`: How fast the hot spot wanders. 0 holds it up and to the left.
+- `isActive`: When false the ring dims to plain steel and the bloom goes out, for a send button with nothing to send. The change eases.
+- `bendsToTouch`: The ring bulges toward a finger or pointer on it, and the hot spot leans to where it touches.
+
 ## Timer Dial (`TimerDial`)
 
 URL: https://swiftpieces.com/docs/components/controls/timer-dial
@@ -831,6 +870,27 @@ Time-series chart with scrubbing, range selection, and a morphing range picker. 
 - `format`: Number format for readouts, for example `.number` or `.currency(code: "USD")`. Defaults to `.number`.
 - `range`: Optional binding to the selected series index, for driving the picker from outside.
 - `style`: Accent, delta, band, and numeral settings. Defaults to `.standard`: a butter accent, sage for up, red for down.
+
+## Chrome Badge (`ChromeBadge`)
+
+URL: https://swiftpieces.com/docs/components/feedback/chrome-badge
+Category: Feedback. iOS 17.0+. Metal shader.
+Files: ChromeBadge.swift, ChromeBadge.metal
+Install: npx swiftpieces add ChromeBadge
+
+A capsule badge in polished liquid metal, drawn by a Metal color shader. Its bevel and gently domed face reflect a studio whose horizon ripples like mercury, a thin-film fringe colours the edge, a glint sweeps across now and then, and a soft bloom lights the ground around it. Chrome, gold, graphite and brand red finishes, with engraved semibold ink.
+
+A small label in liquid metal, for "New", "Pro" or "Beta". Copy `ChromeBadge.metal` alongside this file; its `chromeBadge` kernel compiles into your app's default Metal library. The metal is drawn behind the label, so the badge sizes to its text and scales with Dynamic Type. VoiceOver reads the label alone; the metal is decoration.
+
+### Parameters
+
+- `label`: The badge's text.
+- `systemImage`: An optional SF Symbol before the text.
+- `finish`: The metal and its ink: `.chrome` (default), `.gold`, `.graphite`, or `.signal`, the brand red. Or your own `Finish(tint:ink:iridescence:glowTint:)`.
+- `size`: Text size in points; the capsule derives from it and scales with Dynamic Type.
+- `glow`: Bloom strength around the badge, 0 for none.
+- `flow`: How fast the reflections ripple. 0 holds them still.
+- `sweeps`: A glint crosses the badge when it appears and every few seconds after.
 
 ## Outcome Screen (`OutcomeScreen`)
 
@@ -2728,6 +2788,27 @@ Liquid Glass applied to text outlines via Core Text glyph paths. The glyph path 
 - `tint`: Optional glass tint. The Material fallback blends it in at `style.fallbackTintAmount`.
 - `scalesWithDynamicType`: Set false to pin the point size.
 - `style`: Line alignment and leading, fallback specular strength, depth shadow and the Reduce Transparency fill.
+
+## Mercury Text (`MercuryText`)
+
+URL: https://swiftpieces.com/docs/components/text/mercury-text
+Category: Text. iOS 17.0+. Metal shader.
+Files: MercuryText.swift, MercuryText.metal
+Install: npx swiftpieces add MercuryText
+
+Text, SF Symbols or any view turned into liquid metal by a Metal layer shader. The shader reads the glyphs' own coverage as height, bevels every edge from it, and reflects a studio whose horizon ripples like mercury across the letters, with a thin-film fringe on the bevels. A finger or pointer slides the reflections. Mercury, holographic, gold and brand red finishes; still and readable under Reduce Motion.
+
+A headline in liquid metal. For a symbol or any other view, use `.mercury()`. Copy `MercuryText.metal` alongside this file; its `mercuryText` kernel compiles into your app's default Metal library. The shader bevels whatever the view draws from its own edges, so heavy, rounded type shows the metal best. The text stays real text: VoiceOver reads it, it wraps and it scales with Dynamic Type.
+
+### Parameters
+
+- `text`: The words to draw.
+- `size`: Point size; scales with Dynamic Type.
+- `design`: The font design. `.rounded` (default) gives the bevels the most to catch.
+- `finish`: The metal: `.mercury` (default), `.holographic`, `.gold` or `.signal`, the brand red. Or your own `Finish(tint:iridescence:)`.
+- `bevel`: How far in from each edge the bevel reaches, in points. `nil` derives it from the size.
+- `flow`: How fast the reflections ripple. 0 holds them still.
+- `followsTouch`: A finger or pointer on the text slides the reflections toward it, and they glide home when it lifts.
 
 ## Picture Headline (`PictureHeadline`)
 

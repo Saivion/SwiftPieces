@@ -553,7 +553,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/cards/wallet-stack",
     "added": "2026-10-12",
-    "isNew": true,
+    "isNew": false,
     "liquidGlass": true,
     "metal": false
   },
@@ -719,6 +719,103 @@
     "isNew": false,
     "liquidGlass": true,
     "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "MercuryToggle",
+    "slug": "mercury-toggle",
+    "type": "registry:component",
+    "title": "Mercury Toggle",
+    "description": "A switch whose thumb is a bead of mercury in a liquid glass track, drawn by a Metal color shader. Two drops melt into one through a smooth minimum, so a flip stretches the bead into a slug that pulls itself round at the far end and rings for a moment; dragging it drags the liquid after your finger. The track fills with the brand red when on.",
+    "category": "controls",
+    "license": "MIT+Commons-Clause",
+    "version": "1.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "toggle",
+      "switch",
+      "shader",
+      "metal",
+      "mercury",
+      "liquid",
+      "glass",
+      "drag"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [
+      {
+        "path": "registry/swift/controls/MercuryToggle.metal",
+        "type": "registry:shader",
+        "target": "SwiftPieces/Controls/MercuryToggle.metal"
+      }
+    ],
+    "files": [
+      {
+        "path": "registry/swift/controls/MercuryToggle.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Controls/MercuryToggle.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/controls/mercury-toggle",
+    "added": "2026-10-15",
+    "isNew": true,
+    "liquidGlass": true,
+    "metal": true
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "MetalHalo",
+    "slug": "metal-halo",
+    "type": "registry:component",
+    "title": "Metal Halo",
+    "description": "A ring of liquid metal around any button, drawn by a Metal color shader. A hot spot wanders around the chrome with a thin-film fringe and a soft bloom, the reflections ripple like mercury, and a finger or pointer bends the ring toward it and draws the hot spot to where it touches. Dims to plain steel when the control is inactive.",
+    "category": "controls",
+    "license": "MIT+Commons-Clause",
+    "version": "1.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "button",
+      "shader",
+      "metal",
+      "chrome",
+      "halo",
+      "glow",
+      "touch"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [
+      {
+        "path": "registry/swift/controls/MetalHalo.metal",
+        "type": "registry:shader",
+        "target": "SwiftPieces/Controls/MetalHalo.metal"
+      }
+    ],
+    "files": [
+      {
+        "path": "registry/swift/controls/MetalHalo.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Controls/MetalHalo.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/controls/metal-halo",
+    "added": "2026-10-15",
+    "isNew": true,
+    "liquidGlass": true,
+    "metal": true
   },
   {
     "$schema": "https://swiftpieces.com/schema/registry-item.json",
@@ -928,7 +1025,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/data/range-lens",
     "added": "2026-10-12",
-    "isNew": true,
+    "isNew": false,
     "liquidGlass": true,
     "metal": false
   },
@@ -1015,6 +1112,54 @@
     "isNew": false,
     "liquidGlass": true,
     "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "ChromeBadge",
+    "slug": "chrome-badge",
+    "type": "registry:component",
+    "title": "Chrome Badge",
+    "description": "A capsule badge in polished liquid metal, drawn by a Metal color shader. Its bevel and gently domed face reflect a studio whose horizon ripples like mercury, a thin-film fringe colours the edge, a glint sweeps across now and then, and a soft bloom lights the ground around it. Chrome, gold, graphite and brand red finishes, with engraved semibold ink.",
+    "category": "feedback",
+    "license": "MIT+Commons-Clause",
+    "version": "1.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "badge",
+      "label",
+      "shader",
+      "metal",
+      "chrome",
+      "new",
+      "glow"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [
+      {
+        "path": "registry/swift/feedback/ChromeBadge.metal",
+        "type": "registry:shader",
+        "target": "SwiftPieces/Feedback/ChromeBadge.metal"
+      }
+    ],
+    "files": [
+      {
+        "path": "registry/swift/feedback/ChromeBadge.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Feedback/ChromeBadge.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/feedback/chrome-badge",
+    "added": "2026-10-15",
+    "isNew": true,
+    "liquidGlass": false,
+    "metal": true
   },
   {
     "$schema": "https://swiftpieces.com/schema/registry-item.json",
@@ -2341,7 +2486,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/media/now-playing",
     "added": "2026-10-12",
-    "isNew": true,
+    "isNew": false,
     "liquidGlass": true,
     "metal": false
   },
@@ -2512,7 +2657,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/media/voice-recorder",
     "added": "2026-10-12",
-    "isNew": true,
+    "isNew": false,
     "liquidGlass": true,
     "metal": false
   },
@@ -2554,7 +2699,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/media/waveform-scrub",
     "added": "2026-10-12",
-    "isNew": true,
+    "isNew": false,
     "liquidGlass": true,
     "metal": false
   },
@@ -2722,7 +2867,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/navigation/scroll-island",
     "added": "2026-10-12",
-    "isNew": true,
+    "isNew": false,
     "liquidGlass": true,
     "metal": false
   },
@@ -2767,7 +2912,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/navigation/step-trail",
     "added": "2026-10-12",
-    "isNew": true,
+    "isNew": false,
     "liquidGlass": true,
     "metal": false
   },
@@ -2931,7 +3076,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/sheets/notice-stack",
     "added": "2026-10-12",
-    "isNew": true,
+    "isNew": false,
     "liquidGlass": true,
     "metal": false
   },
@@ -3140,6 +3285,54 @@
     "isNew": false,
     "liquidGlass": true,
     "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "MercuryText",
+    "slug": "mercury-text",
+    "type": "registry:component",
+    "title": "Mercury Text",
+    "description": "Text, SF Symbols or any view turned into liquid metal by a Metal layer shader. The shader reads the glyphs' own coverage as height, bevels every edge from it, and reflects a studio whose horizon ripples like mercury across the letters, with a thin-film fringe on the bevels. A finger or pointer slides the reflections. Mercury, holographic, gold and brand red finishes; still and readable under Reduce Motion.",
+    "category": "text",
+    "license": "MIT+Commons-Clause",
+    "version": "1.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "text",
+      "headline",
+      "symbol",
+      "shader",
+      "metal",
+      "chrome",
+      "liquid"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [
+      {
+        "path": "registry/swift/text/MercuryText.metal",
+        "type": "registry:shader",
+        "target": "SwiftPieces/Text/MercuryText.metal"
+      }
+    ],
+    "files": [
+      {
+        "path": "registry/swift/text/MercuryText.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Text/MercuryText.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/text/mercury-text",
+    "added": "2026-10-15",
+    "isNew": true,
+    "liquidGlass": false,
+    "metal": true
   },
   {
     "$schema": "https://swiftpieces.com/schema/registry-item.json",
