@@ -28,7 +28,7 @@ export function Hero() {
           {/* The copy column stops short of the mark, so the headline never runs under it. */}
           <div className="max-w-[46rem]">
             <Reveal priority><Eyebrow>New Components Every Week<LiveViews /></Eyebrow></Reveal>
-            <AnimatedText as="h1" text="Build apps that belong in the App Store's top 1%." accent="1%" className="mt-8 text-[34px] leading-[1.04] font-medium tracking-[-0.035em] text-balance sm:text-[42px] lg:text-[49px]" />
+            <AnimatedText as="h1" text="Build apps worthy of an App Store feature." accent="feature" className="mt-8 text-[34px] leading-[1.04] font-medium tracking-[-0.035em] text-balance sm:text-[42px] lg:text-[49px]" />
             <Reveal priority delay={0.35}><p className={cn("mt-6 max-w-xl", sectionBody)}>The motion, haptics and accessibility the best apps get right, as production SwiftUI components. Install with one command and make them yours.</p></Reveal>       
             <Reveal priority delay={0.45} className="mt-9 flex flex-wrap items-center gap-3">
               <Button href="/components">Browse the library <Arrow /></Button>
