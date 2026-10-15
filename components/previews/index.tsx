@@ -81,8 +81,8 @@ const map: Record<string, ComponentType> = {
   WalletStack: dynamic(() => import("./wallet-stack").then((m) => m.WalletStackPreview)),
   NoticeStack: dynamic(() => import("./notice-stack").then((m) => m.NoticeStackPreview)),
   RangeLens: dynamic(() => import("./range-lens").then((m) => m.RangeLensPreview)),
-  MetalHalo: dynamic(() => import("./metal").then((m) => m.MetalHaloPreview)),
-  ChromeBadge: dynamic(() => import("./metal").then((m) => m.ChromeBadgePreview)),
+  MeltButton: dynamic(() => import("./metal").then((m) => m.MeltButtonPreview)),
+  MercuryGauge: dynamic(() => import("./metal").then((m) => m.MercuryGaugePreview)),
   MercuryText: dynamic(() => import("./metal").then((m) => m.MercuryTextPreview)),
   MercuryToggle: dynamic(() => import("./metal").then((m) => m.MercuryTogglePreview)),
 };

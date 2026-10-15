@@ -722,6 +722,55 @@
   },
   {
     "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "MeltButton",
+    "slug": "melt-button",
+    "type": "registry:component",
+    "title": "Melt Button",
+    "description": "A round liquid glass button whose SF Symbol is molten metal, drawn by a Metal layer shader. Change the symbol and the old one melts into a blob and pours itself into the new one, play into pause, plus into a check; press it and the metal slumps under your finger. The shader cuts a blurred field of both symbols at its surface and shades the inside as chrome, so the morph works between any two symbols.",
+    "category": "controls",
+    "license": "MIT+Commons-Clause",
+    "version": "1.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "button",
+      "symbol",
+      "morph",
+      "shader",
+      "metal",
+      "liquid",
+      "glass",
+      "chrome"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [
+      {
+        "path": "registry/swift/controls/MeltButton.metal",
+        "type": "registry:shader",
+        "target": "SwiftPieces/Controls/MeltButton.metal"
+      }
+    ],
+    "files": [
+      {
+        "path": "registry/swift/controls/MeltButton.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Controls/MeltButton.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/controls/melt-button",
+    "added": "2026-10-15",
+    "isNew": true,
+    "liquidGlass": true,
+    "metal": true
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
     "name": "MercuryToggle",
     "slug": "mercury-toggle",
     "type": "registry:component",
@@ -764,54 +813,6 @@
     ],
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/controls/mercury-toggle",
-    "added": "2026-10-15",
-    "isNew": true,
-    "liquidGlass": true,
-    "metal": true
-  },
-  {
-    "$schema": "https://swiftpieces.com/schema/registry-item.json",
-    "name": "MetalHalo",
-    "slug": "metal-halo",
-    "type": "registry:component",
-    "title": "Metal Halo",
-    "description": "A ring of liquid metal around any button, drawn by a Metal color shader. A hot spot wanders around the chrome with a thin-film fringe and a soft bloom, the reflections ripple like mercury, and a finger or pointer bends the ring toward it and draws the hot spot to where it touches. Dims to plain steel when the control is inactive.",
-    "category": "controls",
-    "license": "MIT+Commons-Clause",
-    "version": "1.0.0",
-    "minIOSVersion": "17.0",
-    "swiftToolsVersion": "6.1",
-    "tags": [
-      "button",
-      "shader",
-      "metal",
-      "chrome",
-      "halo",
-      "glow",
-      "touch"
-    ],
-    "dependencies": [],
-    "registryDependencies": [],
-    "spmDependencies": [],
-    "requiredCapabilities": [],
-    "infoPlist": {},
-    "assets": [],
-    "shaders": [
-      {
-        "path": "registry/swift/controls/MetalHalo.metal",
-        "type": "registry:shader",
-        "target": "SwiftPieces/Controls/MetalHalo.metal"
-      }
-    ],
-    "files": [
-      {
-        "path": "registry/swift/controls/MetalHalo.swift",
-        "type": "registry:component",
-        "target": "SwiftPieces/Controls/MetalHalo.swift"
-      }
-    ],
-    "preview": {},
-    "docs": "https://swiftpieces.com/docs/components/controls/metal-halo",
     "added": "2026-10-15",
     "isNew": true,
     "liquidGlass": true,
@@ -943,6 +944,56 @@
     "isNew": false,
     "liquidGlass": true,
     "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "MercuryGauge",
+    "slug": "mercury-gauge",
+    "type": "registry:component",
+    "title": "Mercury Gauge",
+    "description": "A level gauge filled with liquid metal, drawn by a Metal color shader inside a liquid glass tube. When the value changes the mercury runs to it with its front leaning into the run, lands without overshooting the true value, and rings for a moment; at zero it gathers into a single drop. For storage, battery, goals and uploads, with a title and a rolling percentage.",
+    "category": "data",
+    "license": "MIT+Commons-Clause",
+    "version": "1.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "gauge",
+      "progress",
+      "meter",
+      "level",
+      "shader",
+      "metal",
+      "mercury",
+      "liquid",
+      "glass"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [
+      {
+        "path": "registry/swift/data/MercuryGauge.metal",
+        "type": "registry:shader",
+        "target": "SwiftPieces/Data/MercuryGauge.metal"
+      }
+    ],
+    "files": [
+      {
+        "path": "registry/swift/data/MercuryGauge.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Data/MercuryGauge.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/data/mercury-gauge",
+    "added": "2026-10-15",
+    "isNew": true,
+    "liquidGlass": true,
+    "metal": true
   },
   {
     "$schema": "https://swiftpieces.com/schema/registry-item.json",
@@ -1112,54 +1163,6 @@
     "isNew": false,
     "liquidGlass": true,
     "metal": false
-  },
-  {
-    "$schema": "https://swiftpieces.com/schema/registry-item.json",
-    "name": "ChromeBadge",
-    "slug": "chrome-badge",
-    "type": "registry:component",
-    "title": "Chrome Badge",
-    "description": "A capsule badge in polished liquid metal, drawn by a Metal color shader. Its bevel and gently domed face reflect a studio whose horizon ripples like mercury, a thin-film fringe colours the edge, a glint sweeps across now and then, and a soft bloom lights the ground around it. Chrome, gold, graphite and brand red finishes, with engraved semibold ink.",
-    "category": "feedback",
-    "license": "MIT+Commons-Clause",
-    "version": "1.0.0",
-    "minIOSVersion": "17.0",
-    "swiftToolsVersion": "6.1",
-    "tags": [
-      "badge",
-      "label",
-      "shader",
-      "metal",
-      "chrome",
-      "new",
-      "glow"
-    ],
-    "dependencies": [],
-    "registryDependencies": [],
-    "spmDependencies": [],
-    "requiredCapabilities": [],
-    "infoPlist": {},
-    "assets": [],
-    "shaders": [
-      {
-        "path": "registry/swift/feedback/ChromeBadge.metal",
-        "type": "registry:shader",
-        "target": "SwiftPieces/Feedback/ChromeBadge.metal"
-      }
-    ],
-    "files": [
-      {
-        "path": "registry/swift/feedback/ChromeBadge.swift",
-        "type": "registry:component",
-        "target": "SwiftPieces/Feedback/ChromeBadge.swift"
-      }
-    ],
-    "preview": {},
-    "docs": "https://swiftpieces.com/docs/components/feedback/chrome-badge",
-    "added": "2026-10-15",
-    "isNew": true,
-    "liquidGlass": false,
-    "metal": true
   },
   {
     "$schema": "https://swiftpieces.com/schema/registry-item.json",

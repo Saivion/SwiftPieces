@@ -26,7 +26,7 @@ enum PreviewCatalog {
         // crafted interactions, 2026-10-12
         "ScrollIsland", "StepTrail", "WaveformScrub", "VoiceRecorder", "NowPlaying", "WalletStack", "NoticeStack", "RangeLens",
         // liquid metal, 2026-10-15
-        "MetalHalo", "ChromeBadge", "MercuryText", "MercuryToggle",
+        "MeltButton", "MercuryGauge", "MercuryText", "MercuryToggle",
     ]
 
     @MainActor @ViewBuilder
@@ -199,10 +199,10 @@ enum PreviewCatalog {
         case "RangeLens":
             Stage { RangeLensScene() }
         // liquid metal
-        case "MetalHalo":
-            Stage(dark: true) { MetalHaloScene() }
-        case "ChromeBadge":
-            Stage(dark: true) { ChromeBadgeScene() }
+        case "MeltButton":
+            Stage(dark: true) { MeltButtonScene() }
+        case "MercuryGauge":
+            Stage(dark: true) { MercuryGaugeScene() }
         case "MercuryText":
             Stage(dark: true) { MercuryTextScene() }
         case "MercuryToggle":
@@ -4037,51 +4037,48 @@ private enum RangeLensSceneData {
 
 // MARK: - liquid metal scenes
 
-/// An agent's prompt bar: the send button wears the halo, its hot spot wandering round the chrome.
-private struct MetalHaloScene: View {
+/// Play and pause, and an add that becomes a check, each melting into the next symbol in turn.
+private struct MeltButtonScene: View {
+    @State private var playing = false
+    @State private var added = false
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 18) {
-            Text("Build anything…")
-                .font(.system(size: 17))
-                .foregroundStyle(.white.opacity(0.4))
-            HStack(spacing: 10) {
-                Image(systemName: "plus")
-                    .frame(width: 44, height: 44)
-                    .background(Circle().fill(Color(white: 0.16)))
-                Spacer()
-                Text("Agent")
-                    .padding(.horizontal, 16)
-                    .frame(height: 44)
-                    .background(Capsule().fill(Color(white: 0.16)))
-                Image(systemName: "arrow.up")
-                    .frame(width: 44, height: 44)
-                    .background(Circle().fill(Color(white: 0.06)))
-                    .metalHalo(.circle)
-            }
-            .font(.system(size: 17))
-            .foregroundStyle(.white.opacity(0.85))
+        HStack(spacing: 32) {
+            MeltButton(playing ? "Pause" : "Play", systemImage: playing ? "pause.fill" : "play.fill", size: 88) { playing.toggle() }
+            MeltButton(added ? "Added" : "Add", systemImage: added ? "checkmark" : "plus", size: 88, tint: Color(red: 1, green: 0.86, blue: 0.62)) { added.toggle() }
         }
-        .padding(16)
-        .background(RoundedRectangle(cornerRadius: 26, style: .continuous).fill(Color(white: 0.11)))
-        .padding(24)
-        .fontWeight(.semibold)
+        .task {
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(1.3))
+                playing.toggle()
+                try? await Task.sleep(for: .seconds(0.65))
+                added.toggle()
+            }
+        }
     }
 }
 
-/// A setting with its New badge, the glint sweeping across.
-private struct ChromeBadgeScene: View {
+/// Two gauges stepping between values, so the mercury runs, leans into the run and rings as it lands.
+private struct MercuryGaugeScene: View {
+    @State private var step = 0
+    private let storage = [0.72, 0.31, 0.9, 0.12]
+    private let battery = [0.34, 0.86, 0.05, 0.6]
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 30) {
-            HStack(spacing: 14) {
-                Text("Live mode").font(.system(size: 34)).foregroundStyle(.white.opacity(0.8))
-                ChromeBadge("New", size: 18)
-            }
-            HStack(spacing: 14) {
-                Text("Agents").font(.system(size: 34)).foregroundStyle(.white.opacity(0.8))
-                ChromeBadge("Pro", systemImage: "sparkles", finish: .gold, size: 18)
+        VStack(spacing: 30) {
+            MercuryGauge("Storage", value: storage[step % storage.count])
+            MercuryGauge("Battery", value: battery[step % battery.count])
+        }
+        .font(.system(size: 20))
+        .foregroundStyle(.white)
+        .padding(.horizontal, 40)
+        .fontWeight(.semibold)
+        .task {
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(1.6))
+                step += 1
             }
         }
-        .fontWeight(.semibold)
     }
 }
 

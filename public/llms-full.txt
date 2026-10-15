@@ -581,6 +581,25 @@ Hold to confirm, in liquid glass. The tint sweeps through the glass from the lea
 - `style`: Label, fill, ink and committed colors plus height. `.standard` is the house palette with a signal fill.
 - `action`: Called once when the hold completes. VoiceOver's activate action calls it directly.
 
+## Melt Button (`MeltButton`)
+
+URL: https://swiftpieces.com/docs/components/controls/melt-button
+Category: Controls. iOS 17.0+. Liquid Glass on iOS 26 with a Material fallback. Metal shader.
+Files: MeltButton.swift, MeltButton.metal
+Install: npx swiftpieces add MeltButton
+
+A round liquid glass button whose SF Symbol is molten metal, drawn by a Metal layer shader. Change the symbol and the old one melts into a blob and pours itself into the new one, play into pause, plus into a check; press it and the metal slumps under your finger. The shader cuts a blurred field of both symbols at its surface and shades the inside as chrome, so the morph works between any two symbols.
+
+A glass button with a liquid metal symbol that melts from one symbol into the next. Copy `MeltButton.metal` alongside this file; its `meltButton` kernel compiles into your app's default Metal library. Drive `systemImage` from state, `isPlaying ? "pause.fill" : "play.fill"`, and every change melts the old symbol into the new one. Filled symbols melt best: the metal is cut from the symbol's area, so hairline strokes thin away. VoiceOver reads `label`, and the button acts on `action` like any `Button`.
+
+### Parameters
+
+- `label`: What the button does, for VoiceOver and Voice Control. Update it with the symbol.
+- `systemImage`: The SF Symbol to show. A change melts into it.
+- `size`: The button's diameter in points; scales with Dynamic Type.
+- `tint`: The metal's colour: white (default) is chrome; a warm white reads as gold.
+- `action`: What a tap does.
+
 ## Mercury Toggle (`MercuryToggle`)
 
 URL: https://swiftpieces.com/docs/components/controls/mercury-toggle
@@ -598,27 +617,6 @@ An on and off switch with a mercury bead for a thumb. Copy `MercuryToggle.metal`
 - `isOn`: The binding the switch flips.
 - `tint`: The track's fill when on. The brand red, `#FF0000`, by default.
 - `showsTitle`: Shows the title to the leading side, the way `Toggle` lays out in a row.
-
-## Metal Halo (`MetalHalo`)
-
-URL: https://swiftpieces.com/docs/components/controls/metal-halo
-Category: Controls. iOS 17.0+. Liquid Glass on iOS 26 with a Material fallback. Metal shader.
-Files: MetalHalo.swift, MetalHalo.metal
-Install: npx swiftpieces add MetalHalo
-
-A ring of liquid metal around any button, drawn by a Metal color shader. A hot spot wanders around the chrome with a thin-film fringe and a soft bloom, the reflections ripple like mercury, and a finger or pointer bends the ring toward it and draws the hot spot to where it touches. Dims to plain steel when the control is inactive.
-
-A liquid metal ring for a button. Apply with `.metalHalo()`, and copy `MetalHalo.metal` alongside this file; its `metalHalo` kernel compiles into your app's default Metal library. The ring is drawn just inside the outline you name, so it never changes the layout, and the bloom spills out around it. Put it on the label inside a `Button` so the ring sinks with the press. It draws nothing you can hit and adds no accessibility element: the button keeps its own label.
-
-### Parameters
-
-- `outline`: The shape to ring: `.circle` (default), `.capsule`, or `.rounded(_:)` with a corner radius.
-- `width`: Ring width in points.
-- `glow`: Bloom strength around the hot spot, 0 for none.
-- `glowTint`: The bloom's colour. `nil` (default) is a cool white in dark mode and a light blue in light mode.
-- `speed`: How fast the hot spot wanders. 0 holds it up and to the left.
-- `isActive`: When false the ring dims to plain steel and the bloom goes out, for a send button with nothing to send. The change eases.
-- `bendsToTouch`: The ring bulges toward a finger or pointer on it, and the hot spot leans to where it touches.
 
 ## Timer Dial (`TimerDial`)
 
@@ -733,6 +731,25 @@ KPI tile with a rolling value, delta chip, and a scrubbable sparkline that expan
 - `tint`: Sparkline color. Defaults to the style's `line`.
 - `expanded`: Optional binding to the expanded state, for driving it from outside.
 - `style`: Tile, text, and chip colors. Defaults to `.standard`, a neutral glass tile; `.block(_:)` tints the glass with a color block and dark ink.
+
+## Mercury Gauge (`MercuryGauge`)
+
+URL: https://swiftpieces.com/docs/components/data/mercury-gauge
+Category: Data. iOS 17.0+. Liquid Glass on iOS 26 with a Material fallback. Metal shader.
+Files: MercuryGauge.swift, MercuryGauge.metal
+Install: npx swiftpieces add MercuryGauge
+
+A level gauge filled with liquid metal, drawn by a Metal color shader inside a liquid glass tube. When the value changes the mercury runs to it with its front leaning into the run, lands without overshooting the true value, and rings for a moment; at zero it gathers into a single drop. For storage, battery, goals and uploads, with a title and a rolling percentage.
+
+A gauge of liquid metal in a glass tube. Copy `MercuryGauge.metal` alongside this file; its `mercuryGauge` kernel compiles into your app's default Metal library. The level itself never overshoots, so the gauge never shows a value that isn't true; only the shape of the mercury's front leans and rings. VoiceOver reads the title and the percentage.
+
+### Parameters
+
+- `title`: What the gauge measures, shown above the tube.
+- `value`: The current value.
+- `range`: The values the tube spans, `0...1` by default. Values outside it pin to the ends.
+- `valueText`: The readout beside the title. `nil` shows the percentage of the range, rolling as it changes.
+- `tint`: The metal's colour: a cool silver by default.
 
 ## Odometer (`Odometer`)
 
@@ -870,27 +887,6 @@ Time-series chart with scrubbing, range selection, and a morphing range picker. 
 - `format`: Number format for readouts, for example `.number` or `.currency(code: "USD")`. Defaults to `.number`.
 - `range`: Optional binding to the selected series index, for driving the picker from outside.
 - `style`: Accent, delta, band, and numeral settings. Defaults to `.standard`: a butter accent, sage for up, red for down.
-
-## Chrome Badge (`ChromeBadge`)
-
-URL: https://swiftpieces.com/docs/components/feedback/chrome-badge
-Category: Feedback. iOS 17.0+. Metal shader.
-Files: ChromeBadge.swift, ChromeBadge.metal
-Install: npx swiftpieces add ChromeBadge
-
-A capsule badge in polished liquid metal, drawn by a Metal color shader. Its bevel and gently domed face reflect a studio whose horizon ripples like mercury, a thin-film fringe colours the edge, a glint sweeps across now and then, and a soft bloom lights the ground around it. Chrome, gold, graphite and brand red finishes, with engraved semibold ink.
-
-A small label in liquid metal, for "New", "Pro" or "Beta". Copy `ChromeBadge.metal` alongside this file; its `chromeBadge` kernel compiles into your app's default Metal library. The metal is drawn behind the label, so the badge sizes to its text and scales with Dynamic Type. VoiceOver reads the label alone; the metal is decoration.
-
-### Parameters
-
-- `label`: The badge's text.
-- `systemImage`: An optional SF Symbol before the text.
-- `finish`: The metal and its ink: `.chrome` (default), `.gold`, `.graphite`, or `.signal`, the brand red. Or your own `Finish(tint:ink:iridescence:glowTint:)`.
-- `size`: Text size in points; the capsule derives from it and scales with Dynamic Type.
-- `glow`: Bloom strength around the badge, 0 for none.
-- `flow`: How fast the reflections ripple. 0 holds them still.
-- `sweeps`: A glint crosses the badge when it appears and every few seconds after.
 
 ## Outcome Screen (`OutcomeScreen`)
 

@@ -5,6 +5,7 @@
   "pages": [
     "activity-heatmap",
     "live-stat",
+    "mercury-gauge",
     "odometer",
     "range-lens",
     "ring-breakdown",

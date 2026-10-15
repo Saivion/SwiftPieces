@@ -145,259 +145,271 @@ vec2 cssSize() { return uRes / uDpr; }
 vec3 film(float x) { return 0.5 + 0.5 * cos(6.2831853 * (x + vec3(0.0, 0.33, 0.67))); }
 `;
 
-// MARK: - Metal Halo
+// MARK: - Melt Button
 
-const HALO = COMMON + `
-uniform float uPad, uWidth, uPhase, uPull, uGlow, uEnergy;
-uniform vec2 uTouch;
-uniform vec3 uGlowTint;
+const MELT = COMMON + `
+uniform sampler2D uTex;
+uniform float uSigma, uTime;
+uniform vec3 uTint;
 
-float box(vec2 p, vec2 b, float r) { vec2 q = abs(p) - b + r; return length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - r; }
-float field(vec2 p, vec2 b, float r, vec2 f, float reach, float swell) { vec2 k = p - f; return box(p, b, r) - uPull * swell * exp(-dot(k, k) / (reach * reach)); }
-
-vec3 studio(vec3 r, float t) {
-  vec2 q = r.xy;
-  q.y += 0.06 * sin(q.x * 4.0 + t * 0.9) + 0.035 * sin(q.x * 9.0 - t * 1.4);
-  float y = q.y + 0.05;
-  float sky = mix(0.62, 0.98, smoothstep(0.0, 0.8, y));
-  float fl = mix(0.07, 0.24, smoothstep(0.0, -0.9, y));
-  float v = mix(fl, sky, smoothstep(-0.02, 0.02, y));
-  v += 0.45 * exp(-pow((y - 0.05) / 0.035, 2.0));
-  v *= 1.0 - 0.55 * exp(-pow((y + 0.08) / 0.06, 2.0));
-  vec2 bx = q - vec2(-0.55, 0.6);
+vec3 studio(vec2 q, float t) {
+  q.y += 0.07 * sin(q.x * 3.4 + t * 1.3) + 0.035 * sin(q.x * 8.1 - t * 1.9 + q.y * 2.0);
+  float y = q.y;
+  float sky = mix(0.66, 1.0, smoothstep(0.0, 0.75, y));
+  float fl = mix(0.14, 0.38, smoothstep(0.0, -0.85, y));
+  float v = mix(fl, sky, smoothstep(-0.015, 0.015, y));
+  v += 0.4 * exp(-pow((y - 0.035) / 0.03, 2.0));
+  v *= 1.0 - 0.5 * exp(-pow((y + 0.06) / 0.05, 2.0));
+  vec2 bx = q - vec2(-0.5, 0.6);
   v += 0.6 * exp(-dot(bx, bx) / 0.04);
-  return v * mix(vec3(1.0, 0.97, 0.93), vec3(0.93, 0.97, 1.03), smoothstep(-0.2, 0.4, y));
+  return v * mix(vec3(1.0, 0.97, 0.93), vec3(0.94, 0.97, 1.03), smoothstep(-0.2, 0.4, y));
 }
 
+/** The blurred symbols, the layer the kernel reads, are in red. */
+float field(vec2 pos) { return texture2D(uTex, pos / cssSize()).r; }
+
 void main() {
-  vec2 size = cssSize(), pos = cssPosition(), c = size * 0.5;
-  vec2 p = vec2(pos.x - c.x, c.y - pos.y);
-  vec2 f = vec2(uTouch.x - c.x, c.y - uTouch.y);
-  vec2 b = max(c - uPad, vec2(1.0));
-  float r = min(b.x, b.y);
-  float reach = max(r * 0.9, 8.0), swell = uWidth * 1.6 + 1.5;
-  float d = field(p, b, r, f, reach, swell);
-  const float e = 0.5;
-  vec2 g = vec2(field(p + vec2(e, 0.0), b, r, f, reach, swell) - field(p - vec2(e, 0.0), b, r, f, reach, swell),
-                field(p + vec2(0.0, e), b, r, f, reach, swell) - field(p - vec2(0.0, e), b, r, f, reach, swell));
-  float gn = length(g);
-  g = gn > 0.0001 ? g / gn : vec2(0.0, 1.0);
-  float hw = max(uWidth * 0.5, 0.5);
-  float s = clamp((d + hw) / hw, -1.0, 1.0);
-  vec3 n = normalize(vec3(g * s, sqrt(max(1.0 - s * s, 0.0)) + 0.0001));
+  vec2 size = cssSize(), pos = cssPosition();
+  float a = field(pos);
+  if (a < 0.12) { gl_FragColor = vec4(0.0); return; }
+  float tap = max(uSigma * 0.6, 0.5);
+  float gx = (field(pos + vec2(tap, 0.0)) - field(pos - vec2(tap, 0.0))) / (2.0 * tap);
+  float gy = (field(pos + vec2(0.0, tap)) - field(pos - vec2(0.0, tap))) / (2.0 * tap);
+  float slope = length(vec2(gx, gy));
+  float cover = clamp((a - 0.4) / max(slope, 0.0005) * 1.5 + 0.5, 0.0, 1.0);
+  if (cover <= 0.0) { gl_FragColor = vec4(0.0); return; }
+  float k = 2.6 * uSigma;
+  vec3 n = normalize(vec3(-gx * k, gy * k, 1.0));
   vec3 refl = vec3(2.0 * n.z * n.x, 2.0 * n.z * n.y, 2.0 * n.z * n.z - 1.0);
-  vec3 ring = studio(refl, uPhase) * mix(0.42, 1.0, uEnergy);
-  float wander = 2.3562 + 0.8 * uPhase + 0.45 * sin(0.55 * uPhase);
-  float aim = atan(f.y, f.x);
-  float hot = wander + atan(sin(aim - wander), cos(aim - wander)) * uPull;
-  float theta = atan(p.y, p.x);
-  float dh = atan(sin(theta - hot), cos(theta - hot));
-  float lobe = exp(-dh * dh / 0.18);
-  float back = exp(-pow(abs(dh) - 3.14159265, 2.0) / 0.12) * 0.35;
-  ring += uEnergy * (lobe * 1.1 + back) * (0.55 + 0.45 * n.z);
-  float fringe = exp(-pow(abs(dh) - 0.6, 2.0) / 0.05);
-  ring = mix(ring, film(dh * 0.55 + refl.x * 0.25), uEnergy * fringe * 0.5 * (0.45 + 0.55 * (1.0 - n.z)));
-  ring = clamp(ring, 0.0, 1.0);
-  float cover = clamp((hw - abs(d + hw)) / 0.6 + 0.5, 0.0, 1.0);
-  float edge = min(c.x - abs(p.x), c.y - abs(p.y));
-  float bloom = uGlow * uEnergy * (lobe + back * 0.5) * exp(-max(d, 0.0) / max(uPad * 0.3, 1.0)) * smoothstep(-1.0, 1.0, d) * smoothstep(0.0, uPad * 0.6, edge);
-  float ga = clamp(bloom * 0.7, 0.0, 1.0);
-  gl_FragColor = vec4(ring * cover + uGlowTint * ga * (1.0 - cover), cover + ga * (1.0 - cover));
+  float face = (0.5 - pos.y / max(size.y, 1.0)) * 0.8;
+  vec3 metal = studio(refl.xy + vec2(0.0, face), uTime) * uTint;
+  metal = mix(metal, film(refl.x * 0.9 + refl.y * 0.6 + uTime * 0.05) * (0.65 + 0.45 * metal), clamp((1.0 - n.z) * 0.35, 0.0, 0.3));
+  gl_FragColor = vec4(clamp(metal, 0.0, 1.0) * cover, cover);
 }`;
 
-/** The send button at 44 pt, its ring 2 pt wide and the bloom's room 14 pt each side: the Swift defaults. */
-const BUTTON = 44, RING = 2, ROOM = 14;
-const DRAFT = "Build a habit tracker";
+/** SF Symbols as 24-unit paths, filled, close to the glyphs the Swift scene uses. */
+const SYMBOLS: Record<string, string> = {
+  "play.fill": "M8 4.8v14.4c0 .9 1 1.4 1.7.9l11-7.2c.7-.4.7-1.4 0-1.8l-11-7.2C9 3.4 8 3.9 8 4.8Z",
+  "pause.fill": "M6.5 4.5h3a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-3a1 1 0 0 1-1-1v-13a1 1 0 0 1 1-1Zm8 0h3a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-3a1 1 0 0 1-1-1v-13a1 1 0 0 1 1-1Z",
+  plus: "M10.6 3.5h2.8v7.1h7.1v2.8h-7.1v7.1h-2.8v-7.1H3.5v-2.8h7.1Z",
+  checkmark: "M9.4 17.2 4.6 12.4l2-2 2.8 2.8 8-8 2 2Z",
+};
 
-/**
- * Metal Halo on an agent's prompt bar, as in the piece's preview: the draft types itself, the halo lights as there is
- * something to send, the send button sinks, the draft clears and the ring dims to plain steel, and round again. The
- * hot spot wanders round the chrome all the while, and a pointer over the button bends the ring toward it.
- */
-export function MetalHaloPreview() {
-  const s = 0.2;
+/** One Melt Button: the glass, and the canvas the kernel draws the molten symbol into. The clock is the Swift one. */
+function Melt({ symbol, size, s, tint, onTap }: { symbol: string; size: number; s: number; tint: [number, number, number]; onTap: () => void }) {
   const canvas = useRef<HTMLCanvasElement>(null);
-  const [typed, setTyped] = useState(DRAFT.length);
-  const [pressed, setPressed] = useState(false);
-  const touch = useRef<[number, number] | null>(null);
-  const state = useRef({ phase: 0, rate: 0, pull: 0, point: [0, 0] as [number, number], energy: 1 });
-  const active = typed > 0;
-  const live = useRef(active);
-  live.current = active;
-
+  const mask = useRef<{ canvas: HTMLCanvasElement; version: number } | null>(null);
+  const melt = useRef({ from: symbol, to: symbol, elapsed: 0.7, progress: 1, slump: 0, phase: 0 });
+  const pressed = useRef(false);
   useEffect(() => {
-    // Type 1.4 s, hold, press at 3.4 s, clear, rest dim, round again at 5.6 s.
-    let alive = true;
-    const timers: number[] = [];
-    const run = () => {
-      if (!alive) return;
-      setTyped(0);
-      for (let i = 1; i <= DRAFT.length; i++) timers.push(window.setTimeout(() => setTyped(i), 300 + i * 50));
-      timers.push(window.setTimeout(() => setPressed(true), 3400));
-      timers.push(window.setTimeout(() => { setPressed(false); setTyped(0); }, 3560));
-      timers.push(window.setTimeout(run, 5600));
+    const m = melt.current;
+    if (symbol === m.to) return;
+    if (m.progress >= 0.5) m.from = m.to;
+    m.to = symbol;
+    m.elapsed = 0;
+    m.progress = 0;
+  }, [symbol]);
+
+  useGL(canvas, MELT, (u, f) => {
+    const m = melt.current, still = reduced();
+    m.elapsed += f.dt;
+    const x = Math.min(m.elapsed / (still ? 0.25 : 0.7), 1);
+    m.progress = x * x * (3 - 2 * x);
+    if (m.progress >= 1) m.from = m.to;
+    m.slump = ease(m.slump, pressed.current && !still ? 1 : 0, f.dt, pressed.current ? 0.08 : 0.18);
+    if (!still) m.phase = (m.phase + f.dt) % PERIOD;
+    const p = m.progress, bump = still ? 0 : Math.sin(Math.PI * p), grow = still ? 0 : 0.35;
+    const k = f.w / size, sigma = size * (0.012 + 0.06 * bump + 0.02 * m.slump) * k;
+    // The mask, redrawn each frame: both symbols blurred into red, as SwiftUI blurs the layer before the effect.
+    const c = mask.current?.canvas ?? document.createElement("canvas");
+    const W = Math.max(1, Math.round(f.w * f.dpr)), H = Math.max(1, Math.round(f.h * f.dpr));
+    if (c.width !== W || c.height !== H) { c.width = W; c.height = H; }
+    const ctx = c.getContext("2d")!;
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.globalCompositeOperation = "source-over";
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, W, H);
+    ctx.globalCompositeOperation = "lighter";
+    const glyph = size * 0.44 * k * f.dpr;
+    const draw = (name: string, alpha: number, scale: number, dy: number) => {
+      if (alpha <= 0) return;
+      const path = new Path2D(SYMBOLS[name]);
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.shadowColor = "#f00";
+      ctx.shadowBlur = sigma * 2 * f.dpr;
+      ctx.shadowOffsetX = W * 2;
+      const unit = (glyph * scale) / 24;
+      ctx.translate(W / 2 - W * 2 - 12 * unit, H / 2 - 12 * unit + dy);
+      ctx.scale(unit, unit);
+      ctx.fillStyle = "#f00";
+      ctx.fill(path);
+      ctx.restore();
     };
-    timers.push(window.setTimeout(run, 2200));
-    return () => { alive = false; timers.forEach(clearTimeout); };
-  }, []);
-
-  useGL(canvas, HALO, (u, f) => {
-    const st = state.current, still = reduced();
-    st.rate = still ? 0 : ease(st.rate, 1, f.dt, 0.4);
-    st.phase = (st.phase + st.rate * f.dt) % PERIOD;
-    if (touch.current) st.point = touch.current;
-    st.pull = ease(st.pull, touch.current ? 1 : 0, f.dt, touch.current ? 0.1 : 0.3);
-    st.energy = ease(st.energy, live.current ? 1 : 0, f.dt, 0.16);
-    const k = f.w / (BUTTON + ROOM * 2);
-    u.f("uPad", ROOM * k);
-    u.f("uWidth", RING * k);
-    u.f("uPhase", st.phase);
-    u.f("uPull", st.pull);
-    u.v2("uTouch", st.point[0], st.point[1]);
-    u.f("uGlow", 1);
-    u.f("uEnergy", st.energy);
-    u.v3("uGlowTint", 0.86, 0.92, 1);
-  });
-
-  const onMove = (e: ReactPointerEvent) => {
-    const r = canvas.current?.getBoundingClientRect();
-    if (!r) return;
-    const x = e.clientX - r.left, y = e.clientY - r.top;
-    touch.current = x >= 0 && y >= 0 && x <= r.width && y <= r.height ? [x, y] : null;
-  };
+    if (m.from !== m.to) draw(m.from, Math.min(1, 2 * (1 - p)), 1 - grow * p, 0);
+    draw(m.to, m.from === m.to ? 1 : Math.min(1, 2 * p), m.from === m.to ? 1 - 0.06 * m.slump : 1 - grow + grow * p, glyph * 0.05 * m.slump);
+    mask.current = { canvas: c, version: (mask.current?.version ?? 0) + 1 };
+    u.f("uSigma", sigma);
+    u.f("uTime", m.phase);
+    u.v3("uTint", tint[0], tint[1], tint[2]);
+  }, mask);
 
   return (
-    <Stage onPointerMove={onMove} onPointerLeave={() => { touch.current = null; }}>
-      <div className="absolute inset-0 flex items-center justify-center">
-        <div style={{ width: pt(330, s), padding: pt(16, s), borderRadius: pt(26, s), background: "#1c1c1c" }}>
-          <div className="whitespace-nowrap" style={{ fontSize: pt(17, s), height: pt(24, s), color: typed ? groundHex.text : "rgba(244,243,239,0.4)" }}>
-            {typed ? DRAFT.slice(0, typed) : "Build anything…"}
-          </div>
-          <div className="flex items-center" style={{ marginTop: pt(16, s), gap: pt(10, s) }}>
-            <span className="flex items-center justify-center rounded-full" style={{ width: pt(BUTTON, s), height: pt(BUTTON, s), background: "#292929", fontSize: pt(22, s), color: "rgba(244,243,239,0.8)" }}>+</span>
-            <span className="flex-1" />
-            <span className="flex items-center rounded-full" style={{ height: pt(BUTTON, s), padding: `0 ${pt(16, s)}`, background: "#292929", fontSize: pt(15, s), color: "rgba(244,243,239,0.85)" }}>Agent</span>
-            <span className="relative" style={{ width: pt(BUTTON, s), height: pt(BUTTON, s), transform: `scale(${pressed ? 0.94 : 1})`, transition: "transform 140ms cubic-bezier(.2,.8,.2,1)" }}>
-              <span className="absolute inset-0 flex items-center justify-center rounded-full" style={{ background: "#0f0f0f" }}>
-                <svg viewBox="0 0 24 24" style={{ width: pt(19, s), height: pt(19, s) }} fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M12 19V5M5 12l7-7 7 7" /></svg>
-              </span>
-              <canvas ref={canvas} data-motion aria-hidden className="pointer-events-none absolute" style={{ inset: `-${pt(ROOM, s)}`, width: `calc(100% + ${pt(ROOM * 2, s)})`, height: `calc(100% + ${pt(ROOM * 2, s)})` }} />
-            </span>
-          </div>
-        </div>
+    <button
+      type="button"
+      aria-label={symbol}
+      onClick={onTap}
+      onPointerDown={() => { pressed.current = true; }}
+      onPointerUp={() => { pressed.current = false; }}
+      onPointerLeave={() => { pressed.current = false; }}
+      className="relative shrink-0 cursor-pointer active:scale-[0.96]"
+      style={{ width: pt(size, s), height: pt(size, s), transition: "transform 140ms cubic-bezier(.2,.8,.2,1)" }}
+    >
+      <Liquid radius="capsule" style={{ position: "absolute", inset: 0 }} />
+      <canvas ref={canvas} data-motion aria-hidden className="pointer-events-none absolute inset-0 h-full w-full" />
+    </button>
+  );
+}
+
+/** Melt Button: play melting into pause and an add pouring itself into a check, in turn, as in the piece's scene. A
+    click on either takes over from the script. */
+export function MeltButtonPreview() {
+  const s = 0.3;
+  const [playing, setPlaying] = useState(false);
+  const [added, setAdded] = useState(false);
+  const [scripted, setScripted] = useState(true);
+  useEffect(() => {
+    if (!scripted) return;
+    let n = 0;
+    const id = window.setInterval(() => { if (n++ % 2 === 0) setPlaying((v) => !v); else setAdded((v) => !v); }, 1000);
+    return () => clearInterval(id);
+  }, [scripted]);
+  return (
+    <Stage>
+      <div className="absolute inset-0 flex items-center justify-center" style={{ gap: pt(32, s) }}>
+        <Melt symbol={playing ? "pause.fill" : "play.fill"} size={88} s={s} tint={[1, 1, 1]} onTap={() => { setScripted(false); setPlaying((v) => !v); }} />
+        <Melt symbol={added ? "checkmark" : "plus"} size={88} s={s} tint={[1, 0.86, 0.62]} onTap={() => { setScripted(false); setAdded((v) => !v); }} />
       </div>
     </Stage>
   );
 }
 
-// MARK: - Chrome Badge
+// MARK: - Mercury Gauge
 
-const BADGE = COMMON + `
-uniform float uPad, uTime, uFlow, uGlint, uIridescence, uGlow;
-uniform vec3 uTint, uGlowTint;
+const GAUGE = COMMON + `
+uniform float uInset, uLevel, uRadius, uLean, uWobble, uTime;
+uniform vec3 uTint;
 
-vec3 studio(vec2 q, float t, float flow) {
-  q.y += flow * (0.07 * sin(q.x * 3.6 + t * 1.1) + 0.04 * sin(q.x * 8.2 - t * 1.6 + q.y * 2.0));
-  q.x += flow * 0.05 * sin(q.y * 4.0 - t * 0.8);
-  float y = q.y;
-  float sky = mix(0.86, 1.0, smoothstep(0.0, 0.7, y));
-  float fl = mix(0.6, 0.78, smoothstep(0.0, -0.8, y));
-  float v = mix(fl, sky, smoothstep(-0.015, 0.015, y));
-  v += 0.2 * exp(-pow((y - 0.04) / 0.03, 2.0));
-  v *= 1.0 - 0.3 * exp(-pow((y + 0.07) / 0.05, 2.0));
-  vec2 bx = q - vec2(-0.5, 0.55);
-  v += 0.35 * exp(-dot(bx, bx) / 0.05);
-  v *= mix(1.0, 0.45, smoothstep(0.75, 1.0, length(q)));
-  return vec3(v);
+float field(vec2 p, float left, float front) {
+  float x = p.x;
+  if (x > front) { x = front + (x - front) / (1.0 + uLean); }
+  vec2 q = vec2(x - clamp(x, left, front), p.y);
+  float d = length(q) - uRadius;
+  float onCap = smoothstep(front - uRadius * 2.0, front, p.x);
+  return d + uWobble * uRadius * 0.12 * onCap * sin(atan(q.y, q.x) * 3.0 + uTime * 19.0) * sin(uTime * 7.0);
 }
-
+vec3 studio(vec3 r) {
+  vec2 q = r.xy;
+  q.y += 0.05 * sin(q.x * 3.0 + uTime * 1.1);
+  float y = q.y + 0.1 * q.x - 0.1;
+  float sky = mix(0.72, 1.0, smoothstep(0.0, 0.8, y));
+  float fl = mix(0.28, 0.48, smoothstep(0.0, -0.9, y));
+  float v = mix(fl, sky, smoothstep(-0.08, 0.08, y));
+  v += 0.25 * exp(-pow((y - 0.08) / 0.05, 2.0));
+  v *= 1.0 - 0.3 * exp(-pow((y + 0.1) / 0.08, 2.0));
+  vec2 bx = q - vec2(-0.4, 0.6);
+  v += 0.8 * exp(-dot(bx, bx) / 0.02);
+  return v * mix(vec3(1.0, 0.98, 0.95), vec3(0.93, 0.96, 1.02), smoothstep(-0.2, 0.4, y));
+}
 void main() {
-  vec2 size = cssSize(), pos = cssPosition(), c = size * 0.5;
-  vec2 p = vec2(pos.x - c.x, c.y - pos.y);
-  vec2 b = max(c - uPad, vec2(1.0));
-  float r = min(b.x, b.y);
-  vec2 spine = vec2(clamp(p.x, -(b.x - r), b.x - r), 0.0);
-  vec2 away = p - spine;
-  float len = length(away);
-  float d = len - r;
-  vec2 g = len > 0.0001 ? away / len : vec2(0.0, 1.0);
-  float k = 1.0 - clamp(max(-d, 0.0) / (r * 0.55), 0.0, 1.0);
-  vec3 n = vec3(g * k, sqrt(max(1.0 - k * k, 0.0)));
-  n.xy += vec2(p.x / b.x * 0.08, p.y / b.y * 0.18) * (1.0 - k);
-  n = normalize(n);
+  vec2 size = cssSize(), pos = cssPosition();
+  vec2 p = vec2(pos.x, size.y * 0.5 - pos.y);
+  float left = uInset + uRadius;
+  float front = left + clamp(uLevel, 0.0, 1.0) * max(size.x - 2.0 * left, 0.0);
+  float d = field(p, left, front);
+  float sd = field(p + vec2(0.0, uRadius * 0.2), left, front);
+  float shadow = 0.3 * exp(-max(sd, 0.0) / (uRadius * 0.25)) * smoothstep(-1.0, 1.0, d);
+  if (d > 0.75) { gl_FragColor = vec4(0.0, 0.0, 0.0, shadow); return; }
+  const float e = 0.5;
+  vec2 g = vec2(field(p + vec2(e, 0.0), left, front) - field(p - vec2(e, 0.0), left, front), field(p + vec2(0.0, e), left, front) - field(p - vec2(0.0, e), left, front));
+  float gn = length(g);
+  g = gn > 0.0001 ? g / gn : vec2(0.0, 1.0);
+  float k = 1.0 - clamp(-d / uRadius, 0.0, 1.0);
+  k = k * k * (3.0 - 2.0 * k);
+  vec3 n = normalize(vec3(g * k, sqrt(max(1.0 - k * k, 0.0)) + 0.0001));
   vec3 refl = vec3(2.0 * n.z * n.x, 2.0 * n.z * n.y, 2.0 * n.z * n.z - 1.0);
-  vec3 metal = studio(refl.xy + vec2(0.0, p.y / b.y * 0.35 + 0.18), uTime, uFlow) * uTint;
-  metal = mix(metal, film(refl.x * 0.8 + refl.y * 0.5 + uTime * 0.05) * (0.75 + 0.35 * metal), uIridescence * pow(k, 1.4) * 0.5);
-  float u = p.x / b.x + p.y / b.y * 0.45;
-  metal += 0.55 * exp(-pow((u - uGlint) / 0.16, 2.0));
-  metal *= mix(1.0, 0.62, smoothstep(-1.4, 0.0, d));
-  metal = clamp(metal, 0.0, 1.0);
+  vec3 metal = clamp(studio(refl) * uTint * mix(1.0, 0.5, pow(k, 3.0)), 0.0, 1.0);
   float cover = clamp(-d / 0.6 + 0.5, 0.0, 1.0);
-  float lean = 0.55 + 0.45 * dot(normalize(p + vec2(0.0001)), vec2(-0.7071, 0.7071));
-  float edge = min(c.x - abs(p.x), c.y - abs(p.y));
-  float bloom = uGlow * lean * exp(-max(d, 0.0) / max(uPad * 0.3, 1.0)) * smoothstep(-1.0, 1.0, d) * smoothstep(0.0, uPad * 0.6, edge);
-  float ga = clamp(bloom * 0.55, 0.0, 1.0);
-  gl_FragColor = vec4(metal * cover + uGlowTint * ga * (1.0 - cover), cover + ga * (1.0 - cover));
+  gl_FragColor = vec4(metal * cover, cover + shadow * (1.0 - cover));
 }`;
 
-/** The Swift `ChromeBadge.Finish` presets the preview shows, same values. */
-const FINISHES = {
-  chrome: { tint: [1, 1, 1], ink: "#141414", engrave: "rgba(255,255,255,0.55)", iridescence: 0.6, glow: [0.8, 0.88, 1] },
-  gold: { tint: [1, 0.8, 0.46], ink: "#2b1c05", engrave: "rgba(255,255,255,0.55)", iridescence: 0.22, glow: [1, 0.84, 0.6] },
-} as const;
+/** The tube's height in points; the column's radius and inset follow from it, as in Swift. */
+const TUBE = 26;
 
-/** A sweep crosses in 1.1 s, a beat after the badge appears, then every 5 s: the Swift clock. */
-function glintAt(elapsed: number): number {
-  const t = (elapsed - 0.35) % 5;
-  if (elapsed <= 0.35 || t >= 1.1) return 9;
-  const x = t / 1.1;
-  return -1.6 + 3.2 * x * x * (3 - 2 * x);
+/** The level's spring and its front's lean and ring, stepped at 240 Hz exactly as `GaugeFlow` steps them. */
+function stepGauge(g: { level: number; v: number; lean: number; wobble: number; ring: number }, target: number, dt: number, still: boolean) {
+  let left = dt;
+  while (left > 0) {
+    const h = Math.min(left, 1 / 240);
+    left -= h;
+    const before = g.v;
+    if (still) g.v = (target - g.level) * 14;
+    else g.v += (-(g.level - target) * 196 - g.v * 28) * h;
+    g.level += g.v * h;
+    g.lean += ((still ? 0 : Math.min(Math.max(g.v * 0.9, -0.35), 0.6)) - g.lean) * (1 - Math.exp(-h / 0.05));
+    const impact = still ? 0 : Math.min(Math.abs(g.v - before) / h / 40, 1);
+    if (impact > g.wobble) { g.wobble = impact; g.ring = 0; }
+    g.wobble *= Math.exp(-h / 0.35);
+    g.ring += h;
+  }
 }
 
-function Badge({ label, finish, size, s, offset = 0, icon }: { label: string; finish: keyof typeof FINISHES; size: number; s: number; offset?: number; icon?: ReactNode }) {
-  const f = FINISHES[finish];
+function Gauge({ title, value, s }: { title: string; value: number; s: number }) {
   const canvas = useRef<HTMLCanvasElement>(null);
-  const clock = useRef({ phase: 0, elapsed: -offset });
-  useGL(canvas, BADGE, (u, fr) => {
-    const c = clock.current, still = reduced();
-    if (!still) { c.phase = (c.phase + fr.dt) % PERIOD; c.elapsed += fr.dt; }
-    // The canvas is the capsule (1.85 x the text) plus 1.2 x the text of room on each side.
-    u.f("uPad", fr.h * (1.2 / (1.85 + 2.4)));
-    u.f("uTime", c.phase);
-    u.f("uFlow", still ? 0 : 1);
-    u.f("uGlint", still ? 9 : glintAt(c.elapsed));
-    u.v3("uTint", f.tint[0], f.tint[1], f.tint[2]);
-    u.f("uIridescence", f.iridescence);
-    u.f("uGlow", 1);
-    u.v3("uGlowTint", f.glow[0], f.glow[1], f.glow[2]);
+  const flow = useRef({ level: value, v: 0, lean: 0, wobble: 0, ring: 0 });
+  const target = useRef(value);
+  target.current = value;
+  useGL(canvas, GAUGE, (u, f) => {
+    const g = flow.current, k = f.h / TUBE;
+    stepGauge(g, target.current, f.dt, reduced());
+    u.f("uInset", TUBE * 0.16 * k);
+    u.f("uRadius", (TUBE * 0.5 - TUBE * 0.16) * k);
+    u.f("uLevel", g.level);
+    u.f("uLean", g.lean);
+    u.f("uWobble", g.wobble);
+    u.f("uTime", g.ring % (2 * Math.PI));
+    u.v3("uTint", 0.94, 0.96, 1);
   });
   return (
-    <span className="relative inline-flex items-center whitespace-nowrap" style={{ height: pt(size * 1.85, s), padding: `0 ${pt(size * 0.72, s)}`, gap: pt(size * 0.3, s), fontSize: pt(size, s), color: f.ink, textShadow: `0 ${pt(0.75, s)} 0 ${f.engrave}` }}>
-      <canvas ref={canvas} data-motion aria-hidden className="pointer-events-none absolute" style={{ left: `-${pt(size * 1.2, s)}`, top: `-${pt(size * 1.2, s)}`, width: `calc(100% + ${pt(size * 2.4, s)})`, height: `calc(100% + ${pt(size * 2.4, s)})` }} />
-      {icon ? <span className="relative">{icon}</span> : null}
-      <span className="relative">{label}</span>
-    </span>
+    <div className="w-full">
+      <div className="flex items-baseline justify-between" style={{ fontSize: pt(20, s), marginBottom: pt(10, s) }}>
+        <span>{title}</span>
+        <span className="tabular-nums" style={{ color: groundHex.muted }}>{Math.round(value * 100)}%</span>
+      </div>
+      <div className="relative" style={{ height: pt(TUBE, s) }}>
+        <Liquid radius="capsule" style={{ position: "absolute", inset: 0 }} />
+        <canvas ref={canvas} data-motion aria-hidden className="pointer-events-none absolute inset-0 h-full w-full" />
+      </div>
+    </div>
   );
 }
 
-/** Chrome Badge: "New" in chrome beside a setting and "Pro" in gold, the glint sweeping across each in turn and the
-    reflections rippling, on the dark ground the piece's preview uses. */
-export function ChromeBadgePreview() {
-  const s = 0.2;
-  const sparkles = (
-    <svg viewBox="0 0 24 24" style={{ width: pt(17, s), height: pt(17, s) }} fill="currentColor" aria-hidden><path d="M10 3c.5 4 2.4 6.3 7 7-4.6.7-6.5 3-7 7-.5-4-2.4-6.3-7-7 4.6-.7 6.5-3 7-7ZM18.5 13c.25 2 1.2 3.1 3.5 3.5-2.3.4-3.25 1.5-3.5 3.5-.25-2-1.2-3.1-3.5-3.5 2.3-.4 3.25-1.5 3.5-3.5Z" /></svg>
-  );
+/** Mercury Gauge: storage and battery stepping between values, as in the piece's scene, so the mercury runs with its
+    front leaning into the run, lands on the value without passing it, and rings. */
+export function MercuryGaugePreview() {
+  const s = 0.32;
+  const storage = [0.72, 0.31, 0.9, 0.12], battery = [0.34, 0.86, 0.05, 0.6];
+  const [step, setStep] = useState(0);
+  useEffect(() => {
+    const id = window.setInterval(() => setStep((n) => n + 1), 1600);
+    return () => clearInterval(id);
+  }, []);
   return (
     <Stage>
-      <div className="absolute inset-0 flex flex-col items-start justify-center" style={{ paddingLeft: "14cqw", gap: pt(30, s) }}>
-        <div className="flex items-center" style={{ gap: pt(14, s) }}>
-          <span style={{ fontSize: pt(34, s), color: "rgba(244,243,239,0.8)" }}>Live mode</span>
-          <Badge label="New" finish="chrome" size={18} s={s} />
-        </div>
-        <div className="flex items-center" style={{ gap: pt(14, s) }}>
-          <span style={{ fontSize: pt(34, s), color: "rgba(244,243,239,0.8)" }}>Agents</span>
-          <Badge label="Pro" finish="gold" size={18} s={s} offset={2.5} icon={sparkles} />
-        </div>
+      <div className="absolute inset-0 flex flex-col justify-center" style={{ padding: "0 12cqw", gap: pt(30, s) }}>
+        <Gauge title="Storage" value={storage[step % storage.length]} s={s} />
+        <Gauge title="Battery" value={battery[step % battery.length]} s={s} />
       </div>
     </Stage>
   );

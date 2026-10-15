@@ -3,7 +3,6 @@
   "description": "Reactions, ratings, status morphs, skeletons and outcomes.",
   "defaultOpen": false,
   "pages": [
-    "chrome-badge",
     "outcome-screen",
     "rating-scrub",
     "reaction-toggle",

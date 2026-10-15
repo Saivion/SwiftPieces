@@ -4734,6 +4734,86 @@
     }
   },
   {
+    "url": "/docs/components/controls/melt-button",
+    "title": "Melt Button",
+    "description": "A round liquid glass button whose SF Symbol is molten metal, drawn by a Metal layer shader. Change the symbol and the old one melts into a blob and pours itself into the new one, play into pause, plus into a check; press it and the metal slumps under your finger. The shader cuts a blurred field of both symbols at its surface and shades the inside as chrome, so the morph works between any two symbols.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Components",
+      "Categories · 14",
+      "Controls"
+    ],
+    "structuredData": {
+      "contents": [
+        {
+          "content": "A glass button with a liquid metal symbol that melts from one symbol into the next. Copy `MeltButton.metal` alongside this file; its `meltButton` kernel compiles into your app's default Metal library. Drive `systemImage` from state, `isPlaying ? \"pause.fill\" : \"play.fill\"`, and every change melts the old symbol into the new one. Filled symbols melt best: the metal is cut from the symbol's area, so hairline strokes thin away. VoiceOver reads `label`, and the button acts on `action` like any `Button`."
+        },
+        {
+          "heading": "parameters",
+          "content": "Parameter"
+        },
+        {
+          "heading": "parameters",
+          "content": "Description"
+        },
+        {
+          "heading": "parameters",
+          "content": "`label`"
+        },
+        {
+          "heading": "parameters",
+          "content": "What the button does, for VoiceOver and Voice Control. Update it with the symbol."
+        },
+        {
+          "heading": "parameters",
+          "content": "`systemImage`"
+        },
+        {
+          "heading": "parameters",
+          "content": "The SF Symbol to show. A change melts into it."
+        },
+        {
+          "heading": "parameters",
+          "content": "`size`"
+        },
+        {
+          "heading": "parameters",
+          "content": "The button's diameter in points; scales with Dynamic Type."
+        },
+        {
+          "heading": "parameters",
+          "content": "`tint`"
+        },
+        {
+          "heading": "parameters",
+          "content": "The metal's colour: white (default) is chrome; a warm white reads as gold."
+        },
+        {
+          "heading": "parameters",
+          "content": "`action`"
+        },
+        {
+          "heading": "parameters",
+          "content": "What a tap does."
+        }
+      ],
+      "headings": [
+        {
+          "id": "usage",
+          "content": "Usage"
+        },
+        {
+          "id": "parameters",
+          "content": "Parameters"
+        },
+        {
+          "id": "source",
+          "content": "Source"
+        }
+      ]
+    }
+  },
+  {
     "url": "/docs/components/controls/mercury-toggle",
     "title": "Mercury Toggle",
     "description": "A switch whose thumb is a bead of mercury in a liquid glass track, drawn by a Metal color shader. Two drops melt into one through a smooth minimum, so a flip stretches the bead into a slug that pulls itself round at the far end and rings for a moment; dragging it drags the liquid after your finger. The track fills with the brand red when on.",
@@ -4787,102 +4867,6 @@
         {
           "heading": "parameters",
           "content": "Shows the title to the leading side, the way `Toggle` lays out in a row."
-        }
-      ],
-      "headings": [
-        {
-          "id": "usage",
-          "content": "Usage"
-        },
-        {
-          "id": "parameters",
-          "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
-        }
-      ]
-    }
-  },
-  {
-    "url": "/docs/components/controls/metal-halo",
-    "title": "Metal Halo",
-    "description": "A ring of liquid metal around any button, drawn by a Metal color shader. A hot spot wanders around the chrome with a thin-film fringe and a soft bloom, the reflections ripple like mercury, and a finger or pointer bends the ring toward it and draws the hot spot to where it touches. Dims to plain steel when the control is inactive.",
-    "breadcrumbs": [
-      "SwiftPieces",
-      "Components",
-      "Categories · 14",
-      "Controls"
-    ],
-    "structuredData": {
-      "contents": [
-        {
-          "content": "A liquid metal ring for a button. Apply with `.metalHalo()`, and copy `MetalHalo.metal` alongside this file; its `metalHalo` kernel compiles into your app's default Metal library. The ring is drawn just inside the outline you name, so it never changes the layout, and the bloom spills out around it. Put it on the label inside a `Button` so the ring sinks with the press. It draws nothing you can hit and adds no accessibility element: the button keeps its own label."
-        },
-        {
-          "heading": "parameters",
-          "content": "Parameter"
-        },
-        {
-          "heading": "parameters",
-          "content": "Description"
-        },
-        {
-          "heading": "parameters",
-          "content": "`outline`"
-        },
-        {
-          "heading": "parameters",
-          "content": "The shape to ring: `.circle` (default), `.capsule`, or `.rounded(_:)` with a corner radius."
-        },
-        {
-          "heading": "parameters",
-          "content": "`width`"
-        },
-        {
-          "heading": "parameters",
-          "content": "Ring width in points."
-        },
-        {
-          "heading": "parameters",
-          "content": "`glow`"
-        },
-        {
-          "heading": "parameters",
-          "content": "Bloom strength around the hot spot, 0 for none."
-        },
-        {
-          "heading": "parameters",
-          "content": "`glowTint`"
-        },
-        {
-          "heading": "parameters",
-          "content": "The bloom's colour. `nil` (default) is a cool white in dark mode and a light blue in light mode."
-        },
-        {
-          "heading": "parameters",
-          "content": "`speed`"
-        },
-        {
-          "heading": "parameters",
-          "content": "How fast the hot spot wanders. 0 holds it up and to the left."
-        },
-        {
-          "heading": "parameters",
-          "content": "`isActive`"
-        },
-        {
-          "heading": "parameters",
-          "content": "When false the ring dims to plain steel and the bloom goes out, for a send button with nothing to send. The change eases."
-        },
-        {
-          "heading": "parameters",
-          "content": "`bendsToTouch`"
-        },
-        {
-          "heading": "parameters",
-          "content": "The ring bulges toward a finger or pointer on it, and the hot spot leans to where it touches."
         }
       ],
       "headings": [
@@ -5386,6 +5370,86 @@
           "id": "notes",
           "content": "Notes"
         },
+        {
+          "id": "usage",
+          "content": "Usage"
+        },
+        {
+          "id": "parameters",
+          "content": "Parameters"
+        },
+        {
+          "id": "source",
+          "content": "Source"
+        }
+      ]
+    }
+  },
+  {
+    "url": "/docs/components/data/mercury-gauge",
+    "title": "Mercury Gauge",
+    "description": "A level gauge filled with liquid metal, drawn by a Metal color shader inside a liquid glass tube. When the value changes the mercury runs to it with its front leaning into the run, lands without overshooting the true value, and rings for a moment; at zero it gathers into a single drop. For storage, battery, goals and uploads, with a title and a rolling percentage.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Components",
+      "Categories · 14",
+      "Data"
+    ],
+    "structuredData": {
+      "contents": [
+        {
+          "content": "A gauge of liquid metal in a glass tube. Copy `MercuryGauge.metal` alongside this file; its `mercuryGauge` kernel compiles into your app's default Metal library. The level itself never overshoots, so the gauge never shows a value that isn't true; only the shape of the mercury's front leans and rings. VoiceOver reads the title and the percentage."
+        },
+        {
+          "heading": "parameters",
+          "content": "Parameter"
+        },
+        {
+          "heading": "parameters",
+          "content": "Description"
+        },
+        {
+          "heading": "parameters",
+          "content": "`title`"
+        },
+        {
+          "heading": "parameters",
+          "content": "What the gauge measures, shown above the tube."
+        },
+        {
+          "heading": "parameters",
+          "content": "`value`"
+        },
+        {
+          "heading": "parameters",
+          "content": "The current value."
+        },
+        {
+          "heading": "parameters",
+          "content": "`range`"
+        },
+        {
+          "heading": "parameters",
+          "content": "The values the tube spans, `0...1` by default. Values outside it pin to the ends."
+        },
+        {
+          "heading": "parameters",
+          "content": "`valueText`"
+        },
+        {
+          "heading": "parameters",
+          "content": "The readout beside the title. `nil` shows the percentage of the range, rolling as it changes."
+        },
+        {
+          "heading": "parameters",
+          "content": "`tint`"
+        },
+        {
+          "heading": "parameters",
+          "content": "The metal's colour: a cool silver by default."
+        }
+      ],
+      "headings": [
         {
           "id": "usage",
           "content": "Usage"
@@ -5950,102 +6014,6 @@
           "id": "notes",
           "content": "Notes"
         },
-        {
-          "id": "usage",
-          "content": "Usage"
-        },
-        {
-          "id": "parameters",
-          "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
-        }
-      ]
-    }
-  },
-  {
-    "url": "/docs/components/feedback/chrome-badge",
-    "title": "Chrome Badge",
-    "description": "A capsule badge in polished liquid metal, drawn by a Metal color shader. Its bevel and gently domed face reflect a studio whose horizon ripples like mercury, a thin-film fringe colours the edge, a glint sweeps across now and then, and a soft bloom lights the ground around it. Chrome, gold, graphite and brand red finishes, with engraved semibold ink.",
-    "breadcrumbs": [
-      "SwiftPieces",
-      "Components",
-      "Categories · 14",
-      "Feedback"
-    ],
-    "structuredData": {
-      "contents": [
-        {
-          "content": "A small label in liquid metal, for \"New\", \"Pro\" or \"Beta\". Copy `ChromeBadge.metal` alongside this file; its `chromeBadge` kernel compiles into your app's default Metal library. The metal is drawn behind the label, so the badge sizes to its text and scales with Dynamic Type. VoiceOver reads the label alone; the metal is decoration."
-        },
-        {
-          "heading": "parameters",
-          "content": "Parameter"
-        },
-        {
-          "heading": "parameters",
-          "content": "Description"
-        },
-        {
-          "heading": "parameters",
-          "content": "`label`"
-        },
-        {
-          "heading": "parameters",
-          "content": "The badge's text."
-        },
-        {
-          "heading": "parameters",
-          "content": "`systemImage`"
-        },
-        {
-          "heading": "parameters",
-          "content": "An optional SF Symbol before the text."
-        },
-        {
-          "heading": "parameters",
-          "content": "`finish`"
-        },
-        {
-          "heading": "parameters",
-          "content": "The metal and its ink: `.chrome` (default), `.gold`, `.graphite`, or `.signal`, the brand red. Or your own `Finish(tint:ink:iridescence:glowTint:)`."
-        },
-        {
-          "heading": "parameters",
-          "content": "`size`"
-        },
-        {
-          "heading": "parameters",
-          "content": "Text size in points; the capsule derives from it and scales with Dynamic Type."
-        },
-        {
-          "heading": "parameters",
-          "content": "`glow`"
-        },
-        {
-          "heading": "parameters",
-          "content": "Bloom strength around the badge, 0 for none."
-        },
-        {
-          "heading": "parameters",
-          "content": "`flow`"
-        },
-        {
-          "heading": "parameters",
-          "content": "How fast the reflections ripple. 0 holds them still."
-        },
-        {
-          "heading": "parameters",
-          "content": "`sweeps`"
-        },
-        {
-          "heading": "parameters",
-          "content": "A glint crosses the badge when it appears and every few seconds after."
-        }
-      ],
-      "headings": [
         {
           "id": "usage",
           "content": "Usage"

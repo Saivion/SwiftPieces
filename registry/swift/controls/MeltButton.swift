@@ -1,256 +1,212 @@
 // swiftpieces:
-// title: Metal Halo
-// description: A ring of liquid metal around any button, drawn by a Metal color shader. A hot spot wanders around the chrome with a thin-film fringe and a soft bloom, the reflections ripple like mercury, and a finger or pointer bends the ring toward it and draws the hot spot to where it touches. Dims to plain steel when the control is inactive.
+// title: Melt Button
+// description: A round liquid glass button whose SF Symbol is molten metal, drawn by a Metal layer shader. Change the symbol and the old one melts into a blob and pours itself into the new one, play into pause, plus into a check; press it and the metal slumps under your finger. The shader cuts a blurred field of both symbols at its surface and shades the inside as chrome, so the morph works between any two symbols.
 // category: controls
 // minIOSVersion: "17.0"
 // version: "1.0.0"
 // added: "2026-10-15"
-// tags: [button, shader, metal, chrome, halo, glow, touch]
-// shaders: [MetalHalo.metal]
+// tags: [button, symbol, morph, shader, metal, liquid, glass, chrome]
+// shaders: [MeltButton.metal]
 
 import SwiftUI
 
-/// A liquid metal ring for a button. Apply with `.metalHalo()`, and copy `MetalHalo.metal` alongside this file; its `metalHalo` kernel compiles into your app's default Metal library.
+/// A glass button with a liquid metal symbol that melts from one symbol into the next. Copy `MeltButton.metal` alongside this file; its `meltButton` kernel compiles into your app's default Metal library.
 ///
-/// The ring is drawn just inside the outline you name, so it never changes the layout, and the bloom spills out around it.
-/// Put it on the label inside a `Button` so the ring sinks with the press. It draws nothing you can hit and adds no
-/// accessibility element: the button keeps its own label.
+/// Drive `systemImage` from state, `isPlaying ? "pause.fill" : "play.fill"`, and every change melts the old symbol into
+/// the new one. Filled symbols melt best: the metal is cut from the symbol's area, so hairline strokes thin away.
+/// VoiceOver reads `label`, and the button acts on `action` like any `Button`.
 ///
 /// - Parameters:
-///   - outline: The shape to ring: `.circle` (default), `.capsule`, or `.rounded(_:)` with a corner radius.
-///   - width: Ring width in points.
-///   - glow: Bloom strength around the hot spot, 0 for none.
-///   - glowTint: The bloom's colour. `nil` (default) is a cool white in dark mode and a light blue in light mode.
-///   - speed: How fast the hot spot wanders. 0 holds it up and to the left.
-///   - isActive: When false the ring dims to plain steel and the bloom goes out, for a send button with nothing to send. The change eases.
-///   - bendsToTouch: The ring bulges toward a finger or pointer on it, and the hot spot leans to where it touches.
-public struct MetalHalo: ViewModifier {
-    /// The outline the ring follows.
-    public enum Outline: Sendable, Equatable {
-        case circle
-        case capsule
-        case rounded(CGFloat)
+///   - label: What the button does, for VoiceOver and Voice Control. Update it with the symbol.
+///   - systemImage: The SF Symbol to show. A change melts into it.
+///   - size: The button's diameter in points; scales with Dynamic Type.
+///   - tint: The metal's colour: white (default) is chrome; a warm white reads as gold.
+///   - action: What a tap does.
+public struct MeltButton: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @ScaledMetric private var size: CGFloat = 64
+    @State private var clock = MeltClock()
+    /// The symbol melting away and the one forming; equal at rest.
+    @State private var from: String
+    @State private var to: String
+    /// When the last melt began. The timeline runs from then until the metal has set.
+    @State private var meltedAt: Date?
+    @State private var pressed = false
 
-        /// The corner radius the shader takes; negative means half the short side.
-        var radius: CGFloat {
-            switch self {
-            case .circle, .capsule: -1
-            case .rounded(let r): max(r, 0)
+    private let label: String
+    private let systemImage: String
+    private let tint: Color
+    private let action: () -> Void
+
+    public init(_ label: String, systemImage: String, size: CGFloat = 64, tint: Color = .white, action: @escaping () -> Void) {
+        self.label = label
+        self.systemImage = systemImage
+        self.tint = tint
+        self.action = action
+        _size = ScaledMetric(wrappedValue: size, relativeTo: .title)
+        _from = State(initialValue: systemImage)
+        _to = State(initialValue: systemImage)
+    }
+
+    public var body: some View {
+        Button(action: action) {
+            ZStack {
+                Circle()
+                    .fill(.clear)
+                    .pieceLiquid(Circle())
+                // Runs while the metal moves and pauses once it has set, so a resting button draws once.
+                TimelineView(.animation(minimumInterval: 1.0 / 60, paused: meltedAt == nil && !pressed)) { context in
+                    let frame = clock.advance(to: context.date, melting: meltedAt != nil, pressed: pressed, still: reduceMotion)
+                    MeltLayer(from: from, to: to, progress: frame.progress, slump: frame.slump, swells: !reduceMotion, size: size, time: frame.time, tint: tint)
+                }
+            }
+            .frame(width: size, height: size)
+        }
+        .buttonStyle(MeltPressStyle(pressed: $pressed))
+        .accessibilityLabel(label)
+        .sensoryFeedback(.impact(flexibility: .soft), trigger: systemImage)
+        .onChange(of: systemImage) { _, new in
+            // Mid-melt, start from whichever symbol is nearer to showing, so a quick run of changes never jumps.
+            if clock.progress >= 0.5 { from = to }
+            to = new
+            clock.restart()
+            meltedAt = .now
+        }
+        .task(id: meltedAt) {
+            guard let melt = meltedAt else { return }
+            // The melt takes 0.7 s; the ripple settles a little after.
+            do { try await Task.sleep(for: .seconds(1.2)) } catch { return }
+            if meltedAt == melt {
+                from = to
+                meltedAt = nil
             }
         }
     }
-
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @Environment(\.colorScheme) private var colorScheme
-    @State private var clock = HaloClock()
-    /// Where a finger or pointer is, in the content's coordinates. `nil` while nothing touches.
-    @State private var touch: CGPoint?
-    /// When the last touch lifted. The clock runs on for a moment after it, so the bend eases out before the timeline
-    /// pauses.
-    @State private var releasedAt: Date?
-
-    private let outline: Outline
-    private let width: CGFloat
-    private let glow: CGFloat
-    private let glowTint: Color?
-    private let speed: Double
-    private let isActive: Bool
-    private let bendsToTouch: Bool
-
-    public init(outline: Outline = .circle, width: CGFloat = 2, glow: CGFloat = 1, glowTint: Color? = nil, speed: Double = 1, isActive: Bool = true, bendsToTouch: Bool = true) {
-        self.outline = outline
-        self.width = max(width, 1)
-        self.glow = max(glow, 0)
-        self.glowTint = glowTint
-        self.speed = speed
-        self.isActive = isActive
-        self.bendsToTouch = bendsToTouch
-    }
-
-    public func body(content: Content) -> some View {
-        let motion = PieceMotion(reduceMotion: reduceMotion)
-        // The bloom needs room outside the outline: a little more than the ring's own width, at least 14 points.
-        let pad = max(14, width * 6)
-        let tint = glowTint ?? (colorScheme == .dark ? Color(red: 0.86, green: 0.92, blue: 1) : Color(red: 0.55, green: 0.7, blue: 1))
-        content
-            .overlay {
-                HaloSurface(
-                    clock: clock,
-                    energy: isActive ? 1 : 0,
-                    pad: pad,
-                    radius: outline.radius,
-                    width: width,
-                    glow: glow,
-                    tint: tint,
-                    speed: speed,
-                    drifting: motion.allowsAmbient,
-                    touch: touch.map { CGPoint(x: $0.x + pad, y: $0.y + pad) },
-                    running: (motion.allowsAmbient && speed != 0) || touch != nil || releasedAt != nil
-                )
-                .padding(-pad)
-                .animation(motion.reveal, value: isActive)
-                .allowsHitTesting(false)
-                .accessibilityHidden(true)
-            }
-            .simultaneousGesture(
-                DragGesture(minimumDistance: 0)
-                    .onChanged { value in if bendsToTouch { touch = value.location } }
-                    .onEnded { _ in lift() },
-                including: bendsToTouch ? .all : .subviews
-            )
-            .onContinuousHover { phase in
-                guard bendsToTouch else { return }
-                switch phase {
-                case .active(let point): touch = point
-                case .ended: lift()
-                }
-            }
-            .task(id: releasedAt) {
-                guard let lifted = releasedAt else { return }
-                // Five of the bend's 0.3 s time constants: at rest to the eye.
-                do { try await Task.sleep(for: .seconds(1.5)) } catch { return }
-                if releasedAt == lifted { releasedAt = nil }
-            }
-    }
-
-    private func lift() {
-        guard touch != nil else { return }
-        touch = nil
-        releasedAt = .now
-    }
 }
 
-public extension View {
-    /// Rings this view with liquid metal. See `MetalHalo` for the parameters.
-    func metalHalo(_ outline: MetalHalo.Outline = .circle, width: CGFloat = 2, glow: CGFloat = 1, glowTint: Color? = nil, speed: Double = 1, isActive: Bool = true, bendsToTouch: Bool = true) -> some View {
-        modifier(MetalHalo(outline: outline, width: width, glow: glow, glowTint: glowTint, speed: speed, isActive: isActive, bendsToTouch: bendsToTouch))
-    }
-}
-
-/// The shader layer. `energy` animates, so turning the control off dims the metal and the bloom together.
-private struct HaloSurface: View, Animatable {
-    let clock: HaloClock
-    var energy: Double
-    let pad: CGFloat
-    let radius: CGFloat
-    let width: CGFloat
-    let glow: CGFloat
+/// The symbols, blurred together, cut and shaded as metal. The outgoing symbol shrinks and fades as the incoming one
+/// grows in, and the blur swells mid-melt, so the two pool into one blob before the new shape draws itself out of it.
+private struct MeltLayer: View {
+    let from: String
+    let to: String
+    let progress: Double
+    let slump: Double
+    /// Under Reduce Motion the symbols cross-fade without the blur's swell or the change of scale.
+    let swells: Bool
+    let size: CGFloat
+    let time: Float
     let tint: Color
-    let speed: Double
-    let drifting: Bool
-    let touch: CGPoint?
-    let running: Bool
-
-    nonisolated var animatableData: Double {
-        get { energy }
-        set { energy = newValue }
-    }
 
     var body: some View {
-        // At most 60 fps: the hot spot travels well under a point a frame, so 120 Hz adds cost, not smoothness.
-        TimelineView(.animation(minimumInterval: 1.0 / 60, paused: !running)) { context in
-            let frame = clock.advance(to: context.date, speed: speed, holds: !drifting, touch: touch)
-            let pad = pad, radius = radius, width = width, tint = tint
-            let glow = Float(glow), energy = Float(energy)
-            Rectangle()
-                .visualEffect { content, proxy in
-                    content.colorEffect(
-                        ShaderLibrary.metalHalo(
-                            .float2(proxy.size),
-                            .float(pad),
-                            .float(radius),
-                            .float(width),
-                            .float(frame.phase),
-                            .float2(frame.point),
-                            .float(frame.pull),
-                            .float(glow),
-                            .float(energy),
-                            .color(tint)
-                        )
-                    )
-                }
+        let p = progress
+        // Both at full weight through the middle, so the two shapes merge rather than thin out together.
+        let outgoing = min(1, 2 * (1 - p)), incoming = min(1, 2 * p)
+        let bump = swells ? sin(Double.pi * p) : 0
+        let grow = swells ? 0.35 : 0
+        // At rest the blur is small, which rounds the symbol's corners into liquid; it swells mid-melt and under a press.
+        let sigma = size * (0.012 + 0.06 * bump + 0.02 * slump)
+        let glyph = size * 0.44
+        let tint = tint
+        ZStack {
+            if from != to {
+                Image(systemName: from)
+                    .opacity(outgoing)
+                    .scaleEffect(1 - grow * p)
+            }
+            Image(systemName: to)
+                .opacity(from == to ? 1 : incoming)
+                .scaleEffect(from == to ? 1 - 0.06 * slump : 1 - grow + grow * p)
+                // A press slumps the metal a little toward the bottom, like a drop sagging.
+                .offset(y: glyph * 0.05 * slump)
         }
+        .font(.system(size: glyph))
+        .fontWeight(.semibold)
+        .foregroundStyle(.white)
+        .frame(width: size, height: size)
+        .blur(radius: sigma)
+        .visualEffect { content, proxy in
+            content.layerEffect(
+                ShaderLibrary.meltButton(.float2(proxy.size), .float(sigma), .float(time), .color(tint)),
+                maxSampleOffset: CGSize(width: sigma, height: sigma)
+            )
+        }
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
     }
 }
 
-/// Per-frame state the timeline advances: the wander phase, its rate, and how hard the finger pulls. Not observed, so a
-/// frame never invalidates the view, and a repeated date advances nothing.
-@MainActor private final class HaloClock {
-    /// MetalHalo.metal's rates on the phase (0.8 and 0.55 for the wander, 0.9 and 1.4 for the ripple) all repeat after
-    /// 40π, so the phase wraps there without a seam and stays small for Float. Update it if those rates change.
+/// The glass press, plus the pressed state handed to the metal so it can slump.
+private struct MeltPressStyle: ButtonStyle {
+    @Binding var pressed: Bool
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .pieceLiquidPress(configuration.isPressed)
+            .onChange(of: configuration.isPressed) { _, isPressed in pressed = isPressed }
+    }
+}
+
+/// Per-frame state: the melt's progress, how far a press has slumped the metal, and the ripple clock. Not observed,
+/// so a frame never invalidates the view, and a repeated date advances nothing.
+@MainActor private final class MeltClock {
+    /// MeltButton.metal's rates on the time (1.3 and 1.9 for the ripple, 0.05 for the film) all repeat after 40π.
     private static let period = 40 * Double.pi
+    /// How long a melt takes, in seconds.
+    private static let duration = 0.7
+    private(set) var progress = 1.0
+    private var elapsed = 0.0
+    private var slump = 0.0
     private var phase = 0.0
-    private var rate = 0.0
-    private var pull = 0.0
-    private var point = CGPoint.zero
     private var last: Date?
 
     nonisolated init() {}
 
-    /// Advances to `date`. The phase starts at 0, the hot spot up and to the left, on the first frame.
-    func advance(to date: Date, speed: Double, holds: Bool, touch: CGPoint?) -> (phase: Float, pull: Float, point: CGPoint) {
-        // At most a tenth of a second, so resuming after a pause or the background never leaps.
+    /// Starts a new melt from the first frame.
+    func restart() {
+        elapsed = 0
+        progress = 0
+    }
+
+    func advance(to date: Date, melting: Bool, pressed: Bool, still: Bool) -> (progress: Double, slump: Double, time: Float) {
         let dt = last.map { min(max(date.timeIntervalSince($0), 0), 0.1) } ?? 0
         if last.map({ date > $0 }) ?? true { last = date }
-        // The wander eases to speed over about a second, from rest at appearance and to every new speed. Reduce Motion
-        // (`holds`) stops it where it is.
-        rate = holds ? 0 : rate + (speed - rate) * (1 - exp(-dt / 0.4))
-        phase = (phase + rate * dt).truncatingRemainder(dividingBy: Self.period)
-        // The bend follows the finger quickly and lets go more slowly, so a tap reads as a pulse. The last point is kept
-        // while it lets go, so the bulge sinks where it was instead of jumping.
-        if let touch { point = touch }
-        let goal: Double = touch == nil ? 0 : 1
-        pull += (goal - pull) * (1 - exp(-dt / (touch == nil ? 0.3 : 0.1)))
-        return (Float(phase), Float(pull), point)
+        if melting, progress < 1 {
+            elapsed += dt
+            let x = min(elapsed / (still ? 0.25 : Self.duration), 1)
+            // Eased in and out: the metal gathers, pours and sets.
+            progress = x * x * (3 - 2 * x)
+        }
+        // Under Reduce Motion the press shades the glass instead, and the metal holds its shape.
+        let goal: Double = pressed && !still ? 1 : 0
+        slump += (goal - slump) * (1 - exp(-dt / (pressed ? 0.08 : 0.18)))
+        phase = (phase + (still ? 0 : dt)).truncatingRemainder(dividingBy: Self.period)
+        return (progress, slump, Float(phase))
     }
 }
 
 // MARK: - Example
 
-/// A composer like an agent's prompt bar: the send button wears the halo, lit while there is something to send.
-private struct MetalHaloExample: View {
-    @State private var draft = "Build a habit tracker"
+/// A player's play and pause, and an add that becomes a check: each tap melts the symbol into the next.
+private struct MeltButtonExample: View {
+    @State private var playing = false
+    @State private var added = false
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            TextField("Build anything…", text: $draft)
-                .font(.system(size: 17))
-                .foregroundStyle(.white)
-                .tint(.white)
-            HStack(spacing: 10) {
-                Image(systemName: "plus")
-                    .font(.system(size: 17))
-                    .foregroundStyle(.white.opacity(0.8))
-                    .frame(width: 44, height: 44)
-                    .background(Circle().fill(Color(white: 0.16)))
-                    .accessibilityLabel("Add")
-                Spacer()
-                Button {
-                    draft = ""
-                } label: {
-                    Image(systemName: "arrow.up")
-                        .font(.system(size: 17))
-                        .foregroundStyle(.white)
-                        .frame(width: 44, height: 44)
-                        .background(Circle().fill(Color(white: 0.08)))
-                        .metalHalo(.circle, isActive: !draft.isEmpty)
-                }
-                .buttonStyle(PieceLiquidPressStyle())
-                .disabled(draft.isEmpty)
-                .accessibilityLabel("Send")
+        HStack(spacing: 28) {
+            MeltButton(playing ? "Pause" : "Play", systemImage: playing ? "pause.fill" : "play.fill", size: 76) {
+                playing.toggle()
+            }
+            MeltButton(added ? "Added" : "Add to library", systemImage: added ? "checkmark" : "plus", size: 76, tint: Color(red: 1, green: 0.86, blue: 0.62)) {
+                added.toggle()
             }
         }
-        .padding(16)
-        .background(RoundedRectangle(cornerRadius: 26, style: .continuous).fill(Color(white: 0.11)))
-        .padding(24)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(white: 0.06))
-        .fontWeight(.semibold)
+        .background(Color(white: 0.07))
     }
 }
 
 #Preview("Dark") {
-    MetalHaloExample().preferredColorScheme(.dark)
+    MeltButtonExample().preferredColorScheme(.dark)
 }
 
 // MARK: - Piece motion
