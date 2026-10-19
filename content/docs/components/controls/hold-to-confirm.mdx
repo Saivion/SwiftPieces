@@ -11,39 +11,7 @@ registryDependencies: []
 
 {/* GENERATED FILE. Edit registry/swift/controls/HoldToConfirm.swift or HoldToConfirm.mdx instead. */}
 
-Hold to confirm, in liquid glass. The tint sweeps through the glass from the leading puck and the label inverts as it passes; letting go or dragging off drains it back. Completing turns the capsule sage and buds a check bubble out of its end, joined to it by a liquid neck.
-
-## Notes
-
-- The control is a clear liquid glass capsule with a tinted puck at its leading end holding the symbol. At touch-down the tint wells out of the puck to the capsule's height, then sweeps through the glass at a steady speed while held, driven by a `TimelineView`, so the edge always shows the real time left. An ink copy of the label, puck and milestone dots is cut to the fill, so all of them invert exactly under its edge.
-- Three milestone dots sit at 25, 50 and 75%. Each swells like a bubble with a little elastic give as the fill passes it, in step with a soft impact of rising intensity.
-- At 100% the channel clicks shut: `.success`, a 2% swell and the action land on the same beat, and the action never waits for the motion. The fill turns `committedFill` (sage), and a beat later the capsule draws its end in as a sage glass check bubble buds out of it, joined by a liquid neck, while the label morphs letter by letter into `committedTitle` if you pass one ("Deleted"), or lets go if you don't. After 1.4s the check melts back into the capsule's end, the confirmed block fades out over the glass in its own color and the label morphs back.
-- Releasing early, dragging more than 16pt off the capsule or a touch the system cancels (a scroll taking over, an alert) cancels the hold, and a finger dragged off has to lift before it can start another. The fill carries on for an instant at the speed it was moving, then drains back to the puck without overshoot, each dot losing its ink as the edge passes back over it, and the last of the fill sinks back into the puck. Holding again mid-drain starts a fresh hold: the fill keeps sinking until the new sweep overtakes it, so it never snaps back, and the dots it still covers keep their swell.
-- `Style.standard` sweeps signal for destructive actions; `Style.butter` is a calmer confirm. `tint` still works and overrides the fill with white ink. `track` no longer does anything: the capsule is clear glass. Disabled (`.disabled(true)`) desaturates the control and blocks the gesture.
-- Phases: `idle`, `holding`, `committed`, `cancelled`, `disabled`. `cancelled` lasts until the fill has drained, about half a second. VoiceOver reads a button with the hint "Touch and hold to confirm"; its activate action performs the action directly, and the fill sweeps full to show it.
-- Reduce Motion halves `duration`. It drops the press, the click swell and the dot swell, fades the fill in and out over the puck instead of welling it out, drains on a short spring, fades the check bubble in place and cross-fades the label. The fill still sweeps, the colors still change and every haptic still plays. Reduce Transparency draws the glass solid.
-- Want slide to act instead of hold? SwiftPieces Pro has the Send Money screen (`swipe-to-confirm`).
-
-## Usage
-
-```swift
-HoldToConfirmExample().preferredColorScheme(.light)
-```
-
-## Parameters
-
-| Parameter | Description |
-| --- | --- |
-| `title` | Label while idle and holding. |
-| `systemImage` | Optional SF Symbol drawn in the leading puck. |
-| `duration` | Seconds the hold must last. Halved under Reduce Motion. |
-| `tint` | Overrides the style's fill, with white ink on it. `nil` uses `style`. |
-| `phase` | Optional binding that mirrors `idle`, `holding`, `committed` and `cancelled`; set it to `.holding` to start a sweep programmatically, `.idle` to cancel one. |
-| `committedTitle` | Text the label morphs to once the hold completes, such as "Deleted". `nil` lets the label go and leaves the check to speak. |
-| `style` | Label, fill, ink and committed colors plus height. `.standard` is the house palette with a signal fill. |
-| `action` | Called once when the hold completes. VoiceOver's activate action calls it directly. |
-
-## Source
+<Showcase name="HoldToConfirm">
 
 <Tabs items={["HoldToConfirm.swift"]}>
 <Tab value="HoldToConfirm.swift">
@@ -1078,3 +1046,39 @@ private struct PieceMorphText: View {
 
 </Tab>
 </Tabs>
+
+</Showcase>
+
+<PieceFacts name="HoldToConfirm" />
+
+Hold to confirm, in liquid glass. The tint sweeps through the glass from the leading puck and the label inverts as it passes; letting go or dragging off drains it back. Completing turns the capsule sage and buds a check bubble out of its end, joined to it by a liquid neck.
+
+## Notes
+
+- The control is a clear liquid glass capsule with a tinted puck at its leading end holding the symbol. At touch-down the tint wells out of the puck to the capsule's height, then sweeps through the glass at a steady speed while held, driven by a `TimelineView`, so the edge always shows the real time left. An ink copy of the label, puck and milestone dots is cut to the fill, so all of them invert exactly under its edge.
+- Three milestone dots sit at 25, 50 and 75%. Each swells like a bubble with a little elastic give as the fill passes it, in step with a soft impact of rising intensity.
+- At 100% the channel clicks shut: `.success`, a 2% swell and the action land on the same beat, and the action never waits for the motion. The fill turns `committedFill` (sage), and a beat later the capsule draws its end in as a sage glass check bubble buds out of it, joined by a liquid neck, while the label morphs letter by letter into `committedTitle` if you pass one ("Deleted"), or lets go if you don't. After 1.4s the check melts back into the capsule's end, the confirmed block fades out over the glass in its own color and the label morphs back.
+- Releasing early, dragging more than 16pt off the capsule or a touch the system cancels (a scroll taking over, an alert) cancels the hold, and a finger dragged off has to lift before it can start another. The fill carries on for an instant at the speed it was moving, then drains back to the puck without overshoot, each dot losing its ink as the edge passes back over it, and the last of the fill sinks back into the puck. Holding again mid-drain starts a fresh hold: the fill keeps sinking until the new sweep overtakes it, so it never snaps back, and the dots it still covers keep their swell.
+- `Style.standard` sweeps signal for destructive actions; `Style.butter` is a calmer confirm. `tint` still works and overrides the fill with white ink. `track` no longer does anything: the capsule is clear glass. Disabled (`.disabled(true)`) desaturates the control and blocks the gesture.
+- Phases: `idle`, `holding`, `committed`, `cancelled`, `disabled`. `cancelled` lasts until the fill has drained, about half a second. VoiceOver reads a button with the hint "Touch and hold to confirm"; its activate action performs the action directly, and the fill sweeps full to show it.
+- Reduce Motion halves `duration`. It drops the press, the click swell and the dot swell, fades the fill in and out over the puck instead of welling it out, drains on a short spring, fades the check bubble in place and cross-fades the label. The fill still sweeps, the colors still change and every haptic still plays. Reduce Transparency draws the glass solid.
+- Want slide to act instead of hold? SwiftPieces Pro has the Send Money screen (`swipe-to-confirm`).
+
+## Usage
+
+```swift
+HoldToConfirmExample().preferredColorScheme(.light)
+```
+
+## Parameters
+
+| Parameter | Description |
+| --- | --- |
+| `title` | Label while idle and holding. |
+| `systemImage` | Optional SF Symbol drawn in the leading puck. |
+| `duration` | Seconds the hold must last. Halved under Reduce Motion. |
+| `tint` | Overrides the style's fill, with white ink on it. `nil` uses `style`. |
+| `phase` | Optional binding that mirrors `idle`, `holding`, `committed` and `cancelled`; set it to `.holding` to start a sweep programmatically, `.idle` to cancel one. |
+| `committedTitle` | Text the label morphs to once the hold completes, such as "Deleted". `nil` lets the label go and leaves the check to speak. |
+| `style` | Label, fill, ink and committed colors plus height. `.standard` is the house palette with a signal fill. |
+| `action` | Called once when the hold completes. VoiceOver's activate action calls it directly. |

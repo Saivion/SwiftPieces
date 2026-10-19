@@ -11,46 +11,7 @@ registryDependencies: []
 
 {/* GENERATED FILE. Edit registry/swift/inputs/AmountField.swift or AmountField.mdx instead. */}
 
-Currency amount entry with live locale formatting, a `Decimal` value and a limit. The field keeps its own digit buffer and renders the formatted string itself, so the caret never jumps and locale separators never break parsing. Formatting follows `\.locale`; fraction digits come from the currency. The figure is content and stays on your ground. The compact block is a liquid glass shape, and the limit shows on a butter glass pill: it buds down out of the compact block and melts back into it, and rises in under the hero figure, which has no glass of its own to come from.
-
-## Notes
-
-- The field keeps its own buffer of typed digits and renders the formatted string itself. A hidden `TextField` with `.decimalPad` captures keys, so the caret never jumps and grouping separators never reach a parser. The caret, in the signal red, is drawn right after the digits, before a trailing symbol ("1.234,56| €"), and blinks with a short fade like the system caret, turning solid whenever the amount changes.
-- The value is a `Decimal`. Fraction digits come from the currency through `Decimal.FormatStyle.Currency`: JPY takes none, USD two, KWD three. Formatting follows `\.locale`, so `.environment(\.locale, Locale(identifier: "de_DE"))` gives "1.234,56 €", en_IN groups in lakhs ("₹1,23,456") and ar_SA shows Arabic-Indic digits.
-- While typing, what you typed is what you see: "12." keeps its separator and "12.50" keeps its zero. Leading zeros are stripped, "." on an empty field starts "0.", a second separator is ignored and digits past the currency's precision are dropped. Leaving the field settles "12.5" to "12.50" and "12." to "12".
-- Both "." and "," (and the Arabic decimal separator) work as the decimal key, whatever the device region. Digits in any script are accepted and stored as ASCII.
-- Paste (long-press, or Command-V) parses "1,234.56", "$99", "1 234,56 €", "US$ 12" and Arabic-Indic text. A lone separator followed by exactly three digits reads as thousands unless the currency has three decimals. Words, two numbers or a minus sign are refused like a key past the limit, with a shake and an error haptic but no limit pill; one already showing stays.
-- `limit` refuses the keystroke or paste that would pass it with one firm knock: the figure (or the compact block and its ring) shakes once with an `.error` haptic on the same beat, VoiceOver announces the limit, and the `limitMessage` arrives a beat behind the knock on a butter glass pill with house ink, then goes after a moment. The same refusal repeated less than a second apart, like a key pressed again and again at the limit, gets a half-height shake and a lighter tap instead of escalating. Accepted keys stay quiet. An external value over the limit is shown as it is, not clamped, with the pill and (compact) a butter ring; the digits keep their colour so they stay readable on a light ground.
-- External writes to the binding (a quick-amount chip, a reset) redraw the display at the currency's precision. Negative or over-precise values are normalized and written back.
-- `.hero` is a large semibold figure that scales down to fit its width, with digits rolling in through `.numericText()` on a spring that never overshoots, so a digit never rolls past its place. The fit uses the same spring, so the figure shrinks while a digit rolls in and never swells past its width, and typing never waits on an animation. The figure is content and sits on your ground; the limit pill rises in under it. Both follow Dynamic Type.
-- `.compact` is a 56pt liquid glass block (Liquid Glass on iOS 26, a frosted fallback before it) with a focus ring. Its limit pill buds down out of the block and rests joined to it, 6pt below, so a liquid neck holds the two; when the limit has had its say the words go, the butter drains and the pill melts back into the block. The pill's room in the layout opens and closes with it, so what sits below glides rather than jumps. `Style.field` tints the block; `.clear`, the default, leaves it neutral.
-- Type is one weight, semibold, for the caption, the figure and the pill; size alone sets the hierarchy.
-- The example's quick-amount chips are neutral glass capsules resting joined, so they read as one liquid strip; they write the binding like any external value.
-- VoiceOver reads the label and the full formatted amount as the value ("$1,234.56"), and the limit as a hint. `.disabled(true)` dims the field and blocks focus. `isFocused` lets you raise or dismiss the keyboard.
-- `Style` sets the block tint, amount, secondary label, caret, error (the pill's tint and the over-limit ring) and ink (the pill's text) colors, plus the compact block's height and corner radius.
-- Reduce Motion: no shake; each refusal dims the digits for a beat with the same haptic, digit changes crossfade, and the limit pill fades in and out in place, still clearing itself after a moment. Reduce Transparency draws the block and the pill as solid shapes.
-
-## Usage
-
-```swift
-AmountFieldExample()
-```
-
-## Parameters
-
-| Parameter | Description |
-| --- | --- |
-| `label` | Caption above the amount, also the accessibility label. Pass an empty string to hide the caption. |
-| `value` | Bound amount. Never negative; external values are shown at the currency's precision (a negative or over-precise value is normalized and written back). |
-| `currencyCode` | ISO 4217 code. Sets the symbol and the fraction digits (USD 2, JPY 0, KWD 3). Defaults to the current locale's currency. |
-| `limit` | Largest amount that can be typed or pasted. A keystroke past it is refused with a shake (the digits dim for a beat under Reduce Motion), an error haptic and the limit message. `nil` means no limit. |
-| `limitMessage` | Text of the pill shown when the limit refuses input or the value is over it. `nil` shows "Up to" plus the formatted limit; an empty string shows no pill. |
-| `allowsDecimal` | Allow the decimal key. When `false`, amounts are whole units and the number pad has no decimal key. |
-| `size` | `.hero` is a large centered figure for a payments screen; `.compact` is a 56pt liquid glass form-row block. |
-| `isFocused` | Optional binding to read or drive keyboard focus, for example to raise the keyboard on appear. |
-| `style` | Colors and metrics. Defaults to the SwiftPieces house palette, adapting to light and dark. |
-
-## Source
+<Showcase name="AmountField">
 
 <Tabs items={["AmountField.swift"]}>
 <Tab value="AmountField.swift">
@@ -1288,3 +1249,46 @@ private final class PieceBuds {
 
 </Tab>
 </Tabs>
+
+</Showcase>
+
+<PieceFacts name="AmountField" />
+
+Currency amount entry with live locale formatting, a `Decimal` value and a limit. The field keeps its own digit buffer and renders the formatted string itself, so the caret never jumps and locale separators never break parsing. Formatting follows `\.locale`; fraction digits come from the currency. The figure is content and stays on your ground. The compact block is a liquid glass shape, and the limit shows on a butter glass pill: it buds down out of the compact block and melts back into it, and rises in under the hero figure, which has no glass of its own to come from.
+
+## Notes
+
+- The field keeps its own buffer of typed digits and renders the formatted string itself. A hidden `TextField` with `.decimalPad` captures keys, so the caret never jumps and grouping separators never reach a parser. The caret, in the signal red, is drawn right after the digits, before a trailing symbol ("1.234,56| €"), and blinks with a short fade like the system caret, turning solid whenever the amount changes.
+- The value is a `Decimal`. Fraction digits come from the currency through `Decimal.FormatStyle.Currency`: JPY takes none, USD two, KWD three. Formatting follows `\.locale`, so `.environment(\.locale, Locale(identifier: "de_DE"))` gives "1.234,56 €", en_IN groups in lakhs ("₹1,23,456") and ar_SA shows Arabic-Indic digits.
+- While typing, what you typed is what you see: "12." keeps its separator and "12.50" keeps its zero. Leading zeros are stripped, "." on an empty field starts "0.", a second separator is ignored and digits past the currency's precision are dropped. Leaving the field settles "12.5" to "12.50" and "12." to "12".
+- Both "." and "," (and the Arabic decimal separator) work as the decimal key, whatever the device region. Digits in any script are accepted and stored as ASCII.
+- Paste (long-press, or Command-V) parses "1,234.56", "$99", "1 234,56 €", "US$ 12" and Arabic-Indic text. A lone separator followed by exactly three digits reads as thousands unless the currency has three decimals. Words, two numbers or a minus sign are refused like a key past the limit, with a shake and an error haptic but no limit pill; one already showing stays.
+- `limit` refuses the keystroke or paste that would pass it with one firm knock: the figure (or the compact block and its ring) shakes once with an `.error` haptic on the same beat, VoiceOver announces the limit, and the `limitMessage` arrives a beat behind the knock on a butter glass pill with house ink, then goes after a moment. The same refusal repeated less than a second apart, like a key pressed again and again at the limit, gets a half-height shake and a lighter tap instead of escalating. Accepted keys stay quiet. An external value over the limit is shown as it is, not clamped, with the pill and (compact) a butter ring; the digits keep their colour so they stay readable on a light ground.
+- External writes to the binding (a quick-amount chip, a reset) redraw the display at the currency's precision. Negative or over-precise values are normalized and written back.
+- `.hero` is a large semibold figure that scales down to fit its width, with digits rolling in through `.numericText()` on a spring that never overshoots, so a digit never rolls past its place. The fit uses the same spring, so the figure shrinks while a digit rolls in and never swells past its width, and typing never waits on an animation. The figure is content and sits on your ground; the limit pill rises in under it. Both follow Dynamic Type.
+- `.compact` is a 56pt liquid glass block (Liquid Glass on iOS 26, a frosted fallback before it) with a focus ring. Its limit pill buds down out of the block and rests joined to it, 6pt below, so a liquid neck holds the two; when the limit has had its say the words go, the butter drains and the pill melts back into the block. The pill's room in the layout opens and closes with it, so what sits below glides rather than jumps. `Style.field` tints the block; `.clear`, the default, leaves it neutral.
+- Type is one weight, semibold, for the caption, the figure and the pill; size alone sets the hierarchy.
+- The example's quick-amount chips are neutral glass capsules resting joined, so they read as one liquid strip; they write the binding like any external value.
+- VoiceOver reads the label and the full formatted amount as the value ("$1,234.56"), and the limit as a hint. `.disabled(true)` dims the field and blocks focus. `isFocused` lets you raise or dismiss the keyboard.
+- `Style` sets the block tint, amount, secondary label, caret, error (the pill's tint and the over-limit ring) and ink (the pill's text) colors, plus the compact block's height and corner radius.
+- Reduce Motion: no shake; each refusal dims the digits for a beat with the same haptic, digit changes crossfade, and the limit pill fades in and out in place, still clearing itself after a moment. Reduce Transparency draws the block and the pill as solid shapes.
+
+## Usage
+
+```swift
+AmountFieldExample()
+```
+
+## Parameters
+
+| Parameter | Description |
+| --- | --- |
+| `label` | Caption above the amount, also the accessibility label. Pass an empty string to hide the caption. |
+| `value` | Bound amount. Never negative; external values are shown at the currency's precision (a negative or over-precise value is normalized and written back). |
+| `currencyCode` | ISO 4217 code. Sets the symbol and the fraction digits (USD 2, JPY 0, KWD 3). Defaults to the current locale's currency. |
+| `limit` | Largest amount that can be typed or pasted. A keystroke past it is refused with a shake (the digits dim for a beat under Reduce Motion), an error haptic and the limit message. `nil` means no limit. |
+| `limitMessage` | Text of the pill shown when the limit refuses input or the value is over it. `nil` shows "Up to" plus the formatted limit; an empty string shows no pill. |
+| `allowsDecimal` | Allow the decimal key. When `false`, amounts are whole units and the number pad has no decimal key. |
+| `size` | `.hero` is a large centered figure for a payments screen; `.compact` is a 56pt liquid glass form-row block. |
+| `isFocused` | Optional binding to read or drive keyboard focus, for example to raise the keyboard on appear. |
+| `style` | Colors and metrics. Defaults to the SwiftPieces house palette, adapting to light and dark. |

@@ -1356,7 +1356,7 @@
     "description": "A liquid glass segmented control: a signal-tinted glass indicator melted into a glass track as one surface. It moves like liquid, its leading edge reaching the new segment first and the trailing edge following, so it stretches across and gathers in. Grab it to scrub: it lifts under the finger, flattens against the ends and lands where the flick was heading, while the label ink flips exactly under its edge; tap still works.",
     "category": "glass",
     "license": "MIT+Commons-Clause",
-    "version": "2.3.0",
+    "version": "2.3.1",
     "minIOSVersion": "17.0",
     "swiftToolsVersion": "6.1",
     "tags": [

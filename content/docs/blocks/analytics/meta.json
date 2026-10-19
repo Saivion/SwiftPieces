@@ -1,0 +1,8 @@
+{
+  "title": "Analytics",
+  "description": "Dashboard sections: a headline chart you scrub, live tiles and breakdowns.",
+  "defaultOpen": false,
+  "pages": [
+    "stats-overview"
+  ]
+}

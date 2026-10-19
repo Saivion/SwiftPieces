@@ -11,44 +11,7 @@ registryDependencies: []
 
 {/* GENERATED FILE. Edit registry/swift/navigation/StepTrail.swift or StepTrail.mdx instead. */}
 
-A step progress indicator for multi-step flows that shows where you are, what is done, and lets people go back without letting them jump ahead of what they have filled in. The stops are liquid glass resting joined, so the whole trail reads as one shape with short necks. Done steps carry a check, the current step is a red capsule with its number and title, steps people have already reached beyond the current one show their number in full text, and steps not reached yet show it muted. Moving to another step stretches the red from one stop to the other, its leading edge first, and gathers it there, while the titles and checks blur over. Tap a done or reached step to go there. A tap on a step that hasn't been reached shakes that stop and nothing moves. Drag sideways along the trail to carry the capsule across the reachable steps, with a tick on each; it gives at the last one it may reach and lands where you let go. Vertical swipes still scroll the screen. When the trail doesn't fit, the capsule drops its title (the caption names the step instead), and then the stops shrink. It never wraps and never clips. The trail hugs its content and starts at the leading edge, keeping the width of its widest step so nothing around it moves.
-
-## Notes
-
-- Put it at the top of a checkout, booking, account setup or verification flow and bind `selection` to the step your flow shows: `StepTrail(steps: ["Cart", "Address", "Payment", "Review"], selection: $step)`. Your Continue button moves on with `step += 1`; the trail never changes steps on its own except when a person taps or drags it.
-- To let people return forward after going back, keep the furthest step they have filled in and pass it as `reached`: `.onChange(of: step) { _, value in furthest = max(furthest, value) }`. Without it, only earlier steps can be revisited. Lower `furthest` yourself when an edit invalidates later steps.
-- Every stop is liquid glass, resting joined, so the trail reads as one shape with short necks. Done steps carry a check, the current step is a red capsule with its number and title in dark ink, steps already reached beyond the current one show their number in full text and steps not reached yet show it muted. Red marks the current step and nothing else.
-- Moving to another step closes one capsule and opens the other while the red stretches across: the edge facing the move leads and the far edge lets go a beat later, so the red reaches over the neck and gathers on the new stop. The old title blurs out as its capsule shrinks into a circle and its check blurs in; the new title blurs in as the capsule opens. A move made while another is still landing picks up from where everything is.
-- Tap a done or reached step to go there, with a selection tick. A tap on a step that hasn't been reached shakes that stop with a firm tick and nothing moves. A tap on the current step does nothing.
-- Drag sideways along the trail to carry the capsule across the reachable steps. It lifts under the finger, moves to a stop once the finger is a little past the midpoint (so it never flickers between two), ticks on each, and between stops its facing edge reaches toward the finger with rubber-band resistance. At the last step it may reach it only gives, with one firm tick, and let go it lands where it is: the binding changes once, on release. The drag starts only when it runs sideways, so vertical swipes that begin on the trail still scroll the screen or move a sheet.
-- Set `selection` to `steps.count` when the flow completes: every stop shows a check, the red drains from the last capsule and the trail lands with one small beat. The caption and VoiceOver read "Complete". Tapping a done step from there goes back to it, like any other done step; disable the trail if the flow is final.
-- When the titles don't fit, the capsule keeps only its number and the caption names the step ("ID photo Step 4 of 6"); when the numbers don't fit either, the stops shrink to fit. It never wraps and never clips. The trail hugs its content, starts at the leading edge and keeps the width of its widest step, so nothing around it moves as the capsule changes. Whether titles show is decided by the longest title, so the form never flips between steps. Titles longer than `Style.maximumTitleWidth` truncate.
-- An empty `steps` draws nothing; a single step shows its capsule. Values of `selection` outside `0...steps.count` are drawn clamped, and a change to `steps` puts the trail on the selection without motion.
-- VoiceOver reads the trail as one adjustable element: the label "Progress" and a value such as "Step 2 of 4, Address". Swipe up and down to move within the reached steps, or use the Go to actions for each reachable step. With a hardware keyboard, focus the trail and use the left and right arrow keys (mirrored right to left).
-- Reduce Motion: the red stays in the stops and crossfades from one to the other with no stretch, the capsules resize on a short spring with no overshoot, the checks, numbers and titles fade, the shake and the lift stay still, and a press shades instead of sinking.
-- Dynamic Type grows the stops, numbers and titles until they are a little over twice their size, and the caption all the way; when they no longer fit, the title moves to the caption and the stops shrink to fit. Right to left mirrors the trail: it starts at the right, the number sits at the capsule's right end and a drag runs the other way.
-- Haptics: a selection tick when a tap, a key or a drag lands on a step and for each stop a drag crosses, and a firm tick for a refused tap or a drag pushed against its last step. Changes your app makes stay silent, so the trail never doubles your own feedback.
-- On iOS 26 the stops are Liquid Glass and merge through their necks; before that, and under Reduce Transparency, they draw as frosted or solid stops on their own. `.disabled(true)` shows the progress dimmed and ignores touches.
-- `Style` sets the accent (the current capsule) and the ink on it, the label and secondary label colors, the stop height (34 by default, at least 28) and the longest title. `Messages` replaces any line of copy: the VoiceOver label, the caption, the spoken value, the finished state and the Go to action, for example `.init(label: "Checkout progress")`. All of them are localizable through your String Catalog.
-
-## Usage
-
-```swift
-StepTrailExample()
-```
-
-## Parameters
-
-| Parameter | Description |
-| --- | --- |
-| `steps` | The step titles, in order, such as `["Cart", "Address", "Payment", "Review"]`. They show in the current step's capsule and are read by VoiceOver. An empty list draws nothing. Titles longer than `Style.maximumTitleWidth` truncate in the capsule. |
-| `selection` | The index of the current step. A tap, a drag or VoiceOver writes it; set it yourself to move on (a Continue button). `steps.count` shows every step done, for the moment a flow completes. Values outside `0...steps.count` are drawn clamped. |
-| `reached` | The furthest step people have filled in, so they can return forward to it after going back. Steps up to it stay tappable and show their number in full text. `nil` (the default) is the selection, so only earlier steps can be revisited. Keep it in your own state, for example `furthest = max(furthest, step)`. |
-| `showsCaption` | Shows a quiet caption under the trail, such as "Step 2 of 4". When the titles don't fit in the trail, the caption names the current step too. |
-| `messages` | The built-in copy: the VoiceOver label ("Progress"), the caption, the spoken value, the finished state and the VoiceOver actions. Defaults are localizable through your String Catalog. |
-| `style` | Colors and size. Defaults to the SwiftPieces house palette (a red current step on neutral glass), adapting to light and dark. |
-
-## Source
+<Showcase name="StepTrail">
 
 <Tabs items={["StepTrail.swift"]}>
 <Tab value="StepTrail.swift">
@@ -1655,3 +1618,44 @@ private struct PieceMorphText: View {
 
 </Tab>
 </Tabs>
+
+</Showcase>
+
+<PieceFacts name="StepTrail" />
+
+A step progress indicator for multi-step flows that shows where you are, what is done, and lets people go back without letting them jump ahead of what they have filled in. The stops are liquid glass resting joined, so the whole trail reads as one shape with short necks. Done steps carry a check, the current step is a red capsule with its number and title, steps people have already reached beyond the current one show their number in full text, and steps not reached yet show it muted. Moving to another step stretches the red from one stop to the other, its leading edge first, and gathers it there, while the titles and checks blur over. Tap a done or reached step to go there. A tap on a step that hasn't been reached shakes that stop and nothing moves. Drag sideways along the trail to carry the capsule across the reachable steps, with a tick on each; it gives at the last one it may reach and lands where you let go. Vertical swipes still scroll the screen. When the trail doesn't fit, the capsule drops its title (the caption names the step instead), and then the stops shrink. It never wraps and never clips. The trail hugs its content and starts at the leading edge, keeping the width of its widest step so nothing around it moves.
+
+## Notes
+
+- Put it at the top of a checkout, booking, account setup or verification flow and bind `selection` to the step your flow shows: `StepTrail(steps: ["Cart", "Address", "Payment", "Review"], selection: $step)`. Your Continue button moves on with `step += 1`; the trail never changes steps on its own except when a person taps or drags it.
+- To let people return forward after going back, keep the furthest step they have filled in and pass it as `reached`: `.onChange(of: step) { _, value in furthest = max(furthest, value) }`. Without it, only earlier steps can be revisited. Lower `furthest` yourself when an edit invalidates later steps.
+- Every stop is liquid glass, resting joined, so the trail reads as one shape with short necks. Done steps carry a check, the current step is a red capsule with its number and title in dark ink, steps already reached beyond the current one show their number in full text and steps not reached yet show it muted. Red marks the current step and nothing else.
+- Moving to another step closes one capsule and opens the other while the red stretches across: the edge facing the move leads and the far edge lets go a beat later, so the red reaches over the neck and gathers on the new stop. The old title blurs out as its capsule shrinks into a circle and its check blurs in; the new title blurs in as the capsule opens. A move made while another is still landing picks up from where everything is.
+- Tap a done or reached step to go there, with a selection tick. A tap on a step that hasn't been reached shakes that stop with a firm tick and nothing moves. A tap on the current step does nothing.
+- Drag sideways along the trail to carry the capsule across the reachable steps. It lifts under the finger, moves to a stop once the finger is a little past the midpoint (so it never flickers between two), ticks on each, and between stops its facing edge reaches toward the finger with rubber-band resistance. At the last step it may reach it only gives, with one firm tick, and let go it lands where it is: the binding changes once, on release. The drag starts only when it runs sideways, so vertical swipes that begin on the trail still scroll the screen or move a sheet.
+- Set `selection` to `steps.count` when the flow completes: every stop shows a check, the red drains from the last capsule and the trail lands with one small beat. The caption and VoiceOver read "Complete". Tapping a done step from there goes back to it, like any other done step; disable the trail if the flow is final.
+- When the titles don't fit, the capsule keeps only its number and the caption names the step ("ID photo Step 4 of 6"); when the numbers don't fit either, the stops shrink to fit. It never wraps and never clips. The trail hugs its content, starts at the leading edge and keeps the width of its widest step, so nothing around it moves as the capsule changes. Whether titles show is decided by the longest title, so the form never flips between steps. Titles longer than `Style.maximumTitleWidth` truncate.
+- An empty `steps` draws nothing; a single step shows its capsule. Values of `selection` outside `0...steps.count` are drawn clamped, and a change to `steps` puts the trail on the selection without motion.
+- VoiceOver reads the trail as one adjustable element: the label "Progress" and a value such as "Step 2 of 4, Address". Swipe up and down to move within the reached steps, or use the Go to actions for each reachable step. With a hardware keyboard, focus the trail and use the left and right arrow keys (mirrored right to left).
+- Reduce Motion: the red stays in the stops and crossfades from one to the other with no stretch, the capsules resize on a short spring with no overshoot, the checks, numbers and titles fade, the shake and the lift stay still, and a press shades instead of sinking.
+- Dynamic Type grows the stops, numbers and titles until they are a little over twice their size, and the caption all the way; when they no longer fit, the title moves to the caption and the stops shrink to fit. Right to left mirrors the trail: it starts at the right, the number sits at the capsule's right end and a drag runs the other way.
+- Haptics: a selection tick when a tap, a key or a drag lands on a step and for each stop a drag crosses, and a firm tick for a refused tap or a drag pushed against its last step. Changes your app makes stay silent, so the trail never doubles your own feedback.
+- On iOS 26 the stops are Liquid Glass and merge through their necks; before that, and under Reduce Transparency, they draw as frosted or solid stops on their own. `.disabled(true)` shows the progress dimmed and ignores touches.
+- `Style` sets the accent (the current capsule) and the ink on it, the label and secondary label colors, the stop height (34 by default, at least 28) and the longest title. `Messages` replaces any line of copy: the VoiceOver label, the caption, the spoken value, the finished state and the Go to action, for example `.init(label: "Checkout progress")`. All of them are localizable through your String Catalog.
+
+## Usage
+
+```swift
+StepTrailExample()
+```
+
+## Parameters
+
+| Parameter | Description |
+| --- | --- |
+| `steps` | The step titles, in order, such as `["Cart", "Address", "Payment", "Review"]`. They show in the current step's capsule and are read by VoiceOver. An empty list draws nothing. Titles longer than `Style.maximumTitleWidth` truncate in the capsule. |
+| `selection` | The index of the current step. A tap, a drag or VoiceOver writes it; set it yourself to move on (a Continue button). `steps.count` shows every step done, for the moment a flow completes. Values outside `0...steps.count` are drawn clamped. |
+| `reached` | The furthest step people have filled in, so they can return forward to it after going back. Steps up to it stay tappable and show their number in full text. `nil` (the default) is the selection, so only earlier steps can be revisited. Keep it in your own state, for example `furthest = max(furthest, step)`. |
+| `showsCaption` | Shows a quiet caption under the trail, such as "Step 2 of 4". When the titles don't fit in the trail, the caption names the current step too. |
+| `messages` | The built-in copy: the VoiceOver label ("Progress"), the caption, the spoken value, the finished state and the VoiceOver actions. Defaults are localizable through your String Catalog. |
+| `style` | Colors and size. Defaults to the SwiftPieces house palette (a red current step on neutral glass), adapting to light and dark. |

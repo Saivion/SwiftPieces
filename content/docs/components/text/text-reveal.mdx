@@ -11,45 +11,7 @@ registryDependencies: []
 
 {/* GENERATED FILE. Edit registry/swift/text/TextReveal.swift or TextReveal.mdx instead. */}
 
-Staggered text reveal that wraps correctly at any width and Dynamic Type size. The stagger is derived from the unit count, so a 3-word title and a 60-character sentence both finish in about `duration`. Phrases listed in `highlights` get a stroke of tinted liquid glass that grows in behind them once they land, with the text flipping to the house ink under its edge.
-
-## Notes
-
-- The stagger is computed from the unit count: each unit takes about half a second to land and the rest of `duration` is spread across the starts, so long sentences do not crawl. The starts are eased rather than even: the first units leave a little closer together and the last ones settle in with a little more room, and the total stays the same. Pass a larger `duration` for a slower reveal.
-- Words and characters are laid out by a private wrapping `Layout`, so the text breaks across rows like normal text and characters never split a word. `.lines` renders each `\n`-separated line as one wrapping `Text`. All motion is render-only (offset, blur, scale, a drawn path), so wrapping never shifts during a reveal.
-- Splitting text into `Text` views loses kerning and ligatures between units; `.words` keeps them inside each word and is the best default for body-sized type.
-- Every preset arrives on the same calm spring with no visible overshoot, so a word never bobs past its baseline. `.rise` slides each unit up from behind its own baseline (a mask at the unit's bottom edge); set `Style.masksRise = false` for a 10pt float instead. `.blur` resolves from `Style.blurRadius` and `.soften` scales up slightly from the baseline as it fades in.
-- `highlights` takes whole-word phrases. A matched phrase is kept on one row. Once its last unit has nearly landed, a stroke of liquid glass tinted `Style.highlight` (butter by default) grows in behind it from the leading edge like a highlighter, keeping its round caps the whole way, on one smooth pass of `Style.highlightDuration` with no overshoot. An ink copy of the phrase in `Style.highlightInk` (the house ink) is uncovered by the same stroke while the base text gives way under it, so the color flips exactly under its edge. The highlights share one liquid group: two highlighted phrases side by side flow into one stroke. Under Reduce Transparency the glass is a solid block of the tint; before iOS 26 it is frosted.
-- Type is semibold, the house weight, set at the piece's root; size and colour carry the hierarchy.
-- `revealOnScroll` uses `onScrollVisibilityChange` on iOS 18; on iOS 17 it reveals on appear. Change `trigger` to replay: the current text fades out as one piece where it stands, and once it has mostly cleared (after about 0.16 s, added to `delay`) the new reveal rises in its place. When `text` changes along with `trigger`, the old text is what fades; a new `text` without a new `trigger` swaps in place with no replay. The layout takes the new text's size at once, since a fading copy takes no space.
-- Reduce Motion keeps the reveal and drops the movement: every unit fades in together with no lift, blur or scale, a highlight then fades in behind its phrase at full length instead of growing across, and a replay fades the old text out, then the new one in.
-- VoiceOver reads the whole string as one element from the start, whatever the reveal is doing.
-- `Style` (`.standard` uses the house palette): `highlight`, `highlightInk`, `masksRise`, `blurRadius`, `highlightDuration`.
-- For a complete first-run flow with revealed headlines, see the Pro Onboarding screen.
-
-## Usage
-
-```swift
-TextRevealExample()
-    .preferredColorScheme(.light)
-```
-
-## Parameters
-
-| Parameter | Description |
-| --- | --- |
-| `text` | The string to display. With `.lines`, split lines with `\n`. |
-| `unit` | `.characters`, `.words` or `.lines`. Characters never break mid-word. |
-| `preset` | `.rise` (lift from a baseline mask), `.blur` (resolve from a soft blur) or `.soften` (scale and fade). |
-| `alignment` | Row alignment, like `multilineTextAlignment`. |
-| `duration` | Target time for the whole reveal, in seconds. |
-| `delay` | Delay before the first unit starts, useful for sequencing a subhead after a headline. |
-| `revealOnScroll` | When true, the reveal waits until the view scrolls into view (iOS 18). Below iOS 18 it reveals on appear. |
-| `trigger` | Change this value to replay the reveal. |
-| `highlights` | Phrases (one or more whole words, matched case-insensitively, ignoring punctuation) that get a glass highlight after they land. A highlighted phrase never breaks across rows. Ignored with `.lines`. |
-| `style` | Highlight tint and ink, rise mask and blur radius. Defaults to the house palette. |
-
-## Source
+<Showcase name="TextReveal">
 
 <Tabs items={["TextReveal.swift"]}>
 <Tab value="TextReveal.swift">
@@ -818,3 +780,45 @@ private extension View {
 
 </Tab>
 </Tabs>
+
+</Showcase>
+
+<PieceFacts name="TextReveal" />
+
+Staggered text reveal that wraps correctly at any width and Dynamic Type size. The stagger is derived from the unit count, so a 3-word title and a 60-character sentence both finish in about `duration`. Phrases listed in `highlights` get a stroke of tinted liquid glass that grows in behind them once they land, with the text flipping to the house ink under its edge.
+
+## Notes
+
+- The stagger is computed from the unit count: each unit takes about half a second to land and the rest of `duration` is spread across the starts, so long sentences do not crawl. The starts are eased rather than even: the first units leave a little closer together and the last ones settle in with a little more room, and the total stays the same. Pass a larger `duration` for a slower reveal.
+- Words and characters are laid out by a private wrapping `Layout`, so the text breaks across rows like normal text and characters never split a word. `.lines` renders each `\n`-separated line as one wrapping `Text`. All motion is render-only (offset, blur, scale, a drawn path), so wrapping never shifts during a reveal.
+- Splitting text into `Text` views loses kerning and ligatures between units; `.words` keeps them inside each word and is the best default for body-sized type.
+- Every preset arrives on the same calm spring with no visible overshoot, so a word never bobs past its baseline. `.rise` slides each unit up from behind its own baseline (a mask at the unit's bottom edge); set `Style.masksRise = false` for a 10pt float instead. `.blur` resolves from `Style.blurRadius` and `.soften` scales up slightly from the baseline as it fades in.
+- `highlights` takes whole-word phrases. A matched phrase is kept on one row. Once its last unit has nearly landed, a stroke of liquid glass tinted `Style.highlight` (butter by default) grows in behind it from the leading edge like a highlighter, keeping its round caps the whole way, on one smooth pass of `Style.highlightDuration` with no overshoot. An ink copy of the phrase in `Style.highlightInk` (the house ink) is uncovered by the same stroke while the base text gives way under it, so the color flips exactly under its edge. The highlights share one liquid group: two highlighted phrases side by side flow into one stroke. Under Reduce Transparency the glass is a solid block of the tint; before iOS 26 it is frosted.
+- Type is semibold, the house weight, set at the piece's root; size and colour carry the hierarchy.
+- `revealOnScroll` uses `onScrollVisibilityChange` on iOS 18; on iOS 17 it reveals on appear. Change `trigger` to replay: the current text fades out as one piece where it stands, and once it has mostly cleared (after about 0.16 s, added to `delay`) the new reveal rises in its place. When `text` changes along with `trigger`, the old text is what fades; a new `text` without a new `trigger` swaps in place with no replay. The layout takes the new text's size at once, since a fading copy takes no space.
+- Reduce Motion keeps the reveal and drops the movement: every unit fades in together with no lift, blur or scale, a highlight then fades in behind its phrase at full length instead of growing across, and a replay fades the old text out, then the new one in.
+- VoiceOver reads the whole string as one element from the start, whatever the reveal is doing.
+- `Style` (`.standard` uses the house palette): `highlight`, `highlightInk`, `masksRise`, `blurRadius`, `highlightDuration`.
+- For a complete first-run flow with revealed headlines, see the Pro Onboarding screen.
+
+## Usage
+
+```swift
+TextRevealExample()
+    .preferredColorScheme(.light)
+```
+
+## Parameters
+
+| Parameter | Description |
+| --- | --- |
+| `text` | The string to display. With `.lines`, split lines with `\n`. |
+| `unit` | `.characters`, `.words` or `.lines`. Characters never break mid-word. |
+| `preset` | `.rise` (lift from a baseline mask), `.blur` (resolve from a soft blur) or `.soften` (scale and fade). |
+| `alignment` | Row alignment, like `multilineTextAlignment`. |
+| `duration` | Target time for the whole reveal, in seconds. |
+| `delay` | Delay before the first unit starts, useful for sequencing a subhead after a headline. |
+| `revealOnScroll` | When true, the reveal waits until the view scrolls into view (iOS 18). Below iOS 18 it reveals on appear. |
+| `trigger` | Change this value to replay the reveal. |
+| `highlights` | Phrases (one or more whole words, matched case-insensitively, ignoring punctuation) that get a glass highlight after they land. A highlighted phrase never breaks across rows. Ignored with `.lines`. |
+| `style` | Highlight tint and ink, rise mask and blur radius. Defaults to the house palette. |

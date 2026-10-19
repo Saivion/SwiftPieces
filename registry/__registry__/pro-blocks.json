@@ -1,0 +1,36 @@
+[
+  {
+    "id": "plan-usage",
+    "name": "PlanUsageBlock",
+    "title": "Plan and Usage",
+    "category": "settings",
+    "summary": "The subscription section of Settings: the current plan, what has been used of it, and the way up.",
+    "description": "Where a subscriber checks their plan. The plan sits on a solid card with its price and renewal date; usage meters below fill to what has been used and warn as one nears its limit; upgrading, managing the subscription in the App Store and restoring a purchase are one tap each.",
+    "parts": [
+      "Current plan card with its renewal",
+      "Usage meters that warn near a limit",
+      "Upgrade call to action",
+      "Manage subscription and restore"
+    ],
+    "added": "2026-10-19",
+    "slug": "plan-usage",
+    "isNew": true
+  },
+  {
+    "id": "invite-friends",
+    "name": "InviteFriendsBlock",
+    "title": "Invite Friends",
+    "category": "social",
+    "summary": "A referral section: the reward and how close you are, your invite code to copy or share, and who joined.",
+    "description": "A referral section that pays for itself. A reward track fills a seat for each friend who joins; the invite code copies with one tap and shares through the system share sheet; invited friends list below with where each one is, from invited to joined.",
+    "parts": [
+      "Reward track that fills per friend",
+      "Invite code you copy",
+      "Share button",
+      "Invited friends and their status"
+    ],
+    "added": "2026-10-19",
+    "slug": "invite-friends",
+    "isNew": true
+  }
+]

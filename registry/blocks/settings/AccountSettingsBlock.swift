@@ -1,0 +1,978 @@
+// swiftpieces:
+// title: Account Settings
+// description: "The account section at the top of Settings: a profile card, appearance and text size with a live sample, notification toggles, sign out, and a hold to delete the account that shows its progress and outcome."
+// category: settings
+// version: "1.0.0"
+// minIOSVersion: "17.0"
+// added: "2026-10-19"
+// tags: [settings, account, profile, appearance, text-size, notifications, delete-account]
+// registryDependencies: [GlassSegments, ExpandingTrack, HoldToConfirm]
+
+import SwiftUI
+
+/// The account section at the top of an app's Settings: who is signed in, how the app looks, what it sends, and the way out.
+///
+/// A profile card opens your profile editor. The Display card holds the appearance, a `GlassSegments` of System, Light
+/// and Dark, and the text size, an `ExpandingTrack` between a small and a large "A" with a sample line above it that
+/// grows and shrinks as you drag. Notifications are native toggles. At the bottom, Sign out is a plain row, and deleting
+/// the account takes a `HoldToConfirm` hold, with what it removes spelled out under it and, once the hold completes, the
+/// request's progress, success or failure in that line's place. Everything the person changes lands in one `Settings`
+/// value you bind and save; the actions are closures.
+///
+/// - Parameters:
+///   - profile: Who is signed in: name, email and an optional photo. Without a photo the card shows initials on a tinted circle.
+///   - settings: The preferences the block edits: appearance, text size and notification toggles. Save it when it changes and apply it in your app.
+///   - style: Colors and the card corner radius. `.standard` is the house palette, adapting to light and dark.
+///   - onEditProfile: Called when the profile card is tapped. `nil` shows the card without its Edit affordance.
+///   - onSignOut: Signs the person out. The row shows progress while it runs. `nil` hides the row.
+///   - onDeleteAccount: Deletes the account once the hold completes. Throw to show the failure and let the person hold again. `nil` hides the hold.
+public struct AccountSettingsBlock: View {
+    /// The person who is signed in.
+    public struct Profile {
+        /// Full name, shown first on the card.
+        public var name: String
+        /// Email address, shown under the name.
+        public var email: String
+        /// Optional photo, filled into the circle. `nil` shows the initials on a tint picked from the name.
+        public var photo: Image?
+
+        public init(name: String, email: String, photo: Image? = nil) {
+            self.name = name
+            self.email = email
+            self.photo = photo
+        }
+
+        /// Up to two initials from the name: the first letters of its first and last words.
+        public var initials: String {
+            let words = name.split(whereSeparator: \.isWhitespace)
+            let letters = [words.first, words.count > 1 ? words.last : nil].compactMap { $0?.first }
+            return String(letters).uppercased()
+        }
+    }
+
+    /// How the app looks. Apply it at your app's root with `.preferredColorScheme(settings.appearance.colorScheme)`.
+    public enum Appearance: String, CaseIterable, Identifiable, Sendable {
+        case system, light, dark
+
+        public var id: String { rawValue }
+
+        /// The scheme to pass to `.preferredColorScheme(_:)`. `nil` follows the system.
+        public var colorScheme: ColorScheme? {
+            switch self {
+            case .system: nil
+            case .light: .light
+            case .dark: .dark
+            }
+        }
+
+        /// The segment's title.
+        public var title: String {
+            switch self {
+            case .system: String(localized: "System")
+            case .light: String(localized: "Light")
+            case .dark: String(localized: "Dark")
+            }
+        }
+
+        /// The segment's SF Symbol.
+        public var systemImage: String {
+            switch self {
+            case .system: "circle.lefthalf.filled"
+            case .light: "sun.max"
+            case .dark: "moon"
+            }
+        }
+    }
+
+    /// One notification the person can turn on or off.
+    public struct NotificationSetting: Identifiable, Equatable, Sendable {
+        /// Stable key, for saving the choice.
+        public var id: String
+        /// What the notification is, such as "Reminders".
+        public var title: String
+        /// Optional second line: when or how it arrives.
+        public var detail: String?
+        /// Whether it is on.
+        public var isOn: Bool
+
+        public init(id: String, title: String, detail: String? = nil, isOn: Bool) {
+            self.id = id
+            self.title = title
+            self.detail = detail
+            self.isOn = isOn
+        }
+    }
+
+    /// Everything the block edits, as one value: bind it, and save it when it changes.
+    public struct Settings: Equatable, Sendable {
+        /// The appearance choice. Apply its `colorScheme` at your app's root.
+        public var appearance: Appearance
+        /// How large your reading text is, as a multiple of its default size: 0.7 to 1.3 in steps of 0.1, with 1 the
+        /// default. Multiply your reading text's size by it. `nil` hides the text size control.
+        public var textSize: Double?
+        /// The notification toggles, in display order. Empty hides the Notifications section.
+        public var notifications: [NotificationSetting]
+
+        /// The text sizes the track offers.
+        public static let textSizes: ClosedRange<Double> = 0.7...1.3
+        /// The step between text sizes.
+        public static let textSizeStep: Double = 0.1
+
+        public init(appearance: Appearance = .system, textSize: Double? = 1, notifications: [NotificationSetting] = []) {
+            self.appearance = appearance
+            self.textSize = textSize
+            self.notifications = notifications
+        }
+    }
+
+    /// Colors and metrics. Colors adapt to light and dark.
+    public struct Style: Sendable {
+        /// The section cards' fill.
+        public var card: Color
+        /// Names, titles and the sample line.
+        public var label: Color
+        /// Section headers, the email, details and notes.
+        public var secondaryLabel: Color
+        /// Hairlines between rows.
+        public var separator: Color
+        /// The toggles' tint. The house signal red.
+        public var accent: Color
+        /// The confirmed-deletion mark.
+        public var success: Color
+        /// The failed-deletion mark.
+        public var warning: Color
+        /// Ink on the solid colors: initials, the marks' glyphs.
+        public var ink: Color
+        /// Tints for an avatar without a photo; the name picks one, so a person keeps theirs.
+        public var avatarTints: [Color]
+        /// Corner radius of the cards.
+        public var cornerRadius: CGFloat
+
+        public init(
+            card: Color = Style.adaptive(light: 0xFFFFFF, dark: 0x1C1C1C),
+            label: Color = Style.adaptive(light: 0x141414, dark: 0xF4F3EF),
+            secondaryLabel: Color = Style.adaptive(light: 0x5C5A56, dark: 0xA6A49F),
+            separator: Color = Style.adaptive(light: 0xECEAE4, dark: 0x2A2A2A),
+            accent: Color = Style.adaptive(light: 0xFF0000, dark: 0xFF0000),
+            success: Color = Style.adaptive(light: 0xA9DCB7, dark: 0xA9DCB7),
+            warning: Color = Style.adaptive(light: 0xFFD976, dark: 0xFFD976),
+            ink: Color = Style.adaptive(light: 0x141414, dark: 0x141414),
+            avatarTints: [Color] = [0xA9DCB7, 0x9CC2FF, 0xFFD976, 0xCDB8FF, 0xE9D5B3].map { Style.adaptive(light: $0, dark: $0) },
+            cornerRadius: CGFloat = 24
+        ) {
+            self.card = card
+            self.label = label
+            self.secondaryLabel = secondaryLabel
+            self.separator = separator
+            self.accent = accent
+            self.success = success
+            self.warning = warning
+            self.ink = ink
+            self.avatarTints = avatarTints
+            self.cornerRadius = cornerRadius
+        }
+
+        /// The house palette.
+        public static let standard = Style()
+
+        /// A color that follows the appearance, from two 0xRRGGBB values.
+        public static func adaptive(light: UInt32, dark: UInt32) -> Color {
+            Color(uiColor: UIColor { @Sendable traits in
+                let hex = traits.userInterfaceStyle == .dark ? dark : light
+                return UIColor(red: CGFloat((hex >> 16) & 0xFF) / 255, green: CGFloat((hex >> 8) & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
+            })
+        }
+
+        /// The tint for `name`: the same name always gets the same one.
+        func avatarTint(for name: String) -> Color {
+            guard !avatarTints.isEmpty else { return secondaryLabel }
+            let sum = name.unicodeScalars.reduce(0) { $0 &+ Int($1.value) }
+            return avatarTints[sum % avatarTints.count]
+        }
+    }
+
+    /// Where an account deletion stands.
+    private enum Deletion: Equatable { case idle, deleting, deleted, failed }
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.displayScale) private var displayScale
+    @ScaledMetric(relativeTo: .body) private var avatarSize: CGFloat = 44
+    @ScaledMetric(relativeTo: .body) private var sampleBase: CGFloat = 17
+    @ScaledMetric(relativeTo: .body) private var smallA: CGFloat = 13
+    @ScaledMetric(relativeTo: .body) private var largeA: CGFloat = 22
+    /// The result marks' diameter, beside the footnote line.
+    @ScaledMetric(relativeTo: .footnote) private var markSize: CGFloat = 17
+    /// The width a segment needs to show its symbol beside its title.
+    @ScaledMetric(relativeTo: .subheadline) private var segmentRoom: CGFloat = 96
+    @State private var displayWidth: CGFloat = 0
+    @Binding private var settings: Settings
+    @State private var holdPhase: HoldToConfirm.Phase = .idle
+    @State private var deletion: Deletion = .idle
+    @State private var signingOut = false
+    @State private var failures = 0
+
+    private let profile: Profile
+    private let style: Style
+    private let onEditProfile: (() -> Void)?
+    private let onSignOut: (@MainActor () async -> Void)?
+    private let onDeleteAccount: (@MainActor () async throws -> Void)?
+
+    public init(
+        profile: Profile,
+        settings: Binding<Settings>,
+        style: Style = .standard,
+        onEditProfile: (() -> Void)? = nil,
+        onSignOut: (@MainActor () async -> Void)? = nil,
+        onDeleteAccount: (@MainActor () async throws -> Void)? = nil
+    ) {
+        self.profile = profile
+        self._settings = settings
+        self.style = style
+        self.onEditProfile = onEditProfile
+        self.onSignOut = onSignOut
+        self.onDeleteAccount = onDeleteAccount
+    }
+
+    private var motion: PieceMotion { PieceMotion(reduceMotion: reduceMotion) }
+    private var cardShape: RoundedRectangle { RoundedRectangle(cornerRadius: style.cornerRadius, style: .continuous) }
+
+    public var body: some View {
+        VStack(alignment: .leading, spacing: 18) {
+            profileCard
+            section("Display") { displayCard }
+            if !settings.notifications.isEmpty {
+                section("Notifications") { notificationsCard }
+            }
+            if onSignOut != nil || onDeleteAccount != nil {
+                VStack(alignment: .leading, spacing: 12) {
+                    if let onSignOut { signOutRow(onSignOut) }
+                    if let onDeleteAccount { deleteControl(onDeleteAccount) }
+                }
+            }
+        }
+        .fontWeight(.semibold)
+        .sensoryFeedback(.error, trigger: failures)
+    }
+
+    // MARK: Sections
+
+    /// A header over its card, aligned with the card's content.
+    private func section<Content: View>(_ title: LocalizedStringKey, @ViewBuilder content: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(title)
+                .font(.footnote)
+                .foregroundStyle(style.secondaryLabel)
+                .padding(.horizontal, 16)
+                .accessibilityAddTraits(.isHeader)
+            content()
+        }
+    }
+
+    private var card: some View { cardShape.fill(style.card) }
+
+    private var hairline: some View {
+        Rectangle()
+            .fill(style.separator)
+            .frame(height: 1 / max(displayScale, 1))
+            .padding(.leading, 16)
+            .accessibilityHidden(true)
+    }
+
+    // MARK: Profile
+
+    /// The profile card: a button onto your editor when `onEditProfile` is set, with the Edit pill as its affordance.
+    @ViewBuilder private var profileCard: some View {
+        if let onEditProfile {
+            Button(action: onEditProfile) { profileContent(editable: true) }
+                .buttonStyle(PiecePressStyle(depth: 1.5))
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(Text(verbatim: "\(profile.name), \(profile.email)"))
+                .accessibilityHint(Text("Opens your profile to edit it"))
+                .accessibilityAddTraits(.isButton)
+        } else {
+            profileContent(editable: false)
+                .accessibilityElement(children: .combine)
+        }
+    }
+
+    private func profileContent(editable: Bool) -> some View {
+        Group {
+            if dynamicTypeSize.isAccessibilitySize {
+                // Stacked, so the name and email keep the full width.
+                VStack(alignment: .leading, spacing: 12) {
+                    avatar
+                    identity(lineLimit: 3)
+                    if editable { editPill }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            } else if editable {
+                // The Edit pill while the name and email fit beside it in full; a chevron when they would be cut.
+                ViewThatFits(in: .horizontal) {
+                    profileRow { editPill }
+                    profileRow {
+                        Image(systemName: "chevron.right")
+                            .font(.footnote)
+                            .foregroundStyle(style.secondaryLabel)
+                    }
+                }
+            } else {
+                profileRow { EmptyView() }
+            }
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(card)
+        .contentShape(cardShape)
+    }
+
+    private func profileRow<Trailing: View>(@ViewBuilder trailing: () -> Trailing) -> some View {
+        HStack(spacing: 14) {
+            avatar
+            identity(lineLimit: 1)
+            Spacer(minLength: 8)
+            trailing()
+        }
+    }
+
+    private func identity(lineLimit: Int) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(verbatim: profile.name)
+                .font(.body)
+                .foregroundStyle(style.label)
+            Text(verbatim: profile.email)
+                .font(.subheadline)
+                .foregroundStyle(style.secondaryLabel)
+                .truncationMode(.middle)
+        }
+        .lineLimit(lineLimit)
+    }
+
+    private var avatar: some View {
+        ZStack {
+            if let photo = profile.photo {
+                photo.resizable().scaledToFill()
+            } else {
+                style.avatarTint(for: profile.name)
+                Text(verbatim: profile.initials)
+                    .font(.system(size: avatarSize * 0.38, weight: .semibold))
+                    .foregroundStyle(style.ink)
+            }
+        }
+        .frame(width: avatarSize, height: avatarSize)
+        .clipShape(Circle())
+        .accessibilityHidden(true)
+    }
+
+    /// The card's affordance: a small glass pill. The card around it is the button.
+    private var editPill: some View {
+        PieceLiquidGroup(lift: false) {
+            Text("Edit")
+                .font(.subheadline)
+                .foregroundStyle(style.label)
+                .padding(.horizontal, 14)
+                .frame(minHeight: 32)
+                .pieceLiquid(Capsule(), interactive: false)
+        }
+    }
+
+    // MARK: Display
+
+    private var displayCard: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            GlassSegments(options: Appearance.allCases, selection: $settings.appearance) { $0.title } systemImage: { option in
+                segmentSymbols ? option.systemImage : nil
+            }
+            .accessibilityLabel(Text("Appearance"))
+            if let size = settings.textSize {
+                textSizeControl(size)
+                    .padding(.top, 16)
+            }
+        }
+        .padding(.horizontal, 14)
+        .padding(.top, 14)
+        // The track's 44pt row already carries air under the bar.
+        .padding(.bottom, settings.textSize == nil ? 14 : 2)
+        .background(card)
+        .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { displayWidth = $0 }
+    }
+
+    /// Symbols beside the segment titles only while every title still fits in full: not on a narrow screen or at the
+    /// larger text sizes, where the titles need the whole segment.
+    private var segmentSymbols: Bool {
+        guard !dynamicTypeSize.isAccessibilitySize else { return false }
+        // The card's padding and the track's inset either side, shared by three segments.
+        return displayWidth == 0 || (displayWidth - 34) / 3 >= segmentRoom
+    }
+
+    /// The sample line over the track. The line sits on the bottom of a box sized for the largest step, so it grows
+    /// upward and nothing under it moves while you drag. The gap above the track leaves room for the readout bubble the
+    /// track buds while it is held.
+    private func textSizeControl(_ size: Double) -> some View {
+        let bounds = Settings.textSizes
+        let stacked = dynamicTypeSize.isAccessibilitySize
+        return VStack(alignment: .leading, spacing: 24) {
+            Text("Text looks like this.")
+                .modifier(AccountSettingsSampleFont(size: sampleBase * size))
+                .foregroundStyle(style.label)
+                .lineLimit(stacked ? 3 : 1)
+                .minimumScaleFactor(stacked ? 1 : 0.8)
+                // A step lands on the value spring: it never overshoots, so the line never shows a size you didn't pick.
+                .animation(motion.value, value: size)
+                .frame(minHeight: (sampleBase * bounds.upperBound * 1.25).rounded(.up), alignment: .bottomLeading)
+                .accessibilityHidden(true)
+            HStack(spacing: 12) {
+                Text(verbatim: "A")
+                    .font(.system(size: smallA, weight: .semibold))
+                    .foregroundStyle(style.secondaryLabel)
+                    .accessibilityHidden(true)
+                ExpandingTrack(value: textSizeBinding, in: bounds, step: Settings.textSizeStep) {
+                    $0.formatted(.percent.precision(.fractionLength(0)))
+                }
+                .accessibilityLabel(Text("Text size"))
+                Text(verbatim: "A")
+                    .font(.system(size: largeA, weight: .semibold))
+                    .foregroundStyle(style.secondaryLabel)
+                    .accessibilityHidden(true)
+            }
+        }
+    }
+
+    private var textSizeBinding: Binding<Double> {
+        Binding(get: { settings.textSize ?? 1 }, set: { settings.textSize = $0 })
+    }
+
+    // MARK: Notifications
+
+    private var notificationsCard: some View {
+        VStack(spacing: 0) {
+            ForEach($settings.notifications) { $item in
+                if item.id != settings.notifications.first?.id { hairline }
+                Toggle(isOn: $item.isOn) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(verbatim: item.title)
+                            .font(.body)
+                            .foregroundStyle(style.label)
+                        if let detail = item.detail {
+                            Text(verbatim: detail)
+                                .font(.footnote)
+                                .foregroundStyle(style.secondaryLabel)
+                        }
+                    }
+                }
+                .tint(style.accent)
+                .padding(.horizontal, 16)
+                .padding(.vertical, item.detail == nil ? 4 : 10)
+                .frame(minHeight: 52)
+            }
+        }
+        .background(card)
+    }
+
+    // MARK: The way out
+
+    private func signOutRow(_ signOut: @escaping @MainActor () async -> Void) -> some View {
+        Button {
+            guard !signingOut else { return }
+            signingOut = true
+            Task {
+                await signOut()
+                signingOut = false
+            }
+        } label: {
+            HStack(spacing: 12) {
+                Text("Sign out")
+                    .font(.body)
+                    .foregroundStyle(style.label)
+                Spacer(minLength: 8)
+                if signingOut {
+                    ProgressView()
+                        .tint(style.secondaryLabel)
+                        .transition(.opacity)
+                }
+            }
+            .animation(motion.reveal, value: signingOut)
+            .padding(.horizontal, 16)
+            .frame(maxWidth: .infinity, minHeight: 52, alignment: .leading)
+            .background(card)
+            .contentShape(cardShape)
+        }
+        .buttonStyle(PiecePressStyle(depth: 1.5))
+        .disabled(signingOut || deletion == .deleting || deletion == .deleted)
+        .accessibilityValue(signingOut ? Text("Signing out") : Text(verbatim: ""))
+    }
+
+    private func deleteControl(_ delete: @escaping @MainActor () async throws -> Void) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            // The capsule's title is one line that never wraps, so a narrow screen or a large text size gets the short
+            // title, and at the largest sizes the short title stops growing rather than run out of the capsule.
+            ViewThatFits(in: .horizontal) {
+                hold(String(localized: "Hold to delete account"), delete)
+                hold(String(localized: "Delete account"), delete)
+                hold(String(localized: "Delete account"), delete)
+                    .dynamicTypeSize(...DynamicTypeSize.xLarge)
+            }
+            // Locked while the request runs and once it has gone through, but only after the hold's own confirmation
+            // has played, so the capsule turns sage before it greys.
+            .disabled(holdLocked)
+            deletionNote
+                .padding(.horizontal, 16)
+                .pieceShake(trigger: failures)
+        }
+    }
+
+    private func hold(_ title: String, _ delete: @escaping @MainActor () async throws -> Void) -> some View {
+        HoldToConfirm(title, systemImage: "trash", phase: $holdPhase) { startDeletion(delete) }
+    }
+
+    private var holdLocked: Bool {
+        (deletion == .deleting || deletion == .deleted) && holdPhase != .committed
+    }
+
+    /// What deleting removes, replaced by the request's progress, then its result.
+    private var deletionNote: some View {
+        // How far a mark's centre sits above the baseline: half the footnote's cap height. Read here, since an
+        // alignment guide's closure can run off the main actor.
+        let lift = markSize * 0.27
+        return HStack(alignment: .firstTextBaseline, spacing: 8) {
+            switch deletion {
+            case .idle:
+                Text("Removes your profile and data for good.")
+            case .deleting:
+                ProgressView()
+                    .controlSize(.mini)
+                    .tint(style.secondaryLabel)
+                    .alignmentGuide(.firstTextBaseline) { $0[VerticalAlignment.center] + lift }
+                Text("Deleting your account…")
+            case .deleted:
+                mark("checkmark", fill: style.success, lift: lift)
+                Text("Your account is deleted.")
+                    .foregroundStyle(style.label)
+            case .failed:
+                mark("exclamationmark", fill: style.warning, lift: lift)
+                Text("Couldn't delete your account. Try again.")
+                    .foregroundStyle(style.label)
+            }
+        }
+        .font(.footnote)
+        .foregroundStyle(style.secondaryLabel)
+        .fixedSize(horizontal: false, vertical: true)
+        .id(deletion)
+        .transition(motion.swap)
+        .accessibilityElement(children: .combine)
+    }
+
+    /// A small solid mark with the house ink on it, centred on the first line's capitals.
+    private func mark(_ symbol: String, fill: Color, lift: CGFloat) -> some View {
+        Image(systemName: symbol)
+            .font(.system(size: markSize * 0.55, weight: .semibold))
+            .foregroundStyle(style.ink)
+            .frame(width: markSize, height: markSize)
+            .background(fill, in: Circle())
+            .alignmentGuide(.firstTextBaseline) { $0[VerticalAlignment.center] + lift }
+            .accessibilityHidden(true)
+    }
+
+    private func startDeletion(_ delete: @escaping @MainActor () async throws -> Void) {
+        guard deletion != .deleting, deletion != .deleted else { return }
+        withAnimation(motion.reveal) { deletion = .deleting }
+        Task {
+            do {
+                try await delete()
+                withAnimation(motion.success) { deletion = .deleted }
+                AccessibilityNotification.Announcement(String(localized: "Your account is deleted.")).post()
+            } catch {
+                withAnimation(motion.error) { deletion = .failed }
+                failures += 1
+                AccessibilityNotification.Announcement(String(localized: "Couldn't delete your account.")).post()
+            }
+        }
+    }
+}
+
+/// The sample line's size, animatable so a step grows the line smoothly instead of jumping between font sizes.
+private struct AccountSettingsSampleFont: ViewModifier, Animatable {
+    var size: CGFloat
+
+    nonisolated var animatableData: CGFloat {
+        get { size }
+        set { size = newValue }
+    }
+
+    func body(content: Content) -> some View {
+        content.font(.system(size: size, weight: .semibold))
+    }
+}
+
+// MARK: - Example
+
+#Preview("Usage") {
+    @Previewable @State var settings = AccountSettingsBlock.Settings(notifications: [
+        .init(id: "reminders", title: "Reminders", isOn: true),
+    ])
+    ScrollView {
+        AccountSettingsBlock(
+            profile: .init(name: "Maya Lindqvist", email: "maya@example.com"),
+            settings: $settings,
+            onEditProfile: { /* present your profile editor */ },
+            onSignOut: { await AccountSettingsSession.signOut() },
+            onDeleteAccount: { try await AccountSettingsSession.deleteAccount() }
+        )
+        .padding(20)
+    }
+    .preferredColorScheme(settings.appearance.colorScheme)
+}
+
+#Preview("Example") { AccountSettingsBlockExample() }
+#Preview("Dark") { AccountSettingsBlockExample(appearance: .dark) }
+
+/// Stands in for your app's session in the Usage preview.
+private enum AccountSettingsSession {
+    static func signOut() async { try? await Task.sleep(for: .seconds(0.6)) }
+    static func deleteAccount() async throws { try await Task.sleep(for: .seconds(1.2)) }
+}
+
+/// The block in a Settings screen, with the appearance it sets applied to the screen.
+private struct AccountSettingsBlockExample: View {
+    @State private var settings: AccountSettingsBlock.Settings
+
+    init(appearance: AccountSettingsBlock.Appearance = .system) {
+        _settings = State(initialValue: AccountSettingsBlock.Settings(appearance: appearance, textSize: 1, notifications: [
+            .init(id: "reminders", title: "Reminders", isOn: true),
+            .init(id: "summary", title: "Weekly summary", isOn: false),
+        ]))
+    }
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                AccountSettingsBlock(
+                    profile: .init(name: "Maya Lindqvist", email: "maya@example.com"),
+                    settings: $settings,
+                    onEditProfile: {},
+                    onSignOut: { try? await Task.sleep(for: .seconds(0.8)) },
+                    onDeleteAccount: { try await Task.sleep(for: .seconds(1.2)) }
+                )
+                .padding(.horizontal, 20)
+                .padding(.vertical, 8)
+            }
+            .background(AccountSettingsBlock.Style.adaptive(light: 0xF3F2EE, dark: 0x121212).ignoresSafeArea())
+            .navigationTitle("Settings")
+        }
+        .preferredColorScheme(settings.appearance.colorScheme)
+    }
+}
+
+// MARK: - Piece motion
+//
+// The SwiftPieces motion language: shared spring tokens and gesture physics, with the same values in every
+// piece. Each piece carries a copy of only the parts it uses, so this file stands alone. Generated from
+// registry/foundation/PieceMotion.swift in the SwiftPieces repo; edit it there, not here.
+// swiftpieces-motion: 1.1.0 (core, pressMath, press, pressStyle, shake)
+
+/// The SwiftPieces motion language: five spring tiers, and a named role for every moment a piece moves,
+/// each with its Reduce Motion substitute.
+///
+/// Build one from the environment, `PieceMotion(reduceMotion: reduceMotion)`, and pick the role that names
+/// what just happened. Never animate the tracking of a finger: set gesture state directly in `onChanged`, so the
+/// surface stays under the finger, and spring only the release.
+private struct PieceMotion {
+    var reduceMotion = false
+
+    // Tiers. Overshoot and settle times are measured from rest with SwiftUI's Spring.
+    /// No overshoot, 90% in about 90ms. A press arriving under the finger.
+    static var tight: Spring { Spring(duration: 0.14, bounce: 0) }
+    /// About 2.8% overshoot, 90% in about 140ms. Snapping to a detent, page or segment.
+    static var responsive: Spring { Spring(duration: 0.32, bounce: 0.25) }
+    /// About 8.4% overshoot. Visible give: a release, a return from past an edge, a drag settling home.
+    static var elastic: Spring { Spring(duration: 0.42, bounce: 0.38) }
+    /// About 15% overshoot. A resolved action landing. At most once per interaction.
+    static var expressive: Spring { Spring(duration: 0.48, bounce: 0.48) }
+    /// About 1.5% overshoot, unhurried. Opening large surfaces and ambient change.
+    static var calm: Spring { Spring(duration: 0.5, bounce: 0.2) }
+
+    /// Reduce Motion: settles become this short spring with no overshoot.
+    private static var still: Animation { .spring(duration: 0.25, bounce: 0) }
+
+    // Roles.
+    /// Touch-down. Starts on the same frame and never bounces under the finger.
+    var press: Animation { .spring(Self.tight) }
+    /// The finger lifts off a pressed surface, which springs back through rest.
+    var release: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A dragged thing comes to rest. With a gesture's velocity, use `settle(velocity:from:to:)` instead.
+    var settle: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// Lands on a detent, page or segment.
+    var snap: Animation { reduceMotion ? Self.still : .spring(Self.responsive) }
+    /// A number, a chart value or anything else people read moves to its new value. Never overshoots, so it
+    /// never shows a value that isn't true.
+    var value: Animation { reduceMotion ? Self.still : .spring(duration: 0.35, bounce: 0) }
+    /// Comes back from past a limit: a pull beyond the edge, a value pushed against its bound.
+    var rebound: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A shape or container changes size, corner radius or form, with a little give at the end.
+    var morph: Animation { reduceMotion ? Self.still : .spring(duration: 0.4, bounce: 0.2) }
+    /// Something appears, opens or expands. Opening is a little slower than closing.
+    var reveal: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.calm) }
+    /// Something leaves, closes or collapses. Quick and firm, out of the way.
+    var dismiss: Animation { reduceMotion ? .easeIn(duration: 0.18) : .spring(duration: 0.3, bounce: 0.08) }
+    /// A resolved action lands: a check, a sent state, a reaction.
+    var success: Animation { reduceMotion ? .easeOut(duration: 0.24) : .spring(Self.expressive) }
+    /// A refused action. Firm, no wobble; `pieceShake` adds the movement.
+    var error: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.responsive) }
+    /// Slow ambient change. Loops themselves stop under Reduce Motion: check `allowsAmbient`.
+    var ambient: Animation { reduceMotion ? .easeInOut(duration: 0.3) : .spring(Self.calm) }
+
+    /// Loops, drifts, idle breathing and parallax run only when this is true.
+    var allowsAmbient: Bool { !reduceMotion }
+
+    /// A moving transition, or a plain fade under Reduce Motion.
+    func transition(_ transition: AnyTransition) -> AnyTransition {
+        reduceMotion ? .opacity : transition
+    }
+
+    /// For content replaced inside a container that stays put (a label, a glyph, a count): the old content
+    /// blurs out as the new one sharpens in. A fade under Reduce Motion.
+    @MainActor var swap: AnyTransition {
+        reduceMotion ? .opacity : AnyTransition(.blurReplace)
+    }
+}
+
+extension PieceMotion {
+    /// About `depth` points per edge, not a fixed percentage: an icon sinks to 0.92, a pill 0.95, a card 0.985.
+    nonisolated static func pressScale(for size: CGSize, depth: CGFloat = 2.5) -> CGFloat {
+        let side = (max(size.width, 1) * max(size.height, 1)).squareRoot()
+        return min(max(1 - depth * 2 / side, 0.92), 0.985)
+    }
+
+    /// An anchor partway from the center toward the touch, so the press leans into the finger without tipping.
+    nonisolated static func pressAnchor(touch: CGPoint?, in size: CGSize, lean: CGFloat = 0.6) -> UnitPoint {
+        guard let touch, size.width > 0, size.height > 0 else { return .center }
+        let x = min(max(touch.x / size.width, 0), 1)
+        let y = min(max(touch.y / size.height, 0), 1)
+        return UnitPoint(x: 0.5 + (x - 0.5) * lean, y: 0.5 + (y - 0.5) * lean)
+    }
+}
+
+/// Sinks on touch-down, leaning toward the touch if given, and springs back from the same lean. Under Reduce
+/// Motion it shades instead of moving (darker in light mode, lighter in dark), without turning transparent.
+private struct PiecePress: ViewModifier {
+    let pressed: Bool
+    var touch: CGPoint?
+    var depth: CGFloat = 2.5
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.colorScheme) private var colorScheme
+    @State private var size: CGSize = .zero
+    @State private var anchor: UnitPoint = .center
+
+    func body(content: Content) -> some View {
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        let scale = pressed && !reduceMotion ? PieceMotion.pressScale(for: size, depth: depth) : 1
+        content
+            .onGeometryChange(for: CGSize.self) { $0.size } action: { size = $0 }
+            .brightness(pressed && reduceMotion ? (colorScheme == .dark ? 0.1 : -0.08) : 0)
+            .scaleEffect(scale, anchor: anchor)
+            .animation(pressed ? motion.press : motion.release, value: pressed)
+            .onChange(of: pressed) { _, isPressed in
+                if isPressed { anchor = PieceMotion.pressAnchor(touch: touch, in: size) }
+            }
+            .onChange(of: touch) { _, touch in
+                if pressed, let touch { anchor = PieceMotion.pressAnchor(touch: touch, in: size) }
+            }
+    }
+}
+
+private extension View {
+    /// Sinks this view while `pressed`, leaning toward `touch` (in this view's coordinates) when given.
+    func piecePress(_ pressed: Bool, touch: CGPoint? = nil, depth: CGFloat = 2.5) -> some View {
+        modifier(PiecePress(pressed: pressed, touch: touch, depth: depth))
+    }
+}
+
+/// Only the press, centered: for chips, rows and tiles, and anything in scrolling content.
+private struct PiecePressStyle: ButtonStyle {
+    var depth: CGFloat = 2.5
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label.piecePress(configuration.isPressed, depth: depth)
+    }
+}
+
+/// A short decaying side-to-side shake for refused input, each time `trigger` changes. Under Reduce Motion it stays
+/// still (same view, no identity change): pair it with a color or message change and the error haptic.
+private struct PieceShake: ViewModifier {
+    let trigger: AnyHashable
+    var distance: CGFloat = 8
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func body(content: Content) -> some View {
+        let distance = reduceMotion ? 0 : distance
+        content.keyframeAnimator(initialValue: CGFloat(0), trigger: trigger) { view, x in
+            view.offset(x: x)
+        } keyframes: { _ in
+            KeyframeTrack {
+                CubicKeyframe(-distance, duration: 0.06)
+                CubicKeyframe(distance * 0.75, duration: 0.07)
+                CubicKeyframe(-distance * 0.5, duration: 0.07)
+                CubicKeyframe(distance * 0.25, duration: 0.06)
+                SpringKeyframe(0, duration: 0.12, spring: Spring(duration: 0.18, bounce: 0))
+            }
+        }
+    }
+}
+
+private extension View {
+    /// Shakes this view side to side once each time `trigger` changes, for input that was refused.
+    func pieceShake(trigger: some Hashable & Sendable, distance: CGFloat = 8) -> some View {
+        modifier(PieceShake(trigger: AnyHashable(trigger), distance: distance))
+    }
+}
+
+// swiftpieces-motion: end
+
+// MARK: - Piece liquid
+//
+// The SwiftPieces liquid glass language: glass shapes that merge through a neck, bubbles that bud out of
+// and melt back into each other, and the frosted fallback before iOS 26. Each piece carries a copy of only
+// the parts it uses, so this file stands alone. Generated from registry/foundation/PieceLiquid.swift in the
+// SwiftPieces repo; edit it there, not here. The rules are in LIQUID_GLASS.md.
+// swiftpieces-liquid: 1.7.1 (liquid)
+
+/// The liquid glass language: one merge distance, two rest gaps, and the springs a bubble leaves and comes home on.
+///
+/// Glass shapes inside one `PieceLiquidGroup` melt into each other through a neck when they come within `merge`
+/// points. Parts of one control rest `joined`, inside that distance, so the neck holds; separate actions rest
+/// `apart`, outside it, so they only goo while one buds out of, or melts back into, another.
+private enum PieceLiquid {
+    /// Glass shapes closer than this share a neck.
+    static let merge: CGFloat = 20
+    /// The gap between parts of one control (a stepper's buttons, a progress pill and its stop): the neck holds,
+    /// short and smooth, about two thirds of the shapes' height at its waist. Joined parts read best at one height.
+    static let joined: CGFloat = 4
+    /// The gap between separate actions (menu items, confirm and cancel, chips): they rest as their own bubbles.
+    static let apart: CGFloat = 26
+    /// How far a bubble shrinks while it is home inside its parent.
+    static let homeScale: CGFloat = 0.72
+
+    /// A bubble leaving its parent: slow enough that the neck's stretch and snap read.
+    static func split(reduceMotion: Bool) -> Animation {
+        reduceMotion ? .easeOut(duration: 0.2) : .spring(duration: 0.62, bounce: 0.22)
+    }
+
+    /// A bubble going home. No bounce: a bounce would carry it out through the far side of its parent.
+    static func home(reduceMotion: Bool) -> Animation {
+        reduceMotion ? .easeIn(duration: 0.18) : .spring(duration: 0.5, bounce: 0)
+    }
+}
+
+/// A group of glass shapes that merge into one liquid surface. On iOS 26 it is a `GlassEffectContainer`; before
+/// that, and under Reduce Transparency, the shapes draw on their own and simply don't merge. `lift` adds the soft
+/// shadow liquid glass floats on in light mode.
+private struct PieceLiquidGroup<Content: View>: View {
+    var spacing: CGFloat = PieceLiquid.merge
+    var lift = true
+    @ViewBuilder var content: Content
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        container
+            .shadow(color: .black.opacity(lift && colorScheme == .light ? 0.07 : 0), radius: 18, y: 8)
+    }
+
+    @ViewBuilder private var container: some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26, *), !reduceTransparency {
+            GlassEffectContainer(spacing: spacing) { content }
+        } else {
+            content
+        }
+        #else
+        content
+        #endif
+    }
+}
+
+/// One liquid glass shape: Liquid Glass on iOS 26, carrying `tint` as a solid colour and swelling under a press when
+/// `interactive`; a frosted Material with a light rim and a soft shadow before that; a solid fill under Reduce
+/// Transparency.
+///
+/// The tint is painted inside clear glass rather than tinting the glass. Tinted glass in a group bleeds its colour
+/// through every neck as a smear, so a red button would glow into the white pill it is joined to; painted inside,
+/// the colour stays crisp to the shape's edge, the necks between shapes are clear glass, and a tint change animates
+/// like any colour (tinted glass snaps).
+private struct PieceLiquidSurface<S: Shape>: ViewModifier {
+    var shape: S
+    var tint: Color?
+    var interactive: Bool
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.pieceLiquidScale) private var scale
+
+    func body(content: Content) -> some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26, *), !reduceTransparency {
+            // Scaled as two parts, content and outline, about the same centre. A scaleEffect on a glass view inside a
+            // GlassEffectContainer shrinks the glass but leaves what it carries full size, pinned to its corner.
+            content
+                .background { shape.fill(tint ?? .clear) }
+                .scaleEffect(scale)
+                .glassEffect(glass, in: shape.scale(scale))
+        } else {
+            fallback(content).scaleEffect(scale)
+        }
+        #else
+        fallback(content).scaleEffect(scale)
+        #endif
+    }
+
+    #if compiler(>=6.2)
+    @available(iOS 26, *)
+    private var glass: Glass {
+        interactive ? Glass.regular.interactive() : .regular
+    }
+    #endif
+
+    private func fallback(_ content: Content) -> some View {
+        let dark = colorScheme == .dark
+        return content
+            .background {
+                if reduceTransparency {
+                    shape.fill(tint ?? (dark ? Color(white: 0.17) : Color(white: 0.97)))
+                } else {
+                    ZStack {
+                        shape.fill(.regularMaterial)
+                        if let tint { shape.fill(tint.opacity(0.88)) }
+                    }
+                }
+            }
+            .overlay { shape.stroke(Color.white.opacity(dark ? 0.14 : 0.7), lineWidth: 0.5) }
+            .shadow(color: .black.opacity(dark ? 0.32 : 0.08), radius: 10, y: 5)
+    }
+}
+
+private struct PieceLiquidScaleKey: EnvironmentKey {
+    static let defaultValue: CGFloat = 1
+}
+
+private extension EnvironmentValues {
+    /// How much the liquid shapes below are scaled, about their own centres. Nested scales multiply.
+    var pieceLiquidScale: CGFloat {
+        get { self[PieceLiquidScaleKey.self] }
+        set { self[PieceLiquidScaleKey.self] = newValue }
+    }
+}
+
+private extension View {
+    /// Draws this view on a liquid glass `shape`. Put it inside a `PieceLiquidGroup` so it can merge with its neighbours.
+    func pieceLiquid<S: Shape>(_ shape: S, tint: Color? = nil, interactive: Bool = true) -> some View {
+        modifier(PieceLiquidSurface(shape: shape, tint: tint, interactive: interactive))
+    }
+
+    /// Scales the liquid glass shapes in this view, content and outline together, about their own centres. Use it
+    /// instead of `scaleEffect` on a glass view (a press, a lift, a swell): inside a group a plain `scaleEffect` shrinks
+    /// the glass but leaves its content full size and off centre. Animates like any other value.
+    func pieceLiquidScale(_ scale: CGFloat) -> some View {
+        transformEnvironment(\.pieceLiquidScale) { $0 *= scale }
+    }
+}
+
+// swiftpieces-liquid: end

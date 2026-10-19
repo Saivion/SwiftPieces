@@ -11,47 +11,7 @@ registryDependencies: []
 
 {/* GENERATED FILE. Edit registry/swift/data/RangeLens.swift or RangeLens.mdx instead. */}
 
-Overview and detail for a long series: a chart of the window you are reading, and a strip of the whole series under it with a glass lens you drag and resize to choose that window. The readout names the window's summary (the average by default) in a large numeral over its dates. The detail chart draws the window's samples as bars in the text color, with the window's average as a red dashed rule and an "avg" chip on the value axis; it pans with the lens and rescales without overshooting. The strip draws every sample in one `Canvas`, bright inside the window and dim outside, over the lens: a liquid glass slab with a glass handle joined to each end. Drag the slab to move the window, drag a handle (or within about 22 points of an edge) to resize it, tap the strip to centre the lens there, and double-tap to show everything and again to go back. Vertical swipes that start on the strip still scroll the screen or move a sheet. The bars are content; the lens is the control, so it is the only glass.
-
-## Notes
-
-- Pass the whole series as `[RangeLens.Sample]` (a date and a value each) and bind the window as a `ClosedRange<Date>`, from the date of its first sample to the date of its last. Keep both in your own state; `RangeLens.window(last: 42, of: days)` gives a good opening window, the last six weeks of daily samples. Samples are sorted by date for you; negative and non-finite values draw as zero.
-- The readout names the window's `summary` (`.average`, the default, or `.total`, `.maximum`, `.minimum`) in a large numeral, with your `unit` beside it and the window's dates under it ("3 Mar – 14 Apr", with the year when the window crosses one or lies in an earlier year). `valueLabel` formats the numeral and what VoiceOver reads, for example a currency or minutes as a `Measurement`.
-- The detail chart draws the window's samples as bars in the text color. Its ceiling follows the window's highest sample with a little headroom, so the bars always fill it; when the window changes, the ceiling moves on the value role and never overshoots, and the gridlines, on round values at most four, slide with it. The window's average is a red dashed rule with an "avg" chip on the value axis (`showsAverage: false` hides it); the rule follows the bars while they move.
-- The strip draws every sample on one scale in one `Canvas`, on a quiet track: dim outside the window, bright inside it. The lens is the only glass: a slab over the window with a narrow glass handle joined to each end by a liquid neck, all in one `PieceLiquidGroup`. Bars outside the window lie under the glass; the window's bars sit on the slab, crisp. Month marks run under the strip (years for long series, weeks or days for short ones), thinned evenly so they never crowd, and January names its year.
-- Drag the slab to move the window: it follows the finger, swells a little while held, and past either end of the series gives with rubber-band resistance. Drag a handle, or within about 22 points of an edge, to resize: the handle swells and floods red while held, stops firmly at `minimumSpan` samples (a week by default) and never inverts. Let go and the lens coasts a little with the flick and lands on whole samples. A drag that starts off the lens brings the lens to the finger first.
-- Tap the strip beside the lens to centre the lens there. Double-tap to show the whole series, and double-tap again to go back to the window before it. A press held still for a moment also takes hold, for a careful move.
-- The selection is written live while the lens moves, whenever the whole samples it rests on change, and once more when it lands. Set the selection yourself and the lens glides there; a window wider than the series shows all of it.
-- Horizontal drags and held presses belong to the lens; vertical swipes that start on the strip still scroll the screen or move a sheet, since the strip's recognizers only begin for a mostly horizontal drag.
-- Haptics: a selection tick when the moving edge crosses into another week (another month for weekly samples, a year for monthly ones), a light tap when a handle is grabbed and on Show all, and a soft bump when the lens meets an end of the series or its minimum span. Never per frame.
-- States: an empty series shows `messages.empty` in place of the numeral, a baseline and the bare track, with no lens; one sample shows that sample; all zeros draw a flat strip and a zero axis. While your data loads, apply `.redacted(reason: .placeholder)`: the bars draw as quiet placeholders and the text redacts. Hundreds of samples stay smooth: both charts are single `Canvas` passes and the series is sorted and summed once per change, never on a drag step.
-- VoiceOver reads the readout ("Average 8,412 steps a day, 3 March to 14 April"), then the detail chart, which also plays the window's samples as an audio graph, then the lens: an adjustable element named "Range" whose value is the dates and the summary. Swipe up or down to move it a step (a week of daily samples); the Widen, Narrow and Show all (then Back to previous range) actions change its size and announce the result.
-- Hardware keyboard: with the strip focused, the left and right arrows move the window a step, up and down widen and narrow it, and Space toggles Show all.
-- Reduce Motion: the lens lands and resizes on a short spring with no overshoot and doesn't swell, the detail cross-fades to a new scale instead of growing, and the numeral and dates cross-fade instead of rolling. Under the finger the numeral and dates change in place in every mode, so they stay legible.
-- Dynamic Type scales the readout, the axis values and the marks (the axis and marks stop growing before they crowd the charts); the numeral and unit stack when they no longer fit on one line. Right to left, time runs from the right: the latest samples, the lens and the value axis sit on the left. All text is one weight, semibold.
-- `Style` sets the accent (the average rule, its chip and a held handle) and the ink on it, the text, secondary and axis colors, the dim color of the bars outside the window (a solid mix into the ground, never transparency), the gridlines, the track, the detail chart's height and the numeral size. Under Increase Contrast the bars outside the window take the secondary color. `Messages` replaces any line of built-in copy, such as `average: "Daily average"`.
-
-## Usage
-
-```swift
-RangeLensExample()
-```
-
-## Parameters
-
-| Parameter | Description |
-| --- | --- |
-| `samples` | The series, one value per date: daily steps, revenue, hours slept, a price. Sorted by date for you. Values that are negative or not finite draw as zero. An empty series shows `messages.empty`; one sample shows that sample. |
-| `selection` | The window, from the date of its first sample to the date of its last. The lens writes it live while it moves and lands it on whole samples. Set it from outside and the lens glides there; a window wider than the series shows all of it. `RangeLens.window(last:of:)` makes a good starting value. |
-| `summary` | The figure the readout shows for the window: `.average` (the default), `.total`, `.maximum` or `.minimum`. |
-| `unit` | What the numbers count, shown after the numeral and read by VoiceOver, such as "steps a day". `nil` shows the numeral alone. |
-| `minimumSpan` | The fewest samples the window may cover. Resizing stops firmly there and the window never inverts. Defaults to 7, a week of daily samples. |
-| `showsAverage` | Draws the window's average as a red dashed rule across the detail chart with an "avg" chip on its value axis. |
-| `messages` | Built-in copy. Defaults are localizable through your String Catalog; replace any line, for example `average: "Daily average"`. |
-| `style` | Colors and sizes. Defaults to the SwiftPieces house palette with the red accent, adapting to light and dark. |
-| `valueLabel` | How a value reads in the readout and to VoiceOver, for example `{ $0.formatted(.currency(code: "EUR")) }`. Defaults to whole numbers from 100 up and one decimal below that. |
-
-## Source
+<Showcase name="RangeLens">
 
 <Tabs items={["RangeLens.swift"]}>
 <Tab value="RangeLens.swift">
@@ -1864,3 +1824,47 @@ private extension View {
 
 </Tab>
 </Tabs>
+
+</Showcase>
+
+<PieceFacts name="RangeLens" />
+
+Overview and detail for a long series: a chart of the window you are reading, and a strip of the whole series under it with a glass lens you drag and resize to choose that window. The readout names the window's summary (the average by default) in a large numeral over its dates. The detail chart draws the window's samples as bars in the text color, with the window's average as a red dashed rule and an "avg" chip on the value axis; it pans with the lens and rescales without overshooting. The strip draws every sample in one `Canvas`, bright inside the window and dim outside, over the lens: a liquid glass slab with a glass handle joined to each end. Drag the slab to move the window, drag a handle (or within about 22 points of an edge) to resize it, tap the strip to centre the lens there, and double-tap to show everything and again to go back. Vertical swipes that start on the strip still scroll the screen or move a sheet. The bars are content; the lens is the control, so it is the only glass.
+
+## Notes
+
+- Pass the whole series as `[RangeLens.Sample]` (a date and a value each) and bind the window as a `ClosedRange<Date>`, from the date of its first sample to the date of its last. Keep both in your own state; `RangeLens.window(last: 42, of: days)` gives a good opening window, the last six weeks of daily samples. Samples are sorted by date for you; negative and non-finite values draw as zero.
+- The readout names the window's `summary` (`.average`, the default, or `.total`, `.maximum`, `.minimum`) in a large numeral, with your `unit` beside it and the window's dates under it ("3 Mar – 14 Apr", with the year when the window crosses one or lies in an earlier year). `valueLabel` formats the numeral and what VoiceOver reads, for example a currency or minutes as a `Measurement`.
+- The detail chart draws the window's samples as bars in the text color. Its ceiling follows the window's highest sample with a little headroom, so the bars always fill it; when the window changes, the ceiling moves on the value role and never overshoots, and the gridlines, on round values at most four, slide with it. The window's average is a red dashed rule with an "avg" chip on the value axis (`showsAverage: false` hides it); the rule follows the bars while they move.
+- The strip draws every sample on one scale in one `Canvas`, on a quiet track: dim outside the window, bright inside it. The lens is the only glass: a slab over the window with a narrow glass handle joined to each end by a liquid neck, all in one `PieceLiquidGroup`. Bars outside the window lie under the glass; the window's bars sit on the slab, crisp. Month marks run under the strip (years for long series, weeks or days for short ones), thinned evenly so they never crowd, and January names its year.
+- Drag the slab to move the window: it follows the finger, swells a little while held, and past either end of the series gives with rubber-band resistance. Drag a handle, or within about 22 points of an edge, to resize: the handle swells and floods red while held, stops firmly at `minimumSpan` samples (a week by default) and never inverts. Let go and the lens coasts a little with the flick and lands on whole samples. A drag that starts off the lens brings the lens to the finger first.
+- Tap the strip beside the lens to centre the lens there. Double-tap to show the whole series, and double-tap again to go back to the window before it. A press held still for a moment also takes hold, for a careful move.
+- The selection is written live while the lens moves, whenever the whole samples it rests on change, and once more when it lands. Set the selection yourself and the lens glides there; a window wider than the series shows all of it.
+- Horizontal drags and held presses belong to the lens; vertical swipes that start on the strip still scroll the screen or move a sheet, since the strip's recognizers only begin for a mostly horizontal drag.
+- Haptics: a selection tick when the moving edge crosses into another week (another month for weekly samples, a year for monthly ones), a light tap when a handle is grabbed and on Show all, and a soft bump when the lens meets an end of the series or its minimum span. Never per frame.
+- States: an empty series shows `messages.empty` in place of the numeral, a baseline and the bare track, with no lens; one sample shows that sample; all zeros draw a flat strip and a zero axis. While your data loads, apply `.redacted(reason: .placeholder)`: the bars draw as quiet placeholders and the text redacts. Hundreds of samples stay smooth: both charts are single `Canvas` passes and the series is sorted and summed once per change, never on a drag step.
+- VoiceOver reads the readout ("Average 8,412 steps a day, 3 March to 14 April"), then the detail chart, which also plays the window's samples as an audio graph, then the lens: an adjustable element named "Range" whose value is the dates and the summary. Swipe up or down to move it a step (a week of daily samples); the Widen, Narrow and Show all (then Back to previous range) actions change its size and announce the result.
+- Hardware keyboard: with the strip focused, the left and right arrows move the window a step, up and down widen and narrow it, and Space toggles Show all.
+- Reduce Motion: the lens lands and resizes on a short spring with no overshoot and doesn't swell, the detail cross-fades to a new scale instead of growing, and the numeral and dates cross-fade instead of rolling. Under the finger the numeral and dates change in place in every mode, so they stay legible.
+- Dynamic Type scales the readout, the axis values and the marks (the axis and marks stop growing before they crowd the charts); the numeral and unit stack when they no longer fit on one line. Right to left, time runs from the right: the latest samples, the lens and the value axis sit on the left. All text is one weight, semibold.
+- `Style` sets the accent (the average rule, its chip and a held handle) and the ink on it, the text, secondary and axis colors, the dim color of the bars outside the window (a solid mix into the ground, never transparency), the gridlines, the track, the detail chart's height and the numeral size. Under Increase Contrast the bars outside the window take the secondary color. `Messages` replaces any line of built-in copy, such as `average: "Daily average"`.
+
+## Usage
+
+```swift
+RangeLensExample()
+```
+
+## Parameters
+
+| Parameter | Description |
+| --- | --- |
+| `samples` | The series, one value per date: daily steps, revenue, hours slept, a price. Sorted by date for you. Values that are negative or not finite draw as zero. An empty series shows `messages.empty`; one sample shows that sample. |
+| `selection` | The window, from the date of its first sample to the date of its last. The lens writes it live while it moves and lands it on whole samples. Set it from outside and the lens glides there; a window wider than the series shows all of it. `RangeLens.window(last:of:)` makes a good starting value. |
+| `summary` | The figure the readout shows for the window: `.average` (the default), `.total`, `.maximum` or `.minimum`. |
+| `unit` | What the numbers count, shown after the numeral and read by VoiceOver, such as "steps a day". `nil` shows the numeral alone. |
+| `minimumSpan` | The fewest samples the window may cover. Resizing stops firmly there and the window never inverts. Defaults to 7, a week of daily samples. |
+| `showsAverage` | Draws the window's average as a red dashed rule across the detail chart with an "avg" chip on its value axis. |
+| `messages` | Built-in copy. Defaults are localizable through your String Catalog; replace any line, for example `average: "Daily average"`. |
+| `style` | Colors and sizes. Defaults to the SwiftPieces house palette with the red accent, adapting to light and dark. |
+| `valueLabel` | How a value reads in the readout and to VoiceOver, for example `{ $0.formatted(.currency(code: "EUR")) }`. Defaults to whole numbers from 100 up and one decimal below that. |

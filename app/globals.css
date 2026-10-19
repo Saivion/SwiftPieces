@@ -611,6 +611,14 @@ html.light .btn-solid, html.light .btn-gloss { color: var(--accent-foreground); 
 :is(#nd-sidebar, #nd-sidebar-mobile) > div:first-child { padding: 0 0 4px; gap: 0; }
 :is(#nd-sidebar, #nd-sidebar-mobile) > div:first-child > div:first-child { display: none; }
 :is(#nd-sidebar, #nd-sidebar-mobile) > div:last-child { padding: 8px 12px 12px; border-top: 0; }
+/* The sidebar's All / Free / Pro pills (components/docs/sidebar.tsx, TierPills) set data-tier-mode on the aside; rows,
+   folders and group headings carry their tier (app/docs/layout.tsx), and the docs pages none, so they always show. */
+[data-tier-mode="free"] a:has([data-tier="pro"]),
+[data-tier-mode="free"] p:has([data-group-tier="pro"]),
+[data-tier-mode="free"] [data-sidebar-folder]:has(> button [data-folder-tier="pro"]),
+[data-tier-mode="pro"] a:has([data-tier="free"]),
+[data-tier-mode="pro"] p:has([data-group-tier="free"]),
+[data-tier-mode="pro"] [data-sidebar-folder]:has(> button [data-folder-tier="free"]) { display: none; }
 /* The list's own inset matches the head's, so rows start on the filter's left edge. */
 :is(#nd-sidebar, #nd-sidebar-mobile) .overscroll-contain { padding: 10px 12px !important; }
 :is(#nd-sidebar, #nd-sidebar-mobile) a[data-active] {

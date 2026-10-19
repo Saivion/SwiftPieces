@@ -21,6 +21,7 @@ export const pro = {
   buy: site.proUrl,
   library: `${site.proUrl}/library`,
   screens: `${site.proUrl}/library/screens`,
+  blocks: `${site.proUrl}/library/blocks`,
   flows: `${site.proUrl}/library/flows`,
   templates: `${site.proUrl}/library/templates`,
   kit: `${site.proUrl}/docs/build-kit`,

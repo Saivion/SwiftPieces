@@ -232,10 +232,10 @@ export function Compare() {
         <SectionCopy
           tags={[{ label: "Free", icon: <Glyph.gift /> }, { label: "Pro", icon: <Glyph.split /> }]}
           title="A curated taste, then the complete library"
-          body="Free gives you standout pieces for a single moment. Pro gives you the screens, the flows through them and the complete apps around them. Both are plain SwiftUI source in your project, so mixing them is the normal case."
+          body="Free gives you standout pieces for a single moment, and blocks that lay them out as a section. Pro gives you the screens, its own themed blocks, the flows through them and the complete apps around them. Both are plain SwiftUI source in your project, so mixing them is the normal case."
         />
         <Reveal className="mt-12 grid gap-3 lg:grid-cols-2 lg:gap-y-0">
-          <PlanCard tag="Free library" title="A curated taste of SwiftPieces." body={`${freeCount} animated pieces, Liquid Glass effects and Metal shaders. Genuinely good, and free to ship wherever a screen feels flat.`} points={["MIT + Commons Clause, forever", "Single-file pieces", "Install by CLI, MCP or copy-paste"]} cta="See what Pro adds" />
+          <PlanCard tag="Free library" title="A curated taste of SwiftPieces." body={`${freeCount} animated pieces, Liquid Glass effects and Metal shaders, and blocks built from them. Genuinely good, and free to ship wherever a screen feels flat.`} points={["MIT + Commons Clause, forever", "Single-file pieces, and blocks built from them", "Install by CLI, MCP or copy-paste"]} cta="See what Pro adds" />
           <PlanCard tag="SwiftPieces Pro" title="Every flow a featured app needs." body="Complete SwiftUI app flows, templates and screens, and a Build Kit that teaches your coding agent the same design. Install by copy, CLI or MCP." points={[proCountsLabel, remixingPoint, "Full SwiftUI source that lives in your project", "Lifetime access, everything added later included"]} cta="Get SwiftPieces Pro" pro />
         </Reveal>
       </Container>

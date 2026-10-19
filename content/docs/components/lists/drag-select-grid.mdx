@@ -11,48 +11,7 @@ registryDependencies: []
 
 {/* GENERATED FILE. Edit registry/swift/lists/DragSelectGrid.swift or DragSelectGrid.mdx instead. */}
 
-A scrolling grid of `Identifiable` items with drag-to-select: photos, files, attachments, media. In selection mode a sideways drag (or a short hold, then any direction) paints every item from the first one touched to the one under the finger, in reading order. Dragging back unpaints. Starting on a selected item deselects instead. A vertical swipe still scrolls, and holding the finger near the top or bottom edge scrolls the grid while painting. Tap toggles one item.
-
-## Notes
-
-- In selection mode, a drag that starts mostly sideways (within about 40 degrees of horizontal) paints. So does a short hold (0.25s) followed by a drag in any direction, which is how you paint straight down a column. Anything steeper than 40 degrees without a hold scrolls, the same as any grid.
-- Painting covers the reading-order range from the first item touched to the one under the finger, like the system photo library. Dragging back shrinks the range and each item returns to what it was before the drag. Starting on a selected item deselects the range instead.
-- Hold the finger in the top or bottom band (72pt by default) and the grid auto-scrolls while you paint. Speed grows linearly with depth into the band, up to 1200pt a second at the edge, and rows scrolled into view keep painting under a still finger.
-- A tap toggles one item. Outside selection mode taps reach your cell content (buttons, links), and with `longPressToSelect` a 0.45s hold turns selection mode on, selects that item and keeps painting. Pass `false` if your cells have their own context menu.
-- A hold shows itself building: once the finger has rested 0.1s, the print under it sinks a couple of points, and when the hold fires the selection takes over from there. A quick scroll moves past the 8pt decision before then and never dips a cell. A scroll that starts after a pause, a lift or a cancelled touch lets the print back up at once.
-- The gesture is a small UIKit recognizer the grid installs on its own scroll view. It decides between painting and scrolling within the first 8 points of movement, and the grid's scroll view (and any scroll view around it, such as a screen-level `ScrollView`) waits for that decision, so a paint never scrolls and a scroll never paints.
-- Columns are as many as fit at `minimumCellWidth`, so the grid adapts to rotation, iPad and split view. Selection is kept by ID across column changes. Items are hit-tested from the grid's geometry, not from cell frames, so painting works through rows a lazy grid has not built yet.
-- When items disappear, their IDs drop out of `selection`, and a drag in progress ends. Turning `isSelecting` off keeps `selection`; clear it yourself if your design does.
-- Selected cells inset (`selectedScale`, 0.86) under a liquid glass badge in the bottom trailing corner. In selection mode every print shows the badge as clear glass with a light rim, so it is clear it can be picked; picked, it floods the house signal red with a dark check, so a picked print reads at a glance on any thumbnail. Each badge is its own glass bubble, a cell apart from the next. The badge scales with Dynamic Type up to 34pt, and never past a third of the cell.
-- Selecting is a press then a stamp: the print presses into its slot on a firm spring with a small give as its badge floods red, and a beat later the check comes down onto the badge and lands with a visible bounce. Deselecting lifts the check off quickly, drains the tint and lets the print back out with only a slight give, so dragging back across a range reads as a soft release. Your cell content changes on the same spring as the inset. Painting never waits on any of this: the selection changes the moment the finger reaches an item.
-- Badges bud out of their print's corner: each is born just past the corner, shrunk and hidden by the print's rounded clip, and springs out to its place. When a long press turns selection mode on, they spread out from the held print, one row or column per beat, all within about 120ms. Turned on from your own control, they bud together. Leaving selection mode, the badges of unpicked prints melt back into their corners together, on a spring with no bounce.
-- Haptics: a soft impact when a paint starts, a selection tick per item crossed (at most about 22 a second, so fast drags and auto-scroll do not buzz), and a selection tick on tap.
-- VoiceOver: each cell is one element with your content's label and the selected trait. In selection mode it is a button that toggles on double-tap. Every cell has a Select or Deselect action, and Select also turns selection mode on, so everything painting does is reachable without it. After a paint, the new count is announced.
-- Right-to-left layouts mirror the grid; painting follows the mirrored reading order.
-- Reduce Motion: the inset and the badge tint change on a short spring with no overshoot, the check fades in place instead of stamping, the badges fade in and out in place together instead of budding, and a held print dims instead of sinking. Reduce Transparency draws the badges as solid shapes. Auto-scroll still runs, since it is driven by the finger, and every haptic still plays.
-- `.disabled(true)` turns off painting, taps and the hold. `Style` sets spacing, corner radius, the selected inset, badge, check and ring colors, the auto-scroll band and speed.
-- The example is a small library of flat scenes in the house blocks (hills, a sunset, portraits, a night sky, an arch, fields), drawn in a `Canvas` so they read as photos, with a liquid glass toolbar under the grid: a signal Done (Select outside selection mode) and the live count, which buds out of Done with the first pick, joined to it, and melts back in when the selection empties. Done also clears the selection there.
-
-## Usage
-
-```swift
-DragSelectGridExample()
-```
-
-## Parameters
-
-| Parameter | Description |
-| --- | --- |
-| `items` | The items, in reading order. When items disappear, their IDs are dropped from `selection`. |
-| `selection` | The selected IDs. Painting and taps write here; set it yourself for Select All or Clear. |
-| `isSelecting` | Selection mode. While `false`, cells behave like your content (taps reach your buttons and links) and painting is off. Turning it off keeps `selection`; clear it yourself if you want to. |
-| `minimumCellWidth` | The narrowest a cell may be. The column count is the most that fit at this width, so it adapts to rotation, iPad and split view. |
-| `aspectRatio` | Cell width divided by height. `1` is square; `0.75` suits portrait posters or documents. |
-| `longPressToSelect` | When `true`, holding a cell outside selection mode turns selection mode on, selects that cell and keeps painting as the finger moves. Pass `false` if your cells have their own context menu. |
-| `style` | Spacing, corner radius, the selected inset, badge colors and auto-scroll tuning. Defaults to the SwiftPieces house palette. |
-| `cell` | Builds a cell's content from the item and whether it is selected. It fills the cell and is clipped to the cell's rounded shape; the grid draws the badge and inset. |
-
-## Source
+<Showcase name="DragSelectGrid">
 
 <Tabs items={["DragSelectGrid.swift"]}>
 <Tab value="DragSelectGrid.swift">
@@ -1421,3 +1380,48 @@ private struct PieceMorphText: View {
 
 </Tab>
 </Tabs>
+
+</Showcase>
+
+<PieceFacts name="DragSelectGrid" />
+
+A scrolling grid of `Identifiable` items with drag-to-select: photos, files, attachments, media. In selection mode a sideways drag (or a short hold, then any direction) paints every item from the first one touched to the one under the finger, in reading order. Dragging back unpaints. Starting on a selected item deselects instead. A vertical swipe still scrolls, and holding the finger near the top or bottom edge scrolls the grid while painting. Tap toggles one item.
+
+## Notes
+
+- In selection mode, a drag that starts mostly sideways (within about 40 degrees of horizontal) paints. So does a short hold (0.25s) followed by a drag in any direction, which is how you paint straight down a column. Anything steeper than 40 degrees without a hold scrolls, the same as any grid.
+- Painting covers the reading-order range from the first item touched to the one under the finger, like the system photo library. Dragging back shrinks the range and each item returns to what it was before the drag. Starting on a selected item deselects the range instead.
+- Hold the finger in the top or bottom band (72pt by default) and the grid auto-scrolls while you paint. Speed grows linearly with depth into the band, up to 1200pt a second at the edge, and rows scrolled into view keep painting under a still finger.
+- A tap toggles one item. Outside selection mode taps reach your cell content (buttons, links), and with `longPressToSelect` a 0.45s hold turns selection mode on, selects that item and keeps painting. Pass `false` if your cells have their own context menu.
+- A hold shows itself building: once the finger has rested 0.1s, the print under it sinks a couple of points, and when the hold fires the selection takes over from there. A quick scroll moves past the 8pt decision before then and never dips a cell. A scroll that starts after a pause, a lift or a cancelled touch lets the print back up at once.
+- The gesture is a small UIKit recognizer the grid installs on its own scroll view. It decides between painting and scrolling within the first 8 points of movement, and the grid's scroll view (and any scroll view around it, such as a screen-level `ScrollView`) waits for that decision, so a paint never scrolls and a scroll never paints.
+- Columns are as many as fit at `minimumCellWidth`, so the grid adapts to rotation, iPad and split view. Selection is kept by ID across column changes. Items are hit-tested from the grid's geometry, not from cell frames, so painting works through rows a lazy grid has not built yet.
+- When items disappear, their IDs drop out of `selection`, and a drag in progress ends. Turning `isSelecting` off keeps `selection`; clear it yourself if your design does.
+- Selected cells inset (`selectedScale`, 0.86) under a liquid glass badge in the bottom trailing corner. In selection mode every print shows the badge as clear glass with a light rim, so it is clear it can be picked; picked, it floods the house signal red with a dark check, so a picked print reads at a glance on any thumbnail. Each badge is its own glass bubble, a cell apart from the next. The badge scales with Dynamic Type up to 34pt, and never past a third of the cell.
+- Selecting is a press then a stamp: the print presses into its slot on a firm spring with a small give as its badge floods red, and a beat later the check comes down onto the badge and lands with a visible bounce. Deselecting lifts the check off quickly, drains the tint and lets the print back out with only a slight give, so dragging back across a range reads as a soft release. Your cell content changes on the same spring as the inset. Painting never waits on any of this: the selection changes the moment the finger reaches an item.
+- Badges bud out of their print's corner: each is born just past the corner, shrunk and hidden by the print's rounded clip, and springs out to its place. When a long press turns selection mode on, they spread out from the held print, one row or column per beat, all within about 120ms. Turned on from your own control, they bud together. Leaving selection mode, the badges of unpicked prints melt back into their corners together, on a spring with no bounce.
+- Haptics: a soft impact when a paint starts, a selection tick per item crossed (at most about 22 a second, so fast drags and auto-scroll do not buzz), and a selection tick on tap.
+- VoiceOver: each cell is one element with your content's label and the selected trait. In selection mode it is a button that toggles on double-tap. Every cell has a Select or Deselect action, and Select also turns selection mode on, so everything painting does is reachable without it. After a paint, the new count is announced.
+- Right-to-left layouts mirror the grid; painting follows the mirrored reading order.
+- Reduce Motion: the inset and the badge tint change on a short spring with no overshoot, the check fades in place instead of stamping, the badges fade in and out in place together instead of budding, and a held print dims instead of sinking. Reduce Transparency draws the badges as solid shapes. Auto-scroll still runs, since it is driven by the finger, and every haptic still plays.
+- `.disabled(true)` turns off painting, taps and the hold. `Style` sets spacing, corner radius, the selected inset, badge, check and ring colors, the auto-scroll band and speed.
+- The example is a small library of flat scenes in the house blocks (hills, a sunset, portraits, a night sky, an arch, fields), drawn in a `Canvas` so they read as photos, with a liquid glass toolbar under the grid: a signal Done (Select outside selection mode) and the live count, which buds out of Done with the first pick, joined to it, and melts back in when the selection empties. Done also clears the selection there.
+
+## Usage
+
+```swift
+DragSelectGridExample()
+```
+
+## Parameters
+
+| Parameter | Description |
+| --- | --- |
+| `items` | The items, in reading order. When items disappear, their IDs are dropped from `selection`. |
+| `selection` | The selected IDs. Painting and taps write here; set it yourself for Select All or Clear. |
+| `isSelecting` | Selection mode. While `false`, cells behave like your content (taps reach your buttons and links) and painting is off. Turning it off keeps `selection`; clear it yourself if you want to. |
+| `minimumCellWidth` | The narrowest a cell may be. The column count is the most that fit at this width, so it adapts to rotation, iPad and split view. |
+| `aspectRatio` | Cell width divided by height. `1` is square; `0.75` suits portrait posters or documents. |
+| `longPressToSelect` | When `true`, holding a cell outside selection mode turns selection mode on, selects that cell and keeps painting as the finger moves. Pass `false` if your cells have their own context menu. |
+| `style` | Spacing, corner radius, the selected inset, badge colors and auto-scroll tuning. Defaults to the SwiftPieces house palette. |
+| `cell` | Builds a cell's content from the item and whether it is selected. It fills the cell and is clipped to the cell's rounded shape; the grid draws the badge and inset. |

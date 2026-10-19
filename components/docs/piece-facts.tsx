@@ -1,6 +1,4 @@
-import type { RegistryIndexEntry } from "@/lib/registry-schema";
-import { PreviewFrame } from "@/components/previews/frame";
-import { PiecePreview } from "@/components/previews";
+import { getRegistryItem } from "@/lib/registry";
 import { Badge } from "@/components/ui/badge";
 import { proScreens, proScreenUrl } from "@/lib/pro-screens";
 import { playgroundComponentId } from "@swiftpieces/builder";
@@ -8,13 +6,13 @@ import { playgroundComponentHref } from "@/lib/playground";
 import { cn } from "@/lib/cn";
 
 /**
- * Full-width stage on top, details strip below. The stage spans the column, but the preview inside
- * stays at its usual ~600px: previews scale with their frame, so a full-width frame would blow them
- * up and crop them. The stage ground matches the preview's own, so the two read as one surface.
+ * A piece's facts, under its Preview and Code panel (components/docs/showcase.tsx): the Playground hand-off, the
+ * badges, the type, files, dependencies and version, and the Pro screen it grows into. The registry build places
+ * it in the page with `<PieceFacts name="..." />`.
  */
-export function PieceHeader({ item }: { item: RegistryIndexEntry }) {
-  const video = item.preview.video || item.preview.videoMp4;
-  const black = video || item.category === "backgrounds";
+export function PieceFacts({ name }: { name: string }) {
+  const item = getRegistryItem(name);
+  if (!item) return null;
   const playground = playgroundComponentHref(playgroundComponentId(item.name));
   const details = [
     { label: "Type", value: item.name, mono: true },
@@ -24,28 +22,10 @@ export function PieceHeader({ item }: { item: RegistryIndexEntry }) {
   ];
   return (
     <div className="not-prose mb-10 flex flex-col gap-3">
-      <div className={cn("flex justify-center overflow-hidden rounded-[var(--radius)] px-4 py-6 sm:py-8", black ? "bg-black" : "stage-ground")}>
-        <div className="w-full max-w-[600px]">
-          {video ? (
-            <video className="aspect-[4/3] w-full rounded-[var(--radius)] bg-black object-cover" poster={item.preview.poster} muted loop playsInline autoPlay preload="metadata" aria-label={`${item.title} preview`}>
-              {item.preview.video ? <source src={item.preview.video} type="video/webm" /> : null}
-              {item.preview.videoMp4 ? <source src={item.preview.videoMp4} type="video/mp4" /> : null}
-            </video>
-          ) : (
-            <PreviewFrame tone={item.category === "backgrounds" ? "black" : "dark"} className="w-full">
-              <PiecePreview name={item.name} />
-            </PreviewFrame>
-          )}
-        </div>
-      </div>
-
       {playground ? (
         <div className="flex flex-wrap items-center gap-2">
           <a href={playground.href} className="btn-solid inline-flex h-9 items-center gap-2 rounded-[4px] px-4 text-[12.5px] font-semibold">
             {playground.pro ? "See it in a Pro app" : "Try it in the Playground"} <span aria-hidden>→</span>
-          </a>
-          <a href="#source" className="inline-flex h-9 items-center gap-2 rounded-[4px] bg-surface-2 px-4 text-[12.5px] font-semibold text-foreground transition-colors hover:bg-surface-3">
-            View SwiftUI <span aria-hidden>↓</span>
           </a>
           <span className="text-[12px] text-muted">
             {playground.pro

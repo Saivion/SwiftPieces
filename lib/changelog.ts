@@ -7,6 +7,23 @@ import type { ChangelogEntry } from "@/components/changelog/changelog-grid";
  */
 export const changelog: ChangelogEntry[] = [
   {
+    slug: "blocks",
+    date: "Oct 19, 2026",
+    title: "Blocks",
+    summary: "A new part of the library: blocks, whole sections of an iOS screen built from the pieces and wired together. Four are free, and SwiftPieces Pro has its own, themed by its design system.",
+    points: [
+      "Sign In: email and password fields with their validation, a sign-in button that shows the work and the outcome, and Sign in with Apple when you pass its handler. Your auth is one async closure.",
+      "Account Settings: who you are, the app's appearance, text size, notifications and a hold-to-confirm delete, as one value your app binds.",
+      "Stats Overview: a headline metric you scrub across ranges, with live tiles for the numbers beside it.",
+      "Checkout: bag, delivery and pay as one section with a progress trail you can step back through, quantities you scrub, an address field and a pay button with its states.",
+      "`npx swiftpieces add SignInBlock` installs a block and the pieces it is built from; the MCP server finds blocks with `search_blocks`.",
+      "Blocks have their own page at /blocks and their own section in the docs, by category, with each block's pieces, notes, parameters and source.",
+      "In SwiftPieces Pro: Plan and Usage, the subscription section of Settings, and Invite Friends, a referral section with a reward track. Both re-skin with Pro's thirteen design families.",
+    ],
+    visual: "windows",
+    tint: "orange",
+  },
+  {
     slug: "crafted-pieces",
     date: "Oct 12, 2026",
     title: "Eight crafted pieces",

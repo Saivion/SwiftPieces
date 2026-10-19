@@ -137,6 +137,7 @@
             "type": "string",
             "enum": [
               "registry:component",
+              "registry:block",
               "registry:shader",
               "registry:asset"
             ]
@@ -169,6 +170,7 @@
             "type": "string",
             "enum": [
               "registry:component",
+              "registry:block",
               "registry:shader",
               "registry:asset"
             ]
@@ -200,6 +202,7 @@
             "type": "string",
             "enum": [
               "registry:component",
+              "registry:block",
               "registry:shader",
               "registry:asset"
             ]

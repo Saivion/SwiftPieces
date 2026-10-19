@@ -19,8 +19,8 @@ type MenuItem = NavLink & { desc: string; icon: Parameters<typeof SectionIcon>[0
 type Menu = { label: string; href: string; items: MenuItem[]; /** Paths that light the menu up besides its items' own. */ also?: string[] };
 
 /**
- * The bar is split by what you came to do. Library is what you take and install (free pieces, and
- * Pro's screens, flows and templates); Create is the tools you use in the browser, where new features land;
+ * The bar is split by what you came to do. Library is what you take and install (free pieces and blocks,
+ * and Pro's screens, flows and templates); Create is the tools you use in the browser, where new features land;
  * Resources is how to learn it and who backs it. Pro stays a direct link. At most five items a menu.
  */
 const menus: Menu[] = [
@@ -29,6 +29,7 @@ const menus: Menu[] = [
     href: "/components",
     items: [
       { label: "Components", href: "/components", desc: "Single-file SwiftUI pieces with live previews", icon: "components" },
+      { label: "Blocks", href: "/blocks", desc: "Whole sections of a screen, built from the pieces", icon: "blocks", badge: "New" },
       { label: "Screens", href: pro.screens, desc: "Finished screens, themed by one design system", icon: "screens", badge: "Pro" },
       { label: "Flows", href: pro.flows, desc: "Whole journeys, from first run to settings", icon: "flows", badge: "Pro" },
       { label: "Templates", href: pro.templates, desc: "Complete apps as Xcode projects", icon: "templates", badge: "Pro" },

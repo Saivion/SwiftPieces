@@ -1,0 +1,74 @@
+## How it fits together
+
+- **FormField** is the email. It has the envelope icon, the `you@example.com` prompt, the email keyboard and the `.username` content type, so iCloud Keychain pairs it with the password and offers saved logins. It validates once it has been edited and left, then live, so nobody sees an error while typing their first characters. Return is labelled Next and moves focus to the password once the address reads right; on an invalid address the field refuses Return itself with its shake and warning bubble, and focus stays.
+- **SecureEntry** is the password, with `showsStrength` and `showsRequirements` off: the strength meter and requirement chips belong to sign-up, not to someone typing a password they already have. It keeps its reveal bubble, and its error tints the field butter and buds a chip under it. Return is labelled Go and signs in.
+- **CommitButton** is the one primary action, in signal red. Its phase is the block's state: `.loading` while your closure runs (the capsule draws in around "Sign in" as the ring bubble buds out of it), `.success` when it returns (the ring closes, both turn sage, the label becomes "Signed in"), `.error` when it throws (butter, the message, a retry bubble and a shake).
+- Signing in from the button or from Return goes through one check first. An invalid email or an empty password is refused without calling your closure: the block turns on `formFieldRevealsErrors`, so the email field shows its error even if it was never touched, the password field gets "Enter your password", each field shakes as its error appears, and focus goes to the first field to fix. A second refusal while the errors still show plays the error haptic again.
+- A failure from your closure lands in two places: the password field carries the whole message, and the button carries it too when it fits on one line beside the retry bubble, otherwise "Couldn't sign in" or "Try again". Editing either field clears the failure, so the next attempt starts clean and a new error shakes again.
+- While a sign-in runs, and through its success, the form takes no taps and the keyboard is down. About a second after your closure returns, once "Signed in" has landed, the block calls `onSignedIn`.
+- The heading, the Forgot password link, Sign in with Apple and the Create account footer are the block's own. Each optional part appears only when you pass it.
+
+## Wiring it to your app
+
+`onSignIn` is the one required seam. It receives the email, trimmed, and the password, and runs on the main actor. Return to succeed; throw to fail. A thrown `LocalizedError`'s `errorDescription` is what the person reads, so say what happened in their words. Anything else shows "Couldn't sign in". A `CancellationError` puts the button back to idle without an error.
+
+Switch screens in `onSignedIn`, not at the end of `onSignIn`, so the success shows before the block leaves. Pass `email` when you want to prefill a returning person's address or keep it after sign-in; leave it out and the block keeps its own. The password always stays inside the block.
+
+```swift
+struct SignInScreen: View {
+    @Environment(Session.self) private var session
+    @AppStorage("lastEmail") private var email = ""
+    @State private var showsReset = false
+    @State private var showsSignUp = false
+
+    var body: some View {
+        ScrollView {
+            SignInBlock(
+                subtitle: "Sign in to sync your shelves and notes.",
+                mark: Image("AppMark"),
+                email: $email,
+                onForgotPassword: { _ in showsReset = true },
+                onSignInWithApple: { credential in try await session.signIn(with: credential) },
+                onCreateAccount: { showsSignUp = true },
+                onSignedIn: { session.finishSignIn() }
+            ) { email, password in
+                try await session.signIn(email: email, password: password)
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 32)
+        }
+        .scrollDismissesKeyboard(.interactively)
+    }
+}
+
+enum SignInError: LocalizedError {
+    case wrongPassword, locked
+
+    var errorDescription: String? {
+        switch self {
+        case .wrongPassword: "Wrong email or password"
+        case .locked: "Too many tries. Wait a minute and try again."
+        }
+    }
+}
+```
+
+`onForgotPassword` receives the email typed so far, so a reset screen can start filled in. `onSignInWithApple` receives the `ASAuthorizationAppleIDCredential` from the system sheet, requested with the name and email scopes; send its `identityToken` and `authorizationCode` to your backend. Apple sends the name and email only the first time someone signs in, so keep them then. Closing the sheet is not an error. While your handler runs, a capsule in the button's colour covers it with a spinner and then a check; if it throws, its message shows under the button. Sign in with Apple needs the Sign in with Apple capability on your app target.
+
+## Customizing
+
+- Copy: `title` (default "Welcome back") and `subtitle` are parameters; the field labels, the prompt, "Forgot password?", "or" and the footer are strings in `form`, `appleSection` and `footer`.
+- The email check is `emailProblem(_:)`: something before an @, a domain with a dot, no spaces. It is a first pass, not proof; your server has the final word. Change its messages there.
+- The fields and the button use their pieces' house `Style`. To restyle one, pass a `style:` to its `FormField`, `SecureEntry` or `CommitButton` in `form`. The block's own text colours are in `Ink`.
+- Spacing: 28pt under the heading, 24pt between the fields and the button, 22pt above the Apple section and 18pt above the footer. The block has no side padding of its own; give it the screen's margins, 20pt on an iPhone.
+- The mark is drawn 52pt square with 12pt continuous corners and a hairline, the way a small app icon sits on a screen. The example draws its mark in code; pass your own image.
+- For a sign-up form, start from this block and turn `showsStrength` and `showsRequirements` back on in `SecureEntry`.
+
+## Accessibility
+
+- The title is a header. The mark is hidden from VoiceOver, since the title already says where you are.
+- Each field reads its label, its value and its error. A new field error is announced by the field, and a failure from your closure is announced by the block. The button reads "Sign in" with its state as the value ("Loading", "Signed in" or the message) and offers "Double tap to try again" after a failure.
+- Every control is at least 44pt tall. The Forgot password link's target reaches up into the space above the password's caption rather than down over the field.
+- At accessibility text sizes the Forgot password link moves under the password field, the footer stacks its two lines, and the heading and messages wrap. The Sign in button's one-line label stops growing at the first accessibility size so its states always fit; a long press shows it in the large content viewer.
+- Reduce Motion and Reduce Transparency are handled by the pieces: bubbles fade instead of budding, the shake becomes a dim, and glass draws as solid shapes. The block's own changes (the Apple progress, its error, the links' press) use the same motion roles.
+- Light and dark are both designed: the Apple button is black on paper and white on the dark ground, and the mark keeps its edge with a hairline on either.

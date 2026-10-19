@@ -12,7 +12,7 @@ import { pro } from "@/lib/site";
 export function ProCard({
   title = "Build the whole app with one library.",
   body = "Production-ready screens, whole flows, complete app templates, a Build Kit your agent follows and Pro remixing.",
-  meta = `${proCatalog.screens} screens · ${proCatalog.flows.total} flows · ${proCatalog.templates} templates · ${proCatalog.buildKit.total} Build Kit skills`,
+  meta = `${proCatalog.screens} screens · ${proCatalog.blocks} blocks · ${proCatalog.flows.total} flows · ${proCatalog.templates} templates · ${proCatalog.buildKit.total} Build Kit skills`,
   cta = { label: "Explore Pro", href: pro.home },
 }: { title?: string; body?: string; meta?: string; cta?: { label: string; href: string } }) {
   return (

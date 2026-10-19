@@ -11,40 +11,7 @@ registryDependencies: []
 
 {/* GENERATED FILE. Edit registry/swift/controls/CommitButton.swift or CommitButton.mdx instead. */}
 
-Liquid glass async action button whose whole lifecycle is one bound `phase`. The capsule is glass, tinted for what it says: signal to act, sage once the work is done, butter on an error. While the work runs a glass bubble buds out of the capsule's end carrying the progress ring, joined to it by a liquid neck, and melts back in once the outcome has landed; on an error it stays out as the retry. The label morphs letter by letter from one message to the next.
-
-## Notes
-
-- `phase` is a `Binding` so the button can return itself to `.idle` after the success hold (`successHold`, default 900ms); everything else is set by you: `.loading` in the action, `.success` or `.error("message")` when the work finishes.
-- The button is liquid glass. Idle, it is a signal-tinted glass capsule with dark ink; pressed it sinks and the glass darkens a touch. Loading draws the capsule in around its label and buds a round glass bubble out of its end, joined to it by a liquid neck, carrying a signal arc that winds up from rest. Success lets the arc coast to rest as it closes into a ring while the capsule and the bubble turn sage, draws the check and pops it on the success haptic; then, if you pass `successTitle` ("Saved"), the bubble melts back into the capsule's end as the capsule opens to full width and the label morphs letter by letter into the title, a check beside it. Without a title the check stays in its bubble until the hold ends. An error opens the capsule back out on butter glass, morphs the label into the message, turns the bubble into a butter retry and shakes with the error haptic on the same beat. Disabled is clear glass with muted ink.
-- Tapping in the error state, on the label or on the retry bubble, fires the action again (VoiceOver hears "Double tap to try again"). The button ignores taps while loading or succeeding without dimming.
-- `collapses: false` keeps the capsule full width while it works and makes room for the bubble at its end instead of drawing in around the label.
-- `tint` and `errorTint` still work: they override the style's glass tints and switch that state's ink to white. For full control pass a `Style` with your own tints, ink, height and font. `disabledFill` no longer does anything: a disabled button is clear glass.
-- Motion uses the shared SwiftPieces springs: the capsule's width, tint and label change together and land with a small give, the bubble leaves on the bud's split spring and goes home with no bounce, its tint draining as it melts in, and only the mark pops. Under Reduce Motion the press darkens instead of sinking, the bubble fades in and out in place, the arc holds still and breathes in opacity while it works, labels cross-fade, and there is no pop or shake; colors, the check, the message and every haptic stay. Reduce Transparency draws the glass solid.
-- Need a slide-to-act confirmation with an amount and recipient? SwiftPieces Pro has the Send Money screen (`swipe-to-confirm`).
-
-## Usage
-
-```swift
-CommitButtonExample().preferredColorScheme(.light)
-```
-
-## Parameters
-
-| Parameter | Description |
-| --- | --- |
-| `title` | Idle label. |
-| `phase` | Bound `.idle`, `.loading`, `.success`, `.error(message)` or `.disabled`. The button returns itself to `.idle` after a success hold. |
-| `tint` | Overrides the style's glass tint while idle and loading, with white ink. `nil` uses `style.fill`. |
-| `tintInk` | The ink on `tint`, for a tint white doesn't read on (an app's accent and its ink). `nil` is white. |
-| `errorTint` | Overrides the style's error tint, with white ink. `nil` uses `style.errorFill`. |
-| `successHold` | How long the success state stays before the button returns to idle. |
-| `successTitle` | Text the label morphs to on success, such as "Saved", with a check beside it. `nil` keeps the check in its bubble until the hold ends. |
-| `collapses` | Draws the capsule in around its label while it works (the default), so the ring bubble buds out beside it. `false` keeps the capsule full width and makes room for the bubble at its end. |
-| `style` | Tints, ink, height and type. `.standard` is the house palette: signal, sage for success, butter for errors. |
-| `action` | Tap handler. Set `phase` to `.loading` inside it and to `.success` or `.error` when the work finishes. |
-
-## Source
+<Showcase name="CommitButton">
 
 <Tabs items={["CommitButton.swift"]}>
 <Tab value="CommitButton.swift">
@@ -1129,3 +1096,40 @@ private struct PieceMorphText: View {
 
 </Tab>
 </Tabs>
+
+</Showcase>
+
+<PieceFacts name="CommitButton" />
+
+Liquid glass async action button whose whole lifecycle is one bound `phase`. The capsule is glass, tinted for what it says: signal to act, sage once the work is done, butter on an error. While the work runs a glass bubble buds out of the capsule's end carrying the progress ring, joined to it by a liquid neck, and melts back in once the outcome has landed; on an error it stays out as the retry. The label morphs letter by letter from one message to the next.
+
+## Notes
+
+- `phase` is a `Binding` so the button can return itself to `.idle` after the success hold (`successHold`, default 900ms); everything else is set by you: `.loading` in the action, `.success` or `.error("message")` when the work finishes.
+- The button is liquid glass. Idle, it is a signal-tinted glass capsule with dark ink; pressed it sinks and the glass darkens a touch. Loading draws the capsule in around its label and buds a round glass bubble out of its end, joined to it by a liquid neck, carrying a signal arc that winds up from rest. Success lets the arc coast to rest as it closes into a ring while the capsule and the bubble turn sage, draws the check and pops it on the success haptic; then, if you pass `successTitle` ("Saved"), the bubble melts back into the capsule's end as the capsule opens to full width and the label morphs letter by letter into the title, a check beside it. Without a title the check stays in its bubble until the hold ends. An error opens the capsule back out on butter glass, morphs the label into the message, turns the bubble into a butter retry and shakes with the error haptic on the same beat. Disabled is clear glass with muted ink.
+- Tapping in the error state, on the label or on the retry bubble, fires the action again (VoiceOver hears "Double tap to try again"). The button ignores taps while loading or succeeding without dimming.
+- `collapses: false` keeps the capsule full width while it works and makes room for the bubble at its end instead of drawing in around the label.
+- `tint` and `errorTint` still work: they override the style's glass tints and switch that state's ink to white. For full control pass a `Style` with your own tints, ink, height and font. `disabledFill` no longer does anything: a disabled button is clear glass.
+- Motion uses the shared SwiftPieces springs: the capsule's width, tint and label change together and land with a small give, the bubble leaves on the bud's split spring and goes home with no bounce, its tint draining as it melts in, and only the mark pops. Under Reduce Motion the press darkens instead of sinking, the bubble fades in and out in place, the arc holds still and breathes in opacity while it works, labels cross-fade, and there is no pop or shake; colors, the check, the message and every haptic stay. Reduce Transparency draws the glass solid.
+- Need a slide-to-act confirmation with an amount and recipient? SwiftPieces Pro has the Send Money screen (`swipe-to-confirm`).
+
+## Usage
+
+```swift
+CommitButtonExample().preferredColorScheme(.light)
+```
+
+## Parameters
+
+| Parameter | Description |
+| --- | --- |
+| `title` | Idle label. |
+| `phase` | Bound `.idle`, `.loading`, `.success`, `.error(message)` or `.disabled`. The button returns itself to `.idle` after a success hold. |
+| `tint` | Overrides the style's glass tint while idle and loading, with white ink. `nil` uses `style.fill`. |
+| `tintInk` | The ink on `tint`, for a tint white doesn't read on (an app's accent and its ink). `nil` is white. |
+| `errorTint` | Overrides the style's error tint, with white ink. `nil` uses `style.errorFill`. |
+| `successHold` | How long the success state stays before the button returns to idle. |
+| `successTitle` | Text the label morphs to on success, such as "Saved", with a check beside it. `nil` keeps the check in its bubble until the hold ends. |
+| `collapses` | Draws the capsule in around its label while it works (the default), so the ring bubble buds out beside it. `false` keeps the capsule full width and makes room for the bubble at its end. |
+| `style` | Tints, ink, height and type. `.standard` is the house palette: signal, sage for success, butter for errors. |
+| `action` | Tap handler. Set `phase` to `.loading` inside it and to `.success` or `.error` when the work finishes. |

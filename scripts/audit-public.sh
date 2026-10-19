@@ -15,9 +15,17 @@ hits=$(grep -rniE "autumn|entitle|failOpen|drizzle|d1_databases|clerkMiddleware|
   | grep -viE "pro\.swiftpieces\.com|x-license-key|licenseKey|license key|readLicenseKey|writeLicenseKey|LICENSE_KEY|auth\.json|/license" )
 if [ -n "$hits" ]; then note FAIL "entitlement/billing/db references:"; echo "$hits" | sed 's/^/           /'; fail=1; else note ok "no entitlement, billing or database code"; fi
 
-# 2. No Pro categories or tiers in the registry schema/build.
-if grep -qE '"blocks"|"app-ui"|"screens"|"templates"|"agent-kit"|tier:' lib/registry-schema.ts scripts/build-registry.ts; then note FAIL "Pro categories or tiers in registry schema/build"; fail=1; else note ok "registry has no Pro categories or tiers"; fi
+# 2. No Pro categories or tiers in the registry schema/build. Blocks are a free type too (registry/blocks); Pro's
+#    blocks are listed by name in lib/blocks.ts, and their source never lives here.
+if grep -qE '"app-ui"|"screens"|"templates"|"agent-kit"|tier:' lib/registry-schema.ts scripts/build-registry.ts; then note FAIL "Pro categories or tiers in registry schema/build"; fail=1; else note ok "registry has no Pro categories or tiers"; fi
 if [ -d registry/swift/blocks ] || [ -d registry/swift/screens ] || [ -d registry/swift/templates ] || [ -d registry/swift/app-ui ]; then note FAIL "Pro source folders under registry/swift"; fail=1; else note ok "no Pro source folders"; fi
+if [ -d registry/blocks ]; then
+  pro_names=$(sed -n 's/^ *name: "\([A-Za-z0-9]*Block\)",.*/\1/p' lib/blocks.ts)
+  pro_src=""
+  for n in $pro_names; do pro_src="$pro_src$(grep -rlE "(struct|class|enum) $n\b" registry 2>/dev/null)"; done
+  themed=$(grep -rlE "spTheme|SPTheme|availability:" registry/blocks 2>/dev/null)
+  if [ -n "$pro_src$themed" ]; then note FAIL "Pro block source or Pro theming under registry/:"; printf '%s\n' $pro_src $themed | sed 's/^/           /'; fail=1; else note ok "free blocks only: no Pro block source, no Pro theming"; fi
+fi
 
 # 3. Env: only NEXT_PUBLIC_ placeholders, and no secret-looking values anywhere tracked.
 if git ls-files 2>/dev/null | grep -E '(^|/)\.env($|\.)|(^|/)\.dev\.vars$' | grep -q .; then note FAIL "an env file is tracked by git"; fail=1; else note ok "no env files tracked by git"; fi

@@ -20,12 +20,14 @@
  * piece and it builds. Everything in the block is `private`, so two pieces in one app never collide.
  * registry:build runs the check, so a stale copy can't reach the registry or the docs.
  */
-import { readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
 const ROOT = join(import.meta.dirname, "..");
 const SWIFT_DIR = join(ROOT, "registry/swift");
+/** Blocks carry the languages the same way: a block's own glass and motion come from its own block at its end. */
+const BLOCKS_DIR = join(ROOT, "registry/blocks");
 
 /** The shared languages, in the order their blocks follow a piece's own code. */
 const SOURCES = [
@@ -168,10 +170,11 @@ function expected(source: string, versions: Record<Kind, string>, sections: Sect
 }
 
 function pieceFiles(): string[] {
-  return readdirSync(SWIFT_DIR, { withFileTypes: true })
-    .filter((d) => d.isDirectory())
-    .flatMap((d) => readdirSync(join(SWIFT_DIR, d.name)).filter((f) => f.endsWith(".swift")).map((f) => join(SWIFT_DIR, d.name, f)))
-    .sort();
+  return [SWIFT_DIR, BLOCKS_DIR].filter((dir) => existsSync(dir)).flatMap((dir) =>
+    readdirSync(dir, { withFileTypes: true })
+      .filter((d) => d.isDirectory())
+      .flatMap((d) => readdirSync(join(dir, d.name)).filter((f) => f.endsWith(".swift")).map((f) => join(dir, d.name, f))),
+  ).sort();
 }
 
 /** Pieces whose vendored motion or liquid block is missing, stale or no longer needed. Empty when everything is in sync. */
@@ -186,7 +189,7 @@ export function motionDrift(): string[] {
 /** Which motion and liquid sections each piece carries, for reports. */
 export function motionUsage(): Record<string, string[]> {
   const { sections } = parseSource();
-  return Object.fromEntries(pieceFiles().map((file) => [relative(SWIFT_DIR, file), usedSections(stripBlock(readFileSync(file, "utf8")), sections).map((s) => s.name)]));
+  return Object.fromEntries(pieceFiles().map((file) => [relative(join(ROOT, "registry"), file), usedSections(stripBlock(readFileSync(file, "utf8")), sections).map((s) => s.name)]));
 }
 
 function main() {

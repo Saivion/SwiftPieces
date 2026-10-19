@@ -11,52 +11,7 @@ registryDependencies: []
 
 {/* GENERATED FILE. Edit registry/swift/cards/WalletStack.swift or WalletStack.mdx instead. */}
 
-A wallet of passes and tickets: header strips stacked one over the next, and a tap brings one pass forward with its whole face and a scannable code while the rest tuck into a pile. Passes are content, solid blocks with dark ink, listed back to front: each header strip shows above the next pass and the last pass shows whole. Tap a pass and it rises to the top of the space it's given and opens to its code, drawn from `code` with Core Image, while the others slide down into a pile of slivers. A clear glass close bubble buds out of the pass's top corner. Drag the pass down (a flick is enough), tap the pile, tap the bubble or press Escape to put it back. When the stack is taller than its space the strips draw closer, then it scrolls. Give it the space the passes may use, such as a whole screen under a title or a sheet. It scrolls its own passes, so don't put it inside another vertical scroll view. ```swift @State private var presented: String? WalletStack(passes: passes, selection: $presented) .padding(.horizontal, 20) ```
-
-## Notes
-
-- Passes are content: solid house blocks with dark ink, listed back to front. The only glass is the close bubble, clear Liquid Glass in its own `PieceLiquidGroup`. On iOS 17 to 25 it is a frosted material; under Reduce Transparency, a solid fill.
-- Give it the space the passes may use, such as a screen under a title or a sheet, with your own horizontal padding. It scrolls its own passes, so don't put it inside another vertical `ScrollView`. The pile and the front pass carry on under the home indicator, the way a wallet runs off the bottom of the screen.
-- In the stack each pass shows exactly its own header strip (symbol tile, title, subtitle and the header field) and the last pass shows whole. When the passes don't fit, the strips draw closer by giving up their bottom padding, never their text; past that the stack scrolls.
-- Tap a pass, or set `selection`, and it rises to the top of the visible area and opens to its code while the others slide down into a pile of slivers, `Style.sliver` apart and a little narrower each, at most `pileDepth` deep. Passes keep their stacking order throughout: the ones in front slide off the chosen pass and the ones behind slip under it, so nothing ever jumps in front. Then the close bubble buds up out of the pass's top trailing corner and rests above it.
-- Put it back by dragging it down past 110 points or flicking it down: it follows the finger, the pile rises to meet it with a tick as the pull crosses the threshold, and it leaves at the finger's speed and sinks into its place as the passes in front rise over it. A shorter drag springs back. Tapping the pile, tapping the bubble, Escape on a hardware keyboard and the VoiceOver escape gesture all put it back too. The drag is a UIKit pan on the presented pass only, so it never fights the scroll view or a sheet, and sideways drags pass through.
-- Codes are generated on the device by Core Image, off the main actor: `.qr` (correction level M), `.aztec`, `.pdf417` and `.code128` (ASCII only; other text shows without bars). They sit on a white tile in both appearances, drawn pixel-crisp, with the code's text printed under them. A pass with `code: nil` opens without a code area.
-- `selection` is the presented pass's id. Set it from a deep link or a notification to present that pass; an id that isn't in `passes` shows the stack, and removing the presented pass puts the stack back. Changing it to another id swaps passes in one move.
-- Tints: `.sky`, `.butter`, `.sage`, `.lilac`, `.sand` and `.red`, the house signal, which is best kept for the one pass that matters most right now, such as tonight's ticket. Your own colours take `Tint(color, ink:)` with an ink that reads on them.
-- Long titles and subtitles truncate to one line in the stack and wrap to two once the pass is open. Fields share one row, spread across the pass like a boarding pass, and wrap onto more rows when they don't fit.
-- Haptics: a light impact when a pass is presented and when it goes back, and a selection tick each time a drag crosses the return threshold.
-- VoiceOver: each stacked pass is a button that reads its title, subtitle and header field ("Rail pass, Lisbon to Porto, Coach, 4") with the hint "Shows the whole pass". Presented, focus moves to the pass, which reads its title as a heading, then every field and the code; the other passes are hidden, the pile is a button "Other passes" and the bubble is "Done". On the way back focus returns to the pass.
-- Reduce Motion: passes move on a short ease with no overshoot, the code fades in place and the bubble appears and leaves where it rests. Increase Contrast draws the subtitles and field labels in full ink.
-- Dynamic Type: strips and fields grow with the text, and at accessibility sizes the header stacks its tile, titles and field. When an open pass is taller than the space, the stack scrolls so its code can be reached. Right to left mirrors the header, the fields and the bubble; codes are never mirrored.
-- `Style` sets the passes' corner radius, the code tile and its ink, the bubble's glyph, the sliver height and the pile's depth. `Messages` replaces the copy VoiceOver reads, such as `done: "Close"`.
-- Wire it up with your passes in state and the presented id beside them:
-
-```swift
-@State private var passes: [WalletStack.Pass] = Trip.passes
-@State private var presented: String?
-
-WalletStack(passes: passes, selection: $presented)
-    .padding(.horizontal, 20)
-    .navigationTitle("Passes")
-    .onOpenURL { url in presented = url.lastPathComponent }
-```
-
-## Usage
-
-```swift
-WalletStackExample()
-```
-
-## Parameters
-
-| Parameter | Description |
-| --- | --- |
-| `passes` | The passes, back to front: the first sits at the top of the stack and the last shows whole. Ids must be unique. Make each one with ``WalletStack/Pass``, picking a house colour such as `.sky` or `.red` for its `tint`. |
-| `selection` | The id of the presented pass, or `nil` for the stack. It changes as people present and put back passes; set it yourself to present one from a deep link or a notification. An id that isn't in `passes` shows the stack. |
-| `messages` | The built-in copy: the close bubble, the pile and the hints VoiceOver reads. Defaults are localizable through your String Catalog; replace any line, for example `done` with "Close". |
-| `style` | The passes' corner radius, the code tile's colours, the close bubble's glyph and the pile's slivers. Defaults to the SwiftPieces house palette. |
-
-## Source
+<Showcase name="WalletStack">
 
 <Tabs items={["WalletStack.swift"]}>
 <Tab value="WalletStack.swift">
@@ -1567,3 +1522,52 @@ private final class PieceBuds {
 
 </Tab>
 </Tabs>
+
+</Showcase>
+
+<PieceFacts name="WalletStack" />
+
+A wallet of passes and tickets: header strips stacked one over the next, and a tap brings one pass forward with its whole face and a scannable code while the rest tuck into a pile. Passes are content, solid blocks with dark ink, listed back to front: each header strip shows above the next pass and the last pass shows whole. Tap a pass and it rises to the top of the space it's given and opens to its code, drawn from `code` with Core Image, while the others slide down into a pile of slivers. A clear glass close bubble buds out of the pass's top corner. Drag the pass down (a flick is enough), tap the pile, tap the bubble or press Escape to put it back. When the stack is taller than its space the strips draw closer, then it scrolls. Give it the space the passes may use, such as a whole screen under a title or a sheet. It scrolls its own passes, so don't put it inside another vertical scroll view. ```swift @State private var presented: String? WalletStack(passes: passes, selection: $presented) .padding(.horizontal, 20) ```
+
+## Notes
+
+- Passes are content: solid house blocks with dark ink, listed back to front. The only glass is the close bubble, clear Liquid Glass in its own `PieceLiquidGroup`. On iOS 17 to 25 it is a frosted material; under Reduce Transparency, a solid fill.
+- Give it the space the passes may use, such as a screen under a title or a sheet, with your own horizontal padding. It scrolls its own passes, so don't put it inside another vertical `ScrollView`. The pile and the front pass carry on under the home indicator, the way a wallet runs off the bottom of the screen.
+- In the stack each pass shows exactly its own header strip (symbol tile, title, subtitle and the header field) and the last pass shows whole. When the passes don't fit, the strips draw closer by giving up their bottom padding, never their text; past that the stack scrolls.
+- Tap a pass, or set `selection`, and it rises to the top of the visible area and opens to its code while the others slide down into a pile of slivers, `Style.sliver` apart and a little narrower each, at most `pileDepth` deep. Passes keep their stacking order throughout: the ones in front slide off the chosen pass and the ones behind slip under it, so nothing ever jumps in front. Then the close bubble buds up out of the pass's top trailing corner and rests above it.
+- Put it back by dragging it down past 110 points or flicking it down: it follows the finger, the pile rises to meet it with a tick as the pull crosses the threshold, and it leaves at the finger's speed and sinks into its place as the passes in front rise over it. A shorter drag springs back. Tapping the pile, tapping the bubble, Escape on a hardware keyboard and the VoiceOver escape gesture all put it back too. The drag is a UIKit pan on the presented pass only, so it never fights the scroll view or a sheet, and sideways drags pass through.
+- Codes are generated on the device by Core Image, off the main actor: `.qr` (correction level M), `.aztec`, `.pdf417` and `.code128` (ASCII only; other text shows without bars). They sit on a white tile in both appearances, drawn pixel-crisp, with the code's text printed under them. A pass with `code: nil` opens without a code area.
+- `selection` is the presented pass's id. Set it from a deep link or a notification to present that pass; an id that isn't in `passes` shows the stack, and removing the presented pass puts the stack back. Changing it to another id swaps passes in one move.
+- Tints: `.sky`, `.butter`, `.sage`, `.lilac`, `.sand` and `.red`, the house signal, which is best kept for the one pass that matters most right now, such as tonight's ticket. Your own colours take `Tint(color, ink:)` with an ink that reads on them.
+- Long titles and subtitles truncate to one line in the stack and wrap to two once the pass is open. Fields share one row, spread across the pass like a boarding pass, and wrap onto more rows when they don't fit.
+- Haptics: a light impact when a pass is presented and when it goes back, and a selection tick each time a drag crosses the return threshold.
+- VoiceOver: each stacked pass is a button that reads its title, subtitle and header field ("Rail pass, Lisbon to Porto, Coach, 4") with the hint "Shows the whole pass". Presented, focus moves to the pass, which reads its title as a heading, then every field and the code; the other passes are hidden, the pile is a button "Other passes" and the bubble is "Done". On the way back focus returns to the pass.
+- Reduce Motion: passes move on a short ease with no overshoot, the code fades in place and the bubble appears and leaves where it rests. Increase Contrast draws the subtitles and field labels in full ink.
+- Dynamic Type: strips and fields grow with the text, and at accessibility sizes the header stacks its tile, titles and field. When an open pass is taller than the space, the stack scrolls so its code can be reached. Right to left mirrors the header, the fields and the bubble; codes are never mirrored.
+- `Style` sets the passes' corner radius, the code tile and its ink, the bubble's glyph, the sliver height and the pile's depth. `Messages` replaces the copy VoiceOver reads, such as `done: "Close"`.
+- Wire it up with your passes in state and the presented id beside them:
+
+```swift
+@State private var passes: [WalletStack.Pass] = Trip.passes
+@State private var presented: String?
+
+WalletStack(passes: passes, selection: $presented)
+    .padding(.horizontal, 20)
+    .navigationTitle("Passes")
+    .onOpenURL { url in presented = url.lastPathComponent }
+```
+
+## Usage
+
+```swift
+WalletStackExample()
+```
+
+## Parameters
+
+| Parameter | Description |
+| --- | --- |
+| `passes` | The passes, back to front: the first sits at the top of the stack and the last shows whole. Ids must be unique. Make each one with ``WalletStack/Pass``, picking a house colour such as `.sky` or `.red` for its `tint`. |
+| `selection` | The id of the presented pass, or `nil` for the stack. It changes as people present and put back passes; set it yourself to present one from a deep link or a notification. An id that isn't in `passes` shows the stack. |
+| `messages` | The built-in copy: the close bubble, the pile and the hints VoiceOver reads. Defaults are localizable through your String Catalog; replace any line, for example `done` with "Close". |
+| `style` | The passes' corner radius, the code tile's colours, the close bubble's glyph and the pile's slivers. Defaults to the SwiftPieces house palette. |

@@ -6,6 +6,8 @@
 
 export const proCatalog = {
   screens: 54,
+  /** Pro's blocks (Pro typeCounts().block). Their names and summaries live in lib/blocks.ts proBlocks; keep the two in step. */
+  blocks: 2,
   templates: 12,
   /** The Build Kit: skills a buyer's coding agent follows (Pro lib/kit.ts kitCounts()). */
   buildKit: { total: 31, setup: 1, styles: 14, briefs: 9, recipes: 5, tools: 2 },

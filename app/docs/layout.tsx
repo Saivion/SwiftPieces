@@ -4,7 +4,9 @@ import { Navbar } from "@/components/layout/navbar";
 import { GitHubStarLive } from "@/components/layout/github-star-live";
 import { source } from "@/lib/source";
 import { baseOptions } from "@/lib/layout.shared";
-import { freshCount, getRegistryIndex, piecePath } from "@/lib/registry";
+import { freshCount, getBlocks, getProBlocks, getRegistryIndex, piecePath } from "@/lib/registry";
+import { blockCategoryTitle, blockPath } from "@/lib/blocks";
+import { ProBadge } from "@/components/ui/pro-badge";
 import type * as PageTree from "fumadocs-core/page-tree";
 import { NewBadge } from "@/components/ui/new-badge";
 import { SidebarFilter, SidebarFooterLinks, CountedFolder } from "@/components/docs/sidebar";
@@ -24,11 +26,14 @@ const exploreRows: Record<string, { kind: "screens" | "flows" | "templates"; typ
 
 
 /** A group heading in the sidebar: "Text  11". */
-function heading(label: string, count?: number | ReactNode): PageTree.Separator {
+/** Which tier a row, folder or group is: the sidebar's All / Free / Pro pills hide the other tier (app/globals.css). */
+type Tier = "free" | "pro";
+
+function heading(label: string, count?: number | ReactNode, tier?: Tier): PageTree.Separator {
   return {
     type: "separator",
     name: (
-      <span key={`sep-${label}`} data-sidebar-heading className="inline-flex items-baseline gap-1.5 text-[10.5px] font-semibold tracking-[0.1em] text-subtle uppercase">
+      <span key={`sep-${label}`} data-sidebar-heading data-group-tier={tier} className="inline-flex items-baseline gap-1.5 text-[10.5px] font-semibold tracking-[0.1em] text-subtle uppercase">
         {label}
         {count !== undefined ? <span className="text-[10.5px] font-normal tracking-normal tabular-nums text-subtle/70">{count}</span> : null}
       </span>
@@ -47,6 +52,11 @@ function withEnd(n: PageTree.Item, end: ReactNode, name: ReactNode = n.name): Pa
       </span>
     ),
   };
+}
+
+/** Marks a row as free or Pro for the sidebar's All / Free / Pro pills, without changing how it looks. */
+function tiered(n: PageTree.Item, tier: Tier): PageTree.Item {
+  return { ...n, name: <span key="tier" data-tier={tier} className="contents">{n.name}</span> };
 }
 
 /** "swiftui-loading-states" -> "Loading states": guide titles are written for search, the sidebar wants the topic. */
@@ -69,11 +79,12 @@ function flatSidebar(tree: PageTree.Root): PageTree.Root {
   const landing = (f: PageTree.Folder | undefined, url: string) => (f?.index?.url === url ? f.index : f?.children.find((c): c is PageTree.Item => c.type === "page" && c.url === url));
   const holds = (url: string) => folders.find((f) => Boolean(landing(f, url)));
   const components = holds("/docs/components");
+  const blocksRoot = holds("/docs/blocks");
   const guides = holds("/docs/guides");
   const componentsIndex = landing(components, "/docs/components");
   const guidesIndex = landing(guides, "/docs/guides");
   const page = (url: string) => pages.find((p) => p.url === url);
-  const piece = (n: PageTree.Item) => (fresh.has(n.url) ? withEnd(n, <NewBadge />) : n);
+  const piece = (n: PageTree.Item) => tiered(fresh.has(n.url) ? withEnd(n, <NewBadge />) : n, "free");
 
   const out: PageTree.Node[] = [heading("Get Started")];
   for (const url of ["/docs/introduction", "/docs/installation", "/docs/cli", "/docs/mcp"]) {
@@ -84,21 +95,34 @@ function flatSidebar(tree: PageTree.Root): PageTree.Root {
   out.push({ type: "page", name: "Changelog", url: changelogPath() });
 
   if (components && componentsIndex) {
-    out.push(heading("Browse"), withEnd({ ...componentsIndex, name: "All Components" }, fresh.size ? <NewBadge>{`${fresh.size} New`}</NewBadge> : <span className="text-[11px] tabular-nums text-subtle">{index.length}</span>));
-    const cats = components.children.filter((n): n is PageTree.Folder => n.type === "folder");
+    // Components, then blocks: each a heading with its count, its "All" row, then one collapsible folder per
+    // category, closed until you are on one of its pages (or the filter is looking inside it).
+    out.push(heading("Components", index.length, "free"), tiered(withEnd({ ...componentsIndex, name: "All Components" }, fresh.size ? <NewBadge>{`${fresh.size} New`}</NewBadge> : <span className="text-[11px] tabular-nums text-subtle">{index.length}</span>), "free"));
+    for (const cat of components.children.filter((n): n is PageTree.Folder => n.type === "folder")) {
+      const items = cat.children.filter((n): n is PageTree.Item => n.type === "page");
+      const freshHere = items.filter((n) => fresh.has(n.url)).length;
+      out.push({
+        ...cat,
+        defaultOpen: false,
+        name: (
+          <span key="folder" data-folder-tier="free" className="inline-flex items-center gap-2">
+            {cat.name}
+            {freshHere ? <span aria-label={`${freshHere} new`} className="size-1.5 rounded-full bg-[var(--new)]" /> : null}
+          </span>
+        ),
+        children: items.map(piece),
+      });
+    }
+    out.push(...blockSection(blocksRoot));
     const explore = components.children.filter((n): n is PageTree.Item => n.type === "page" && Boolean(exploreRows[n.url]));
     if (explore.length) {
-      out.push(heading("Explore Pro"));
+      out.push(heading("Explore Pro", undefined, "pro"));
       for (const n of explore) {
         const row = exploreRows[n.url];
         const cards = proCards(row.type);
         const fresh = cards.filter((c) => c.isNew).length;
-        out.push({ ...withEnd(n, fresh ? <NewBadge>{`${fresh} New`}</NewBadge> : <span className="text-[11px] tabular-nums text-subtle">{cards.length}</span>), icon: <SectionIcon kind={row.kind} tone="text-current" /> });
+        out.push({ ...tiered(withEnd(n, fresh ? <NewBadge>{`${fresh} New`}</NewBadge> : <span className="text-[11px] tabular-nums text-subtle">{cards.length}</span>), "pro"), icon: <SectionIcon kind={row.kind} tone="text-current" /> });
       }
-    }
-    for (const cat of cats) {
-      const items = cat.children.filter((n): n is PageTree.Item => n.type === "page");
-      out.push(heading(String(cat.name), items.length), ...items.map(piece));
     }
   }
 
@@ -111,12 +135,47 @@ function flatSidebar(tree: PageTree.Root): PageTree.Root {
   return { ...tree, children: out };
 }
 
+/**
+ * Blocks: an "All Blocks" row, then one collapsible folder per category with its count, closed until you are on
+ * one of its pages. A category holding Pro blocks wears the Pro badge, and so does each Pro block's row.
+ */
+function blockSection(root: PageTree.Folder | undefined): PageTree.Node[] {
+  if (!root) return [];
+  const free = getBlocks();
+  const paid = getProBlocks();
+  const proUrls = new Set(paid.map((p) => blockPath(p)));
+  const freshUrls = new Set([...free.filter((b) => b.isNew).map((b) => blockPath(b)), ...paid.filter((p) => p.isNew).map((p) => blockPath(p))]);
+  const index = root.index?.url === "/docs/blocks" ? root.index : root.children.find((c): c is PageTree.Item => c.type === "page" && c.url === "/docs/blocks");
+  const total = free.length + paid.length;
+  const out: PageTree.Node[] = [heading("Blocks", total)];
+  if (index) out.push(withEnd({ ...index, name: "All Blocks" }, freshUrls.size ? <NewBadge>{`${freshUrls.size} New`}</NewBadge> : <span className="text-[11px] tabular-nums text-subtle">{total}</span>));
+  for (const folder of root.children.filter((n): n is PageTree.Folder => n.type === "folder")) {
+    const pages = folder.children.filter((n): n is PageTree.Item => n.type === "page");
+    const hasPro = pages.some((p) => proUrls.has(p.url));
+    const allPro = pages.every((p) => proUrls.has(p.url));
+    out.push({
+      ...folder,
+      defaultOpen: false,
+      name: (
+        <span key="folder" data-folder-tier={allPro ? "pro" : hasPro ? undefined : "free"} className="inline-flex items-center gap-2">
+          {folder.name}
+          {hasPro ? <ProBadge size="sm" /> : null}
+        </span>
+      ),
+      children: pages.map((p) => (proUrls.has(p.url) ? tiered(withEnd(p, <ProBadge size="sm" />), "pro") : tiered(freshUrls.has(p.url) ? withEnd(p, <NewBadge />) : p, "free"))),
+    });
+  }
+  return out;
+}
+
 /** What each sidebar row previews on hover: a component's live preview, or a still of a Pro card. */
 function previewItems(): Record<string, SidebarPreviewEntry> {
   const out: Record<string, SidebarPreviewEntry> = {};
   for (const e of getRegistryIndex()) {
     out[piecePath(e)] = { kind: "piece", name: e.name, title: e.title, label: categoryTitle(e.category), tone: e.category === "backgrounds" ? "black" : "dark" };
   }
+  for (const b of getBlocks()) out[blockPath(b)] = { kind: "piece", name: b.name, title: b.title, label: `Block · ${blockCategoryTitle(b.category)}`, tone: "dark" };
+  for (const p of getProBlocks()) out[blockPath(p)] = { kind: "image", src: `/pro-blocks/${p.id}.webp`, title: p.title, label: `Pro block · ${blockCategoryTitle(p.category)}` };
   const screen = proCards("screen")[0];
   const flow = proCards("flow")[0];
   const template = proCards("template")[0];
@@ -151,7 +210,7 @@ export default async function Layout({ children }: { children: ReactNode }) {
         prefetch: false,
         banner: (
           <div key="sidebar-banner">
-            <SidebarFilter meta={`${getRegistryIndex().length} components`} />
+            <SidebarFilter meta={`${getRegistryIndex().length} components · ${getBlocks().length + getProBlocks().length} blocks`} />
             <SidebarPreview items={previewItems()} />
           </div>
         ),
@@ -160,6 +219,7 @@ export default async function Layout({ children }: { children: ReactNode }) {
           <SidebarFooterLinks
             links={[
               { label: "Components", href: "/components" },
+              { label: "Blocks", href: "/blocks" },
               { label: "Pro", href: "/pro" },
               { label: "Pricing", href: pro.pricing, external: true },
               { label: "Sponsors", href: "/sponsors" },

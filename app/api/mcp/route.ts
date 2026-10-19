@@ -1,5 +1,7 @@
 import { createMcpHandler } from "@/lib/mcp/server";
-import { getRegistryIndex, getRegistryItem, loadFullRegistryItem, cliCommand } from "@/lib/registry";
+import { getBlocks, getProBlocks, getRegistryIndex, getRegistryItem, cliCommand } from "@/lib/registry";
+import { loadFullBlock, loadFullRegistryItem } from "@/lib/registry-items";
+import { blockCategoryIds, proBlockUrl } from "@/lib/blocks";
 import { pro, site } from "@/lib/site";
 import { categoryIds } from "@/lib/categories";
 
@@ -16,7 +18,7 @@ Guide: ${site.url}/docs/liquid-glass`;
 export const POST = createMcpHandler({
   name: "swiftpieces",
   version: "0.1.0",
-  instructions: `Search and install free SwiftPieces (MIT + Commons Clause). For SwiftPieces Pro screens, flows and app templates use the Pro server at ${pro.mcp} with a license key.`,
+  instructions: `Search and install free SwiftPieces (MIT + Commons Clause): pieces, single designed interactions, and blocks, whole sections of a screen built from pieces (a block installs with the pieces it names in registryDependencies). For SwiftPieces Pro screens, blocks, flows and app templates use the Pro server at ${pro.mcp} with a license key.`,
   tools: [
     {
       name: "search_pieces",
@@ -32,22 +34,40 @@ export const POST = createMcpHandler({
       },
     },
     {
+      name: "search_blocks",
+      description: "Search SwiftPieces blocks (whole sections of a screen built from pieces, such as sign in, account settings, a stats overview or checkout) by keyword, optionally by block category. Free blocks install with get_piece/install_piece; Pro blocks come from the Pro server.",
+      inputSchema: { type: "object", properties: { query: { type: "string" }, category: { type: "string", enum: [...blockCategoryIds] } } },
+      handler: ({ query, category }) => {
+        const q = String(query ?? "").toLowerCase();
+        const match = (text: string) => !q || text.toLowerCase().includes(q);
+        const free = getBlocks()
+          .filter((b) => !category || b.category === category)
+          .filter((b) => match([b.name, b.title, b.description, ...b.tags].join(" ")))
+          .map(({ name, title, description, category, minIOSVersion, registryDependencies, docs }) => ({ name, title, description, category, minIOSVersion, builtFrom: registryDependencies, docs, availability: "free" }));
+        const paid = getProBlocks()
+          .filter((p) => !category || p.category === category)
+          .filter((p) => match([p.name, p.title, p.summary, p.description].join(" ")))
+          .map(({ name, title, summary, category, parts, id }) => ({ name, title, description: summary, category, inside: parts, availability: "pro", pro: proBlockUrl(id) }));
+        return [...free, ...paid];
+      },
+    },
+    {
       name: "get_piece",
-      description: "Return a free piece's full source, shaders, metadata and docs URL.",
+      description: "Return a free piece's or free block's full source, shaders, metadata and docs URL. A block lists the pieces it is built from in registryDependencies.",
       inputSchema: { type: "object", properties: { name: { type: "string" } }, required: ["name"] },
       handler: async ({ name }) => {
-        const item = await loadFullRegistryItem(String(name));
-        if (!item) throw new Error(`No free piece named "${name}". If it is a Pro screen, flow or template, use the Pro MCP at ${pro.mcp}.`);
+        const item = (await loadFullRegistryItem(String(name))) ?? (await loadFullBlock(String(name)));
+        if (!item) throw new Error(`No free piece or block named "${name}". If it is a Pro screen, block, flow or template, use the Pro MCP at ${pro.mcp}.`);
         return item;
       },
     },
     {
       name: "install_piece",
-      description: "Return the files to write (path + content) so the agent can install a piece into an Xcode 16 synchronized folder, plus the equivalent CLI command.",
+      description: "Return the files to write (path + content) so the agent can install a piece or block into an Xcode 16 synchronized folder, plus the equivalent CLI command. For a block, also install each name in registryDependencies (the pieces it is built from).",
       inputSchema: { type: "object", properties: { name: { type: "string" }, projectPath: { type: "string", description: "Absolute path to the app source folder that contains SwiftPieces/" } }, required: ["name"] },
       handler: async ({ name, projectPath }) => {
-        const item = await loadFullRegistryItem(String(name));
-        if (!item) throw new Error(`No free piece named "${name}".`);
+        const item = (await loadFullRegistryItem(String(name))) ?? (await loadFullBlock(String(name)));
+        if (!item) throw new Error(`No free piece or block named "${name}".`);
         const base = projectPath ? String(projectPath).replace(/\/$/, "") : ".";
         const files = [...item.files, ...item.shaders, ...item.assets].map((f) => ({ path: `${base}/${f.target}`, content: f.content }));
         return { command: cliCommand(item), files, requirements: { infoPlist: item.infoPlist, capabilities: item.requiredCapabilities, spm: item.spmDependencies }, registryDependencies: item.registryDependencies };
@@ -55,12 +75,15 @@ export const POST = createMcpHandler({
     },
     {
       name: "list_categories",
-      description: "List free categories with counts, and links to the SwiftPieces Pro library (screens, flows and app templates).",
+      description: "List free piece categories and block categories with counts, and links to the SwiftPieces Pro library (screens, blocks, flows and app templates).",
       inputSchema: { type: "object", properties: {} },
       handler: () => {
         const counts: Record<string, number> = {};
         for (const i of getRegistryIndex()) counts[i.category] = (counts[i.category] ?? 0) + 1;
-        return { free: counts, pro: { library: pro.library, screens: pro.screens, flows: pro.flows, templates: pro.templates, mcp: pro.mcp } };
+        const blocks: Record<string, { free: number; pro: number }> = {};
+        for (const b of getBlocks()) (blocks[b.category] ??= { free: 0, pro: 0 }).free += 1;
+        for (const p of getProBlocks()) (blocks[p.category] ??= { free: 0, pro: 0 }).pro += 1;
+        return { free: counts, blocks, pro: { library: pro.library, screens: pro.screens, blocks: `${pro.library}/blocks`, flows: pro.flows, templates: pro.templates, mcp: pro.mcp } };
       },
     },
     {

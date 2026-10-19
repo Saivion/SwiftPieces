@@ -1,0 +1,8 @@
+{
+  "title": "Social",
+  "description": "Invites, profiles and the people around the person using your app.",
+  "defaultOpen": false,
+  "pages": [
+    "invite-friends"
+  ]
+}

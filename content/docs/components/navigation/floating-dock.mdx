@@ -11,38 +11,7 @@ registryDependencies: []
 
 {/* GENERATED FILE. Edit registry/swift/navigation/FloatingDock.swift or FloatingDock.mdx instead. */}
 
-Floating bottom dock of 4–5 items, each its own liquid glass bubble, with a tinted selection and a scrub-to-pick gesture. The items rest apart, as separate bubbles. A finger scrubbing across the dock buds a name bubble out of the item under it, joined to that item by a liquid neck, and melts it back in on release. Badges are small signal bubbles joined to their items.
-
-## Notes
-
-- Every item is its own liquid glass bubble, 48 pt across, resting apart from the next so each reads as a separate action. The selected item floods with the signal tint (or `tint`) and its symbol fills in house ink; the others are clear glass with muted symbols. Before iOS 26 the bubbles are frosted material with a light rim, and under Reduce Transparency they are solid.
-- Selection moves the same way whether a tap, a scrub, VoiceOver or your binding changed it: the old bubble drains as the new one floods and each symbol swaps with a blur, on a quick spring that lands with a small give. The symbol bounces once as the tint lands under it, not as it leaves the old item.
-- Touch and drag across the dock to pick. The finger belongs to the nearest item, so the gaps between bubbles never drop a scrub. The item under the finger rises like a key (up 5 pt, to 114%) with a little give and drops back firm when the finger moves on, so neighbours never wobble. One glass name bubble buds out of the first item and rests above it on a liquid neck; it glides from item to item with the finger while its name morphs letter by letter, and on release it narrows to a drop and melts back into the item, which the release selects. A `.selection` tick fires per item; release commits with a soft impact.
-- A touch that doesn't travel presses the item: it sinks about 2.5 pt per edge (92% for a bubble) and selects it on release. A touch the system cancels lets go without selecting.
-- Badges are small signal bubbles joined to their items by a liquid neck, up the trailing side, with ink counts that roll with `.numericText` on a spring with no overshoot, since a count is read. A badge buds out of its item when a count arrives and melts back in when it clears. It also melts in while the name bubble is over its item, and buds back out once the name has gone. On the selected item it drains to clear glass so it reads apart from the selection. Counts over 99 show "99+".
-- `Style` sets `indicator` (the selection's tint), `selectedInk`, `inactive` and `badge`. `surface` and `usesGlass` no longer do anything, since the dock is always liquid glass; they stay so existing code compiles.
-- `scrollProgress` slides the dock 120 pt down and fades it. Drive it from your scroll direction (0 while scrolling up, 1 while scrolling down): the dock tucks away quickly and firmly and comes back a little slower, landing with a slight give. Values between 0 and 1 move it directly with no animation, so a progress derived from the scroll offset tracks the scroll without lag. Above 0.5 it is also hidden from VoiceOver.
-- VoiceOver sees a tab bar container whose items are buttons with selected state and badge value; double-tap selects.
-- Reduce Motion keeps the selection moving on a short spring with no overshoot and removes the lift, the scale and the symbol bounce. The name bubble and the badges fade in and out where they rest instead of budding, and the name bubble steps from item to item instead of gliding. A pressed item dims instead of sinking, counts cross-fade, and the tuck slides on short eases. Haptics are unchanged.
-- A floating tab bar with a lens that tracks and stretches toward the finger ships in SwiftPieces Pro (`lens-tab-bar`).
-
-## Usage
-
-```swift
-FloatingDockExample().preferredColorScheme(.light)
-```
-
-## Parameters
-
-| Parameter | Description |
-| --- | --- |
-| `items` | Dock items in order. Four or five work best. |
-| `selection` | Index of the selected item. |
-| `tint` | Glass tint of the selected item. Defaults to the style's indicator, the signal red. |
-| `scrollProgress` | 0 keeps the dock in place, 1 tucks it below the screen. Feed it a value derived from scroll direction to hide the dock while scrolling down. |
-| `style` | Tints and ink. Defaults to `.standard`, the house palette. |
-
-## Source
+<Showcase name="FloatingDock">
 
 <Tabs items={["FloatingDock.swift"]}>
 <Tab value="FloatingDock.swift">
@@ -976,3 +945,38 @@ private struct PieceMorphText: View {
 
 </Tab>
 </Tabs>
+
+</Showcase>
+
+<PieceFacts name="FloatingDock" />
+
+Floating bottom dock of 4–5 items, each its own liquid glass bubble, with a tinted selection and a scrub-to-pick gesture. The items rest apart, as separate bubbles. A finger scrubbing across the dock buds a name bubble out of the item under it, joined to that item by a liquid neck, and melts it back in on release. Badges are small signal bubbles joined to their items.
+
+## Notes
+
+- Every item is its own liquid glass bubble, 48 pt across, resting apart from the next so each reads as a separate action. The selected item floods with the signal tint (or `tint`) and its symbol fills in house ink; the others are clear glass with muted symbols. Before iOS 26 the bubbles are frosted material with a light rim, and under Reduce Transparency they are solid.
+- Selection moves the same way whether a tap, a scrub, VoiceOver or your binding changed it: the old bubble drains as the new one floods and each symbol swaps with a blur, on a quick spring that lands with a small give. The symbol bounces once as the tint lands under it, not as it leaves the old item.
+- Touch and drag across the dock to pick. The finger belongs to the nearest item, so the gaps between bubbles never drop a scrub. The item under the finger rises like a key (up 5 pt, to 114%) with a little give and drops back firm when the finger moves on, so neighbours never wobble. One glass name bubble buds out of the first item and rests above it on a liquid neck; it glides from item to item with the finger while its name morphs letter by letter, and on release it narrows to a drop and melts back into the item, which the release selects. A `.selection` tick fires per item; release commits with a soft impact.
+- A touch that doesn't travel presses the item: it sinks about 2.5 pt per edge (92% for a bubble) and selects it on release. A touch the system cancels lets go without selecting.
+- Badges are small signal bubbles joined to their items by a liquid neck, up the trailing side, with ink counts that roll with `.numericText` on a spring with no overshoot, since a count is read. A badge buds out of its item when a count arrives and melts back in when it clears. It also melts in while the name bubble is over its item, and buds back out once the name has gone. On the selected item it drains to clear glass so it reads apart from the selection. Counts over 99 show "99+".
+- `Style` sets `indicator` (the selection's tint), `selectedInk`, `inactive` and `badge`. `surface` and `usesGlass` no longer do anything, since the dock is always liquid glass; they stay so existing code compiles.
+- `scrollProgress` slides the dock 120 pt down and fades it. Drive it from your scroll direction (0 while scrolling up, 1 while scrolling down): the dock tucks away quickly and firmly and comes back a little slower, landing with a slight give. Values between 0 and 1 move it directly with no animation, so a progress derived from the scroll offset tracks the scroll without lag. Above 0.5 it is also hidden from VoiceOver.
+- VoiceOver sees a tab bar container whose items are buttons with selected state and badge value; double-tap selects.
+- Reduce Motion keeps the selection moving on a short spring with no overshoot and removes the lift, the scale and the symbol bounce. The name bubble and the badges fade in and out where they rest instead of budding, and the name bubble steps from item to item instead of gliding. A pressed item dims instead of sinking, counts cross-fade, and the tuck slides on short eases. Haptics are unchanged.
+- A floating tab bar with a lens that tracks and stretches toward the finger ships in SwiftPieces Pro (`lens-tab-bar`).
+
+## Usage
+
+```swift
+FloatingDockExample().preferredColorScheme(.light)
+```
+
+## Parameters
+
+| Parameter | Description |
+| --- | --- |
+| `items` | Dock items in order. Four or five work best. |
+| `selection` | Index of the selected item. |
+| `tint` | Glass tint of the selected item. Defaults to the style's indicator, the signal red. |
+| `scrollProgress` | 0 keeps the dock in place, 1 tucks it below the screen. Feed it a value derived from scroll direction to hide the dock while scrolling down. |
+| `style` | Tints and ink. Defaults to `.standard`, the house palette. |

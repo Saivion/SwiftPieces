@@ -1,8 +1,9 @@
 "use client";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import { useSearchContext } from "fumadocs-ui/contexts/search";
 import type * as PageTree from "fumadocs-core/page-tree";
+import { cn } from "@/lib/cn";
 import { SidebarFolder, SidebarFolderContent, SidebarFolderLink, SidebarFolderTrigger, useFolder, useFolderDepth, useSidebar } from "fumadocs-ui/components/sidebar/base";
 
 /**
@@ -37,6 +38,76 @@ function DrawerClose() {
  * One box for both jobs: typing filters the sidebar links in place, and the ⌘K key (or a click on it)
  * opens full-text search. This replaces Fumadocs' separate search trigger so the header stays at two rows.
  */
+/**
+ * The filter's text, shared with the sidebar's folders: while it holds anything, every folder opens, since a closed
+ * folder keeps its rows out of the page and the filter could not find them.
+ */
+let filterQuery = "";
+const filterListeners = new Set<() => void>();
+function setFilterQuery(q: string) {
+  filterQuery = q;
+  filterListeners.forEach((l) => l());
+}
+function useFilterQuery() {
+  return useSyncExternalStore((l) => (filterListeners.add(l), () => filterListeners.delete(l)), () => filterQuery, () => "");
+}
+
+/** Hides the rows that don't match, then any folder or group heading left with no rows showing. */
+function applyFilter(aside: HTMLElement, needle: string) {
+  aside.querySelectorAll<HTMLAnchorElement>("a[href^='/docs/']").forEach((a) => {
+    const text = a.textContent?.toLowerCase() ?? "";
+    const isIndexLike = /^(all |introduction|installation|mcp|liquid glass guide)/.test(text);
+    a.hidden = Boolean(needle) && !text.includes(needle) && !isIndexLike;
+  });
+  aside.querySelectorAll<HTMLElement>("[data-sidebar-folder]").forEach((folder) => {
+    folder.hidden = Boolean(needle) && !folder.querySelector("a[href^='/docs/']:not([hidden])");
+  });
+  // A group heading hides with its last visible row, so a filtered sidebar never shows empty groups.
+  aside.querySelectorAll<HTMLElement>("[data-sidebar-heading]").forEach((h) => {
+    const sep = h.parentElement;
+    if (!sep) return;
+    let any = false;
+    for (let el = sep.nextElementSibling; el && !el.querySelector("[data-sidebar-heading]"); el = el.nextElementSibling) {
+      if (el instanceof HTMLAnchorElement ? !el.hidden : !(el as HTMLElement).hidden && Boolean(el.querySelector("a:not([hidden])"))) any = true;
+    }
+    sep.hidden = Boolean(needle) && !any;
+  });
+}
+
+/**
+ * Free, Pro or both: which items the sidebar lists. Rows, folders and headings carry `data-tier`,
+ * `data-folder-tier` and `data-group-tier`, and app/globals.css hides the other tier's under the aside's
+ * `data-tier-mode`. The docs themselves (Get started, Guides) carry none, so they always show.
+ */
+type Tier = "all" | "free" | "pro";
+function TierPills() {
+  const ref = useRef<HTMLDivElement>(null);
+  const [tier, setTier] = useState<Tier>("all");
+  useEffect(() => {
+    const aside = ref.current?.closest("aside");
+    if (aside) aside.dataset.tierMode = tier;
+  }, [tier]);
+  return (
+    <div ref={ref} role="radiogroup" aria-label="Show" className="mt-2 grid grid-cols-3 gap-0.5 rounded-[var(--radius)] bg-[var(--docs-fill)] p-0.5">
+      {(["all", "free", "pro"] as const).map((t) => (
+        <button
+          key={t}
+          type="button"
+          role="radio"
+          aria-checked={tier === t}
+          onClick={() => setTier(t)}
+          className={cn(
+            "h-7 rounded-[calc(var(--radius)-2px)] text-[12px] font-medium capitalize transition-colors max-md:h-9 max-md:text-[13px]",
+            tier === t ? "bg-background text-foreground shadow-[0_1px_2px_rgb(0_0_0/0.12)]" : "text-muted hover:text-foreground",
+          )}
+        >
+          {t}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 export function SidebarFilter({ title = "Docs", meta }: { title?: string; meta?: string }) {
   const [q, setQ] = useState("");
   const ref = useRef<HTMLInputElement>(null);
@@ -45,21 +116,13 @@ export function SidebarFilter({ title = "Docs", meta }: { title?: string; meta?:
     const aside = ref.current?.closest("aside");
     if (!aside) return;
     const needle = q.trim().toLowerCase();
-    aside.querySelectorAll<HTMLAnchorElement>("a[href^='/docs/']").forEach((a) => {
-      const text = a.textContent?.toLowerCase() ?? "";
-      const isIndexLike = /^(all |introduction|installation|mcp|liquid glass guide)/.test(text);
-      a.hidden = Boolean(needle) && !text.includes(needle) && !isIndexLike;
-    });
-    // A group heading hides with its last visible row, so a filtered sidebar never shows empty groups.
-    aside.querySelectorAll<HTMLElement>("[data-sidebar-heading]").forEach((h) => {
-      const sep = h.parentElement;
-      if (!sep) return;
-      let any = false;
-      for (let el = sep.nextElementSibling; el && !el.querySelector("[data-sidebar-heading]"); el = el.nextElementSibling) {
-        if (el instanceof HTMLAnchorElement ? !el.hidden : Boolean(el.querySelector("a:not([hidden])"))) any = true;
-      }
-      sep.hidden = Boolean(needle) && !any;
-    });
+    setFilterQuery(needle);
+    applyFilter(aside, needle);
+    // Folders open once the query reaches them and mount their rows a frame later: filter again when they do.
+    if (!needle) return;
+    const observer = new MutationObserver(() => applyFilter(aside, needle));
+    observer.observe(aside, { childList: true, subtree: true });
+    return () => observer.disconnect();
   }, [q]);
   return (
     <div>
@@ -80,6 +143,7 @@ export function SidebarFilter({ title = "Docs", meta }: { title?: string; meta?:
         <span className="md:hidden">Search</span>
       </button>
     </label>
+    <TierPills />
       </div>
     </div>
   );
@@ -126,6 +190,16 @@ function Content({ children }: { children: ReactNode }) {
   return <SidebarFolderContent className={depth === 1 ? "relative before:absolute before:inset-y-1 before:inset-s-2.5 before:w-px before:bg-fd-border before:content-['']" : "relative"}><div className="flex flex-col gap-0.5 pt-0.5">{children}</div></SidebarFolderContent>;
 }
 
+/** Opens its folder while the filter holds text, so the filter can reach the rows inside. */
+function OpenWhileFiltering() {
+  const q = useFilterQuery();
+  const folder = useFolder();
+  useEffect(() => {
+    if (q && folder && !folder.open) folder.setOpen(true);
+  }, [q, folder]);
+  return null;
+}
+
 /**
  * Folder row "Name ······ 24 ›". The name grows to fill the row so the count and Fumadocs' chevron
  * (which carries ms-auto) sit together at the right edge instead of splitting the free space.
@@ -140,7 +214,8 @@ export function CountedFolder({ item, children }: { item: PageTree.Folder; child
     </>
   );
   return (
-    <SidebarFolder defaultOpen={item.defaultOpen || active} collapsible={item.collapsible} active={active}>
+    <SidebarFolder defaultOpen={item.defaultOpen || active} collapsible={item.collapsible} active={active} data-sidebar-folder="">
+      <OpenWhileFiltering />
       {item.index ? <FolderLink href={item.index.url} active={item.index.url === pathname}>{label}</FolderLink> : <Trigger>{label}</Trigger>}
       <Content>{children}</Content>
     </SidebarFolder>

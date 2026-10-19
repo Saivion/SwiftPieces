@@ -11,50 +11,7 @@ registryDependencies: []
 
 {/* GENERATED FILE. Edit registry/swift/lists/PagedList.swift or PagedList.mdx instead. */}
 
-An infinitely scrolling list driven by an async page loader, with every pagination state handled. The simplest call is one line: `PagedList(load: api.page) { item in Row(item) }`, or for page-number APIs `PagedList(pageSize: 20) { page in try await api.fetch(page: page) } row: { item in Row(item) }`. To restart with new parameters (a search query, a filter), give the list `.id(query)`.
-
-## Notes
-
-- `load` receives `nil` for the first page, then each page's `next` cursor, which can be a page number, an offset or an opaque token. Return `PagedListPage(items:next:)` with `next: nil` on the last page. For page-number APIs, `PagedList(pageSize:)` builds the cursor for you and ends the list at the first short or empty page.
-- The next page starts when the row `prefetchDistance` (5) rows from the end appears, or when the footer is on screen, so short pages keep loading until the screen fills. Only one load runs at a time; extra triggers are ignored.
-- Items whose `id` has already been seen are dropped, so an API that shifts under you (new items pushing old ones into the next page) never produces duplicate rows. Eight pages in a row that add nothing new end the list, to guard against a cursor that never ends.
-- Every load takes a generation number. A refresh, a retry or leaving the screen cancels the load in flight and starts a new generation, and any response from an older one is dropped, so a slow page can never overwrite fresher rows. A load cancelled by disappearing resumes when the list appears again. Throwing `CancellationError` or `URLError.cancelled` is never shown as an error.
-- States: skeleton rows while the first page loads, with a pulse that travels down them a beat apart (pass `placeholder:` to render your own row redacted instead), and a footer that is one liquid glass bubble: it spins while more loads, widens into a "Couldn't load more" pill with a butter warning disc and a signal Retry bubble that keeps every loaded row, and becomes a quiet "You're all caught up" pill with a sage check at the end (`endMessage: nil` hides it). If the first page fails, a full error view shows a butter glass warning bubble and a signal glass Try again button.
-- Motion stays out of the data's way: the first page, page appends and refresh replacements are never animated. Only the status around them moves. The footer changes form about its centre on a spring with a slight give, its glyph and label blurring from one state to the next. On a failure the Retry bubble buds out of the pill's trailing end, held to it by a liquid neck, and when Retry is tapped it melts back in, its tint draining, as the pill folds back to the spinner. The error and empty views fade in and out over the list. On iOS 26 Retry and Try again are interactive glass; elsewhere they sink a few points when pressed.
-- Empty: the built-in state is a short message. Pass `empty:` for your own view, for example `ContentUnavailableView("No receipts", systemImage: "doc.text")`.
-- Pull to refresh reloads from the first page and replaces the rows only when it succeeds. If it fails, the old rows stay and a "Couldn't refresh" pill appears above them, and its Retry bubble buds out of it. With `layout: .plain` the pill eases in; a `List` inserts it without animation, so no row slides under a pull that is still held. While a refresh runs, a spinner stands in for Retry's arrow and Retry ignores taps, so it can't restart the refresh it is waiting on; if it fails again, the warning disc gives one short shake.
-- `layout: .list` (default) is a plain `List`, so swipe actions and row modifiers work in your row. `layout: .plain` uses a `LazyVStack` in a `ScrollView` with `Style.rowSpacing` and `Style.contentPadding`. Appending pages never moves the scroll position in either.
-- To restart with new parameters, such as a search query or filter, give the list `.id(query)`.
-- Concurrency: state lives on the main actor; `load` is a `@Sendable` async closure that runs off it. Items must be `Identifiable & Sendable`.
-- `Style` (`PagedListStyle`): `text`, `secondaryText`, `field`, `error`, `retry`, `end`, `ink`, `rowSpacing`, `contentPadding`, `skeletonRows`. Colour follows meaning: `error` (butter) marks warnings, `retry` (signal red) tints the primary action, `end` (sage) marks success, and the pill itself is neutral glass (`field` under Reduce Transparency). The pill, discs and Retry scale with Dynamic Type, and at accessibility sizes Retry buds out below the pill instead of beside it. All text is semibold.
-- VoiceOver: "Loaded 20 more" is announced when a page appends, and each error is announced. The skeleton reads as a single "Loading" element, the spinner as "Loading more", and Retry is a button with a hint, read as "Retrying" and dimmed while a refresh runs.
-- Reduce Motion: the skeleton rows breathe together instead of the pulse travelling down them, the spinner becomes three fading dots, Retry fades in and out in place instead of budding and melting, glyphs and labels crossfade, the refresh pill fades instead of scaling, Retry dims instead of sinking when pressed where it is not Liquid Glass, and the disc doesn't shake. Reduce Transparency draws the glass as solid shapes. A light haptic plays on Retry; routine loads are silent.
-
-## Usage
-
-```swift
-PagedListExample()
-```
-
-## Parameters
-
-| Parameter | Description |
-| --- | --- |
-| `load` | Loads one page. Receives `nil` for the first page, then each page's `next` cursor. Throwing shows an error state; cancellation is ignored. |
-| `pageSize` | Page-number convenience only. A page with fewer items than this (or none) ends the list. |
-| `firstPage` | Page-number convenience only. The number of the first page, usually 1 or 0. |
-| `fetch` | Page-number convenience only. Returns the items for a page number. |
-| `layout` | `.list` (a plain `List`, the default) or `.plain` (a `LazyVStack` in a `ScrollView` for card layouts). |
-| `prefetchDistance` | How many rows before the end the next page starts loading. |
-| `endMessage` | Quiet footer shown after the last page. `nil` hides it. |
-| `emptyMessage` | Text of the built-in empty state when the first page has no items. |
-| `placeholder` | A sample item rendered through your `row` with `.redacted(reason: .placeholder)` as the loading skeleton. `nil` uses generic skeleton rows. |
-| `errorMessage` | Turns a thrown error into the text shown in the full error view. Defaults to `localizedDescription`. |
-| `style` | Colors and metrics for the built-in skeleton, status pill, empty and error views. Defaults to the house palette. |
-| `row` | Builds the row for one item. |
-| `empty` | A custom empty state, shown when the first page has no items (for example a `ContentUnavailableView`). |
-
-## Source
+<Showcase name="PagedList">
 
 <Tabs items={["PagedList.swift"]}>
 <Tab value="PagedList.swift">
@@ -1439,3 +1396,50 @@ private final class PieceBuds {
 
 </Tab>
 </Tabs>
+
+</Showcase>
+
+<PieceFacts name="PagedList" />
+
+An infinitely scrolling list driven by an async page loader, with every pagination state handled. The simplest call is one line: `PagedList(load: api.page) { item in Row(item) }`, or for page-number APIs `PagedList(pageSize: 20) { page in try await api.fetch(page: page) } row: { item in Row(item) }`. To restart with new parameters (a search query, a filter), give the list `.id(query)`.
+
+## Notes
+
+- `load` receives `nil` for the first page, then each page's `next` cursor, which can be a page number, an offset or an opaque token. Return `PagedListPage(items:next:)` with `next: nil` on the last page. For page-number APIs, `PagedList(pageSize:)` builds the cursor for you and ends the list at the first short or empty page.
+- The next page starts when the row `prefetchDistance` (5) rows from the end appears, or when the footer is on screen, so short pages keep loading until the screen fills. Only one load runs at a time; extra triggers are ignored.
+- Items whose `id` has already been seen are dropped, so an API that shifts under you (new items pushing old ones into the next page) never produces duplicate rows. Eight pages in a row that add nothing new end the list, to guard against a cursor that never ends.
+- Every load takes a generation number. A refresh, a retry or leaving the screen cancels the load in flight and starts a new generation, and any response from an older one is dropped, so a slow page can never overwrite fresher rows. A load cancelled by disappearing resumes when the list appears again. Throwing `CancellationError` or `URLError.cancelled` is never shown as an error.
+- States: skeleton rows while the first page loads, with a pulse that travels down them a beat apart (pass `placeholder:` to render your own row redacted instead), and a footer that is one liquid glass bubble: it spins while more loads, widens into a "Couldn't load more" pill with a butter warning disc and a signal Retry bubble that keeps every loaded row, and becomes a quiet "You're all caught up" pill with a sage check at the end (`endMessage: nil` hides it). If the first page fails, a full error view shows a butter glass warning bubble and a signal glass Try again button.
+- Motion stays out of the data's way: the first page, page appends and refresh replacements are never animated. Only the status around them moves. The footer changes form about its centre on a spring with a slight give, its glyph and label blurring from one state to the next. On a failure the Retry bubble buds out of the pill's trailing end, held to it by a liquid neck, and when Retry is tapped it melts back in, its tint draining, as the pill folds back to the spinner. The error and empty views fade in and out over the list. On iOS 26 Retry and Try again are interactive glass; elsewhere they sink a few points when pressed.
+- Empty: the built-in state is a short message. Pass `empty:` for your own view, for example `ContentUnavailableView("No receipts", systemImage: "doc.text")`.
+- Pull to refresh reloads from the first page and replaces the rows only when it succeeds. If it fails, the old rows stay and a "Couldn't refresh" pill appears above them, and its Retry bubble buds out of it. With `layout: .plain` the pill eases in; a `List` inserts it without animation, so no row slides under a pull that is still held. While a refresh runs, a spinner stands in for Retry's arrow and Retry ignores taps, so it can't restart the refresh it is waiting on; if it fails again, the warning disc gives one short shake.
+- `layout: .list` (default) is a plain `List`, so swipe actions and row modifiers work in your row. `layout: .plain` uses a `LazyVStack` in a `ScrollView` with `Style.rowSpacing` and `Style.contentPadding`. Appending pages never moves the scroll position in either.
+- To restart with new parameters, such as a search query or filter, give the list `.id(query)`.
+- Concurrency: state lives on the main actor; `load` is a `@Sendable` async closure that runs off it. Items must be `Identifiable & Sendable`.
+- `Style` (`PagedListStyle`): `text`, `secondaryText`, `field`, `error`, `retry`, `end`, `ink`, `rowSpacing`, `contentPadding`, `skeletonRows`. Colour follows meaning: `error` (butter) marks warnings, `retry` (signal red) tints the primary action, `end` (sage) marks success, and the pill itself is neutral glass (`field` under Reduce Transparency). The pill, discs and Retry scale with Dynamic Type, and at accessibility sizes Retry buds out below the pill instead of beside it. All text is semibold.
+- VoiceOver: "Loaded 20 more" is announced when a page appends, and each error is announced. The skeleton reads as a single "Loading" element, the spinner as "Loading more", and Retry is a button with a hint, read as "Retrying" and dimmed while a refresh runs.
+- Reduce Motion: the skeleton rows breathe together instead of the pulse travelling down them, the spinner becomes three fading dots, Retry fades in and out in place instead of budding and melting, glyphs and labels crossfade, the refresh pill fades instead of scaling, Retry dims instead of sinking when pressed where it is not Liquid Glass, and the disc doesn't shake. Reduce Transparency draws the glass as solid shapes. A light haptic plays on Retry; routine loads are silent.
+
+## Usage
+
+```swift
+PagedListExample()
+```
+
+## Parameters
+
+| Parameter | Description |
+| --- | --- |
+| `load` | Loads one page. Receives `nil` for the first page, then each page's `next` cursor. Throwing shows an error state; cancellation is ignored. |
+| `pageSize` | Page-number convenience only. A page with fewer items than this (or none) ends the list. |
+| `firstPage` | Page-number convenience only. The number of the first page, usually 1 or 0. |
+| `fetch` | Page-number convenience only. Returns the items for a page number. |
+| `layout` | `.list` (a plain `List`, the default) or `.plain` (a `LazyVStack` in a `ScrollView` for card layouts). |
+| `prefetchDistance` | How many rows before the end the next page starts loading. |
+| `endMessage` | Quiet footer shown after the last page. `nil` hides it. |
+| `emptyMessage` | Text of the built-in empty state when the first page has no items. |
+| `placeholder` | A sample item rendered through your `row` with `.redacted(reason: .placeholder)` as the loading skeleton. `nil` uses generic skeleton rows. |
+| `errorMessage` | Turns a thrown error into the text shown in the full error view. Defaults to `localizedDescription`. |
+| `style` | Colors and metrics for the built-in skeleton, status pill, empty and error views. Defaults to the house palette. |
+| `row` | Builds the row for one item. |
+| `empty` | A custom empty state, shown when the first page has no items (for example a `ContentUnavailableView`). |

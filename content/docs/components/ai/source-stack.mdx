@@ -11,38 +11,7 @@ registryDependencies: []
 
 {/* GENERATED FILE. Edit registry/swift/ai/SourceStack.swift or SourceStack.mdx instead. */}
 
-The sources behind an AI answer, folded into one pill under the reply and opened into numbered cards on tap. The pill shows the first few sources as overlapping badges (a colour disc with the site's initial) and the count. Tapping it sends those badges out of the stack into their cards while the list cascades in, numbered so they match the `[1]` style markers in your answer text. Tapping a card opens its link, or calls `onOpen` if you pass one. ```swift SourceStack([ .init(title: "Tram 28, stop by stop", site: "Tram Notes", detail: "Updated May", url: URL(string: "https://example.com/28")), .init(title: "How the funiculars climb", site: "Hill & Harbour", url: URL(string: "https://example.com/funiculars")) ]) ```
-
-## Notes
-
-- Closed, the stack is one pill: the first `stacked` sources (3 by default) as overlapping badges, each a colour disc with the site's initial ringed in the surface so they stay apart, then the count ("4 sources", inflected for one) and a chevron. Place it directly under the answer it supports. `alignment` puts the pill at the leading edge (the default, under an answer) or centred when the stack stands on its own; the list always spans the width.
-- Tapping the pill opens the list. The pill's badges fly out of the stack into their own cards on the morph spring with a little give, while the cards cascade in under them 40ms apart, rising 10pt as they fade in. Sources past `stacked` arrive with their cards. The pill drops to the count alone and its chevron turns over. Closing reverses it on the quicker dismiss spring: the cards fade together and the badges gather back into the pill.
-- Each card shows its badge, the title (up to two lines), the site and optional `detail` (a date, say), and its citation number, matching the `[1]` markers in your answer text. A tap opens `url` through `openURL`, or calls `onOpen` when you pass one, so you can show the page in-app.
-- Pass `isExpanded` to open the list from your own code, for example when someone taps a `[2]` marker in the answer. A change from outside runs the same flight as a tap.
-- The pill and every card press in with the house press: a size-aware sink that springs back with a little give. One selection haptic per open or close, one light impact per source opened.
-- VoiceOver reads the pill as "4 sources, collapsed" with a hint, and each card as one link: "Source 2: Tram 28, stop by stop, Tram Notes, Updated May". The badges and numbers are decoration and stay out of the tree.
-- Reduce Motion: the badges move without overshoot on a short spring, the cards fade in without rising, and presses shade instead of sinking. Haptics are unchanged.
-- Dynamic Type: titles and site lines scale freely; badges stop growing at xxxLarge so the stack stays a stack.
-- `Style` sets the surface, text, secondary and ink colours, the badge `blocks` (sky, butter, sage, lilac, sand and signal by default) and the card corner radius.
-
-## Usage
-
-```swift
-SourceStackExample()
-```
-
-## Parameters
-
-| Parameter | Description |
-| --- | --- |
-| `sources` | The sources, in citation order. Card numbers follow this order, starting at 1. |
-| `isExpanded` | Optional two-way open state, for opening the list from your own marker taps. Without it the pill keeps its own. |
-| `stacked` | How many badges the closed pill shows, 1...5. Defaults to 3. |
-| `alignment` | Where the pill sits across the width: `.leading` under an answer (the default), `.center` on its own. |
-| `style` | Surfaces, text and badge colours. Defaults to the SwiftPieces house palette, adapting to light and dark. |
-| `onOpen` | Called with the tapped source. Without it a card opens the source's `url` through `openURL`. |
-
-## Source
+<Showcase name="SourceStack">
 
 <Tabs items={["SourceStack.swift"]}>
 <Tab value="SourceStack.swift">
@@ -520,3 +489,38 @@ private struct PiecePressStyle: ButtonStyle {
 
 </Tab>
 </Tabs>
+
+</Showcase>
+
+<PieceFacts name="SourceStack" />
+
+The sources behind an AI answer, folded into one pill under the reply and opened into numbered cards on tap. The pill shows the first few sources as overlapping badges (a colour disc with the site's initial) and the count. Tapping it sends those badges out of the stack into their cards while the list cascades in, numbered so they match the `[1]` style markers in your answer text. Tapping a card opens its link, or calls `onOpen` if you pass one. ```swift SourceStack([ .init(title: "Tram 28, stop by stop", site: "Tram Notes", detail: "Updated May", url: URL(string: "https://example.com/28")), .init(title: "How the funiculars climb", site: "Hill & Harbour", url: URL(string: "https://example.com/funiculars")) ]) ```
+
+## Notes
+
+- Closed, the stack is one pill: the first `stacked` sources (3 by default) as overlapping badges, each a colour disc with the site's initial ringed in the surface so they stay apart, then the count ("4 sources", inflected for one) and a chevron. Place it directly under the answer it supports. `alignment` puts the pill at the leading edge (the default, under an answer) or centred when the stack stands on its own; the list always spans the width.
+- Tapping the pill opens the list. The pill's badges fly out of the stack into their own cards on the morph spring with a little give, while the cards cascade in under them 40ms apart, rising 10pt as they fade in. Sources past `stacked` arrive with their cards. The pill drops to the count alone and its chevron turns over. Closing reverses it on the quicker dismiss spring: the cards fade together and the badges gather back into the pill.
+- Each card shows its badge, the title (up to two lines), the site and optional `detail` (a date, say), and its citation number, matching the `[1]` markers in your answer text. A tap opens `url` through `openURL`, or calls `onOpen` when you pass one, so you can show the page in-app.
+- Pass `isExpanded` to open the list from your own code, for example when someone taps a `[2]` marker in the answer. A change from outside runs the same flight as a tap.
+- The pill and every card press in with the house press: a size-aware sink that springs back with a little give. One selection haptic per open or close, one light impact per source opened.
+- VoiceOver reads the pill as "4 sources, collapsed" with a hint, and each card as one link: "Source 2: Tram 28, stop by stop, Tram Notes, Updated May". The badges and numbers are decoration and stay out of the tree.
+- Reduce Motion: the badges move without overshoot on a short spring, the cards fade in without rising, and presses shade instead of sinking. Haptics are unchanged.
+- Dynamic Type: titles and site lines scale freely; badges stop growing at xxxLarge so the stack stays a stack.
+- `Style` sets the surface, text, secondary and ink colours, the badge `blocks` (sky, butter, sage, lilac, sand and signal by default) and the card corner radius.
+
+## Usage
+
+```swift
+SourceStackExample()
+```
+
+## Parameters
+
+| Parameter | Description |
+| --- | --- |
+| `sources` | The sources, in citation order. Card numbers follow this order, starting at 1. |
+| `isExpanded` | Optional two-way open state, for opening the list from your own marker taps. Without it the pill keeps its own. |
+| `stacked` | How many badges the closed pill shows, 1...5. Defaults to 3. |
+| `alignment` | Where the pill sits across the width: `.leading` under an answer (the default), `.center` on its own. |
+| `style` | Surfaces, text and badge colours. Defaults to the SwiftPieces house palette, adapting to light and dark. |
+| `onOpen` | Called with the tapped source. Without it a card opens the source's `url` through `openURL`. |
