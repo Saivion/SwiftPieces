@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { Container } from "@/components/ui/container";
 import { NewBadge } from "@/components/ui/new-badge";
-import { Button, Arrow, TextLink } from "@/components/ui/button";
+import { Button, Arrow } from "@/components/ui/button";
+import { heroTitle } from "@/components/sections/feature-row";
+import { cn } from "@/lib/cn";
 import { Reveal } from "@/components/effects/reveal";
 import { JsonLd } from "@/components/seo/json-ld";
 import { AppGrid, type AppCard } from "@/components/apps/app-grid";
@@ -61,35 +63,38 @@ export default function AppsPage() {
           ],
         }}
       />
-      <section className="relative pt-16 pb-24 md:pt-24 md:pb-32">
+      <section className="relative pt-12 pb-24 md:pt-20 md:pb-32">
         <Container>
           <Reveal>
             <RemixShowcase
               intro={
                 <>
-                  {/* The App Library and its Playground are in beta, as the navbar's Apps entry says. Set tight
-                      on the title, as the Library page sets its count. */}
-                  <NewBadge className="mb-1">Beta</NewBadge>
-                  <h1 className="p-title text-balance">App Library</h1>
-                  <p className="p-body mt-5 max-w-xl text-pretty">
+                  {/* The App Library and its Playground are in beta, as the navbar's Apps entry says. */}
+                  <NewBadge>Beta</NewBadge>
+                  <h1 className={cn("mt-5", heroTitle)}>App Library</h1>
+                  <p className="mt-[22px] max-w-[560px] text-[16.5px] leading-[27px] text-pretty text-muted sm:text-[18px] sm:leading-[30px]">
                     Apps from the App Store as inspiration, and the screens each one does well, remixed from scratch in SwiftUI in the SwiftPieces style. Try them in the browser, see what makes them work, then make them your own. Remix {free.length} of them free, or all {apps.length} with Pro.
                   </p>
-                  <div className="mt-9 flex flex-wrap items-center gap-x-7 gap-y-4">
+                  <div className="mt-[34px] flex flex-wrap items-center gap-2.5">
                     <Button href="#apps">
                       Browse {apps.length} apps <Arrow />
                     </Button>
-                    <TextLink href="#screens-title">Browse by screen</TextLink>
+                    {/* The quiet second way in: words and an arrow that nudges, as on the landing. */}
+                    <a href="#screens-title" className="group inline-flex h-[46px] items-center gap-2 px-2 text-[15px] font-semibold text-foreground">
+                      Browse by screen
+                      <Arrow />
+                    </a>
                   </div>
                 </>
               }
             />
           </Reveal>
-          <div id="apps" className="mt-20 scroll-mt-24 sm:mt-24">
+          <div id="apps" className="mt-24 scroll-mt-24 sm:mt-[136px]">
             <AppGrid cards={cards} categories={appCategories} />
           </div>
           <ScreenDirectory />
-          <RemixNotice className="mt-16" />
-          <p className="mt-10 max-w-2xl text-[12px] leading-relaxed text-muted">
+          <RemixNotice className="mt-24 sm:mt-[136px]" />
+          <p className="mt-8 max-w-2xl text-[12.5px] leading-[20px] text-subtle">
             App names, icons and screenshots come from the App Store and belong to their developers, who aren&apos;t affiliated with or endorsing SwiftPieces. They&apos;re shown for reference only. Every remix is an original SwiftPieces design in our own colours, type and artwork, and what you build from it is yours to clear.{" "}
             <a href="/terms#third-party-apps" className="text-foreground underline underline-offset-2">Terms</a> ·{" "}
             <a href="/terms#removal" className="text-foreground underline underline-offset-2">Ask for an app to be removed</a>

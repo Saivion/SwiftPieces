@@ -24,10 +24,10 @@ export function PieceFacts({ name }: { name: string }) {
     <div className="not-prose mb-10 flex flex-col gap-3">
       {playground ? (
         <div className="flex flex-wrap items-center gap-2">
-          <a href={playground.href} className="btn-solid inline-flex h-9 items-center gap-2 rounded-[4px] px-4 text-[12.5px] font-semibold">
+          <a href={playground.href} className="btn-solid inline-flex h-[38px] items-center gap-2 rounded-full px-4 text-[13.5px] font-semibold">
             {playground.pro ? "See it in a Pro app" : "Try it in the Playground"} <span aria-hidden>→</span>
           </a>
-          <span className="text-[12px] text-muted">
+          <span className="text-[12.5px] text-muted">
             {playground.pro
               ? "On a real screen in one of the Pro apps: open it with Pro, take it apart, remix it, and copy the SwiftUI."
               : "Use it on a real screen, take it apart, remix it, and copy the SwiftUI. No account needed."}
@@ -35,7 +35,7 @@ export function PieceFacts({ name }: { name: string }) {
         </div>
       ) : null}
 
-      <div className="rounded-[var(--radius)] bg-surface p-5">
+      <div className="rounded-[22px] bg-surface p-5 sm:p-6">
         <div className="flex flex-wrap gap-1.5">
           <Badge tone="accent">Free · MIT + Commons Clause</Badge>
           <Badge tone="outline">iOS {item.minIOSVersion}+</Badge>
@@ -43,7 +43,7 @@ export function PieceFacts({ name }: { name: string }) {
           {item.metal ? <Badge tone="outline">Metal</Badge> : null}
           {item.tags.map((t) => <Badge key={t}>{t}</Badge>)}
         </div>
-        <dl className="mt-5 grid grid-cols-2 gap-x-6 gap-y-4 border-t border-[var(--line)] pt-5 text-[12.5px] md:grid-cols-4">
+        <dl className="mt-5 grid grid-cols-2 gap-x-6 gap-y-4 border-t border-[var(--line)] pt-5 text-[13px] md:grid-cols-4">
           {details.map((d) => (
             <div key={d.label} className="min-w-0">
               <dt className="text-subtle">{d.label}</dt>
@@ -58,13 +58,13 @@ export function PieceFacts({ name }: { name: string }) {
           </ul>
         ) : null}
         {item.pro && proScreens[item.pro] ? (
-          <a href={proScreenUrl(item.pro)} className="group mt-5 flex items-center justify-between gap-4 rounded-[var(--radius-sm)] bg-surface-2 p-4 transition-colors hover:bg-surface-3">
+          <a href={proScreenUrl(item.pro)} className="group mt-5 flex items-center justify-between gap-4 rounded-[16px] bg-surface-2 p-4 transition-colors hover:bg-surface-3">
             <span className="min-w-0">
-              <span className="t-meta block text-[10px] text-subtle">In a full screen · SwiftPieces Pro</span>
-              <span className="mt-1.5 block text-[13px] font-semibold text-foreground">{proScreens[item.pro].title}</span>
+              <span className="block text-[12px] font-medium text-subtle">In a full screen · SwiftPieces Pro</span>
+              <span className="mt-1.5 block text-[14px] font-medium text-foreground">{proScreens[item.pro].title}</span>
               <span className="mt-1 block text-[12px] leading-snug text-muted">{proScreens[item.pro].summary}</span>
             </span>
-            <span aria-hidden className="shrink-0 text-subtle transition-transform duration-300 group-hover:translate-x-0.5">→</span>
+            <span aria-hidden className="grid size-9 shrink-0 place-items-center rounded-full border border-[var(--line-strong)] text-foreground transition-transform duration-300 group-hover:translate-x-0.5">→</span>
           </a>
         ) : null}
       </div>

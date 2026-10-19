@@ -35,19 +35,19 @@ function SponsorsCard({ sponsors }: { sponsors: Sponsor[] }) {
   const gold = sponsors.filter((s) => s.tier === "gold");
   const silver = sponsors.filter((s) => s.tier === "silver");
   return (
-    <div className="docs-glass rounded-[var(--radius)] p-4">
+    <div className="docs-glass rounded-[22px] p-4">
       <div className="flex items-baseline justify-between gap-2">
-        <p className="text-[13px] font-semibold tracking-[-0.01em] text-foreground">Sponsors</p>
+        <p className="text-[13.5px] font-medium tracking-[-0.01em] text-foreground">Sponsors</p>
         <p className="text-[11px] text-subtle">Keep it free</p>
       </div>
       {gold.length ? <Group label={tierById("gold").name} sponsors={gold} large /> : null}
       {silver.length ? <Group label={tierById("silver").name} sponsors={silver} /> : null}
       {!gold.length && !silver.length ? (
-        <a href="/sponsors" className="mt-3 flex h-16 items-center justify-center rounded-[var(--radius)] border border-dashed border-[var(--line-strong)] text-[12px] text-subtle transition-colors hover:border-[var(--card-border-hover)] hover:text-foreground">
+        <a href="/sponsors" className="mt-3 flex h-16 items-center justify-center rounded-[16px] border border-[var(--line-strong)] text-[12.5px] text-subtle transition-colors hover:bg-surface-3 hover:text-foreground">
           Your logo here
         </a>
       ) : null}
-      <a href="/sponsors" className="group mt-3.5 flex items-center justify-between text-[12px] font-medium text-accent">
+      <a href="/sponsors" className="group mt-3.5 flex items-center justify-between text-[12.5px] font-semibold text-foreground">
         Become a sponsor
         <Arrow className="size-3.5" />
       </a>
@@ -58,7 +58,7 @@ function SponsorsCard({ sponsors }: { sponsors: Sponsor[] }) {
 function Group({ label, sponsors, large = false }: { label: string; sponsors: Sponsor[]; large?: boolean }) {
   return (
     <div className="mt-3">
-      <p className="mb-2 text-[10px] font-semibold tracking-[0.1em] text-subtle uppercase">{label}</p>
+      <p className="mb-2 text-[12px] font-medium text-subtle">{label}</p>
       <ul className={cn("grid gap-1.5", large ? "grid-cols-1" : "grid-cols-2")}>
         {sponsors.map((s) => (
           <li key={s.name}>
@@ -66,10 +66,10 @@ function Group({ label, sponsors, large = false }: { label: string; sponsors: Sp
               href={s.url}
               target="_blank"
               rel="noreferrer sponsored"
-              className={cn("flex items-center gap-2 rounded-[var(--radius)] bg-white/[.04] transition-colors hover:bg-white/[.08]", large ? "px-3 py-2.5 text-[13px] font-medium text-foreground" : "px-2 py-1.5 text-[11.5px] text-muted hover:text-foreground")}
+              className={cn("flex items-center gap-2 rounded-full bg-white/[.04] transition-colors hover:bg-white/[.08]", large ? "px-3 py-2.5 text-[13px] font-medium text-foreground" : "px-2 py-1.5 text-[11.5px] text-muted hover:text-foreground")}
             >
               {/* eslint-disable-next-line @next/next/no-img-element -- remote sponsor avatars */}
-              <img src={s.logo} alt="" loading="lazy" className={cn("shrink-0 rounded-[3px] object-cover", large ? "size-7" : "size-4")} />
+              <img src={s.logo} alt="" loading="lazy" className={cn("shrink-0 rounded-full object-cover", large ? "size-7" : "size-4")} />
               <span className="truncate">{s.name}</span>
             </a>
           </li>

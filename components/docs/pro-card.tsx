@@ -1,6 +1,6 @@
 import { LogoMark } from "@/components/ui/logo";
 import { Button, Arrow } from "@/components/ui/button";
-import { CornerDither } from "@/components/visual/corner-dither";
+import { ProBadge } from "@/components/ui/pro-badge";
 import { proCatalog } from "@/lib/pro-catalog";
 import { pro } from "@/lib/site";
 
@@ -16,23 +16,19 @@ export function ProCard({
   cta = { label: "Explore Pro", href: pro.home },
 }: { title?: string; body?: string; meta?: string; cta?: { label: string; href: string } }) {
   return (
-    <div className="docs-glass overflow-hidden rounded-[var(--radius)] p-1.5">
-      {/* Always dark, like every Pro visual, so the halftone's colours read in both themes. */}
-      <div className="theme-dark relative isolate flex h-28 items-center justify-center overflow-hidden rounded-[var(--radius)] bg-[#070708]">
-        <div aria-hidden className="absolute inset-0 -z-10 bg-[radial-gradient(circle,rgba(255,255,255,.07)_.8px,transparent_1px)] [background-size:12px_12px]" />
-        <CornerDither className="pointer-events-none absolute inset-0 -z-10 h-full w-full [mask-image:radial-gradient(130%_130%_at_100%_100%,black_30%,transparent_80%)]" />
-        {/* Fixed colours, not text-white / bg-white: light mode swaps those tokens to black, and this
-            header stays dark in both themes. */}
-        <span className="inline-flex items-center gap-2 text-[14px] font-semibold tracking-[-0.02em] text-[#fff]">
+    <div className="docs-glass overflow-hidden rounded-[22px] p-2">
+      {/* The mark and the Pro badge on a panel: Graphite keeps the head of the card flat and quiet. */}
+      <div className="flex h-24 items-center justify-center rounded-[16px] bg-surface-2">
+        <span className="inline-flex items-center gap-2 text-[14.5px] font-semibold tracking-[-0.02em] text-foreground">
           <LogoMark className="size-5" />
           SwiftPieces
-          <span className="rounded-[3px] bg-[rgb(255_255_255/0.12)] px-1.5 py-0.5 text-[10px] font-semibold tracking-wider text-[#fff] uppercase">Pro</span>
+          <ProBadge size="sm" />
         </span>
       </div>
-      <div className="px-2.5 pt-3.5 pb-2.5">
-        <p className="text-[13.5px] leading-snug font-semibold tracking-[-0.01em] text-foreground">{title}</p>
-        <p className="mt-1.5 text-[12px] leading-relaxed text-muted">{body}</p>
-        {meta ? <p className="mt-3 text-[11px] text-subtle">{meta}</p> : null}
+      <div className="px-2 pt-3.5 pb-1.5">
+        <p className="text-[14px] leading-snug font-medium tracking-[-0.01em] text-foreground">{title}</p>
+        <p className="mt-1.5 text-[12.5px] leading-relaxed text-muted">{body}</p>
+        {meta ? <p className="mt-3 text-[11.5px] text-subtle">{meta}</p> : null}
         <Button href={cta.href} size="sm" className="mt-3.5 w-full">{cta.label} <Arrow className="size-3.5" /></Button>
       </div>
     </div>

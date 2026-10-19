@@ -34,10 +34,18 @@ function shapeOf({ name, category }: RegistryIndexEntry) {
 type Spot = { left: number; top: number; width: number };
 
 /**
+ * A card's chrome around its preview, in px, so masonry can place cards without measuring them: the
+ * tray's padding on every side (`p-1.5`) and the caption row under the preview (`h-10`).
+ */
+const TRAY_PAD = 6;
+const CAPTION = 40;
+
+/**
  * Lays tiles out as masonry: each one drops into the shortest column. Heights come from the known
- * shapes, so nothing is measured but the container. The column count and gap are read from the
- * grid's own responsive classes, so the breakpoints live in one place. Until this runs (server
- * render, first paint) the same tiles sit in that plain grid, so there is never an empty frame.
+ * shapes plus the fixed card chrome, so nothing is measured but the container. The column count and
+ * gap are read from the grid's own responsive classes, so the breakpoints live in one place. Until
+ * this runs (server render, first paint) the same tiles sit in that plain grid, so there is never an
+ * empty frame.
  */
 function useMasonry(ratios: number[]) {
   const ref = useRef<HTMLDivElement>(null);
@@ -60,7 +68,7 @@ function useMasonry(ratios: number[]) {
       const spots = ratios.map((r) => {
         const c = heights.indexOf(Math.min(...heights));
         const spot = { left: c * (colW + gap), top: heights[c], width: colW };
-        heights[c] += colW / (cols === 1 ? SHAPES[0].ratio : r) + gap;
+        heights[c] += (colW - TRAY_PAD * 2) / (cols === 1 ? SHAPES[0].ratio : r) + TRAY_PAD * 2 + CAPTION + gap;
         return spot;
       });
       setLayout({ height: Math.max(0, Math.max(...heights) - gap), spots });
@@ -75,8 +83,9 @@ function useMasonry(ratios: number[]) {
 }
 
 /**
- * One tile: just the live preview. The name is the link's accessible label and shows on hover or
- * keyboard focus; on touch screens, which cannot hover, it is always shown. New stays pinned.
+ * One card (Graphite's library card): the live preview on a panel inset in a tray, the name under it
+ * with the New badge, or the category, on the right. The whole card is the link and lifts to the
+ * raised surface on hover.
  */
 export function ComponentCard({ item, style }: { item: RegistryIndexEntry; style?: CSSProperties }) {
   const shape = shapeOf(item);
@@ -84,8 +93,8 @@ export function ComponentCard({ item, style }: { item: RegistryIndexEntry; style
   const fill = item.category === "backgrounds" || shape === SHAPES[0];
   return (
     <RevealItem style={style}>
-      <Link href={piecePath(item)} aria-label={item.title} className="card card-hover group relative block overflow-hidden">
-        <PreviewFrame aspect={shape.aspect} tone={item.category === "backgrounds" ? "black" : "dark"} className="rounded-none">
+      <Link href={piecePath(item)} className="group relative block rounded-[26px] bg-surface p-1.5 transition-colors duration-200 hover:bg-surface-3">
+        <PreviewFrame aspect={shape.aspect} tone={item.category === "backgrounds" ? "black" : "dark"}>
           {fill ? (
             <PiecePreview name={item.name} />
           ) : (
@@ -95,18 +104,10 @@ export function ComponentCard({ item, style }: { item: RegistryIndexEntry; style
             </div>
           )}
         </PreviewFrame>
-        {item.isNew ? (
-          <NewBadge solid className="absolute top-3 left-3 z-10" />
-        ) : null}
-        <span
-          aria-hidden
-          className={cn(
-            "pointer-events-none absolute bottom-3 left-3 z-10 max-w-[calc(100%-24px)] truncate rounded-[5px] bg-black/75 px-2 py-1 text-[12px] font-medium text-white backdrop-blur-md",
-            "translate-y-1 opacity-0 transition duration-300 ease-[var(--ease-out)] group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100",
-            "[@media(hover:none)]:translate-y-0 [@media(hover:none)]:opacity-100",
-          )}
-        >
-          {item.title}
+        {/* A fixed-height caption (CAPTION above), so masonry knows every card's height without measuring. */}
+        <span className="flex h-10 items-center justify-between gap-3 px-2.5 pt-1">
+          <span className="truncate text-[14px] font-medium text-foreground">{item.title}</span>
+          {item.isNew ? <NewBadge /> : <span className="shrink-0 text-[12.5px] text-subtle">{categoryTitle(item.category)}</span>}
         </span>
       </Link>
     </RevealItem>
@@ -130,16 +131,17 @@ function CardGrid({ items, narrow }: { items: RegistryIndexEntry[]; narrow?: boo
 
 function GroupHeading({ label, count, badge, className }: { label: string; count: number; badge?: boolean; className?: string }) {
   return (
-    <div className={cn("mb-6 flex items-center justify-between gap-4 border-b border-[var(--line)] pb-4", className)}>
-      <h2 className="flex items-center gap-2.5 text-[14px] font-medium text-foreground">{label}{badge ? <NewBadge /> : null}</h2>
-      <span className="text-[11.5px] tabular-nums text-subtle">{count}</span>
+    <div className={cn("mb-5 flex items-center justify-between gap-4 border-b border-[var(--line)] pb-4", className)}>
+      <h2 className="flex items-center gap-2.5 text-[16px] font-medium tracking-[-0.01em] text-foreground">{label}{badge ? <NewBadge /> : null}</h2>
+      <span className="text-[13px] font-medium tabular-nums text-subtle">{count}</span>
     </div>
   );
 }
 
 /**
- * The shared pill both filter groups sit in. `scroll` lets the category group shrink and scroll;
- * the edge fade appears only while there is more to scroll to, so a pill that fits stays crisp.
+ * The shared pill both filter groups sit in: Graphite's segmented control, a tray-coloured pill with a
+ * hairline. `scroll` lets the category group shrink and scroll; the edge fade appears only while there
+ * is more to scroll to, so a pill that fits stays crisp.
  */
 export function FilterPill({ children, scroll }: { children: ReactNode; scroll?: boolean }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -158,7 +160,7 @@ export function FilterPill({ children, scroll }: { children: ReactNode; scroll?:
     <div
       ref={ref}
       className={cn(
-        "flex items-center gap-0.5 rounded-[10px] bg-white/[0.04] p-1",
+        "flex items-center gap-0.5 rounded-full border border-[var(--line)] bg-surface p-1",
         scroll ? "min-w-0 overflow-x-auto [scrollbar-width:none]" : "shrink-0",
         more && "[mask-image:linear-gradient(to_right,black_calc(100%-40px),transparent)]",
       )}
@@ -169,9 +171,9 @@ export function FilterPill({ children, scroll }: { children: ReactNode; scroll?:
 }
 
 /**
- * One filter. Active All is the red accent, active New is the New badge's pink with its dark ink (the
- * same in light and dark, so the label and count always read), an active category is a soft lift.
- * Inactive filters all share the muted ink.
+ * One filter. The active one lifts onto the panel colour in ink, like the navbar's pill items;
+ * inactive filters share the muted ink. Graphite keeps red off controls, so All is no longer red;
+ * an active New keeps the New badge's pink on its label (`tone="new"`), a small mark of what it is.
  */
 export function FilterButton({ label, count, active, tone, onClick }: { label: string; count: number; active: boolean; tone?: "all" | "new"; onClick: () => void }) {
   return (
@@ -180,14 +182,14 @@ export function FilterButton({ label, count, active, tone, onClick }: { label: s
       onClick={onClick}
       aria-pressed={active}
       className={cn(
-        "flex h-8 shrink-0 items-center gap-1.5 rounded-[7px] px-3 text-[13px] font-medium whitespace-nowrap transition-colors",
+        "flex h-8 shrink-0 items-center gap-1.5 rounded-full px-3.5 text-[13px] font-medium whitespace-nowrap transition-colors",
         active
-          ? tone === "all" ? "bg-accent text-black" : tone === "new" ? "bg-[#ff8fb8] text-[#2a0714]" : "bg-white/[0.09] text-foreground"
-          : "text-muted hover:bg-white/[0.04] hover:text-foreground",
+          ? cn("bg-surface-2 shadow-[0_1px_2px_rgb(0_0_0/0.18)]", tone === "new" ? "text-[var(--new)]" : "text-foreground")
+          : "text-muted hover:text-foreground",
       )}
     >
       {label}
-      <span className={cn("text-[11px] tabular-nums", active ? (tone === "new" ? "text-[#2a0714]/60" : tone ? "text-black/55" : "text-muted") : "text-subtle")}>{count}</span>
+      <span className={cn("text-[11.5px] tabular-nums", active ? "text-muted" : "text-subtle")}>{count}</span>
     </button>
   );
 }
@@ -218,7 +220,7 @@ export function ShowcaseGrid({ items, filters = true, limit, narrow }: { items: 
         // Two matching pills on one row: the broad views (All, New) on the left, the categories on the
         // right. Same height, padding, radius and states on both sides, so the row reads as one
         // balanced bar. The category pill scrolls inside itself (faded at its edge) when space is short.
-        <div className="mb-12 flex items-center justify-between gap-3">
+        <div className="mb-10 flex items-center justify-between gap-3">
           <FilterPill>
             {cats.filter((c) => c === "all" || c === "new").map((c) => (
               <FilterButton key={c} active={cat === c} tone={c === "new" ? "new" : "all"} label={c === "new" ? "New" : "All"} count={count(c)} onClick={() => setCat(c)} />

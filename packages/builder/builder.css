@@ -1336,3 +1336,49 @@ html.light .spp-shuffle-go:hover .spp-shuffle-wash, html.light .spp-shuffle-go:f
   .spp-stage-body[data-badge] .spp-canvas-switch { top: 56px; left: 50%; transform: translateX(-50%); }
 }
 @media (prefers-reduced-motion: reduce) { .spp-stage-badge { animation: none; } }
+
+/* ---------------------------------------------------------------- Graphite (2026-10-19)
+   The sites' Graphite system on the Playground's chrome. Last in the file so each rule wins over the
+   one it restyles at equal strength: soft 12px corners on tiles, fields and cards (--spp-r), pills for
+   every control, trays for the docked panels, the ink primary, sentence-case labels, a flat stage and
+   no dashed frames. The phone and the app screens in it (.spb-*) keep their own values. */
+.spp, .spp-dialog { --spp-r: 12px; }
+.spp-btn, .spp-icon-btn, .spp-exit, .spp-seg, .spp-seg > button, .spp-chip, .spp-select, .spp-input:not(.spp-textarea), .spp-search,
+.spp-kinds, .spp-kinds > *, .spp-remix-tag, .spp-save-group, .spp-subtabs, .spp-subtabs > *, .spp-lock-chip, .spp-rail-arrow, .spp-rail-add,
+.spp-part-filter > button, .spp-drill-back, .spp-mobilebar button, .spp-try-k, .spp-tree-how, .spp-compose-here, .spp-compose-badge,
+.spp-sp-tag, .spp-native-tag, .spp-locked-cta { border-radius: 9999px; }
+.spp :focus-visible { outline-color: color-mix(in srgb, var(--foreground) 55%, transparent); }
+/* The primary action is the sites' ink pill: red is never a button colour. */
+.spp-btn-primary, .spp-btn-primary:hover:not(:disabled) { background: var(--foreground); border-color: transparent; color: var(--background) !important; box-shadow: none; filter: none; transform: none; }
+@media (hover: hover) { .spp-btn-primary:hover:not(:disabled) { opacity: .88; } }
+.spp-seg { padding: 3px; }
+.spp-seg > button[aria-checked="true"], .spp-seg > button[aria-selected="true"] { background: var(--surface-3, var(--background)); box-shadow: 0 1px 2px rgb(0 0 0 / .2); }
+/* Labels in sentence case at 12px, like the sites' labels. */
+.spp-label, .spp-eyebrow, .spp-step-how, .spp-piecemenu-label, .spp-ref-eyebrow, .spp-shuffle-eyebrow, .spp-shuffle-label { font-size: 12px; font-weight: 500; letter-spacing: 0; text-transform: none; }
+.spp-label-note { letter-spacing: 0; }
+/* The stage is the flat page ground; the phone alone carries the texture. */
+.spp-stage { background: var(--background); }
+/* Docked panels are trays with soft corners (their fill is set by the host, app/globals.css). */
+.spp[data-layout="docked"] :is(.spp-dockbar, .spp-left, .spp-rail) { border-radius: 22px; }
+.spp[data-layout="docked"] .spp-notice { border-radius: 9999px; }
+.spp-step[data-state="current"] .spp-step-n { background: var(--foreground); color: var(--background); }
+.spp-callout { background: var(--spp-fill); }
+/* The Pro tag: the word in a pill with the gradient ring (as the sites' Pro badge). */
+.spp-pro-tag { height: 20px; padding: 0 8px; border-radius: 9999px; font-size: 11px; }
+/* Dialogs: a panel with soft corners; Build and Save options are tiles on a fill, no dashed frames. */
+.spp-dialog { border-radius: 22px; }
+.spp-build-dialog { border-radius: 30px; }
+.spp-build-head h2 { font-size: 24px; font-weight: 400; letter-spacing: -.03em; }
+.spp-build-grid { gap: 8px; }
+.spp-build-grid > li { margin: 0; }
+.spp-build-opt { border-radius: 16px; background: var(--spp-fill); }
+.spp-build-opt::before { content: none; }
+.spp-tick { display: none; }
+.spp-build-opt:hover:not(:disabled) { background: var(--spp-fill-2); }
+.spp-build-icon { border-radius: 10px; }
+.spp-build-primary .spp-build-icon { background: var(--foreground); color: var(--background); box-shadow: none; }
+/* Shuffle: a pill on the fill, no dashes or corner crosses. */
+.spp-frame { border-radius: 9999px; background: var(--spp-fill); }
+.spp-frame::before { content: none; }
+.spp-frame-tick { display: none; }
+.spp-frame:hover, .spp-frame:focus-visible { background: var(--spp-fill-2); color: var(--foreground); }

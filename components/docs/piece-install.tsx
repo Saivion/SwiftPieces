@@ -35,7 +35,7 @@ export function PieceInstall({ item }: { item: Pick<RegistryIndexEntry, "name" |
 
       <p className="mt-5 text-[12.5px] text-muted">{block ? "Or copy the source above into your app, with the source of each piece it is built from." : "Or copy the source above into your app."}</p>
       <WebBridgeNote className="mt-6" />
-      <p className="mt-6 flex items-center gap-2 rounded-[var(--radius)] bg-surface px-4 py-3 text-[12.5px] text-muted">
+      <p className="mt-6 flex items-center gap-2 rounded-full bg-surface px-4 py-3 text-[13px] text-muted">
         <span className="size-1.5 shrink-0 rounded-full bg-accent" />
         Building a whole app?{" "}
         <a href={pro.library} className="u-link font-semibold text-foreground">See SwiftPieces Pro →</a>

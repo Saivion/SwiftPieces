@@ -1,5 +1,5 @@
 "use client";
-// The studio's settings: one dark column beside the canvas. The style's name and Shuffle (in a mood,
+// The studio's settings: one column beside the canvas, a panel in the site's own tokens (Graphite). The style's name and Shuffle (in a mood,
 // keeping what's locked) at the top, then every setting as one compact row, in the order that
 // changes a style most: its look, its character (spacing and weight), motion, colour, type, shape
 // and feel. The choices and their words are the Playground's Style tab's (core/style-options.ts).
@@ -14,6 +14,8 @@ import { CharacterPad, Chip, ColorStrip, FontRow, GroupLabel, SelectRow, type Sw
 import { StudioActions, type StyleApp } from "./studio-actions";
 import { spotOf, type Spot } from "./follows";
 import type { Studio } from "./studio-state";
+import { panelSurface } from "./studio-frame";
+import { cn } from "@/lib/cn";
 
 /** A choice's word, as its menu shows it. */
 const optionLabel = (key: StyleOptionKey, value: string) => STYLE_OPTIONS[key].find((o) => o[0] === value)?.[1] ?? value;
@@ -43,7 +45,7 @@ export function StudioPanel({ studio, apps, preferred, onNotice, onSpot }: { stu
     keys.map((key) => <SelectRow key={key} setting={key} label={labelOf(key)} value={styleValue(t, key)} options={STYLE_OPTIONS[key]} onChange={(v) => edit(stylePatch(key, v))} />);
 
   return (
-    <div className="studio-dark flex min-h-0 flex-col rounded-[var(--radius-lg)] bg-[var(--studio-panel)] shadow-[0_24px_60px_-30px_rgb(0_0_0/.8)] lg:h-full lg:overflow-hidden">
+    <div className={cn("flex min-h-0 flex-col lg:h-full lg:overflow-hidden", panelSurface)}>
       <Head studio={studio} />
       <div
         className="min-h-0 flex-1 px-4 pb-4 lg:overflow-y-auto lg:overscroll-contain lg:[scrollbar-width:thin]"
@@ -55,10 +57,10 @@ export function StudioPanel({ studio, apps, preferred, onNotice, onSpot }: { stu
         <div className="flex flex-col gap-1.5">
           <SelectRow setting="look" label="Look" value={t.look} options={looks.map((l) => [l.id, l.name] as const)} onChange={(id) => edit({ look: id, ...(t.accent >= lookById(id).light.tiles.length ? { accent: -1 } : {}) })} />
         </div>
-        <GroupLabel aside={<span className="text-[10.5px] text-subtle">{optionLabel("density", t.density)} · {optionLabel("weight", t.weight)}</span>}>Character</GroupLabel>
+        <GroupLabel aside={<span className="text-[12px] text-subtle">{optionLabel("density", t.density)} · {optionLabel("weight", t.weight)}</span>}>Character</GroupLabel>
         <CharacterPad setting="weight" weight={t.weight} density={t.density} onChange={(p) => edit(p)} />
         <div className="mt-1.5 flex flex-col gap-1.5">{rows("motion")}</div>
-        <GroupLabel aside={<span className="font-mono text-[10.5px] text-subtle">{(t.accentHex ?? accents.own).toUpperCase()}</span>}>Color</GroupLabel>
+        <GroupLabel aside={<span className="font-mono text-[11.5px] text-subtle">{(t.accentHex ?? accents.own).toUpperCase()}</span>}>Color</GroupLabel>
         <ColorStrip setting="accent" swatches={swatches} custom={accents.custom} onCustom={(hex) => edit({ accentHex: hex })} />
         <div className="mt-1.5 flex flex-col gap-1.5">
           {rows("neutrals", "ground")}
@@ -89,9 +91,9 @@ export function StudioPanel({ studio, apps, preferred, onNotice, onSpot }: { stu
 function Head({ studio }: { studio: Studio }) {
   const t = studio.theme;
   return (
-    <div className="flex-none px-4 pt-4 pb-4">
+    <div className="flex-none px-4 pt-[18px] pb-4">
       <div className="flex items-center gap-1">
-        <h1 className="flex-1 text-[15px] font-semibold tracking-[-0.01em]">Styles</h1>
+        <h1 className="flex-1 pl-1 text-[24px] leading-none font-normal tracking-[-0.03em]">Styles</h1>
         <IconButton label="Previous style" onClick={studio.back} disabled={!studio.canBack}>
           <UI name="left" size={14} />
         </IconButton>
@@ -99,17 +101,17 @@ function Head({ studio }: { studio: Studio }) {
           <UI name="right" size={14} />
         </IconButton>
       </div>
-      <p className="mt-0.5 truncate text-[12px] text-muted">
+      <p className="mt-1.5 truncate pl-1 text-[13px] text-muted">
         <span key={t.name ?? t.look} className="text-foreground">{t.name ?? lookById(t.look).name}</span>
         {studio.mood ? ` · ${studio.mood.name} mood` : t.name ? "" : " · your style"}
       </p>
       <div className="mt-3 flex gap-1.5">
-        <button type="button" onClick={() => studio.shuffle()} title="A new style (S)" className="btn-solid ai-host flex h-9 flex-1 items-center justify-center gap-2 rounded-[var(--radius)] text-[13px] font-semibold">
+        <button type="button" onClick={() => studio.shuffle()} title="A new style (S)" className="btn-solid ai-host flex h-9 flex-1 items-center justify-center gap-2 rounded-full text-[13.5px] font-semibold">
           <UI name="shuffle" size={14} />
           Shuffle
-          <kbd className="rounded-[var(--radius-sm)] bg-black/15 px-1.5 py-px text-[10px] font-semibold">S</kbd>
+          <kbd className="rounded-full bg-background/20 px-1.5 py-px text-[10.5px] font-semibold">S</kbd>
         </button>
-        <div className="w-[118px] flex-none">
+        <div className="w-[122px] flex-none">
           <SelectRow label="Mood" value={studio.pick} options={[["any", "Any"], ...moods.map((m) => [m.id, m.name] as const)]} onChange={studio.setPick} />
         </div>
       </div>
@@ -133,7 +135,7 @@ export function IconButton({ label, onClick, disabled, type = "button", children
       disabled={disabled}
       aria-label={label}
       title={label}
-      className="ai-host grid size-8 flex-none place-items-center rounded-[var(--radius)] text-muted transition-colors hover:bg-white/[.07] hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent disabled:pointer-events-none disabled:opacity-30"
+      className="ai-host grid size-8 flex-none place-items-center rounded-full text-muted transition-colors hover:bg-surface hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent disabled:pointer-events-none disabled:opacity-30"
     >
       {children}
     </button>

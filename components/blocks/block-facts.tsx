@@ -14,7 +14,7 @@ function Pieces({ names }: { names: string[] }) {
       {names.map((name) => {
         const piece = getRegistryItem(name);
         return piece ? (
-          <Link key={name} href={piecePath(piece)} className="inline-flex h-6 items-center rounded-[5px] bg-surface-2 px-2 font-mono text-[11.5px] text-foreground transition-colors hover:bg-surface-3">
+          <Link key={name} href={piecePath(piece)} className="inline-flex h-[26px] items-center rounded-full bg-surface-2 px-2.5 font-mono text-[11.5px] text-foreground transition-colors hover:bg-surface-3">
             {name}
           </Link>
         ) : (
@@ -77,15 +77,15 @@ export function ProBlockFacts({ id }: { id: string }) {
   return (
     <div className="not-prose mb-10 flex flex-col gap-3">
       <div className="flex flex-wrap items-center gap-2">
-        <a href={proBlockUrl(block.id)} className="btn-solid inline-flex h-9 items-center gap-2 rounded-[4px] px-4 text-[12.5px] font-semibold">
+        <a href={proBlockUrl(block.id)} className="btn-solid inline-flex h-[38px] items-center gap-2 rounded-full px-4 text-[13.5px] font-semibold">
           Open in the Pro library <span aria-hidden>↗</span>
         </a>
-        <a href={pro.pricing} className="inline-flex h-9 items-center gap-2 rounded-[4px] bg-surface-2 px-4 text-[12.5px] font-semibold text-foreground transition-colors hover:bg-surface-3">
+        <a href={pro.pricing} className="inline-flex h-[38px] items-center gap-2 rounded-full border border-[var(--line-strong)] bg-surface-2 px-4 text-[13.5px] font-semibold text-foreground transition-colors hover:bg-surface-3">
           View pricing <span aria-hidden>↗</span>
         </a>
-        <span className="text-[12px] text-muted">Live preview in every Pro style, and its source with SwiftPieces Pro.</span>
+        <span className="text-[12.5px] text-muted">Live preview in every Pro style, and its source with SwiftPieces Pro.</span>
       </div>
-      <div className="rounded-[var(--radius)] bg-surface p-5">
+      <div className="rounded-[22px] bg-surface p-5 sm:p-6">
         <div className="flex flex-wrap items-center gap-1.5">
           <ProBadge size="sm" />
           <Badge tone="outline">Block · {blockCategories[block.category].title}</Badge>

@@ -64,14 +64,14 @@ export function PieceCarousel() {
       {/* The stage: the piece on show runs on an iPhone rising out of the artboard, in a skeleton of the
           screen it belongs on, and a terminal floats beside it typing the command that installs it. */}
       <Stage
-        className="h-[460px] sm:h-[520px]"
+        className="h-[440px] sm:h-[470px]"
         overlay={
-          <Parallax depth={18} className="absolute bottom-12 -left-6 z-10 hidden w-[360px] md:block">
+          <Parallax depth={18} className="absolute bottom-6 left-6 z-10 hidden w-[min(350px,calc(100%-48px))] md:block">
             <Terminal key={i} slide={SLIDES[i]} reduced={reduced} />
           </Parallax>
         }
       >
-        <div className="absolute inset-x-0 top-10 flex justify-center sm:top-12 md:justify-end md:pr-[12%]">
+        <div className="absolute inset-x-0 top-10 flex justify-center sm:top-11 md:justify-end md:pr-[8%]">
           <Parallax depth={-7} className="w-[264px] sm:w-[284px]">
             <IPhone>
               {[leaving, i].map((k) =>
@@ -94,8 +94,8 @@ export function PieceCarousel() {
           the piece's beat, so the tab itself is the progress bar. On phones the names do not fit, so it
           is a stories-style row of hairline segments: pieces already shown stay lit, the current one
           fills, the rest wait dim. Names stay for screen readers, and the install line names the piece. */}
-      <div className="mt-4 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        <div role="tablist" aria-label="Pieces" className="flex w-full gap-1.5 sm:w-max sm:min-w-full sm:gap-1 sm:rounded-[6px] sm:border sm:border-white/[0.08] sm:bg-white/[0.02] sm:p-1">
+      <div className="mt-2 overflow-x-auto px-1 [scrollbar-width:none] sm:px-0 [&::-webkit-scrollbar]:hidden">
+        <div role="tablist" aria-label="Pieces" className="flex w-full gap-1.5 sm:w-max sm:min-w-full sm:gap-1 sm:rounded-full sm:bg-surface-2 sm:p-1">
           {SLIDES.map((s, k) => {
             const active = k === i;
             const fill = reduced ? undefined : { animation: `piece-progress ${s.ms}ms linear both` };
@@ -107,8 +107,8 @@ export function PieceCarousel() {
                 aria-selected={active}
                 onClick={() => show(k)}
                 className={cn(
-                  "group/tab relative isolate flex h-6 flex-1 items-center justify-center text-[12px] font-medium whitespace-nowrap transition-colors duration-300 sm:h-9 sm:overflow-hidden sm:rounded-[4px] sm:px-3.5",
-                  active ? "text-foreground sm:bg-white/[0.06]" : "text-muted hover:text-foreground sm:hover:bg-white/[0.03]",
+                  "group/tab relative isolate flex h-6 flex-1 items-center justify-center text-[12.5px] font-medium whitespace-nowrap transition-colors duration-300 sm:h-[34px] sm:overflow-hidden sm:rounded-full sm:px-3.5",
+                  active ? "text-foreground sm:bg-white/[0.06]" : "text-muted hover:text-foreground sm:hover:bg-white/[0.04]",
                 )}
               >
                 {/* Phones: a 3px segment centred in a 24px tap target. */}
@@ -119,14 +119,14 @@ export function PieceCarousel() {
                 {active ? (
                   <span key={`${s.name}-${i}`} aria-hidden className="absolute inset-0 -z-10 hidden origin-left bg-white/[0.1] rtl:origin-right sm:block" style={fill} />
                 ) : null}
-                <span className="sr-only sm:not-sr-only">{s.title}</span>
+                <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">{s.title}</span>
               </button>
             );
           })}
         </div>
       </div>
 
-      <p className="mt-5 truncate font-sans text-[12.5px] text-muted md:hidden">
+      <p className="mt-4 truncate px-3.5 font-sans text-[12.5px] text-muted md:hidden">
         <span className="text-muted">$</span> npx swiftpieces add <span className="text-foreground">{SLIDES[i].name}</span>
       </p>
     </div>
@@ -149,7 +149,7 @@ function Terminal({ slide, reduced }: { slide: (typeof SLIDES)[number]; reduced:
 
   const line = (delay: number) => (reduced ? undefined : { animationDelay: `${delay}ms` });
   return (
-    <div className="stage-dark overflow-hidden rounded-[12px] border border-white/[0.1] bg-[#0c0c0d]/95 text-white shadow-[0_40px_80px_-28px_rgb(0_0_0/0.85),0_12px_28px_-14px_rgb(0_0_0/0.5)] backdrop-blur-md" style={{ rotate: "-2deg" }}>
+    <div className="stage-dark overflow-hidden rounded-[14px] border border-white/[0.08] bg-[#0b0b0b]/95 text-white shadow-[0_40px_80px_-36px_rgb(0_0_0/0.75),0_10px_24px_-14px_rgb(0_0_0/0.5)] backdrop-blur-md">
       <div className="flex items-center gap-1.5 border-b border-white/[0.07] px-3.5 py-2.5">
         <span className="size-[10px] rounded-full bg-[#ff5f57]" />
         <span className="size-[10px] rounded-full bg-[#febc2e]" />

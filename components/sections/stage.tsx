@@ -1,21 +1,18 @@
 "use client";
 import { useRef, type CSSProperties, type PointerEvent, type ReactNode } from "react";
-import { CornerTicks } from "@/components/sections/feature-row";
 import { cn } from "@/lib/cn";
 
 /**
- * The landing's feature visuals stand on this: the dashed artboard, with the page's dot grid showing
- * through. `children` are clipped by the frame (a phone rising out of its bottom edge); `overlay` sits
- * above it unclipped, so floating cards can overhang the frame's edges.
+ * The landing's feature visuals stand on this: a Graphite panel (the inner surface of a tray; the
+ * tray itself comes from FeatureRow / FeatureCard). `children` are clipped by the panel (a phone
+ * rising out of its bottom edge); `overlay` sits above them, also inside the panel, for floating cards.
  *
  * The pointer tilts the scene a little: the stage writes --px and --py (-1 to 1) and `Parallax` layers
  * read them at their own depth. Touch, and Reduce Motion, keep everything still.
  */
 export function Stage({ children, overlay, className }: { children?: ReactNode; overlay?: ReactNode; className?: string }) {
   return (
-    <Tilt className={cn("frame-dashed relative", className)}>
-      <CornerTicks />
-      {/* The clip sits inside the frame so the corner ticks, which cross its edge, are not cut. */}
+    <Tilt className={cn("panel", className)}>
       <div className="absolute inset-0 overflow-hidden">{children}</div>
       {overlay}
     </Tilt>

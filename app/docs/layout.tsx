@@ -33,7 +33,7 @@ function heading(label: string, count?: number | ReactNode, tier?: Tier): PageTr
   return {
     type: "separator",
     name: (
-      <span key={`sep-${label}`} data-sidebar-heading data-group-tier={tier} className="inline-flex items-baseline gap-1.5 text-[10.5px] font-semibold tracking-[0.1em] text-subtle uppercase">
+      <span key={`sep-${label}`} data-sidebar-heading data-group-tier={tier} className="inline-flex items-baseline gap-1.5 text-[12px] font-medium text-subtle">
         {label}
         {count !== undefined ? <span className="text-[10.5px] font-normal tracking-normal tabular-nums text-subtle/70">{count}</span> : null}
       </span>

@@ -28,7 +28,7 @@ function DrawerClose() {
   }, [showing, setOpen]);
   if (mode !== "drawer") return null;
   return (
-    <button type="button" onClick={() => setOpen(false)} aria-label="Close sidebar" className="-mr-2 flex size-8 shrink-0 items-center justify-center rounded-[var(--radius)] text-muted transition-colors hover:bg-[var(--docs-fill)] hover:text-foreground">
+    <button type="button" onClick={() => setOpen(false)} aria-label="Close sidebar" className="-mr-2 flex size-8 shrink-0 items-center justify-center rounded-full text-muted transition-colors hover:bg-[var(--docs-fill)] hover:text-foreground">
       <svg aria-hidden viewBox="0 0 16 16" className="size-4" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M4 4l8 8M12 4l-8 8" /></svg>
     </button>
   );
@@ -88,7 +88,7 @@ function TierPills() {
     if (aside) aside.dataset.tierMode = tier;
   }, [tier]);
   return (
-    <div ref={ref} role="radiogroup" aria-label="Show" className="mt-2 grid grid-cols-3 gap-0.5 rounded-[var(--radius)] bg-[var(--docs-fill)] p-0.5">
+    <div ref={ref} role="radiogroup" aria-label="Show" className="mt-2 grid grid-cols-3 gap-0.5 rounded-full bg-[var(--docs-fill)] p-[3px]">
       {(["all", "free", "pro"] as const).map((t) => (
         <button
           key={t}
@@ -97,8 +97,8 @@ function TierPills() {
           aria-checked={tier === t}
           onClick={() => setTier(t)}
           className={cn(
-            "h-7 rounded-[calc(var(--radius)-2px)] text-[12px] font-medium capitalize transition-colors max-md:h-9 max-md:text-[13px]",
-            tier === t ? "bg-background text-foreground shadow-[0_1px_2px_rgb(0_0_0/0.12)]" : "text-muted hover:text-foreground",
+            "h-7 rounded-full text-[12.5px] font-medium capitalize transition-colors max-md:h-9 max-md:text-[13px]",
+            tier === t ? "bg-surface-3 text-foreground shadow-[0_1px_2px_rgb(0_0_0/0.15)]" : "text-muted hover:text-foreground",
           )}
         >
           {t}
@@ -135,10 +135,10 @@ export function SidebarFilter({ title = "Docs", meta }: { title?: string; meta?:
       <div className="px-3 pt-3">
     {/* max-md: is the phone drawer. The field takes 16px type there, under which iOS zooms the page
         in on focus, and the shortcut chip names what it does, since a phone has no ⌘K. */}
-    <label className="flex h-8 items-center gap-2 rounded-[var(--radius)] bg-[var(--docs-fill)] pl-2.5 pr-1.5 text-[12.5px] text-muted ring-1 ring-transparent transition-shadow focus-within:ring-[var(--line-strong)] max-md:h-10">
+    <label className="flex h-9 items-center gap-2 rounded-full bg-[var(--docs-fill)] pl-3 pr-1.5 text-[13px] text-muted ring-1 ring-transparent transition-shadow focus-within:ring-[var(--line-strong)] max-md:h-10">
       <svg aria-hidden viewBox="0 0 16 16" className="ai ai-search size-3.5 shrink-0 overflow-visible" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="7" cy="7" r="4.5" /><path d="M10.5 10.5L14 14" strokeLinecap="round" /></svg>
       <input ref={ref} value={q} onChange={(e) => setQ(e.target.value)} placeholder="Filter…" className="min-w-0 flex-1 bg-transparent text-foreground placeholder:text-subtle focus:outline-none max-md:text-[16px]" aria-label="Filter sidebar" />
-      <button type="button" onClick={() => setOpenSearch(true)} title="Search docs" className="shrink-0 rounded-[3px] bg-white/[.06] px-1.5 py-0.5 font-mono text-[10px] text-subtle transition-colors hover:bg-white/[.12] hover:text-foreground max-md:px-2 max-md:py-1 max-md:font-sans max-md:text-[11.5px]">
+      <button type="button" onClick={() => setOpenSearch(true)} title="Search docs" className="shrink-0 rounded-full bg-white/[.06] px-2 py-0.5 font-sans text-[10.5px] text-subtle transition-colors hover:bg-white/[.12] hover:text-foreground max-md:px-2 max-md:py-1 max-md:font-sans max-md:text-[11.5px]">
         <span className="max-md:hidden">⌘K</span>
         <span className="md:hidden">Search</span>
       </button>
@@ -174,7 +174,7 @@ function containsUrl(node: PageTree.Folder, url: string): boolean {
 }
 
 // Fumadocs does not export its styled folder parts, so these mirror its item variants and depth offsets.
-const row = "relative flex w-full flex-row items-center gap-2 rounded-[6px] p-2 text-start text-sm text-fd-muted-foreground transition-colors hover:bg-fd-accent/50 hover:text-fd-accent-foreground/80 data-[active=true]:bg-fd-primary/10 data-[active=true]:text-fd-primary [&_svg]:size-4 [&_svg]:shrink-0";
+const row = "relative flex w-full flex-row items-center gap-2 rounded-full px-2.5 py-2 text-start text-sm text-fd-muted-foreground transition-colors hover:bg-fd-accent/50 hover:text-fd-accent-foreground/80 data-[active=true]:bg-fd-primary/10 data-[active=true]:text-fd-primary [&_svg]:size-4 [&_svg]:shrink-0";
 const offset = (depth: number) => `calc(${2 + 3 * depth} * var(--spacing))`;
 
 function Trigger({ children }: { children: ReactNode }) {

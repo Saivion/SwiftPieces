@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { decodeStyle, encodeStyle, resolveTheme, styleSwift, themeFromLook, type Theme } from "@swiftpieces/builder";
 import { Container } from "@/components/ui/container";
 import { Reveal } from "@/components/effects/reveal";
-import { CornerTicks, sectionBody, sectionTitle } from "@/components/sections/feature-row";
+import { sectionBody, sectionTitle } from "@/components/sections/feature-row";
 import { cn } from "@/lib/cn";
 import type { StyleApp } from "./studio-actions";
 import { STYLE_EVENT } from "./studio-state";
@@ -42,60 +42,55 @@ export function StyleTravel({ apps, className }: { apps: StyleApp[]; className?:
           <p className={cn("mt-4", sectionBody)}>One code carries it into the Playground, and out of it into your own app. These follow the style you&apos;re making above.</p>
         </Reveal>
 
-        {/* One dashed frame, as on the landing page, with the three cards as its cells and crosses
-            on its corners and where the seams meet its edges. */}
-        <Reveal className="relative mt-10">
-          <CornerTicks />
-          <SeamTicks count={3} />
-          <div className="frame-dashed relative overflow-hidden rounded-[16px]">
-            <ul className="frame-row grid md:grid-cols-3">
-              <Cell
-                title="Keep the code"
-                body="The whole style in one line. Click the card to copy it, then paste it into any app's Style tab, or back here."
-              >
-                <CopyArea text={code} label="Copy this style's code">
-                  <StyleCard theme={resolved} />
-                </CopyArea>
-              </Cell>
+        {/* Three trays, as the landing's feature cards: each visual on a panel, its words under it. */}
+        <Reveal className="mt-10">
+          <ul className="grid gap-3 md:grid-cols-3 lg:gap-4">
+            <Cell
+              title="Keep the code"
+              body="The whole style in one line. Click the card to copy it, then paste it into any app's Style tab, or back here."
+            >
+              <CopyArea text={code} label="Copy this style's code">
+                <StyleCard theme={resolved} />
+              </CopyArea>
+            </Cell>
 
-              <Cell
-                title="Open it in the Playground"
-                body="Every screen of a free app, restyled and ready to tune. Pick an app to open it wearing your style."
-              >
-                {/* The apps fanned like a hand of cards over a soft wash of the accent; they spread on
-                    hover, and the one you point at lifts and straightens. */}
-                <div className="relative flex items-center justify-center">
-                  <span aria-hidden className="absolute size-44 rounded-full opacity-40 blur-2xl" style={{ background: `radial-gradient(circle, ${accent} 0%, transparent 70%)` }} />
-                  <div className="relative flex -space-x-4 transition-all duration-300 ease-out group-hover:-space-x-1">
-                    {apps.map((a, i) => {
-                      const turn = (i - (apps.length - 1) / 2) * 8;
-                      return (
-                        <a
-                          key={a.slug}
-                          href={`${a.href}?style=${encodeURIComponent(code)}`}
-                          aria-label={`Open ${a.name} with this style`}
-                          title={`Open ${a.name}`}
-                          className="relative block rounded-[19px] transition-transform duration-300 ease-out hover:z-10 hover:!-translate-y-2 hover:!rotate-0"
-                          style={{ rotate: `${turn}deg`, translate: `0 ${Math.abs(turn) * 0.5}px` }}
-                        >
-                          <img src={a.icon} alt="" width={76} height={76} decoding="async" className="size-[76px] rounded-[19px] shadow-[0_0_0_1px_rgb(255_255_255/0.08),0_18px_32px_-14px_rgb(0_0_0/0.7)]" />
-                        </a>
-                      );
-                    })}
-                  </div>
+            <Cell
+              title="Open it in the Playground"
+              body="Every screen of a free app, restyled and ready to tune. Pick an app to open it wearing your style."
+            >
+              {/* The apps fanned like a hand of cards over a soft wash of the accent; they spread on
+                  hover, and the one you point at lifts and straightens. */}
+              <div className="relative flex items-center justify-center">
+                <span aria-hidden className="absolute size-44 rounded-full opacity-40 blur-2xl" style={{ background: `radial-gradient(circle, ${accent} 0%, transparent 70%)` }} />
+                <div className="relative flex -space-x-4 transition-all duration-300 ease-out group-hover:-space-x-1">
+                  {apps.map((a, i) => {
+                    const turn = (i - (apps.length - 1) / 2) * 8;
+                    return (
+                      <a
+                        key={a.slug}
+                        href={`${a.href}?style=${encodeURIComponent(code)}`}
+                        aria-label={`Open ${a.name} with this style`}
+                        title={`Open ${a.name}`}
+                        className="relative block rounded-[19px] transition-transform duration-300 ease-out hover:z-10 hover:!-translate-y-2 hover:!rotate-0"
+                        style={{ rotate: `${turn}deg`, translate: `0 ${Math.abs(turn) * 0.5}px` }}
+                      >
+                        <img src={a.icon} alt="" width={76} height={76} decoding="async" className="size-[76px] rounded-[19px] shadow-[0_0_0_1px_rgb(255_255_255/0.08),0_18px_32px_-14px_rgb(0_0_0/0.7)]" />
+                      </a>
+                    );
+                  })}
                 </div>
-              </Cell>
+              </div>
+            </Cell>
 
-              <Cell
-                title="Bring it to your app"
-                body="Click the window to copy a prompt for your coding agent, with the color scheme and how to apply it."
-              >
-                <CopyArea text={aiPrompt(code, themeSwift)} label="Copy an AI prompt for this style">
-                  <AgentWindow accent={accent} swatches={swatches.map((c) => c[scheme])} />
-                </CopyArea>
-              </Cell>
-            </ul>
-          </div>
+            <Cell
+              title="Bring it to your app"
+              body="Click the window to copy a prompt for your coding agent, with the color scheme and how to apply it."
+            >
+              <CopyArea text={aiPrompt(code, themeSwift)} label="Copy an AI prompt for this style">
+                <AgentWindow accent={accent} swatches={swatches.map((c) => c[scheme])} />
+              </CopyArea>
+            </Cell>
+          </ul>
         </Reveal>
       </section>
     </Container>
@@ -190,29 +185,16 @@ function AgentWindow({ accent, swatches }: { accent: string; swatches: string[] 
   );
 }
 
-/** One cell of the frame: the visual and the words on one surface, one column. */
+/** One card: a tray holding the visual on its panel, the title and sentence under it. */
 function Cell({ title, body, children }: { title: string; body: string; children: ReactNode }) {
   return (
-    <li className="group flex flex-col border-t border-dashed border-white/15 p-6 first:border-t-0 sm:p-8 md:border-t-0">
-      <div className="flex h-40 items-center justify-center">{children}</div>
-      <h3 className="mt-6 text-[15px] font-semibold text-foreground">{title}</h3>
-      <p className="mt-2 text-[13.5px] leading-[21px] text-pretty text-muted">{body}</p>
+    <li className="tray group flex flex-col">
+      <div className="panel flex h-[232px] items-center justify-center px-6">{children}</div>
+      <div className="px-3.5 pt-5 pb-4 sm:px-4">
+        <h3 className="text-[22px] leading-[1.15] font-normal tracking-[-0.025em] text-foreground">{title}</h3>
+        <p className="mt-2 text-[14.5px] leading-[23px] text-pretty text-muted">{body}</p>
+      </div>
     </li>
-  );
-}
-
-/** The crosses where the row's seams meet the frame's top and bottom edges (wide screens only). */
-function SeamTicks({ count }: { count: number }) {
-  return (
-    <>
-      {Array.from({ length: count - 1 }, (_, k) => `calc(${((k + 1) * 100) / count}% - 4.5px)`).flatMap((left) =>
-        ["-top-[4px]", "-bottom-[4px]"].map((edge) => (
-          <svg key={left + edge} aria-hidden viewBox="0 0 9 9" style={{ left }} className={cn("pointer-events-none absolute z-10 hidden size-[9px] text-white/35 md:block", edge)}>
-            <path d="M4.5 0v9M0 4.5h9" stroke="currentColor" strokeWidth="1" />
-          </svg>
-        )),
-      )}
-    </>
   );
 }
 

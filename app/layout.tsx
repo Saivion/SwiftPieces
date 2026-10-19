@@ -29,7 +29,7 @@ export const metadata: Metadata = {
 
 // Light and dark both ship; next-themes (through Fumadocs' RootProvider) sets the class on <html>.
 export const viewport: Viewport = {
-  themeColor: [{ media: "(prefers-color-scheme: dark)", color: "#070708" }, { media: "(prefers-color-scheme: light)", color: "#f7f7f7" }],
+  themeColor: [{ media: "(prefers-color-scheme: dark)", color: "#111111" }, { media: "(prefers-color-scheme: light)", color: "#f5f5f3" }],
   colorScheme: "dark light",
 };
 

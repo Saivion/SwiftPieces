@@ -8,7 +8,6 @@ import { APPS_PATH, appBySlug, appPath, apps, isProApp } from "@/lib/apps";
 import { breadcrumbJsonLd, pageMetadata, WEBSITE_ID } from "@/lib/seo";
 import { site } from "@/lib/site";
 
-
 type Params = { app: string };
 
 export const dynamicParams = false;
@@ -47,16 +46,16 @@ export default async function AppPage({ params }: { params: Promise<Params> }) {
           viewport, and the way into our recreation beside the App Store link. */}
       <section className="relative pt-8 pb-10 md:pt-10">
         <Container>
-          <nav aria-label="Breadcrumb" className="text-[12.5px] text-muted">
-            <Link href={APPS_PATH} className="u-link">Apps</Link>
+          <nav aria-label="Breadcrumb" className="text-[13px] font-medium text-subtle">
+            <Link href={APPS_PATH} className="transition-colors hover:text-foreground">Apps</Link>
             <span aria-hidden className="mx-2">/</span>
-            <span className="text-foreground">{name}</span>
+            <span className="text-muted">{name}</span>
           </nav>
 
           <div className="mt-6">
             <AppDetail app={a} />
           </div>
-          <p className="mt-3 max-w-4xl text-[11px] leading-relaxed text-subtle">
+          <p className="mt-4 max-w-4xl text-[12px] leading-[19px] text-subtle">
             Screenshots and name © {a.store.developer}, shown for reference only; {a.store.developer} isn&apos;t affiliated with or endorsing SwiftPieces. {a.pattern.title} is an original SwiftPieces remix inspired by these screens, in our own colours, type and copy. {isProApp(a) ? "Remix it with Pro" : "Remix it freely"}; what you publish is yours to make your own.{" "}
             <a href="/terms#recreations" className="underline underline-offset-2 hover:text-foreground">Terms</a> ·{" "}
             <a href="/terms#removal" className="underline underline-offset-2 hover:text-foreground">Ask for removal</a>

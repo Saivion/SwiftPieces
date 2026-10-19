@@ -1,5 +1,6 @@
 import { STYLE_FIELDS, STYLE_OPTIONS, encodeStyle, looks, moods, themeFromLook, type StyleOptionKey } from "@swiftpieces/builder";
-import { StudioFrame } from "./studio-frame";
+import { StudioFrame, panelSurface } from "./studio-frame";
+import { cn } from "@/lib/cn";
 
 const TILES = ["hero", "type", "palette", "track", "pay", "chart", "goal", "days"];
 
@@ -25,34 +26,34 @@ export function StudioShell() {
       canvas={
         <div className="studio-grid size-full">
           {TILES.map((id) => (
-            <div key={id} data-tile={id} className="min-h-0 animate-pulse rounded-[var(--radius-lg)] bg-white/[.04]" />
+            <div key={id} data-tile={id} className="min-h-0 animate-pulse rounded-[22px] bg-foreground/[.04]" />
           ))}
         </div>
       }
       panel={
-        <div className="studio-dark flex min-h-0 flex-col overflow-hidden rounded-[var(--radius-lg)] bg-[var(--studio-panel)] max-lg:h-[640px] lg:h-full">
-          <div className="flex-none px-4 pt-4 pb-4">
-            <h1 className="text-[15px] font-semibold tracking-[-0.01em]">Styles</h1>
-            <p className="mt-0.5 text-[12px] text-muted">One style for every screen: color, type, shape and motion.</p>
-            <div className="btn-solid mt-3 flex h-9 items-center justify-center rounded-[var(--radius)] text-[13px] font-semibold">Shuffle</div>
-            <p className="mt-2 text-[11px] text-subtle">Moods: {moods.map((m) => m.name).join(", ")}</p>
+        <div className={cn("flex min-h-0 flex-col overflow-hidden max-lg:h-[640px] lg:h-full", panelSurface)}>
+          <div className="flex-none px-4 pt-[18px] pb-4">
+            <h1 className="pl-1 text-[24px] leading-none font-normal tracking-[-0.03em]">Styles</h1>
+            <p className="mt-1.5 pl-1 text-[13px] text-muted">One style for every screen: color, type, shape and motion.</p>
+            <div className="btn-solid mt-3 flex h-9 items-center justify-center rounded-full text-[13.5px] font-semibold">Shuffle</div>
+            <p className="mt-2 pl-1 text-[11.5px] text-subtle">Moods: {moods.map((m) => m.name).join(", ")}</p>
           </div>
           <div className="min-h-0 flex-1 overflow-hidden px-4">
             <ShellRow name="Look" value={looks.map((l) => l.name).join(", ")} />
             {groups.map(([title, keys]) => (
               <div key={title}>
-                <h2 className="mt-5 mb-2 text-[12px] font-semibold text-foreground">{title}</h2>
+                <h2 className="mt-6 mb-2.5 px-1 text-[13px] font-medium text-foreground">{title}</h2>
                 {keys.map((k) => (
                   <ShellRow key={k} name={k === "density" ? "Spacing" : k === "weight" ? "Weight" : k === "corners" ? "Corners" : k === "cards" ? "Cards" : k === "appearance" ? "Appearance" : label(k)} value={(STYLE_OPTIONS[k] as Array<[string, string]>).map((o) => o[1]).join(", ")} />
                 ))}
               </div>
             ))}
           </div>
-          <div className="flex-none border-t border-[var(--card-border)] p-3">
-            <div className="flex h-9 items-center rounded-[var(--radius)] bg-[var(--studio-row)] px-3">
+          <div className="flex-none border-t border-[var(--line)] p-3">
+            <div className="flex h-9 items-center rounded-full bg-surface px-3.5">
               <code className="truncate font-mono text-[11.5px] text-foreground">{code}</code>
             </div>
-            <div className="btn-solid mt-1.5 flex h-9 items-center justify-center rounded-[var(--radius)] text-[12.5px] font-semibold">Open in the Playground</div>
+            <div className="btn-solid mt-1.5 flex h-9 items-center justify-center rounded-full text-[12.5px] font-semibold">Open in the Playground</div>
           </div>
         </div>
       }
@@ -62,7 +63,7 @@ export function StudioShell() {
 
 function ShellRow({ name, value }: { name: string; value: string }) {
   return (
-    <div className="mb-1.5 flex h-9 items-center justify-between gap-3 rounded-[var(--radius)] bg-[var(--studio-row)] px-3 text-[12.5px]">
+    <div className="mb-1.5 flex h-9 items-center justify-between gap-3 rounded-full bg-surface px-3.5 text-[13px]">
       <span className="text-muted">{name}</span>
       <span className="truncate text-foreground/70">{value}</span>
     </div>

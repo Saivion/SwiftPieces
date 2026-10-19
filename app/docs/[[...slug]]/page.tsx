@@ -63,7 +63,7 @@ export default async function Page(props: Props) {
       <JsonLd data={structuredData(page.url, page.data.title, page.data.description, page.slugs, item, block)} />
       <DocsTitle className={fresh ? "flex items-center gap-3" : undefined}>
         {page.data.title}
-        {fresh ? <NewBadge className="h-5 rounded-[6px] px-2 text-[11px]" /> : null}
+        {fresh ? <NewBadge /> : null}
       </DocsTitle>
       <DocsDescription>{page.data.description}</DocsDescription>
       {/* The install line right under the description; the page body opens on Preview and Code, then the facts. */}

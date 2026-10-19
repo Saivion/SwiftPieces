@@ -10,8 +10,8 @@ import { RemixHeader, type HeaderPair } from "./remix-header";
 /**
  * The App Library header (remix-header.tsx lays it out): the page's copy, then the showcase apps as a
  * picker beside an App Store screenshot and the screen we remixed from it (the developer's labeled
- * as such, ours as ours; a Pro app's screen blurred), then the way into the Pro apps, which fills
- * with the Pro halftone on hover (pro-unlock.tsx).
+ * as such, ours as ours; a Pro app's screen blurred), then the way into the Pro apps, an outlined
+ * tile that fills with the Pro halftone on hover (pro-unlock.tsx).
  */
 export function RemixShowcase({ intro }: { intro: ReactNode }) {
   const pairs: HeaderPair[] = showcase.map((p) => {
@@ -34,15 +34,17 @@ export function RemixShowcase({ intro }: { intro: ReactNode }) {
       pro={
         <ProUnlock href={pro.pricing}>
           <span className="min-w-0 flex-1">
-            <span className="flex items-center gap-2 text-[13.5px] font-semibold text-foreground">
+            <span className="flex flex-wrap items-center gap-2 text-[14.5px] font-medium tracking-[-0.01em] text-foreground">
               <PlanChip pro />
               Unlock all {apps.length} apps and every future app
             </span>
-            <span className="mt-1 block max-w-[27rem] text-[12.5px] leading-relaxed text-muted">
+            <span className="mt-1.5 block max-w-[27rem] text-[13px] leading-[20px] text-muted">
               {proApps.length} more apps and {proScreens} screens to use, take apart and remix in SwiftUI, with AI remix and your remixes saved to your account.
             </span>
           </span>
-          <Arrow motion className="flex-none text-foreground" />
+          <span aria-hidden className="grid size-9 flex-none place-items-center rounded-full border border-[var(--line-strong)] text-foreground">
+            <Arrow motion />
+          </span>
         </ProUnlock>
       }
     />

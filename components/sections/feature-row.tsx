@@ -1,37 +1,37 @@
 import type { ReactNode } from "react";
 import { Reveal } from "@/components/effects/reveal";
-import { Button, Arrow } from "@/components/ui/button";
+import Link from "next/link";
+import { Arrow } from "@/components/ui/button";
 import { cn } from "@/lib/cn";
 
 /**
- * The landing page's one section shape, below the hero: a narrow copy column (tags, a quiet
- * heading, one sentence, one button) beside a wide visual built from real pieces and real output.
- * Deliberately small type and lots of air: the visuals carry the page, the copy only names them.
+ * The landing page's shared section shapes (Graphite): regular-weight statement headings over muted
+ * body copy, outlined tag pills, text links with an arrow, and visuals on trays (a tray one step off
+ * the ground holding a panel). The visuals carry the page; the copy only names them.
  */
 
 export type Tag = { label: string; icon: ReactNode };
 
 /** The section heading and subtitle every block below the hero uses, so they cannot drift apart. */
-export const sectionTitle = "text-[23.5px] leading-[1.12] font-medium tracking-[-0.025em] text-balance sm:text-[27px]";
-export const sectionBody = "text-[15px] leading-[26px] text-pretty text-muted";
-/**
- * The heading column of a 1:2 section: from lg up it stays in view below the navbar while the
- * longer column beside it scrolls, and lets go where that column ends. Same as Pro's screen pages.
- */
+export const sectionTitle = "text-[32px] leading-[1.06] font-normal tracking-[-0.035em] text-balance sm:text-[40px] lg:text-[46px] lg:tracking-[-0.038em]";
+export const sectionBody = "text-[16px] leading-[26px] text-pretty text-muted sm:text-[17px] sm:leading-[28px]";
+/** A card's title inside a tray (the two-up feature cards, tiles with a caption). */
+export const cardTitle = "text-[22px] leading-[1.15] font-normal tracking-[-0.025em] sm:text-[26px] sm:tracking-[-0.03em]";
 /**
  * The landing page's vertical rhythm. Every section carries half the gap above and below, so any
- * two neighbours sit one gap apart (96 on phones, 128 from sm up), measured content to content.
+ * two neighbours sit one gap apart (96 on phones, 136 from sm up), measured content to content.
  */
-export const band = "py-12 sm:py-16";
+export const band = "py-12 sm:py-[68px]";
+/** The heading column of a 1:2 section: from lg up it stays in view while the longer column beside it scrolls. */
 export const stickyColumn = "lg:sticky lg:top-24 lg:self-start";
-export const heroTitle = "text-[34px] leading-[1.04] font-medium tracking-[-0.035em] text-balance sm:text-[42px] lg:text-[49px]";
+export const heroTitle = "text-[44px] leading-none font-normal tracking-[-0.04em] text-balance sm:text-[60px] lg:text-[74px] lg:tracking-[-0.047em]";
 
+/** Outlined pills naming what a section covers. The glyphs stay in the data but Graphite shows words only. */
 export function Tags({ tags, className }: { tags: Tag[]; className?: string }) {
   return (
-    <ul className={cn("flex flex-wrap gap-x-4 gap-y-2", className)}>
+    <ul className={cn("flex flex-wrap gap-1.5", className)}>
       {tags.map((t) => (
-        <li key={t.label} className="flex items-center gap-1.5 text-[12.5px] text-muted">
-          <TagIcon>{t.icon}</TagIcon>
+        <li key={t.label} className="inline-flex h-[26px] items-center rounded-full border border-[var(--line-strong)] px-2.5 text-[12.5px] text-muted">
           {t.label}
         </li>
       ))}
@@ -39,50 +39,77 @@ export function Tags({ tags, className }: { tags: Tag[]; className?: string }) {
   );
 }
 
-/** Tags, heading, sentence, button: the copy block a section opens with when its visual sits below it. */
+/** Tags, heading, sentence, link: the copy block a section opens with when its visual sits below it. */
 export function SectionCopy({ tags, title, body, action, className, bodyClassName }: { tags: Tag[]; title: ReactNode; body?: ReactNode; action?: { label: string; href: string }; className?: string; bodyClassName?: string }) {
   return (
     <Reveal className={className}>
       <Tags tags={tags} className="mb-5" />
       <h2 className={sectionTitle}>{title}</h2>
       {body ? <p className={cn("mt-4", sectionBody, bodyClassName ?? "max-w-xl")}>{body}</p> : null}
-      {action ? <RowLink href={action.href} className="mt-8">{action.label}</RowLink> : null}
+      {action ? <RowLink href={action.href} className="mt-7">{action.label}</RowLink> : null}
     </Reveal>
   );
 }
 
-/** `reverse` puts the visual on the left from `lg` up; on small screens the copy always leads. */
-export function FeatureRow({ tags, title, body, cta, reverse, children }: { tags: Tag[]; title: string; body: string; cta: { label: string; href: string }; reverse?: boolean; children: ReactNode }) {
+/**
+ * A section's head row: tags, heading and sentence on the left, the section's one link on the right,
+ * bottom-aligned. Stacks on phones.
+ */
+export function SectionHead({ tags, title, body, action, id, className }: { tags?: Tag[]; title: ReactNode; body?: ReactNode; action?: { label: string; href: string }; id?: string; className?: string }) {
   return (
-    <section className={cn("grid grid-cols-1 items-center gap-12 lg:gap-16", band, reverse ? "lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]" : "lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]")}>
-      <Reveal className={reverse ? "lg:order-2" : undefined}>
-        <ul className="mb-5 flex flex-wrap gap-x-4 gap-y-2">
-          {tags.map((t) => (
-            <li key={t.label} className="flex items-center gap-1.5 text-[12.5px] text-muted">
-              <TagIcon>{t.icon}</TagIcon>
-              {t.label}
-            </li>
-          ))}
-        </ul>
-        <h2 className={sectionTitle}>{title}</h2>
-        <p className={cn("mt-4 max-w-[34ch]", sectionBody)}>{body}</p>
-        <RowLink href={cta.href} className="mt-8">{cta.label}</RowLink>
-      </Reveal>
-      {/* min-w-0: a wide child (the carousel's scrolling tab rail) must scroll, not widen the column. */}
-      <Reveal className="min-w-0">{children}</Reveal>
+    <Reveal className={cn("mb-9 flex flex-col gap-6 md:flex-row md:items-end md:justify-between md:gap-12", className)}>
+      <div className="max-w-[640px]">
+        {tags ? <Tags tags={tags} className="mb-5" /> : null}
+        <h2 id={id} className={sectionTitle}>{title}</h2>
+        {body ? <p className={cn("mt-4 max-w-[540px]", sectionBody)}>{body}</p> : null}
+      </div>
+      {action ? <RowLink href={action.href} className="shrink-0 md:pb-1.5">{action.label}</RowLink> : null}
+    </Reveal>
+  );
+}
+
+/**
+ * A feature as a full-width showcase: the head row, then the visual on a tray across the container.
+ * `children` is the visual; it should render a bare `Stage` (the panel) at the height it wants.
+ */
+export function FeatureRow({ tags, title, body, cta, children }: { tags: Tag[]; title: string; body: string; cta: { label: string; href: string }; reverse?: boolean; children: ReactNode }) {
+  return (
+    <section className={band}>
+      <SectionHead tags={tags} title={title} body={body} action={cta} />
+      <Reveal className="tray min-w-0">{children}</Reveal>
     </section>
   );
 }
 
-/** Each row's action: the site's own Button (the navbar's Get Pro, the hero's CTA), in its light variant. */
+/**
+ * A feature as a card: the visual's panel on top of a tray, the copy (tags, title, sentence, link)
+ * under it inside the same tray. Two sit side by side from lg up.
+ */
+export function FeatureCard({ tags, title, body, cta, children }: { tags: Tag[]; title: string; body: string; cta: { label: string; href: string }; children: ReactNode }) {
+  return (
+    <Reveal className="tray flex min-w-0 flex-col">
+      {children}
+      <div className="px-3.5 pt-6 pb-4 sm:px-4">
+        <Tags tags={tags} className="mb-4" />
+        <h3 className={cardTitle}>{title}</h3>
+        <p className="mt-2.5 max-w-[440px] text-[15px] leading-[25px] text-pretty text-muted">{body}</p>
+        <RowLink href={cta.href} className="mt-5">{cta.label}</RowLink>
+      </div>
+    </Reveal>
+  );
+}
+
+/** A section's link: words and an arrow that nudges on hover (Graphite never uses a button here). */
 export function RowLink({ href, children, className }: { href: string; children: ReactNode; className?: string }) {
-  return <Button variant="secondary" href={href} className={className}>{children} <Arrow /></Button>;
+  const cls = cn("group inline-flex items-center gap-2 text-[14.5px] font-semibold whitespace-nowrap text-foreground", className);
+  const inner = <>{children} <Arrow /></>;
+  return href.startsWith("http") ? <a href={href} className={cls}>{inner}</a> : <Link href={href} className={cls}>{inner}</Link>;
 }
 
 /** A 16px tile behind a tag's glyph: a lifted chip, not a colored badge. */
 export function TagIcon({ children, accent }: { children: ReactNode; accent?: boolean }) {
   return (
-    <span aria-hidden className={cn("grid size-4 place-items-center rounded-[5px] p-[3px] shadow-[inset_0_0_0_1px_rgb(255_255_255/0.08)] [&_svg]:size-full", accent ? "bg-accent/15 text-accent" : "bg-surface-muted text-[var(--tag-ink)]")}>
+    <span aria-hidden className={cn("grid size-4 place-items-center rounded-[5px] p-[3px] [&_svg]:size-full", accent ? "bg-accent/15 text-accent" : "bg-surface-2 text-[var(--tag-ink)]")}>
       {children}
     </span>
   );
@@ -90,55 +117,32 @@ export function TagIcon({ children, accent }: { children: ReactNode; accent?: bo
 
 /* ---------- Surfaces the visuals are built from ---------- */
 
-/**
- * The base a visual sits on: no fill, a dashed hairline and a tick at each corner, like an artboard.
- * The page's own dot grid shows through, so the only solid surfaces are the pieces and the
- * floating cards. That keeps the visuals from reading as grey slabs with boxes inside boxes.
- */
+/** A tray holding a panel: the base a visual sits on. */
 export function Panel({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <div className={cn("frame-dashed relative", className)}>
-      <CornerTicks />
-      <div className="relative overflow-hidden">{children}</div>
+    <div className={cn("tray", className)}>
+      <div className="panel">{children}</div>
     </div>
   );
 }
 
-/** Four small crosshairs sitting on a frame's corners. */
-const TICKS = { tl: "-top-[4px] -left-[4px]", tr: "-top-[4px] -right-[4px]", bl: "-bottom-[4px] -left-[4px]", br: "-bottom-[4px] -right-[4px]" };
-
-/** The crosses on a dashed frame's corners; `corners` picks some (a .frame-cell row draws only its own). */
-export function CornerTicks({ corners = ["tl", "tr", "bl", "br"] }: { corners?: Array<keyof typeof TICKS> }) {
-  return (
-    <>
-      {/* -4px: the cross's 1px arms (at 4 to 5 in its 9px box) land exactly on the frame's 1px edge. */}
-      {corners.map((c) => TICKS[c]).map((pos) => (
-        <svg key={pos} aria-hidden viewBox="0 0 9 9" className={cn("pointer-events-none absolute size-[9px] text-white/35", pos)}>
-          <path d="M4.5 0v9M0 4.5h9" stroke="currentColor" strokeWidth="1" />
-        </svg>
-      ))}
-    </>
-  );
-}
+/** A floating card's surface: the raised layer, a hairline and the float shadow. */
+export const floatCard = "rounded-[16px] border border-[var(--line-strong)] bg-surface-3 shadow-[var(--shadow-float)]";
 
 /**
  * A card that floats over a panel's corner. In flow below the panel on small screens, where there
  * is no room to overlap; lifted onto the corner from `md` up. Position with md: utilities.
  */
 export function Floating({ children, className }: { children: ReactNode; className?: string }) {
-  return (
-    <div className={cn("relative mt-3 rounded-[6px] border border-white/[0.09] bg-[var(--raised)] shadow-[0_30px_70px_-24px_rgb(0_0_0/0.95),inset_0_1px_0_rgb(255_255_255/0.05)] md:absolute md:mt-0", className)}>
-      {children}
-    </div>
-  );
+  return <div className={cn("relative mt-3 md:absolute md:mt-0", floatCard, className)}>{children}</div>;
 }
 
 /** One line of a floating list: a label, a right-aligned value, and an optional hairline meter. */
 export function ListRow({ icon, label, value, meter, accent }: { icon?: ReactNode; label: string; value: string; meter?: number; accent?: boolean }) {
   return (
-    <div className="border-b border-[var(--line)] px-4 py-3 last:border-b-0">
-      <div className="flex items-center justify-between gap-6 text-[12.5px]">
-        <span className="flex min-w-0 items-center gap-2 text-foreground">
+    <div className="border-b border-[var(--line)] px-4 py-[13px] last:border-b-0">
+      <div className="flex items-center justify-between gap-6 text-[13px]">
+        <span className="flex min-w-0 items-center gap-2 text-muted">
           {icon ? <TagIcon accent={accent}>{icon}</TagIcon> : null}
           <span className="truncate">{label}</span>
         </span>

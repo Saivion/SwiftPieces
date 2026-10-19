@@ -112,12 +112,12 @@ export function LiveViews({ className }: { className?: string }) {
 
   return (
     <span className={`inline-flex items-center gap-1.5 ${className ?? ""}`}>
-      <span aria-hidden className="mx-1 h-3.5 w-px bg-white/15" />
+      <span aria-hidden className="mx-1 h-3 w-px bg-[var(--line-strong)]" />
       {/* Words rather than an eye icon. The count is page views, not people, so it counts times
           the library was explored rather than claiming a number of developers. */}
       <span className="text-muted">Explored</span>
-      <Odometer value={views} className="text-foreground" />
-      <span className="text-muted">Times</span>
+      <Odometer value={views} className="text-muted" />
+      <span className="text-muted">times</span>
     </span>
   );
 }

@@ -1,30 +1,33 @@
-/* @swiftpieces/brand — design tokens. Monochrome + red accent. Shared by swiftpieces.com and pro.swiftpieces.com. */
+/* @swiftpieces/brand — design tokens. Graphite (2026-10-19): charcoal ground, soft trays and panels,
+   pill controls, a single red accent. Shared by swiftpieces.com and pro.swiftpieces.com. */
 :root {
-  --background: #0a0a0a;
-  --foreground: #ffffff;
-  --surface: #111111;
-  --surface-2: #171717;
-  --surface-3: #1f1f1f;
-  --surface-muted: #2a2a2a;
-  --text-muted: #8f8f8f;
-  --text-subtle: #5f5f5f;
+  /* Ground, then the two steps above it: a tray (--surface) holding a panel (--surface-2), and the
+     raised layer for menus, inputs and floating cards (--surface-3). */
+  --background: #111111;
+  --foreground: #f3f3f1;
+  --surface: #181818;
+  --surface-2: #1e1e1e;
+  --surface-3: #262626;
+  --surface-muted: #2e2e2e;
+  --text-muted: #9d9d9a;
+  --text-subtle: #6f6f6c;
   --accent: #ff0000;
   --accent-foreground: #000000;
   --accent-soft: rgba(255, 0, 0, 0.14);
-  --grid-color: rgba(255, 255, 255, 0.13);
-  --line: rgba(255, 255, 255, 0.08);
-  --line-strong: rgba(255, 255, 255, 0.14);
+  --grid-color: rgba(255, 255, 255, 0.08);
+  --line: rgba(255, 255, 255, 0.07);
+  --line-strong: rgba(255, 255, 255, 0.13);
   --black: #000000;
   --white: #ffffff;
 
-  --radius-sm: 8px;
-  --radius: 14px;
-  --radius-lg: 20px;
-  /* "Pill" is historical: everything shares the 4px radius, nothing is fully rounded. */
-  --radius-pill: 4px;
-  --card-border: rgba(255, 255, 255, 0.08);
-  --card-border-hover: rgba(255, 255, 255, 0.16);
-  --container: 1520px;
+  /* Soft corners: 12 for small controls, 20 for cards and panels, 28 for trays. Controls are pills. */
+  --radius-sm: 12px;
+  --radius: 20px;
+  --radius-lg: 28px;
+  --radius-pill: 9999px;
+  --card-border: rgba(255, 255, 255, 0.07);
+  --card-border-hover: rgba(255, 255, 255, 0.14);
+  --container: 1320px;
   --nav-h: 72px;
 
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
@@ -32,27 +35,27 @@
 }
 
 [data-tone="light"] {
-  --background: #f7f7f7;
-  --foreground: #0a0a0a;
-  --surface: #ffffff;
-  --surface-2: #f0f0f0;
-  --surface-3: #e5e5e5;
-  --surface-muted: #d9d9d9;
-  --text-muted: #5f5f5f;
-  --text-subtle: #8f8f8f;
+  --background: #f5f5f3;
+  --foreground: #141414;
+  --surface: #ebebe8;
+  --surface-2: #ffffff;
+  --surface-3: #ffffff;
+  --surface-muted: #e2e2de;
+  --text-muted: #5f5f5b;
+  --text-subtle: #8a8a86;
   --accent-foreground: #000000;
-  --accent-soft: rgba(255, 0, 0, 0.35);
-  --grid-color: rgba(0, 0, 0, 0.16);
-  --line: rgba(0, 0, 0, 0.08);
+  --accent-soft: rgba(255, 0, 0, 0.1);
+  --grid-color: rgba(0, 0, 0, 0.1);
+  --line: rgba(0, 0, 0, 0.075);
   --line-strong: rgba(0, 0, 0, 0.14);
-  --card-border: rgba(0, 0, 0, 0.08);
-  --card-border-hover: rgba(0, 0, 0, 0.18);
+  --card-border: rgba(0, 0, 0, 0.075);
+  --card-border-hover: rgba(0, 0, 0, 0.16);
   color: var(--foreground);
   background: var(--background);
 }
 [data-tone="black"] {
-  --background: #000000;
-  --surface: #0a0a0a;
-  --surface-2: #111111;
+  --background: #0c0c0c;
+  --surface: #151515;
+  --surface-2: #1b1b1b;
   background: var(--background);
 }

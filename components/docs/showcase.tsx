@@ -36,16 +36,17 @@ export function Showcase({
   const block = kind === "block";
   return (
     <section id="preview" className="not-prose mb-10 scroll-mt-28" aria-label={`${name} preview and code`}>
-      <div className="flex items-end justify-between gap-4 border-b border-[var(--line)]">
-        <div role="tablist" aria-label="View" className="-mb-px flex gap-5">
+      <div className="flex items-center justify-between gap-4">
+        <div role="tablist" aria-label="View" className="flex gap-0.5 rounded-full bg-surface p-[3px]">
           <TabButton active={tab === "preview"} onClick={() => setTab("preview")} icon={<EyeIcon />}>Preview</TabButton>
           <TabButton active={tab === "code"} onClick={() => setTab("code")} icon={<CodeIcon />}>Code</TabButton>
         </div>
-        <p className="mb-2.5 hidden text-[12px] text-subtle sm:block">{note ?? (still ? "Pro block · still" : block ? "Live block · sample data" : "Live preview")}</p>
+        <p className="hidden text-[12.5px] text-subtle sm:block">{note ?? (still ? "Pro block · still" : block ? "Live block · sample data" : "Live preview")}</p>
       </div>
 
-      <div role="tabpanel" hidden={tab !== "preview"} className="mt-4">
-        <div className={cn("overflow-hidden rounded-[22px] border border-[var(--line)] px-4 py-6 sm:px-10 sm:py-10", tone === "black" ? "bg-black" : "bg-[var(--pv-bg)]")}>
+      {/* The preview sits on a tray, its own ground (--pv-bg) the panel inside it. */}
+      <div role="tabpanel" hidden={tab !== "preview"} className="mt-3 rounded-[30px] bg-surface p-2">
+        <div className={cn("overflow-hidden rounded-[23px] px-4 py-6 sm:px-10 sm:py-10", tone === "black" ? "bg-black" : "bg-[var(--pv-bg)]")}>
           <div className={cn("mx-auto w-full", block ? "max-w-[560px]" : "max-w-[600px]")}>
             <PreviewFrame aspect={block ? "aspect-square" : "aspect-[4/3]"} tone={tone} className="w-full">
               {still ? (
@@ -59,11 +60,11 @@ export function Showcase({
         </div>
       </div>
 
-      <div role="tabpanel" hidden={tab !== "code"} className="mt-4">
+      <div role="tabpanel" hidden={tab !== "code"} className="mt-3 rounded-[30px] bg-surface p-2">
         {children ? (
-          <div className="showcase-code max-h-[680px] overflow-auto rounded-[22px] border border-[var(--line)] bg-[var(--pv-bg)] p-2 [&_figure]:my-0">{children}</div>
+          <div className="showcase-code max-h-[680px] overflow-auto rounded-[23px] bg-surface-2 p-2 [&_figure]:my-0">{children}</div>
         ) : (
-          <div className="flex min-h-[220px] flex-col items-center justify-center gap-3 rounded-[22px] border border-[var(--line)] bg-[var(--pv-bg)] px-6 text-center">
+          <div className="flex min-h-[220px] flex-col items-center justify-center gap-3 rounded-[23px] bg-surface-2 px-6 text-center">
             <p className="text-[14px] font-semibold text-foreground">The SwiftUI source comes with SwiftPieces Pro.</p>
             <p className="max-w-sm text-[12.5px] text-muted">Every Pro block installs with one command once your license is signed in, and re-skins with Pro&apos;s design system.</p>
             {proHref ? <a href={proHref} className="u-link mt-1 text-[13px] font-semibold text-foreground">Open it in the Pro library ↗</a> : null}
@@ -82,8 +83,8 @@ function TabButton({ active, onClick, icon, children }: { active: boolean; onCli
       aria-selected={active}
       onClick={onClick}
       className={cn(
-        "flex h-10 items-center gap-1.5 border-b-2 text-[13px] font-medium transition-colors",
-        active ? "border-foreground text-foreground" : "border-transparent text-muted hover:text-foreground",
+        "flex h-8 items-center gap-1.5 rounded-full px-3.5 text-[13px] font-medium transition-colors",
+        active ? "bg-surface-3 text-foreground shadow-[0_1px_2px_rgb(0_0_0/0.15)]" : "text-muted hover:text-foreground",
       )}
     >
       {icon}

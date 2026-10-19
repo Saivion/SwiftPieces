@@ -7,18 +7,20 @@ import { PiecePreview } from "@/components/previews";
 import { FilterButton, FilterPill } from "@/components/sections/showcase";
 import { RevealGroup, RevealItem } from "@/components/effects/reveal";
 import { NewBadge } from "@/components/ui/new-badge";
+import { ProBadge } from "@/components/ui/pro-badge";
 import { cn } from "@/lib/cn";
 
 /**
- * A block as a card: its live preview on the square block stage (Pro blocks show a still of Pro's own preview),
- * then its category and whether it is free or Pro, its name, one line on what it does, and what it is built from.
- * Blocks are fewer and bigger than pieces, so their cards carry their words instead of a hover label.
+ * A block as a card (Graphite's library card): its live preview on the square block stage, a panel inset
+ * in a tray (Pro blocks show a still of Pro's own preview), then its category and whether it is free or
+ * Pro, its name, one line on what it does, and what it is built from as outlined pills. Blocks are fewer
+ * and bigger than pieces, so their cards carry their words instead of a hover label.
  */
 export function BlockCard({ card, priority = false }: { card: Card; priority?: boolean }) {
   const pro = card.kind === "pro";
   return (
-    <Link href={card.href} className="card card-hover group relative flex h-full flex-col overflow-hidden">
-      <PreviewFrame aspect="aspect-square" className="rounded-none">
+    <Link href={card.href} className="group relative flex h-full flex-col rounded-[26px] bg-surface p-1.5 transition-colors duration-200 hover:bg-surface-3">
+      <PreviewFrame aspect="aspect-square">
         {pro && card.still ? (
           // eslint-disable-next-line @next/next/no-img-element -- a static still; next/image would re-encode it per width for no gain
           <img src={card.still} alt={`${card.title}, a SwiftPieces Pro block`} loading={priority ? "eager" : "lazy"} decoding="async" className="absolute inset-0 size-full object-cover" />
@@ -26,17 +28,21 @@ export function BlockCard({ card, priority = false }: { card: Card; priority?: b
           <PiecePreview name={card.name} />
         )}
       </PreviewFrame>
-      {card.isNew ? <NewBadge solid className="absolute top-3 left-3 z-10" /> : null}
-      {pro ? <span className="absolute top-3 right-3 z-10 inline-flex h-[18px] items-center rounded-[5px] bg-black/60 px-1.5 text-[10px] leading-none font-semibold text-white backdrop-blur-sm">Pro</span> : null}
-      <div className="flex grow flex-col border-t border-[var(--card-border)] p-5 sm:p-6">
-        <p className="p-meta text-subtle">{card.categoryTitle} · {pro ? "Pro" : "Free"}</p>
-        <p className="p-item mt-2">{card.title}</p>
-        <p className="p-body mt-2 line-clamp-2 text-[13px]">{card.summary}</p>
+      <div className="flex grow flex-col px-3.5 pt-5 pb-4 sm:px-4">
+        <p className="flex items-center gap-2 text-[12.5px] text-subtle">
+          <span>{card.categoryTitle} · {pro ? "Pro" : "Free"}</span>
+          <span className="ml-auto flex items-center gap-1.5">
+            {card.isNew ? <NewBadge /> : null}
+            {pro ? <ProBadge size="sm" /> : null}
+          </span>
+        </p>
+        <p className="mt-2 text-[22px] leading-[1.15] font-normal tracking-[-0.025em]">{card.title}</p>
+        <p className="mt-2 line-clamp-2 text-[14.5px] leading-[23px] text-pretty text-muted">{card.summary}</p>
         <div className="mt-auto pt-5">
-          <p className="text-[11px] text-subtle">{pro ? "Inside" : "Built from"}</p>
+          <p className="text-[12.5px] text-subtle">{pro ? "Inside" : "Built from"}</p>
           <p className="mt-2 flex flex-wrap gap-1.5">
             {card.parts.map((p) => (
-              <span key={p.label} className="inline-flex h-[22px] items-center rounded-[6px] bg-foreground/[0.05] px-2 text-[11.5px] font-medium text-muted">{p.label}</span>
+              <span key={p.label} className="inline-flex h-[26px] items-center rounded-full border border-[var(--line-strong)] px-2.5 text-[12px] text-muted">{p.label}</span>
             ))}
           </p>
         </div>

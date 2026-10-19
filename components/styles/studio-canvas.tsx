@@ -15,6 +15,7 @@ import { createRegistry, encodeStyle, freeDefinitions, inkOn, lookById, resolveT
 import { BEZEL, PHONE_H, PHONE_W, StylePreview, UI } from "@swiftpieces/builder/react";
 import type { StyleScreen, StyleTileId, StyleTileInfo } from "@/lib/styles";
 import { FitBox, PhoneFit } from "./fit-box";
+import { floating } from "./studio-frame";
 import { FOLLOW_LABELS, reaches, spotOfEdit, type Spot, type StyleFollow } from "./follows";
 import { canvasSurfaces, onTile, type Scheme, type Surfaces } from "./surfaces";
 
@@ -182,11 +183,11 @@ export function StudioCanvas({ theme, drawn, leaving, root, scheme, onScheme, on
         </div>
       )}
       {screensOnly ? (
-        <div role="status" className="studio-dark sp-enter absolute bottom-[26px] left-1/2 z-20 flex -translate-x-1/2 items-center gap-2 rounded-[var(--radius-lg)] bg-[var(--studio-panel)] py-1 pr-1 pl-3 text-[12px] whitespace-nowrap text-muted shadow-[0_14px_36px_-12px_rgb(0_0_0/.7)] ring-1 ring-white/10">
+        <div role="status" className={`sp-enter absolute bottom-[26px] left-1/2 z-20 flex -translate-x-1/2 items-center gap-2 rounded-full py-1 pr-1 pl-3.5 text-[12.5px] whitespace-nowrap text-muted ${floating}`}>
           <span>
             <span className="text-foreground">{screensOnly}</span> shows on whole screens
           </span>
-          <button type="button" onClick={() => onView("screens")} className="h-7 rounded-[var(--radius)] bg-white/[.1] px-2.5 font-medium text-foreground transition-colors hover:bg-white/[.16] focus-visible:outline-2 focus-visible:outline-accent">
+          <button type="button" onClick={() => onView("screens")} className="h-7 rounded-full bg-foreground/10 px-3 font-medium text-foreground transition-colors hover:bg-foreground/15 focus-visible:outline-2 focus-visible:outline-accent">
             See it
           </button>
         </div>
@@ -277,7 +278,7 @@ function Tile({ id, index, wave, leaving, flash, spot, info, ground, ink, scheme
     <section
       aria-label={info.name}
       data-tile={id}
-      className="group/tile spb-phone-screen relative min-h-0 min-w-0 overflow-hidden rounded-[var(--radius-lg)]"
+      className="group/tile spb-phone-screen relative min-h-0 min-w-0 overflow-hidden rounded-[22px]"
       data-scheme={scheme}
       style={style}
       onPointerOver={id === "palette" || id === "type" ? undefined : onPointer}
@@ -438,7 +439,7 @@ function Screen({ screen: s, index, wave, leaving, theme, ground, ink, scheme }:
   const settle = useSettle(wave, index, leaving);
   const code = useMemo(() => encodeStyle(theme), [theme]);
   return (
-    <figure className="relative min-h-0 min-w-0 flex-none snap-start overflow-hidden rounded-[var(--radius-lg)] max-md:w-[84%]" style={{ backgroundColor: ground, color: ink, transition: "background-color 500ms var(--ease-out)" }}>
+    <figure className="relative min-h-0 min-w-0 flex-none snap-start overflow-hidden rounded-[22px] max-md:w-[84%]" style={{ backgroundColor: ground, color: ink, transition: "background-color 500ms var(--ease-out)" }}>
       <figcaption className="absolute inset-x-0 top-0 z-10 flex h-[60px] items-center justify-between gap-3 px-4">
         <span className="flex min-w-0 items-center gap-2.5">
           <img src={s.icon} alt="" width={30} height={30} className="size-[30px] flex-none rounded-[7px] shadow-[0_1px_2px_rgb(0_0_0/.12)]" />
@@ -450,7 +451,7 @@ function Screen({ screen: s, index, wave, leaving, theme, ground, ink, scheme }:
         <a
           href={`${s.href}?style=${encodeURIComponent(code)}`}
           aria-label={`Open ${s.app} in the Playground with this style`}
-          className="ai-host flex h-7 flex-none items-center gap-1.5 rounded-[var(--radius)] px-2.5 text-[11.5px] font-semibold transition-colors"
+          className="ai-host flex h-7 flex-none items-center gap-1.5 rounded-full px-3 text-[11.5px] font-semibold transition-colors"
           style={{ background: `color-mix(in srgb, ${ink} 7%, transparent)` }}
           onMouseEnter={(e) => (e.currentTarget.style.background = `color-mix(in srgb, ${ink} 13%, transparent)`)}
           onMouseLeave={(e) => (e.currentTarget.style.background = `color-mix(in srgb, ${ink} 7%, transparent)`)}
@@ -468,15 +469,15 @@ function Screen({ screen: s, index, wave, leaving, theme, ground, ink, scheme }:
   );
 }
 
-/** Components or Screens, and light or dark: a dark bar floating over the canvas's bottom edge. */
+/** Components or Screens, and light or dark: a raised bar (the site's menu surface) floating over the canvas's bottom edge. */
 function FloatingBar({ view, onView, scheme, onScheme, pinned }: { view: CanvasView; onView: (v: CanvasView) => void; scheme: Scheme; onScheme: (s: Scheme) => void; pinned: boolean }) {
   const next: Scheme = scheme === "dark" ? "light" : "dark";
   return (
     // Docked on the frame's bottom edge, half over the tray's padding, so it covers almost nothing.
     // Centred on the whole studio, not just the canvas: on wide screens it moves right by half the
     // settings panel plus the gap (studio-frame.tsx: 300px, 340px at xl, gap-3).
-    <div className="studio-dark absolute -bottom-[31px] left-1/2 z-20 flex -translate-x-1/2 items-center gap-1.5 lg:left-[calc(50%+156px)] xl:left-[calc(50%+176px)]">
-      <div role="tablist" aria-label="Canvas" className="flex rounded-[var(--radius-lg)] bg-[var(--studio-panel)] p-1 shadow-[0_14px_36px_-12px_rgb(0_0_0/.7)] ring-1 ring-white/10">
+    <div className="absolute -bottom-[29px] left-1/2 z-20 flex -translate-x-1/2 items-center gap-1.5 lg:left-[calc(50%+156px)] xl:left-[calc(50%+176px)]">
+      <div role="tablist" aria-label="Canvas" className={`flex rounded-full p-1 ${floating}`}>
         {(
           [
             ["components", "grid", "Components"],
@@ -489,7 +490,7 @@ function FloatingBar({ view, onView, scheme, onScheme, pinned }: { view: CanvasV
             role="tab"
             aria-selected={view === v}
             onClick={() => onView(v)}
-            className="ai-host flex h-8 items-center gap-1.5 rounded-[var(--radius)] px-3 text-[12.5px] font-medium text-muted transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent aria-selected:bg-white/[.12] aria-selected:text-foreground"
+            className="ai-host flex h-8 items-center gap-1.5 rounded-full px-3.5 text-[13px] font-medium text-muted transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent aria-selected:bg-foreground/10 aria-selected:text-foreground"
           >
             <UI name={icon} size={13} />
             {label}
@@ -501,7 +502,7 @@ function FloatingBar({ view, onView, scheme, onScheme, pinned }: { view: CanvasV
         onClick={() => onScheme(next)}
         aria-label={pinned ? `Make this style ${next}` : `Show in ${next}`}
         title={pinned ? `Make this style ${next}` : `Show in ${next}`}
-        className="ai-host grid size-10 place-items-center rounded-[var(--radius-lg)] bg-[var(--studio-panel)] text-foreground shadow-[0_14px_36px_-12px_rgb(0_0_0/.7)] ring-1 ring-white/10 transition-colors hover:bg-[var(--studio-row)] focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent"
+        className={`ai-host grid size-10 place-items-center rounded-full text-foreground transition-colors hover:bg-[color-mix(in_srgb,var(--foreground)_7%,var(--surface-3))] focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent ${floating}`}
       >
         <UI name={scheme === "dark" ? "moon" : "sun"} size={15} />
       </button>

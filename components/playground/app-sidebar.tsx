@@ -5,7 +5,7 @@
 // the Playground takes over (components/playground/playground-app.tsx).
 "use client";
 import type { MouseEvent } from "react";
-import { ProCrown, UI, usePlay, usePlayground } from "@swiftpieces/builder/react";
+import { UI, usePlay, usePlayground } from "@swiftpieces/builder/react";
 import { apps, cdn, isProApp, type LibraryEntry } from "@/lib/apps";
 import type { ProSession } from "@/lib/pro-bridge";
 import { cn } from "@/lib/cn";
@@ -102,10 +102,7 @@ export function AppsSidebar({ session }: { session: ProSession }) {
 /** The Pro tag: the Pro apps' heading, and a Pro app's badge. */
 export function ProTag() {
   return (
-    <span className="spp-pro-tag">
-      <ProCrown size={9} />
-      Pro
-    </span>
+    <span className="spp-pro-tag">Pro</span>
   );
 }
 
