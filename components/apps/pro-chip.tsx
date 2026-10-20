@@ -2,7 +2,7 @@ import { ProBadge } from "@/components/ui/pro-badge";
 import { cn } from "@/lib/cn";
 
 /**
- * The App Library's plan marks: "Pro" on an app (or screen) that opens with Pro, as the site's Pro
+ * The Playground's plan marks: "Pro" on an app (or screen) that opens with Pro, as the site's Pro
  * badge, and "Free" on the rest, a quiet outlined pill at the same 20px.
  */
 export function PlanChip({ pro, className }: { pro: boolean; className?: string }) {

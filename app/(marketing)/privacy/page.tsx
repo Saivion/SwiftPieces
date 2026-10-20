@@ -30,7 +30,7 @@ export default function PrivacyPage() {
       <p>If you&apos;re signed in to pro.swiftpieces.com, the Playground asks it whether you own Pro, so it can offer Pro features. Your browser sends your Pro session to pro.swiftpieces.com for that check; swiftpieces.com never sees or stores it.</p>
 
       <h2>App Store content</h2>
-      <p>The App Library shows public App Store listings. Screenshots and icons load from Apple&apos;s servers, so your browser requests them from Apple as it would on the App Store.</p>
+      <p>The Playground shows public App Store listings. Screenshots and icons load from Apple&apos;s servers, so your browser requests them from Apple as it would on the App Store.</p>
 
       <h2>Contact</h2>
       <p>

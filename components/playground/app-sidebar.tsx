@@ -99,11 +99,9 @@ export function AppsSidebar({ session }: { session: ProSession }) {
   );
 }
 
-/** The Pro tag: the Pro apps' heading, and a Pro app's badge. */
+/** The Pro tag: the Pro apps' heading, and a Pro app's badge. Just the word, no icon. */
 export function ProTag() {
-  return (
-    <span className="spp-pro-tag">Pro</span>
-  );
+  return <span className="spp-pro-tag">Pro</span>;
 }
 
 /**

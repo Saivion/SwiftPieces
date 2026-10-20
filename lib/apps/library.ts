@@ -257,47 +257,6 @@ export const LIBRARY: LibraryApp[] = [
     ],
   },
   {
-    slug: "zero", trackId: 1168348542, pattern: "flows/fasting-timer",
-    screens: [
-      { shot: 1, step: 0, title: "The fasting ring" },
-      { shot: 2, step: 5, title: "Snapping a meal" },
-      { shot: 4, step: 4, title: "A protein score" },
-      { shot: 5, step: 4, title: "Water for the day" },
-      { shot: 7, step: 6, title: "Challenges" },
-    ],
-  },
-  {
-    slug: "rise", trackId: 1453884781, pattern: "flows/sleep-energy",
-    screens: [
-      { shot: 1, step: 0, title: "Sleep debt" },
-      { shot: 2, step: 1, title: "The energy curve" },
-      { shot: 4, step: 2, title: "Habits timed to energy" },
-      { shot: 5, step: 3, title: "The calendar by energy" },
-      { shot: 3, step: 5, title: "Wind-down tools" },
-    ],
-  },
-  {
-    slug: "huckleberry", trackId: 1169136078, pattern: "flows/baby-tracker",
-    screens: [
-      { shot: 0, step: 0, title: "Tracker cards and the next nap" },
-      { shot: 5, step: 1, title: "Nursing, left and right" },
-      { shot: 7, step: 2, title: "Logging a diaper" },
-      { shot: 1, step: 3, title: "The week's sleep" },
-      { shot: 3, step: 4, title: "Sleep trends" },
-      { shot: 4, step: 5, title: "Asking the assistant" },
-    ],
-  },
-  {
-    slug: "i-am-sober", trackId: 672904239, pattern: "flows/sobriety-counter",
-    screens: [
-      { shot: 1, step: 0, title: "The sober counter" },
-      { shot: 4, step: 3, title: "Pledge, review and a challenge" },
-      { shot: 3, step: 4, title: "The daily pledge" },
-      { shot: 5, step: 6, title: "The group's pledges" },
-      { shot: 6, step: 6, title: "A milestone post" },
-    ],
-  },
-  {
     slug: "endel", trackId: 1346247457, pattern: "flows/focus-soundscapes",
     screens: [
       { shot: 2, step: 0, title: "A soundscape playing" },
@@ -305,15 +264,6 @@ export const LIBRARY: LibraryApp[] = [
       { shot: 5, step: 1, title: "Your guide through the day" },
       { shot: 7, step: 5, title: "Relax" },
       { shot: 4, step: 6, title: "Sleep" },
-    ],
-  },
-  {
-    slug: "session", trackId: 1521432881, pattern: "flows/focus-timer", name: "Session",
-    screens: [
-      { shot: 0, step: 0, title: "The dial and an intention" },
-      { shot: 1, step: 1, title: "Picking a category" },
-      { shot: 3, step: 3, title: "Reflecting on a session" },
-      { shot: 5, step: 4, title: "The weekly report" },
     ],
   },
   {
@@ -380,28 +330,6 @@ export const LIBRARY: LibraryApp[] = [
     ],
   },
   {
-    slug: "slopes", trackId: 643351983, pattern: "flows/ski-tracker",
-    screens: [
-      { shot: 1, step: 0, title: "Recording on the trail map" },
-      { shot: 2, step: 1, title: "Nearby friends" },
-      { shot: 3, step: 2, title: "The day summed up" },
-      { shot: 6, step: 3, title: "Replaying a run" },
-      { shot: 7, step: 4, title: "One run's profile" },
-      { shot: 4, step: 6, title: "The season against its goal" },
-    ],
-  },
-  {
-    slug: "runna", trackId: 1594204443, pattern: "flows/running-plan",
-    screens: [
-      { shot: 0, step: 0, title: "The plan and this week" },
-      { shot: 1, step: 2, title: "Live coaching" },
-      { shot: 5, step: 3, title: "A recorded run" },
-      { shot: 4, step: 4, title: "Your activities" },
-      { shot: 2, step: 5, title: "Plans for any goal" },
-      { shot: 3, step: 6, title: "Your plan is ready" },
-    ],
-  },
-  {
     slug: "merlin", trackId: 773457673, pattern: "flows/bird-id", name: "Merlin Bird ID",
     screens: [
       { shot: 2, step: 1, title: "Sound ID listening" },
@@ -409,16 +337,6 @@ export const LIBRARY: LibraryApp[] = [
       { shot: 5, step: 3, title: "Step-by-step questions" },
       { shot: 6, step: 4, title: "Framing a photo" },
       { shot: 3, step: 5, title: "Birds likely near you" },
-    ],
-  },
-  {
-    slug: "sky-guide", trackId: 576588894, pattern: "flows/stargazing",
-    screens: [
-      { shot: 7, step: 0, title: "Tonight and the visible planets" },
-      { shot: 4, step: 2, title: "A planet up close" },
-      { shot: 3, step: 3, title: "A space station pass" },
-      { shot: 6, step: 4, title: "Events to plan for" },
-      { shot: 5, step: 6, title: "Astronomy news" },
     ],
   },
   {

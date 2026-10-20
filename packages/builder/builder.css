@@ -463,11 +463,10 @@ button.spp-tree-row:hover { background: var(--spp-fill); }
   transition: filter .3s;
 }
 .spp-build-opt:hover .spp-pro-mark { filter: saturate(1.4) brightness(1.03); }
-/* The same badge as a small tag beside a title ("Pro"): the gradient ring, the wash, the crown and
-   the word in the blended ink. */
+/* The same badge as a small tag beside a title ("Pro"): the gradient ring, the wash and the word in
+   the blended ink. No icon. */
 .spp-pro-tag {
   --pb-a: var(--pro-c3); --pb-b: var(--pro-c2);
-  --pb-ink-a: color-mix(in srgb, var(--pb-a) 45%, var(--foreground)); --pb-ink-b: color-mix(in srgb, var(--pb-b) 45%, var(--foreground));
   display: inline-flex; align-items: center; gap: 3px; height: 18px; padding: 0 6px; border-radius: 4px;
   font-size: 10.5px; font-weight: 600; line-height: 1; letter-spacing: 0; text-transform: none; color: color-mix(in srgb, var(--pb-a) 30%, var(--foreground));
   border: 1px solid transparent;

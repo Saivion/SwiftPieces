@@ -1,4 +1,4 @@
-// What kind of screen each remixed screen is, for the App Library's "Browse by screen": one kind per
+// What kind of screen each remixed screen is, for the Playground's "Browse by screen": one kind per
 // screen, keyed by app slug, one entry per step of the app's remix, in step order. Hand-kept, like
 // screen-tags.ts: when a remix gains, loses or reorders a screen, update its line here too (the
 // directory refuses to build when a line and its remix disagree).
@@ -43,22 +43,14 @@ export const SCREEN_KINDS: Record<string, ScreenKind[]> = {
   sofa: ["list", "list", "discover", "list", "session", "calendar", "stats"],
   "mercury-weather": ["home", "stats", "list", "map", "calendar", "stats", "tools"],
   hevy: ["home", "session", "progress", "social", "stats", "detail", "stats"],
-  zero: ["home", "input", "detail", "progress", "list", "input", "stats"],
-  rise: ["home", "stats", "list", "calendar", "stats", "tools", "session"],
-  huckleberry: ["home", "input", "input", "calendar", "stats", "social", "detail"],
-  "i-am-sober": ["home", "progress", "stats", "progress", "input", "input", "social"],
   endel: ["session", "stats", "tools", "tools", "discover", "session", "session"],
-  session: ["home", "input", "session", "input", "stats", "list", "calendar"],
   opal: ["home", "stats", "list", "input", "session", "session", "tools"],
   things: ["home", "list", "calendar", "input", "detail", "progress"],
   letterboxd: ["discover", "detail", "input", "calendar", "social", "stats", "list"],
   vivino: ["discover", "tools", "detail", "input", "list", "stats", "list"],
   "stats-fm": ["home", "list", "detail", "stats", "calendar", "social", "social"],
   partiful: ["home", "detail", "social", "input", "social", "tools", "discover"],
-  slopes: ["map", "social", "detail", "session", "detail", "stats", "progress"],
-  runna: ["home", "detail", "session", "map", "stats", "discover", "detail"],
   merlin: ["home", "session", "detail", "input", "tools", "discover", "progress"],
-  "sky-guide": ["home", "tools", "detail", "detail", "calendar", "detail", "discover"],
   finch: ["home", "input", "session", "social", "stats", "progress", "input"],
   parcel: ["list", "detail", "map", "input", "tools", "tools"],
   bear: ["list", "list", "detail", "stats", "discover", "tools", "list"],

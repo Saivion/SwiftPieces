@@ -639,7 +639,7 @@ function writeLlms(items: RegistryItem[], blocks: BlockItem[]) {
     "",
     "## Tools",
     "",
-    `- [App Library](${SITE_URL}/apps): App Store apps remixed as original SwiftUI screens to try, take apart and remix in the browser Playground. Five are free; the rest come with Pro.`,
+    `- [Playground](${SITE_URL}/apps): App Store apps remixed as original SwiftUI screens to try, take apart and remix in the browser. Five are free; the rest come with Pro.`,
     `- [Styles](${SITE_URL}/styles): make one style for every screen (accent, light and dark, iOS fonts, corners, cards, buttons, spacing, motion) on live SwiftUI components. A style travels as a short code (SP2-…) that the Playground's Style tab and its \`?style=\` links read, and exports as Theme.swift.`,
     "",
   ];
@@ -664,7 +664,7 @@ function writeLlms(items: RegistryItem[], blocks: BlockItem[]) {
     "",
     "## SwiftPieces Pro",
     "",
-    `A separate paid library for building whole apps: ${proCountsLabel} (production-ready SwiftUI screens, flows that string them into whole journeys from first run to settings, complete Xcode projects, and agent skills that build the rest in the same design) at ${PRO_URL}/library, plus Pro remixing in the Playground at ${SITE_URL}/apps (all ${proCatalog.remixing.apps} apps in the App Library, remix any app with AI, keep up to ${proCatalog.remixing.saves} remixes). One plan with lifetime access; plan and pricing: ${PRO_URL}/pro. Pro MCP endpoint: ${PRO_URL}/api/mcp (license key required): search_library, get_item, list_kit, get_kit_item, apply_design_skill, apply_recipe.`,
+    `A separate paid library for building whole apps: ${proCountsLabel} (production-ready SwiftUI screens, flows that string them into whole journeys from first run to settings, complete Xcode projects, and agent skills that build the rest in the same design) at ${PRO_URL}/library, plus Pro remixing in the Playground at ${SITE_URL}/apps (all ${proCatalog.remixing.apps} apps, remix any app with AI, keep up to ${proCatalog.remixing.saves} remixes). One plan with lifetime access; plan and pricing: ${PRO_URL}/pro. Pro MCP endpoint: ${PRO_URL}/api/mcp (license key required): search_library, get_item, list_kit, get_kit_item, apply_design_skill, apply_recipe.`,
     "",
   );
   for (const [cat, list] of byCat) {

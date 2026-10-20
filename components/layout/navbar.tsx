@@ -59,7 +59,7 @@ const menus: Menu[] = [
 
 const links: NavLink[] = [{ label: "Pro", href: "/pro" }];
 
-/** A menu item's badge: Pro items wear Pro's own badge (crown, gradient ring), the rest New or Beta. */
+/** A menu item's badge: Pro items wear the Pro tag (the Playground's, beside a Pro app), the rest New or Beta. */
 function Badge({ label }: { label?: string }) {
   if (!label) return null;
   return label === "Pro" ? <ProBadge size="sm" /> : <NewBadge>{label}</NewBadge>;

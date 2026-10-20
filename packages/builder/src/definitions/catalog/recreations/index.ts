@@ -33,24 +33,16 @@ import { recreation as airQuality } from "./air-quality.js";
 import { recreation as markdownNotes } from "./markdown-notes.js";
 import { recreation as packageTracker } from "./package-tracker.js";
 import { recreation as selfCarePet } from "./self-care-pet.js";
-import { recreation as stargazing } from "./stargazing.js";
 import { recreation as birdId } from "./bird-id.js";
-import { recreation as runningPlan } from "./running-plan.js";
-import { recreation as skiTracker } from "./ski-tracker.js";
 import { recreation as partyInvites } from "./party-invites.js";
 import { recreation as listeningStats } from "./listening-stats.js";
 import { recreation as wineRatings } from "./wine-ratings.js";
 import { recreation as filmDiary } from "./film-diary.js";
 import { recreation as taskManager } from "./task-manager.js";
 import { recreation as screenTime } from "./screen-time.js";
-import { recreation as focusTimer } from "./focus-timer.js";
 import { recreation as focusSoundscapes } from "./focus-soundscapes.js";
-import { recreation as sobrietyCounter } from "./sobriety-counter.js";
-import { recreation as babyTracker } from "./baby-tracker.js";
-import { recreation as sleepEnergy } from "./sleep-energy.js";
-import { recreation as fastingTimer } from "./fasting-timer.js";
 
-const all: Recreation[] = [breatheApp, gentleActivity, recipeCook, sunEvents, feelingsJournal, flightTracker, plantCare, wordPractice, dailyJournal, waterStreak, downtimeLists, calendarPlanner, moodDiary, budgetEnvelopes, splitBills, visualPlanner, readingTracker, podcastPlayer, habitJournal, tripOrganizer, workoutLog, weatherForecast, fastingTimer, sleepEnergy, babyTracker, sobrietyCounter, focusSoundscapes, focusTimer, screenTime, taskManager, filmDiary, wineRatings, listeningStats, partyInvites, skiTracker, runningPlan, birdId, stargazing, selfCarePet, packageTracker, markdownNotes, airQuality];
+const all: Recreation[] = [breatheApp, gentleActivity, recipeCook, sunEvents, feelingsJournal, flightTracker, plantCare, wordPractice, dailyJournal, waterStreak, downtimeLists, calendarPlanner, moodDiary, budgetEnvelopes, splitBills, visualPlanner, readingTracker, podcastPlayer, habitJournal, tripOrganizer, workoutLog, weatherForecast, focusSoundscapes, screenTime, taskManager, filmDiary, wineRatings, listeningStats, partyInvites, birdId, selfCarePet, packageTracker, markdownNotes, airQuality];
 
 /**
  * The recreations anyone can open (owner's call, 2026-10-01): a calendar, a podcast player and a

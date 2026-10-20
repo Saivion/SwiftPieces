@@ -36,7 +36,7 @@ export function OpenSaved() {
       ) : (
         <div className="flex flex-col items-center gap-3">
           <p className="text-[14px] text-muted">That remix couldn&apos;t be found in your account.</p>
-          <a className="text-[14px] font-medium text-foreground underline underline-offset-2" href="/apps">Browse the App Library</a>
+          <a className="text-[14px] font-medium text-foreground underline underline-offset-2" href="/apps">Browse the Playground</a>
         </div>
       )}
     </div>

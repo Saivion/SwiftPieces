@@ -16,7 +16,7 @@ export const proCatalog = {
    * Library, five free and the rest Pro's (lib/apps, Pro lib/remixing.ts PLAYGROUND_APPS), and
    * saved remixes (Pro SAVE_LIMITS). lib/apps.test.ts checks the app counts against lib/apps.
    */
-  remixing: { saves: 100, apps: 42, proApps: 37 },
+  remixing: { saves: 100, apps: 34, proApps: 29 },
   /** Flows: every template's journeys (Pro lib/flows.ts flowCount() and flowKindCounts()). */
   flows: { total: 48, onboarding: 12, core: 24, account: 12 },
   /** Brand presets across the templates and the families they come from (Pro lib/brand/presets.ts presetDefs). */

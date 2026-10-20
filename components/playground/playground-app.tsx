@@ -120,7 +120,7 @@ export default function PlaygroundApp({ page, project, onReady }: Props) {
       .catch(() => setCloud(null));
   }, [cloudId, remember]);
   // ?shot= opens at one App Store screenshot (the app page links here with it); ?screen= at one
-  // step of the remix (the App Library's Browse by screen); ?component= selects a component
+  // step of the remix (the Playground's Browse by screen); ?component= selects a component
   // (component pages link here with it); ?style= puts on a style made on /styles.
   const [asked] = useState(() => {
     const q = new URLSearchParams(window.location.search);

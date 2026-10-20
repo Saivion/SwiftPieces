@@ -39,9 +39,6 @@
 /* A clear stage drops the ground each preview paints for itself (palette.ts `ground.bg`, set inline
    as #121212 by every preview's Stage wrapper), so the piece sits straight on the dashed frame. */
 .stage-clear [style*="background: var(--pv-bg"] { background: transparent !important; }
-/* A Pro frame (the App Library's way into the Pro apps): on hover it fills with the animated Pro
-   halftone from its corner, as every Pro card does (components/apps/pro-unlock.tsx), and its dashes
-   and crosses take the Pro palette's blue into orange. */
 /* The Pro badge (components/ui/pro-badge.tsx), the same in Pro's globals.css and like the Playground's
    Pro tag: a 1px ring fading from the palette's blue to its orange, a faint wash of the same two, and
    the word in a blend of the blue with the ink, so it reads in light and dark alike. */
@@ -54,28 +51,14 @@
     linear-gradient(100deg, color-mix(in srgb, var(--pb-a) 45%, transparent), color-mix(in srgb, var(--pb-b) 45%, transparent)) border-box;
 }
 
-.frame-pro { --pb-a: var(--pro-c3); --pb-b: var(--pro-c2); transition: color .2s ease; }
-.frame-pro:hover, .frame-pro:has(:focus-visible) { color: var(--foreground); }
-
 /* A text link's underline (.u-link, brand theme.css) draws when anywhere on its link is hovered,
    so the arrow and any badge beside the words count too. */
 .group:hover > .u-link::after, .group:focus-visible > .u-link::after { transform: scaleX(1); transform-origin: left; }
 
-/* App Library header (remix-header.tsx): the picked app's pair fades in over the last one; its row in
-   the picker fills a bar along its bottom edge over its turn, and the bar running out picks the next
-   app. So the motion gate pausing the bar until the visitor first interacts pauses the turns too,
-   and reduced motion (no bar animation) leaves the turns to clicks. */
-.remix-pair { opacity: 0; visibility: hidden; transition: opacity .5s ease, visibility .5s; }
-.remix-pair[data-active] { opacity: 1; visibility: visible; }
-/* The captions don't cross-fade: the leaving pair's is gone before the arriving pair's shows, so two
-   lines of small text never sit on top of each other mid-turn. */
-.remix-pair figcaption { transition: opacity .2s ease; }
-.remix-pair:not([data-active]) figcaption { opacity: 0; }
-.remix-pair[data-active] figcaption { transition-delay: .3s; }
-.remix-progress { position: absolute; left: 10px; right: 10px; bottom: 0; height: 2px; background: var(--accent); transform-origin: left; animation: remix-fill 4s linear forwards; }
-@keyframes remix-fill { from { transform: scaleX(0); } to { transform: scaleX(1); } }
-html:not([data-motion]) .remix-progress { animation-play-state: paused; }
-@media (prefers-reduced-motion: reduce) { .remix-pair { transition: none; } .remix-progress { animation: none; transform: none; } }
+/* App Library headline (remix-headline.tsx): each phone leans like a sticker and, under a pointer,
+   straightens and lifts. Transform only; Reduce Motion keeps the lean and drops the move. */
+.remix-phone { rotate: var(--tilt, 0deg); transition: rotate .45s cubic-bezier(0.22, 1, 0.36, 1), translate .45s cubic-bezier(0.22, 1, 0.36, 1); }
+@media (hover: hover) and (prefers-reduced-motion: no-preference) { .remix-phone:hover { rotate: 0deg; translate: 0 -0.05em; } }
 
 /* Fumadocs consumes these; the docs inherit the brand tokens, which flip with the theme. */
 .dark, .light {

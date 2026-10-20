@@ -47,10 +47,10 @@ type Facts = { name: string };
 const facts = (store as unknown as { apps: Record<string, Facts> }).apps;
 const shortName = (name: string) => name.split(/\s[:\-–—|]\s|:\s/)[0].trim();
 
-/** Each app in the App Library, found by its name ("timepage", "waterllama"). */
+/** Each app in the Playground, found by its name ("timepage", "waterllama"). */
 const APPS: SearchEntry[] = LIBRARY.filter((a) => facts[a.slug]).map((a) => {
   const name = a.name ?? shortName(facts[a.slug].name);
-  return entry(`/apps/${a.slug}`, name, `${name} in the App Library: our SwiftUI remix of its screens, live in the Playground.`, "Apps", `Open the ${name} remix in the Playground.`);
+  return entry(`/apps/${a.slug}`, name, `${name} in the Playground: our SwiftUI remix of its screens, live in the browser.`, "Apps", `Open the ${name} remix in the Playground.`);
 });
 
 export const searchFeatures: SearchEntry[] = [...FEATURES, ...APPS];

@@ -24,13 +24,13 @@ export const changelog: ChangelogEntry[] = [
     tint: "orange",
   },
   {
-    slug: "twenty-two-apps",
+    slug: "fourteen-apps",
     date: "Oct 15, 2026",
-    title: "22 new apps in the Playground",
-    summary: "The App Library more than doubles to 42 remixes. Two new free apps, a gym log and a weather forecast, and twenty more with Pro, from fasting and sleep to skiing, birding and stargazing.",
+    title: "14 new apps in the Playground",
+    summary: "The App Library grows to 34 remixes. Two new free apps, a gym log and a weather forecast, and twelve more with Pro, from focus sounds and screen time to films, wine, birding and parcels.",
     points: [
-      "Free: a strength training log after Hevy, with a set table you check off, a rest timer, the records you beat and your progress; and a weather app after Mercury Weather, where every screen's ground is the weather, with an hourly curve you scrub and eight days on one cold-to-hot scale.",
-      "Pro: Zero, Rise, Huckleberry, I Am Sober, Endel, Session, Opal, Things 3, Letterboxd, Vivino, stats.fm, Partiful, Slopes, Runna, Merlin Bird ID, Sky Guide, Finch, Parcel, Bear and Paku, each remixed end to end in six or seven screens.",
+      "Free: a strength training log after Hevy, with a set table you check off, a rest timer, the records you beat and your progress; and a weather app after Mercury Weather, calm on a plain ground, with an hourly curve you scrub, rain by the hour and eight days on one cold-to-hot scale.",
+      "Pro: Endel, Opal, Things 3, Letterboxd, Vivino, stats.fm, Partiful, Merlin Bird ID, Finch, Parcel, Bear and Paku, each remixed end to end in six or seven screens.",
       "Two new pieces carry them: Set Table, an exercise's sets with a check that tints the row and starts a rest timer, and Forecast Range, days of a forecast as capsules painted from cold to hot.",
       "New icons for the remixes: binoculars, bird, archive, waveform, a raised hand and a bottle, plus weather symbols for sun and cloud, rain, storms, wind, an umbrella and a thermometer.",
     ],
