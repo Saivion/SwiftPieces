@@ -1,6 +1,6 @@
 ---
 title: "Timer Dial"
-description: "A countdown ring you set by dragging a liquid glass knob around it like the Timer dial, with a tick per step and a heavier detent every 5s. A solid ring over a minute-tick scale, semibold display numerals, a breathing signal warning zone, a sage finish, optional glass start, pause and reset bubbles that bud out of each other, and a determinate progress mode."
+description: "A countdown ring you set by dragging a glass knob around it, with a tick per step, a warning zone and start, pause and reset bubbles."
 piece: "TimerDial"
 category: "controls"
 minIOSVersion: "17.0"
@@ -11,46 +11,7 @@ registryDependencies: []
 
 {/* GENERATED FILE. Edit registry/swift/controls/TimerDial.swift or TimerDial.mdx instead. */}
 
-Settable countdown ring, or a determinate progress ring with the same look. The ring and its ticks are content; the knob riding the ring is a liquid glass bubble, and `style.showsControls` adds start, pause and reset as glass bubbles under the dial: reset buds out of the start bubble while there is something to reset.
-
-## Notes
-
-- While idle or paused, dragging around the ring sets `seconds` like a kitchen timer: the angle maps to `0...maxSeconds` in `step` increments. The knob rides under your finger and the ring follows it, with no lag; the value, the digits and the lit ticks move in whole steps. Let go and the knob clicks into its detent on a short spring from rest, so it never swings past the value shown, and seats with a small pop. Touching anywhere else on the ring moves the knob straight there. Touching the dial while paused starts the countdown over from the dialed length.
-- The knob is a clear liquid glass bubble riding the ring, so the ring's color shows through it. It is larger while the dial can be set, and lifts while held: a little larger again, with a deeper shadow. It drops back with an elastic give and a small pop when you let go, while the ring and the value land firm. It stays on the ring throughout, at 12 o'clock once a countdown is done or a progress ring is empty.
-- The value stops at one `step` and at a full turn. Past either end the knob gives with rubber-band resistance, never more than about its own width, while the value stays at the end; let go and it springs back at the speed it was moving, on the snap spring rather than an elastic one, since the ring is the time: it passes the end back into the range by under a point when let go at rest, and by a few points at most when flicked back. Drag on more than half a turn past an end and the knob comes round to your finger, taking the value there. Crossing 12 o'clock never wraps the value from one end to the other, and touching the knob at the top of a full dial grabs it there rather than emptying the dial.
-- Haptics: `.selection` per step, throttled so a fast spin over 1s steps clicks instead of buzzing, and a rigid impact on every multiple of 5 and at either end. VoiceOver adjusts it with swipe up/down; those changes, a new `seconds` from your code and a new `progress` value all land on the same short spring, with no overshoot to misread, unless you animate the change yourself. Under your finger the ring and knob never animate, even inside an animated transaction of yours.
-- One face throughout: the ring shows the time left against `maxSeconds`, so it winds to the set time and drains back to 12 o'clock from there. A `seconds` longer than `maxSeconds`, set from your code, is measured against itself instead, so that countdown still drains from a full ring; dialing clamps to `maxSeconds`. The look comes from `Style.standard`: a solid signal ring over a raised track, a clear glass knob, a 60-tick scale inside that brightens under the value, and semibold display numerals reading `m:ss` with the leading `0:` dimmed. `Style.sky` swaps the ring; `colors` still overrides it (several colors draw an angular gradient). `knob` no longer does anything: the knob is glass.
-- Timing is anchored to a start date and rendered by `TimelineView`, so the ring never drifts; a single `.task` sleeps until the finish. Toggling `isRunning` off banks the elapsed time; on resumes. After finishing, `true` restarts from `seconds`. Changing `seconds` resets.
-- Digits roll toward the new value, up when time is added and down as it counts, without rolling past it, and change at once under your finger. The caption (Ready, Remaining, Paused, Done) morphs letter by letter from one phase to the next.
-- `Style(showsControls: true)` adds start, pause and reset under the countdown dial as liquid glass bubbles. Start is glass tinted like the ring, its glyph swapping between play and pause as it toggles `isRunning`. Reset buds out of it to rest beside it, apart, while the dial is running, paused or done, the pair keeping centred, and melts back into it once the dial is ready again; it stops the countdown and sets the dial back to `seconds`. Off by default, so a dial with your own controls looks as it did.
-- At or below `warningAt` the signal ring fades in over the base ring and the digits turn signal. The dial beats once a second, up to 1.2%: each beat peaks as the digits change, with a soft impact, and the beat fades in and out instead of popping, including when you pause. Finishing springs a full sage ring in under the knob and plays `.success`.
-- `TimerDial(progress:)` is the determinate mode: the same ring and knob with a percent readout (dimmed %) and no clock or dial. Turn `showsTicks` off and lower `digitSize` for small rings.
-- Digits scale with Dynamic Type relative to `.largeTitle` and never outgrow the ring. Reduce Motion keeps the knob tracking your finger but stops it firm at the ends, drops the lift scale and the landing pop (the shadow still deepens), lands without overshoot, fades the reset bubble in and out in place, crossfades the digits and the caption, ticks the ring once per second and skips the finish scale. In the warning zone the beat becomes a brief brightening of the ring each second, and the soft impact still plays. Reduce Transparency draws the glass solid.
-- Need a whole focus session with task binding and breaks? SwiftPieces Pro has the Focus screen (`focus-timer`).
-
-## Usage
-
-```swift
-TimerDialExample().preferredColorScheme(.light)
-```
-
-## Parameters
-
-| Parameter | Description |
-| --- | --- |
-| `seconds` | Bound countdown length. Dragging around the ring while idle or paused rewrites it. |
-| `isRunning` | Set `true` to run, `false` to pause. Flips to `false` when the countdown finishes; set it back to `true` to restart. |
-| `step` | Seconds per dial detent. Every multiple of 5 plays a heavier tick. |
-| `maxSeconds` | Value at a full turn of the dial. |
-| `warningAt` | Remaining seconds at or below which the ring turns to `style.warning` and breathes. |
-| `lineWidth` | Ring thickness in points. |
-| `colors` | Overrides `style.fill`: one color for a flat ring, or several for an angular gradient. `nil` uses the style. |
-| `caption` | Text under the digits. Defaults to the phase (Ready, Remaining, Paused, Done). |
-| `style` | Ring, track, knob, tick, warning and finish colors plus the numeral size. `.standard` is the house palette with a tangerine ring. |
-| `onFinish` | Called once when the ring reaches zero. |
-| `progress` | Determinate mode: a 0–1 value with a percent readout and no clock. |
-
-## Source
+<Showcase name="TimerDial">
 
 <Tabs items={["TimerDial.swift"]}>
 <Tab value="TimerDial.swift">
@@ -806,7 +767,7 @@ extension PieceMotion {
 // and melt back into each other, and the frosted fallback before iOS 26. Each piece carries a copy of only
 // the parts it uses, so this file stands alone. Generated from registry/foundation/PieceLiquid.swift in the
 // SwiftPieces repo; edit it there, not here. The rules are in LIQUID_GLASS.md.
-// swiftpieces-liquid: 1.7.1 (liquid, liquidPop, bud, morphText)
+// swiftpieces-liquid: 1.8.0 (liquid, liquidPop, bud, morphText)
 
 /// The liquid glass language: one merge distance, two rest gaps, and the springs a bubble leaves and comes home on.
 ///
@@ -1116,31 +1077,46 @@ private struct PieceMorphText: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        Group {
-            if Self.splits(text) {
-                let glyphs = Array(text)
-                HStack(spacing: 0) {
-                    ForEach(glyphs.indices, id: \.self) { i in
-                        Text(String(glyphs[i]))
-                            .id("\(i)\(glyphs[i])")
-                            .transition(transition(i, scale: 0.6))
-                    }
-                }
-                // The letters' reading order, not the layout's: an HStack lays its children out backwards under a
-                // right-to-left layout.
-                .environment(\.layoutDirection, .leftToRight)
-            } else {
-                ZStack(alignment: .leading) {
-                    Text(text)
-                        .id(text)
-                        .transition(transition(0, scale: 0.9))
-                }
-            }
+        // The morphing label at its full size when it fits. When it doesn't (a long label at an accessibility text
+        // size, a narrow screen), the same words wrap onto a second line and shrink a little instead of running past
+        // the screen's edge; that one changes as a whole rather than letter by letter. A single word never splits
+        // across lines: it stays on one and shrinks further.
+        let oneWord = !text.contains(where: \.isWhitespace)
+        ViewThatFits(in: .horizontal) {
+            morphing.fixedSize()
+            Text(text)
+                .lineLimit(oneWord ? 1 : 2)
+                .multilineTextAlignment(.center)
+                .minimumScaleFactor(oneWord ? 0.5 : 0.75)
+                .fixedSize(horizontal: false, vertical: true)
+                .id(text)
+                .transition(transition(0, scale: 0.9))
         }
         .font(font)
-        .fixedSize()
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(text)
+    }
+
+    @ViewBuilder private var morphing: some View {
+        if Self.splits(text) {
+            let glyphs = Array(text)
+            HStack(spacing: 0) {
+                ForEach(glyphs.indices, id: \.self) { i in
+                    Text(String(glyphs[i]))
+                        .id("\(i)\(glyphs[i])")
+                        .transition(transition(i, scale: 0.6))
+                }
+            }
+            // The letters' reading order, not the layout's: an HStack lays its children out backwards under a
+            // right-to-left layout.
+            .environment(\.layoutDirection, .leftToRight)
+        } else {
+            ZStack(alignment: .leading) {
+                Text(text)
+                    .id(text)
+                    .transition(transition(0, scale: 0.9))
+            }
+        }
     }
 
     private func transition(_ i: Int, scale: CGFloat) -> AnyTransition {
@@ -1178,3 +1154,46 @@ private struct PieceMorphText: View {
 
 </Tab>
 </Tabs>
+
+</Showcase>
+
+<PieceFacts name="TimerDial" />
+
+Settable countdown ring, or a determinate progress ring with the same look. The ring and its ticks are content; the knob riding the ring is a liquid glass bubble, and `style.showsControls` adds start, pause and reset as glass bubbles under the dial: reset buds out of the start bubble while there is something to reset.
+
+## Notes
+
+- While idle or paused, dragging around the ring sets `seconds` like a kitchen timer: the angle maps to `0...maxSeconds` in `step` increments. The knob rides under your finger and the ring follows it, with no lag; the value, the digits and the lit ticks move in whole steps. Let go and the knob clicks into its detent on a short spring from rest, so it never swings past the value shown, and seats with a small pop. Touching anywhere else on the ring moves the knob straight there. Touching the dial while paused starts the countdown over from the dialed length.
+- The knob is a clear liquid glass bubble riding the ring, so the ring's color shows through it. It is larger while the dial can be set, and lifts while held: a little larger again, with a deeper shadow. It drops back with an elastic give and a small pop when you let go, while the ring and the value land firm. It stays on the ring throughout, at 12 o'clock once a countdown is done or a progress ring is empty.
+- The value stops at one `step` and at a full turn. Past either end the knob gives with rubber-band resistance, never more than about its own width, while the value stays at the end; let go and it springs back at the speed it was moving, on the snap spring rather than an elastic one, since the ring is the time: it passes the end back into the range by under a point when let go at rest, and by a few points at most when flicked back. Drag on more than half a turn past an end and the knob comes round to your finger, taking the value there. Crossing 12 o'clock never wraps the value from one end to the other, and touching the knob at the top of a full dial grabs it there rather than emptying the dial.
+- Haptics: `.selection` per step, throttled so a fast spin over 1s steps clicks instead of buzzing, and a rigid impact on every multiple of 5 and at either end. VoiceOver adjusts it with swipe up/down; those changes, a new `seconds` from your code and a new `progress` value all land on the same short spring, with no overshoot to misread, unless you animate the change yourself. Under your finger the ring and knob never animate, even inside an animated transaction of yours.
+- One face throughout: the ring shows the time left against `maxSeconds`, so it winds to the set time and drains back to 12 o'clock from there. A `seconds` longer than `maxSeconds`, set from your code, is measured against itself instead, so that countdown still drains from a full ring; dialing clamps to `maxSeconds`. The look comes from `Style.standard`: a solid signal ring over a raised track, a clear glass knob, a 60-tick scale inside that brightens under the value, and semibold display numerals reading `m:ss` with the leading `0:` dimmed. `Style.sky` swaps the ring; `colors` still overrides it (several colors draw an angular gradient). `knob` no longer does anything: the knob is glass.
+- Timing is anchored to a start date and rendered by `TimelineView`, so the ring never drifts; a single `.task` sleeps until the finish. Toggling `isRunning` off banks the elapsed time; on resumes. After finishing, `true` restarts from `seconds`. Changing `seconds` resets.
+- Digits roll toward the new value, up when time is added and down as it counts, without rolling past it, and change at once under your finger. The caption (Ready, Remaining, Paused, Done) morphs letter by letter from one phase to the next.
+- `Style(showsControls: true)` adds start, pause and reset under the countdown dial as liquid glass bubbles. Start is glass tinted like the ring, its glyph swapping between play and pause as it toggles `isRunning`. Reset buds out of it to rest beside it, apart, while the dial is running, paused or done, the pair keeping centred, and melts back into it once the dial is ready again; it stops the countdown and sets the dial back to `seconds`. Off by default, so a dial with your own controls looks as it did.
+- At or below `warningAt` the signal ring fades in over the base ring and the digits turn signal. The dial beats once a second, up to 1.2%: each beat peaks as the digits change, with a soft impact, and the beat fades in and out instead of popping, including when you pause. Finishing springs a full sage ring in under the knob and plays `.success`.
+- `TimerDial(progress:)` is the determinate mode: the same ring and knob with a percent readout (dimmed %) and no clock or dial. Turn `showsTicks` off and lower `digitSize` for small rings.
+- Digits scale with Dynamic Type relative to `.largeTitle` and never outgrow the ring. Reduce Motion keeps the knob tracking your finger but stops it firm at the ends, drops the lift scale and the landing pop (the shadow still deepens), lands without overshoot, fades the reset bubble in and out in place, crossfades the digits and the caption, ticks the ring once per second and skips the finish scale. In the warning zone the beat becomes a brief brightening of the ring each second, and the soft impact still plays. Reduce Transparency draws the glass solid.
+- Need a whole focus session with task binding and breaks? SwiftPieces Pro has the Focus screen (`focus-timer`).
+
+## Usage
+
+```swift
+TimerDialExample().preferredColorScheme(.light)
+```
+
+## Parameters
+
+| Parameter | Description |
+| --- | --- |
+| `seconds` | Bound countdown length. Dragging around the ring while idle or paused rewrites it. |
+| `isRunning` | Set `true` to run, `false` to pause. Flips to `false` when the countdown finishes; set it back to `true` to restart. |
+| `step` | Seconds per dial detent. Every multiple of 5 plays a heavier tick. |
+| `maxSeconds` | Value at a full turn of the dial. |
+| `warningAt` | Remaining seconds at or below which the ring turns to `style.warning` and breathes. |
+| `lineWidth` | Ring thickness in points. |
+| `colors` | Overrides `style.fill`: one color for a flat ring, or several for an angular gradient. `nil` uses the style. |
+| `caption` | Text under the digits. Defaults to the phase (Ready, Remaining, Paused, Done). |
+| `style` | Ring, track, knob, tick, warning and finish colors plus the numeral size. `.standard` is the house palette with a tangerine ring. |
+| `onFinish` | Called once when the ring reaches zero. |
+| `progress` | Determinate mode: a 0–1 value with a percent readout and no clock. |

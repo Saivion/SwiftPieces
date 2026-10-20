@@ -9,7 +9,7 @@ import { CategoryDirectory } from "@/components/sections/category-directory";
 import { CTA } from "@/components/sections/cta";
 import { Reveal } from "@/components/effects/reveal";
 import { JsonLd } from "@/components/seo/json-ld";
-import { sectionTitle, sectionBody, stickyColumn } from "@/components/sections/feature-row";
+import { SectionHead, sectionTitle, sectionBody, stickyColumn } from "@/components/sections/feature-row";
 import { getRegistryIndex, piecePath } from "@/lib/registry";
 import { getHub, hubItems, hubPath, hubs, type Hub } from "@/lib/hubs";
 import { breadcrumbJsonLd, faqJsonLd, pageMetadata, WEBSITE_ID } from "@/lib/seo";
@@ -73,32 +73,32 @@ export default async function HubPage(props: Props) {
   return (
     <>
       <JsonLd data={structuredData(hub, url)} />
-      <section className="relative pt-16 pb-24 md:pt-24 md:pb-32">
+      <section className="relative pt-16 pb-12 md:pt-24 sm:pb-[68px]">
         <Container>
           <SectionHeader label={`${hub.name} · ${count}`} size="h1" title={hub.h1} description={hub.intro} action={{ label: "All components", href: "/components" }} />
-          <div className="mt-14">
+          <div className="mt-12">
             <ShowcaseGrid items={items} filters={false} />
           </div>
         </Container>
 
-        {/* What the pieces are for: the same 1:2 grid as the questions below it. */}
-        <Container className="mt-24 sm:mt-32">
-          <section className="grid gap-10 lg:grid-cols-[1fr_2fr] lg:gap-20">
+        {/* What the pieces are for: running text, so it keeps the same 1:2 grid as the questions below it. */}
+        <Container className="mt-24 sm:mt-[136px]">
+          <section className="grid gap-8 lg:grid-cols-[1fr_2fr] lg:gap-16">
             <Reveal as="div" className={stickyColumn}>
               <h2 className={sectionTitle}>About these pieces</h2>
               <p className={cn("mt-4 max-w-xs", sectionBody)}>One self-contained Swift file each, Apple frameworks only, from iOS 17.</p>
             </Reveal>
             <Reveal as="div" className="flex flex-col gap-5">
               {hub.about.map((p) => (
-                <p key={p.slice(0, 32)} className="max-w-[64ch] text-[15px] leading-[26px] text-pretty text-muted">{p}</p>
+                <p key={p.slice(0, 32)} className="max-w-[64ch] text-[16px] leading-[28px] text-pretty text-muted">{p}</p>
               ))}
               {hub.guides.length ? (
-                <p className="text-[14px] leading-6 text-muted">
+                <p className="text-[14.5px] leading-6 text-muted">
                   Learn the technique:{" "}
                   {hub.guides.map(([label, href], i) => (
                     <span key={href}>
                       {i ? ", " : ""}
-                      <Link href={href} className="text-foreground underline decoration-white/25 underline-offset-4 transition-colors hover:decoration-white">{label}</Link>
+                      <Link href={href} className="text-foreground underline decoration-[var(--line-strong)] underline-offset-4 transition-colors hover:decoration-current">{label}</Link>
                     </span>
                   ))}
                   .
@@ -108,16 +108,14 @@ export default async function HubPage(props: Props) {
           </section>
         </Container>
 
-        <Questions items={hub.faqs} body={<>How the pieces work, and how to build the same thing yourself. Every piece&apos;s page has its full notes.</>} />
+        <Questions items={hub.faqs} spacing="mt-24 sm:mt-[136px]" body={<>How the pieces work, and how to build the same thing yourself. Every piece&apos;s page has its full notes.</>} />
 
-        <Container className="mt-24 sm:mt-32">
-          <section className="grid gap-10 lg:grid-cols-[1fr_2fr] lg:gap-20">
-            <Reveal as="div" className={stickyColumn}>
-              <h2 className={sectionTitle}>Keep browsing</h2>
-              <p className={cn("mt-4 max-w-xs", sectionBody)}>Nearby collections, then every category in the library.</p>
-            </Reveal>
-            <Reveal as="div" className="-mt-4">
-              <CategoryDirectory hubs={[...related, ...hubs.filter((h) => h.slug !== hub.slug && !hub.related.includes(h.slug))]} items={all} />
+        {/* The neighbouring hubs: the landing's directory shape, the head row and then the tiles. */}
+        <Container className="mt-24 sm:mt-[136px]">
+          <section>
+            <SectionHead title="Keep browsing" body="Nearby collections, then every category in the library." />
+            <Reveal>
+              <CategoryDirectory hubs={[...related, ...hubs.filter((h) => h.slug !== hub.slug && !hub.related.includes(h.slug))]} items={all} className="lg:grid-cols-4" />
             </Reveal>
           </section>
         </Container>

@@ -1,6 +1,6 @@
 ---
 title: "Silk"
-description: "A slowly folding silk surface lit by a movable light and shaded from a real gradient normal in a Metal shader, in house block fabrics (the brand red among them) and an adaptive standard style, with optional device-tilt lighting. Content only, so it carries no glass."
+description: "A slowly folding silk surface shaded in Metal and lit by a movable light, in the house fabrics, with optional tilt lighting."
 piece: "Silk"
 category: "backgrounds"
 minIOSVersion: "17.0"
@@ -11,37 +11,7 @@ registryDependencies: []
 
 {/* GENERATED FILE. Edit registry/swift/backgrounds/Silk.swift or Silk.mdx instead. */}
 
-Flowing silk background. Copy `Silk.metal` alongside this file. The shader samples the fold height field three times to build a normal, then shades it with Blinn-Phong so the sheen sits on the folds facing the light. It is a surface for content and glass controls to sit on, so it draws no glass and no text of its own.
-
-## Notes
-
-- Requires `Silk.metal` in the same target. The shader samples the fold height field three times per pixel (centre, +x, +y) to build a real gradient normal, then shades it with Blinn-Phong, so the sheen lands on the folds facing `light` instead of being painted by height.
-- `light` is a `UnitPoint` in the view's coordinates; move it to change where the highlight sits. `Style.depth` is the fold contrast and `Style.shine` the highlight tightness.
-- The folds start from their rest pose when the view appears and ease up to `speed` over about a second; every new `speed` eases in the same way instead of jumping, and `speed: 0` eases the folds to a stop. Time accumulates per frame from appearance and wraps on the shader's exact period (about seven minutes at speed 1), so the fabric never pops. It renders at up to 60 fps, and only while something moves: with the folds stopped and `tiltLight` off it stops drawing new frames once the fabric and the light have come to rest.
-- `tiltLight` starts a private `CMMotionManager` source at 30 Hz, relative to the attitude at start, and only while the view is on screen and the scene is active. The light glides toward each sample every frame (a 0.2 s low-pass) and eases toward ±0.6 of the view instead of stopping dead at a limit. It stops on disappear, whenever `scenePhase` leaves `.active` and when `tiltLight` turns off, and the light glides back to its resting point rather than jumping. It is a no-op in the simulator.
-- Reduce Motion holds the folds still: on the rest pose when it is on at appearance, or stopped at once where they are when it turns on, so the fabric never jumps. With `tiltLight` the light still follows the device, which is user-driven, not decorative.
-- `Style.standard` (default) is stone with a white sheen in light and charcoal with a sand sheen in dark. `.tangerine` (the brand red, `#FF0000`), `.sky`, `.butter`, `.sage`, `.lilac` and `.sand` are solid house-block fabrics for panels and cards; put `#141414` ink on them. `.ink`, `.graphite`, `.paper` and `.indigo` still work.
-- The radial fold term is centred off-screen, so no pinch point appears in the middle of the view.
-- Silk is a surface, not a control, so it draws no glass and no text of its own. Liquid glass controls sit on it well: the folds move behind their rims.
-- The `#Preview` is the brand red block fabric alone, full bleed, with nothing on top of it.
-
-## Usage
-
-```swift
-SilkExample().preferredColorScheme(.light)
-```
-
-## Parameters
-
-| Parameter | Description |
-| --- | --- |
-| `style` | Fabric color, sheen color, fold contrast and highlight tightness. `.standard` (default) follows light and dark; `.tangerine` (the brand red, `#FF0000`), `.sky`, `.butter`, `.sage`, `.lilac` and `.sand` are solid house-block fabrics for panels and cards. `.ink`, `.graphite`, `.paper` and `.indigo` remain available. |
-| `light` | Where the light comes from, in unit coordinates of the view. Top-left by default. |
-| `tiltLight` | When true, the device's attitude moves the light. Uses Core Motion and stops whenever the scene is not active. |
-| `scale` | Pattern zoom; larger is finer folds. |
-| `speed` | Time multiplier. |
-
-## Source
+<Showcase name="Silk" tone="black">
 
 <Tabs items={["Silk.swift", "Silk.metal"]}>
 <Tab value="Silk.swift">
@@ -471,3 +441,37 @@ static float silkHeight(float2 uv, float t) {
 
 </Tab>
 </Tabs>
+
+</Showcase>
+
+<PieceFacts name="Silk" />
+
+Flowing silk background. Copy `Silk.metal` alongside this file. The shader samples the fold height field three times to build a normal, then shades it with Blinn-Phong so the sheen sits on the folds facing the light. It is a surface for content and glass controls to sit on, so it draws no glass and no text of its own.
+
+## Notes
+
+- Requires `Silk.metal` in the same target. The shader samples the fold height field three times per pixel (centre, +x, +y) to build a real gradient normal, then shades it with Blinn-Phong, so the sheen lands on the folds facing `light` instead of being painted by height.
+- `light` is a `UnitPoint` in the view's coordinates; move it to change where the highlight sits. `Style.depth` is the fold contrast and `Style.shine` the highlight tightness.
+- The folds start from their rest pose when the view appears and ease up to `speed` over about a second; every new `speed` eases in the same way instead of jumping, and `speed: 0` eases the folds to a stop. Time accumulates per frame from appearance and wraps on the shader's exact period (about seven minutes at speed 1), so the fabric never pops. It renders at up to 60 fps, and only while something moves: with the folds stopped and `tiltLight` off it stops drawing new frames once the fabric and the light have come to rest.
+- `tiltLight` starts a private `CMMotionManager` source at 30 Hz, relative to the attitude at start, and only while the view is on screen and the scene is active. The light glides toward each sample every frame (a 0.2 s low-pass) and eases toward ±0.6 of the view instead of stopping dead at a limit. It stops on disappear, whenever `scenePhase` leaves `.active` and when `tiltLight` turns off, and the light glides back to its resting point rather than jumping. It is a no-op in the simulator.
+- Reduce Motion holds the folds still: on the rest pose when it is on at appearance, or stopped at once where they are when it turns on, so the fabric never jumps. With `tiltLight` the light still follows the device, which is user-driven, not decorative.
+- `Style.standard` (default) is stone with a white sheen in light and charcoal with a sand sheen in dark. `.tangerine` (the brand red, `#FF0000`), `.sky`, `.butter`, `.sage`, `.lilac` and `.sand` are solid house-block fabrics for panels and cards; put `#141414` ink on them. `.ink`, `.graphite`, `.paper` and `.indigo` still work.
+- The radial fold term is centred off-screen, so no pinch point appears in the middle of the view.
+- Silk is a surface, not a control, so it draws no glass and no text of its own. Liquid glass controls sit on it well: the folds move behind their rims.
+- The `#Preview` is the brand red block fabric alone, full bleed, with nothing on top of it.
+
+## Usage
+
+```swift
+SilkExample().preferredColorScheme(.light)
+```
+
+## Parameters
+
+| Parameter | Description |
+| --- | --- |
+| `style` | Fabric color, sheen color, fold contrast and highlight tightness. `.standard` (default) follows light and dark; `.tangerine` (the brand red, `#FF0000`), `.sky`, `.butter`, `.sage`, `.lilac` and `.sand` are solid house-block fabrics for panels and cards. `.ink`, `.graphite`, `.paper` and `.indigo` remain available. |
+| `light` | Where the light comes from, in unit coordinates of the view. Top-left by default. |
+| `tiltLight` | When true, the device's attitude moves the light. Uses Core Motion and stops whenever the scene is not active. |
+| `scale` | Pattern zoom; larger is finer folds. |
+| `speed` | Time multiplier. |

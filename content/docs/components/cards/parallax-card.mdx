@@ -1,6 +1,6 @@
 ---
 title: "Parallax Card"
-description: "An image card whose picture drifts slower than the scroll while a liquid glass caption panel drifts slower still, so the card reads in layers. The trailing glyph is a glass bubble joined to the panel by a liquid neck; a press lifts the card with a deeper shadow and the bubble leans toward its arrow, thinning the neck. The caption is composed from eyebrow, title, metadata, and trailing glyph slots."
+description: "An image card whose picture and liquid glass caption drift at different speeds as you scroll, so the card reads in layers."
 piece: "ParallaxCard"
 category: "cards"
 minIOSVersion: "17.0"
@@ -11,46 +11,7 @@ registryDependencies: []
 
 {/* GENERATED FILE. Edit registry/swift/cards/ParallaxCard.swift or ParallaxCard.mdx instead. */}
 
-Image card with two-layer scroll parallax, press-to-lift, and a slotted liquid glass caption. The caption is a glass panel inset over the bottom of the picture, and the trailing glyph a round glass bubble resting joined to it, so a liquid neck holds the two together as one surface.
-
-## Notes
-
-- The drift is computed with `visualEffect` from `proxy.frame(in: .scrollView)`, so the card works inside any `ScrollView` or `List` without a named coordinate space. Outside a scroll view it renders static.
-- Three layers move at different rates: the image at `parallax`, the caption at a third of that, and the scrim scales from 1.3x tall at the viewport center to 0.9x at the edges, so the bottom reads tighter as the card leaves. The scrim follows the square of the card's position, so it eases through the center instead of turning there. All three are pure functions of the scroll position, with no animation, so they never lag the scroll.
-- The image is oversized by `height * parallax` on each side and clipped, so no background shows at the extremes.
-- The caption is liquid glass: an inset panel with corners concentric to the card's, and the trailing glyph on a round glass bubble that rests joined to the panel, so a liquid neck holds the two together as one surface. On iOS 26 it is Liquid Glass; before that a frosted material with a light rim, and a solid fill under Reduce Transparency. Text and glyph on the neutral glass follow the appearance: dark ink in light mode, near white in dark. The card's shadow is cast from its outline alone, so the glass never takes it as a dark halo over the picture.
-- Pass `action:` to make the card a `Button`; the press lifts it to 1.02 rather than sinking it and deepens the shadow, arriving on a tight spring with no overshoot under the finger and settling back with a little give. The trailing bubble leans 2pt toward its arrow a beat after the card lifts, on a slightly looser spring, so the neck to the panel thins as if the arrow were pulling it out, and it returns a beat behind the card. It is a plain `Button`, so the standard scroll delay and cancellation apply, and a scroll that takes over the touch settles the card the same way. No haptics. Without an action it keeps a resting shadow.
-- The caption is slots: `eyebrow` (uppercased, tracked), `title`, `metadata` (dot-separated row), and `trailingSymbol` (on the glass bubble). All text is semibold; size and opacity set the hierarchy.
-- Reduce Motion disables the drift, the scrim scaling and the bubble's lean; the composition is unchanged. A press keeps the card its size: the shadow still deepens, and the card darkens slightly (lightens in dark mode, where a shadow barely shows), then lets go without overshoot.
-- `ParallaxCard.Style.scrim` puts white text straight over the tightening scrim, for busy photos that should stay edge to edge; its trailing bubble is dark glass so the white arrow reads.
-- `style:` (`ParallaxCard.Style`) sets `caption`, `captionFill`, `captionInk`, and `shadowOpacity`; `cornerRadius` defaults to 26. `captionFill` is now the panel's glass tint: `.clear`, the default, keeps it neutral. Tint it only when the colour means something, and set `captionInk` to an ink that reads on it. The press state reaches the caption through the environment, so VoiceOver still reads the button label.
-- **v2.2:** the solid caption block became a liquid glass panel, and the trailing glyph's ink circle a glass bubble joined to it. `captionFill` now defaults to neutral glass and `captionInk` to ink that follows the appearance.
-- The example renders each picture as a flat composition (a color ground, a disc, a cropped giant word) with `ImageRenderer`; no photos ship with the piece.
-- For an expanding card on a full discover screen, see the Pro Discover screen (`hero-expand`).
-
-## Usage
-
-```swift
-ParallaxCardExample()
-    .preferredColorScheme(.light)
-```
-
-## Parameters
-
-| Parameter | Description |
-| --- | --- |
-| `image` | The picture to show, scaled to fill. |
-| `eyebrow` | Optional small uppercase line above the title, for a category or date. |
-| `title` | Title drawn in the caption. |
-| `metadata` | Optional short facts shown in a dot-separated row under the title. |
-| `trailingSymbol` | Optional SF Symbol drawn in a glass bubble joined to the caption's trailing end, for example "arrow.up.right". |
-| `height` | Card height. |
-| `parallax` | How far the image drifts, as a fraction of `height` on each side. The caption drifts at a third of that. 0 disables the effect. |
-| `cornerRadius` | Corner radius of the card. |
-| `style` | Caption treatment and colors. `.standard` is a neutral glass panel whose ink follows the appearance; `.scrim` puts white text over a darkened bottom edge. |
-| `action` | Optional tap handler. When set, the card lifts on press and reads as a button. |
-
-## Source
+<Showcase name="ParallaxCard">
 
 <Tabs items={["ParallaxCard.swift"]}>
 <Tab value="ParallaxCard.swift">
@@ -567,7 +528,7 @@ extension PieceMotion {
 // and melt back into each other, and the frosted fallback before iOS 26. Each piece carries a copy of only
 // the parts it uses, so this file stands alone. Generated from registry/foundation/PieceLiquid.swift in the
 // SwiftPieces repo; edit it there, not here. The rules are in LIQUID_GLASS.md.
-// swiftpieces-liquid: 1.7.1 (liquid)
+// swiftpieces-liquid: 1.8.0 (liquid)
 
 /// The liquid glass language: one merge distance, two rest gaps, and the springs a bubble leaves and comes home on.
 ///
@@ -713,3 +674,46 @@ private extension View {
 
 </Tab>
 </Tabs>
+
+</Showcase>
+
+<PieceFacts name="ParallaxCard" />
+
+Image card with two-layer scroll parallax, press-to-lift, and a slotted liquid glass caption. The caption is a glass panel inset over the bottom of the picture, and the trailing glyph a round glass bubble resting joined to it, so a liquid neck holds the two together as one surface.
+
+## Notes
+
+- The drift is computed with `visualEffect` from `proxy.frame(in: .scrollView)`, so the card works inside any `ScrollView` or `List` without a named coordinate space. Outside a scroll view it renders static.
+- Three layers move at different rates: the image at `parallax`, the caption at a third of that, and the scrim scales from 1.3x tall at the viewport center to 0.9x at the edges, so the bottom reads tighter as the card leaves. The scrim follows the square of the card's position, so it eases through the center instead of turning there. All three are pure functions of the scroll position, with no animation, so they never lag the scroll.
+- The image is oversized by `height * parallax` on each side and clipped, so no background shows at the extremes.
+- The caption is liquid glass: an inset panel with corners concentric to the card's, and the trailing glyph on a round glass bubble that rests joined to the panel, so a liquid neck holds the two together as one surface. On iOS 26 it is Liquid Glass; before that a frosted material with a light rim, and a solid fill under Reduce Transparency. Text and glyph on the neutral glass follow the appearance: dark ink in light mode, near white in dark. The card's shadow is cast from its outline alone, so the glass never takes it as a dark halo over the picture.
+- Pass `action:` to make the card a `Button`; the press lifts it to 1.02 rather than sinking it and deepens the shadow, arriving on a tight spring with no overshoot under the finger and settling back with a little give. The trailing bubble leans 2pt toward its arrow a beat after the card lifts, on a slightly looser spring, so the neck to the panel thins as if the arrow were pulling it out, and it returns a beat behind the card. It is a plain `Button`, so the standard scroll delay and cancellation apply, and a scroll that takes over the touch settles the card the same way. No haptics. Without an action it keeps a resting shadow.
+- The caption is slots: `eyebrow` (uppercased, tracked), `title`, `metadata` (dot-separated row), and `trailingSymbol` (on the glass bubble). All text is semibold; size and opacity set the hierarchy.
+- Reduce Motion disables the drift, the scrim scaling and the bubble's lean; the composition is unchanged. A press keeps the card its size: the shadow still deepens, and the card darkens slightly (lightens in dark mode, where a shadow barely shows), then lets go without overshoot.
+- `ParallaxCard.Style.scrim` puts white text straight over the tightening scrim, for busy photos that should stay edge to edge; its trailing bubble is dark glass so the white arrow reads.
+- `style:` (`ParallaxCard.Style`) sets `caption`, `captionFill`, `captionInk`, and `shadowOpacity`; `cornerRadius` defaults to 26. `captionFill` is now the panel's glass tint: `.clear`, the default, keeps it neutral. Tint it only when the colour means something, and set `captionInk` to an ink that reads on it. The press state reaches the caption through the environment, so VoiceOver still reads the button label.
+- **v2.2:** the solid caption block became a liquid glass panel, and the trailing glyph's ink circle a glass bubble joined to it. `captionFill` now defaults to neutral glass and `captionInk` to ink that follows the appearance.
+- The example renders each picture as a flat composition (a color ground, a disc, a cropped giant word) with `ImageRenderer`; no photos ship with the piece.
+- For an expanding card on a full discover screen, see the Pro Discover screen (`hero-expand`).
+
+## Usage
+
+```swift
+ParallaxCardExample()
+    .preferredColorScheme(.light)
+```
+
+## Parameters
+
+| Parameter | Description |
+| --- | --- |
+| `image` | The picture to show, scaled to fill. |
+| `eyebrow` | Optional small uppercase line above the title, for a category or date. |
+| `title` | Title drawn in the caption. |
+| `metadata` | Optional short facts shown in a dot-separated row under the title. |
+| `trailingSymbol` | Optional SF Symbol drawn in a glass bubble joined to the caption's trailing end, for example "arrow.up.right". |
+| `height` | Card height. |
+| `parallax` | How far the image drifts, as a fraction of `height` on each side. The caption drifts at a third of that. 0 disables the effect. |
+| `cornerRadius` | Corner radius of the card. |
+| `style` | Caption treatment and colors. `.standard` is a neutral glass panel whose ink follows the appearance; `.scrim` puts white text over a darkened bottom edge. |
+| `action` | Optional tap handler. When set, the card lifts on press and reads as a button. |

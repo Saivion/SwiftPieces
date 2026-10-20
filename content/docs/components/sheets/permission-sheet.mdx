@@ -1,6 +1,6 @@
 ---
 title: "Permission Sheet"
-description: "A pre-permission sheet that previews what it brings as a fanned stack of notification banners, each a tinted app tile, a line and now, that drop in one after another and deal the next to the front while it waits. A centred title and message sit under it, the request is a signal glass capsule whose label morphs through Requesting to Allowed as the stack pops and Not now melts into it, and a denial greys the stack out, swaps the copy and routes the button to Settings. Without benefits it leads with an icon tile."
+description: "A pre-permission sheet that previews what it brings as a stack of notification banners before the request."
 piece: "PermissionSheet"
 category: "sheets"
 minIOSVersion: "17.0"
@@ -11,47 +11,7 @@ registryDependencies: []
 
 {/* GENERATED FILE. Edit registry/swift/sheets/PermissionSheet.swift or PermissionSheet.mdx instead. */}
 
-Explains a permission, runs the real request, and reacts to the result.
-
-## Notes
-
-- The sheet previews what the permission brings. Your `benefits` become a fanned stack of notification banners above the title: each is a solid card with its symbol on a tinted app tile (butter, sage and lilac in order by default), its line, and "now". The two behind the front banner sit a little smaller, lower and a shade darker, so their edges read as separate cards. Keep each line short, like a notification ("Design review in 30 minutes"). Without benefits the sheet leads with the icon tile instead.
-- Present it in a `.sheet` with `.presentationBackground(PermissionSheet.Style.standard.surface)`, sized to its content (the example measures it for a `.height` detent); it also works inline in any container. The title and message are centred under the stack. About 0.3 s in, once a sheet has settled, the banners drop in from above, the front one first and the rest 90ms apart behind it.
-- While the sheet waits for an answer, the stack deals its next banner to the front every 2.6 s on the settle spring, so each benefit gets read. It stops once the request is tapped, and never runs under Reduce Motion. VoiceOver reads the whole stack as one element listing every benefit.
-- `request` is your real permission call (for example `UNUserNotificationCenter.requestAuthorization`). The request is a signal glass capsule that sinks under the finger; a tap brings in a spinner and morphs its label letter by letter to Requesting until the call returns. Nothing waits on an animation: the button's action and enabled state change the moment the answer arrives.
-- `true` pops the stack and plays `.success`, morphs the button to Allowed with a check on sage glass while the Not now capsule melts up into it (its place keeps its size, so the button never shifts), then calls `onGranted` about a second later so you can dismiss. Without benefits the tile turns sage with a check instead.
-- A denial stays calm, with no shake: the stack greys out to half strength, which reads as notifications off, and `.warning` plays. The title and message lift away through a blur and the denied copy rises into their place, and the button morphs to Open Settings on glass the label's color and opens `UIApplication.openSettingsURLString`. Without benefits the tile turns sand with a gear.
-- Requesting, Allowed, Open Settings and "now" go through `String(localized:)`.
-- `Style` sets the surface, labels, the icon tile's colors, the banners' tile tints (`benefitTiles`, or `[.clear]` for neutral tiles), the action color and the tile radius.
-- On iOS 26 the request and Not now are Liquid Glass and melt into each other through the neck; before that they are frosted glass with a light rim, and with Reduce Transparency they are solid.
-- Under Reduce Motion nothing drops, blurs, bounces or pops: the banners fade in already stacked and are never dealt, the labels and the two copies crossfade in place, Not now fades where it rests, and the capsules dim while pressed instead of sinking. Haptics are unchanged.
-- At accessibility text sizes the button's label is plain text that can wrap, and changes with a blur instead of the letter morph.
-- **v3:** redesigned around a preview of the notifications themselves. The benefit rows became the banner stack, and the copy is centred under it. The public API is unchanged.
-- For a full multi-step onboarding flow, see the Onboarding screen in SwiftPieces Pro.
-
-## Usage
-
-```swift
-PermissionSheetExample()
-```
-
-## Parameters
-
-| Parameter | Description |
-| --- | --- |
-| `systemImage` | SF Symbol shown in the icon tile. |
-| `title` | Headline. |
-| `message` | One or two sentences of context. |
-| `benefits` | What the permission brings, previewed as a stack of notification banners above the title, each its symbol on a tinted tile and its line. Keep each line short, like a notification. Without benefits the sheet leads with the icon tile. |
-| `allowTitle` | Primary button title. |
-| `deniedTitle` | Headline shown after the request returns `false`. |
-| `deniedMessage` | Copy shown after a denial, above the "Open Settings" button. |
-| `style` | Colors and tile shape. Defaults to the SwiftPieces house palette, adapting to light and dark. |
-| `request` | Async permission request; return `true` when granted. The button spins and reads Requesting until it returns. |
-| `onGranted` | Called about a second after a grant, once the tile has turned into a check. Dismiss the sheet here. |
-| `onSkip` | Secondary handler. Omit to hide the "Not now" capsule. |
-
-## Source
+<Showcase name="PermissionSheet">
 
 <Tabs items={["PermissionSheet.swift"]}>
 <Tab value="PermissionSheet.swift">
@@ -691,7 +651,7 @@ private extension View {
 // and melt back into each other, and the frosted fallback before iOS 26. Each piece carries a copy of only
 // the parts it uses, so this file stands alone. Generated from registry/foundation/PieceLiquid.swift in the
 // SwiftPieces repo; edit it there, not here. The rules are in LIQUID_GLASS.md.
-// swiftpieces-liquid: 1.7.1 (liquid, liquidPress, bud, morphText)
+// swiftpieces-liquid: 1.8.0 (liquid, liquidPress, bud, morphText)
 
 /// The liquid glass language: one merge distance, two rest gaps, and the springs a bubble leaves and comes home on.
 ///
@@ -1013,31 +973,46 @@ private struct PieceMorphText: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        Group {
-            if Self.splits(text) {
-                let glyphs = Array(text)
-                HStack(spacing: 0) {
-                    ForEach(glyphs.indices, id: \.self) { i in
-                        Text(String(glyphs[i]))
-                            .id("\(i)\(glyphs[i])")
-                            .transition(transition(i, scale: 0.6))
-                    }
-                }
-                // The letters' reading order, not the layout's: an HStack lays its children out backwards under a
-                // right-to-left layout.
-                .environment(\.layoutDirection, .leftToRight)
-            } else {
-                ZStack(alignment: .leading) {
-                    Text(text)
-                        .id(text)
-                        .transition(transition(0, scale: 0.9))
-                }
-            }
+        // The morphing label at its full size when it fits. When it doesn't (a long label at an accessibility text
+        // size, a narrow screen), the same words wrap onto a second line and shrink a little instead of running past
+        // the screen's edge; that one changes as a whole rather than letter by letter. A single word never splits
+        // across lines: it stays on one and shrinks further.
+        let oneWord = !text.contains(where: \.isWhitespace)
+        ViewThatFits(in: .horizontal) {
+            morphing.fixedSize()
+            Text(text)
+                .lineLimit(oneWord ? 1 : 2)
+                .multilineTextAlignment(.center)
+                .minimumScaleFactor(oneWord ? 0.5 : 0.75)
+                .fixedSize(horizontal: false, vertical: true)
+                .id(text)
+                .transition(transition(0, scale: 0.9))
         }
         .font(font)
-        .fixedSize()
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(text)
+    }
+
+    @ViewBuilder private var morphing: some View {
+        if Self.splits(text) {
+            let glyphs = Array(text)
+            HStack(spacing: 0) {
+                ForEach(glyphs.indices, id: \.self) { i in
+                    Text(String(glyphs[i]))
+                        .id("\(i)\(glyphs[i])")
+                        .transition(transition(i, scale: 0.6))
+                }
+            }
+            // The letters' reading order, not the layout's: an HStack lays its children out backwards under a
+            // right-to-left layout.
+            .environment(\.layoutDirection, .leftToRight)
+        } else {
+            ZStack(alignment: .leading) {
+                Text(text)
+                    .id(text)
+                    .transition(transition(0, scale: 0.9))
+            }
+        }
     }
 
     private func transition(_ i: Int, scale: CGFloat) -> AnyTransition {
@@ -1075,3 +1050,47 @@ private struct PieceMorphText: View {
 
 </Tab>
 </Tabs>
+
+</Showcase>
+
+<PieceFacts name="PermissionSheet" />
+
+Explains a permission, runs the real request, and reacts to the result.
+
+## Notes
+
+- The sheet previews what the permission brings. Your `benefits` become a fanned stack of notification banners above the title: each is a solid card with its symbol on a tinted app tile (butter, sage and lilac in order by default), its line, and "now". The two behind the front banner sit a little smaller, lower and a shade darker, so their edges read as separate cards. Keep each line short, like a notification ("Design review in 30 minutes"). Without benefits the sheet leads with the icon tile instead.
+- Present it in a `.sheet` with `.presentationBackground(PermissionSheet.Style.standard.surface)`, sized to its content (the example measures it for a `.height` detent); it also works inline in any container. The title and message are centred under the stack. About 0.3 s in, once a sheet has settled, the banners drop in from above, the front one first and the rest 90ms apart behind it.
+- While the sheet waits for an answer, the stack deals its next banner to the front every 2.6 s on the settle spring, so each benefit gets read. It stops once the request is tapped, and never runs under Reduce Motion. VoiceOver reads the whole stack as one element listing every benefit.
+- `request` is your real permission call (for example `UNUserNotificationCenter.requestAuthorization`). The request is a signal glass capsule that sinks under the finger; a tap brings in a spinner and morphs its label letter by letter to Requesting until the call returns. Nothing waits on an animation: the button's action and enabled state change the moment the answer arrives.
+- `true` pops the stack and plays `.success`, morphs the button to Allowed with a check on sage glass while the Not now capsule melts up into it (its place keeps its size, so the button never shifts), then calls `onGranted` about a second later so you can dismiss. Without benefits the tile turns sage with a check instead.
+- A denial stays calm, with no shake: the stack greys out to half strength, which reads as notifications off, and `.warning` plays. The title and message lift away through a blur and the denied copy rises into their place, and the button morphs to Open Settings on glass the label's color and opens `UIApplication.openSettingsURLString`. Without benefits the tile turns sand with a gear.
+- Requesting, Allowed, Open Settings and "now" go through `String(localized:)`.
+- `Style` sets the surface, labels, the icon tile's colors, the banners' tile tints (`benefitTiles`, or `[.clear]` for neutral tiles), the action color and the tile radius.
+- On iOS 26 the request and Not now are Liquid Glass and melt into each other through the neck; before that they are frosted glass with a light rim, and with Reduce Transparency they are solid.
+- Under Reduce Motion nothing drops, blurs, bounces or pops: the banners fade in already stacked and are never dealt, the labels and the two copies crossfade in place, Not now fades where it rests, and the capsules dim while pressed instead of sinking. Haptics are unchanged.
+- At accessibility text sizes the button's label is plain text that can wrap, and changes with a blur instead of the letter morph.
+- **v3:** redesigned around a preview of the notifications themselves. The benefit rows became the banner stack, and the copy is centred under it. The public API is unchanged.
+- For a full multi-step onboarding flow, see the Onboarding screen in SwiftPieces Pro.
+
+## Usage
+
+```swift
+PermissionSheetExample()
+```
+
+## Parameters
+
+| Parameter | Description |
+| --- | --- |
+| `systemImage` | SF Symbol shown in the icon tile. |
+| `title` | Headline. |
+| `message` | One or two sentences of context. |
+| `benefits` | What the permission brings, previewed as a stack of notification banners above the title, each its symbol on a tinted tile and its line. Keep each line short, like a notification. Without benefits the sheet leads with the icon tile. |
+| `allowTitle` | Primary button title. |
+| `deniedTitle` | Headline shown after the request returns `false`. |
+| `deniedMessage` | Copy shown after a denial, above the "Open Settings" button. |
+| `style` | Colors and tile shape. Defaults to the SwiftPieces house palette, adapting to light and dark. |
+| `request` | Async permission request; return `true` when granted. The button spins and reads Requesting until it returns. |
+| `onGranted` | Called about a second after a grant, once the tile has turned into a check. Dismiss the sheet here. |
+| `onSkip` | Secondary handler. Omit to hide the "Not now" capsule. |

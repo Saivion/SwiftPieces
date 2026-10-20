@@ -1061,6 +1061,742 @@
       ],
       "url": "https://apps.apple.com/us/app/tiimo-to-do-list-planner/id1480220328",
       "released": "2019-10-28"
+    },
+    "hevy": {
+      "trackId": 1458862350,
+      "name": "Hevy - Workout Tracker Gym Log",
+      "developer": "Hevy Studios S.L.",
+      "category": "Health & Fitness",
+      "rating": 4.9,
+      "ratingCount": 98118,
+      "price": "Free",
+      "icon": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/22/2a/1a/222a1aee-6afc-8945-73a0-5411998130c1/AppIcon-0-0-1x_U007emarketing-0-7-0-sRGB-85-220.png/512x512bb.jpg",
+      "screenshots": [
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/3c/9c/cc/3c9ccc5d-eedd-3577-58b7-0345bba60460/4f85acc6-9488-4d7b-bbc5-96ef1b35a303_screenshot0__U00281_U0029.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/b0/9a/c3/b09ac35e-6470-9d13-7766-4cecbf1e9f12/a66b427f-5742-4ef6-9f1f-7fb2aeb5f927_screenshot1.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/b1/d0/7d/b1d07d11-df60-5088-8969-767aab690bb2/15d44ec2-d98c-4504-960c-21f2b11a84c6_screenshot2.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/8b/82/75/8b8275a5-ef3d-065d-1f6b-05b5ec5fc057/bf8818d8-55ee-4f72-9d86-00dd2b5a18bd_screenshot3.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/98/0d/b6/980db653-f4a9-613b-826c-5c779efbbac6/46a87f62-fda1-4604-a17a-7bf89cba6be4_screenshot4.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/74/ec/71/74ec71b2-891d-c1c4-9b40-e711ccee69b0/795d6241-5593-4561-932a-2919412e3d94_screenshot5.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/8f/83/16/8f8316da-3353-d095-8d51-5a456fda632e/c68c77a8-14bd-4e45-96eb-dd4311371543_screenshot6.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/a6/f1/f5/a6f1f558-3eb0-1c29-83ca-b9a3d8f28183/6aa699e7-9cc0-451b-adf8-dfaca2f74f7a_screenshot7.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        }
+      ],
+      "url": "https://apps.apple.com/us/app/hevy-workout-tracker-gym-log/id1458862350",
+      "released": "2019-07-01"
+    },
+    "mercury-weather": {
+      "trackId": 1621800675,
+      "name": "Mercury Weather",
+      "developer": "Triple Glazed Studios LLC",
+      "category": "Weather",
+      "rating": 4.6,
+      "ratingCount": 1065,
+      "price": "Free",
+      "icon": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/82/bf/9d/82bf9d98-9ce2-4029-3a5e-5182e0090207/AppIcon-0-0-1x_U007epad-0-0-0-1-0-sRGB-85-220.png/512x512bb.jpg",
+      "screenshots": [
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/b3/c6/d4/b3c6d4a9-8fb0-4ba6-df07-479fb3f82cb6/Social_Proof_-_B.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/20/be/78/20be7899-ea50-c7c2-ae12-0da5db306f69/Sunny_-_6.5.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/1f/de/cd/1fdecd9f-cd3c-8000-509f-31d76dc5add3/Night_-_6.5.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/80/ae/5e/80ae5e02-c00d-d223-988b-64d4a295561f/Hurricane_-_6.5.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/7a/be/c8/7abec874-7879-fb5c-89f7-ecd2634194dd/Rainy_-_6.5.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/27/ec/57/27ec571c-5a80-8131-c268-754dd8e3c9b9/Trip_Forecast_-_6.5.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/4d/d2/52/4dd25222-fb4c-e8ba-3cea-277b75db49a8/Hurricane_Widget_-_6.5.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/bc/91/bc/bc91bc24-90fb-f1ea-65a0-beae76e00326/Interactive_Widgets_-_6.5.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        }
+      ],
+      "url": "https://apps.apple.com/us/app/mercury-weather/id1621800675",
+      "released": "2022-09-12"
+    },
+    "endel": {
+      "trackId": 1346247457,
+      "name": "Endel: Focus & Sleep Sounds",
+      "developer": "Endel Sound GmbH",
+      "category": "Health & Fitness",
+      "rating": 4.6,
+      "ratingCount": 33302,
+      "price": "Free",
+      "icon": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/e6/f4/78/e6f478ba-8586-c552-1ea7-d0de379803d2/AppIcon-Original-0-0-1x_U007emarketing-0-11-0-85-220.png/512x512bb.jpg",
+      "screenshots": [
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/db/74/63/db746385-f34c-f117-2ed5-7637c8a7203e/EN-Store-Screenshot-852_Hz-01.jpg/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/bf/4b/07/bf4b07f9-221e-4e3d-4da4-cc7287d54a68/EN-Store-Screenshot-852_Hz-02.jpg/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/b6/c5/a6/b6c5a60f-ffe0-d4e4-3407-6d62d8fc58d6/EN-Store-Screenshot-852_Hz-03.jpg/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/9a/5e/8b/9a5e8bac-a295-cd85-5e95-eff3c10fe217/EN-Store-Screenshot-852_Hz-04.jpg/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/6d/dd/d6/6dddd658-371d-a3aa-a77e-8015328daed1/EN-Store-Screenshot-852_Hz-05.jpg/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/c1/06/67/c10667c3-de24-2e32-e358-b9e34e17e579/EN-Store-Screenshot-852_Hz-06.jpg/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/5b/84/27/5b84272c-db71-8c54-6b92-358a66bd80e2/EN-Store-Screenshot-852_Hz-07.jpg/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/f0/80/d8/f080d85d-a010-f371-1422-0ab6faf254ba/EN-Store-Screenshot-852_Hz-08.jpg/392x696bb.png",
+          "width": 200,
+          "height": 433
+        }
+      ],
+      "url": "https://apps.apple.com/us/app/endel-focus-sleep-sounds/id1346247457",
+      "released": "2018-06-21"
+    },
+    "opal": {
+      "trackId": 1497465230,
+      "name": "Opal: Screen Time Control",
+      "developer": "OPAL OS CORPORATION",
+      "category": "Productivity",
+      "rating": 4.7,
+      "ratingCount": 86775,
+      "price": "Free",
+      "icon": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/83/1c/73/831c739e-196a-62c8-9949-1a5267257fd7/AppIcon-0-0-1x_U007ephone-0-0-0-1-0-sRGB-85-220.png/512x512bb.jpg",
+      "screenshots": [
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/bc/ab/9b/bcab9b9f-4094-65ee-73ff-bad5da1f9f83/1_white_AppStore.jpg/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/0f/aa/ab/0faaab1e-db92-f056-4f9f-3f87300c6030/2_white_AppStore.jpg/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/6e/07/2a/6e072ace-aa07-e7eb-9fc6-d8de4576b5d0/3_white_AppStore.jpg/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/ad/9d/06/ad9d063a-0b19-c19d-f07c-88a5277bb9e3/4_white_AppStore.jpg/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/be/4f/19/be4f1940-793d-5e4e-6c1b-e21a84775999/5_white_AppStore.jpg/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/86/39/66/8639664e-f996-977f-4ce9-20d2434808c7/6_white_AppStore.jpg/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/55/29/4d/55294db7-bc3f-81de-0866-8ac0174c0b76/7_white_AppStore.jpg/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/47/1a/5d/471a5d9a-3aa9-a1e7-df13-51970da7d2f7/8_white_AppStore.jpg/392x696bb.png",
+          "width": 200,
+          "height": 433
+        }
+      ],
+      "url": "https://apps.apple.com/us/app/opal-screen-time-control/id1497465230",
+      "released": "2020-12-15"
+    },
+    "things": {
+      "trackId": 904237743,
+      "name": "Things 3",
+      "developer": "Cultured Code GmbH & Co. KG",
+      "category": "Productivity",
+      "rating": 4.8,
+      "ratingCount": 27842,
+      "price": "$9.99",
+      "icon": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/bc/39/00/bc390000-e90b-3368-d6ab-ea242e18a1ec/AppIcon-0-0-1x_U007ephone-0-0-0-1-0-0-85-220.png/512x512bb.jpg",
+      "screenshots": [
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/06/0b/49/060b49b0-5da8-d148-4f13-bffa7ce2faab/iPhone_14_Pro_Max_-_1.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/53/69/89/536989d1-c4d2-5974-e3b1-935920dcd6be/iPhone_14_Pro_Max_-_2.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/98/c6/b8/98c6b825-d956-d5d9-d534-860628667340/iPhone_14_Pro_Max_-_3.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/87/c9/e9/87c9e981-99b5-d20e-9666-a5004b8952c1/iPhone_14_Pro_Max_-_4.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/c8/b4/a3/c8b4a376-3913-1fd8-c443-07fa621a24a3/iPhone_14_Pro_Max_-_5.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/59/44/0c/59440c99-7db5-6e6e-4165-0b9028341c56/iPhone_14_Pro_Max_-_6.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/83/91/48/839148a3-a545-ed51-7e1b-83a336b6ccec/iPhone_14_Pro_Max_-_7.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/7c/5c/e2/7c5ce243-ad6b-198b-d98a-bf9cef11a33a/iPhone_14_Pro_Max_-_8.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        }
+      ],
+      "url": "https://apps.apple.com/us/app/things-3/id904237743",
+      "released": "2017-05-18"
+    },
+    "merlin": {
+      "trackId": 773457673,
+      "name": "Merlin Bird ID by Cornell Lab",
+      "developer": "Cornell University",
+      "category": "Reference",
+      "rating": 4.9,
+      "ratingCount": 113809,
+      "price": "Free",
+      "icon": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/12/a1/c6/12a1c6cb-fb8f-1261-0628-faf226421c17/AppIcon-0-0-1x_U007ephone-0-1-0-85-220.png/512x512bb.jpg",
+      "screenshots": [
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/72/97/bd/7297bddd-890e-e372-5d30-801a716d73c2/a6b7e521-aa2e-49a0-9db6-39fcd401273b_1.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/33/6b/81/336b8145-24cb-666f-4767-27b018dfc17b/8bbdc76c-95c9-4549-81f1-61b2de3a91d5_2.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/e6/c7/b7/e6c7b78b-36b9-617e-97af-829ec6675c69/078e6700-6b93-4c27-a6c5-0988f9e1c859_3.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/e3/62/ff/e362ffc7-ce82-f469-82c3-424586be813c/aa96ddf1-ce06-4cc8-80c8-ea2de4f73c25_7.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/e3/7c/8e/e37c8e3d-42bf-7f22-33d1-7f17a2aa105c/cc98a735-830f-46f7-afab-e838db5c716c_4.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/30/db/fc/30dbfcbf-fa20-28a3-23ca-b9f10045c58c/d4dfb82c-9680-4578-822f-2cff49e6c962_5.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/a6/24/e8/a624e8da-eba5-3cb5-a026-3a6148f890e9/0c5ac0e2-35e1-4190-be75-a3cfdab4caa7_6.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/cc/80/ea/cc80ead2-a5d3-77ae-2368-79781cf84962/ae530d04-2d71-43b1-a488-a7235b923528_8.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        }
+      ],
+      "url": "https://apps.apple.com/us/app/merlin-bird-id-by-cornell-lab/id773457673",
+      "released": "2013-12-11"
+    },
+    "letterboxd": {
+      "trackId": 1054271011,
+      "name": "Letterboxd",
+      "developer": "Letterboxd Ltd",
+      "category": "Social Networking",
+      "rating": 4.8,
+      "ratingCount": 88278,
+      "price": "Free",
+      "icon": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/68/27/ab/6827ab68-bf45-5975-144b-f1a05d40c6cc/AppIcon-0-0-1x_U007emarketing-0-8-0-85-220.png/512x512bb.jpg",
+      "screenshots": [
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/85/1b/35/851b35c0-43c8-c9b3-1d6f-f7e634d6b85d/Store_1c.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/25/e7/9f/25e79f8f-8327-75cf-afad-fa4bb51270f1/pr_source.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/77/d3/c1/77d3c16e-5771-08ab-2630-bd79d22d681d/pr_source.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/b3/50/0b/b3500b6f-0761-7d55-a7af-1356433275cc/pr_source.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/07/d8/fb/07d8fba4-5e27-80d4-89ab-e23bd65d8df8/pr_source.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/9e/61/cc/9e61cc90-6671-89cc-48db-edb5feec0a57/pr_source.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/f4/96/8b/f4968bf8-138a-3254-f906-cb6bf5b41c1b/20242ed4-7701-4e63-b4fd-ec7b9b78a838_Store_0c.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/4f/00/a0/4f00a08d-918d-c4fb-ba10-2c87fabd0318/d5dce809-15c6-4aa2-bd43-eeaee2bf15b8_Store_7c.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        }
+      ],
+      "url": "https://apps.apple.com/us/app/letterboxd/id1054271011",
+      "released": "2016-03-15"
+    },
+    "vivino": {
+      "trackId": 414461255,
+      "name": "Vivino: Drink The Right Wine",
+      "developer": "Vivino ApS",
+      "category": "Food & Drink",
+      "rating": 4.8,
+      "ratingCount": 136286,
+      "price": "Free",
+      "icon": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/41/22/d8/4122d85d-c839-545f-f23f-c04433161844/AppIcon-0-0-1x_U007emarketing-0-6-0-85-220.png/512x512bb.jpg",
+      "screenshots": [
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/40/ff/73/40ff73b3-377c-3b3b-b410-bd35ebdd8b27/1.jpg/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/cd/da/60/cdda6048-aacf-7cdb-88f7-54244a18d8f1/3.jpg/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/10/b6/73/10b6736a-9cac-3e52-1661-abb2fb4b337b/5.jpg/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/d6/25/20/d625203d-c903-f01e-6f98-4b48ed0f5664/4.jpg/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/84/33/08/8433083e-b89a-34aa-ca56-86dab1d660ef/2.jpg/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/8b/1b/6d/8b1b6db4-c1fe-a47a-3b47-de9598c65a18/6.jpg/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/38/cd/99/38cd9986-057a-6b5b-ac60-2172e7f914b3/7.jpg/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/12/b3/9e/12b39eba-a00b-7994-208b-da6e8e3cc095/8.jpg/392x696bb.png",
+          "width": 200,
+          "height": 433
+        }
+      ],
+      "url": "https://apps.apple.com/us/app/vivino-drink-the-right-wine/id414461255",
+      "released": "2011-01-18"
+    },
+    "stats-fm": {
+      "trackId": 1526912392,
+      "name": "stats.fm for Spotify Music App",
+      "developer": "StatsFM B.V.",
+      "category": "Music",
+      "rating": 4.6,
+      "ratingCount": 47267,
+      "price": "Free",
+      "icon": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/6d/cc/e5/6dcce5af-89a9-513c-301f-65d439cdb1ef/AppIcon-0-0-1x_U007emarketing-0-8-0-85-220.png/512x512bb.jpg",
+      "screenshots": [
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/8d/50/40/8d5040c9-7d57-b78d-255a-cc70fe5eb7a1/232457a0-c869-47b6-8cd1-7ddfc905c005_Simulator_Screen_Shot_-_iPhone_8_Plus_-_2022-03-19_at_01.58.12.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/8e/1c/37/8e1c3741-0abb-6085-08c0-a31efbbc1fad/27911b4e-3842-451b-a027-ec30416cfec4_Simulator_Screen_Shot_-_iPhone_8_Plus_-_2022-03-19_at_02.00.30.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/e4/4d/de/e44dde28-015f-199a-8d3c-455ce91fca97/39bbbc8b-244a-4d9c-af97-3cfb08517786_Simulator_Screen_Shot_-_iPhone_8_Plus_-_2022-03-19_at_02.00.21.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/40/f6/8a/40f68a39-eab8-40e3-9c6f-2de13f098ec6/b69ebe1e-7cf8-48e7-99c4-fb61c93cee74_Simulator_Screen_Shot_-_iPhone_8_Plus_-_2022-03-19_at_02.00.10.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/04/3e/02/043e0202-e653-d4e4-4497-2affaaef3fb2/1aa2a06a-259a-4ef1-a1e4-62a63ebd69c1_Simulator_Screen_Shot_-_iPhone_8_Plus_-_2022-03-19_at_01.59.09.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/5a/81/43/5a81432c-d3f9-3793-1487-29e63df37943/ae3b402d-499b-40ae-8351-49e84d723985_Simulator_Screen_Shot_-_iPhone_8_Plus_-_2022-03-19_at_01.58.32.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/95/d3/53/95d35327-3338-f238-c0b9-8cacd4f93bd1/f2544b1e-18c5-4e6e-a172-70a5ef6e0914_Simulator_Screen_Shot_-_iPhone_8_Plus_-_2022-03-19_at_01.58.21.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        }
+      ],
+      "url": "https://apps.apple.com/us/app/stats-fm-for-spotify-music-app/id1526912392",
+      "released": "2020-08-10"
+    },
+    "partiful": {
+      "trackId": 1662982304,
+      "name": "Partiful: Party Invite Maker",
+      "developer": "Partiful Co.",
+      "category": "Lifestyle",
+      "rating": 5.0,
+      "ratingCount": 245098,
+      "price": "Free",
+      "icon": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/2d/cd/d2/2dcdd230-a82f-12b4-d53c-7289f27bd040/AppIcon-0-0-1x_U007ephone-0-1-85-220.png/512x512bb.jpg",
+      "screenshots": [
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/f7/af/2b/f7af2b2f-5e23-90b4-12d8-5ac328b47979/1.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/60/6a/b0/606ab02c-36e4-7d89-d3d1-15ab4ed7579b/2.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/6e/f1/af/6ef1afb4-e0cc-7967-b7f5-23132b514a4c/3.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/7b/40/67/7b4067f1-9ddf-5b81-1f5e-fe699a0698f2/4.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/4c/53/ec/4c53ec5f-f3ee-74e2-07f0-b0f6909c5729/5.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/35/65/ba/3565ba73-109e-21fa-35de-08f7f93adec9/6.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/7c/38/43/7c3843b5-cf18-a179-6acf-c7020e0acd03/7.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/12/7e/fa/127efabb-a00f-e36f-5c36-0831fc2ed98b/8.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        }
+      ],
+      "url": "https://apps.apple.com/us/app/partiful-party-invite-maker/id1662982304",
+      "released": "2023-08-21"
+    },
+    "finch": {
+      "trackId": 1528595748,
+      "name": "Finch: Self-Care Pet",
+      "developer": "Finch Care Public Benefit Corporation",
+      "category": "Health & Fitness",
+      "rating": 4.9,
+      "ratingCount": 743024,
+      "price": "Free",
+      "icon": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/40/f0/79/40f07924-5e95-1e73-d7f8-5e56f6051a3e/AppIcon-0-0-1x_U007emarketing-0-8-0-85-220.png/512x512bb.jpg",
+      "screenshots": [
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/6f/a9/fe/6fa9feb6-41c9-7c26-0f5c-296558c9f0f1/iPhone_social_large_01.jpg/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/e8/ca/ee/e8caee25-4118-702c-c751-02a9ce6b8c66/iPhone_social_large_02.jpg/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/be/a7/84/bea784ad-4c13-e5fd-2108-1dc9827e05d9/iPhone_social_large_03.jpg/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/01/f7/19/01f7194f-379f-5b81-bb5d-e05a30711938/iPhone_social_large_04.jpg/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/79/1d/c2/791dc207-24ec-5d17-ae7f-2faafaf7bdbc/iPhone_social_large_05.jpg/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/bf/c4/59/bfc45963-b7a0-97e2-39c1-da95a3059a3c/iPhone_social_large_06.jpg/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/41/4e/5b/414e5b53-e6b8-588d-3894-a311fe1c89e3/iPhone_social_large_07.jpg/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/ab/3c/4c/ab3c4cbf-089a-f52e-759c-b7fb618465fd/iPhone_social_large_08.jpg/392x696bb.png",
+          "width": 200,
+          "height": 433
+        }
+      ],
+      "url": "https://apps.apple.com/us/app/finch-self-care-pet/id1528595748",
+      "released": "2021-05-12"
+    },
+    "parcel": {
+      "trackId": 375589283,
+      "name": "Parcel - Delivery Tracking",
+      "developer": "Ivan Pavlov Pty Ltd",
+      "category": "Shopping",
+      "rating": 4.8,
+      "ratingCount": 22445,
+      "price": "Free",
+      "icon": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/56/a9/28/56a928ae-bb7a-1d75-3588-38177b282974/AppIcon-0-0-1x_U007epad-0-0-0-1-0-0-85-220.png/512x512bb.jpg",
+      "screenshots": [
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/78/bd/29/78bd298e-bd02-4000-2abe-7acc80ce8eec/iPhone_16_Max_Pro-US-1.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/cc/a8/71/cca871ca-566a-9f07-d1cc-7156f95156ba/iPhone_16_Max_Pro-US-2.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/4c/73/5a/4c735a84-cd71-b301-b8b7-c4b4b5414289/EN-US_-_iPhone_13_Max.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/bf/0d/64/bf0d64ce-76e6-f1c8-4e63-86f822c217ca/iPhone_16_Max_Pro-US-3.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/04/cd/54/04cd54b7-b4c4-0856-e23e-1b1943be1bf7/iPhone_16_Max_Pro-US-4.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        }
+      ],
+      "url": "https://apps.apple.com/us/app/parcel-delivery-tracking/id375589283",
+      "released": "2010-06-11"
+    },
+    "bear": {
+      "trackId": 1016366447,
+      "name": "Bear - Markdown Notes",
+      "developer": "Shiny Frog Ltd.",
+      "category": "Productivity",
+      "rating": 4.7,
+      "ratingCount": 6842,
+      "price": "Free",
+      "icon": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/55/a8/df/55a8dfe4-eb77-9709-7f46-712a0a06e119/AppIcon-26-0-0-1x_U007epad-0-0-0-1-0-0-sRGB-85-220.png/512x512bb.jpg",
+      "screenshots": [
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/5c/b7/78/5cb778f4-823d-820d-4bc0-84f9d3096331/c0a077c6-cb01-40cb-a973-ec02275a3bd5_Markdown_-_iPhone_5.5_U0022.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/78/62/f0/7862f0ef-aab0-40de-39b7-ec95d9d5768d/98b97233-91b1-404f-a12e-1ca4bb735a3f_Tags_-_iPhone_5.5_U0022@3x.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/d3/86/68/d3866803-f326-6e3a-5343-adc6c18d9251/b44d8bf1-74ee-4dc9-acf1-f52864134f47_Sync_-_iPhone_5.5_U0022@3x.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/ef/ab/67/efab67ee-b65d-1905-47ca-cfa43de583fd/bdeee101-a659-43ce-8a14-0cf8ff6ab26c_Themes_-_iPhone_5.5_U0022@3x.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/af/4b/b4/af4bb432-7672-fc27-b1b6-3c005c7e32b3/a44f297e-3332-44c2-a705-daa73c831066_Info_Panel_-_iPhone_5.5_U0022@3x.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/6e/54/0f/6e540f4f-19e7-3976-09de-bcffe9da0872/d5226cf0-c92d-456d-9762-0bc9b2109ef2_Sketch_-_iPhone_5.5_U0022@3x.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/7b/68/b4/7b68b473-0d7e-ca0c-db90-be9f5d67c10f/fcfc0f79-ea37-47b4-b1c3-9c94d5e93af3_Search_-_iPhone_5.5_U0022@3x.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/83/cf/97/83cf978c-786d-391b-fb13-ce799480046e/5970f88b-617d-453f-9c23-05fe06b2892c_Encryption_-_iPhone_5.5_U0022@3x.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        }
+      ],
+      "url": "https://apps.apple.com/us/app/bear-markdown-notes/id1016366447",
+      "released": "2016-11-02"
+    },
+    "paku": {
+      "trackId": 1534130193,
+      "name": "Paku - Air Quality & AQI Map",
+      "developer": "Pitou Technologies, LLC",
+      "category": "Weather",
+      "rating": 4.7,
+      "ratingCount": 10978,
+      "price": "Free",
+      "icon": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/b9/e6/bf/b9e6bff6-17eb-dc38-3115-f8e4cd02b7bb/AppIcon-0-0-1x_U007epad-0-0-0-1-0-0-sRGB-85-220.png/512x512bb.jpg",
+      "screenshots": [
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/b5/5a/ca/b55aca17-a2b1-c76f-562c-a229f91dc6fa/01-nyc-sensor.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/3c/92/cc/3c92ccb8-44c4-afab-6703-43e964f57dd9/02-lock-widgets.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/9a/40/50/9a4050e2-f2c0-5f81-da79-060118e54ee0/03-heatmap.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/e8/9e/97/e89e9736-1292-46e6-cf48-a72ff620959d/04-home-widgets.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/e8/c0/e4/e8c0e486-7966-a7cb-9143-82015a1f0c6b/05-bay-temperature.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/9b/bf/e5/9bbfe57e-6240-0ae2-3ee0-f84a663b4b17/06-alerts-settings.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/f9/0f/a1/f90fa10f-7a09-1fb6-d472-0832de376be0/07-sf-home.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/ed/47/6f/ed476f68-acb0-47c5-2e73-29e8e4a835f1/08-reviews.png/392x696bb.png",
+          "width": 200,
+          "height": 433
+        }
+      ],
+      "url": "https://apps.apple.com/us/app/paku-air-quality-aqi-map/id1534130193",
+      "released": "2020-10-02"
     }
   }
 }

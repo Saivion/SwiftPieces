@@ -10,7 +10,9 @@ import {
   MessageSquareText, Milestone, Minus, Moon, MousePointerClick, MoveVertical, Music, PanelBottom, Phone, Play, Plus, Redo2, RectangleHorizontal,
   RotateCcw, Rows3, Columns3, Search, Send, Settings, Share, Shield, ShoppingCart, SlidersHorizontal, Smartphone, Sparkles, SquareStack, Star,
   AlarmClock, ArrowUpRight, Banknote, BatteryFull, BedDouble, BellDot, BookOpen, CircleDollarSign, CircleEllipsis, CirclePlus, CircleX, Cloud, Coffee, Crown, Droplet, Dumbbell, EyeOff, FastForward, FileText, Film, Flag, Folder, Footprints, Gamepad2, Gift, GraduationCap, Headphones, Hourglass, Info, Landmark, ListFilter, ClipboardPaste, LockOpen, LogIn, Shuffle, MailOpen, Map, MapPin, MessagesSquare, Mic, Navigation, Package, Paperclip, Pause, Pencil, Pin, Plane, QrCode, RefreshCw, Rewind, RotateCw, ScanFace, ShoppingBag, Snowflake, SquarePen, Tag, ThumbsUp, Timer, TrendingUp, TriangleAlert, Trophy, UserPlus, Users, Utensils, Video, Volume2, WandSparkles, Wifi,
-  Sun, TextCursorInput, Palette, Blocks, ListTree, SquareMousePointer, PencilLine, MessageSquareCode, ExternalLink, LockKeyhole, ToggleRight, Trash2, Type, Undo2, User, WalletCards, Workflow, X, Zap, type LucideIcon, ArrowLeftRight } from "lucide-react";
+  Sun, TextCursorInput, Palette, Blocks, ListTree, SquareMousePointer, PencilLine, MessageSquareCode, ExternalLink, LockKeyhole, ToggleRight, Trash2, Type, Undo2, User, WalletCards, Workflow, X, Zap, type LucideIcon, ArrowLeftRight,
+  CloudSun, CloudRain, CloudLightning, Wind, Umbrella, Thermometer,
+  Binoculars, Bird, Archive, AudioWaveform, Milk } from "lucide-react";
 
 /** SF Symbol name → the Lucide icon the preview draws for it. */
 const SF: Record<string, LucideIcon> = {
@@ -111,6 +113,18 @@ const SF: Record<string, LucideIcon> = {
   "eye.slash": EyeOff,
   "battery.100": BatteryFull,
   "wifi": Wifi,
+  "cloud.sun": CloudSun,
+  "cloud.rain": CloudRain,
+  "cloud.bolt": CloudLightning,
+  "wind": Wind,
+  "umbrella": Umbrella,
+  "thermometer.medium": Thermometer,
+  binoculars: Binoculars,
+  bird: Bird,
+  archivebox: Archive,
+  waveform: AudioWaveform,
+  "hand.raised": Hand,
+  waterbottle: Milk,
 };
 
 /** The preview's drawing of an SF Symbol. Nothing for "none" or an unknown name. */

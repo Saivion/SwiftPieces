@@ -3,7 +3,7 @@
 // description: "A liquid glass segmented control: a signal-tinted glass indicator melted into a glass track as one surface. It moves like liquid, its leading edge reaching the new segment first and the trailing edge following, so it stretches across and gathers in. Grab it to scrub: it lifts under the finger, flattens against the ends and lands where the flick was heading, while the label ink flips exactly under its edge; tap still works."
 // category: glass
 // minIOSVersion: "17.0"
-// version: "2.3.0"
+// version: "2.3.1"
 // pro: lens-tab-bar
 // tags: [segmented, picker, glass, drag, haptics]
 
@@ -70,7 +70,8 @@ public struct GlassSegmentsStyle: Sendable {
 /// Liquid glass segmented control over any `Hashable` option type with a draggable indicator.
 ///
 /// The track and the indicator are glass shapes in one liquid group. The indicator rests inside the track, joined to it,
-/// so the two read as one surface with a tinted lens moving through it.
+/// so the two read as one surface with a tinted lens moving through it. The labels sit on top of the glass, outside the
+/// group, so they stay crisp over it.
 ///
 /// - Parameters:
 ///   - options: Segments in display order.
@@ -132,13 +133,17 @@ public struct GlassSegments<Option: Hashable>: View {
     public var body: some View {
         let motion = PieceMotion(reduceMotion: reduceMotion)
         PieceLiquidGroup {
-            row(motion)
+            glass
                 .frame(height: height * min(typeScale, 1.5))
                 .padding(inset)
                 // The track: one glass capsule under the whole row. It is the row's background, beside the indicator
                 // rather than holding it, so the two are never glass on glass and melt into one surface.
                 .background { Color.clear.pieceLiquid(.capsule, interactive: false) }
         }
+        // The labels, the indicator's shadow and the touch layer sit over the group, not in it: iOS 26's glass container
+        // composites its glass over the plain views among its shapes, so labels drawn there came out blurred under the
+        // track and hidden under the indicator. Same inset, so the row lines up with the glass exactly.
+        .overlay { row(motion).padding(inset) }
         .fontWeight(.semibold)
         .opacity(isEnabled ? 1 : style.disabledOpacity)
         .animation(motion.morph, value: isEnabled)
@@ -146,18 +151,22 @@ public struct GlassSegments<Option: Hashable>: View {
         .accessibilityElement(children: .contain)
     }
 
+    /// The indicator's scale: lifted while grabbed, except under Reduce Motion.
+    private var lift: CGFloat { dragging && !reduceMotion ? liftScale : 1 }
+
+    /// The glass that melts into the track: the indicator alone, on the same row geometry as the labels over it.
+    private var glass: some View {
+        GeometryReader { proxy in
+            pill(segmentWidth: proxy.size.width / CGFloat(max(options.count, 1)), lift: lift) { indicator($0) }
+        }
+    }
+
     private func row(_ motion: PieceMotion) -> some View {
         GeometryReader { proxy in
             let width = proxy.size.width
             let segmentWidth = width / CGFloat(max(options.count, 1))
-            let lift: CGFloat = dragging && !reduceMotion ? liftScale : 1
             ZStack(alignment: .leading) {
-                pill(segmentWidth: segmentWidth, lift: lift) { shape in
-                    ZStack {
-                        indicator(shape)
-                        shadow(shape)
-                    }
-                }
+                pill(segmentWidth: segmentWidth, lift: lift) { shadow($0) }
                 labels(segmentWidth: segmentWidth, height: proxy.size.height, color: style.ink, accessible: true)
                 // The same row in the selected ink, cut to the indicator, so the color hands over under its edge.
                 labels(segmentWidth: segmentWidth, height: proxy.size.height, color: style.selectedInk, accessible: false)
@@ -257,8 +266,8 @@ public struct GlassSegments<Option: Hashable>: View {
     }
 
     /// The indicator's shadow, deeper while it is grabbed (and the lift Reduce Motion keeps). The glass draws in its
-    /// group, so the shadow is its own layer: the indicator's shape casting it, cut back out, so it falls only on the
-    /// track around the indicator.
+    /// group, so the shadow is its own layer over it, under the labels: the indicator's shape casting it, cut back out,
+    /// so it falls only on the track around the indicator.
     private func shadow(_ shape: IndicatorShape) -> some View {
         shape
             .fill(.black)
@@ -664,7 +673,7 @@ private extension View {
 // and melt back into each other, and the frosted fallback before iOS 26. Each piece carries a copy of only
 // the parts it uses, so this file stands alone. Generated from registry/foundation/PieceLiquid.swift in the
 // SwiftPieces repo; edit it there, not here. The rules are in LIQUID_GLASS.md.
-// swiftpieces-liquid: 1.7.1 (liquid)
+// swiftpieces-liquid: 1.8.0 (liquid)
 
 /// The liquid glass language: one merge distance, two rest gaps, and the springs a bubble leaves and comes home on.
 ///

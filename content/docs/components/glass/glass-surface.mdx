@@ -1,6 +1,6 @@
 ---
 title: "Glass Surface"
-description: "The public face of the SwiftPieces liquid glass: `.glassSurface` draws any view on a liquid glass capsule, rect, circle or concentric shape, and `GlassSurface.Group` melts neighbouring surfaces into one through a liquid neck. Liquid Glass on iOS 26; before it a frosted surface with its own press, top light and specular edge; a solid fill under Reduce Transparency, and a designed disabled state everywhere."
+description: "The SwiftPieces liquid glass as a modifier: any view on a glass shape, neighbours melted together, with fallbacks before iOS 26."
 piece: "GlassSurface"
 category: "glass"
 minIOSVersion: "17.0"
@@ -11,42 +11,7 @@ registryDependencies: []
 
 {/* GENERATED FILE. Edit registry/swift/glass/GlassSurface.swift or GlassSurface.mdx instead. */}
 
-The SwiftPieces liquid glass, for your own views: Liquid Glass on iOS 26, a layered frosted surface everywhere else, with the same press feel on both. `.glassSurface` draws the same glass every SwiftPieces piece is made of, and `GlassSurface.Group` is the same liquid group: surfaces inside one that come within its `spacing` of each other melt into one shape through a neck. Rest the parts of one control 6pt apart, so the neck holds, and separate actions 26pt apart, so each is its own bubble. Text and symbols on a surface take the house weight, semibold.
-
-## Notes
-
-- This is the SwiftPieces liquid glass, for your own views. `.glassSurface` draws the same glass every piece is made of, and `GlassSurface.Group(spacing:)` is the same liquid group: on iOS 26 a `GlassEffectContainer`, so surfaces within `spacing` of each other melt into one shape through a neck that pinches as they separate and snaps when they pass it.
-- Rest the parts of one control 6pt apart, inside the merge distance, so the neck holds (a transport's previous, play and next, as in the example); rest separate actions 26pt apart, so each is its own bubble. Put every surface of one piece of UI in one group, never one group inside another, and never one surface on top of another.
-- On iOS 26 this is real Liquid Glass; `tint` tints it natively. Earlier it is a frosted fill with a light rim, a top light and a specular edge (a bright top highlight plus a faint `.primary` edge); a tint lies over it at `Style.tintAmount`. Under Reduce Transparency it is opaque: `Style.solidFill` (the secondary system background by default) with the tint on top.
-- Tint only to say something: the house signal red for the primary action, sage for success, butter for a warning. Ink on a tinted surface reads best in the house ink (#141414); on neutral glass, let it follow the appearance.
-- Text and symbols on a surface take the house weight, semibold.
-- `interactive: true` on iOS 26 is the system's interactive glass, which swells under the finger and owns the press; the surface adds no motion or haptic on top of it.
-- On the fallback, `interactive: true` gives the pane a press of its own. It sinks level to `Style.pressedScale` (0.96) on a tight spring with no overshoot, its far shadow draws in close under it, and light pools under the finger and follows it. On lift it springs back up on the shared release spring, passing rest by about 8% of the press depth before it settles, and the shadow swings back out with it. A finger that slides more than 44pt off the edge lets go without the give, and the press returns if the finger comes back.
-- One light impact plays as a tap lifts on the fallback surface, never on touch-down, so touches that turn into scrolls stay silent. A touch that travels more than 44pt before it lifts (a drag, a slider scrub, a slide from one button to another) ends without it. The press is tracked with a simultaneous gesture, so a `Button` inside still owns the tap, and a touch the system cancels (a scroll taking over) releases the surface instead of leaving it pressed.
-- Lift: on iOS 26 a lone surface floats on a wide, faint shadow in light mode (`Style.shadow`); inside a group the group floats its surfaces as one instead. In dark mode the glass carries its own depth.
-- Reduce Motion drops the fallback's scale and the release's give. The light pool, the closer shadow and the haptic stay, so the press still reads.
-- `.concentric(minimum:)` resolves to `ConcentricRectangle` on iOS 26 (set `.containerShape` on the parent) and to a continuous rounded rect with `minimum` as the radius earlier.
-- `Style` (`.standard`): `tintAmount` (0.72, so a tinted fallback reads as a color block), `specular`, `shadow`, `pressedScale` (0.96), `disabledOpacity` and `solidFill` for Reduce Transparency.
-- Disabled: `.disabled(true)` fades and desaturates the surface and silences the press response on both paths.
-- For a floating glass card over full-bleed art with detents, see the Pro Stay screen (`glass-sheet`).
-
-## Usage
-
-```swift
-GlassSurfaceExample()
-    .preferredColorScheme(.light)
-```
-
-## Parameters
-
-| Parameter | Description |
-| --- | --- |
-| `shape` | `.capsule`, `.rect(cornerRadius:)`, `.circle` or `.concentric(minimum:)` (iOS 26 concentric corners, continuous corners earlier). |
-| `tint` | Optional glass tint. Glass tints natively; the fallback lays it over its frosted fill at `style.tintAmount`, so it reads as a color block. Tint only to say something: signal for the primary action, sage for success, butter for a warning. |
-| `interactive` | Press response: interactive glass on iOS 26, which swells under the finger; on the fallback the surface sinks to `style.pressedScale` into a closer shadow, light pools under the finger, and a light impact plays as a tap lifts on the surface. |
-| `style` | Fallback tint strength, specular edge, lift shadow, press scale, disabled opacity and the Reduce Transparency fill. |
-
-## Source
+<Showcase name="GlassSurface">
 
 <Tabs items={["GlassSurface.swift"]}>
 <Tab value="GlassSurface.swift">
@@ -500,7 +465,7 @@ private struct PieceMotion {
 // and melt back into each other, and the frosted fallback before iOS 26. Each piece carries a copy of only
 // the parts it uses, so this file stands alone. Generated from registry/foundation/PieceLiquid.swift in the
 // SwiftPieces repo; edit it there, not here. The rules are in LIQUID_GLASS.md.
-// swiftpieces-liquid: 1.7.1 (liquid)
+// swiftpieces-liquid: 1.8.0 (liquid)
 
 /// The liquid glass language: one merge distance, two rest gaps, and the springs a bubble leaves and comes home on.
 ///
@@ -646,3 +611,42 @@ private extension View {
 
 </Tab>
 </Tabs>
+
+</Showcase>
+
+<PieceFacts name="GlassSurface" />
+
+The SwiftPieces liquid glass, for your own views: Liquid Glass on iOS 26, a layered frosted surface everywhere else, with the same press feel on both. `.glassSurface` draws the same glass every SwiftPieces piece is made of, and `GlassSurface.Group` is the same liquid group: surfaces inside one that come within its `spacing` of each other melt into one shape through a neck. Rest the parts of one control 6pt apart, so the neck holds, and separate actions 26pt apart, so each is its own bubble. Text and symbols on a surface take the house weight, semibold.
+
+## Notes
+
+- This is the SwiftPieces liquid glass, for your own views. `.glassSurface` draws the same glass every piece is made of, and `GlassSurface.Group(spacing:)` is the same liquid group: on iOS 26 a `GlassEffectContainer`, so surfaces within `spacing` of each other melt into one shape through a neck that pinches as they separate and snaps when they pass it.
+- Rest the parts of one control 6pt apart, inside the merge distance, so the neck holds (a transport's previous, play and next, as in the example); rest separate actions 26pt apart, so each is its own bubble. Put every surface of one piece of UI in one group, never one group inside another, and never one surface on top of another.
+- On iOS 26 this is real Liquid Glass; `tint` tints it natively. Earlier it is a frosted fill with a light rim, a top light and a specular edge (a bright top highlight plus a faint `.primary` edge); a tint lies over it at `Style.tintAmount`. Under Reduce Transparency it is opaque: `Style.solidFill` (the secondary system background by default) with the tint on top.
+- Tint only to say something: the house signal red for the primary action, sage for success, butter for a warning. Ink on a tinted surface reads best in the house ink (#141414); on neutral glass, let it follow the appearance.
+- Text and symbols on a surface take the house weight, semibold.
+- `interactive: true` on iOS 26 is the system's interactive glass, which swells under the finger and owns the press; the surface adds no motion or haptic on top of it.
+- On the fallback, `interactive: true` gives the pane a press of its own. It sinks level to `Style.pressedScale` (0.96) on a tight spring with no overshoot, its far shadow draws in close under it, and light pools under the finger and follows it. On lift it springs back up on the shared release spring, passing rest by about 8% of the press depth before it settles, and the shadow swings back out with it. A finger that slides more than 44pt off the edge lets go without the give, and the press returns if the finger comes back.
+- One light impact plays as a tap lifts on the fallback surface, never on touch-down, so touches that turn into scrolls stay silent. A touch that travels more than 44pt before it lifts (a drag, a slider scrub, a slide from one button to another) ends without it. The press is tracked with a simultaneous gesture, so a `Button` inside still owns the tap, and a touch the system cancels (a scroll taking over) releases the surface instead of leaving it pressed.
+- Lift: on iOS 26 a lone surface floats on a wide, faint shadow in light mode (`Style.shadow`); inside a group the group floats its surfaces as one instead. In dark mode the glass carries its own depth.
+- Reduce Motion drops the fallback's scale and the release's give. The light pool, the closer shadow and the haptic stay, so the press still reads.
+- `.concentric(minimum:)` resolves to `ConcentricRectangle` on iOS 26 (set `.containerShape` on the parent) and to a continuous rounded rect with `minimum` as the radius earlier.
+- `Style` (`.standard`): `tintAmount` (0.72, so a tinted fallback reads as a color block), `specular`, `shadow`, `pressedScale` (0.96), `disabledOpacity` and `solidFill` for Reduce Transparency.
+- Disabled: `.disabled(true)` fades and desaturates the surface and silences the press response on both paths.
+- For a floating glass card over full-bleed art with detents, see the Pro Stay screen (`glass-sheet`).
+
+## Usage
+
+```swift
+GlassSurfaceExample()
+    .preferredColorScheme(.light)
+```
+
+## Parameters
+
+| Parameter | Description |
+| --- | --- |
+| `shape` | `.capsule`, `.rect(cornerRadius:)`, `.circle` or `.concentric(minimum:)` (iOS 26 concentric corners, continuous corners earlier). |
+| `tint` | Optional glass tint. Glass tints natively; the fallback lays it over its frosted fill at `style.tintAmount`, so it reads as a color block. Tint only to say something: signal for the primary action, sage for success, butter for a warning. |
+| `interactive` | Press response: interactive glass on iOS 26, which swells under the finger; on the fallback the surface sinks to `style.pressedScale` into a closer shadow, light pools under the finger, and a light impact plays as a tap lifts on the surface. |
+| `style` | Fallback tint strength, specular edge, lift shadow, press scale, disabled opacity and the Reduce Transparency fill. |

@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Logo } from "@/components/ui/logo";
 import { Container } from "@/components/ui/container";
 import { Eyebrow } from "@/components/ui/badge";
-import { Button, Arrow, TextLink } from "@/components/ui/button";
-import { sectionTitle, sectionBody } from "@/components/sections/feature-row";
+import { Button, Arrow } from "@/components/ui/button";
+import { heroTitle } from "@/components/sections/feature-row";
+import { pageLede } from "@/components/ui/section-header";
 import { cn } from "@/lib/cn";
 
 export const metadata: Metadata = { title: "Page not found", robots: { index: false } };
@@ -25,11 +27,12 @@ export default function NotFound() {
       <section className="flex flex-1 items-center py-24">
         <Container>
           <Eyebrow>404</Eyebrow>
-          <h1 className={cn("mt-6 max-w-2xl", sectionTitle)}>That page isn&apos;t here. The pieces are.</h1>
-          <p className={cn("mt-4 max-w-md", sectionBody)}>It may have moved when the library was reorganized. Every free piece is one click away.</p>
-          <div className="mt-9 flex flex-wrap items-center gap-x-7 gap-y-4">
+          <h1 className={cn("mt-[30px] max-w-[760px]", heroTitle)}>That page isn&apos;t here. The pieces are.</h1>
+          <p className={cn("mt-[26px] max-w-[480px]", pageLede)}>It may have moved when the library was reorganized. Every free piece is one click away.</p>
+          {/* The landing hero's pair: the ink pill, then the quiet way back as words and an arrow. */}
+          <div className="mt-[38px] flex flex-wrap items-center gap-2.5">
             <Button href="/components">Browse the library <Arrow /></Button>
-            <TextLink href="/">Home</TextLink>
+            <Link href="/" className="group inline-flex h-[46px] items-center gap-2 px-2 text-[15px] font-semibold text-foreground">Home <Arrow /></Link>
           </div>
         </Container>
       </section>

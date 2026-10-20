@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { cn } from "@/lib/cn";
 import { Container } from "@/components/ui/container";
 import { PictureSticker } from "@/components/previews";
-import { FeatureRow, ListRow } from "@/components/sections/feature-row";
+import { FeatureCard, FeatureRow, ListRow, floatCard } from "@/components/sections/feature-row";
 import { Parallax, Stage } from "@/components/sections/stage";
 import { IPhone } from "@/components/visual/iphone";
 import { Bone, Slot } from "@/components/visual/skeleton";
@@ -17,37 +17,39 @@ import { AgentDemo } from "@/components/sections/agent-demo";
  */
 export function Features() {
   return (
-    // Full-width clip: the visuals' glow reaches past the container, never past the viewport.
-    // Tops the first row's half gap up to a full one below the ticker's text (its strip pads 20).
+    // Full-width clip: the visuals' shadows reach past the container, never past the viewport.
     <div className="overflow-x-clip">
-    <Container className="pt-7 sm:pt-11">
+    <Container className="pt-6 sm:pt-10">
       <FeatureRow
         tags={[{ label: "Gestures", icon: <I.hand /> }, { label: "Motion", icon: <I.spark /> }, { label: "Haptics", icon: <I.wave /> }, { label: "Glass", icon: <I.layers /> }]}
         title="Interactions that feel native"
         body="Picture headlines, swipe decks, glass menus and scrubbable charts, with the motion, haptics and states already done."
         cta={{ label: "Browse components", href: "/components" }}
+        // The two cards below are one bento with this tray, so they sit a tile gap under it, not a band.
+        className="pb-0 sm:pb-0"
       >
         <PiecesVisual />
       </FeatureRow>
 
-      <FeatureRow
-        tags={[{ label: "CLI", icon: <I.terminal /> }, { label: "Xcode 16", icon: <I.hammer /> }, { label: "Copy and paste", icon: <I.copy /> }]}
-        title="One command into Xcode"
-        body="The CLI writes each piece into a SwiftPieces folder in your app. No packages, no project-file surgery."
-        cta={{ label: "Read the CLI docs", href: "/docs/cli" }}
-        reverse
-      >
-        <CliVisual />
-      </FeatureRow>
-
-      <FeatureRow
-        tags={[{ label: "MCP", icon: <I.plug /> }, { label: "llms.txt", icon: <I.doc /> }, { label: "Registry", icon: <I.braces /> }]}
-        title="Your agent knows every piece"
-        body="Describe what you want in plain English. Claude Code, Cursor and Xcode find the right piece and install it."
-        cta={{ label: "Connect your agent", href: "/docs/mcp" }}
-      >
-        <AgentVisual />
-      </FeatureRow>
+      {/* The CLI and the agent, side by side: each a tray with its visual on top and its copy under it. */}
+      <div className="grid grid-cols-1 gap-4 pt-4 pb-12 sm:pb-[68px] lg:grid-cols-2">
+        <FeatureCard
+          tags={[{ label: "CLI", icon: <I.terminal /> }, { label: "Xcode 16", icon: <I.hammer /> }, { label: "Copy and paste", icon: <I.copy /> }]}
+          title="One command into Xcode"
+          body="The CLI writes each piece into a SwiftPieces folder in your app. No packages, no project-file surgery."
+          cta={{ label: "Read the CLI docs", href: "/docs/cli" }}
+        >
+          <CliVisual />
+        </FeatureCard>
+        <FeatureCard
+          tags={[{ label: "MCP", icon: <I.plug /> }, { label: "llms.txt", icon: <I.doc /> }, { label: "Registry", icon: <I.braces /> }]}
+          title="Your agent knows every piece"
+          body="Describe what you want in plain English. Claude Code, Cursor and Xcode find the right piece and install it."
+          cta={{ label: "Connect your agent", href: "/docs/mcp" }}
+        >
+          <AgentVisual />
+        </FeatureCard>
+      </div>
     </Container>
     </div>
   );
@@ -55,36 +57,38 @@ export function Features() {
 
 /* ---------- Visuals ---------- */
 
-/** A floating card on a stage: the site's raised surface, lifted well off the ground. */
-export const stageCard = "rounded-[12px] border border-white/[0.09] bg-[var(--raised)] shadow-[0_40px_80px_-28px_rgb(0_0_0/0.8),0_12px_28px_-14px_rgb(0_0_0/0.5),inset_0_1px_0_rgb(255_255_255/0.05)]";
-
 /**
- * The newest piece running live on an iPhone that rises out of the artboard: Picture Headline as the
- * headline of an onboarding screen, the one real thing on it. The red mascot floats over the frame's
- * edge as a sticker lifted out of the line, and the details the piece ships with sit on a card beside it.
+ * The newest piece running live on an iPhone that rises out of the panel: Picture Headline as the
+ * headline of an onboarding screen, the one real thing on it. The mascot floats beside it as a sticker
+ * lifted out of the line, and the details the piece ships with sit on a card at the right.
  */
 function PiecesVisual() {
   return (
     <Stage
-      className="h-[480px] sm:h-[560px]"
+      className="h-[520px] sm:h-[600px]"
       overlay={
         <>
           {/* A sticker lifted out of the headline: the mascot sun, live, tilted a little further than the line's. */}
-          <Parallax depth={16} className="absolute top-12 -left-7 z-10 hidden md:block">
+          <Parallax depth={16} className="absolute top-14 left-[12%] z-10 hidden md:block">
             <PictureSticker scene="sun" size={92} width={2.2} tilt={-6} />
           </Parallax>
           {/* Straight from PictureHeadline.swift: the opening spring, the haptic ticks and type that scales. */}
-          <Parallax depth={22} className="absolute -right-5 bottom-14 z-10 hidden w-[290px] md:block">
-            <div className={cn(stageCard, "overflow-hidden")} style={{ rotate: "2.5deg" }}>
-              <ListRow icon={<I.spark />} label="Spring" value="0.7s · 0.28 bounce" />
-              <ListRow icon={<I.wave />} label="Haptics" value="land · lift" />
-              <ListRow icon={<I.type />} label="Dynamic Type" value="pictures scale" />
+          <Parallax depth={22} className="absolute right-14 bottom-[72px] z-10 hidden w-[300px] md:block">
+            <div className={cn(floatCard, "overflow-hidden")}>
+              <ListRow label="Spring" value="0.7s · 0.28 bounce" />
+              <ListRow label="Haptics" value="land · lift" />
+              <ListRow label="Dynamic Type" value="pictures scale" />
             </div>
           </Parallax>
         </>
       }
     >
-      <div className="absolute inset-x-0 top-10 flex justify-center sm:top-12">
+      {/* A quiet dot field the phone stands on: sharp around it, blurring and fading out toward the edges. */}
+      <Parallax depth={5} className="absolute -inset-6">
+        <div aria-hidden className="dot-field dot-field-soft absolute inset-0" />
+        <div aria-hidden className="dot-field absolute inset-0" />
+      </Parallax>
+      <div className="absolute inset-x-0 top-12 flex justify-center sm:top-16">
         <Parallax depth={-7} className="w-[272px] sm:w-[296px]">
           {/* An onboarding screen whose headline is the piece: the words and stickers are the one thing on
               it that moves, over a skeleton of the rest (a caption, page dots and the button). */}

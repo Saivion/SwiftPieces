@@ -29,7 +29,7 @@ export const metadata: Metadata = {
 
 // Light and dark both ship; next-themes (through Fumadocs' RootProvider) sets the class on <html>.
 export const viewport: Viewport = {
-  themeColor: [{ media: "(prefers-color-scheme: dark)", color: "#070708" }, { media: "(prefers-color-scheme: light)", color: "#f7f7f7" }],
+  themeColor: [{ media: "(prefers-color-scheme: dark)", color: "#111111" }, { media: "(prefers-color-scheme: light)", color: "#f5f5f3" }],
   colorScheme: "dark light",
 };
 
@@ -45,7 +45,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           // Follows the system until the visitor picks light or dark in the footer; the choice is remembered.
           theme={{ enabled: true, defaultTheme: "system", enableSystem: true, disableTransitionOnChange: true }}
           // Shown before anyone types: the places people search for most.
-          search={{ links: [["Introduction", "/docs/introduction"], ["Installation", "/docs/installation"], ["All Components", "/docs/components"], ["App Library", "/apps"], ["Styles", "/styles"], ["Liquid Glass guide", "/docs/liquid-glass"], ["MCP Server", "/docs/mcp"], ["SwiftPieces Pro", "/pro"]] }}
+          search={{ links: [["Introduction", "/docs/introduction"], ["Installation", "/docs/installation"], ["All Components", "/docs/components"], ["Playground", "/apps"], ["Styles", "/styles"], ["Liquid Glass guide", "/docs/liquid-glass"], ["MCP Server", "/docs/mcp"], ["SwiftPieces Pro", "/pro"]] }}
         >
           {children}
         </RootProvider>

@@ -1,6 +1,6 @@
 ---
 title: "Notice Stack"
-description: "In-app notices grouped the way notification stacks work: the newest on top as a glass card with its tinted symbol tile, title, relative time and message, two narrower peeks of the rest melted into it as one liquid shape, new notices dropping in from above with a soft tick, a tap that spreads the pile into a list while Show less and a clear button bud out of the top card, cards that follow a sideways swipe and fly off at your speed while the next one rises out of its peek, and a clear button that stretches into a red Clear all capsule so clearing takes a second, confirming tap."
+description: "In-app notices stacked like notifications: the newest on top, a tap spreads the pile, and cards swipe away at your speed."
 piece: "NoticeStack"
 category: "sheets"
 minIOSVersion: "17.0"
@@ -11,42 +11,7 @@ registryDependencies: []
 
 {/* GENERATED FILE. Edit registry/swift/sheets/NoticeStack.swift or NoticeStack.mdx instead. */}
 
-A pile of in-app notices (alerts, reminders, delivery updates, system messages), newest first. Collapsed, the newest notice shows in full on a glass card, with up to two narrower peeks of the rest beneath it, melted into one liquid shape. Tap the pile and it spreads into a list while Show less and a clear button bud out of the top card. Swipe a card sideways (the top one while collapsed, any of them in the list): it follows the finger, and past 40% of the width, or with a flick, it flies off and leaves `notices`, while the rest close up. The clear button stretches into a red Clear all capsule; a second tap sends every card off. Insert a notice at the front of `notices` and it drops in from above. ```swift @State private var notices: [NoticeStack.Notice] = [] @State private var expanded = false NoticeStack(notices: $notices, expanded: $expanded) { notice in open(notice) } ```
-
-## Notes
-
-- `notices` is the stack, newest first, and the source of truth: a swipe or Clear all removes from it, and you add, update and remove notices the same way. Each `Notice` has a unique `id`, a title, an optional message, an SF Symbol on a solid tile (`tint: .sky`, `.butter`, `.sage`, `.lilac`, `.sand`, `.red` for the one that can't wait, `.neutral` for system messages, or `.init(color, ink:)`), and an optional `date`.
-- Collapsed, the newest notice shows in full and up to two peeks of the rest sit under it, each 10 points narrower per side and 10 points lower, cut to the front card's height, so the glass of the pile is one liquid shape. More notices still show two peeks. The peeks' words stay hidden so they never print over the front card.
-- Insert a notice at index 0 and it drops in from above as a drop of glass, the pile settling under it, with a soft tick and a VoiceOver announcement. Remove one yourself and it melts into the pile while the rest close up. Empty draws nothing, so your screen decides what to show instead.
-- Tap the pile and it spreads into a list, 12 points apart (`Style.spacing`), while Show less and a clear button bud out of the top card on liquid necks. With a single notice, a tap calls `onSelect` instead. In the list, a tap calls `onSelect` with that notice; leave `onSelect` out and cards only expand and collapse.
-- Swipe a card sideways (the front card while collapsed, any card in the list): it follows the finger, and the next card's words show in the columns it uncovers. Past 40% of the width, or with a flick that would carry it there, it flies off at the finger's speed on a spring with no bounce, leaves `notices` while still on its way out, and the rest close up; collapsed, the next card rises out of its peek. Short of that it springs back from where you let go.
-- The clear button stretches into a red Clear all capsule, its words arriving letter by letter. Tap it again and the cards leave one after another from the bottom while the header melts into the top card, which goes last. Tap anywhere else in the stack, or wait three seconds, and it folds back into the clear button.
-- Times read "now", "4m", "2h", "3d", then a date after a week, through `Duration` and date formatters, and stay current every minute. VoiceOver reads them as "4 minutes ago".
-- Swipes come from a UIKit pan that starts only for a mostly horizontal drag, so the stack sits in a `ScrollView`, a `List` or a sheet without stealing vertical scrolls or the sheet's pull. When the list can grow long, put the stack in a scroll view.
-- VoiceOver: the collapsed pile is one button ("3 notices. Gate changed. Boarding is now B12, ten minutes earlier.", hint "Shows all") with Dismiss and Clear all actions. In the list every card is its own element with `onSelect` as its activation and a Dismiss action, Show less and Clear all are buttons, focus moves to the first card when the list opens, and Escape (the two finger scrub) closes it. Arrivals, dismissals and Clear all are announced.
-- Reduce Motion: cards no longer fly or drop in. A dismissed card slides a short way while its glass closes in place, an arrival opens in place, the list opens and closes on short eases without overshoot, and the header's bubbles fade and close where they are. Letters crossfade.
-- Dynamic Type: cards grow, titles wrap to three lines and messages to eight, and at accessibility sizes the tile moves above the words so they keep the width. The tile, its symbol and the header scale with the text, and the header keeps 44 point targets. All text is one weight, semibold. Right to left mirrors the cards and the header, and swipes follow the finger.
-- Haptics: a soft tick when a notice arrives, a light tap when the list opens or closes, a firm tick when a swipe commits, a selection tick when the clear button arms, and success when Clear all runs.
-- The cards and header are liquid glass in one group, spaced below the list's gap, so separate cards never neck at rest and only melt while they spread, gather or leave. On iOS 26 this is Liquid Glass; before that a frosted material; under Reduce Transparency solid fills. Red appears only on Clear all, and on a tile whose tint is `.red`.
-- `Style` sets the title and secondary colors, the Clear all red and its ink, the cards' corner radius and the list's gap (at least 10 points). `Messages` replaces any copy, such as `showLess: "Collapse"`, and its `count`, `arrived` and `dismissed` closures shape the VoiceOver strings.
-
-## Usage
-
-```swift
-NoticeStackExample()
-```
-
-## Parameters
-
-| Parameter | Description |
-| --- | --- |
-| `notices` | The notices, newest first, each with a unique `id`. Swipes and Clear all remove from it; insert at index 0 to show a new one, which drops in with a soft tick. Remove one yourself and it melts into the pile. Empty draws nothing, so your screen decides what to show instead. |
-| `expanded` | Whether the pile is spread into a list. Tapping the pile, Show less and Escape set it, and it returns to `false` when the last notice goes. |
-| `style` | Colors, the cards' corner radius and the gap between cards in the list. Defaults to the SwiftPieces house palette, adapting to light and dark, with red for Clear all. |
-| `messages` | The built-in copy, such as "Show less", "Clear all" and the VoiceOver announcements. Defaults are localizable through your String Catalog; replace any line. |
-| `onSelect` | Called with the notice tapped in the list, or the only notice when there is one. While the pile holds several, a tap spreads it instead. `nil`, the default, leaves cards to expand and collapse only. |
-
-## Source
+<Showcase name="NoticeStack">
 
 <Tabs items={["NoticeStack.swift"]}>
 <Tab value="NoticeStack.swift">
@@ -1123,7 +1088,7 @@ extension PieceMotion {
 // and melt back into each other, and the frosted fallback before iOS 26. Each piece carries a copy of only
 // the parts it uses, so this file stands alone. Generated from registry/foundation/PieceLiquid.swift in the
 // SwiftPieces repo; edit it there, not here. The rules are in LIQUID_GLASS.md.
-// swiftpieces-liquid: 1.7.1 (liquid, liquidPress, bud, morphText)
+// swiftpieces-liquid: 1.8.0 (liquid, liquidPress, bud, morphText)
 
 /// The liquid glass language: one merge distance, two rest gaps, and the springs a bubble leaves and comes home on.
 ///
@@ -1445,31 +1410,46 @@ private struct PieceMorphText: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        Group {
-            if Self.splits(text) {
-                let glyphs = Array(text)
-                HStack(spacing: 0) {
-                    ForEach(glyphs.indices, id: \.self) { i in
-                        Text(String(glyphs[i]))
-                            .id("\(i)\(glyphs[i])")
-                            .transition(transition(i, scale: 0.6))
-                    }
-                }
-                // The letters' reading order, not the layout's: an HStack lays its children out backwards under a
-                // right-to-left layout.
-                .environment(\.layoutDirection, .leftToRight)
-            } else {
-                ZStack(alignment: .leading) {
-                    Text(text)
-                        .id(text)
-                        .transition(transition(0, scale: 0.9))
-                }
-            }
+        // The morphing label at its full size when it fits. When it doesn't (a long label at an accessibility text
+        // size, a narrow screen), the same words wrap onto a second line and shrink a little instead of running past
+        // the screen's edge; that one changes as a whole rather than letter by letter. A single word never splits
+        // across lines: it stays on one and shrinks further.
+        let oneWord = !text.contains(where: \.isWhitespace)
+        ViewThatFits(in: .horizontal) {
+            morphing.fixedSize()
+            Text(text)
+                .lineLimit(oneWord ? 1 : 2)
+                .multilineTextAlignment(.center)
+                .minimumScaleFactor(oneWord ? 0.5 : 0.75)
+                .fixedSize(horizontal: false, vertical: true)
+                .id(text)
+                .transition(transition(0, scale: 0.9))
         }
         .font(font)
-        .fixedSize()
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(text)
+    }
+
+    @ViewBuilder private var morphing: some View {
+        if Self.splits(text) {
+            let glyphs = Array(text)
+            HStack(spacing: 0) {
+                ForEach(glyphs.indices, id: \.self) { i in
+                    Text(String(glyphs[i]))
+                        .id("\(i)\(glyphs[i])")
+                        .transition(transition(i, scale: 0.6))
+                }
+            }
+            // The letters' reading order, not the layout's: an HStack lays its children out backwards under a
+            // right-to-left layout.
+            .environment(\.layoutDirection, .leftToRight)
+        } else {
+            ZStack(alignment: .leading) {
+                Text(text)
+                    .id(text)
+                    .transition(transition(0, scale: 0.9))
+            }
+        }
     }
 
     private func transition(_ i: Int, scale: CGFloat) -> AnyTransition {
@@ -1507,3 +1487,42 @@ private struct PieceMorphText: View {
 
 </Tab>
 </Tabs>
+
+</Showcase>
+
+<PieceFacts name="NoticeStack" />
+
+A pile of in-app notices (alerts, reminders, delivery updates, system messages), newest first. Collapsed, the newest notice shows in full on a glass card, with up to two narrower peeks of the rest beneath it, melted into one liquid shape. Tap the pile and it spreads into a list while Show less and a clear button bud out of the top card. Swipe a card sideways (the top one while collapsed, any of them in the list): it follows the finger, and past 40% of the width, or with a flick, it flies off and leaves `notices`, while the rest close up. The clear button stretches into a red Clear all capsule; a second tap sends every card off. Insert a notice at the front of `notices` and it drops in from above. ```swift @State private var notices: [NoticeStack.Notice] = [] @State private var expanded = false NoticeStack(notices: $notices, expanded: $expanded) { notice in open(notice) } ```
+
+## Notes
+
+- `notices` is the stack, newest first, and the source of truth: a swipe or Clear all removes from it, and you add, update and remove notices the same way. Each `Notice` has a unique `id`, a title, an optional message, an SF Symbol on a solid tile (`tint: .sky`, `.butter`, `.sage`, `.lilac`, `.sand`, `.red` for the one that can't wait, `.neutral` for system messages, or `.init(color, ink:)`), and an optional `date`.
+- Collapsed, the newest notice shows in full and up to two peeks of the rest sit under it, each 10 points narrower per side and 10 points lower, cut to the front card's height, so the glass of the pile is one liquid shape. More notices still show two peeks. The peeks' words stay hidden so they never print over the front card.
+- Insert a notice at index 0 and it drops in from above as a drop of glass, the pile settling under it, with a soft tick and a VoiceOver announcement. Remove one yourself and it melts into the pile while the rest close up. Empty draws nothing, so your screen decides what to show instead.
+- Tap the pile and it spreads into a list, 12 points apart (`Style.spacing`), while Show less and a clear button bud out of the top card on liquid necks. With a single notice, a tap calls `onSelect` instead. In the list, a tap calls `onSelect` with that notice; leave `onSelect` out and cards only expand and collapse.
+- Swipe a card sideways (the front card while collapsed, any card in the list): it follows the finger, and the next card's words show in the columns it uncovers. Past 40% of the width, or with a flick that would carry it there, it flies off at the finger's speed on a spring with no bounce, leaves `notices` while still on its way out, and the rest close up; collapsed, the next card rises out of its peek. Short of that it springs back from where you let go.
+- The clear button stretches into a red Clear all capsule, its words arriving letter by letter. Tap it again and the cards leave one after another from the bottom while the header melts into the top card, which goes last. Tap anywhere else in the stack, or wait three seconds, and it folds back into the clear button.
+- Times read "now", "4m", "2h", "3d", then a date after a week, through `Duration` and date formatters, and stay current every minute. VoiceOver reads them as "4 minutes ago".
+- Swipes come from a UIKit pan that starts only for a mostly horizontal drag, so the stack sits in a `ScrollView`, a `List` or a sheet without stealing vertical scrolls or the sheet's pull. When the list can grow long, put the stack in a scroll view.
+- VoiceOver: the collapsed pile is one button ("3 notices. Gate changed. Boarding is now B12, ten minutes earlier.", hint "Shows all") with Dismiss and Clear all actions. In the list every card is its own element with `onSelect` as its activation and a Dismiss action, Show less and Clear all are buttons, focus moves to the first card when the list opens, and Escape (the two finger scrub) closes it. Arrivals, dismissals and Clear all are announced.
+- Reduce Motion: cards no longer fly or drop in. A dismissed card slides a short way while its glass closes in place, an arrival opens in place, the list opens and closes on short eases without overshoot, and the header's bubbles fade and close where they are. Letters crossfade.
+- Dynamic Type: cards grow, titles wrap to three lines and messages to eight, and at accessibility sizes the tile moves above the words so they keep the width. The tile, its symbol and the header scale with the text, and the header keeps 44 point targets. All text is one weight, semibold. Right to left mirrors the cards and the header, and swipes follow the finger.
+- Haptics: a soft tick when a notice arrives, a light tap when the list opens or closes, a firm tick when a swipe commits, a selection tick when the clear button arms, and success when Clear all runs.
+- The cards and header are liquid glass in one group, spaced below the list's gap, so separate cards never neck at rest and only melt while they spread, gather or leave. On iOS 26 this is Liquid Glass; before that a frosted material; under Reduce Transparency solid fills. Red appears only on Clear all, and on a tile whose tint is `.red`.
+- `Style` sets the title and secondary colors, the Clear all red and its ink, the cards' corner radius and the list's gap (at least 10 points). `Messages` replaces any copy, such as `showLess: "Collapse"`, and its `count`, `arrived` and `dismissed` closures shape the VoiceOver strings.
+
+## Usage
+
+```swift
+NoticeStackExample()
+```
+
+## Parameters
+
+| Parameter | Description |
+| --- | --- |
+| `notices` | The notices, newest first, each with a unique `id`. Swipes and Clear all remove from it; insert at index 0 to show a new one, which drops in with a soft tick. Remove one yourself and it melts into the pile. Empty draws nothing, so your screen decides what to show instead. |
+| `expanded` | Whether the pile is spread into a list. Tapping the pile, Show less and Escape set it, and it returns to `false` when the last notice goes. |
+| `style` | Colors, the cards' corner radius and the gap between cards in the list. Defaults to the SwiftPieces house palette, adapting to light and dark, with red for Clear all. |
+| `messages` | The built-in copy, such as "Show less", "Clear all" and the VoiceOver announcements. Defaults are localizable through your String Catalog; replace any line. |
+| `onSelect` | Called with the notice tapped in the list, or the only notice when there is one. While the pile holds several, a tap spreads it instead. `nil`, the default, leaves cards to expand and collapse only. |

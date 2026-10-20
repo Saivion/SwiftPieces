@@ -59,7 +59,11 @@ export async function add(all: string[], opts: AddOptions) {
   const licenseKey = readLicenseKey();
   const policy = policyOf(opts);
 
+  // Free pieces name their pieces in `registryDependencies`; a Pro item also names its Pro dependencies by id in
+  // `dependencies` (every themed screen, block and template needs "design-system"). Both install with it. A
+  // dependency is requested by id but resolved by name, so `requested` is what has been asked for, by either.
   const resolved = new Map<string, { item: RegistryItem; source: "free" | "pro" }>();
+  const requested = new Set<string>(names);
   const queue = [...names];
   while (queue.length) {
     const name = queue.shift()!;
@@ -67,7 +71,12 @@ export async function add(all: string[], opts: AddOptions) {
     try {
       const r = await fetchItem(config.registries, name, licenseKey, policy);
       resolved.set(r.item.name, r);
-      for (const dep of r.item.registryDependencies) if (!resolved.has(dep)) queue.push(dep);
+      const deps = [...r.item.registryDependencies, ...(r.source === "pro" ? r.item.dependencies : [])];
+      for (const dep of deps) {
+        if (resolved.has(dep) || requested.has(dep)) continue;
+        requested.add(dep);
+        queue.push(dep);
+      }
     } catch (error) {
       fail(error);
       return;

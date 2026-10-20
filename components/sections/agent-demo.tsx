@@ -110,11 +110,11 @@ export function AgentDemo() {
   };
 
   return (
-    <div ref={root}>
-    <Tilt className="relative">
+    <div ref={root} className="flex flex-1 flex-col">
+    <Tilt className="relative flex flex-1 flex-col">
       {/* The piece: an iPhone rising out of the stage, running the chart the conversation builds. */}
-      <Stage className="h-[460px] sm:h-[540px]">
-        <div className="absolute inset-x-0 top-10 flex justify-center sm:top-12 md:justify-start md:pl-[12%]">
+      <Stage className="h-[440px] sm:h-[470px] lg:h-auto lg:min-h-[470px] lg:flex-1">
+        <div className="absolute inset-x-0 top-10 flex justify-center sm:top-11 md:justify-start md:pl-[7%]">
           <Parallax depth={-7} className="w-[264px] sm:w-[284px]">
             {/* A skeleton finance app; the chart is the piece the conversation builds. */}
             <IPhone>
@@ -136,11 +136,11 @@ export function AgentDemo() {
 
       {/* The chat: a card floating over the stage's right edge from md up, under it on phones. The thread
           fills from the bottom and the composer sits under it. */}
-      <Parallax depth={18} className="relative z-10 mt-3 md:absolute md:top-[88px] md:-right-6 md:mt-0 md:w-[290px]">
+      <Parallax depth={18} className="relative z-10 mt-2 md:absolute md:top-[48px] md:right-6 md:mt-0 md:w-[280px]">
       <div ref={layer} className="relative">
-      <div className="flex h-[340px] flex-col overflow-hidden rounded-[12px] border border-white/[0.09] bg-[var(--raised)] shadow-[0_40px_80px_-28px_rgb(0_0_0/0.8),0_12px_28px_-14px_rgb(0_0_0/0.5)]" style={{ rotate: "1.5deg" }}>
+      <div className="flex h-[340px] flex-col overflow-hidden rounded-[16px] border border-[var(--line-strong)] bg-surface-3 shadow-[var(--shadow-float)]">
         <div className="flex items-center gap-2.5 border-b border-[var(--line)] px-4 py-3">
-          <span className="grid size-6 place-items-center rounded-[7px] bg-accent text-[var(--accent-foreground)]">
+          <span className="grid size-[26px] place-items-center rounded-[8px] bg-accent text-[var(--accent-foreground)]">
             <svg aria-hidden viewBox="0 0 24 24" className="size-3.5" fill="currentColor"><path d="M12 2c.4 4.8 2.2 7.6 8 10-5.8 2.4-7.6 5.2-8 10-.4-4.8-2.2-7.6-8-10 5.8-2.4 7.6-5.2 8-10Z" /></svg>
           </span>
           <span className="min-w-0 flex-1">
@@ -152,20 +152,20 @@ export function AgentDemo() {
         <div className="flex flex-1 flex-col justify-end gap-2.5 overflow-hidden px-4 pt-3">
           {TURNS.slice(0, sent).map((turn, i) => (
             <div key={turn.ask} className="chat-in flex flex-col items-end gap-1">
-              <p className="max-w-[92%] rounded-[12px] rounded-br-[4px] bg-white/[0.08] px-3 py-2 text-[12.5px] leading-[18px] text-foreground">{turn.ask}</p>
+              <p className="max-w-[92%] rounded-[14px] rounded-br-[4px] bg-surface px-3 py-2 text-[12.5px] leading-[18px] text-foreground">{turn.ask}</p>
               <p className="flex items-center gap-1.5 pr-1 text-[11.5px] text-muted transition-opacity duration-300" style={{ opacity: applied > i ? 1 : 0 }}>
-                <svg aria-hidden viewBox="0 0 16 16" className="size-3 text-accent" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3.5 8.5l3 3 6-7" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                <svg aria-hidden viewBox="0 0 16 16" className="size-3 text-[#28c840]" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3.5 8.5l3 3 6-7" strokeLinecap="round" strokeLinejoin="round" /></svg>
                 {turn.reply}
               </p>
             </div>
           ))}
         </div>
-        <div className="m-3 flex h-11 shrink-0 items-center justify-between gap-3 rounded-[10px] border border-white/[0.08] bg-white/[0.03] pr-1.5 pl-3.5 text-[12.5px]">
+        <div className="m-3 flex h-11 shrink-0 items-center justify-between gap-3 rounded-full border border-[var(--line-strong)] pr-1.5 pl-4 text-[12.5px]">
           <span className="truncate text-foreground">
             {draft || <span className="text-muted">Ask your agent</span>}
             {draft ? <span aria-hidden className="ml-px inline-block h-[1.1em] w-px translate-y-[0.2em] bg-foreground" /> : null}
           </span>
-          <span ref={send} className="grid size-8 shrink-0 place-items-center rounded-full bg-foreground text-black transition-transform duration-150" style={{ transform: cursor === "press" ? "scale(0.84)" : "none" }}>
+          <span ref={send} className="grid size-8 shrink-0 place-items-center rounded-full bg-foreground text-background transition-transform duration-150" style={{ transform: cursor === "press" ? "scale(0.84)" : "none" }}>
             <svg viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19V5M6 11l6-6 6 6" /></svg>
           </span>
         </div>

@@ -40,6 +40,8 @@ Or open the file on [swiftpieces.com/components](https://swiftpieces.com/compone
 
 **77 pieces across 14 categories:** [text](https://swiftpieces.com/components/text), [backgrounds](https://swiftpieces.com/components/backgrounds), [Liquid Glass](https://swiftpieces.com/components/glass), [buttons and controls](https://swiftpieces.com/components/controls), [inputs and forms](https://swiftpieces.com/components/inputs), [cards](https://swiftpieces.com/components/cards), [lists](https://swiftpieces.com/components/lists), [navigation](https://swiftpieces.com/components/navigation), [sheets](https://swiftpieces.com/components/sheets), [feedback](https://swiftpieces.com/components/feedback), [motion](https://swiftpieces.com/components/motion), [data and charts](https://swiftpieces.com/components/data), [AI](https://swiftpieces.com/components/ai) and [media](https://swiftpieces.com/components/media).
 
+**Blocks:** whole sections of a screen, laid out, wired and given their states: [sign in](https://swiftpieces.com/docs/blocks/auth/sign-in), [account settings](https://swiftpieces.com/docs/blocks/settings/account-settings), [a stats overview](https://swiftpieces.com/docs/blocks/analytics/stats-overview), [checkout](https://swiftpieces.com/docs/blocks/commerce/checkout) and more. Blocks come with SwiftPieces Pro: `npx swiftpieces add SignInBlock` installs one with Pro's design system once your license is signed in. [All blocks](https://swiftpieces.com/blocks).
+
 **Guides:** [SwiftUI animations](https://swiftpieces.com/docs/guides/swiftui-animations) · [SwiftUI buttons](https://swiftpieces.com/docs/guides/swiftui-buttons) · [SwiftUI cards](https://swiftpieces.com/docs/guides/swiftui-cards) · [SwiftUI haptics](https://swiftpieces.com/docs/guides/swiftui-haptics) · [Loading states](https://swiftpieces.com/docs/guides/swiftui-loading-states) · [Liquid Glass](https://swiftpieces.com/docs/liquid-glass)
 
 ## What you get
@@ -60,7 +62,7 @@ SwiftPieces is maintained by one developer and funded by its sponsors. Sponsorsh
 
 ## SwiftPieces Pro
 
-The free library is the pieces. **[Pro](https://pro.swiftpieces.com)** is the layer above them: production-ready screens, complete app templates, and the Build Kit, a set of agent skills that build the rest of your app in the same design language. One purchase, lifetime access.
+The free library is the pieces and a first set of blocks. **[Pro](https://pro.swiftpieces.com)** is the layer above them: production-ready screens, more blocks, complete app templates, and the Build Kit, a set of agent skills that build the rest of your app in the same design language. One purchase, lifetime access.
 
 Pro is closed source and lives in a private repository. This repo holds the free library and the site, and it stays that way.
 

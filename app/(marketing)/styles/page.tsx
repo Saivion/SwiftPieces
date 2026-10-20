@@ -46,7 +46,7 @@ export default async function StylesPage() {
           </StyleStudioLoader>
         </Container>
       </section>
-      <StyleTravel apps={apps} className="mt-20 mb-24 sm:mt-28 sm:mb-32" />
+      <StyleTravel apps={apps} className="mt-24 mb-24 sm:mt-[136px] sm:mb-[136px]" />
     </>
   );
 }

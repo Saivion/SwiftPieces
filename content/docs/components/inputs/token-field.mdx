@@ -1,6 +1,6 @@
 ---
 title: "Token Field"
-description: "A liquid glass tag and recipient field where each committed entry buds out of the glass input as a glass chip, born where it was typed while the input slides on, and chips wrap across lines resting apart while the input takes the rest of the last line. Return, comma or a paste of a whole list commits trimmed tokens with duplicate, limit and validation checks; backspace on an empty input highlights the last chip in the brand red and a second press melts it back into the input; and a glass suggestion list buds out of the input and filters as you type."
+description: "A tag and recipient field where each entry buds out of the glass input as a chip, with checks, suggestions and backspace to remove."
 piece: "TokenField"
 category: "inputs"
 minIOSVersion: "17.0"
@@ -11,45 +11,7 @@ registryDependencies: []
 
 {/* GENERATED FILE. Edit registry/swift/inputs/TokenField.swift or TokenField.mdx instead. */}
 
-Wrapping liquid glass token entry bound to an array of strings: tags, skills, recipients. The input is a glass capsule and every token a glass chip beside it, resting apart. A committed token buds out of the input where it was typed; a removed one melts back into it. Suggestions bud out of the input as a glass list.
-
-## Notes
-
-- The input is a liquid glass capsule and every token a glass chip beside it. They sit in a private wrapping `Layout`: leading-aligned rows that rest apart, outside the distance at which glass melts together, with the input taking the rest of the last line. When that is narrower than the input's minimum (88pt, scaled) or its typed text, the input wraps to a new full-width line, and grows taller as wrapped text needs. A chip wider than the field truncates in the middle.
-- Return, comma (including the full-width `，` and `、`) and pasted line breaks commit the trimmed text by default. `separators` adds `.semicolon` and `.space` for recipient lists. Pasting `a, b, c` adds three tokens in one animated change.
-- A committed token buds out of the input as a glass chip: it is born inside the input, under the text it was typed as, and springs out to its place while the input slides on to make room, the neck between them stretching until it snaps. Several tokens from one paste bud out one after another. The reflowing chips and the input move on a short spring with a little give; on a field wider than 400pt (landscape, iPad), where a wrap travels most of the line, they move without overshoot so nothing crosses the field's edge. Chips added from outside bud out of the input's leading end the same way.
-- Every entry is checked in order: `maxTokens`, then duplicates (case-insensitive, the first spelling is kept), then `validate`. Entries refused by `validate` or past the limit stay in the input so they can be fixed: the field shakes once, the input takes the `Style.error` tint (butter) and an `.error` haptic plays on the same beat. A duplicate leaves the input and points at the chip already there instead: that chip lifts into its highlight and swells once with the `.error` haptic, every time, even when it is already highlighted, and the field stays still. The swell takes only the room the lift leaves before the next chip; one too long to swell at all dims for a beat instead. Each commit plays one haptic: `.selection` when everything was added, `.error` when anything was refused, even if other parts of the paste were added.
-- Backspace on an empty input highlights the last chip with a soft impact: it takes the `Style.selection` tint, the brand red, and lifts 4% on a short spring. A second backspace removes it with a rigid impact: the chip leaves the flow at once, so its neighbors and the input reflow into its place, and it melts back into the input from where it was, its tint draining as it goes. Tapping a chip highlights it the same way. The remove glyph on each chip sinks slightly under the finger and springs back with a little bounce. A zero-width space kept in front of the typed text makes this reliable on the software keyboard, where iOS reports no key event for backspace on an empty field. It is never shown or committed.
-- The input uses a vertical-axis `TextField`, so return inserts a line break the field turns into a commit and the keyboard stays up between tokens. Valid text left in the input is committed quietly, with no haptic, when the field loses focus.
-- Suggestions appear while typing, matched case- and diacritic-insensitively, prefix matches first, at most five, with the matched run in full ink and the rest quieter. Tokens already added are left out. The list is a glass panel that buds out of the input, shrunk inside it, and rests apart below the field, opening room for itself as it comes and closing it as it melts home, so whatever sits below moves with it. While you type its rows refine in place on a short spring with no overshoot, so the text you read never wobbles, and a row sinks slightly under the finger.
-- `Style.chips` tints chips by their text, so a token keeps its tint wherever it appears and removing one never recolors the rest; the house palette leaves every chip neutral glass. A tinted chip's suggestion row shows a dot in its tint.
-- At `maxTokens` the input stops accepting text and shows a quiet count such as `5/5`. A keystroke there meets a bound rather than an error: a light impact, and the count swells and rebounds, with no shake or error haptic on every key. While the input still holds text, such as entries kept past the limit, the count is hidden, so the ring dims for a beat instead. Backspace still removes.
-- Typing never waits on motion. An edit never animates the input or its text, even when it changes the suggestions, clears the error tint or wraps the input to a new line; only a commit or a removal moves the input, along with the chips.
-- Tapping anywhere in the field that is not a chip focuses the input. Keyboard type, capitalization and content type pass through: apply `.keyboardType(.emailAddress)` and friends to the `TokenField`.
-- VoiceOver: each chip is one element read as "Swift, token" with a Remove action; the input's label carries the placeholder and the token count; adds, removals and rejections are announced.
-- `Style` sets the input's and list's glass tint, chip tints, ink, label, placeholder, the error and selection tints, the list's corner radius and the field's minimum height. All text is semibold. `.disabled(true)` dims the field and disables removal.
-- Reduce Motion: chips and the suggestion list open and close where they rest instead of budding and melting, and chips reflow on a short spring with no bounce. A highlighted chip changes tint without lifting, and a duplicate dims its chip for a beat instead of swelling it. A refused entry plays its haptic and dims the ring for a beat instead of shaking, so a refusal while the error tint is already showing still shows on screen. A keystroke at the limit dims the count for a beat instead of swelling it, or the ring while the input holds text, as with motion on. A pressed remove glyph or suggestion row fades instead of sinking. Reduce Transparency draws the glass as solid shapes.
-
-## Usage
-
-```swift
-TokenFieldExample()
-```
-
-## Parameters
-
-| Parameter | Description |
-| --- | --- |
-| `placeholder` | Shown in the input while it is empty, and the input's accessibility label. |
-| `tokens` | Bound tokens, in order. Changes from outside bud in and melt out like typed ones. |
-| `suggestions` | Candidates listed under the field while typing, matched case- and diacritic-insensitively (prefix matches first, then contains), excluding tokens already added. |
-| `maxTokens` | Upper limit. When reached the input stops accepting text and shows a quiet count such as "5/5", which bumps when a keystroke is refused; backspace still removes. |
-| `allowsDuplicates` | When `false`, an entry that matches an existing token case-insensitively is not added; the existing chip is highlighted instead and the first spelling is kept. |
-| `separators` | Keys and characters that commit the typed text. `.standard` is return, comma and pasted line breaks. Full-width commas and semicolons count as their ASCII forms. |
-| `style` | Colors and field metrics. Defaults to the SwiftPieces house palette, adapting to light and dark. |
-| `validate` | Accepts or rejects a trimmed entry (for example an email check). A rejected entry stays in the input, the field shakes, the input takes the error tint and an error haptic plays. |
-
-## Source
+<Showcase name="TokenField">
 
 <Tabs items={["TokenField.swift"]}>
 <Tab value="TokenField.swift">
@@ -1162,7 +1124,7 @@ private extension View {
 // and melt back into each other, and the frosted fallback before iOS 26. Each piece carries a copy of only
 // the parts it uses, so this file stands alone. Generated from registry/foundation/PieceLiquid.swift in the
 // SwiftPieces repo; edit it there, not here. The rules are in LIQUID_GLASS.md.
-// swiftpieces-liquid: 1.7.1 (liquid, bud)
+// swiftpieces-liquid: 1.8.0 (liquid, bud)
 
 /// The liquid glass language: one merge distance, two rest gaps, and the springs a bubble leaves and comes home on.
 ///
@@ -1426,3 +1388,45 @@ private final class PieceBuds {
 
 </Tab>
 </Tabs>
+
+</Showcase>
+
+<PieceFacts name="TokenField" />
+
+Wrapping liquid glass token entry bound to an array of strings: tags, skills, recipients. The input is a glass capsule and every token a glass chip beside it, resting apart. A committed token buds out of the input where it was typed; a removed one melts back into it. Suggestions bud out of the input as a glass list.
+
+## Notes
+
+- The input is a liquid glass capsule and every token a glass chip beside it. They sit in a private wrapping `Layout`: leading-aligned rows that rest apart, outside the distance at which glass melts together, with the input taking the rest of the last line. When that is narrower than the input's minimum (88pt, scaled) or its typed text, the input wraps to a new full-width line, and grows taller as wrapped text needs. A chip wider than the field truncates in the middle.
+- Return, comma (including the full-width `，` and `、`) and pasted line breaks commit the trimmed text by default. `separators` adds `.semicolon` and `.space` for recipient lists. Pasting `a, b, c` adds three tokens in one animated change.
+- A committed token buds out of the input as a glass chip: it is born inside the input, under the text it was typed as, and springs out to its place while the input slides on to make room, the neck between them stretching until it snaps. Several tokens from one paste bud out one after another. The reflowing chips and the input move on a short spring with a little give; on a field wider than 400pt (landscape, iPad), where a wrap travels most of the line, they move without overshoot so nothing crosses the field's edge. Chips added from outside bud out of the input's leading end the same way.
+- Every entry is checked in order: `maxTokens`, then duplicates (case-insensitive, the first spelling is kept), then `validate`. Entries refused by `validate` or past the limit stay in the input so they can be fixed: the field shakes once, the input takes the `Style.error` tint (butter) and an `.error` haptic plays on the same beat. A duplicate leaves the input and points at the chip already there instead: that chip lifts into its highlight and swells once with the `.error` haptic, every time, even when it is already highlighted, and the field stays still. The swell takes only the room the lift leaves before the next chip; one too long to swell at all dims for a beat instead. Each commit plays one haptic: `.selection` when everything was added, `.error` when anything was refused, even if other parts of the paste were added.
+- Backspace on an empty input highlights the last chip with a soft impact: it takes the `Style.selection` tint, the brand red, and lifts 4% on a short spring. A second backspace removes it with a rigid impact: the chip leaves the flow at once, so its neighbors and the input reflow into its place, and it melts back into the input from where it was, its tint draining as it goes. Tapping a chip highlights it the same way. The remove glyph on each chip sinks slightly under the finger and springs back with a little bounce. A zero-width space kept in front of the typed text makes this reliable on the software keyboard, where iOS reports no key event for backspace on an empty field. It is never shown or committed.
+- The input uses a vertical-axis `TextField`, so return inserts a line break the field turns into a commit and the keyboard stays up between tokens. Valid text left in the input is committed quietly, with no haptic, when the field loses focus.
+- Suggestions appear while typing, matched case- and diacritic-insensitively, prefix matches first, at most five, with the matched run in full ink and the rest quieter. Tokens already added are left out. The list is a glass panel that buds out of the input, shrunk inside it, and rests apart below the field, opening room for itself as it comes and closing it as it melts home, so whatever sits below moves with it. While you type its rows refine in place on a short spring with no overshoot, so the text you read never wobbles, and a row sinks slightly under the finger.
+- `Style.chips` tints chips by their text, so a token keeps its tint wherever it appears and removing one never recolors the rest; the house palette leaves every chip neutral glass. A tinted chip's suggestion row shows a dot in its tint.
+- At `maxTokens` the input stops accepting text and shows a quiet count such as `5/5`. A keystroke there meets a bound rather than an error: a light impact, and the count swells and rebounds, with no shake or error haptic on every key. While the input still holds text, such as entries kept past the limit, the count is hidden, so the ring dims for a beat instead. Backspace still removes.
+- Typing never waits on motion. An edit never animates the input or its text, even when it changes the suggestions, clears the error tint or wraps the input to a new line; only a commit or a removal moves the input, along with the chips.
+- Tapping anywhere in the field that is not a chip focuses the input. Keyboard type, capitalization and content type pass through: apply `.keyboardType(.emailAddress)` and friends to the `TokenField`.
+- VoiceOver: each chip is one element read as "Swift, token" with a Remove action; the input's label carries the placeholder and the token count; adds, removals and rejections are announced.
+- `Style` sets the input's and list's glass tint, chip tints, ink, label, placeholder, the error and selection tints, the list's corner radius and the field's minimum height. All text is semibold. `.disabled(true)` dims the field and disables removal.
+- Reduce Motion: chips and the suggestion list open and close where they rest instead of budding and melting, and chips reflow on a short spring with no bounce. A highlighted chip changes tint without lifting, and a duplicate dims its chip for a beat instead of swelling it. A refused entry plays its haptic and dims the ring for a beat instead of shaking, so a refusal while the error tint is already showing still shows on screen. A keystroke at the limit dims the count for a beat instead of swelling it, or the ring while the input holds text, as with motion on. A pressed remove glyph or suggestion row fades instead of sinking. Reduce Transparency draws the glass as solid shapes.
+
+## Usage
+
+```swift
+TokenFieldExample()
+```
+
+## Parameters
+
+| Parameter | Description |
+| --- | --- |
+| `placeholder` | Shown in the input while it is empty, and the input's accessibility label. |
+| `tokens` | Bound tokens, in order. Changes from outside bud in and melt out like typed ones. |
+| `suggestions` | Candidates listed under the field while typing, matched case- and diacritic-insensitively (prefix matches first, then contains), excluding tokens already added. |
+| `maxTokens` | Upper limit. When reached the input stops accepting text and shows a quiet count such as "5/5", which bumps when a keystroke is refused; backspace still removes. |
+| `allowsDuplicates` | When `false`, an entry that matches an existing token case-insensitively is not added; the existing chip is highlighted instead and the first spelling is kept. |
+| `separators` | Keys and characters that commit the typed text. `.standard` is return, comma and pasted line breaks. Full-width commas and semicolons count as their ASCII forms. |
+| `style` | Colors and field metrics. Defaults to the SwiftPieces house palette, adapting to light and dark. |
+| `validate` | Accepts or rejects a trimmed entry (for example an email check). A rejected entry stays in the input, the field shakes, the input takes the error tint and an error haptic plays. |

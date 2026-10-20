@@ -1,6 +1,6 @@
 ---
 title: "Now Playing"
-description: "A mini player that grows into the full player in one continuous liquid glass motion: a glass bar with the artwork, the title over the artist and a red progress hairline, with a red play bubble and a forward bubble joined to its end. Tap it or pull it up and the bar stretches with the finger, then settles open with the flick's speed: the same glass grows into a card, the artwork, title and play button fly to their places, and previous and next bud out of play. Scrub the track with a swelling thumb while the times follow, skip with a letter by letter title morph and a blurred artwork swap, and drag the card down to fold it back into the bar. Playback stays the app's: the piece shows the time it is given and reports taps, skips and seeks."
+description: "A mini player that grows into the full player in one liquid glass motion, with scrubbing, skips and a drag to fold it back."
 piece: "NowPlaying"
 category: "media"
 minIOSVersion: "17.0"
@@ -11,52 +11,7 @@ registryDependencies: []
 
 {/* GENERATED FILE. Edit registry/swift/media/NowPlaying.swift or NowPlaying.mdx instead. */}
 
-A mini player that grows into the full player: one liquid glass shape that morphs from a bar into a card. Collapsed, it is a glass bar with the artwork, the title over the artist and a red progress hairline, with a red play bubble and a forward bubble joined to its end. Tap it, or pull it up (it stretches with the finger), and the same glass grows into a card: the artwork, title and play button fly to their places, previous and next bud out of play, and a scrubber and the times blur in. Drag the card down, or tap its grabber, to fold it back. Playback is the app's. The piece never runs a clock: it shows the `time` it is given, and calls back when people play, pause, skip or seek. Put it in the bottom safe area inset of your screen; the card opens over the content above the bar. ```swift .safeAreaInset(edge: .bottom) { NowPlaying(title: track.title, artist: track.artist, isPlaying: player.isPlaying, time: player.time, duration: track.duration, expanded: $showsPlayer, onPlayPause: { player.toggle() }, onSkip: { player.skip($0) }, onSeek: { player.seek(to: $0) }) { track.artwork.resizable().scaledToFill() } .padding(.horizontal, 12) } ```
-
-## Notes
-
-- Put it in the bottom safe area inset of your main screen, `.safeAreaInset(edge: .bottom) { NowPlaying(…).padding(.horizontal, 12) }`. Its layout size is only the bar, so your scroll content stops above it, and the card opens over the content above the bar, never past the top safe area.
-- Playback is yours. The piece never runs a clock: pass your player's `time`, `duration` and `isPlaying`, and act in `onPlayPause`, `onSkip` and `onSeek`. Time updates are eased linearly over the gap between them, so a player that reports once a second still creeps smoothly.
-- Collapsed, it is a glass bar (the artwork, the title over the artist, a red progress hairline) with a red play bubble and a forward bubble joined to its end on liquid necks. Tap the bar, or pull it up: the glass stretches after the finger with a rubber band's resistance, and a pull or flick that would carry past 72 points opens it; a shorter one springs back.
-- Opening is one continuous morph: forward melts into play, the same glass grows into the card, the artwork flies from its tile to its square, play flies to the middle of the transport and swells, and previous and next bud out of play and rest apart from it. The title and artist blur out as they leave the bar and back in at the card's size, so they never cross the growing artwork. A pull carries the finger's speed into the morph.
-- Drag the card down from anywhere but the scrubber and it follows the finger; let go past about a fifth of its height, or flick, and it closes: the controls blur out, previous and next melt home, the card folds into the bar and forward buds back out. Tap the grabber to close it too. `expanded` follows every change, and setting it from your code runs the same choreography.
-- The scrubber: touch the track anywhere and the thumb jumps under the finger and swells; the times follow, your player's updates are ignored while the finger is down, and `onSeek` fires once on release. The thumb then holds the new position until your `time` catches up (or a second and a half passes), so it never jumps back. `onSeek: nil` makes it a read-only progress bar.
-- Skipping: `.tracks` calls `onSkip(.previous)` or `onSkip(.next)`; the title morphs letter by letter and the artwork blurs into the new one when your title changes. `.seconds(back: 15, forward: 30)` (or `.podcast`) shows `gobackward.15` and `goforward.30` and seeks through `onSeek` instead. Without a handler the skip bubbles don't appear.
-- States: a `duration` of `0` is a live stream (no hairline, no scrubber, Live in place of the times); an empty `title` shows "Not playing"; long titles truncate in one line; the default artwork is a sand tile with a note.
-- The card's artwork fills its width and the card hugs the height left above the bar: on a short window it shrinks, and in landscape or at the largest text sizes the card switches to a row with a small artwork beside the lines.
-- VoiceOver: collapsed, the bar is one button, "Now playing, Slow Mornings, Aster Vale", valued Playing or Paused, with Play or Pause, Next track and Open player actions. Open, focus moves to the title (a header); the scrubber is adjustable in steps of 15 seconds and reads "1 minute, 12 seconds of 3 minutes, 42 seconds"; the transport and the grabber ("Close player") are buttons, and the escape gesture closes. A skip announces the new title and artist.
-- Hardware keyboard: Space plays or pauses, Return opens, Escape closes, and the left and right arrows seek 15 seconds while open.
-- Reduce Motion: no stretch under the finger, the glass changes shape on a short ease without overshoot, the artwork and lines fade out and back in at their new places instead of flying, and the bubbles fade in place.
-- Dynamic Type: the lines, the artwork tile and the mini buttons scale, the bar grows taller and the lines truncate; the card's line heights follow, and its artwork gives way first. Right to left mirrors the bar and the card's lines; the transport, the scrubber and the hairline keep left to right, as media controls do.
-- Haptics: a light impact on play and pause, a selection tick on skip and when a finger grabs the scrubber, and a soft impact when the player lands open or closed.
-- Red marks three things only: the play bubble, the progress hairline and the played part of the track. Everything else is clear glass and house ink. All text is one weight, semibold.
-- `Style` sets the accent and its ink, the label colours, the track, the thumb, the grabber and the placeholder tile. `Messages` replaces any of the copy and the VoiceOver strings, such as `untitled: "Nothing queued"`.
-
-## Usage
-
-```swift
-NowPlayingExample()
-```
-
-## Parameters
-
-| Parameter | Description |
-| --- | --- |
-| `title` | The track, episode or station. It morphs letter by letter when it changes, and truncates when it doesn't fit. An empty title shows `messages.untitled`. |
-| `artist` | The secondary line: the artist, show or author. |
-| `isPlaying` | Whether the app is playing. The red play bubble shows pause while it is `true`. |
-| `time` | The playback position in seconds, from your player. Updates between ticks are eased, so the hairline and the scrubber creep smoothly at any update rate. While people scrub, updates are ignored. |
-| `duration` | The length in seconds. `0` (or any value that isn't positive and finite) is a live stream: the hairline, the scrubber and the times give way to `messages.live`. |
-| `expanded` | Whether the full player is open. Bind it to open or close the player from your own code; any change animates. |
-| `skipping` | What the skip buttons do: `.tracks` (previous and next, through `onSkip`, the default) or `.seconds(back:forward:)` for podcasts and audiobooks (through `onSeek`). |
-| `messages` | The built-in copy and VoiceOver strings. Defaults are localizable through your String Catalog; replace any line. |
-| `style` | Colors. Defaults to the SwiftPieces house palette, adapting to light and dark, with red for play, the hairline and the played part of the track. |
-| `onPlayPause` | Called when the play bubble is tapped (or Space is pressed). Toggle your player here. |
-| `onSkip` | Called with `.previous` or `.next` in `.tracks` mode. `nil` hides the skip bubbles. |
-| `onSeek` | Called once with the new position when a scrub ends, a seconds skip is tapped, or VoiceOver adjusts the scrubber. `nil` makes the scrubber a read-only display. |
-| `artwork` | The artwork, filled into a square. Omit it for a house tile with a note. It blurs into the new one whenever the title or artist changes. |
-
-## Source
+<Showcase name="NowPlaying">
 
 <Tabs items={["NowPlaying.swift"]}>
 <Tab value="NowPlaying.swift">
@@ -1477,7 +1432,7 @@ extension PieceMotion {
 // and melt back into each other, and the frosted fallback before iOS 26. Each piece carries a copy of only
 // the parts it uses, so this file stands alone. Generated from registry/foundation/PieceLiquid.swift in the
 // SwiftPieces repo; edit it there, not here. The rules are in LIQUID_GLASS.md.
-// swiftpieces-liquid: 1.7.1 (liquid, liquidPress, bud, morphText)
+// swiftpieces-liquid: 1.8.0 (liquid, liquidPress, bud, morphText)
 
 /// The liquid glass language: one merge distance, two rest gaps, and the springs a bubble leaves and comes home on.
 ///
@@ -1799,31 +1754,46 @@ private struct PieceMorphText: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        Group {
-            if Self.splits(text) {
-                let glyphs = Array(text)
-                HStack(spacing: 0) {
-                    ForEach(glyphs.indices, id: \.self) { i in
-                        Text(String(glyphs[i]))
-                            .id("\(i)\(glyphs[i])")
-                            .transition(transition(i, scale: 0.6))
-                    }
-                }
-                // The letters' reading order, not the layout's: an HStack lays its children out backwards under a
-                // right-to-left layout.
-                .environment(\.layoutDirection, .leftToRight)
-            } else {
-                ZStack(alignment: .leading) {
-                    Text(text)
-                        .id(text)
-                        .transition(transition(0, scale: 0.9))
-                }
-            }
+        // The morphing label at its full size when it fits. When it doesn't (a long label at an accessibility text
+        // size, a narrow screen), the same words wrap onto a second line and shrink a little instead of running past
+        // the screen's edge; that one changes as a whole rather than letter by letter. A single word never splits
+        // across lines: it stays on one and shrinks further.
+        let oneWord = !text.contains(where: \.isWhitespace)
+        ViewThatFits(in: .horizontal) {
+            morphing.fixedSize()
+            Text(text)
+                .lineLimit(oneWord ? 1 : 2)
+                .multilineTextAlignment(.center)
+                .minimumScaleFactor(oneWord ? 0.5 : 0.75)
+                .fixedSize(horizontal: false, vertical: true)
+                .id(text)
+                .transition(transition(0, scale: 0.9))
         }
         .font(font)
-        .fixedSize()
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(text)
+    }
+
+    @ViewBuilder private var morphing: some View {
+        if Self.splits(text) {
+            let glyphs = Array(text)
+            HStack(spacing: 0) {
+                ForEach(glyphs.indices, id: \.self) { i in
+                    Text(String(glyphs[i]))
+                        .id("\(i)\(glyphs[i])")
+                        .transition(transition(i, scale: 0.6))
+                }
+            }
+            // The letters' reading order, not the layout's: an HStack lays its children out backwards under a
+            // right-to-left layout.
+            .environment(\.layoutDirection, .leftToRight)
+        } else {
+            ZStack(alignment: .leading) {
+                Text(text)
+                    .id(text)
+                    .transition(transition(0, scale: 0.9))
+            }
+        }
     }
 
     private func transition(_ i: Int, scale: CGFloat) -> AnyTransition {
@@ -1861,3 +1831,52 @@ private struct PieceMorphText: View {
 
 </Tab>
 </Tabs>
+
+</Showcase>
+
+<PieceFacts name="NowPlaying" />
+
+A mini player that grows into the full player: one liquid glass shape that morphs from a bar into a card. Collapsed, it is a glass bar with the artwork, the title over the artist and a red progress hairline, with a red play bubble and a forward bubble joined to its end. Tap it, or pull it up (it stretches with the finger), and the same glass grows into a card: the artwork, title and play button fly to their places, previous and next bud out of play, and a scrubber and the times blur in. Drag the card down, or tap its grabber, to fold it back. Playback is the app's. The piece never runs a clock: it shows the `time` it is given, and calls back when people play, pause, skip or seek. Put it in the bottom safe area inset of your screen; the card opens over the content above the bar. ```swift .safeAreaInset(edge: .bottom) { NowPlaying(title: track.title, artist: track.artist, isPlaying: player.isPlaying, time: player.time, duration: track.duration, expanded: $showsPlayer, onPlayPause: { player.toggle() }, onSkip: { player.skip($0) }, onSeek: { player.seek(to: $0) }) { track.artwork.resizable().scaledToFill() } .padding(.horizontal, 12) } ```
+
+## Notes
+
+- Put it in the bottom safe area inset of your main screen, `.safeAreaInset(edge: .bottom) { NowPlaying(…).padding(.horizontal, 12) }`. Its layout size is only the bar, so your scroll content stops above it, and the card opens over the content above the bar, never past the top safe area.
+- Playback is yours. The piece never runs a clock: pass your player's `time`, `duration` and `isPlaying`, and act in `onPlayPause`, `onSkip` and `onSeek`. Time updates are eased linearly over the gap between them, so a player that reports once a second still creeps smoothly.
+- Collapsed, it is a glass bar (the artwork, the title over the artist, a red progress hairline) with a red play bubble and a forward bubble joined to its end on liquid necks. Tap the bar, or pull it up: the glass stretches after the finger with a rubber band's resistance, and a pull or flick that would carry past 72 points opens it; a shorter one springs back.
+- Opening is one continuous morph: forward melts into play, the same glass grows into the card, the artwork flies from its tile to its square, play flies to the middle of the transport and swells, and previous and next bud out of play and rest apart from it. The title and artist blur out as they leave the bar and back in at the card's size, so they never cross the growing artwork. A pull carries the finger's speed into the morph.
+- Drag the card down from anywhere but the scrubber and it follows the finger; let go past about a fifth of its height, or flick, and it closes: the controls blur out, previous and next melt home, the card folds into the bar and forward buds back out. Tap the grabber to close it too. `expanded` follows every change, and setting it from your code runs the same choreography.
+- The scrubber: touch the track anywhere and the thumb jumps under the finger and swells; the times follow, your player's updates are ignored while the finger is down, and `onSeek` fires once on release. The thumb then holds the new position until your `time` catches up (or a second and a half passes), so it never jumps back. `onSeek: nil` makes it a read-only progress bar.
+- Skipping: `.tracks` calls `onSkip(.previous)` or `onSkip(.next)`; the title morphs letter by letter and the artwork blurs into the new one when your title changes. `.seconds(back: 15, forward: 30)` (or `.podcast`) shows `gobackward.15` and `goforward.30` and seeks through `onSeek` instead. Without a handler the skip bubbles don't appear.
+- States: a `duration` of `0` is a live stream (no hairline, no scrubber, Live in place of the times); an empty `title` shows "Not playing"; long titles truncate in one line; the default artwork is a sand tile with a note.
+- The card's artwork fills its width and the card hugs the height left above the bar: on a short window it shrinks, and in landscape or at the largest text sizes the card switches to a row with a small artwork beside the lines.
+- VoiceOver: collapsed, the bar is one button, "Now playing, Slow Mornings, Aster Vale", valued Playing or Paused, with Play or Pause, Next track and Open player actions. Open, focus moves to the title (a header); the scrubber is adjustable in steps of 15 seconds and reads "1 minute, 12 seconds of 3 minutes, 42 seconds"; the transport and the grabber ("Close player") are buttons, and the escape gesture closes. A skip announces the new title and artist.
+- Hardware keyboard: Space plays or pauses, Return opens, Escape closes, and the left and right arrows seek 15 seconds while open.
+- Reduce Motion: no stretch under the finger, the glass changes shape on a short ease without overshoot, the artwork and lines fade out and back in at their new places instead of flying, and the bubbles fade in place.
+- Dynamic Type: the lines, the artwork tile and the mini buttons scale, the bar grows taller and the lines truncate; the card's line heights follow, and its artwork gives way first. Right to left mirrors the bar and the card's lines; the transport, the scrubber and the hairline keep left to right, as media controls do.
+- Haptics: a light impact on play and pause, a selection tick on skip and when a finger grabs the scrubber, and a soft impact when the player lands open or closed.
+- Red marks three things only: the play bubble, the progress hairline and the played part of the track. Everything else is clear glass and house ink. All text is one weight, semibold.
+- `Style` sets the accent and its ink, the label colours, the track, the thumb, the grabber and the placeholder tile. `Messages` replaces any of the copy and the VoiceOver strings, such as `untitled: "Nothing queued"`.
+
+## Usage
+
+```swift
+NowPlayingExample()
+```
+
+## Parameters
+
+| Parameter | Description |
+| --- | --- |
+| `title` | The track, episode or station. It morphs letter by letter when it changes, and truncates when it doesn't fit. An empty title shows `messages.untitled`. |
+| `artist` | The secondary line: the artist, show or author. |
+| `isPlaying` | Whether the app is playing. The red play bubble shows pause while it is `true`. |
+| `time` | The playback position in seconds, from your player. Updates between ticks are eased, so the hairline and the scrubber creep smoothly at any update rate. While people scrub, updates are ignored. |
+| `duration` | The length in seconds. `0` (or any value that isn't positive and finite) is a live stream: the hairline, the scrubber and the times give way to `messages.live`. |
+| `expanded` | Whether the full player is open. Bind it to open or close the player from your own code; any change animates. |
+| `skipping` | What the skip buttons do: `.tracks` (previous and next, through `onSkip`, the default) or `.seconds(back:forward:)` for podcasts and audiobooks (through `onSeek`). |
+| `messages` | The built-in copy and VoiceOver strings. Defaults are localizable through your String Catalog; replace any line. |
+| `style` | Colors. Defaults to the SwiftPieces house palette, adapting to light and dark, with red for play, the hairline and the played part of the track. |
+| `onPlayPause` | Called when the play bubble is tapped (or Space is pressed). Toggle your player here. |
+| `onSkip` | Called with `.previous` or `.next` in `.tracks` mode. `nil` hides the skip bubbles. |
+| `onSeek` | Called once with the new position when a scrub ends, a seconds skip is tapped, or VoiceOver adjusts the scrubber. `nil` makes the scrubber a read-only display. |
+| `artwork` | The artwork, filled into a square. Omit it for a house tile with a note. It blurs into the new one whenever the title or artist changes. |

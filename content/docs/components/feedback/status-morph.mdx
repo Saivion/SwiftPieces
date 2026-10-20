@@ -1,6 +1,6 @@
 ---
 title: "Status Morph"
-description: "One continuous stroke that spins as a loading arc, closes into a ring, floods into a solid block and draws a check in dark ink on success, or a cross with a nudge on failure, with an optional caption on a liquid glass pill under the ring whose label morphs letter by letter."
+description: "One stroke that spins while loading, then closes into a ring and draws a check on success or a cross on failure."
 piece: "StatusMorph"
 category: "feedback"
 minIOSVersion: "17.0"
@@ -11,44 +11,7 @@ registryDependencies: []
 
 {/* GENERATED FILE. Edit registry/swift/feedback/StatusMorph.swift or StatusMorph.mdx instead. */}
 
-Idle, loading, success, and failure in one ring that lands as a solid block, with an optional caption on a glass pill.
-
-## Notes
-
-- Loading is a 72% arc in ink turned by a `TimelineView` clock, so nothing runs while idle or settled. Each spin starts from rest wherever the stroke lies and reaches full speed within about half a second.
-- On success or failure the arc keeps its angle and coasts to rest at the speed it was turning, never swinging back, while it closes into a ring. A beat later the ring floods inward into a solid block (sage for success, the brand red for failure), and a beat after that the check or cross draws in dark ink. The stroke and the block are the content, so they stay solid.
-- The outcome lands as the block closes solid, about half a second after the change, while the mark finishes drawing: success plays the `.success` haptic and, with `pops`, a soft pop; failure plays the `.error` haptic and a short shake sized to the ring, on the same beat.
-- `captions` puts the caption on a liquid glass pill just under the ring. A changed caption morphs letter by letter: letters the two words share hold still and the rest blur through, so "Saving" becomes "Saved" in place, and the pill eases to its new width. An outcome's word changes two beats after the state, so it lands with the mark it names. With nothing to bud from, a caption that appears rises in on its own and one that goes sinks away; the slot keeps its height, so the ring never moves. The caption is quiet while working and full ink once settled, all in semibold.
-- Retrying from a settled state runs the morph in reverse: the mark un-draws, the arc turns back to ink and opens as it starts to turn, and the block drains outward into it in its own color. Going straight from success to failure recolors the ring, then the block a beat later, and swaps the check for the cross. Draining, the marks show only through what is left of the block, so ink never shows over the open center. Drawing in, they see the whole block, so the cross's first stroke never breaks as it crosses the closing center.
-- Each mark thins to nothing over the first few percent of its stroke, like a pen landing and lifting, so an un-drawn check never leaves its round cap behind.
-- A change that arrives mid-morph retargets from wherever the ring is, and a landing from an earlier state never plays late. An outcome left for idle before it lands still plays its haptic at once, without the pop or shake. A retry or the other outcome replaces one that hasn't landed, so only the newer outcome is felt. If the haptic matters, keep the view on screen until the outcome lands, for example before dismissing a sheet on success.
-- `Style` holds the two blocks, the ink, the arc and track colors and the caption colors, with house palette defaults that adapt to light and dark. `tint` still works and overrides the success block.
-- The check and cross are one `Shape` stroked to a progress, so the cross draws its two lines in order.
-- A view that appears already settled shows its final block and caption without replaying the morph or its haptic.
-- `size` is a `@ScaledMetric`, so the ring grows with Dynamic Type alongside its caption.
-- Before iOS 26 the caption pill draws on a frosted material with a light rim; under Reduce Transparency it is solid.
-- Under Reduce Motion the arc does not turn: while loading it holds still and breathes slowly in opacity, so it still reads as work in progress without a caption. Each change lands in one short beat with no rotation, pop or shake, and the mark shows through the block as it fills. The color, the mark, a crossfaded caption and the haptics still carry the outcome.
-- For a full agent task screen with a live tool timeline, see the Pro Agent Task screen.
-
-## Usage
-
-```swift
-StatusMorphExample()
-```
-
-## Parameters
-
-| Parameter | Description |
-| --- | --- |
-| `state` | `.idle`, `.loading`, `.success`, or `.failure`. |
-| `captions` | Optional caption per state, on a glass pill under the ring. A changed caption morphs letter by letter, so "Saving" becomes "Saved" in place; a caption that appears rises in, and one that goes sinks away. Use `.saving` for "Saving / Saved / Failed". |
-| `size` | Ring diameter in points; scales with Dynamic Type. |
-| `lineWidth` | Stroke width for the ring, check, and cross. |
-| `tint` | Overrides the success block color. Defaults to `style.success`. |
-| `pops` | Soft scale pop when success lands. |
-| `style` | Block, stroke and caption colors. `.standard` lands sage for success and the brand red for failure, with dark ink marks. |
-
-## Source
+<Showcase name="StatusMorph">
 
 <Tabs items={["StatusMorph.swift"]}>
 <Tab value="StatusMorph.swift">
@@ -776,7 +739,7 @@ private extension View {
 // and melt back into each other, and the frosted fallback before iOS 26. Each piece carries a copy of only
 // the parts it uses, so this file stands alone. Generated from registry/foundation/PieceLiquid.swift in the
 // SwiftPieces repo; edit it there, not here. The rules are in LIQUID_GLASS.md.
-// swiftpieces-liquid: 1.7.1 (liquid, morphText)
+// swiftpieces-liquid: 1.8.0 (liquid, morphText)
 
 /// The liquid glass language: one merge distance, two rest gaps, and the springs a bubble leaves and comes home on.
 ///
@@ -931,31 +894,46 @@ private struct PieceMorphText: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        Group {
-            if Self.splits(text) {
-                let glyphs = Array(text)
-                HStack(spacing: 0) {
-                    ForEach(glyphs.indices, id: \.self) { i in
-                        Text(String(glyphs[i]))
-                            .id("\(i)\(glyphs[i])")
-                            .transition(transition(i, scale: 0.6))
-                    }
-                }
-                // The letters' reading order, not the layout's: an HStack lays its children out backwards under a
-                // right-to-left layout.
-                .environment(\.layoutDirection, .leftToRight)
-            } else {
-                ZStack(alignment: .leading) {
-                    Text(text)
-                        .id(text)
-                        .transition(transition(0, scale: 0.9))
-                }
-            }
+        // The morphing label at its full size when it fits. When it doesn't (a long label at an accessibility text
+        // size, a narrow screen), the same words wrap onto a second line and shrink a little instead of running past
+        // the screen's edge; that one changes as a whole rather than letter by letter. A single word never splits
+        // across lines: it stays on one and shrinks further.
+        let oneWord = !text.contains(where: \.isWhitespace)
+        ViewThatFits(in: .horizontal) {
+            morphing.fixedSize()
+            Text(text)
+                .lineLimit(oneWord ? 1 : 2)
+                .multilineTextAlignment(.center)
+                .minimumScaleFactor(oneWord ? 0.5 : 0.75)
+                .fixedSize(horizontal: false, vertical: true)
+                .id(text)
+                .transition(transition(0, scale: 0.9))
         }
         .font(font)
-        .fixedSize()
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(text)
+    }
+
+    @ViewBuilder private var morphing: some View {
+        if Self.splits(text) {
+            let glyphs = Array(text)
+            HStack(spacing: 0) {
+                ForEach(glyphs.indices, id: \.self) { i in
+                    Text(String(glyphs[i]))
+                        .id("\(i)\(glyphs[i])")
+                        .transition(transition(i, scale: 0.6))
+                }
+            }
+            // The letters' reading order, not the layout's: an HStack lays its children out backwards under a
+            // right-to-left layout.
+            .environment(\.layoutDirection, .leftToRight)
+        } else {
+            ZStack(alignment: .leading) {
+                Text(text)
+                    .id(text)
+                    .transition(transition(0, scale: 0.9))
+            }
+        }
     }
 
     private func transition(_ i: Int, scale: CGFloat) -> AnyTransition {
@@ -993,3 +971,44 @@ private struct PieceMorphText: View {
 
 </Tab>
 </Tabs>
+
+</Showcase>
+
+<PieceFacts name="StatusMorph" />
+
+Idle, loading, success, and failure in one ring that lands as a solid block, with an optional caption on a glass pill.
+
+## Notes
+
+- Loading is a 72% arc in ink turned by a `TimelineView` clock, so nothing runs while idle or settled. Each spin starts from rest wherever the stroke lies and reaches full speed within about half a second.
+- On success or failure the arc keeps its angle and coasts to rest at the speed it was turning, never swinging back, while it closes into a ring. A beat later the ring floods inward into a solid block (sage for success, the brand red for failure), and a beat after that the check or cross draws in dark ink. The stroke and the block are the content, so they stay solid.
+- The outcome lands as the block closes solid, about half a second after the change, while the mark finishes drawing: success plays the `.success` haptic and, with `pops`, a soft pop; failure plays the `.error` haptic and a short shake sized to the ring, on the same beat.
+- `captions` puts the caption on a liquid glass pill just under the ring. A changed caption morphs letter by letter: letters the two words share hold still and the rest blur through, so "Saving" becomes "Saved" in place, and the pill eases to its new width. An outcome's word changes two beats after the state, so it lands with the mark it names. With nothing to bud from, a caption that appears rises in on its own and one that goes sinks away; the slot keeps its height, so the ring never moves. The caption is quiet while working and full ink once settled, all in semibold.
+- Retrying from a settled state runs the morph in reverse: the mark un-draws, the arc turns back to ink and opens as it starts to turn, and the block drains outward into it in its own color. Going straight from success to failure recolors the ring, then the block a beat later, and swaps the check for the cross. Draining, the marks show only through what is left of the block, so ink never shows over the open center. Drawing in, they see the whole block, so the cross's first stroke never breaks as it crosses the closing center.
+- Each mark thins to nothing over the first few percent of its stroke, like a pen landing and lifting, so an un-drawn check never leaves its round cap behind.
+- A change that arrives mid-morph retargets from wherever the ring is, and a landing from an earlier state never plays late. An outcome left for idle before it lands still plays its haptic at once, without the pop or shake. A retry or the other outcome replaces one that hasn't landed, so only the newer outcome is felt. If the haptic matters, keep the view on screen until the outcome lands, for example before dismissing a sheet on success.
+- `Style` holds the two blocks, the ink, the arc and track colors and the caption colors, with house palette defaults that adapt to light and dark. `tint` still works and overrides the success block.
+- The check and cross are one `Shape` stroked to a progress, so the cross draws its two lines in order.
+- A view that appears already settled shows its final block and caption without replaying the morph or its haptic.
+- `size` is a `@ScaledMetric`, so the ring grows with Dynamic Type alongside its caption.
+- Before iOS 26 the caption pill draws on a frosted material with a light rim; under Reduce Transparency it is solid.
+- Under Reduce Motion the arc does not turn: while loading it holds still and breathes slowly in opacity, so it still reads as work in progress without a caption. Each change lands in one short beat with no rotation, pop or shake, and the mark shows through the block as it fills. The color, the mark, a crossfaded caption and the haptics still carry the outcome.
+- For a full agent task screen with a live tool timeline, see the Pro Agent Task screen.
+
+## Usage
+
+```swift
+StatusMorphExample()
+```
+
+## Parameters
+
+| Parameter | Description |
+| --- | --- |
+| `state` | `.idle`, `.loading`, `.success`, or `.failure`. |
+| `captions` | Optional caption per state, on a glass pill under the ring. A changed caption morphs letter by letter, so "Saving" becomes "Saved" in place; a caption that appears rises in, and one that goes sinks away. Use `.saving` for "Saving / Saved / Failed". |
+| `size` | Ring diameter in points; scales with Dynamic Type. |
+| `lineWidth` | Stroke width for the ring, check, and cross. |
+| `tint` | Overrides the success block color. Defaults to `style.success`. |
+| `pops` | Soft scale pop when success lands. |
+| `style` | Block, stroke and caption colors. `.standard` lands sage for success and the brand red for failure, with dark ink marks. |

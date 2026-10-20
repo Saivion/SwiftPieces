@@ -1,6 +1,6 @@
 ---
 title: "Picture Headline"
-description: "A semibold headline with living pictures stuck between its words like a hand-placed collage. Each word rises into place and each picture opens from a dot into a tilted sticker with a white rim, landing with a spring, a light tick and a flash of crop marks, then keeps drifting. Press a sticker to lift it. Use the built-in house-palette scenes (the sun is our red mascot), your own images or SF Symbols; it wraps like text at any width and Dynamic Type size."
+description: "A headline with living pictures stuck between its words like a collage, each opening into a tilted sticker as the words rise."
 piece: "PictureHeadline"
 category: "text"
 minIOSVersion: "17.0"
@@ -11,46 +11,7 @@ registryDependencies: []
 
 {/* GENERATED FILE. Edit registry/swift/text/PictureHeadline.swift or PictureHeadline.mdx instead. */}
 
-A headline with pictures stuck between its words like stickers, revealed in reading order. Write it as a list of segments: strings are words, pictures sit where you put them. ```swift PictureHeadline(["Slow", .art(.sun), "mornings, long", .art(.waves), "walks and early", .art(.moon), "nights."]) .font(.system(size: 40, weight: .semibold)) ``` Words are set in the house weight, semibold. Pictures are sized from the font, so they follow Dynamic Type and every font you set. Each lands as a sticker: a white rim, a soft shadow and a small tilt that alternates along the headline, with crop marks flashing at its corners. Press and hold one to lift it. Text wraps word by word and a picture never breaks from the row it lands on.
-
-## Notes
-
-- Write the headline as a list: string literals are words and pictures go where you put them, for example `["Slow", .art(.sun), "mornings, long", .art(.waves), "walks."]`. A string can hold several words; each word rises on its own.
-- Pictures land as stickers: a white rim, a soft shadow and a small resting tilt that alternates along the headline (`Style.tilt`, 4 degrees at most), so a line reads as placed by hand. As each one lands, four hairline crop marks snap in at its corners, contracting onto them, and clear a moment later: the crosses SwiftPieces draws on its artboards. `Style.tilt = 0` lays them flat, `Style.rim = 0` drops the rim and `Style.cropMarks = false` skips the marks.
-- Press and hold a sticker to lift it: it peels up at once on a spring with no overshoot under the finger, straightening and scaling up with a deeper shadow above its neighbours. A light tick lands once the hold has lasted a moment, so a quick tap or a scroll that starts on a sticker stays silent. It stays up until you let go, then drops back to its tilt with a little give. The press uses `onLongPressGesture(onPressingChanged:)` with a small tolerance, so scrolling over the headline still scrolls. A hold claims the touch, so a headline inside a `Button` or a tappable card doesn't also trigger it; a quick tap still passes through. `Style.lifts = false` turns the lift off.
-- Words are set in the house weight, semibold, at the piece's root; size carries the hierarchy, as the example's `.font(.system(size: 40, weight: .semibold))` shows.
-- Pictures are sized from the font: `Style.pictureHeight` is a fraction of the line height (0.82 by default) and each picture's `width` is in picture heights (2.4 is a wide frame, 1 a square). Set the font with `.font(...)` as usual and the pictures follow it, Dynamic Type included.
-- Words and pictures wrap like text with a private `Layout`, so the headline breaks across rows at any width and a picture never splits from the row it lands on. `alignment` sets each row's alignment.
-- The reveal runs in reading order. Each word slides up from behind its own baseline on a calm spring that never overshoots. Each picture appears as a dot as tall as the frame and widens into the full sticker on the opening spring (`Style.openDuration` and `Style.openBounce`), swelling a little past full width, picture and rim together, before it settles; its tilt lands a beat behind the frame as follow-through, and its contents settle from a slight zoom just after the frame lands. The stagger is sized from the number of items, so a short and a long headline both land in about `duration` (1.2 seconds by default). `delay` holds the start; change `trigger` to replay. The old headline fades out with the words it was showing, and the new one rises a beat behind it, so changing the segments and the trigger together (a pager, say) moves from one headline to the next without a cut.
-- Three kinds of picture: `.art(_:)` draws one of five built-in scenes in the house palette (`.sun` is the red SwiftPieces mascot, bobbing and blinking over the sand; `.waves`, `.moon`, `.hills` and `.bloom`), so a headline looks finished before you have artwork; `.image(_:)` fills the frame with your own `Image`; `.symbol(_:fill:ink:)` sets an SF Symbol on a solid block.
-- After landing, pictures keep moving: each starts from a still rest pose as it lands and eases into its drift over about a second, each on its own clock. Scenes drift (the sun bobs and blinks, the sea slides, stars twinkle), images pan slowly and symbols bob. Set `Style.drift = false` for still pictures. Drawing uses `Canvas` driven by a `TimelineView` at up to 30 frames a second, paused until the picture lands.
-- `revealOnScroll` waits until the headline scrolls into view with `onScrollVisibilityChange` on iOS 18; on iOS 17 it reveals on appear.
-- Haptics: a light tick as each picture's frame lands, timed from the opening spring and on the beat of its crop marks, and another when a hold lifts one. Under Reduce Motion one tick marks the moment the headline has faded in. A headline fading out for a replay never ticks. Pass `haptics: false` to stay silent.
-- VoiceOver reads the headline as one header: the words in order, plus a picture's `label` where it sits, so `.art(.sun, label: "a sunrise")` is read and an unlabelled picture is skipped.
-- Reduce Motion keeps the feedback and drops the movement: words and pictures fade in together, and pictures sit flat and still on their rest pose (the sun with its eyes open), with no rise, zoom, tilt, crop marks or drift. A held sticker deepens its shadow and shifts its brightness slightly instead of lifting (darker in light mode, lighter in dark mode), one tick marks the landing, and a replay fades the old headline out just ahead of the new one fading in.
-- `Style` (`.standard` is the house look): `pictureHeight`, `cornerRadius` (a fraction of the picture height; 0.5 makes a capsule), `tilt`, `rim`, `rimColor`, `cropMarks`, `lifts`, `drift`, `openDuration` and `openBounce`.
-
-## Usage
-
-```swift
-PictureHeadlineExample()
-    .preferredColorScheme(.light)
-```
-
-## Parameters
-
-| Parameter | Description |
-| --- | --- |
-| `segments` | Words (string literals) and pictures (`.art`, `.image`, `.symbol`), in reading order. |
-| `alignment` | Row alignment, like `multilineTextAlignment`. |
-| `duration` | Target time for the whole reveal, in seconds. The stagger is sized from the number of words and pictures, so short and long headlines both land in about this long. |
-| `delay` | Delay before the first word starts. |
-| `revealOnScroll` | When true, the reveal waits until the headline scrolls into view (iOS 18). Below iOS 18 it reveals on appear. |
-| `trigger` | Change this value to replay the reveal. |
-| `haptics` | A light tick as each picture lands and when one is lifted. On by default. |
-| `style` | Picture size, corner rounding, tilt, rim, crop marks, lifting, drift and the opening spring. |
-
-## Source
+<Showcase name="PictureHeadline">
 
 <Tabs items={["PictureHeadline.swift"]}>
 <Tab value="PictureHeadline.swift">
@@ -1014,3 +975,46 @@ extension PieceMotion {
 
 </Tab>
 </Tabs>
+
+</Showcase>
+
+<PieceFacts name="PictureHeadline" />
+
+A headline with pictures stuck between its words like stickers, revealed in reading order. Write it as a list of segments: strings are words, pictures sit where you put them. ```swift PictureHeadline(["Slow", .art(.sun), "mornings, long", .art(.waves), "walks and early", .art(.moon), "nights."]) .font(.system(size: 40, weight: .semibold)) ``` Words are set in the house weight, semibold. Pictures are sized from the font, so they follow Dynamic Type and every font you set. Each lands as a sticker: a white rim, a soft shadow and a small tilt that alternates along the headline, with crop marks flashing at its corners. Press and hold one to lift it. Text wraps word by word and a picture never breaks from the row it lands on.
+
+## Notes
+
+- Write the headline as a list: string literals are words and pictures go where you put them, for example `["Slow", .art(.sun), "mornings, long", .art(.waves), "walks."]`. A string can hold several words; each word rises on its own.
+- Pictures land as stickers: a white rim, a soft shadow and a small resting tilt that alternates along the headline (`Style.tilt`, 4 degrees at most), so a line reads as placed by hand. As each one lands, four hairline crop marks snap in at its corners, contracting onto them, and clear a moment later: the crosses SwiftPieces draws on its artboards. `Style.tilt = 0` lays them flat, `Style.rim = 0` drops the rim and `Style.cropMarks = false` skips the marks.
+- Press and hold a sticker to lift it: it peels up at once on a spring with no overshoot under the finger, straightening and scaling up with a deeper shadow above its neighbours. A light tick lands once the hold has lasted a moment, so a quick tap or a scroll that starts on a sticker stays silent. It stays up until you let go, then drops back to its tilt with a little give. The press uses `onLongPressGesture(onPressingChanged:)` with a small tolerance, so scrolling over the headline still scrolls. A hold claims the touch, so a headline inside a `Button` or a tappable card doesn't also trigger it; a quick tap still passes through. `Style.lifts = false` turns the lift off.
+- Words are set in the house weight, semibold, at the piece's root; size carries the hierarchy, as the example's `.font(.system(size: 40, weight: .semibold))` shows.
+- Pictures are sized from the font: `Style.pictureHeight` is a fraction of the line height (0.82 by default) and each picture's `width` is in picture heights (2.4 is a wide frame, 1 a square). Set the font with `.font(...)` as usual and the pictures follow it, Dynamic Type included.
+- Words and pictures wrap like text with a private `Layout`, so the headline breaks across rows at any width and a picture never splits from the row it lands on. `alignment` sets each row's alignment.
+- The reveal runs in reading order. Each word slides up from behind its own baseline on a calm spring that never overshoots. Each picture appears as a dot as tall as the frame and widens into the full sticker on the opening spring (`Style.openDuration` and `Style.openBounce`), swelling a little past full width, picture and rim together, before it settles; its tilt lands a beat behind the frame as follow-through, and its contents settle from a slight zoom just after the frame lands. The stagger is sized from the number of items, so a short and a long headline both land in about `duration` (1.2 seconds by default). `delay` holds the start; change `trigger` to replay. The old headline fades out with the words it was showing, and the new one rises a beat behind it, so changing the segments and the trigger together (a pager, say) moves from one headline to the next without a cut.
+- Three kinds of picture: `.art(_:)` draws one of five built-in scenes in the house palette (`.sun` is the red SwiftPieces mascot, bobbing and blinking over the sand; `.waves`, `.moon`, `.hills` and `.bloom`), so a headline looks finished before you have artwork; `.image(_:)` fills the frame with your own `Image`; `.symbol(_:fill:ink:)` sets an SF Symbol on a solid block.
+- After landing, pictures keep moving: each starts from a still rest pose as it lands and eases into its drift over about a second, each on its own clock. Scenes drift (the sun bobs and blinks, the sea slides, stars twinkle), images pan slowly and symbols bob. Set `Style.drift = false` for still pictures. Drawing uses `Canvas` driven by a `TimelineView` at up to 30 frames a second, paused until the picture lands.
+- `revealOnScroll` waits until the headline scrolls into view with `onScrollVisibilityChange` on iOS 18; on iOS 17 it reveals on appear.
+- Haptics: a light tick as each picture's frame lands, timed from the opening spring and on the beat of its crop marks, and another when a hold lifts one. Under Reduce Motion one tick marks the moment the headline has faded in. A headline fading out for a replay never ticks. Pass `haptics: false` to stay silent.
+- VoiceOver reads the headline as one header: the words in order, plus a picture's `label` where it sits, so `.art(.sun, label: "a sunrise")` is read and an unlabelled picture is skipped.
+- Reduce Motion keeps the feedback and drops the movement: words and pictures fade in together, and pictures sit flat and still on their rest pose (the sun with its eyes open), with no rise, zoom, tilt, crop marks or drift. A held sticker deepens its shadow and shifts its brightness slightly instead of lifting (darker in light mode, lighter in dark mode), one tick marks the landing, and a replay fades the old headline out just ahead of the new one fading in.
+- `Style` (`.standard` is the house look): `pictureHeight`, `cornerRadius` (a fraction of the picture height; 0.5 makes a capsule), `tilt`, `rim`, `rimColor`, `cropMarks`, `lifts`, `drift`, `openDuration` and `openBounce`.
+
+## Usage
+
+```swift
+PictureHeadlineExample()
+    .preferredColorScheme(.light)
+```
+
+## Parameters
+
+| Parameter | Description |
+| --- | --- |
+| `segments` | Words (string literals) and pictures (`.art`, `.image`, `.symbol`), in reading order. |
+| `alignment` | Row alignment, like `multilineTextAlignment`. |
+| `duration` | Target time for the whole reveal, in seconds. The stagger is sized from the number of words and pictures, so short and long headlines both land in about this long. |
+| `delay` | Delay before the first word starts. |
+| `revealOnScroll` | When true, the reveal waits until the headline scrolls into view (iOS 18). Below iOS 18 it reveals on appear. |
+| `trigger` | Change this value to replay the reveal. |
+| `haptics` | A light tick as each picture lands and when one is lifted. On by default. |
+| `style` | Picture size, corner rounding, tilt, rim, crop marks, lifting, drift and the opening spring. |

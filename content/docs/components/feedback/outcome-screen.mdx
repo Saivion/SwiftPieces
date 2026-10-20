@@ -1,6 +1,6 @@
 ---
 title: "Outcome Screen"
-description: "A success, failure or empty outcome view sharing one choreography, where a ring draws, floods into a solid color block, the mark strokes in dark ink, one pulse lands with a haptic, and the headline and a signal-tinted liquid glass action rise. On failure an async retry morphs the action's label to \"Retrying\" while a progress bubble buds out of its end on a liquid neck, and a glass details block opens to the technical text."
+description: "A success, failure or empty state in one choreography: a ring draws, floods and lands with a haptic, then a glass action rises."
 piece: "OutcomeScreen"
 category: "feedback"
 minIOSVersion: "17.0"
@@ -11,45 +11,7 @@ registryDependencies: []
 
 {/* GENERATED FILE. Edit registry/swift/feedback/OutcomeScreen.swift or OutcomeScreen.mdx instead. */}
 
-Success, failure or empty outcome view with one shared choreography: a ring, a solid block, an ink mark and one liquid glass action. The action is a signal-tinted glass capsule. While a retry runs, its label morphs to "Retrying" and it gives up a little of its width to a progress bubble that buds out of its trailing end and rests joined to it by a liquid neck; when the retry returns, the bubble melts back in and the capsule takes its width back.
-
-## Notes
-
-- Three outcomes share one choreography, a stamp landing: a ring is drawn in ink, color pools inward from it once it closes and the ring takes the block's color (sage for `.success`, butter for `.failure`, sky for `.empty`), then the mark is pressed in. The outcome lands on one beat: its haptic, a small thud of the block and one ripple. The headline and message rise together, and the actions follow a beat behind, landing with a little give. Change the view's `.id` to replay it from the start.
-- Passing a new `outcome` to the same view restamps in place instead of swapping: the old mark lifts as the block recolors, the new mark is pressed in, and the new outcome lands with its own haptic. The copy and actions crossfade and reflow together, and the action's label morphs letter by letter to its new title. A view that reappears keeps its landed outcome and plays nothing again.
-- `.empty` draws an open tray and plays a light impact, for first-run and no-results states.
-- The headline is set large and tight at `.largeTitle`; `eyebrow` adds a small uppercase line above it. Every string is semibold, so size and color carry the hierarchy.
-- The primary action is a liquid glass capsule tinted with `signal` (the brand red, `#FF0000`, by default) under dark ink. It sinks a few points while pressed and springs back with a little give. `secondary` is a quiet text button.
-- On failure, `retry` turns the primary action into "Try again". Tapping it morphs the label to "Retrying" while a round glass bubble with a spinner buds out of the button's trailing end: born inside the end, it springs out on a liquid neck as the button gives up its width, and rests joined to it. When the work returns, the bubble melts back in on a spring with no bounce and the button takes its width back.
-- `details` adds a glass panel, apart from the button, that opens to selectable monospaced text and closes a little quicker than it opens.
-- `Style` holds the three blocks, the ink, the signal tint and its ink, the text colors and the details panel's glass tint (`raised`, clear by default), with house palette defaults that adapt to light and dark. `accent` still overrides the block.
-- Before iOS 26 the button, bubble and panel draw on a frosted material with a light rim, and the bubble sits beside the button without a neck. Under Reduce Transparency they are solid.
-- Under Reduce Motion the stamp fades in whole instead of being drawn, then lands with its haptic, and the copy and actions fade in a beat later without rising. A restamp recolors the block and swaps the mark briefly, with no thud or ripple. The label crossfades, the progress bubble fades in and out beside the button, the pressed button shifts a shade instead of sinking (darker in light mode, lighter in dark), and the details fade open.
-- For a complete purchase screen, see the Pro Purchase screen.
-
-## Usage
-
-```swift
-OutcomeScreenExample()
-```
-
-## Parameters
-
-| Parameter | Description |
-| --- | --- |
-| `outcome` | `.success`, `.failure` or `.empty`. Sets the block, mark, and haptic. |
-| `title` | Headline, set large and tight. |
-| `message` | Supporting copy. |
-| `primaryTitle` | Primary button title when `retry` is not used. |
-| `primaryAction` | Primary button handler when `retry` is not used. |
-| `retry` | Optional async handler for failures; the primary button becomes "Try again", and until it returns the label reads "Retrying" with a progress bubble budded out of the button's end. |
-| `secondary` | Optional quiet second action. |
-| `details` | Optional technical text behind a "Details" disclosure on failures, on a glass panel. |
-| `accent` | Overrides the block color behind the mark. Defaults to the outcome's color in `style`. |
-| `eyebrow` | Optional small uppercase line above the title, such as "Synced 10:42". |
-| `style` | Block, signal and text colors. `.standard` is sage for success, butter for failure and sky for empty, with the brand red tinting the primary button's glass. |
-
-## Source
+<Showcase name="OutcomeScreen">
 
 <Tabs items={["OutcomeScreen.swift"]}>
 <Tab value="OutcomeScreen.swift">
@@ -796,7 +758,7 @@ private extension View {
 // and melt back into each other, and the frosted fallback before iOS 26. Each piece carries a copy of only
 // the parts it uses, so this file stands alone. Generated from registry/foundation/PieceLiquid.swift in the
 // SwiftPieces repo; edit it there, not here. The rules are in LIQUID_GLASS.md.
-// swiftpieces-liquid: 1.7.1 (liquid, liquidPress, bud, morphText)
+// swiftpieces-liquid: 1.8.0 (liquid, liquidPress, bud, morphText)
 
 /// The liquid glass language: one merge distance, two rest gaps, and the springs a bubble leaves and comes home on.
 ///
@@ -1118,31 +1080,46 @@ private struct PieceMorphText: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        Group {
-            if Self.splits(text) {
-                let glyphs = Array(text)
-                HStack(spacing: 0) {
-                    ForEach(glyphs.indices, id: \.self) { i in
-                        Text(String(glyphs[i]))
-                            .id("\(i)\(glyphs[i])")
-                            .transition(transition(i, scale: 0.6))
-                    }
-                }
-                // The letters' reading order, not the layout's: an HStack lays its children out backwards under a
-                // right-to-left layout.
-                .environment(\.layoutDirection, .leftToRight)
-            } else {
-                ZStack(alignment: .leading) {
-                    Text(text)
-                        .id(text)
-                        .transition(transition(0, scale: 0.9))
-                }
-            }
+        // The morphing label at its full size when it fits. When it doesn't (a long label at an accessibility text
+        // size, a narrow screen), the same words wrap onto a second line and shrink a little instead of running past
+        // the screen's edge; that one changes as a whole rather than letter by letter. A single word never splits
+        // across lines: it stays on one and shrinks further.
+        let oneWord = !text.contains(where: \.isWhitespace)
+        ViewThatFits(in: .horizontal) {
+            morphing.fixedSize()
+            Text(text)
+                .lineLimit(oneWord ? 1 : 2)
+                .multilineTextAlignment(.center)
+                .minimumScaleFactor(oneWord ? 0.5 : 0.75)
+                .fixedSize(horizontal: false, vertical: true)
+                .id(text)
+                .transition(transition(0, scale: 0.9))
         }
         .font(font)
-        .fixedSize()
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(text)
+    }
+
+    @ViewBuilder private var morphing: some View {
+        if Self.splits(text) {
+            let glyphs = Array(text)
+            HStack(spacing: 0) {
+                ForEach(glyphs.indices, id: \.self) { i in
+                    Text(String(glyphs[i]))
+                        .id("\(i)\(glyphs[i])")
+                        .transition(transition(i, scale: 0.6))
+                }
+            }
+            // The letters' reading order, not the layout's: an HStack lays its children out backwards under a
+            // right-to-left layout.
+            .environment(\.layoutDirection, .leftToRight)
+        } else {
+            ZStack(alignment: .leading) {
+                Text(text)
+                    .id(text)
+                    .transition(transition(0, scale: 0.9))
+            }
+        }
     }
 
     private func transition(_ i: Int, scale: CGFloat) -> AnyTransition {
@@ -1180,3 +1157,45 @@ private struct PieceMorphText: View {
 
 </Tab>
 </Tabs>
+
+</Showcase>
+
+<PieceFacts name="OutcomeScreen" />
+
+Success, failure or empty outcome view with one shared choreography: a ring, a solid block, an ink mark and one liquid glass action. The action is a signal-tinted glass capsule. While a retry runs, its label morphs to "Retrying" and it gives up a little of its width to a progress bubble that buds out of its trailing end and rests joined to it by a liquid neck; when the retry returns, the bubble melts back in and the capsule takes its width back.
+
+## Notes
+
+- Three outcomes share one choreography, a stamp landing: a ring is drawn in ink, color pools inward from it once it closes and the ring takes the block's color (sage for `.success`, butter for `.failure`, sky for `.empty`), then the mark is pressed in. The outcome lands on one beat: its haptic, a small thud of the block and one ripple. The headline and message rise together, and the actions follow a beat behind, landing with a little give. Change the view's `.id` to replay it from the start.
+- Passing a new `outcome` to the same view restamps in place instead of swapping: the old mark lifts as the block recolors, the new mark is pressed in, and the new outcome lands with its own haptic. The copy and actions crossfade and reflow together, and the action's label morphs letter by letter to its new title. A view that reappears keeps its landed outcome and plays nothing again.
+- `.empty` draws an open tray and plays a light impact, for first-run and no-results states.
+- The headline is set large and tight at `.largeTitle`; `eyebrow` adds a small uppercase line above it. Every string is semibold, so size and color carry the hierarchy.
+- The primary action is a liquid glass capsule tinted with `signal` (the brand red, `#FF0000`, by default) under dark ink. It sinks a few points while pressed and springs back with a little give. `secondary` is a quiet text button.
+- On failure, `retry` turns the primary action into "Try again". Tapping it morphs the label to "Retrying" while a round glass bubble with a spinner buds out of the button's trailing end: born inside the end, it springs out on a liquid neck as the button gives up its width, and rests joined to it. When the work returns, the bubble melts back in on a spring with no bounce and the button takes its width back.
+- `details` adds a glass panel, apart from the button, that opens to selectable monospaced text and closes a little quicker than it opens.
+- `Style` holds the three blocks, the ink, the signal tint and its ink, the text colors and the details panel's glass tint (`raised`, clear by default), with house palette defaults that adapt to light and dark. `accent` still overrides the block.
+- Before iOS 26 the button, bubble and panel draw on a frosted material with a light rim, and the bubble sits beside the button without a neck. Under Reduce Transparency they are solid.
+- Under Reduce Motion the stamp fades in whole instead of being drawn, then lands with its haptic, and the copy and actions fade in a beat later without rising. A restamp recolors the block and swaps the mark briefly, with no thud or ripple. The label crossfades, the progress bubble fades in and out beside the button, the pressed button shifts a shade instead of sinking (darker in light mode, lighter in dark), and the details fade open.
+- For a complete purchase screen, see the Pro Purchase screen.
+
+## Usage
+
+```swift
+OutcomeScreenExample()
+```
+
+## Parameters
+
+| Parameter | Description |
+| --- | --- |
+| `outcome` | `.success`, `.failure` or `.empty`. Sets the block, mark, and haptic. |
+| `title` | Headline, set large and tight. |
+| `message` | Supporting copy. |
+| `primaryTitle` | Primary button title when `retry` is not used. |
+| `primaryAction` | Primary button handler when `retry` is not used. |
+| `retry` | Optional async handler for failures; the primary button becomes "Try again", and until it returns the label reads "Retrying" with a progress bubble budded out of the button's end. |
+| `secondary` | Optional quiet second action. |
+| `details` | Optional technical text behind a "Details" disclosure on failures, on a glass panel. |
+| `accent` | Overrides the block color behind the mark. Defaults to the outcome's color in `style`. |
+| `eyebrow` | Optional small uppercase line above the title, such as "Synced 10:42". |
+| `style` | Block, signal and text colors. `.standard` is sage for success, butter for failure and sky for empty, with the brand red tinting the primary button's glass. |

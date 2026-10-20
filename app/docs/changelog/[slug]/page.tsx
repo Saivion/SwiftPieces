@@ -6,7 +6,6 @@ import { Sketch } from "@/components/changelog/sketch";
 import { PointText, tintStyle, type ChangelogEntry } from "@/components/changelog/changelog-grid";
 import { NewBadge } from "@/components/ui/new-badge";
 import { JsonLd } from "@/components/seo/json-ld";
-import { getSponsorsFrom } from "@/lib/sponsors";
 import { changelog, changelogEntry, changelogPath, changelogPlace } from "@/lib/changelog";
 import { breadcrumbJsonLd, pageMetadata } from "@/lib/seo";
 
@@ -37,7 +36,7 @@ export default async function ChangelogEntryPage({ params }: Props) {
   const { seed, newer, older } = changelogPlace(entry.slug);
   return (
     <DocsPage
-      tableOfContent={{ enabled: true, component: <DocsAsideColumn><DocsAside sponsors={await getSponsorsFrom("silver")} /></DocsAsideColumn> }}
+      tableOfContent={{ enabled: true, component: <DocsAsideColumn><DocsAside /></DocsAsideColumn> }}
       footer={{ items: { previous: neighbour(newer, "Newer update"), next: neighbour(older, "Older update") } }}
     >
       <JsonLd data={{ "@context": "https://schema.org", "@graph": [breadcrumbJsonLd([["SwiftPieces", "/"], ["Changelog", changelogPath()], [entry.title, changelogPath(entry.slug)]])] }} />

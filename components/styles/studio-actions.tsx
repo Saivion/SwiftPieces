@@ -7,6 +7,8 @@ import { useMemo, useRef, useState } from "react";
 import { stylePrompt, styleSwift, type Theme } from "@swiftpieces/builder";
 import { UI } from "@swiftpieces/builder/react";
 import type { Studio } from "./studio-state";
+import { field, floating } from "./studio-frame";
+import { cn } from "@/lib/cn";
 
 export type StyleApp = { slug: string; name: string; icon: string; href: string };
 
@@ -19,7 +21,7 @@ async function copy(text: string): Promise<boolean> {
   }
 }
 
-const tool = "ai-host grid size-7 flex-none place-items-center rounded-[var(--radius-sm)] text-muted transition-colors hover:bg-white/[.08] hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent";
+const tool = "ai-host grid size-7 flex-none place-items-center rounded-full text-muted transition-colors hover:bg-surface-3 hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent";
 
 export function StudioActions({ studio, apps, preferred, onNotice }: { studio: Studio; apps: StyleApp[]; preferred: string | null; onNotice: (text: string) => void }) {
   const swift = useRef<HTMLDialogElement>(null);
@@ -28,10 +30,10 @@ export function StudioActions({ studio, apps, preferred, onNotice }: { studio: S
   const ordered = useMemo(() => [...apps].sort((a, b) => Number(b.slug === preferred) - Number(a.slug === preferred)), [apps, preferred]);
   const { code } = studio;
   return (
-    <div className="flex-none border-t border-[var(--card-border)] p-3">
+    <div className="flex-none border-t border-[var(--line)] p-3">
       {pasting ? (
         <form
-          className="flex h-9 items-center gap-1 rounded-[var(--radius)] bg-[var(--studio-row)] pr-1 pl-3"
+          className="flex h-9 items-center gap-1 rounded-full bg-surface pr-1 pl-3.5"
           onSubmit={(e) => {
             e.preventDefault();
             const value = String(new FormData(e.currentTarget).get("code") ?? "");
@@ -49,7 +51,7 @@ export function StudioActions({ studio, apps, preferred, onNotice }: { studio: S
           </button>
         </form>
       ) : (
-        <div className="flex h-9 items-center gap-0.5 rounded-[var(--radius)] bg-[var(--studio-row)] pr-1 pl-3" title="This style as a code: paste it into the Style tab of any Playground">
+        <div className="flex h-9 items-center gap-0.5 rounded-full bg-surface pr-1 pl-3.5" title="This style as a code: paste it into the Style tab of any Playground">
           <span className="sr-only">Style code</span>
           <code className="min-w-0 flex-1 truncate font-mono text-[11.5px] text-foreground tabular-nums">{code}</code>
           <button type="button" className={tool} aria-label="Copy the style code" title="Copy the style code" onClick={async () => onNotice((await copy(code)) ? "Code copied. Paste it into any Playground's Style tab." : "Couldn't copy. Select the code and copy it.")}>
@@ -76,7 +78,7 @@ export function StudioActions({ studio, apps, preferred, onNotice }: { studio: S
             const prompt = stylePrompt(studio.theme, { code, link: `${window.location.origin}/styles?style=${code}`, mood: studio.mood?.id, swift: styleSwift(studio.theme, "My").theme });
             onNotice((await copy(prompt)) ? "Prompt copied. Paste it into your AI assistant, then say what to build." : "Couldn't copy the prompt.");
           }}
-          className="ai-host inline-flex h-9 flex-none items-center justify-center gap-1.5 rounded-[var(--radius)] bg-[var(--studio-row)] px-2.5 text-[12.5px] font-semibold whitespace-nowrap text-foreground transition-colors hover:bg-[var(--studio-row-hover)] focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent @[316px]:px-3"
+          className={cn("ai-host inline-flex h-9 flex-none items-center justify-center gap-1.5 rounded-full px-2.5 text-[12.5px] font-semibold whitespace-nowrap text-foreground focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent @[316px]:px-3", field)}
         >
           <UI name="prompt" size={14} />
           <span aria-hidden className="hidden @[316px]:inline">
@@ -96,15 +98,16 @@ function OpenMenu({ apps, code }: { apps: StyleApp[]; code: string }) {
   if (!first) return null;
   return (
     <details className="group/open relative flex-1">
-      <summary className="btn-solid ai-host flex h-9 cursor-pointer list-none items-center justify-center gap-2 rounded-[var(--radius)] px-3 text-[12.5px] font-semibold [&::-webkit-details-marker]:hidden">
+      <summary className="btn-solid ai-host flex h-9 cursor-pointer list-none items-center justify-center gap-1.5 rounded-full px-3 text-[12.5px] font-semibold whitespace-nowrap [&::-webkit-details-marker]:hidden">
         Open in the Playground
         <svg aria-hidden viewBox="0 0 16 16" className="size-3 transition-transform duration-200 group-open/open:rotate-180" fill="none" stroke="currentColor" strokeWidth="1.8">
           <path d="M4 10l4-4 4 4" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </summary>
-      <div className="absolute right-0 bottom-full left-0 z-20 mb-1.5 rounded-[var(--radius-lg)] bg-[var(--studio-row)] p-1 shadow-[0_18px_40px_-12px_rgb(0_0_0/.8)] ring-1 ring-white/10">
+      {/* The site's menu: a raised panel with a hairline, rows that take the tray colour on hover. */}
+      <div className={cn("absolute right-0 bottom-full left-0 z-20 mb-2 rounded-[22px] p-1.5", floating)}>
         {apps.map((a) => (
-          <a key={a.slug} href={`${a.href}?style=${encodeURIComponent(code)}`} className="flex items-center gap-2.5 rounded-[var(--radius)] px-2 py-1.5 text-[12.5px] font-medium text-foreground transition-colors hover:bg-white/[.07]">
+          <a key={a.slug} href={`${a.href}?style=${encodeURIComponent(code)}`} className="flex items-center gap-2.5 rounded-[16px] px-2.5 py-2 text-[13.5px] font-medium text-foreground transition-colors hover:bg-surface">
             <img src={a.icon} alt="" width={22} height={22} className="size-[22px] rounded-[6px]" />
             {a.name}
           </a>
@@ -134,12 +137,12 @@ function SwiftDialog({ ref, theme, onNotice }: { ref: React.Ref<HTMLDialogElemen
       ref={ref}
       aria-label="Swift for this style"
       onClick={(e) => e.target === e.currentTarget && e.currentTarget.close()}
-      className="studio-dark m-auto w-[min(760px,calc(100vw-32px))] max-w-none overflow-hidden rounded-[var(--radius-lg)] border border-[var(--card-border)] bg-[var(--studio-panel)] p-0 text-foreground shadow-[0_40px_120px_-30px_rgb(0_0_0/.85)] backdrop:bg-black/60 backdrop:backdrop-blur-[2px]"
+      className="m-auto w-[min(760px,calc(100vw-32px))] max-w-none overflow-hidden rounded-[30px] border border-[var(--line-strong)] bg-surface-2 p-0 text-foreground shadow-[var(--shadow-float)] backdrop:bg-[rgb(0_0_0/.45)] backdrop:backdrop-blur-[2px]"
     >
-      <div className="flex items-start justify-between gap-4 border-b border-[var(--card-border)] px-5 py-4">
+      <div className="flex items-start justify-between gap-4 border-b border-[var(--line)] px-6 pt-6 pb-5">
         <div>
-          <h2 className="text-[15px] font-semibold">Swift for this style</h2>
-          <p className="mt-1 max-w-[54ch] text-[12.5px] leading-relaxed text-muted">
+          <h2 className="text-[24px] leading-[1.1] font-normal tracking-[-0.03em]">Swift for this style</h2>
+          <p className="mt-2 max-w-[56ch] text-[14px] leading-[22px] text-muted">
             Apps you build from the Playground already include Theme.swift. For an app of your own, add Theme.swift to the project and give your App the root below: every view under it follows the style.
           </p>
         </div>
@@ -149,30 +152,30 @@ function SwiftDialog({ ref, theme, onNotice }: { ref: React.Ref<HTMLDialogElemen
           </button>
         </form>
       </div>
-      <div className="flex flex-wrap items-center gap-2 px-5 pt-4">
-        <div role="tablist" aria-label="File" className="flex rounded-[var(--radius)] bg-[var(--studio-row)] p-[3px]">
+      <div className="flex flex-wrap items-center gap-2 px-6 pt-5">
+        <div role="tablist" aria-label="File" className="flex rounded-full bg-surface p-[3px]">
           {(
             [
               ["theme", "Theme.swift"],
               ["app", "MyApp.swift"],
             ] as const
           ).map(([v, label]) => (
-            <button key={v} type="button" role="tab" aria-selected={tab === v} onClick={() => setTab(v)} className="h-7 rounded-[var(--radius)] px-3 font-mono text-[11.5px] text-muted transition-colors hover:text-foreground aria-selected:bg-white/[.12] aria-selected:text-foreground">
+            <button key={v} type="button" role="tab" aria-selected={tab === v} onClick={() => setTab(v)} className="h-7 rounded-full px-3 font-mono text-[11.5px] text-muted transition-colors hover:text-foreground aria-selected:bg-surface-3 aria-selected:text-foreground aria-selected:shadow-[0_1px_2px_rgb(0_0_0/.15)]">
               {label}
             </button>
           ))}
         </div>
         <span className="flex-1" />
-        <button type="button" onClick={async () => onNotice((await copy(text)) ? `${name} copied.` : "Couldn't copy.")} className="ai-host inline-flex h-8 items-center gap-1.5 rounded-[var(--radius)] bg-[var(--studio-row)] px-3 text-[12px] font-semibold transition-colors hover:bg-[var(--studio-row-hover)]">
+        <button type="button" onClick={async () => onNotice((await copy(text)) ? `${name} copied.` : "Couldn't copy.")} className={cn("ai-host inline-flex h-[34px] items-center gap-1.5 rounded-full px-3.5 text-[13px] font-semibold", field)}>
           <UI name="copy" size={13} />
           Copy
         </button>
-        <button type="button" onClick={download} className="btn-solid ai-host inline-flex h-8 items-center gap-1.5 rounded-[var(--radius)] px-3 text-[12px] font-semibold">
+        <button type="button" onClick={download} className="btn-solid ai-host inline-flex h-[34px] items-center gap-1.5 rounded-full px-3.5 text-[13px] font-semibold">
           <UI name="download" size={13} />
           Download
         </button>
       </div>
-      <pre className="m-5 max-h-[min(56vh,520px)] overflow-auto rounded-[var(--radius-lg)] bg-[var(--studio-row)] p-4 font-mono text-[12px] leading-[1.6] text-foreground [scrollbar-width:thin]">
+      <pre className="m-2 mt-4 max-h-[min(56vh,520px)] overflow-auto rounded-[23px] bg-surface p-5 font-mono text-[12px] leading-[1.6] text-foreground [scrollbar-width:thin]">
         <code>{text}</code>
       </pre>
     </dialog>

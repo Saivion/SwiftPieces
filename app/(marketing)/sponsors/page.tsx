@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { SponsorHero, SponsorTiers, SponsorWall, SponsorUse, sponsorFaqs } from "@/components/sections/sponsors";
 import { Questions } from "@/components/sections/questions";
+import { band } from "@/components/sections/feature-row";
 import { getSponsors } from "@/lib/sponsors";
 import { pageMetadata } from "@/lib/seo";
 
@@ -25,9 +26,9 @@ export default async function SponsorsPage() {
       <SponsorTiers sponsors={sponsors} />
       <SponsorWall sponsors={sponsors} />
       <SponsorUse />
-      {/* The FAQ closes this page (on /pro an offer card follows it), so it carries the bottom spacing itself. */}
-      <div className="pb-24 sm:pb-32">
-        <Questions items={sponsorFaqs} body="How sponsorship works, what each tier gets and how it relates to Pro." />
+      {/* The FAQ closes this page (on /pro an offer card follows it), so it carries the closing gap below itself. */}
+      <div className="pb-12 sm:pb-[68px]">
+        <Questions items={sponsorFaqs} spacing={band} body="How sponsorship works, what each tier gets and how it relates to Pro." />
       </div>
     </div>
   );

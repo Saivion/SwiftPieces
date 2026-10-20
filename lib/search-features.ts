@@ -30,6 +30,7 @@ const FEATURES: SearchEntry[] = [
   entry("/apps", "Apps and the Playground", "Remix real app screens in SwiftUI in the browser: inspect, restyle, edit the layout and open it in Xcode.", "Create", "The Playground: try an app in the browser, inspect it on the Map, shuffle its style, drag to edit the layout, and build it for Xcode."),
   entry("/styles", "Styles", "Make one theme for every screen and app: color, type, shape and motion, carried by one code.", "Create", "The style studio: theming with colors, fonts and typography, light and dark mode, shuffle in a mood, then copy a style code, Theme.swift or an AI prompt."),
   entry("/components", "Components", "Every free SwiftUI piece with a live preview, by category.", "Library", "The free library: animations, buttons, cards, inputs, Liquid Glass, AI and charts, each a single SwiftUI file."),
+  entry("/blocks", "Blocks", "Whole sections of an iOS screen, built from the components and wired: sign in, settings, stats, checkout.", "Library", "SwiftUI blocks: sign-in form, account settings, a stats overview and checkout sections, free, plus Pro blocks such as plan and usage and invite friends."),
   entry(pro.screens, "Pro screens", "Finished SwiftUI screens, themed by one design system.", "Library", "Paywall, onboarding, dashboard, settings and more, in SwiftPieces Pro."),
   entry(pro.flows, "Pro flows", "Whole journeys through each app template, screen by screen.", "Library", "Onboarding, sign in, paywall, core journeys, profile and settings flows, in SwiftPieces Pro."),
   entry(pro.templates, "Pro app templates", "Complete apps as Xcode projects.", "Library", "Starter apps for finance, fitness, travel, AI and more, in SwiftPieces Pro."),
@@ -46,10 +47,10 @@ type Facts = { name: string };
 const facts = (store as unknown as { apps: Record<string, Facts> }).apps;
 const shortName = (name: string) => name.split(/\s[:\-–—|]\s|:\s/)[0].trim();
 
-/** Each app in the App Library, found by its name ("timepage", "waterllama"). */
+/** Each app in the Playground, found by its name ("timepage", "waterllama"). */
 const APPS: SearchEntry[] = LIBRARY.filter((a) => facts[a.slug]).map((a) => {
   const name = a.name ?? shortName(facts[a.slug].name);
-  return entry(`/apps/${a.slug}`, name, `${name} in the App Library: our SwiftUI remix of its screens, live in the Playground.`, "Apps", `Open the ${name} remix in the Playground.`);
+  return entry(`/apps/${a.slug}`, name, `${name} in the Playground: our SwiftUI remix of its screens, live in the browser.`, "Apps", `Open the ${name} remix in the Playground.`);
 });
 
 export const searchFeatures: SearchEntry[] = [...FEATURES, ...APPS];

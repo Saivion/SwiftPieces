@@ -1,6 +1,6 @@
 ---
 title: "Confirm Sheet"
-description: "A confirmation card that presents as a height-fitted bottom sheet or, inline, as a floating card you can drag away. Its confirm and cancel actions are liquid glass capsules that split out of one shape as the card lands, the icon tile bounces, and a destructive choice plays a warning haptic. Confirming melts cancel back into confirm while its label morphs through Working to Done and its glass turns sage, then the card dismisses."
+description: "A confirmation card as a bottom sheet or an inline card, its confirm and cancel splitting out of one glass shape as it lands."
 piece: "ConfirmSheet"
 category: "sheets"
 minIOSVersion: "17.0"
@@ -11,44 +11,7 @@ registryDependencies: []
 
 {/* GENERATED FILE. Edit registry/swift/sheets/ConfirmSheet.swift or ConfirmSheet.mdx instead. */}
 
-Presents a confirmation card as a bottom sheet, or inline as an overlay in the current hierarchy.
-
-## Notes
-
-- Sheet mode measures the card and uses `.presentationDetents([.height(...)])`, so the sheet is exactly as tall as the content at the current Dynamic Type size, with `Style.surface` as its background. The system sheet keeps its own presentation and drag physics.
-- Inline mode floats the card at the bottom of the view it is applied to, over a dimmed backdrop. Apply it near the root so the backdrop covers the screen. The solid card slides all the way in from below the screen on a calm spring that lands with a slight give, and leaves faster and firmer than it came; the backdrop fades with it.
-- Drag the inline card down and it stays under your finger while the backdrop brightens; pull it up and it gives with rubber-band resistance. A rigid impact ticks once the moment a flick would commit. Let go past the line and the card leaves at the speed of your flick; short of it, it settles home at the speed you let go, with a small give from below and a livelier one from above. Grab it again while it is settling and it stops right where it is, without a jump. A drag the system interrupts, such as an incoming call, brings the card home too.
-- The card stays solid; its two actions are liquid glass capsules that rest apart, in one glass group. The card presents with a single primary capsule, and as it lands the cancel capsule buds down out of it, pulling a liquid neck that thins and snaps, and settles below. Cancel keeps its place in the layout while it is inside the primary, so the card and a sheet's detent never change height.
-- `confirm` is async. Tapping the primary melts cancel back up into it, and the primary disables while a spinner sharpens in and its label morphs letter by letter to Working. When `confirm` returns the spinner gives way to a check, the label morphs to Done and the glass turns sage, with a `.success` haptic. The tile follows a beat later into a sage check with a small pop, and the card leaves about half a second after that, still showing its outcome. Working and Done go through `String(localized:)`.
-- Destructive cards use a signal tile and signal-tinted glass for the primary, and play `.warning` as the card lands, or on the tap if you confirm before it does. Other cards use a sky tile and glass tinted with the label color. The tile symbol bounces as the card lands on every presentation. Both capsules sink slightly while pressed. All text is semibold.
-- `Style` sets every color and the card radius (34pt by default). `quiet` colors only the grabber now; the cancel capsule is neutral glass.
-- On iOS 26 the capsules are Liquid Glass and melt into each other through the neck; before that they are frosted glass with a light rim, and with Reduce Transparency they are solid.
-- Under Reduce Motion the card and backdrop crossfade instead of sliding, a drag that falls short settles without overshoot, cancel fades in and out in place instead of budding, the labels crossfade instead of morphing, the capsules dim instead of sinking while pressed, the tile neither bounces nor pops (its color and symbol still change, by crossfade), and the success beat is shorter. The haptics are unchanged.
-- At accessibility text sizes the labels are plain text that can wrap, and change with a blur instead of the letter morph.
-- For a floating booking card with detents, see the Stay screen (glass sheet) in SwiftPieces Pro.
-
-## Usage
-
-```swift
-ConfirmSheetExample()
-```
-
-## Parameters
-
-| Parameter | Description |
-| --- | --- |
-| `isPresented` | Shows the card while `true`. Confirming, cancelling, and dragging away set it back to `false`. |
-| `inline` | `true` overlays the card in place with a dimmed backdrop and a rubber-banded drag to dismiss; `false` uses `.sheet` sized to the card. |
-| `systemImage` | SF Symbol in the icon tile. |
-| `title` | Headline. |
-| `message` | Supporting copy under the title. |
-| `confirmTitle` | Primary button title. |
-| `cancelTitle` | Secondary button title, on a neutral glass capsule that buds out of the primary as the card lands. |
-| `isDestructive` | Uses the destructive tile and the signal-tinted primary button, and plays a `.warning` haptic on present. |
-| `style` | Colors and corner radius. Defaults to the SwiftPieces house palette, adapting to light and dark. |
-| `confirm` | Async handler for the primary button. Cancel melts back into the button, which spins and reads Working until it returns, then turns sage with a check and Done that the tile answers a beat later, then the card dismisses. |
-
-## Source
+<Showcase name="ConfirmSheet">
 
 <Tabs items={["ConfirmSheet.swift"]}>
 <Tab value="ConfirmSheet.swift">
@@ -755,7 +718,7 @@ private extension View {
 // and melt back into each other, and the frosted fallback before iOS 26. Each piece carries a copy of only
 // the parts it uses, so this file stands alone. Generated from registry/foundation/PieceLiquid.swift in the
 // SwiftPieces repo; edit it there, not here. The rules are in LIQUID_GLASS.md.
-// swiftpieces-liquid: 1.7.1 (liquid, liquidPress, bud, morphText)
+// swiftpieces-liquid: 1.8.0 (liquid, liquidPress, bud, morphText)
 
 /// The liquid glass language: one merge distance, two rest gaps, and the springs a bubble leaves and comes home on.
 ///
@@ -1077,31 +1040,46 @@ private struct PieceMorphText: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        Group {
-            if Self.splits(text) {
-                let glyphs = Array(text)
-                HStack(spacing: 0) {
-                    ForEach(glyphs.indices, id: \.self) { i in
-                        Text(String(glyphs[i]))
-                            .id("\(i)\(glyphs[i])")
-                            .transition(transition(i, scale: 0.6))
-                    }
-                }
-                // The letters' reading order, not the layout's: an HStack lays its children out backwards under a
-                // right-to-left layout.
-                .environment(\.layoutDirection, .leftToRight)
-            } else {
-                ZStack(alignment: .leading) {
-                    Text(text)
-                        .id(text)
-                        .transition(transition(0, scale: 0.9))
-                }
-            }
+        // The morphing label at its full size when it fits. When it doesn't (a long label at an accessibility text
+        // size, a narrow screen), the same words wrap onto a second line and shrink a little instead of running past
+        // the screen's edge; that one changes as a whole rather than letter by letter. A single word never splits
+        // across lines: it stays on one and shrinks further.
+        let oneWord = !text.contains(where: \.isWhitespace)
+        ViewThatFits(in: .horizontal) {
+            morphing.fixedSize()
+            Text(text)
+                .lineLimit(oneWord ? 1 : 2)
+                .multilineTextAlignment(.center)
+                .minimumScaleFactor(oneWord ? 0.5 : 0.75)
+                .fixedSize(horizontal: false, vertical: true)
+                .id(text)
+                .transition(transition(0, scale: 0.9))
         }
         .font(font)
-        .fixedSize()
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(text)
+    }
+
+    @ViewBuilder private var morphing: some View {
+        if Self.splits(text) {
+            let glyphs = Array(text)
+            HStack(spacing: 0) {
+                ForEach(glyphs.indices, id: \.self) { i in
+                    Text(String(glyphs[i]))
+                        .id("\(i)\(glyphs[i])")
+                        .transition(transition(i, scale: 0.6))
+                }
+            }
+            // The letters' reading order, not the layout's: an HStack lays its children out backwards under a
+            // right-to-left layout.
+            .environment(\.layoutDirection, .leftToRight)
+        } else {
+            ZStack(alignment: .leading) {
+                Text(text)
+                    .id(text)
+                    .transition(transition(0, scale: 0.9))
+            }
+        }
     }
 
     private func transition(_ i: Int, scale: CGFloat) -> AnyTransition {
@@ -1139,3 +1117,44 @@ private struct PieceMorphText: View {
 
 </Tab>
 </Tabs>
+
+</Showcase>
+
+<PieceFacts name="ConfirmSheet" />
+
+Presents a confirmation card as a bottom sheet, or inline as an overlay in the current hierarchy.
+
+## Notes
+
+- Sheet mode measures the card and uses `.presentationDetents([.height(...)])`, so the sheet is exactly as tall as the content at the current Dynamic Type size, with `Style.surface` as its background. The system sheet keeps its own presentation and drag physics.
+- Inline mode floats the card at the bottom of the view it is applied to, over a dimmed backdrop. Apply it near the root so the backdrop covers the screen. The solid card slides all the way in from below the screen on a calm spring that lands with a slight give, and leaves faster and firmer than it came; the backdrop fades with it.
+- Drag the inline card down and it stays under your finger while the backdrop brightens; pull it up and it gives with rubber-band resistance. A rigid impact ticks once the moment a flick would commit. Let go past the line and the card leaves at the speed of your flick; short of it, it settles home at the speed you let go, with a small give from below and a livelier one from above. Grab it again while it is settling and it stops right where it is, without a jump. A drag the system interrupts, such as an incoming call, brings the card home too.
+- The card stays solid; its two actions are liquid glass capsules that rest apart, in one glass group. The card presents with a single primary capsule, and as it lands the cancel capsule buds down out of it, pulling a liquid neck that thins and snaps, and settles below. Cancel keeps its place in the layout while it is inside the primary, so the card and a sheet's detent never change height.
+- `confirm` is async. Tapping the primary melts cancel back up into it, and the primary disables while a spinner sharpens in and its label morphs letter by letter to Working. When `confirm` returns the spinner gives way to a check, the label morphs to Done and the glass turns sage, with a `.success` haptic. The tile follows a beat later into a sage check with a small pop, and the card leaves about half a second after that, still showing its outcome. Working and Done go through `String(localized:)`.
+- Destructive cards use a signal tile and signal-tinted glass for the primary, and play `.warning` as the card lands, or on the tap if you confirm before it does. Other cards use a sky tile and glass tinted with the label color. The tile symbol bounces as the card lands on every presentation. Both capsules sink slightly while pressed. All text is semibold.
+- `Style` sets every color and the card radius (34pt by default). `quiet` colors only the grabber now; the cancel capsule is neutral glass.
+- On iOS 26 the capsules are Liquid Glass and melt into each other through the neck; before that they are frosted glass with a light rim, and with Reduce Transparency they are solid.
+- Under Reduce Motion the card and backdrop crossfade instead of sliding, a drag that falls short settles without overshoot, cancel fades in and out in place instead of budding, the labels crossfade instead of morphing, the capsules dim instead of sinking while pressed, the tile neither bounces nor pops (its color and symbol still change, by crossfade), and the success beat is shorter. The haptics are unchanged.
+- At accessibility text sizes the labels are plain text that can wrap, and change with a blur instead of the letter morph.
+- For a floating booking card with detents, see the Stay screen (glass sheet) in SwiftPieces Pro.
+
+## Usage
+
+```swift
+ConfirmSheetExample()
+```
+
+## Parameters
+
+| Parameter | Description |
+| --- | --- |
+| `isPresented` | Shows the card while `true`. Confirming, cancelling, and dragging away set it back to `false`. |
+| `inline` | `true` overlays the card in place with a dimmed backdrop and a rubber-banded drag to dismiss; `false` uses `.sheet` sized to the card. |
+| `systemImage` | SF Symbol in the icon tile. |
+| `title` | Headline. |
+| `message` | Supporting copy under the title. |
+| `confirmTitle` | Primary button title. |
+| `cancelTitle` | Secondary button title, on a neutral glass capsule that buds out of the primary as the card lands. |
+| `isDestructive` | Uses the destructive tile and the signal-tinted primary button, and plays a `.warning` haptic on present. |
+| `style` | Colors and corner radius. Defaults to the SwiftPieces house palette, adapting to light and dark. |
+| `confirm` | Async handler for the primary button. Cancel melts back into the button, which spins and reads Working until it returns, then turns sage with a check and Done that the tile answers a beat later, then the card dismisses. |

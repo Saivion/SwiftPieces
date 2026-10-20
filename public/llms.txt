@@ -26,17 +26,28 @@ Rules for Liquid Glass: gate with `#available(iOS 26, *)` and a Material fallbac
 
 ## Tools
 
-- [App Library](https://swiftpieces.com/apps): App Store apps remixed as original SwiftUI screens to try, take apart and remix in the browser Playground. Three are free; the rest come with Pro.
+- [Playground](https://swiftpieces.com/apps): App Store apps remixed as original SwiftUI screens to try, take apart and remix in the browser. Five are free; the rest come with Pro.
 - [Styles](https://swiftpieces.com/styles): make one style for every screen (accent, light and dark, iOS fonts, corners, cards, buttons, spacing, motion) on live SwiftUI components. A style travels as a short code (SP2-…) that the Playground's Style tab and its `?style=` links read, and exports as Theme.swift.
 
 ## Guides
 
 - [SwiftUI Animations: A Practical Guide with Examples](https://swiftpieces.com/docs/guides/swiftui-animations): SwiftUI animations explained with working examples: implicit and explicit animation, spring animation, transitions, keyframe animators, and gestures.
-- [SwiftUI Motion: Springs, Rubber Banding and Gesture Momentum](https://swiftpieces.com/docs/guides/swiftui-motion): How to make SwiftUI motion feel physical: spring tiers, finger tracking without lag, velocity that carries into the release, rubber banding, press deformation, squash and stretch, follow-through and Reduce Motion.
+- [SwiftUI Motion: Springs, Rubber Banding and Gesture Momentum](https://swiftpieces.com/docs/guides/swiftui-motion): How to make SwiftUI motion feel physical: spring tiers, finger tracking, velocity that carries into the release, rubber banding and Reduce Motion.
 - [SwiftUI Buttons: Custom Styles, Animation, Loading](https://swiftpieces.com/docs/guides/swiftui-buttons): SwiftUI buttons from the basics to custom ButtonStyle, press animation, haptics, async loading states, hold to confirm, and accessible hit targets.
 - [SwiftUI Cards: Card Views, Swipe Stacks and Flip Cards](https://swiftpieces.com/docs/guides/swiftui-cards): Build SwiftUI cards that feel native: continuous corners, layered shadows, press states, a swipeable card stack, a 3D flip card, tilt and scroll parallax.
 - [SwiftUI Haptics: sensoryFeedback and Haptic Feedback](https://swiftpieces.com/docs/guides/swiftui-haptics): A practical guide to SwiftUI haptics: sensoryFeedback triggers, conditions and feedback kinds, drag threshold ticks, UIKit generators, and restraint.
 - [SwiftUI Skeleton Loading, Shimmer and Loading States](https://swiftpieces.com/docs/guides/swiftui-loading-states): SwiftUI skeleton loading with redacted placeholders, a shimmer modifier, ProgressView styles, success and failure morphs, paging footers and Reduce Motion.
+
+## Blocks
+
+Whole sections of an iOS screen: the fields, buttons and charts laid out, wired and given their states, themed by SwiftPieces Pro's design system. All 6 come with SwiftPieces Pro and install with a Pro license. All blocks: https://swiftpieces.com/blocks
+
+- [Sign In](https://swiftpieces.com/docs/blocks/auth/sign-in) (Pro): The sign-in section of a welcome screen: email and password, Sign in with Apple, a passkey and Create account in one block. Inside: Email and password with autofill, Sign in with its working, done and failed states, Sign in with Apple and a passkey, Forgot password and create account. Install with a Pro license: `npx swiftpieces add SignInBlock`. In SwiftPieces Pro: https://pro.swiftpieces.com/library/blocks/sign-in
+- [Account Settings](https://swiftpieces.com/docs/blocks/settings/account-settings) (Pro): The account section at the top of Settings: profile and photo, appearance, notifications, your data, sign out and deletion. Inside: Profile with photo and name, Appearance in your theme's colours, Notification toggles, Your data, sign out and delete account. Install with a Pro license: `npx swiftpieces add AccountSettingsBlock`. In SwiftPieces Pro: https://pro.swiftpieces.com/library/blocks/account-settings
+- [Plan and Usage](https://swiftpieces.com/docs/blocks/settings/plan-usage) (Pro): The subscription section of Settings: the plan and its renewal, usage meters that warn near a limit, and the way up. Inside: Plan with its status and renewal, Usage meters that warn near a limit, Upgrade with its states, Manage subscription and restore. Install with a Pro license: `npx swiftpieces add PlanUsageBlock`. In SwiftPieces Pro: https://pro.swiftpieces.com/library/blocks/plan-usage
+- [Invite Friends](https://swiftpieces.com/docs/blocks/social/invite-friends) (Pro): A referral section: what both people get, a track that fills as friends join, the invite code to copy or share, and who you invited. Inside: Reward and a track that fills per friend, Invite code you copy, Share invite, Invited friends with their status. Install with a Pro license: `npx swiftpieces add InviteFriendsBlock`. In SwiftPieces Pro: https://pro.swiftpieces.com/library/blocks/invite-friends
+- [Stats Overview](https://swiftpieces.com/docs/blocks/analytics/stats-overview) (Pro): The top of a dashboard: a headline metric and its change, a chart you scrub across 1W to 1Y, and metric tiles. Inside: Headline metric and its change, Chart you scrub, Range control from 1W to 1Y, Metric tiles. Install with a Pro license: `npx swiftpieces add StatsOverviewBlock`. In SwiftPieces Pro: https://pro.swiftpieces.com/library/blocks/stats-overview
+- [Checkout](https://swiftpieces.com/docs/blocks/commerce/checkout) (Pro): A one-column checkout: bag with steppers, address and delivery speed, promo code, summary, then Pay or Apple Pay to the placed order. Inside: Bag with quantity steppers, Address and delivery speed, Promo code and a total that follows, Pay and Apple Pay to the placed order. Install with a Pro license: `npx swiftpieces add CheckoutBlock`. In SwiftPieces Pro: https://pro.swiftpieces.com/library/blocks/checkout
 
 ## Collections
 
@@ -59,7 +70,7 @@ Rules for Liquid Glass: gate with `#available(iOS 26, *)` and a Material fallbac
 
 ## SwiftPieces Pro
 
-A separate paid library for building whole apps: 54 screens, 48 flows, 12 app templates and a 31-item Build Kit (production-ready SwiftUI screens, flows that string them into whole journeys from first run to settings, complete Xcode projects, and agent skills that build the rest in the same design) at https://pro.swiftpieces.com/library, plus Pro remixing in the Playground at https://swiftpieces.com/apps (all 20 apps in the App Library, remix any app with AI, keep up to 100 remixes). One plan with lifetime access; plan and pricing: https://pro.swiftpieces.com/pro. Pro MCP endpoint: https://pro.swiftpieces.com/api/mcp (license key required): search_library, get_item, list_kit, get_kit_item, apply_design_skill, apply_recipe.
+A separate paid library for building whole apps: 54 screens, 48 flows, 12 app templates and a 31-item Build Kit (production-ready SwiftUI screens, flows that string them into whole journeys from first run to settings, complete Xcode projects, and agent skills that build the rest in the same design) at https://pro.swiftpieces.com/library, plus Pro remixing in the Playground at https://swiftpieces.com/apps (all 34 apps, remix any app with AI, keep up to 100 remixes). One plan with lifetime access; plan and pricing: https://pro.swiftpieces.com/pro. Pro MCP endpoint: https://pro.swiftpieces.com/api/mcp (license key required): search_library, get_item, list_kit, get_kit_item, apply_design_skill, apply_recipe.
 
 ## AI (https://swiftpieces.com/components/ai)
 

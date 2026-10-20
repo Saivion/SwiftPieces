@@ -1,6 +1,6 @@
 ---
 title: "Elastic Button"
-description: "A ButtonStyle that squashes toward the touch point, stretches along the drag with rubber-band resistance, deepens after a hold and springs back with as much give as the pull put in. Optional liquid glass surfaces (signal, block and clear raised glass) float on a soft lift that flattens under the finger, and the glass darkens as it is pressed."
+description: "A button style that squashes toward the touch, stretches with the drag, deepens on a hold and springs back with the give you put in."
 piece: "ElasticButton"
 category: "controls"
 minIOSVersion: "17.0"
@@ -11,33 +11,7 @@ registryDependencies: []
 
 {/* GENERATED FILE. Edit registry/swift/controls/ElasticButton.swift or ElasticButton.mdx instead. */}
 
-Squash-and-stretch press for any `Button`. Apply with `.buttonStyle(.elastic)`, or `.buttonStyle(.elastic(.signal))` to also draw the surface.
-
-## Notes
-
-- It is a `ButtonStyle`, so it works on any `Button`: `.buttonStyle(.elastic)` adds only the motion, `.buttonStyle(.elastic(.signal))` also draws the surface, and `.elastic(squash:bounce:haptics:style:)` tunes both.
-- Drawn surfaces are liquid glass. `Style` presets come from the house palette: `.standard` (motion only, your label keeps its look), `.signal` (signal-tinted glass) for the one primary action, `.block(.lilac)` and the other blocks for glass tinted with that block and dark ink, `.raised` (clear glass, ink that follows the appearance) for quiet ones. Pass `fill: .clear` for clear glass of your own. `radius`, `height` (never below 44) and `padding` are adjustable.
-- States: at rest a drawn surface floats on a soft lift; pressed it squashes toward the finger, the glass darkens and the lift flattens; after a 350ms hold it presses 0.03 deeper and darkens further with a soft impact; a drag past 44pt cancels the press with a soft impact; disabled surfaces turn to clear glass with muted ink instead of fading. The glass doesn't swell under the press on its own: the squash is the press.
-- The touch point comes from a simultaneous zero-distance drag. The squash leans 60% of the way toward the finger and keeps that lean through the release, so the button re-expands from where it was pressed. Dragging stretches the shape along the pull and thins it across, keeping its area, with the same rubber-band resistance a scroll view has at its edge; the pull tracks the finger directly, never through an animation.
-- The release springs back past rest with more give the further the press was pulled: a tap gets half of `bounce`, a press pulled to the edge all of it. With the default 0.2, a tap lands on the house elastic spring (passing rest by about 8% of the squash) and a full pull on the expressive one (about 15%), so the button is never firmer than a plain chip's release. Dragging past 44pt cancels the press, and it lets go without overshoot, so tearing off reads differently from a tap.
-- Reduce Motion removes the squash, lean, stretch and offset, and every release settles without overshoot. A label with no surface dims while pressed instead; drawn surfaces keep their darken and the lift flattening. Reduce Transparency draws the glass solid. Disabled buttons play no haptics.
-
-## Usage
-
-```swift
-ElasticButtonExample().preferredColorScheme(.light)
-```
-
-## Parameters
-
-| Parameter | Description |
-| --- | --- |
-| `squash` | Scale while pressed, anchored toward the touch point. Holding 350ms eases 0.03 deeper. |
-| `bounce` | The release's extra give. A tap gets half of it and a press pulled to the edge all of it, so with the default 0.2 a tap lands on the house elastic spring and a full pull on the expressive one. |
-| `haptics` | Plays a solid impact on press, a soft one when the hold deepens, and a soft one when a drag cancels. |
-| `style` | The surface drawn behind the label. `.standard` draws nothing and only adds the motion; `.signal`, `.block(_:)` and `.raised` draw a liquid glass capsule (tinted signal, tinted with the block, or clear), a soft lift that flattens on press, and a darken under the finger. |
-
-## Source
+<Showcase name="ElasticButton">
 
 <Tabs items={["ElasticButton.swift"]}>
 <Tab value="ElasticButton.swift">
@@ -517,7 +491,7 @@ private extension View {
 // and melt back into each other, and the frosted fallback before iOS 26. Each piece carries a copy of only
 // the parts it uses, so this file stands alone. Generated from registry/foundation/PieceLiquid.swift in the
 // SwiftPieces repo; edit it there, not here. The rules are in LIQUID_GLASS.md.
-// swiftpieces-liquid: 1.7.1 (liquid)
+// swiftpieces-liquid: 1.8.0 (liquid)
 
 /// The liquid glass language: one merge distance, two rest gaps, and the springs a bubble leaves and comes home on.
 ///
@@ -663,3 +637,33 @@ private extension View {
 
 </Tab>
 </Tabs>
+
+</Showcase>
+
+<PieceFacts name="ElasticButton" />
+
+Squash-and-stretch press for any `Button`. Apply with `.buttonStyle(.elastic)`, or `.buttonStyle(.elastic(.signal))` to also draw the surface.
+
+## Notes
+
+- It is a `ButtonStyle`, so it works on any `Button`: `.buttonStyle(.elastic)` adds only the motion, `.buttonStyle(.elastic(.signal))` also draws the surface, and `.elastic(squash:bounce:haptics:style:)` tunes both.
+- Drawn surfaces are liquid glass. `Style` presets come from the house palette: `.standard` (motion only, your label keeps its look), `.signal` (signal-tinted glass) for the one primary action, `.block(.lilac)` and the other blocks for glass tinted with that block and dark ink, `.raised` (clear glass, ink that follows the appearance) for quiet ones. Pass `fill: .clear` for clear glass of your own. `radius`, `height` (never below 44) and `padding` are adjustable.
+- States: at rest a drawn surface floats on a soft lift; pressed it squashes toward the finger, the glass darkens and the lift flattens; after a 350ms hold it presses 0.03 deeper and darkens further with a soft impact; a drag past 44pt cancels the press with a soft impact; disabled surfaces turn to clear glass with muted ink instead of fading. The glass doesn't swell under the press on its own: the squash is the press.
+- The touch point comes from a simultaneous zero-distance drag. The squash leans 60% of the way toward the finger and keeps that lean through the release, so the button re-expands from where it was pressed. Dragging stretches the shape along the pull and thins it across, keeping its area, with the same rubber-band resistance a scroll view has at its edge; the pull tracks the finger directly, never through an animation.
+- The release springs back past rest with more give the further the press was pulled: a tap gets half of `bounce`, a press pulled to the edge all of it. With the default 0.2, a tap lands on the house elastic spring (passing rest by about 8% of the squash) and a full pull on the expressive one (about 15%), so the button is never firmer than a plain chip's release. Dragging past 44pt cancels the press, and it lets go without overshoot, so tearing off reads differently from a tap.
+- Reduce Motion removes the squash, lean, stretch and offset, and every release settles without overshoot. A label with no surface dims while pressed instead; drawn surfaces keep their darken and the lift flattening. Reduce Transparency draws the glass solid. Disabled buttons play no haptics.
+
+## Usage
+
+```swift
+ElasticButtonExample().preferredColorScheme(.light)
+```
+
+## Parameters
+
+| Parameter | Description |
+| --- | --- |
+| `squash` | Scale while pressed, anchored toward the touch point. Holding 350ms eases 0.03 deeper. |
+| `bounce` | The release's extra give. A tap gets half of it and a press pulled to the edge all of it, so with the default 0.2 a tap lands on the house elastic spring and a full pull on the expressive one. |
+| `haptics` | Plays a solid impact on press, a soft one when the hold deepens, and a soft one when a drag cancels. |
+| `style` | The surface drawn behind the label. `.standard` draws nothing and only adds the motion; `.signal`, `.block(_:)` and `.raised` draw a liquid glass capsule (tinted signal, tinted with the block, or clear), a soft lift that flattens on press, and a darken under the finger. |

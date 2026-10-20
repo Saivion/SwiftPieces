@@ -1,10 +1,15 @@
+import { ProBadge } from "@/components/ui/pro-badge";
 import { cn } from "@/lib/cn";
 
-/** The App Library's plan marks: "Pro" on an app (or screen) that opens with Pro, "Free" on the rest. */
+/**
+ * The Playground's plan marks: "Pro" on an app (or screen) that opens with Pro, as the site's Pro
+ * badge, and "Free" on the rest, a quiet outlined pill at the same 20px.
+ */
 export function PlanChip({ pro, className }: { pro: boolean; className?: string }) {
+  if (pro) return <ProBadge size="sm" className={className} />;
   return (
-    <span className={cn("inline-flex h-[18px] flex-none items-center rounded-[4px] border border-[var(--card-border)] px-1.5 text-[10px] leading-none font-semibold", pro ? "text-foreground" : "text-muted", className)}>
-      {pro ? <span className="pro-shimmer">Pro</span> : "Free"}
+    <span className={cn("inline-flex h-5 flex-none items-center rounded-full border border-[var(--line-strong)] px-2 text-[11px] leading-none font-semibold text-muted", className)}>
+      Free
     </span>
   );
 }

@@ -1,6 +1,6 @@
 ---
 title: "Ring Breakdown"
-description: "A composition ring of solid color blocks with rounded seams that you scrub by dragging around it, with a haptic at each slice boundary and a radial lift for the selected slice while the rest step back to the surface, around a semibold center figure under a liquid glass label pill whose name morphs letter by letter and out of which the selected slice's share buds as a tinted chip, above a legend of glass chips resting apart that take the slice's tint when picked."
+description: "A composition ring you scrub by dragging around it, lifting each slice with a haptic while its name and share morph in the centre."
 piece: "RingBreakdown"
 category: "data"
 minIOSVersion: "17.0"
@@ -11,38 +11,7 @@ registryDependencies: []
 
 {/* GENERATED FILE. Edit registry/swift/data/RingBreakdown.swift or RingBreakdown.mdx instead. */}
 
-Ring chart with scrub-to-select, a lifted slice, and a built-in legend. The ring is content; its chrome is liquid glass. In the center a glass pill names the selection, morphing letter by letter, and the selected slice's share buds out of it as a chip tinted with the slice's color, resting joined to it. The legend rows are glass chips resting apart; the picked one takes its slice's tint.
-
-## Notes
-
-- Slices are solid color blocks from the house palette (red, sky, butter, sage, lilac, sand), separated by a 4 pt gap with rounded ends. Each slice is filled and stroked with a round join, so the corners stay soft at any size.
-- Drag anywhere on the ring and the selection follows your finger around it, with a `.selection` tick at every slice boundary. Release keeps the selection; tap the hole or the selected legend chip to clear it. Only changes made on the ring, the legend or with VoiceOver tick: a parent setting `selection`, or new data clearing it, stays silent.
-- The selected slice pulls 6 pt outward along its mid-angle with visible give and lifts a soft shadow, and drops back firmly when it lets go. The others step back to a solid resting color a beat later on a calmer spring, never a faded wash, so a selection reads as one wedge pulling out; clearing brings everything back together. The center is liquid glass over a semibold figure with dimmed decimals: a glass pill names the selection ("Total" when nothing is picked), morphing letter by letter, and the selected slice's share buds out of the pill's end as a chip tinted with the slice's color, resting joined to the pill by a liquid neck while the pair slides over to stay centered. Moving to another slice keeps the chip out: its share rolls and its tint changes in place. Clearing the selection drains its tint and melts it back into the pill. The figure and the share roll without overshoot. The legend is a stack of glass chips resting apart; the picked chip takes its slice's tint with ink text on the slice's beat, the other chips' text steps back on the same follow-through while their glass stays whole, and chips sink slightly when pressed.
-- The ring sweeps in clockwise from the top on first appearance, and again only when data lands in an empty ring, while the center pill and figure are there from the start. New values after that slide the seams to their new angles with no overshoot, even when the selection changes with them, the center figure rolls to its new value, and the selection stays while its label is still there. A slice that arrives opens from the seam between its neighbors as they make room, and one that leaves folds back into it, so the ring never shows more than the whole.
-- `tint` overrides the first slice; `color` on a slice overrides any slice. `Style` sets `blocks`, `rest`, `ink`, `text`, `muted`, `gap`, and `cornerRadius`. The default thickness is 34 pt. Every string is semibold; size sets the hierarchy.
-- The ring is one VoiceOver element: it reads the selected slice or the total, and swiping up or down moves the selection. Legend chips are 44 pt buttons with their value. Reduce Motion drops the lift, the share chip's bud (it fades in and out in place beside the pill), the letter morph (the name crossfades) and the press scale (a pressed chip dims instead), fades the ring in instead of sweeping it, and crossfades digits instead of rolling them. New values still slide the seams, and slices still open and fold, on a shorter spring with no overshoot. Colors, the shadow and the haptics stay. Under Reduce Transparency the glass draws solid.
-- Labels are the identity, so keep them unique. `selection` lets a parent drive or observe the selected slice, and a selection set before the ring appears is kept. An id that names no slice draws as no selection.
-- A full budget screen built on a spending ring ships in SwiftPieces Pro (`spending-ring`).
-
-## Usage
-
-```swift
-RingBreakdownExample().preferredColorScheme(.light)
-```
-
-## Parameters
-
-| Parameter | Description |
-| --- | --- |
-| `slices` | Parts of the whole, drawn clockwise from the top. Labels must be unique. |
-| `thickness` | Ring thickness in points. |
-| `tint` | Color of the first slice. Defaults to the style's first block; later slices take the next blocks unless a slice sets `color`. |
-| `format` | Number format for the center value and legend, for example `.number` or `.currency(code: "USD")`. Defaults to `.number`. |
-| `showsLegend` | Show the tappable legend rows below the ring. |
-| `selection` | Optional binding to the selected slice id, for driving selection from outside. |
-| `style` | Slice blocks, ink, and surface colors. Defaults to `.standard`: red, sky, butter, sage, lilac, and sand. |
-
-## Source
+<Showcase name="RingBreakdown">
 
 <Tabs items={["RingBreakdown.swift"]}>
 <Tab value="RingBreakdown.swift">
@@ -770,7 +739,7 @@ extension PieceMotion {
 // and melt back into each other, and the frosted fallback before iOS 26. Each piece carries a copy of only
 // the parts it uses, so this file stands alone. Generated from registry/foundation/PieceLiquid.swift in the
 // SwiftPieces repo; edit it there, not here. The rules are in LIQUID_GLASS.md.
-// swiftpieces-liquid: 1.7.1 (liquid, liquidPress, bud, morphText)
+// swiftpieces-liquid: 1.8.0 (liquid, liquidPress, bud, morphText)
 
 /// The liquid glass language: one merge distance, two rest gaps, and the springs a bubble leaves and comes home on.
 ///
@@ -1092,31 +1061,46 @@ private struct PieceMorphText: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        Group {
-            if Self.splits(text) {
-                let glyphs = Array(text)
-                HStack(spacing: 0) {
-                    ForEach(glyphs.indices, id: \.self) { i in
-                        Text(String(glyphs[i]))
-                            .id("\(i)\(glyphs[i])")
-                            .transition(transition(i, scale: 0.6))
-                    }
-                }
-                // The letters' reading order, not the layout's: an HStack lays its children out backwards under a
-                // right-to-left layout.
-                .environment(\.layoutDirection, .leftToRight)
-            } else {
-                ZStack(alignment: .leading) {
-                    Text(text)
-                        .id(text)
-                        .transition(transition(0, scale: 0.9))
-                }
-            }
+        // The morphing label at its full size when it fits. When it doesn't (a long label at an accessibility text
+        // size, a narrow screen), the same words wrap onto a second line and shrink a little instead of running past
+        // the screen's edge; that one changes as a whole rather than letter by letter. A single word never splits
+        // across lines: it stays on one and shrinks further.
+        let oneWord = !text.contains(where: \.isWhitespace)
+        ViewThatFits(in: .horizontal) {
+            morphing.fixedSize()
+            Text(text)
+                .lineLimit(oneWord ? 1 : 2)
+                .multilineTextAlignment(.center)
+                .minimumScaleFactor(oneWord ? 0.5 : 0.75)
+                .fixedSize(horizontal: false, vertical: true)
+                .id(text)
+                .transition(transition(0, scale: 0.9))
         }
         .font(font)
-        .fixedSize()
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(text)
+    }
+
+    @ViewBuilder private var morphing: some View {
+        if Self.splits(text) {
+            let glyphs = Array(text)
+            HStack(spacing: 0) {
+                ForEach(glyphs.indices, id: \.self) { i in
+                    Text(String(glyphs[i]))
+                        .id("\(i)\(glyphs[i])")
+                        .transition(transition(i, scale: 0.6))
+                }
+            }
+            // The letters' reading order, not the layout's: an HStack lays its children out backwards under a
+            // right-to-left layout.
+            .environment(\.layoutDirection, .leftToRight)
+        } else {
+            ZStack(alignment: .leading) {
+                Text(text)
+                    .id(text)
+                    .transition(transition(0, scale: 0.9))
+            }
+        }
     }
 
     private func transition(_ i: Int, scale: CGFloat) -> AnyTransition {
@@ -1154,3 +1138,38 @@ private struct PieceMorphText: View {
 
 </Tab>
 </Tabs>
+
+</Showcase>
+
+<PieceFacts name="RingBreakdown" />
+
+Ring chart with scrub-to-select, a lifted slice, and a built-in legend. The ring is content; its chrome is liquid glass. In the center a glass pill names the selection, morphing letter by letter, and the selected slice's share buds out of it as a chip tinted with the slice's color, resting joined to it. The legend rows are glass chips resting apart; the picked one takes its slice's tint.
+
+## Notes
+
+- Slices are solid color blocks from the house palette (red, sky, butter, sage, lilac, sand), separated by a 4 pt gap with rounded ends. Each slice is filled and stroked with a round join, so the corners stay soft at any size.
+- Drag anywhere on the ring and the selection follows your finger around it, with a `.selection` tick at every slice boundary. Release keeps the selection; tap the hole or the selected legend chip to clear it. Only changes made on the ring, the legend or with VoiceOver tick: a parent setting `selection`, or new data clearing it, stays silent.
+- The selected slice pulls 6 pt outward along its mid-angle with visible give and lifts a soft shadow, and drops back firmly when it lets go. The others step back to a solid resting color a beat later on a calmer spring, never a faded wash, so a selection reads as one wedge pulling out; clearing brings everything back together. The center is liquid glass over a semibold figure with dimmed decimals: a glass pill names the selection ("Total" when nothing is picked), morphing letter by letter, and the selected slice's share buds out of the pill's end as a chip tinted with the slice's color, resting joined to the pill by a liquid neck while the pair slides over to stay centered. Moving to another slice keeps the chip out: its share rolls and its tint changes in place. Clearing the selection drains its tint and melts it back into the pill. The figure and the share roll without overshoot. The legend is a stack of glass chips resting apart; the picked chip takes its slice's tint with ink text on the slice's beat, the other chips' text steps back on the same follow-through while their glass stays whole, and chips sink slightly when pressed.
+- The ring sweeps in clockwise from the top on first appearance, and again only when data lands in an empty ring, while the center pill and figure are there from the start. New values after that slide the seams to their new angles with no overshoot, even when the selection changes with them, the center figure rolls to its new value, and the selection stays while its label is still there. A slice that arrives opens from the seam between its neighbors as they make room, and one that leaves folds back into it, so the ring never shows more than the whole.
+- `tint` overrides the first slice; `color` on a slice overrides any slice. `Style` sets `blocks`, `rest`, `ink`, `text`, `muted`, `gap`, and `cornerRadius`. The default thickness is 34 pt. Every string is semibold; size sets the hierarchy.
+- The ring is one VoiceOver element: it reads the selected slice or the total, and swiping up or down moves the selection. Legend chips are 44 pt buttons with their value. Reduce Motion drops the lift, the share chip's bud (it fades in and out in place beside the pill), the letter morph (the name crossfades) and the press scale (a pressed chip dims instead), fades the ring in instead of sweeping it, and crossfades digits instead of rolling them. New values still slide the seams, and slices still open and fold, on a shorter spring with no overshoot. Colors, the shadow and the haptics stay. Under Reduce Transparency the glass draws solid.
+- Labels are the identity, so keep them unique. `selection` lets a parent drive or observe the selected slice, and a selection set before the ring appears is kept. An id that names no slice draws as no selection.
+- A full budget screen built on a spending ring ships in SwiftPieces Pro (`spending-ring`).
+
+## Usage
+
+```swift
+RingBreakdownExample().preferredColorScheme(.light)
+```
+
+## Parameters
+
+| Parameter | Description |
+| --- | --- |
+| `slices` | Parts of the whole, drawn clockwise from the top. Labels must be unique. |
+| `thickness` | Ring thickness in points. |
+| `tint` | Color of the first slice. Defaults to the style's first block; later slices take the next blocks unless a slice sets `color`. |
+| `format` | Number format for the center value and legend, for example `.number` or `.currency(code: "USD")`. Defaults to `.number`. |
+| `showsLegend` | Show the tappable legend rows below the ring. |
+| `selection` | Optional binding to the selected slice id, for driving selection from outside. |
+| `style` | Slice blocks, ink, and surface colors. Defaults to `.standard`: red, sky, butter, sage, lilac, and sand. |

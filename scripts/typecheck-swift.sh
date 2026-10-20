@@ -35,10 +35,33 @@ while IFS= read -r file; do
   done
 done < <( { find registry/swift -name '*.swift'; echo /tmp/swiftpieces-foundation.swift; } | sort)
 
+# A block is checked together with the pieces it is built from (its header's registryDependencies), the way it
+# lands in an app: the CLI installs them beside it, and it uses their public types.
+if [ -d registry/blocks ]; then
+  while IFS= read -r file; do
+    deps=$(sed -n 's/^\/\/ registryDependencies: *\[\(.*\)\]$/\1/p' "$file" | tr -d ' "' | tr ',' '\n')
+    sources=("$file")
+    for dep in $deps; do
+      dep_file=$(find registry/swift -name "${dep}.swift" | head -1)
+      if [ -z "$dep_file" ]; then printf "  FAIL  %s: no piece named %s\n" "$file" "$dep"; fail=1; continue; fi
+      sources+=("$dep_file")
+    done
+    for mode in default main-actor; do
+      flags=()
+      if [ "$mode" = main-actor ]; then flags=("${MAIN_ACTOR[@]}"); fi
+      if xcrun swiftc -typecheck -parse-as-library -target "$TARGET" -sdk "$SDK" -swift-version 6 ${flags[@]+"${flags[@]}"} "${sources[@]}" 2>/tmp/swiftpieces-typecheck.log; then
+        printf "  ok    %-10s %s\n" "$mode" "$file"
+      else
+        printf "  FAIL  %-10s %s\n" "$mode" "$file"; cat /tmp/swiftpieces-typecheck.log; fail=1
+      fi
+    done
+  done < <(find registry/blocks -name '*.swift' | sort)
+fi
+
 # UIKit runs a dynamic color's provider on whatever thread resolves the color, and SwiftUI resolves colors
 # on its render thread. A provider written in main-actor code inherits the main actor unless it is
 # @Sendable, and Swift then traps when it runs there (issue #40). The compiler can't see this one.
-unsendable=$(grep -rnE 'UIColor *\{|dynamicProvider: *\{' registry/swift --include='*.swift' | grep -v '@Sendable' | grep -vE -- '-> *UIColor *\{' || true)
+unsendable=$(grep -rnE 'UIColor *\{|dynamicProvider: *\{' registry/swift $( [ -d registry/blocks ] && echo registry/blocks ) --include='*.swift' | grep -v '@Sendable' | grep -vE -- '-> *UIColor *\{' || true)
 if [ -n "$unsendable" ]; then
   echo "  FAIL  UIColor providers must be @Sendable:"; echo "$unsendable"; fail=1
 fi
@@ -46,7 +69,7 @@ fi
 # Liquid glass (LIQUID_GLASS.md). A piece's own code is everything before its vendored "Piece motion" or
 # "Piece liquid" block; the foundation's code inside those blocks is allowed what pieces are not.
 own() { awk '/^\/\/ MARK: - Piece (motion|liquid)$/ { exit } { print FILENAME ":" FNR ": " $0 }' "$1"; }
-pieces=$(find registry/swift -name '*.swift' | sort)
+pieces=$(find registry/swift $( [ -d registry/blocks ] && echo registry/blocks ) -name '*.swift' | sort)
 # One font weight: semibold, for every string and SF Symbol. Haptic weights (`.impact(weight: .light)`) are not fonts.
 weights=$(for f in $pieces; do own "$f"; done | grep -E 'weight: *\.(ultraLight|thin|light|regular|medium|bold|heavy|black)\b|\.(weight|fontWeight)\(\.(ultraLight|thin|light|regular|medium|bold|heavy|black)\)|\.bold\(\)|Font\.Weight\.(ultraLight|thin|light|regular|medium|bold|heavy|black)\b' | grep -vE 'impact\(|SensoryFeedback|sensoryFeedback' || true)
 if [ -n "$weights" ]; then

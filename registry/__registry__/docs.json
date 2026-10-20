@@ -180,7 +180,7 @@
     "structuredData": {
       "contents": [
         {
-          "content": "SwiftPieces is a free library (MIT + Commons Clause) of animated SwiftUI components built around iOS 26 Liquid Glass and Metal shaders, and a curated taste of what SwiftPieces Pro offers in full: production-ready SwiftUI screens, whole flows and complete app templates. Read why SwiftPieces exists and how it is funded."
+          "content": "SwiftPieces is a free library (MIT + Commons Clause) of animated SwiftUI components built around iOS 26 Liquid Glass and Metal shaders, blocks built from them, and a curated taste of what SwiftPieces Pro offers in full: production-ready SwiftUI screens, more blocks, whole flows and complete app templates. Read why SwiftPieces exists and how it is funded."
         },
         {
           "heading": "what-earns-a-place",
@@ -207,6 +207,22 @@
           "content": "**Accessible by default.** Dynamic Type, semantic colors, and respect for Reduce Motion and Reduce Transparency."
         },
         {
+          "heading": "what-a-block-is",
+          "content": "A block is a whole section of a screen built from pieces: a sign-in form, an account settings section, a stats overview, a checkout. The pieces inside carry the interaction, the motion and the haptics; the block lays them out, wires them together and gives them their states, so you drop it into a screen and connect it to your app with a closure or two."
+        },
+        {
+          "heading": "what-a-block-is",
+          "content": "**One `.swift` file** named `<Name>Block`, plus the pieces it is built from, which it lists as dependencies. The CLI and the MCP server install them together."
+        },
+        {
+          "heading": "what-a-block-is",
+          "content": "**Yours to change.** Like a piece, a block is plain SwiftUI in your project. Rearrange it, restyle it, or take the parts you need."
+        },
+        {
+          "heading": "what-a-block-is",
+          "content": "**Free and Pro.** Free blocks use the house style of the pieces. SwiftPieces Pro's blocks are themed by its design system and re-skin with any of its families. All blocks."
+        },
+        {
           "heading": "verified-apis-only",
           "content": "Every Apple API in this library is checked against developer.apple.com and type-checked against the iOS 26 SDK in CI. Tutorials on the web invent modifiers like `.liquidGlassUltra`. Those do not exist, and you will never find them here."
         }
@@ -219,6 +235,10 @@
         {
           "id": "what-a-piece-is",
           "content": "What a piece is"
+        },
+        {
+          "id": "what-a-block-is",
+          "content": "What a block is"
         },
         {
           "id": "three-ways-to-install",
@@ -425,11 +445,19 @@
         },
         {
           "heading": "tools",
+          "content": "`search_blocks`"
+        },
+        {
+          "heading": "tools",
+          "content": "Search blocks, whole sections of a screen built from pieces, free and Pro, by keyword or block category."
+        },
+        {
+          "heading": "tools",
           "content": "`get_piece`"
         },
         {
           "heading": "tools",
-          "content": "A piece's full source, shaders and docs link."
+          "content": "A piece's or a free block's full source, shaders and docs link."
         },
         {
           "heading": "tools",
@@ -437,7 +465,7 @@
         },
         {
           "heading": "tools",
-          "content": "The files to write into your project, plus the matching CLI command."
+          "content": "The files to write into your project, plus the matching CLI command. For a block, install the pieces in its `registryDependencies` too."
         },
         {
           "heading": "tools",
@@ -445,7 +473,7 @@
         },
         {
           "heading": "tools",
-          "content": "Free categories with counts."
+          "content": "Free piece and block categories with counts."
         },
         {
           "heading": "tools",
@@ -509,9 +537,22 @@
     }
   },
   {
+    "url": "/docs/blocks",
+    "title": "All SwiftUI blocks",
+    "description": "Whole sections of an iOS screen, laid out, wired and given their states: 6 blocks in SwiftPieces Pro.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Blocks"
+    ],
+    "structuredData": {
+      "contents": [],
+      "headings": []
+    }
+  },
+  {
     "url": "/docs/components/flows",
     "title": "Flows",
-    "description": "Whole journeys through SwiftPieces Pro's app templates: first run through sign in and the paywall, the core of each app, then profile and settings, screen by screen.",
+    "description": "Whole journeys through SwiftPieces Pro's app templates, screen by screen: first run and sign in, the core of each app, then settings.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -525,7 +566,7 @@
   {
     "url": "/docs/components",
     "title": "All SwiftUI components",
-    "description": "Every free SwiftPieces component for iOS with a live preview. Filter by category, then open a piece for its notes, parameters, source and install command.",
+    "description": "Every free SwiftPieces component for iOS with a live preview. Filter by category, then open a piece for its source and install command.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components"
@@ -1843,7 +1884,7 @@
   {
     "url": "/docs/guides/swiftui-motion",
     "title": "SwiftUI Motion: Springs, Rubber Banding and Gesture Momentum",
-    "description": "How to make SwiftUI motion feel physical: spring tiers, finger tracking without lag, velocity that carries into the release, rubber banding, press deformation, squash and stretch, follow-through and Reduce Motion.",
+    "description": "How to make SwiftUI motion feel physical: spring tiers, finger tracking, velocity that carries into the release, rubber banding and Reduce Motion.",
     "breadcrumbs": [
       "SwiftPieces",
       "Guides"
@@ -2458,9 +2499,141 @@
     }
   },
   {
+    "url": "/docs/blocks/analytics/stats-overview",
+    "title": "Stats Overview",
+    "description": "The top of a dashboard: a headline metric and its change, a chart you scrub across 1W to 1Y, and metric tiles.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Blocks",
+      "Blocks · 6",
+      "Analytics"
+    ],
+    "structuredData": {
+      "contents": [
+        {
+          "content": "The section at the top of an analytics or dashboard screen. One card holds the headline metric with its change against the previous period and a Swift Charts line you drag across to read any day, with the previous period dashed beneath and a 1W to 1Y control that morphs the line. Metric tiles sit below, and loading, empty and failed states are built in."
+        },
+        {
+          "content": "Its SwiftUI source comes with SwiftPieces Pro: Stats Overview in the Pro library."
+        }
+      ],
+      "headings": []
+    }
+  },
+  {
+    "url": "/docs/blocks/auth/sign-in",
+    "title": "Sign In",
+    "description": "The sign-in section of a welcome screen: email and password, Sign in with Apple, a passkey and Create account in one block.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Blocks",
+      "Blocks · 6",
+      "Auth"
+    ],
+    "structuredData": {
+      "contents": [
+        {
+          "content": "Email and password on one card, checked on submit and then live, with Sign in running your closure through working, done and failed. Forgot password confirms inline, Sign in with Apple is the system button in the colour of the appearance, and a link at the foot switches to Create account with password rules that tick off."
+        },
+        {
+          "content": "Its SwiftUI source comes with SwiftPieces Pro: Sign In in the Pro library."
+        }
+      ],
+      "headings": []
+    }
+  },
+  {
+    "url": "/docs/blocks/commerce/checkout",
+    "title": "Checkout",
+    "description": "A one-column checkout: bag with steppers, address and delivery speed, promo code, summary, then Pay or Apple Pay to the placed order.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Blocks",
+      "Blocks · 6",
+      "Commerce"
+    ],
+    "structuredData": {
+      "contents": [
+        {
+          "content": "The checkout section of a cart or checkout screen. Each bag line has a quantity stepper, and the line price, summary and Pay label roll as quantities change; delivery shows the address with Change and each speed with its day and price, and a promo code applies or explains why not. Pay shows its working, done and failed states in place, Apple Pay uses the system button, and the block settles into the placed order with its number and arrival day."
+        },
+        {
+          "content": "Its SwiftUI source comes with SwiftPieces Pro: Checkout in the Pro library."
+        }
+      ],
+      "headings": []
+    }
+  },
+  {
+    "url": "/docs/blocks/settings/account-settings",
+    "title": "Account Settings",
+    "description": "The account section at the top of Settings: profile and photo, appearance, notifications, your data, sign out and deletion.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Blocks",
+      "Blocks · 6",
+      "Settings"
+    ],
+    "structuredData": {
+      "contents": [
+        {
+          "content": "The part of Settings every app with accounts needs. A profile card changes the photo and the name in place, appearance shows System, Light and Dark as small screens in your theme's colours, and notification toggles know when iOS has notifications off. Export my data, Sign out and Delete account each confirm and show their own working, done and failed states."
+        },
+        {
+          "content": "Its SwiftUI source comes with SwiftPieces Pro: Account Settings in the Pro library."
+        }
+      ],
+      "headings": []
+    }
+  },
+  {
+    "url": "/docs/blocks/settings/plan-usage",
+    "title": "Plan and Usage",
+    "description": "The subscription section of Settings: the plan and its renewal, usage meters that warn near a limit, and the way up.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Blocks",
+      "Blocks · 6",
+      "Settings"
+    ],
+    "structuredData": {
+      "contents": [
+        {
+          "content": "Where a subscriber checks their plan. A summary card names the plan with a tinted status chip, its price and when it renews, ends or leaves its trial; usage meters fill to what has been used and turn to warning and danger near a limit. Upgrade works, confirms and folds away on the top plan, and Manage subscription and Restore purchases use StoreKit by default."
+        },
+        {
+          "content": "Its SwiftUI source comes with SwiftPieces Pro: Plan and Usage in the Pro library."
+        }
+      ],
+      "headings": []
+    }
+  },
+  {
+    "url": "/docs/blocks/social/invite-friends",
+    "title": "Invite Friends",
+    "description": "A referral section: what both people get, a track that fills as friends join, the invite code to copy or share, and who you invited.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Blocks",
+      "Blocks · 6",
+      "Social"
+    ],
+    "structuredData": {
+      "contents": [
+        {
+          "content": "The referral section of an account or rewards screen. One card states the reward, fills a seat on a quiet track for each friend who joins, copies the invite code with one tap and opens the system share sheet. Invited friends list below with a status chip, and pending invites can be reminded."
+        },
+        {
+          "content": "Its SwiftUI source comes with SwiftPieces Pro: Invite Friends in the Pro library."
+        }
+      ],
+      "headings": []
+    }
+  },
+  {
     "url": "/docs/components/ai/assistant-orb",
     "title": "Assistant Orb",
-    "description": "A dark glass ball with a Siri-style voice wave inside, locked to the thinking state; four thin sine membranes travel through the equator of a refracting shell, drawn by a Metal color shader. The sphere never moves, only the wave, and a palette change crossfades its colours.",
+    "description": "A dark glass ball with a Siri-style voice wave inside, drawn by a Metal shader and locked to the thinking state.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -2537,10 +2710,6 @@
         {
           "id": "parameters",
           "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -2548,7 +2717,7 @@
   {
     "url": "/docs/components/ai/prompt-chips",
     "title": "Prompt Chips",
-    "description": "Liquid glass prompt chips above a composer, in a snapping horizontal row or a grid of columns, each keyed by a tinted glyph disc. They cascade in one after another as they appear. A tap presses the chip and swells it with a pop of its disc, and the other chips flow into it, nearest first, melting into its glass; then the gathered chip condenses into a drop that falls into the composer as the chips close, handing it the text.",
+    "description": "Liquid glass prompt chips above a composer that cascade in, then melt into the one you tap as it drops its text into the field.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -2697,10 +2866,6 @@
         {
           "id": "parameters",
           "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -2708,7 +2873,7 @@
   {
     "url": "/docs/components/ai/source-stack",
     "title": "Source Stack",
-    "description": "Citations for an AI answer: a compact pill of overlapping site badges and a source count that opens into a list of numbered source cards. The badges fly out of the stack into their cards as the list cascades in under them, each card opens its link with a press, and closing gathers the badges back into the pill.",
+    "description": "Citations for an AI answer: a pill of overlapping site badges that opens into a list of numbered source cards.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -2825,10 +2990,6 @@
         {
           "id": "parameters",
           "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -2836,7 +2997,7 @@
   {
     "url": "/docs/components/ai/streaming-reply",
     "title": "Streaming Reply",
-    "description": "The AI reply surface in liquid glass. A glass header pill carries the assistant mark and a phase label that morphs letter by letter, text arrives token by token with a per-word fade and a tinted cursor bubble, inline code sits on neutral chips, and user prompts are signal-tinted glass bubbles. A long press lifts the message: the header pill swells into a glass card around the reply and Copy and Regenerate bud out of its bottom edge, and a stopped reply buds a signal Retry out of its header pill.",
+    "description": "The AI reply in liquid glass: text that streams in word by word under a morphing phase label, with copy, regenerate and retry.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -2965,10 +3126,6 @@
         {
           "id": "parameters",
           "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -2976,7 +3133,7 @@
   {
     "url": "/docs/components/ai/thinking-state",
     "title": "Thinking State",
-    "description": "The \"assistant is working\" placeholder, laid out like the reply it becomes: a liquid glass header pill carrying a breathing mark and an elapsed-seconds label that morphs as it counts, over three presentations on one clock: block-colored rising dots, a sheen over reply-shaped bars, or a label whose glyphs carry the sheen. Plus a modifier that sweeps any view.",
+    "description": "The assistant-is-working placeholder: a glass header with a breathing mark and elapsed seconds over dots, bars or a sheen.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -3089,10 +3246,6 @@
         {
           "id": "parameters",
           "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -3100,7 +3253,7 @@
   {
     "url": "/docs/components/ai/thought-orb",
     "title": "Thought Orb",
-    "description": "A small dark glass ball with a Siri-style voice wave inside, locked to the thinking state and drawn by a Metal color shader; palettes for searching, reading and writing crossfade the colour with the kind of work. Its Pill is the status control in liquid glass: the mark rides a round glass bubble joined by a liquid neck to a capsule whose label morphs letter by letter into each new verb while the capsule reshapes around it, with indeterminate dots at its end.",
+    "description": "A small glass orb with a voice wave whose colour follows the kind of work, and a glass status pill whose verb morphs as it changes.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -3181,10 +3334,6 @@
         {
           "id": "parameters",
           "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -3192,7 +3341,7 @@
   {
     "url": "/docs/components/backgrounds/silk",
     "title": "Silk",
-    "description": "A slowly folding silk surface lit by a movable light and shaded from a real gradient normal in a Metal shader, in house block fabrics (the brand red among them) and an adaptive standard style, with optional device-tilt lighting. Content only, so it carries no glass.",
+    "description": "A slowly folding silk surface shaded in Metal and lit by a movable light, in the house fabrics, with optional tilt lighting.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -3301,10 +3450,6 @@
         {
           "id": "parameters",
           "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -3312,7 +3457,7 @@
   {
     "url": "/docs/components/backgrounds/touch-grid",
     "title": "Touch Grid",
-    "description": "A Canvas dot grid that swells and warms into the brand red or another house block under the finger, springs back on release, and sends one dissipating ripple out from a tap. Content only, so it carries no glass.",
+    "description": "A dot grid that swells and warms in colour under the finger, springs back on release and sends a ripple out from a tap.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -3449,10 +3594,6 @@
         {
           "id": "parameters",
           "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -3460,7 +3601,7 @@
   {
     "url": "/docs/components/cards/flip-card",
     "title": "Flip Card",
-    "description": "A two-sided card you flip by tap or by dragging sideways. The drag scrubs the rotation, release commits or snaps back by velocity and carries the flick into the landing, the card lifts toward you mid-turn with a layered shadow that slides off the raised edge, and each face shades as it turns edge-on. An optional liquid glass flip hint rides the card's axis, its signal dot smearing from the front slot to the back slot as the card turns, and the faces take semibold type.",
+    "description": "A two-sided card you flip by tap or drag, scrubbing the turn and carrying the flick into the landing, with a lift and a moving shadow.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -3581,10 +3722,6 @@
         {
           "id": "parameters",
           "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -3592,7 +3729,7 @@
   {
     "url": "/docs/components/cards/motion-card",
     "title": "Motion Card",
-    "description": "A solid color card that tilts with the device's attitude through an exponential filter, easing into its limit and leveling out when the grip changes, with a fixed-light sheen and a layered shadow that slide as it turns. Its content takes semibold type, and liquid glass chips laid on its face tilt and catch the same light. Press settles it toward flat, tips it down under the finger and sinks it with a light impact, and Core Motion stops whenever the scene is not active.",
+    "description": "A solid colour card that tilts with the device, catching a fixed light across its face and its glass chips, and settles flat when pressed.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -3729,10 +3866,6 @@
         {
           "id": "parameters",
           "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -3740,7 +3873,7 @@
   {
     "url": "/docs/components/cards/parallax-card",
     "title": "Parallax Card",
-    "description": "An image card whose picture drifts slower than the scroll while a liquid glass caption panel drifts slower still, so the card reads in layers. The trailing glyph is a glass bubble joined to the panel by a liquid neck; a press lifts the card with a deeper shadow and the bubble leans toward its arrow, thinning the neck. The caption is composed from eyebrow, title, metadata, and trailing glyph slots.",
+    "description": "An image card whose picture and liquid glass caption drift at different speeds as you scroll, so the card reads in layers.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -3901,10 +4034,6 @@
         {
           "id": "parameters",
           "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -3912,7 +4041,7 @@
   {
     "url": "/docs/components/cards/swipe-deck",
     "title": "Swipe Deck",
-    "description": "A gesture-driven card stack: the top card follows the finger and swings from where you grabbed it, a tinted liquid glass outcome badge buds in through the card's edge, leaning in from the side you head toward, and stamps at the threshold, melting back out if you return, the cards beneath rise one after another as it leaves, and release past the threshold or a flick throws it left, right, or up at the speed of your finger.",
+    "description": "A card stack you swipe: the top card follows the finger, a glass outcome badge stamps at the threshold and a flick throws it away.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -4045,10 +4174,6 @@
         {
           "id": "parameters",
           "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -4056,7 +4181,7 @@
   {
     "url": "/docs/components/cards/wallet-stack",
     "title": "Wallet Stack",
-    "description": "A wallet of tickets, boarding passes, memberships and loyalty cards as solid colour passes stacked so every header strip shows: tap one and it rises to the top and opens to its whole face with a real QR, Aztec, PDF417 or Code 128 code drawn by Core Image while the others slide down into a pile of narrowing slivers and a clear glass close bubble buds out of its corner, then drag it down with the finger's velocity, tap the pile, tap the bubble or press Escape to put it back; the strips draw closer when space runs short, the stack scrolls when there are many, and VoiceOver reads every pass, field and code.",
+    "description": "A wallet of passes stacked by their header strips: tap one to open its whole face and a real scannable code, then put it back.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -4181,10 +4306,6 @@
         {
           "id": "parameters",
           "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -4192,7 +4313,7 @@
   {
     "url": "/docs/components/controls/commit-button",
     "title": "Commit Button",
-    "description": "A liquid glass async action button driven by one idle/loading/success/error/disabled phase: the signal glass capsule draws in around its label as a glass bubble buds out of its end carrying a spinning ring; on success the ring closes on a check and both turn sage, then the bubble melts home as the label morphs to its success title; an error morphs the label to the message on butter glass, turns the bubble into a retry and shakes.",
+    "description": "An async action button in liquid glass that runs through loading, success and error, with a progress bubble budding out of its end.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -4211,6 +4332,14 @@
         {
           "heading": "notes",
           "content": "The button is liquid glass. Idle, it is a signal-tinted glass capsule with dark ink; pressed it sinks and the glass darkens a touch. Loading draws the capsule in around its label and buds a round glass bubble out of its end, joined to it by a liquid neck, carrying a signal arc that winds up from rest. Success lets the arc coast to rest as it closes into a ring while the capsule and the bubble turn sage, draws the check and pops it on the success haptic; then, if you pass `successTitle` (\"Saved\"), the bubble melts back into the capsule's end as the capsule opens to full width and the label morphs letter by letter into the title, a check beside it. Without a title the check stays in its bubble until the hold ends. An error opens the capsule back out on butter glass, morphs the label into the message, turns the bubble into a butter retry and shakes with the error haptic on the same beat. Disabled is clear glass with muted ink."
+        },
+        {
+          "heading": "notes",
+          "content": "A new `title` or `successTitle` reaches the label as soon as it changes, morphing letter by letter, so a checkout's \"Pay $64.00\" can follow its total. It never restarts the work, the outcome or the hold, and an error keeps showing its message until the next try."
+        },
+        {
+          "heading": "notes",
+          "content": "The label gets the capsule's width and no more: the room you give the button, less the bubble while it is out. A label too long for one line there (a long error, an accessibility text size, a narrow screen) wraps onto a second line, shrinking a little if it must, and the capsule grows taller to hold it instead of wider. It never runs past the screen's edge, with `collapses` on or off."
         },
         {
           "heading": "notes",
@@ -4333,10 +4462,6 @@
         {
           "id": "parameters",
           "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -4344,7 +4469,7 @@
   {
     "url": "/docs/components/controls/elastic-button",
     "title": "Elastic Button",
-    "description": "A ButtonStyle that squashes toward the touch point, stretches along the drag with rubber-band resistance, deepens after a hold and springs back with as much give as the pull put in. Optional liquid glass surfaces (signal, block and clear raised glass) float on a soft lift that flattens under the finger, and the glass darkens as it is pressed.",
+    "description": "A button style that squashes toward the touch, stretches with the drag, deepens on a hold and springs back with the give you put in.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -4433,10 +4558,6 @@
         {
           "id": "parameters",
           "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -4444,7 +4565,7 @@
   {
     "url": "/docs/components/controls/fan-stack",
     "title": "Fan Stack",
-    "description": "Overlapping avatars in liquid glass bubbles that melt into one shape where they overlap, then fan apart on tap or hold through necks that stretch and snap, the hidden faces budding out of the +N bubble as it melts into them. A drag scrubs across them: the avatar under the finger lifts with its neighbours rolling up after it, a glass name tag buds out of it and a haptic ticks, and releasing selects it.",
+    "description": "Overlapping avatars in glass bubbles that fan apart on tap and scrub under the finger, a name tag budding out of the one you hold.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -4585,10 +4706,6 @@
         {
           "id": "parameters",
           "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -4596,7 +4713,7 @@
   {
     "url": "/docs/components/controls/hold-to-confirm",
     "title": "Hold To Confirm",
-    "description": "A press-and-hold liquid glass capsule for destructive or important actions: the signal tint wells out of the leading puck while held and sweeps through the glass, passing three milestone dots with rising haptics and inverting the label under it, drains back into the puck on an early release, and on completion turns sage, morphs its label and buds a sage check bubble out of its end.",
+    "description": "A press-and-hold glass capsule for destructive actions that fills as you hold, ticks past milestones and confirms with a check.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -4611,6 +4728,10 @@
         {
           "heading": "notes",
           "content": "The control is a clear liquid glass capsule with a tinted puck at its leading end holding the symbol. At touch-down the tint wells out of the puck to the capsule's height, then sweeps through the glass at a steady speed while held, driven by a `TimelineView`, so the edge always shows the real time left. An ink copy of the label, puck and milestone dots is cut to the fill, so all of them invert exactly under its edge."
+        },
+        {
+          "heading": "notes",
+          "content": "The title sits centred on the capsule, balanced against the puck, when it fits there. A longer one centres in all the room after the puck, and one too long for that (an accessibility text size, a narrow screen) wraps onto a second line, shrinking a little if it must, while the capsule grows taller to hold it. It never runs past the capsule, and the fill, the puck and the dots follow the taller capsule."
         },
         {
           "heading": "notes",
@@ -4725,10 +4846,6 @@
         {
           "id": "parameters",
           "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -4736,7 +4853,7 @@
   {
     "url": "/docs/components/controls/timer-dial",
     "title": "Timer Dial",
-    "description": "A countdown ring you set by dragging a liquid glass knob around it like the Timer dial, with a tick per step and a heavier detent every 5s. A solid ring over a minute-tick scale, semibold display numerals, a breathing signal warning zone, a sage finish, optional glass start, pause and reset bubbles that bud out of each other, and a determinate progress mode.",
+    "description": "A countdown ring you set by dragging a glass knob around it, with a tick per step, a warning zone and start, pause and reset bubbles.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -4905,10 +5022,6 @@
         {
           "id": "parameters",
           "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -4916,7 +5029,7 @@
   {
     "url": "/docs/components/data/activity-heatmap",
     "title": "Activity Heatmap",
-    "description": "A liquid glass streak calendar for habit, fitness, study and journaling apps: weeks of days drawn in one Canvas as rounded cells in solid steps from a pale red mix up to pure red, laid out by the locale's first weekday with month labels on their week columns, a semibold streak numeral under a glass streak chip that stays alive until midnight beside the longest run and active days, a scrub that lifts the day under your finger as a tinted glass tile with a glass callout budding out of it on a liquid neck and a haptic tick per day, a glass legend chip, sideways scrolling that opens on today when the weeks outgrow the width, and VoiceOver that steps day by day or plays the weeks as an audio graph.",
+    "description": "A streak calendar in steps of red with a glass streak chip, and a scrub that lifts each day with a callout and a haptic tick.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -5085,10 +5198,6 @@
         {
           "id": "parameters",
           "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -5096,7 +5205,7 @@
   {
     "url": "/docs/components/data/live-stat",
     "title": "Live Stat",
-    "description": "A liquid glass metric tile: a semibold display value that rolls with a spring and dims its decimals, a tinted delta chip, a sparkline you hold and scrub to retarget the value live while a glass flag buds out of the tile's top edge above your finger with the change from that point to the latest, a press that expands the line into a taller chart with low and high, and a tinted block variant.",
+    "description": "A metric tile whose value rolls with a spring, with a delta chip and a sparkline you scrub to read any point live.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -5110,7 +5219,7 @@
         },
         {
           "heading": "notes",
-          "content": "The tile is a liquid glass panel: neutral glass by default, tinted with the block's color for `.block(_:)`. The value is an `Animatable` text in semibold 40 pt display type with dimmed decimals. A spring with no bounce interpolates real numbers through your `format`, so a roll from rest never shows a value past the one it is heading to, and in-flight frames round to the target's own decimal places, so whole-number formats never flash a long fraction mid-roll."
+          "content": "The tile is a liquid glass panel: neutral glass by default, tinted with the block's color for `.block(_:)`. The value is an `Animatable` text in semibold 40 pt display type with dimmed decimals. A spring with no bounce interpolates real numbers through your `format`, so a roll from rest never shows a value past the one it is heading to. In-flight frames round to the last place the target shows, measured in the format's own terms, so a whole-number format never flashes a long fraction mid-roll and a `.percent` heading for 3.2% passes 1.6% on the way; a `.scale` or compact notation rolls the same way. At rest the figure is exactly what your format prints."
         },
         {
           "heading": "notes",
@@ -5127,6 +5236,10 @@
         {
           "heading": "notes",
           "content": "The delta is a tinted chip with ink on the panel: sage for up, red for down. It is a fill rather than a glass shape of its own, so the tile reads as one surface. It dims while you scrub, while the flag speaks for the point. Under Increase Contrast it gains a 1 pt outline."
+        },
+        {
+          "heading": "notes",
+          "content": "The tile holds up at half a phone's width and at large text sizes. When the label and the chip don't fit side by side, the chip moves under the label and a long label wraps instead of truncating; the chip always stays on one line. A figure too wide for the tile shrinks to fit rather than losing digits, to the same smallest size at every Dynamic Type size, and in a narrow tile the expanded low and high row stacks into a column."
         },
         {
           "heading": "notes",
@@ -5170,7 +5283,7 @@
         },
         {
           "heading": "parameters",
-          "content": "Number format for the value, for example `.number` or `.currency(code: \"USD\")`. Defaults to `.number`."
+          "content": "Number format for the value, for example `.number`, `.percent` or `.currency(code: \"USD\")`. Defaults to `.number`."
         },
         {
           "heading": "parameters",
@@ -5225,10 +5338,6 @@
         {
           "id": "parameters",
           "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -5236,7 +5345,7 @@
   {
     "url": "/docs/components/data/odometer",
     "title": "Odometer",
-    "description": "A number whose digits roll on individual slots like a mechanical counter, carrying from the low digits up so unchanged digits never move, with softened slot edges while rolling, dimmed decimals, a separate sign, a dashed loading state, and a tinted liquid glass delta chip that buds out from behind the figure after each change, rests joined beside it and melts back in.",
+    "description": "A number whose digits roll on their own slots like a mechanical counter, with a glass delta chip that buds out after each change.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -5353,10 +5462,6 @@
         {
           "id": "parameters",
           "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -5364,7 +5469,7 @@
   {
     "url": "/docs/components/data/range-lens",
     "title": "Range Lens",
-    "description": "An overview and detail chart for long series like a year of daily steps, revenue, sleep or prices: a semibold readout of the window's average (or total, highest or lowest) with its dates, a detail chart of the window's bars that pans and rescales without overshooting under a red dashed average rule, and a strip of the whole series underneath with a liquid glass lens you drag to move and pull by its joined glass handles to resize, which swell and flood red while held, settle with the flick, rubber-band at the ends, tick at each week and never invert, plus tap to centre, double-tap to show everything, keyboard arrows and VoiceOver that steps the lens a week at a time.",
+    "description": "An overview and detail chart for long series: drag and resize a glass lens over the whole range to read the window's average.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -5529,10 +5634,6 @@
         {
           "id": "parameters",
           "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -5540,7 +5641,7 @@
   {
     "url": "/docs/components/data/ring-breakdown",
     "title": "Ring Breakdown",
-    "description": "A composition ring of solid color blocks with rounded seams that you scrub by dragging around it, with a haptic at each slice boundary and a radial lift for the selected slice while the rest step back to the surface, around a semibold center figure under a liquid glass label pill whose name morphs letter by letter and out of which the selected slice's share buds as a tinted chip, above a legend of glass chips resting apart that take the slice's tint when picked.",
+    "description": "A composition ring you scrub by dragging around it, lifting each slice with a haptic while its name and share morph in the centre.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -5661,10 +5762,6 @@
         {
           "id": "parameters",
           "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -5672,7 +5769,7 @@
   {
     "url": "/docs/components/data/scrub-chart",
     "title": "Scrub Chart",
-    "description": "A liquid glass line or bar chart: a semibold readout with dimmed decimals beside a tinted glass delta chip, a glass flag that rides the scrub rule with the range's change budding out of it and resting joined while a range is held, hold-and-drag range selection, and a range picker of joined glass segments whose tint flows into the one you pick as it swells, morphing the line between datasets.",
+    "description": "A line or bar chart you scrub under a glass flag, hold to select a range, and switch with a glass picker that morphs the line.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -5690,6 +5787,10 @@
         },
         {
           "heading": "notes",
+          "content": "The figure is never cut short. Beside the chip it may shrink to 90% at most; when the widest figure and chip any range can show don't fit side by side at that size (a narrow card, a large figure, or a large Dynamic Type size), the chip sits under the figure instead, and only then does the figure scale down further, if it still can't fit on its own line. The choice is made once for the whole chart, across every range, so neither a scrub nor a range switch changes the readout's shape or moves the chart."
+        },
+        {
+          "heading": "notes",
           "content": "One finger drags to scrub: a rule and a butter dot sit on the nearest point, and a glass flag grows out of the top of the rule with its time. They move with the finger on the same frame and never ease after it, so the figure, the rule, the dot and the flag always agree, and `.selection` ticks at each point reached (not on release). Touching down brings the cursor in with the dot a beat ahead; letting go clears it and the flag sinks back into the rule. Holding still for 300 ms before moving pins the point under the finger as an anchor: the dot pops with a rigid tap and the drag becomes a range, a solid band fills the span and the figure shows the signed change with its percent. The range's change also buds out of the flag's side, on the side toward the middle of the plot, as a tinted glass chip that rests joined to the flag by a liquid neck; the flag keeps the pair inside the plot, and when the range ends the chip's tint drains and it melts back into the flag."
         },
         {
@@ -5702,7 +5803,7 @@
         },
         {
           "heading": "notes",
-          "content": "At rest: no y-axis, one dashed baseline at the first value, monospaced min and max markers, the latest point as a butter dot, and three uppercase date labels whose format follows the span of the range. The picker is a row of glass segments, 44 pt tall, joined by liquid necks: segments press in lightly, and the one you pick swells and takes the accent tint, which flows to it through the necks with a little give while the one it leaves narrows and drains back to clear glass. A range set through `range` from outside moves it the same way."
+          "content": "At rest: no y-axis, one dashed baseline at the first value, monospaced min and max markers that shift inward to stay inside the plot when the min or max is the first or last point (on the latest point they sit off its corner, clear of the dot), the latest point as a butter dot, and three uppercase date labels whose format follows the span of the range. The picker is a row of glass segments, 44 pt tall, joined by liquid necks: segments press in lightly, and the one you pick swells and takes the accent tint, which flows to it through the necks with a little give while the one it leaves narrows and drains back to clear glass. A range set through `range` from outside moves it the same way."
         },
         {
           "heading": "notes",
@@ -5710,7 +5811,7 @@
         },
         {
           "heading": "notes",
-          "content": "VoiceOver gets one element with the latest value and change; swipe up or down steps the scrub point, and swiping up past the latest point lets it go."
+          "content": "VoiceOver reads the readout and the plot as one element with the range, the latest value and change; swipe up or down steps the scrub point, and swiping up past the latest point lets it go. Each range segment is its own button, and the picked one reads as selected."
         },
         {
           "heading": "notes",
@@ -5789,10 +5890,6 @@
         {
           "id": "parameters",
           "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -5800,7 +5897,7 @@
   {
     "url": "/docs/components/feedback/outcome-screen",
     "title": "Outcome Screen",
-    "description": "A success, failure or empty outcome view sharing one choreography, where a ring draws, floods into a solid color block, the mark strokes in dark ink, one pulse lands with a haptic, and the headline and a signal-tinted liquid glass action rise. On failure an async retry morphs the action's label to \"Retrying\" while a progress bubble buds out of its end on a liquid neck, and a glass details block opens to the technical text.",
+    "description": "A success, failure or empty state in one choreography: a ring draws, floods and lands with a haptic, then a glass action rises.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -5965,10 +6062,6 @@
         {
           "id": "parameters",
           "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -5976,7 +6069,7 @@
   {
     "url": "/docs/components/feedback/rating-scrub",
     "title": "Rating Scrub",
-    "description": "A star rating you tap or scrub, with soft rounded stars that fill as solid blocks colored by the score and rise under your finger like soft keys, falling back in a ripple when you let go, with a little give past either end. While you scrub, a glass readout tinted with the score buds up out of the touched star and rides from star to star, and the caption under the stars is a glass numeral pill joined to a tinted label chip whose word morphs letter by letter.",
+    "description": "A star rating you tap or scrub: the stars fill and rise under the finger while a glass readout rides along and the label morphs.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -6109,10 +6202,6 @@
         {
           "id": "parameters",
           "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -6120,7 +6209,7 @@
   {
     "url": "/docs/components/feedback/reaction-toggle",
     "title": "Reaction Toggle",
-    "description": "A liquid glass like or save toggle. It presses in, its glass capsule floods with its tint from the symbol outward while the symbol swaps to its filled form and squashes and springs like soft rubber, the count rolls, and a confirmation pill buds out of the capsule on a liquid neck and melts back into it.",
+    "description": "A like or save toggle in liquid glass that floods with its tint, springs its symbol, rolls the count and buds a confirmation pill.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -6249,10 +6338,6 @@
         {
           "id": "parameters",
           "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -6260,7 +6345,7 @@
   {
     "url": "/docs/components/feedback/skeleton-loader",
     "title": "Skeleton Loader",
-    "description": "Solid placeholder bones and a self-masking modifier that turns any layout, color blocks included, into one quiet shape sweeping a soft diagonal highlight on a shared clock, then hands off as content unblurs and rises row by row. The bones stand in for content, so they stay solid rather than glass.",
+    "description": "Placeholder bones and a modifier that turns any layout into one sweeping shape, then hands off as the content rises in.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -6353,10 +6438,6 @@
         {
           "id": "parameters",
           "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -6364,7 +6445,7 @@
   {
     "url": "/docs/components/feedback/status-morph",
     "title": "Status Morph",
-    "description": "One continuous stroke that spins as a loading arc, closes into a ring, floods into a solid block and draws a check in dark ink on success, or a cross with a nudge on failure, with an optional caption on a liquid glass pill under the ring whose label morphs letter by letter.",
+    "description": "One stroke that spins while loading, then closes into a ring and draws a check on success or a cross on failure.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -6509,10 +6590,6 @@
         {
           "id": "parameters",
           "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -6520,7 +6597,7 @@
   {
     "url": "/docs/components/glass/glass-action-menu",
     "title": "Glass Action Menu",
-    "description": "A liquid glass action menu. Hold the signal trigger and its actions bud out of it along a line or an arc, each born inside it and pulling a neck that thins and snaps, with its name budding from its side; slide across them and release to fire. The others melt home first and the fired one last, as the trigger lands a check; a tap toggles and a scrim dismisses.",
+    "description": "Hold the glass trigger and its actions bud out of it along a line or an arc; slide across them and release to fire one.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -6657,10 +6734,6 @@
         {
           "id": "parameters",
           "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -6668,7 +6741,7 @@
   {
     "url": "/docs/components/glass/glass-mode-bar",
     "title": "Glass Mode Bar",
-    "description": "One liquid glass body that turns into whatever mode you pick. At rest a capsule of mode icons spans the width; tap one and a signal anchor carrying that mode buds out of the capsule's leading end while the capsule draws back to make room and trades its icons for that mode's own controls, a waveform for voice, thumbnails for photos, chips for a timer. Tap the anchor and it melts home as the icons come back. The body keeps its footprint the whole time.",
+    "description": "One liquid glass bar that turns into the mode you pick, its icons trading places with that mode's own controls.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -6765,10 +6838,6 @@
         {
           "id": "parameters",
           "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -6776,7 +6845,7 @@
   {
     "url": "/docs/components/glass/glass-quick-add",
     "title": "Glass Quick Add",
-    "description": "A liquid glass Quick add pill that folds up into a card. Tap it and the pill grows up and across into a menu of capture kinds; pick one and the same glass re-forms in place into that capture, a title field and its option chips. A signal Save bubble buds out from under the card's corner only once there is something to save, melts back if the field empties, and saving folds the whole thing down into the pill.",
+    "description": "A liquid glass Quick add pill that grows into a menu of capture kinds, then re-forms in place into the capture you pick.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -6837,10 +6906,6 @@
         {
           "id": "usage",
           "content": "Usage"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -6848,7 +6913,7 @@
   {
     "url": "/docs/components/glass/glass-segments",
     "title": "Glass Segments",
-    "description": "A liquid glass segmented control: a signal-tinted glass indicator melted into a glass track as one surface. It moves like liquid, its leading edge reaching the new segment first and the trailing edge following, so it stretches across and gathers in. Grab it to scrub: it lifts under the finger, flattens against the ends and lands where the flick was heading, while the label ink flips exactly under its edge; tap still works.",
+    "description": "A segmented control whose glass indicator moves like liquid, stretching across and gathering in, and follows a scrub.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -6929,10 +6994,6 @@
         {
           "id": "usage",
           "content": "Usage"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -6940,7 +7001,7 @@
   {
     "url": "/docs/components/glass/glass-surface",
     "title": "Glass Surface",
-    "description": "The public face of the SwiftPieces liquid glass: `.glassSurface` draws any view on a liquid glass capsule, rect, circle or concentric shape, and `GlassSurface.Group` melts neighbouring surfaces into one through a liquid neck. Liquid Glass on iOS 26; before it a frosted surface with its own press, top light and specular edge; a solid fill under Reduce Transparency, and a designed disabled state everywhere.",
+    "description": "The SwiftPieces liquid glass as a modifier: any view on a glass shape, neighbours melted together, with fallbacks before iOS 26.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -7061,10 +7122,6 @@
         {
           "id": "parameters",
           "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -7072,7 +7129,7 @@
   {
     "url": "/docs/components/inputs/address-field",
     "title": "Address Field",
-    "description": "A liquid glass address field for checkout, delivery and sign-up. Type-ahead suggestions pour down out of the field as a glass list with the matched text picked out, a clear or searching bubble buds from the field's end, and picking a row with a tap or the hardware keyboard buds a spinner bubble beside it while it resolves into a structured address with street, city, state, postal code, country and coordinate; the list then melts back into the field as the address settles in with the locality on a second line and a sage check, keeping the typed text usable with a \"Use as typed\" row and a butter retry bubble when a lookup fails.",
+    "description": "An address field whose suggestions pour out as a glass list and resolve into a structured address with street, city and coordinate.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -7241,10 +7298,6 @@
         {
           "id": "parameters",
           "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -7252,7 +7305,7 @@
   {
     "url": "/docs/components/inputs/amount-field",
     "title": "Amount Field",
-    "description": "A currency amount entry that formats live in the user's locale as each digit lands (grouping, decimal separator, symbol before or after, the currency's own fraction digits), with a large auto-fitting semibold figure whose digits roll in, a blinking signal caret right after the digits, robust paste of amounts like \"$1,234.56\" or \"1 234,56 €\", and a limit that refuses the keystroke with a damped shake, an error haptic and a butter glass pill with the limit, budding out of the compact field's liquid glass block, all backed by a `Decimal` binding.",
+    "description": "A currency entry that formats live in the user's locale as each digit rolls in, pastes cleanly and refuses amounts over the limit.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -7413,10 +7466,6 @@
         {
           "id": "parameters",
           "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -7424,7 +7473,7 @@
   {
     "url": "/docs/components/inputs/date-range-picker",
     "title": "Date Range Picker",
-    "description": "A start-to-end date range picker on a paged month grid built from the environment calendar and locale, with the selection in liquid glass over the grid. A touch presses a small glass bubble into the day and the tap swells it into a red glass start bubble; the second tap lands the end the same way and the band pours out of the start along each week and into the end like liquid, joined to both bubbles by necks. Sold-out days are struck through, a refused end day swells into a butter bubble that shakes and melts away, a maximum length dims unreachable days, months page by swipe or a joined pair of glass chevrons that melt into each other at the ends, the month and summary morph letter by letter, and a glass chip reads out the dates and nights.",
+    "description": "A start-to-end date range picker on a paged month grid, the range pouring between two glass bubbles like liquid.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -7573,10 +7622,6 @@
         {
           "id": "parameters",
           "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -7584,7 +7629,7 @@
   {
     "url": "/docs/components/inputs/expanding-track",
     "title": "Expanding Track",
-    "description": "A thumbless liquid glass slider: a glass bar that swells from 8pt to a 32pt bar under the finger with a solid color fill inside, shows detent dots while dragging, buds a glass readout bubble up out of the bar that rides the held edge on a liquid neck and melts back in when you let go, squishes past either end, and can carry an uppercase label with a big numeral; a second init selects a range with two sinking handles.",
+    "description": "A thumbless glass slider that swells under the finger and buds a readout bubble that rides the edge, for a value or a range.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -7733,10 +7778,6 @@
         {
           "id": "parameters",
           "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -7744,7 +7785,7 @@
   {
     "url": "/docs/components/inputs/filter-rail",
     "title": "Filter Rail",
-    "description": "A scrolling rail of liquid glass filter chips with optional counts, resting apart as their own bubbles. Single-select marks the pick with a brand red glass puck that stretches between chips, its leading edge first, melting into each chip it crosses while every label turns to dark ink exactly under its edge; multi-select picks take the red tint with a check, file to the leading edge, and a counting Clear chip buds out of the first pick and melts back into the rail when cleared; the chosen chip scrolls into view, and edges fade only when content overflows.",
+    "description": "A scrolling rail of glass filter chips for one pick or many, with a red puck that stretches between chips and a Clear chip.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -7861,10 +7902,6 @@
         {
           "id": "parameters",
           "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -7872,7 +7909,7 @@
   {
     "url": "/docs/components/inputs/form-field",
     "title": "Form Field",
-    "description": "A liquid glass text field whose label rests inside as a placeholder and glides up into a caption on focus or once filled, with an optional leading icon and help text. A clear bubble buds out of the field's end while you type, a character counter buds down out of it and turns butter at a grapheme-accurate limit, bumping when extra input is refused, and validation waits until you leave the field before drawing an error ring and budding a butter warning bubble with the message, an error haptic and a VoiceOver announcement, shakes the field once when Return or a form submit meets an error, and shows a quiet sage check once fixed.",
+    "description": "A liquid glass text field with a floating label, a clear bubble, a character counter and validation that waits until you leave.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -8093,10 +8130,6 @@
         {
           "id": "parameters",
           "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -8104,7 +8137,7 @@
   {
     "url": "/docs/components/inputs/location-picker",
     "title": "Location Picker",
-    "description": "A map picker for delivery, rides, events and listings: drag the map under a fixed red pin that lifts while the map moves and, when it settles, drops and presses into place with a light tap, the address under it is looked up after a short pause with stale answers cancelled and recent ones cached. The chrome over the map is liquid glass: a floating glass card shows the street and locality, morphing letter by letter as it changes (a dropped pin with coordinates where there is no address, and a Retry bubble that pinches off its end when the lookup fails), the glass locate button asks for location only when tapped and flies to you, and the red Confirm capsule buds down out of the card once the spot has its answer and melts back into it while the map moves.",
+    "description": "A map picker with a red pin that lifts while the map moves and drops into place, looking up the address under it on a glass card.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -8273,10 +8306,6 @@
         {
           "id": "parameters",
           "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -8284,7 +8313,7 @@
   {
     "url": "/docs/components/inputs/range-slider",
     "title": "Range Slider",
-    "description": "A liquid glass dual-thumb slider: two glass bubble thumbs joined by a tinted glass span over a quiet line, with a glass readout chip joined above each thumb on a liquid neck; drag either thumb or touch the track to pull the nearest one over, the thumbs stay under the finger and land on their step when you let go, values snap to a step without floating drift, the thumbs never cross and keep a minimum gap, a thumb pulled past the end of the track gives with rubber-band resistance and springs back, a grabbed thumb swells and its chip takes the span's tint, as the thumbs meet one chip melts into the other to read as one range, and every step ticks a selection haptic with a firmer impact at a bound or the gap.",
+    "description": "A dual-thumb slider: glass bubble thumbs joined by a tinted span, readout chips that merge as they meet, and steps that tick.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -8453,10 +8482,6 @@
         {
           "id": "parameters",
           "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -8464,7 +8489,7 @@
   {
     "url": "/docs/components/inputs/scrub-stepper",
     "title": "Scrub Stepper",
-    "description": "A liquid glass stepper: round minus and plus bubbles joined to a glass numeral pill by liquid necks. Tap, hold to repeat with acceleration, or scrub sideways across the pill for velocity-scaled steps while a ruler slides under the finger; at a bound that button melts into the pill and the pill strains against the stop, and the button buds back out the moment it can be used.",
+    "description": "A glass stepper you tap, hold to repeat or scrub sideways across, with buttons that melt into the pill at a bound.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -8569,10 +8594,6 @@
         {
           "id": "parameters",
           "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -8580,7 +8601,7 @@
   {
     "url": "/docs/components/inputs/secure-entry",
     "title": "Secure Entry",
-    "description": "A liquid glass password field with a focus ring and a round glass reveal bubble joined to it that keeps focus. Typing buds a strength chip out of the field that morphs its label from weak to strong beside a growing gauge, requirement chips bud out of the field and turn sage with drawn checks as each rule passes, and when all pass the field takes a sage tint with a check while the chips melt back into it; a refused entry shakes the field, tints it butter and buds an error chip joined below it.",
+    "description": "A glass password field with a reveal bubble, a strength chip and requirement chips that turn sage with a check as each rule passes.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -8606,7 +8627,7 @@
         },
         {
           "heading": "notes",
-          "content": "Setting `error` from `nil` shakes the field once with an `.error` haptic on the same beat, tints it butter, and buds a butter error chip out of its bottom edge to rest joined just under it. A new message for an error already showing blurs into the new wording in place, with no second shake or haptic, so live validation never buzzes per keystroke. To signal a later refusal, set `error` to `nil` when the user edits, so the next refused submit arrives from `nil` and shakes again. Clearing it melts the chip back into the field as the tint drains."
+          "content": "Setting `error` from `nil` shakes the field once with an `.error` haptic on the same beat, tints it butter, and buds a butter error chip out of its bottom edge to rest joined just under it. A new message for an error already showing blurs into the new wording in place, with no second shake or haptic, so live validation never buzzes per keystroke. To signal a later refusal, set `error` to `nil` when the user edits, so the next refused submit arrives from `nil` and shakes again. Clearing it melts the chip back into the field as the tint drains. VoiceOver hears each new or reworded message once, as an announcement."
         },
         {
           "heading": "notes",
@@ -8618,7 +8639,11 @@
         },
         {
           "heading": "notes",
-          "content": "`Style` sets every tint plus the field height (also the reveal bubble's diameter) and radius. All text is semibold. `.disabled(true)` dims the field."
+          "content": "`submitLabel` and `onSubmit` set the Return key and what it does, the same whether the password is hidden or revealed. Leave `submitLabel` as `nil` to keep a label set around the field. To chain fields, apply `.focused($focus, equals: .confirm)` to each `SecureEntry` (focus reaches the text field inside) and move focus in `onSubmit`."
+        },
+        {
+          "heading": "notes",
+          "content": "`Style` sets every tint plus the field's minimum height and its radius. The field grows past that height when larger text needs it, and the reveal bubble grows with it, a circle as tall as the field on the same centre line. At accessibility text sizes the strength chip moves under its gauge, the requirement chips stack one to a row and wrap long labels, and a chip whose text wraps takes rounded corners in place of capsule ends. All text is semibold. `.disabled(true)` dims the field."
         },
         {
           "heading": "notes",
@@ -8658,7 +8683,7 @@
         },
         {
           "heading": "parameters",
-          "content": "Validation message. Setting it from `nil` shakes the field once with an error haptic, tints it with `Style.error`, and buds an error chip out of its bottom edge. A new message for a standing error swaps in place; clear it to `nil` on edit so the next refused submit shakes again."
+          "content": "Validation message. Setting it from `nil` shakes the field once with an error haptic, tints it with `Style.error`, buds an error chip out of its bottom edge, and announces the message to VoiceOver. A new message for a standing error swaps in place and is announced, without a second shake; clear it to `nil` on edit so the next refused submit shakes again."
         },
         {
           "heading": "parameters",
@@ -8675,6 +8700,22 @@
         {
           "heading": "parameters",
           "content": "Show the 8+ / number / symbol / mixed-case chips while focused or filled. When all four pass the field takes the success tint with a check, and the chips melt back into it a beat later."
+        },
+        {
+          "heading": "parameters",
+          "content": "`submitLabel`"
+        },
+        {
+          "heading": "parameters",
+          "content": "The Return key label, e.g. `.go` or `.next`, hidden or revealed. `nil`, the default, keeps the label set around the field, `.return` unless one is."
+        },
+        {
+          "heading": "parameters",
+          "content": "`onSubmit`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Called when Return is pressed, hidden or revealed. Submit the form or move focus to the next field here."
         },
         {
           "heading": "parameters",
@@ -8697,10 +8738,6 @@
         {
           "id": "parameters",
           "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -8708,7 +8745,7 @@
   {
     "url": "/docs/components/inputs/signature-pad",
     "title": "Signature Pad",
-    "description": "A signature field that lays smooth, velocity-weighted ink into a Canvas as the finger moves, thinning on quick flicks and pooling on slow turns, over a baseline whose Sign here hint fades on the first stroke. Under the paper floats one liquid glass toolbar: Undo buds out of one end of the Type instead pill and Clear out of the other the moment they can act, joined to it by liquid necks, and melt back into it when they can't; the pill morphs to Draw instead, and a sage glass Signed chip lands once the signature counts. Undo after Clear, strokes that rescale with the pad on rotation, and export to a transparent PNG or a vector PDF.",
+    "description": "A signature field with smooth, velocity-weighted ink and a glass toolbar for undo and clear, exporting to PNG or vector PDF.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -8865,10 +8902,6 @@
         {
           "id": "parameters",
           "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -8876,7 +8909,7 @@
   {
     "url": "/docs/components/inputs/token-field",
     "title": "Token Field",
-    "description": "A liquid glass tag and recipient field where each committed entry buds out of the glass input as a glass chip, born where it was typed while the input slides on, and chips wrap across lines resting apart while the input takes the rest of the last line. Return, comma or a paste of a whole list commits trimmed tokens with duplicate, limit and validation checks; backspace on an empty input highlights the last chip in the brand red and a second press melts it back into the input; and a glass suggestion list buds out of the input and filters as you type.",
+    "description": "A tag and recipient field where each entry buds out of the glass input as a chip, with checks, suggestions and backspace to remove.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -9029,10 +9062,6 @@
         {
           "id": "parameters",
           "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -9040,7 +9069,7 @@
   {
     "url": "/docs/components/lists/depth-carousel",
     "title": "Depth Carousel",
-    "description": "Paged cards that recede in depth as they leave center and hand each page a phase value for inner parallax. A held neighbor starts forward and comes to center on tap. Underneath, a glass page counter joined by a liquid neck to a scrubbable glass track, whose tinted glass pill stretches between the dots as the pages move, flattens against the ends and follows the finger when scrubbed, computed in absolute page coordinates so it never jumps.",
+    "description": "Paged cards that recede in depth as they leave the centre, over a glass page counter and a track you can scrub.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -9169,10 +9198,6 @@
         {
           "id": "parameters",
           "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -9180,7 +9205,7 @@
   {
     "url": "/docs/components/lists/drag-select-grid",
     "title": "Drag Select Grid",
-    "description": "A multi-select photo and file grid where one drag paints a whole reading-order range the way the system photo library does, a sideways drag or a short hold starts painting while vertical swipes still scroll, dragging back unpaints, starting on a selected item deselects, the grid auto-scrolls faster the deeper the finger sits in the top or bottom edge, and selected cells inset under a liquid glass badge that buds out of the print's corner, floods signal red as the check stamps down and melts back into the corner, with a haptic tick per item.",
+    "description": "A photo and file grid where one drag selects a whole range like the system photo library, auto-scrolling at the edges with a tick per item.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -9345,10 +9370,6 @@
         {
           "id": "parameters",
           "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -9356,7 +9377,7 @@
   {
     "url": "/docs/components/lists/follow-scroll",
     "title": "Follow Scroll",
-    "description": "A chat, log and live-feed scroll container that opens on the newest item and stays pinned to it while the reader is at the bottom, but never yanks them away once they scroll up to read; items that arrive below are counted into a liquid glass pill that buds up out of the bottom edge on a neck, jumps back to the latest and melts back down into the edge once the reader is caught up, older items loaded at the top keep the visible row exactly where it was while a glass spinner buds down from the top edge, and keyboard, rotation, growing rows and removals all hold the reader's place.",
+    "description": "A chat and feed container that stays pinned to the newest item, counting new ones into a glass pill once you scroll up to read.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -9453,10 +9474,6 @@
         {
           "id": "usage",
           "content": "Usage"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -9464,7 +9481,7 @@
   {
     "url": "/docs/components/lists/paged-list",
     "title": "Paged List",
-    "description": "An async/await infinite-scroll list that prefetches the next page a few rows before the end, never runs two loads at once, drops duplicate ids across pages, ignores stale responses after a refresh or cancel, and shows pulsing skeleton rows; its footer is one liquid glass bubble that spins while a page loads, widens into a \"Couldn't load more\" pill with a Retry bubble budding out of it on a liquid neck that keeps loaded rows, and becomes a quiet \"You're all caught up\" pill at the end, with pull to refresh that replaces rows only on success.",
+    "description": "An infinite-scroll list that prefetches and drops duplicate and stale pages, with a glass footer for loading, retry and the end.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -9657,10 +9674,6 @@
         {
           "id": "parameters",
           "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -9668,7 +9681,7 @@
   {
     "url": "/docs/components/lists/status-timeline",
     "title": "Status Timeline",
-    "description": "A vertical status timeline on liquid glass nodes: the live node is tinted and breathes, completed ones stamp to a tinted check as the ink runs down the line to the next stop, and a step's detail buds out of its node as a glass panel joined to it, melting back in as the relay moves on.",
+    "description": "A vertical status timeline on glass nodes: the live one breathes, done ones stamp to a check, and details bud out of a node.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -9769,10 +9782,6 @@
         {
           "id": "parameters",
           "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -9780,7 +9789,7 @@
   {
     "url": "/docs/components/lists/swipe-action-row",
     "title": "Swipe Action Row",
-    "description": "Wraps any row in a liquid glass card whose swipe actions are tinted glass bubbles. As the card slides they bud out of its edge, joined to it and to each other by liquid necks, and melt back in as it closes; the card lands in its detent at the speed you let go, a full swipe clicks in with a haptic as the edge bubble swallows the others and takes the bar, a destructive one carries the card out of the row, and a shared binding keeps one row open at a time.",
+    "description": "Any row in a glass card whose swipe actions bud out as tinted bubbles, with a full swipe that commits and one row open at a time.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -9913,10 +9922,6 @@
         {
           "id": "parameters",
           "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -9924,7 +9929,7 @@
   {
     "url": "/docs/components/lists/task-row",
     "title": "Task Row",
-    "description": "A task card with liquid glass chrome. Its check is a glass bubble, stamped in ink and popping as the check draws while the card flashes into a solid block, then settling to tinted glass as the row compacts; the priority sits on a tinted glass chip; a swipe-right buds a complete bubble out from under the card that completes with a strike-through; a swipe-left buds Snooze and Delete bubbles that part to rest apart; and a long-press lift reports reorder moves.",
+    "description": "A task card whose glass check pops as it completes, with a priority chip, swipes to complete, snooze or delete, and drag to reorder.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -10077,10 +10082,6 @@
         {
           "id": "parameters",
           "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -10088,7 +10089,7 @@
   {
     "url": "/docs/components/media/attachment-tray",
     "title": "Attachment Tray",
-    "description": "A horizontal attachment strip for composers, support forms and listings: a liquid glass add tile opens the photo picker with the remaining limit, picks drop onto the strip as their own tiles carrying a glass status bubble with a live progress ring, and the remove badge buds out of it; the ring closes before the thumbnail, downsampled off the main thread, develops in place and the bubble melts into the badge, failures flood the bubble red as a retry, the remove badge cancels an in-flight load, duplicates and over-limit picks are caught, and the caller owns every attachment for upload.",
+    "description": "An attachment strip for composers: a glass add tile opens the photo picker and each pick lands as a tile with a live progress ring.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -10245,10 +10246,6 @@
         {
           "id": "parameters",
           "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -10256,7 +10253,7 @@
   {
     "url": "/docs/components/media/link-preview",
     "title": "Link Preview",
-    "description": "A rich card for any URL that holds its final size while a skeleton sweeps, then settles the page's image and title into place under a liquid glass host chip that is there from the first frame (riding over the picture on the large card), fetched once with LinkPresentation, shared by every card showing the same link and cached so scrolling never refetches, falling back to a quiet card with the address when a page cannot be read, opening on tap and offering Copy Link and Share on long press.",
+    "description": "A rich card for any URL that holds its size while it loads, then settles the page's image and title under a glass host chip.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -10397,10 +10394,6 @@
         {
           "id": "parameters",
           "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -10408,7 +10401,7 @@
   {
     "url": "/docs/components/media/now-playing",
     "title": "Now Playing",
-    "description": "A mini player that grows into the full player in one continuous liquid glass motion: a glass bar with the artwork, the title over the artist and a red progress hairline, with a red play bubble and a forward bubble joined to its end. Tap it or pull it up and the bar stretches with the finger, then settles open with the flick's speed: the same glass grows into a card, the artwork, title and play button fly to their places, and previous and next bud out of play. Scrub the track with a swelling thumb while the times follow, skip with a letter by letter title morph and a blurred artwork swap, and drag the card down to fold it back into the bar. Playback stays the app's: the piece shows the time it is given and reports taps, skips and seeks.",
+    "description": "A mini player that grows into the full player in one liquid glass motion, with scrubbing, skips and a drag to fold it back.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -10609,10 +10602,6 @@
         {
           "id": "parameters",
           "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -10620,7 +10609,7 @@
   {
     "url": "/docs/components/media/photo-cropper",
     "title": "Photo Cropper",
-    "description": "A crop step for profile photos, posts and listings that keeps the picked photo covering a frame of the chosen aspect at every zoom and offset, pinches around the fingers while it pans, rubber-bands past its limits and springs back with a red flash on the frame and a rigid tick at a zoom limit, morphs between circle, square, 4:5, 16:9 and the photo's own shape without losing the subject as a red liquid glass puck stretches along the aspect chips' glass track, turns a quarter at a time, fades in a rule-of-thirds grid under the finger, floats its zoom level over the photo on glass, and renders the crop off the main thread at the original's full resolution together with its pixel rect and rotation for cropping again on a server.",
+    "description": "A crop step for profile photos and posts with pinch, pan and aspect presets, rendering the crop off the main thread at full size.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -10797,10 +10786,6 @@
         {
           "id": "parameters",
           "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -10808,7 +10793,7 @@
   {
     "url": "/docs/components/media/photo-viewer",
     "title": "Photo Viewer",
-    "description": "A full-screen photo surface with anchor-correct pinch zoom, momentum panning that gives a little at the bounds and rebounds, double-tap zoom about the tap, paging between images, and pinch-out or drag-down to dismiss with a fading scrim. A liquid glass close button and page counter float over the photos; while zoomed the counter floods with a light tint and rolls into a live zoom readout, and a single tap hides them.",
+    "description": "A full-screen photo viewer with anchored pinch zoom, momentum panning, paging and drag to dismiss under glass controls.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -10937,10 +10922,6 @@
         {
           "id": "parameters",
           "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -10948,7 +10929,7 @@
   {
     "url": "/docs/components/media/story-strip",
     "title": "Story Strip",
-    "description": "A Stories-style segment strip with a built-in clock that advances segments on a duration, a long-press hold that freezes the strip and buds a liquid glass Paused badge down out of the bars (it melts back up into them on release), tap zones for back and forward that answer with a glass chevron bubble, and a manual progress mode when you own the timing.",
+    "description": "A Stories-style segment strip with its own clock, hold to pause, and tap zones for back and forward.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -11097,10 +11078,6 @@
         {
           "id": "parameters",
           "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -11108,7 +11085,7 @@
   {
     "url": "/docs/components/media/voice-recorder",
     "title": "Voice Recorder",
-    "description": "The hold-to-record voice message button for chat, notes, journaling and support composers: press and hold the glass mic beside your field and it swells red as a glass recording capsule buds out of it over the field, with a live clock and speech bars scrolling toward the edge and a lock lane budding up above it; slide toward the leading edge and a glass bin buds out to take the recording, which tips closed and melts away, slide up the lane to lock for hands-free recording with a red send button and a trash bubble, or simply let go to send an .m4a with its duration and waveform samples ready for Waveform Scrub, with the microphone permission flow, a teaching hint for taps that are too short, a red countdown over the last ten seconds, interruptions and a simulated source for previews all handled.",
+    "description": "Hold to record a voice message: the glass mic swells into a recording capsule; slide to cancel or lock, let go to send.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -11285,10 +11262,6 @@
         {
           "id": "parameters",
           "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -11296,7 +11269,7 @@
   {
     "url": "/docs/components/media/waveform-scrub",
     "title": "Waveform Scrub",
-    "description": "A voice note player whose waveform is the scrubber: a red play button joined to a glass capsule of bars resampled from any number of samples to the width it gets, inked crisply mid-bar as your app's playback moves, a touch that drops the playhead under the finger, lifts the bars around it and buds a glass time bubble up out of the capsule that rides the finger and melts home as one seek is sent on release, a speed chip that morphs through 1×, 1.5× and 2×, quiet shimmering dots while the waveform loads, and a helper that reads the peaks of an audio file off the main thread.",
+    "description": "A voice note player whose waveform is the scrubber, with a glass time bubble that rides the finger and a playback speed chip.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -11477,10 +11450,6 @@
         {
           "id": "parameters",
           "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -11488,7 +11457,7 @@
   {
     "url": "/docs/components/motion/drag-to-dismiss",
     "title": "Drag to Dismiss",
-    "description": "A modifier that lets a photo, card, or sheet follow a two-axis drag, rounds and shrinks it toward the finger with progress over a styled scrim, then springs back or is tossed off along the drag vector at the speed of the flick past a distance or velocity threshold. A liquid glass close bubble drops in at the top as the drag gets going, and a \"Release to close\" pill buds out of it on a liquid neck the moment the drag passes the threshold, melting back in if it falls short.",
+    "description": "A modifier that lets a photo, card or sheet follow the drag, then springs it back or tosses it away at the speed of the flick.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -11625,10 +11594,6 @@
         {
           "id": "parameters",
           "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -11636,7 +11601,7 @@
   {
     "url": "/docs/components/navigation/floating-dock",
     "title": "Floating Dock",
-    "description": "A floating liquid glass dock: every item is its own glass bubble, resting apart, and the selected one floods with the signal tint. A drag across the dock lifts each item under the finger like a key while one glass name bubble buds out above it on a liquid neck, glides with the finger and morphs its name, then melts back in as the release commits; badges are signal bubbles joined to their items, and the whole dock tucks away on scroll.",
+    "description": "A floating glass dock where each item is its own bubble; drag across it to lift each item and read its name, release to switch.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -11749,10 +11714,6 @@
         {
           "id": "parameters",
           "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -11760,7 +11721,7 @@
   {
     "url": "/docs/components/navigation/index-scrubber",
     "title": "Index Scrubber",
-    "description": "An A to Z section index for long lists in any scroll view: the letters sit on a liquid glass rail on the trailing edge. Touch or drag it to jump to the section under your finger with a selection tick per new section, while a signal glass bead rides the rail under the active letter and a large letter bubble buds out of the rail beside it on a liquid neck, follows the finger, rolls its letter in the direction of travel and melts back in on release. Letters without a section are dimmed or hidden, a dotted collapse covers rails too short for every title, and there is one adjustable VoiceOver element and type-to-jump on a hardware keyboard.",
+    "description": "An A to Z index on a glass rail that jumps through a long list as you drag, with a letter bubble that follows the finger.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -11909,10 +11870,6 @@
         {
           "id": "parameters",
           "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -11920,7 +11877,7 @@
   {
     "url": "/docs/components/navigation/scroll-island",
     "title": "Scroll Island",
-    "description": "A floating liquid glass island for long screens such as articles, recipes, docs, settings and product pages: it names the section in view and rings it in red with how much of the page has been read, morphs the title letter by letter as the page scrolls, buds a joined back-to-top bubble once the reader leaves the first section, scrubs sections under a sideways drag with a tick for each, and on a tap or a swipe up grows the same glass into a contents panel where a red puck stretches from row to row under the finger and the pick scrolls the page straight there.",
+    "description": "A floating glass island that names the section in view, rings in how much is read and opens into a contents panel on tap.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -12069,10 +12026,6 @@
         {
           "id": "parameters",
           "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -12080,7 +12033,7 @@
   {
     "url": "/docs/components/navigation/step-trail",
     "title": "Step Trail",
-    "description": "A liquid glass progress trail for checkout, booking, account setup and verification flows: every step a glass stop joined to the next by a short neck, done steps carrying a check, the current step a red capsule with its number and title, steps people already reached in full text and the rest muted; moving on stretches the red from one stop to the next and gathers it there while the old title blurs into a check, a tap goes back to any step already reached, a tap ahead of that shakes the stop and nothing moves, a sideways drag carries the capsule stop by stop with a tick each and gives at the last step it may reach, and when the titles don't fit the capsule keeps its number, the caption names the step and the stops shrink rather than wrap or clip.",
+    "description": "A glass progress trail for checkout and setup flows, the red current step stretching to the next as you move on.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -12221,10 +12174,6 @@
         {
           "id": "parameters",
           "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -12232,7 +12181,7 @@
   {
     "url": "/docs/components/navigation/stretch-header",
     "title": "Stretch Header",
-    "description": "A hero header for your own ScrollView and NavigationStack: a semibold display title and uppercase eyebrow over a solid block hero that stretches on overscroll, a title that shrinks toward the real navigation bar, a row of liquid glass stat pills that pins under the bar, and a solid bar that fades in.",
+    "description": "A hero header that stretches on overscroll, shrinks its title toward the navigation bar and pins a row of glass stat pills.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -12349,10 +12298,6 @@
         {
           "id": "parameters",
           "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -12360,7 +12305,7 @@
   {
     "url": "/docs/components/navigation/tracking-tabs",
     "title": "Tracking Tabs",
-    "description": "Tabs on a liquid glass track over a paging ScrollView. The indicator is a signal-tinted glass capsule in the same liquid as the track, riding the pages through fractional scroll progress and swelling a little while it travels, with title ink that turns exactly under its edge, optional counts, a pressed state that sinks it with the selected title, and a selection tick each time the page changes.",
+    "description": "Tabs on a glass track over paging content, with a tinted indicator that rides the scroll and title ink that turns under its edge.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -12461,10 +12406,6 @@
         {
           "id": "parameters",
           "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -12472,7 +12413,7 @@
   {
     "url": "/docs/components/sheets/confirm-sheet",
     "title": "Confirm Sheet",
-    "description": "A confirmation card that presents as a height-fitted bottom sheet or, inline, as a floating card you can drag away. Its confirm and cancel actions are liquid glass capsules that split out of one shape as the card lands, the icon tile bounces, and a destructive choice plays a warning haptic. Confirming melts cancel back into confirm while its label morphs through Working to Done and its glass turns sage, then the card dismisses.",
+    "description": "A confirmation card as a bottom sheet or an inline card, its confirm and cancel splitting out of one glass shape as it lands.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -12629,10 +12570,6 @@
         {
           "id": "parameters",
           "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -12640,7 +12577,7 @@
   {
     "url": "/docs/components/sheets/notice-stack",
     "title": "Notice Stack",
-    "description": "In-app notices grouped the way notification stacks work: the newest on top as a glass card with its tinted symbol tile, title, relative time and message, two narrower peeks of the rest melted into it as one liquid shape, new notices dropping in from above with a soft tick, a tap that spreads the pile into a list while Show less and a clear button bud out of the top card, cards that follow a sideways swipe and fly off at your speed while the next one rises out of its peek, and a clear button that stretches into a red Clear all capsule so clearing takes a second, confirming tap.",
+    "description": "In-app notices stacked like notifications: the newest on top, a tap spreads the pile, and cards swipe away at your speed.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -12769,10 +12706,6 @@
         {
           "id": "parameters",
           "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -12780,7 +12713,7 @@
   {
     "url": "/docs/components/sheets/permission-sheet",
     "title": "Permission Sheet",
-    "description": "A pre-permission sheet that previews what it brings as a fanned stack of notification banners, each a tinted app tile, a line and now, that drop in one after another and deal the next to the front while it waits. A centred title and message sit under it, the request is a signal glass capsule whose label morphs through Requesting to Allowed as the stack pops and Not now melts into it, and a denial greys the stack out, swaps the copy and routes the button to Settings. Without benefits it leads with an icon tile.",
+    "description": "A pre-permission sheet that previews what it brings as a stack of notification banners before the request.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -12953,10 +12886,6 @@
         {
           "id": "parameters",
           "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -12964,7 +12893,7 @@
   {
     "url": "/docs/components/sheets/spotlight-tour",
     "title": "Spotlight Tour",
-    "description": "A first-run feature tour for any screen: mark controls with .spotlightAnchor and .spotlightTour dims everything else through a cutout that springs from stop to stop as a red ring draws around it, and sets a liquid glass callout with step progress below or above the target inside the safe area, its glass nub pointing at it. Skip and a red Next are a liquid glass pair that bud out of the callout on the far side from the target; on the last stop Skip melts into Next as Next morphs to Done. Taps reach the real control (which can also advance the tour), stops that aren't on screen are skipped, the cutout follows its target through scrolling, rotation and the keyboard, the tour can show itself only once, and VoiceOver, hardware keyboards and Reduce Motion stay in step.",
+    "description": "A first-run feature tour that dims the screen around each control, with a glass callout that steps from stop to stop.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -13125,10 +13054,6 @@
         {
           "id": "parameters",
           "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -13136,7 +13061,7 @@
   {
     "url": "/docs/components/sheets/toast",
     "title": "Toast",
-    "description": "A single liquid glass toast. A glass card carries the message, an optional detail line; as it lands, a tile bubble tinted for its kind buds out of its leading end with a countdown ring that drains around its glyph and pauses while touched, and an action such as Undo buds out of its trailing end as a signal bubble, both joined to the card by liquid necks. Placed inside the safe area so it clears the Dynamic Island and rides above the keyboard.",
+    "description": "A single liquid glass toast with a tile tinted for its kind, a countdown ring that pauses on touch and an optional Undo.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -13293,10 +13218,6 @@
         {
           "id": "parameters",
           "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -13304,7 +13225,7 @@
   {
     "url": "/docs/components/text/expandable-text",
     "title": "Expandable Text",
-    "description": "A paragraph clamped to a line limit that measures whether it is really truncated, and only then fades the end of its last line into a small liquid glass \"more\" pill; tapping grows the block smoothly to its full height with no reflow while the pill rides its bottom edge down and morphs to \"less\", links stay tappable, and VoiceOver always reads the whole text.",
+    "description": "A paragraph clamped to a line limit that shows a glass more pill only when it is cut, and grows to full height without reflow.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -13461,10 +13382,6 @@
         {
           "id": "parameters",
           "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -13472,7 +13389,7 @@
   {
     "url": "/docs/components/text/glass-text",
     "title": "Glass Text",
-    "description": "Liquid Glass rendered on the actual glyph outlines of a string, one or several lines, set in the house semibold by default, with a specular frosted fallback below iOS 26, a solid fill under Reduce Transparency and Dynamic Type scaling.",
+    "description": "Liquid Glass drawn on the actual letter shapes of a string, with fallbacks before iOS 26 and under Reduce Transparency.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -13585,10 +13502,6 @@
         {
           "id": "parameters",
           "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -13596,7 +13509,7 @@
   {
     "url": "/docs/components/text/picture-headline",
     "title": "Picture Headline",
-    "description": "A semibold headline with living pictures stuck between its words like a hand-placed collage. Each word rises into place and each picture opens from a dot into a tilted sticker with a white rim, landing with a spring, a light tick and a flash of crop marks, then keeps drifting. Press a sticker to lift it. Use the built-in house-palette scenes (the sun is our red mascot), your own images or SF Symbols; it wraps like text at any width and Dynamic Type size.",
+    "description": "A headline with living pictures stuck between its words like a collage, each opening into a tilted sticker as the words rise.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -13749,10 +13662,6 @@
         {
           "id": "parameters",
           "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }
@@ -13760,7 +13669,7 @@
   {
     "url": "/docs/components/text/text-reveal",
     "title": "Text Reveal",
-    "description": "Reveals a headline by characters, words or lines, rising from a baseline mask with a stagger sized to land in under a second, then grows a stroke of tinted liquid glass behind each phrase that matters, the text flipping to ink exactly under its edge.",
+    "description": "Reveals a headline by characters, words or lines, then grows a stroke of tinted glass behind the phrases that matter.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -13917,10 +13826,6 @@
         {
           "id": "parameters",
           "content": "Parameters"
-        },
-        {
-          "id": "source",
-          "content": "Source"
         }
       ]
     }

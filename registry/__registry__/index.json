@@ -553,7 +553,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/cards/wallet-stack",
     "added": "2026-10-12",
-    "isNew": true,
+    "isNew": false,
     "liquidGlass": true,
     "metal": false
   },
@@ -566,7 +566,7 @@
     "description": "A liquid glass async action button driven by one idle/loading/success/error/disabled phase: the signal glass capsule draws in around its label as a glass bubble buds out of its end carrying a spinning ring; on success the ring closes on a check and both turn sage, then the bubble melts home as the label morphs to its success title; an error morphs the label to the message on butter glass, turns the bubble into a retry and shakes.",
     "category": "controls",
     "license": "MIT+Commons-Clause",
-    "version": "2.3.0",
+    "version": "2.3.1",
     "minIOSVersion": "17.0",
     "swiftToolsVersion": "6.1",
     "tags": [
@@ -688,7 +688,7 @@
     "description": "A press-and-hold liquid glass capsule for destructive or important actions: the signal tint wells out of the leading puck while held and sweeps through the glass, passing three milestone dots with rising haptics and inverting the label under it, drains back into the puck on an early release, and on completion turns sage, morphs its label and buds a sage check bubble out of its end.",
     "category": "controls",
     "license": "MIT+Commons-Clause",
-    "version": "2.2.0",
+    "version": "2.2.1",
     "minIOSVersion": "17.0",
     "swiftToolsVersion": "6.1",
     "tags": [
@@ -815,7 +815,7 @@
     "description": "A liquid glass metric tile: a semibold display value that rolls with a spring and dims its decimals, a tinted delta chip, a sparkline you hold and scrub to retarget the value live while a glass flag buds out of the tile's top edge above your finger with the change from that point to the latest, a press that expands the line into a taller chart with low and high, and a tinted block variant.",
     "category": "data",
     "license": "MIT+Commons-Clause",
-    "version": "2.2.0",
+    "version": "2.2.1",
     "minIOSVersion": "17.0",
     "swiftToolsVersion": "6.1",
     "tags": [
@@ -928,7 +928,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/data/range-lens",
     "added": "2026-10-12",
-    "isNew": true,
+    "isNew": false,
     "liquidGlass": true,
     "metal": false
   },
@@ -983,7 +983,7 @@
     "description": "A liquid glass line or bar chart: a semibold readout with dimmed decimals beside a tinted glass delta chip, a glass flag that rides the scrub rule with the range's change budding out of it and resting joined while a range is held, hold-and-drag range selection, and a range picker of joined glass segments whose tint flows into the one you pick as it swells, morphing the line between datasets.",
     "category": "data",
     "license": "MIT+Commons-Clause",
-    "version": "2.2.0",
+    "version": "2.2.1",
     "minIOSVersion": "17.0",
     "swiftToolsVersion": "6.1",
     "tags": [
@@ -1356,7 +1356,7 @@
     "description": "A liquid glass segmented control: a signal-tinted glass indicator melted into a glass track as one surface. It moves like liquid, its leading edge reaching the new segment first and the trailing edge following, so it stretches across and gathers in. Grab it to scrub: it lifts under the finger, flattens against the ends and lands where the flick was heading, while the label ink flips exactly under its edge; tap still works.",
     "category": "glass",
     "license": "MIT+Commons-Clause",
-    "version": "2.3.0",
+    "version": "2.3.1",
     "minIOSVersion": "17.0",
     "swiftToolsVersion": "6.1",
     "tags": [
@@ -1809,7 +1809,7 @@
     "description": "A liquid glass password field with a focus ring and a round glass reveal bubble joined to it that keeps focus. Typing buds a strength chip out of the field that morphs its label from weak to strong beside a growing gauge, requirement chips bud out of the field and turn sage with drawn checks as each rule passes, and when all pass the field takes a sage tint with a check while the chips melt back into it; a refused entry shakes the field, tints it butter and buds an error chip joined below it.",
     "category": "inputs",
     "license": "MIT+Commons-Clause",
-    "version": "2.2.0",
+    "version": "2.3.0",
     "minIOSVersion": "17.0",
     "swiftToolsVersion": "6.1",
     "tags": [
@@ -2341,7 +2341,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/media/now-playing",
     "added": "2026-10-12",
-    "isNew": true,
+    "isNew": false,
     "liquidGlass": true,
     "metal": false
   },
@@ -2512,7 +2512,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/media/voice-recorder",
     "added": "2026-10-12",
-    "isNew": true,
+    "isNew": false,
     "liquidGlass": true,
     "metal": false
   },
@@ -2554,7 +2554,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/media/waveform-scrub",
     "added": "2026-10-12",
-    "isNew": true,
+    "isNew": false,
     "liquidGlass": true,
     "metal": false
   },
@@ -2722,7 +2722,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/navigation/scroll-island",
     "added": "2026-10-12",
-    "isNew": true,
+    "isNew": false,
     "liquidGlass": true,
     "metal": false
   },
@@ -2767,7 +2767,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/navigation/step-trail",
     "added": "2026-10-12",
-    "isNew": true,
+    "isNew": false,
     "liquidGlass": true,
     "metal": false
   },
@@ -2931,7 +2931,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/sheets/notice-stack",
     "added": "2026-10-12",
-    "isNew": true,
+    "isNew": false,
     "liquidGlass": true,
     "metal": false
   },

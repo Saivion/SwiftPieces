@@ -1,6 +1,6 @@
 ---
 title: "Spotlight Tour"
-description: "A first-run feature tour for any screen: mark controls with .spotlightAnchor and .spotlightTour dims everything else through a cutout that springs from stop to stop as a red ring draws around it, and sets a liquid glass callout with step progress below or above the target inside the safe area, its glass nub pointing at it. Skip and a red Next are a liquid glass pair that bud out of the callout on the far side from the target; on the last stop Skip melts into Next as Next morphs to Done. Taps reach the real control (which can also advance the tour), stops that aren't on screen are skipped, the cutout follows its target through scrolling, rotation and the keyboard, the tour can show itself only once, and VoiceOver, hardware keyboards and Reduce Motion stay in step."
+description: "A first-run feature tour that dims the screen around each control, with a glass callout that steps from stop to stop."
 piece: "SpotlightTour"
 category: "sheets"
 minIOSVersion: "17.0"
@@ -11,47 +11,7 @@ registryDependencies: []
 
 {/* GENERATED FILE. Edit registry/swift/sheets/SpotlightTour.swift or SpotlightTour.mdx instead. */}
 
-Walks people through the controls on a screen, one stop at a time: everything but the current stop is dimmed, a red ring draws around it, and a liquid glass callout explains it, with Skip and Next as a liquid pair. Mark each control with `.spotlightAnchor("compose")`, then apply `.spotlightTour` once, high in the hierarchy: on the `NavigationStack` or `TabView`, so the scrim covers the bars too, or on a sheet's root. Anchors anywhere inside it are found, toolbar items included. Taps inside the cutout reach the real control. Steps whose anchor is not on screen are skipped; while none is on screen, the tour waits.
-
-## Notes
-
-- Two modifiers. `.spotlightAnchor("compose")` marks a control as a stop; `.spotlightTour(isPresented:steps:)` goes once on the container that holds them, ideally the `NavigationStack` or `TabView` so the scrim covers the bars too, or a sheet's root. Each `SpotlightTour.Step` names its anchor, a title and a message, and optionally an SF Symbol, the cutout's shape (`.automatic`, `.capsule`, `.circle`, `.rectangle(cornerRadius:)`) and its padding.
-- Put the anchor right on the control, before modifiers that widen its frame: `.spotlightAnchor("add")` then `.frame(maxWidth: .infinity, alignment: .trailing)`, not the other way round. Anchors report their frame in window coordinates through the environment, so toolbar items, safe area insets and other hosted content work. Use one id per stop.
-- While a stop shows, everything else is dimmed and a 2 pt red ring draws itself around the cutout from the top once the cutout has landed. The cutout and the ring stay as they are; the callout is liquid glass. Next springs the cutout to the next stop without overshoot, morphing between rounded rectangles, capsules and circles so its corners never wobble, and the callout trails it like a cue card, landing a beat later on a softer spring with a little give while its text dips out and back so words never smear. On a long trip the give is held to a few points, so the nub never reaches the ring. The tour irises in calmly onto the first stop with the callout following out of the target, and leaves quicker than it came. `.automatic` picks a circle for small square targets, a capsule for short wide ones and a rounded rectangle for the rest, with corners running parallel to the target's.
-- The callout sits below its target when it fits, else above, else on the roomier side, always inside the safe area and clear of the keyboard, resting 16 pt in from the sides and 10 pt from the top and bottom, and at most 360 pt wide. It is a glass panel with the step's words and progress, and a glass nub that melts into the panel's edge and points at the target's centre; the nub hides when the callout had to overlap the target (very large text on a small screen).
-- Skip and the red Next are a liquid pair: two glass capsules that rest apart from each other and from the panel, on the panel's far side from the target, so they never come between the two. As the callout arrives they bud out of the panel, each pulling a neck that snaps. On the last stop Skip melts into Next while Next morphs letter by letter into Done, and going back it buds out of Next again. When the callout flips to the other side of its target on the way to a stop, the pair flows round to the panel's other side. All text is semibold.
-- Taps inside the cutout reach the real control, UIKit bar buttons included. With `advancesOnTargetTap` (the default) the tap also moves the tour on. Taps and drags on the scrim are absorbed, so nothing underneath changes by accident, and a tap there swells the callout for a beat with a light tap. Swipe the callout toward the end of the line for Next, back toward its start to go back. It stays close to the finger at first and gets firmer the further it goes, firmer still toward a step that isn't there, then carries the flick's speed on to the next stop or springs home from it. Next and Skip sink slightly while pressed.
-- Steps whose anchor isn't on screen (a lazy row scrolled away, a view that isn't there yet) are skipped, and the count shows only the steps on screen. While no anchor is on screen the tour waits without dimming anything, then starts when one appears. The tour gives an anchor a moment before moving on, so toolbar items that report late and the frame changes of a rotation never make it jump. The cutout follows its target through scrolling, rotation, size changes and the keyboard.
-- `isPresented` works with `@AppStorage`: `@AppStorage("inbox.showTour") var showTour = true` shows it until it is finished or skipped. Or pass `showOnceKey: "inbox.tour.v1"` and the tour presents itself the first time the view appears and records completion in `UserDefaults`; `.spotlightTour(steps, showOnceKey:)` does the same without a binding. `SpotlightTour.resetShowOnce(_:)` brings it back, for a "Show tips again" setting.
-- `step:` takes an optional binding to the current step, to resume a tour or move it on when someone completes the thing you pointed at. The tour writes it as people move through and sets it back to 0 when it ends. `onFinish` reports `.completed` or `.skipped`.
-- VoiceOver: while the tour shows it is modal and the screen under it is hidden; focus moves to the callout's words, which are read before Skip and Next wherever the pair sits, and read "Step 2 of 4. Find it fast. Narrow the inbox by sender, date, attachments or unread." Skip and Next are buttons, Previous step is a custom action, the escape gesture skips, and each step change is announced.
-- Hardware keyboard: Return is Next or Done, Escape skips, and the arrow keys move along the steps in reading order. The tour never takes focus, so a text field keeps its keyboard.
-- Dynamic Type: the callout grows and flips above its target when it no longer fits below. At accessibility sizes Next and Skip stack full width, the symbol tile steps aside and the callout may use the full width. RTL mirrors the callout; the cutout stays on the physical control.
-- Reduce Motion: the cutout, ring and callout crossfade from stop to stop instead of travelling, the ring appears without drawing, and nothing scales. Skip and Next are simply there instead of budding, Skip fades instead of melting into Next, and Next and Done crossfade. A scrim tap shades the callout for a beat instead of swelling it (darker in light mode, lighter in dark), and Next and Skip shade the same way instead of sinking.
-- Haptics: a selection tick when a step changes, a soft impact when the tour ends, a light tap for a nudge. Nothing when the tour appears on its own.
-- All copy goes through `String(localized:)` and can be replaced with `Messages` (Next, Done, Skip, Previous step and the "2 of 4" and "Step 2 of 4" formats). `Style` sets the scrim, the accent used for the ring, the current step and the Next bubble, its ink, the callout's glass tint (`.clear`, the default, leaves it neutral) and text colors, the track, the corner radius, the ring width and the callout's widest size.
-- On iOS 26 the callout, its nub and the pair are Liquid Glass in one group, so they melt into each other through the neck; before that they are frosted glass with a light rim, and with Reduce Transparency they are solid.
-
-## Usage
-
-```swift
-SpotlightTourExample()
-```
-
-## Parameters
-
-| Parameter | Description |
-| --- | --- |
-| `isPresented` | Shows the tour while `true`. Done, Skip and Escape set it back to `false`. Works with `@AppStorage` too, for example `@AppStorage("inbox.showTour") var showTour = true`, which then stays off once the tour has been seen. |
-| `step` | Optional binding to the current step's index in `steps`, to read it or drive it (move on when someone completes an action, resume a tour). The tour writes it as people move through and sets it back to 0 when the tour is finished or skipped. `nil` keeps it internal. |
-| `steps` | The stops in order. Each names the anchor it points at, its title and message, and optionally a symbol, the cutout's shape and its padding. |
-| `showOnceKey` | A `UserDefaults` key. When set, the tour presents itself (by setting `isPresented`) the first time the view appears, once the screen has settled, and records under this key when it is finished or skipped, so it never presents itself again. Setting `isPresented` yourself always presents it. Reset with `SpotlightTour.resetShowOnce(_:)`. |
-| `advancesOnTargetTap` | Tapping the highlighted control also moves the tour on, as well as running the control's own action. Defaults to `true`. |
-| `messages` | The built-in copy: Next, Done, Skip and the step count. Defaults are localizable through your String Catalog. |
-| `style` | Colors and metrics. Defaults to the SwiftPieces house palette, adapting to light and dark, with the red ring, current step and Next bubble. |
-| `onFinish` | Called when the tour ends with Done (`.completed`) or Skip (`.skipped`), for analytics or to save that it was seen. Not called when you set `isPresented` to `false` yourself. |
-
-## Source
+<Showcase name="SpotlightTour">
 
 <Tabs items={["SpotlightTour.swift"]}>
 <Tab value="SpotlightTour.swift">
@@ -1774,7 +1734,7 @@ extension PieceMotion {
 // and melt back into each other, and the frosted fallback before iOS 26. Each piece carries a copy of only
 // the parts it uses, so this file stands alone. Generated from registry/foundation/PieceLiquid.swift in the
 // SwiftPieces repo; edit it there, not here. The rules are in LIQUID_GLASS.md.
-// swiftpieces-liquid: 1.7.1 (liquid, liquidPress, bud, morphText)
+// swiftpieces-liquid: 1.8.0 (liquid, liquidPress, bud, morphText)
 
 /// The liquid glass language: one merge distance, two rest gaps, and the springs a bubble leaves and comes home on.
 ///
@@ -2096,31 +2056,46 @@ private struct PieceMorphText: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        Group {
-            if Self.splits(text) {
-                let glyphs = Array(text)
-                HStack(spacing: 0) {
-                    ForEach(glyphs.indices, id: \.self) { i in
-                        Text(String(glyphs[i]))
-                            .id("\(i)\(glyphs[i])")
-                            .transition(transition(i, scale: 0.6))
-                    }
-                }
-                // The letters' reading order, not the layout's: an HStack lays its children out backwards under a
-                // right-to-left layout.
-                .environment(\.layoutDirection, .leftToRight)
-            } else {
-                ZStack(alignment: .leading) {
-                    Text(text)
-                        .id(text)
-                        .transition(transition(0, scale: 0.9))
-                }
-            }
+        // The morphing label at its full size when it fits. When it doesn't (a long label at an accessibility text
+        // size, a narrow screen), the same words wrap onto a second line and shrink a little instead of running past
+        // the screen's edge; that one changes as a whole rather than letter by letter. A single word never splits
+        // across lines: it stays on one and shrinks further.
+        let oneWord = !text.contains(where: \.isWhitespace)
+        ViewThatFits(in: .horizontal) {
+            morphing.fixedSize()
+            Text(text)
+                .lineLimit(oneWord ? 1 : 2)
+                .multilineTextAlignment(.center)
+                .minimumScaleFactor(oneWord ? 0.5 : 0.75)
+                .fixedSize(horizontal: false, vertical: true)
+                .id(text)
+                .transition(transition(0, scale: 0.9))
         }
         .font(font)
-        .fixedSize()
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(text)
+    }
+
+    @ViewBuilder private var morphing: some View {
+        if Self.splits(text) {
+            let glyphs = Array(text)
+            HStack(spacing: 0) {
+                ForEach(glyphs.indices, id: \.self) { i in
+                    Text(String(glyphs[i]))
+                        .id("\(i)\(glyphs[i])")
+                        .transition(transition(i, scale: 0.6))
+                }
+            }
+            // The letters' reading order, not the layout's: an HStack lays its children out backwards under a
+            // right-to-left layout.
+            .environment(\.layoutDirection, .leftToRight)
+        } else {
+            ZStack(alignment: .leading) {
+                Text(text)
+                    .id(text)
+                    .transition(transition(0, scale: 0.9))
+            }
+        }
     }
 
     private func transition(_ i: Int, scale: CGFloat) -> AnyTransition {
@@ -2158,3 +2133,47 @@ private struct PieceMorphText: View {
 
 </Tab>
 </Tabs>
+
+</Showcase>
+
+<PieceFacts name="SpotlightTour" />
+
+Walks people through the controls on a screen, one stop at a time: everything but the current stop is dimmed, a red ring draws around it, and a liquid glass callout explains it, with Skip and Next as a liquid pair. Mark each control with `.spotlightAnchor("compose")`, then apply `.spotlightTour` once, high in the hierarchy: on the `NavigationStack` or `TabView`, so the scrim covers the bars too, or on a sheet's root. Anchors anywhere inside it are found, toolbar items included. Taps inside the cutout reach the real control. Steps whose anchor is not on screen are skipped; while none is on screen, the tour waits.
+
+## Notes
+
+- Two modifiers. `.spotlightAnchor("compose")` marks a control as a stop; `.spotlightTour(isPresented:steps:)` goes once on the container that holds them, ideally the `NavigationStack` or `TabView` so the scrim covers the bars too, or a sheet's root. Each `SpotlightTour.Step` names its anchor, a title and a message, and optionally an SF Symbol, the cutout's shape (`.automatic`, `.capsule`, `.circle`, `.rectangle(cornerRadius:)`) and its padding.
+- Put the anchor right on the control, before modifiers that widen its frame: `.spotlightAnchor("add")` then `.frame(maxWidth: .infinity, alignment: .trailing)`, not the other way round. Anchors report their frame in window coordinates through the environment, so toolbar items, safe area insets and other hosted content work. Use one id per stop.
+- While a stop shows, everything else is dimmed and a 2 pt red ring draws itself around the cutout from the top once the cutout has landed. The cutout and the ring stay as they are; the callout is liquid glass. Next springs the cutout to the next stop without overshoot, morphing between rounded rectangles, capsules and circles so its corners never wobble, and the callout trails it like a cue card, landing a beat later on a softer spring with a little give while its text dips out and back so words never smear. On a long trip the give is held to a few points, so the nub never reaches the ring. The tour irises in calmly onto the first stop with the callout following out of the target, and leaves quicker than it came. `.automatic` picks a circle for small square targets, a capsule for short wide ones and a rounded rectangle for the rest, with corners running parallel to the target's.
+- The callout sits below its target when it fits, else above, else on the roomier side, always inside the safe area and clear of the keyboard, resting 16 pt in from the sides and 10 pt from the top and bottom, and at most 360 pt wide. It is a glass panel with the step's words and progress, and a glass nub that melts into the panel's edge and points at the target's centre; the nub hides when the callout had to overlap the target (very large text on a small screen).
+- Skip and the red Next are a liquid pair: two glass capsules that rest apart from each other and from the panel, on the panel's far side from the target, so they never come between the two. As the callout arrives they bud out of the panel, each pulling a neck that snaps. On the last stop Skip melts into Next while Next morphs letter by letter into Done, and going back it buds out of Next again. When the callout flips to the other side of its target on the way to a stop, the pair flows round to the panel's other side. All text is semibold.
+- Taps inside the cutout reach the real control, UIKit bar buttons included. With `advancesOnTargetTap` (the default) the tap also moves the tour on. Taps and drags on the scrim are absorbed, so nothing underneath changes by accident, and a tap there swells the callout for a beat with a light tap. Swipe the callout toward the end of the line for Next, back toward its start to go back. It stays close to the finger at first and gets firmer the further it goes, firmer still toward a step that isn't there, then carries the flick's speed on to the next stop or springs home from it. Next and Skip sink slightly while pressed.
+- Steps whose anchor isn't on screen (a lazy row scrolled away, a view that isn't there yet) are skipped, and the count shows only the steps on screen. While no anchor is on screen the tour waits without dimming anything, then starts when one appears. The tour gives an anchor a moment before moving on, so toolbar items that report late and the frame changes of a rotation never make it jump. The cutout follows its target through scrolling, rotation, size changes and the keyboard.
+- `isPresented` works with `@AppStorage`: `@AppStorage("inbox.showTour") var showTour = true` shows it until it is finished or skipped. Or pass `showOnceKey: "inbox.tour.v1"` and the tour presents itself the first time the view appears and records completion in `UserDefaults`; `.spotlightTour(steps, showOnceKey:)` does the same without a binding. `SpotlightTour.resetShowOnce(_:)` brings it back, for a "Show tips again" setting.
+- `step:` takes an optional binding to the current step, to resume a tour or move it on when someone completes the thing you pointed at. The tour writes it as people move through and sets it back to 0 when it ends. `onFinish` reports `.completed` or `.skipped`.
+- VoiceOver: while the tour shows it is modal and the screen under it is hidden; focus moves to the callout's words, which are read before Skip and Next wherever the pair sits, and read "Step 2 of 4. Find it fast. Narrow the inbox by sender, date, attachments or unread." Skip and Next are buttons, Previous step is a custom action, the escape gesture skips, and each step change is announced.
+- Hardware keyboard: Return is Next or Done, Escape skips, and the arrow keys move along the steps in reading order. The tour never takes focus, so a text field keeps its keyboard.
+- Dynamic Type: the callout grows and flips above its target when it no longer fits below. At accessibility sizes Next and Skip stack full width, the symbol tile steps aside and the callout may use the full width. RTL mirrors the callout; the cutout stays on the physical control.
+- Reduce Motion: the cutout, ring and callout crossfade from stop to stop instead of travelling, the ring appears without drawing, and nothing scales. Skip and Next are simply there instead of budding, Skip fades instead of melting into Next, and Next and Done crossfade. A scrim tap shades the callout for a beat instead of swelling it (darker in light mode, lighter in dark), and Next and Skip shade the same way instead of sinking.
+- Haptics: a selection tick when a step changes, a soft impact when the tour ends, a light tap for a nudge. Nothing when the tour appears on its own.
+- All copy goes through `String(localized:)` and can be replaced with `Messages` (Next, Done, Skip, Previous step and the "2 of 4" and "Step 2 of 4" formats). `Style` sets the scrim, the accent used for the ring, the current step and the Next bubble, its ink, the callout's glass tint (`.clear`, the default, leaves it neutral) and text colors, the track, the corner radius, the ring width and the callout's widest size.
+- On iOS 26 the callout, its nub and the pair are Liquid Glass in one group, so they melt into each other through the neck; before that they are frosted glass with a light rim, and with Reduce Transparency they are solid.
+
+## Usage
+
+```swift
+SpotlightTourExample()
+```
+
+## Parameters
+
+| Parameter | Description |
+| --- | --- |
+| `isPresented` | Shows the tour while `true`. Done, Skip and Escape set it back to `false`. Works with `@AppStorage` too, for example `@AppStorage("inbox.showTour") var showTour = true`, which then stays off once the tour has been seen. |
+| `step` | Optional binding to the current step's index in `steps`, to read it or drive it (move on when someone completes an action, resume a tour). The tour writes it as people move through and sets it back to 0 when the tour is finished or skipped. `nil` keeps it internal. |
+| `steps` | The stops in order. Each names the anchor it points at, its title and message, and optionally a symbol, the cutout's shape and its padding. |
+| `showOnceKey` | A `UserDefaults` key. When set, the tour presents itself (by setting `isPresented`) the first time the view appears, once the screen has settled, and records under this key when it is finished or skipped, so it never presents itself again. Setting `isPresented` yourself always presents it. Reset with `SpotlightTour.resetShowOnce(_:)`. |
+| `advancesOnTargetTap` | Tapping the highlighted control also moves the tour on, as well as running the control's own action. Defaults to `true`. |
+| `messages` | The built-in copy: Next, Done, Skip and the step count. Defaults are localizable through your String Catalog. |
+| `style` | Colors and metrics. Defaults to the SwiftPieces house palette, adapting to light and dark, with the red ring, current step and Next bubble. |
+| `onFinish` | Called when the tour ends with Done (`.completed`) or Skip (`.skipped`), for analytics or to save that it was seen. Not called when you set `isPresented` to `false` yourself. |

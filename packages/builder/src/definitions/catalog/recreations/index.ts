@@ -1,6 +1,6 @@
 // The app library's recreations. Every app has <slug>.ts here: its catalog entry (what it is, its
 // steps) and its moves (what makes each screen work), which lists, search, SEO and the locked
-// previews read. Three apps are free (FREE_RECREATIONS): their screens are built in
+// previews read. Five apps are free (FREE_RECREATIONS): their screens are built in
 // <slug>.build.ts, loaded the first time one opens. The rest are Pro's (owner's call, 2026-10-01):
 // their builds live in the Pro repo (lib/apps) and reach a Pro session through the Pro API, so this
 // open-source package never holds them. Adding an app is its entry here, plus a build here (free)
@@ -27,15 +27,30 @@ import { recreation as readingTracker } from "./reading-tracker.js";
 import { recreation as podcastPlayer } from "./podcast-player.js";
 import { recreation as habitJournal } from "./habit-journal.js";
 import { recreation as tripOrganizer } from "./trip-organizer.js";
+import { recreation as workoutLog } from "./workout-log.js";
+import { recreation as weatherForecast } from "./weather-forecast.js";
+import { recreation as airQuality } from "./air-quality.js";
+import { recreation as markdownNotes } from "./markdown-notes.js";
+import { recreation as packageTracker } from "./package-tracker.js";
+import { recreation as selfCarePet } from "./self-care-pet.js";
+import { recreation as birdId } from "./bird-id.js";
+import { recreation as partyInvites } from "./party-invites.js";
+import { recreation as listeningStats } from "./listening-stats.js";
+import { recreation as wineRatings } from "./wine-ratings.js";
+import { recreation as filmDiary } from "./film-diary.js";
+import { recreation as taskManager } from "./task-manager.js";
+import { recreation as screenTime } from "./screen-time.js";
+import { recreation as focusSoundscapes } from "./focus-soundscapes.js";
 
-const all: Recreation[] = [breatheApp, gentleActivity, recipeCook, sunEvents, feelingsJournal, flightTracker, plantCare, wordPractice, dailyJournal, waterStreak, downtimeLists, calendarPlanner, moodDiary, budgetEnvelopes, splitBills, visualPlanner, readingTracker, podcastPlayer, habitJournal, tripOrganizer];
+const all: Recreation[] = [breatheApp, gentleActivity, recipeCook, sunEvents, feelingsJournal, flightTracker, plantCare, wordPractice, dailyJournal, waterStreak, downtimeLists, calendarPlanner, moodDiary, budgetEnvelopes, splitBills, visualPlanner, readingTracker, podcastPlayer, habitJournal, tripOrganizer, workoutLog, weatherForecast, focusSoundscapes, screenTime, taskManager, filmDiary, wineRatings, listeningStats, partyInvites, birdId, selfCarePet, packageTracker, markdownNotes, airQuality];
 
 /**
  * The recreations anyone can open (owner's call, 2026-10-01): a calendar, a podcast player and a
- * water tracker, three kinds of app and three looks. Moving an app between free and Pro moves its
+ * water tracker, three kinds of app and three looks; a gym log and a weather app joined them on
+ * 2026-10-15. Moving an app between free and Pro moves its
  * build between this folder and the Pro repo's lib/apps/builds.
  */
-export const FREE_RECREATIONS: readonly string[] = ["calendar-planner", "podcast-player", "water-streak"];
+export const FREE_RECREATIONS: readonly string[] = ["calendar-planner", "podcast-player", "water-streak", "workout-log", "weather-forecast"];
 
 export const recreationEntries: CatalogEntry[] = all.map((r) => ({ ...r.entry, availability: FREE_RECREATIONS.includes(r.entry.slug) ? "free" : "pro", moves: r.moves }));
 
@@ -44,4 +59,6 @@ export const recreationBuilds: Record<string, () => Promise<{ build: CatalogBuil
   "calendar-planner": () => import("./calendar-planner.build.js"),
   "podcast-player": () => import("./podcast-player.build.js"),
   "water-streak": () => import("./water-streak.build.js"),
+  "workout-log": () => import("./workout-log.build.js"),
+  "weather-forecast": () => import("./weather-forecast.build.js"),
 };

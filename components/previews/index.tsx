@@ -2,7 +2,7 @@
 import dynamic from "next/dynamic";
 import type { ComponentType } from "react";
 
-/** Web-equivalent animated previews, keyed by Swift type name. Loaded lazily per chunk. */
+/** Web-equivalent animated previews of pieces, keyed by Swift type name. Loaded lazily per chunk. */
 const map: Record<string, ComponentType> = {
   TextReveal: dynamic(() => import("./text").then((m) => m.TextRevealPreview)),
   PictureHeadline: dynamic(() => import("./picture-headline").then((m) => m.PictureHeadlinePreview)),

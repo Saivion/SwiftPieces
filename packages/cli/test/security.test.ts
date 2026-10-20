@@ -7,7 +7,7 @@ import { after, before, describe, it } from "node:test";
 import { add, requirementLines } from "../src/commands/add.js";
 import { init } from "../src/commands/init.js";
 import { PathEscapeError, resolveInside, writeInside } from "../src/safe-path.js";
-import { assertRegistryUrl, OFFICIAL_PRO_ORIGIN, sendsLicenseKey, whoami } from "../src/registry.js";
+import { assertRegistryUrl, fetchItem, OFFICIAL_PRO_ORIGIN, RegistryError, sendsLicenseKey, whoami } from "../src/registry.js";
 import { writeKit } from "../src/kit.js";
 
 const envKeys = ["SWIFTPIECES_REGISTRY", "SWIFTPIECES_PRO_REGISTRY", "SWIFTPIECES_LICENSE_KEY"] as const;
@@ -153,6 +153,34 @@ describe("registry policy", () => {
     assert.equal(sendsLicenseKey(new URL("https://evil.example/r/Widget.json"), {}), false);
     assert.equal(sendsLicenseKey(new URL("https://evil.example/r/Widget.json"), { trustRegistry: true }), true);
   });
+
+  it("says a Pro item needs a license when the Pro registry withholds its files", async () => {
+    // Free has no such item; Pro answers 200 with public metadata, `entitled: false` and no files, as it does for
+    // any screen, template or block without Pro.
+    const server = await listen((req, res) => {
+      if (req.url?.startsWith("/r/")) {
+        res.statusCode = 404;
+        res.end("Not found");
+        return;
+      }
+      res.end(JSON.stringify({ name: "InviteFriendsBlock", type: "block", availability: "pro", entitled: false }));
+    });
+    try {
+      const registries = { free: `${server.origin}/r`, pro: `${server.origin}/pro` };
+      await assert.rejects(fetchItem(registries, "InviteFriendsBlock", undefined, { allowHttpLocalhost: true }), (err: RegistryError) => {
+        assert.equal(err.status, 401);
+        assert.match(err.message, /is a Pro piece\. Run `npx swiftpieces login/);
+        return true;
+      });
+      await assert.rejects(fetchItem(registries, "InviteFriendsBlock", "sp_live_test", { allowHttpLocalhost: true, trustRegistry: true }), (err: RegistryError) => {
+        assert.equal(err.status, 403);
+        assert.match(err.message, /does not include Pro access/);
+        return true;
+      });
+    } finally {
+      await server.close();
+    }
+  });
 });
 
 describe("add", () => {
@@ -253,6 +281,43 @@ describe("add", () => {
     } finally {
       process.exitCode = 0;
       process.chdir(cwd);
+      rmSync(project, { recursive: true, force: true });
+    }
+  }));
+
+  it("installs a Pro item's Pro dependencies with it, once each", async () => exclusive(async () => {
+    const project = tempDir();
+    const pro = (name: string, dependencies: string[] = []) => ({ ...item({ name, files: [{ target: `SwiftPieces/${name}.swift`, content: `import SwiftUI\n// ${name}\n` }] }), dependencies });
+    const server = await listen((req, res) => {
+      const url = req.url ?? "";
+      // The free registry has none of these; the Pro registry answers by id or name, as getPublicItem does.
+      if (url.startsWith("/r/")) { res.statusCode = 404; res.end("Not found"); return; }
+      const body = url.includes("SignInBlock") || url.includes("sign-in") ? pro("SignInBlock", ["design-system", "design-system"])
+        : url.includes("design-system") || url.includes("DesignSystem") ? pro("DesignSystem")
+        : url.includes("CheckoutBlock") ? pro("CheckoutBlock", ["design-system"])
+        : null;
+      if (!body) { res.statusCode = 404; res.end("Not found"); return; }
+      res.setHeader("content-type", "application/json");
+      res.end(JSON.stringify(body));
+    });
+    try {
+      process.chdir(project);
+      writeFileSync(join(project, "swiftpieces.json"), JSON.stringify({
+        directory: "SwiftPieces",
+        minIOSVersion: "17.0",
+        registries: { free: `${server.origin}/r`, pro: `${server.origin}/pro` },
+      }));
+      process.exitCode = 0;
+      await add(["SignInBlock", "CheckoutBlock"], { allowHttpLocalhost: true });
+      assert.equal(process.exitCode, 0);
+      for (const name of ["SignInBlock", "CheckoutBlock", "DesignSystem"]) {
+        assert.match(readFileSync(join(project, `SwiftPieces/${name}.swift`), "utf8"), new RegExp(`// ${name}`));
+      }
+      assert.equal(server.seen.filter((s) => s.url.startsWith("/pro/design-system")).length, 1);
+    } finally {
+      process.exitCode = 0;
+      process.chdir(cwd);
+      await server.close();
       rmSync(project, { recursive: true, force: true });
     }
   }));

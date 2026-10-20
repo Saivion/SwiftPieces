@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { categoryIds } from "@/lib/categories";
+import { blockCategoryIds } from "@/lib/blocks";
 
 // The free registry schema (Rev 2 §5, Rev 3 §3). Free has no tiers and no
 // gating: everything in this registry is MIT + Commons Clause.
@@ -7,7 +8,7 @@ import { categoryIds } from "@/lib/categories";
 export const categorySchema = z.enum(categoryIds);
 export type { Category } from "@/lib/categories";
 
-export const registryFileTypeSchema = z.enum(["registry:component", "registry:shader", "registry:asset"]);
+export const registryFileTypeSchema = z.enum(["registry:component", "registry:block", "registry:shader", "registry:asset"]);
 
 export const registryFileSchema = z.object({
   path: z.string(),
@@ -68,8 +69,32 @@ export const registryIndexEntrySchema = registryItemSchema.omit({ files: true, s
 });
 export type RegistryIndexEntry = z.infer<typeof registryIndexEntrySchema>;
 
+/**
+ * A free block (lib/blocks.ts): a whole section of a screen, built from pieces. It installs like a piece, with the
+ * pieces it is built from as `registryDependencies`, so the CLI and the MCP server bring them along. Its category
+ * is a block category, not a piece category.
+ */
+export const blockItemSchema = registryItemSchema.extend({
+  type: z.literal("registry:block"),
+  category: z.enum(blockCategoryIds),
+  files: z.array(registryFileSchema.extend({ type: z.literal("registry:block") })),
+});
+export type BlockItem = z.infer<typeof blockItemSchema>;
+
+export const blockIndexEntrySchema = blockItemSchema.omit({ files: true, shaders: true, assets: true }).extend({
+  files: z.array(registryFileSchema.omit({ content: true })),
+  shaders: z.array(registryFileSchema.omit({ content: true })).default([]),
+});
+export type BlockIndexEntry = z.infer<typeof blockIndexEntrySchema>;
+
 export const pieceFrontmatterSchema = z.object({
   piece: z.string().regex(/^[A-Z][A-Za-z0-9]+$/).optional(),
+  /** A free block's page (its Swift type). */
+  block: z.string().regex(/^[A-Z][A-Za-z0-9]+$/).optional(),
+  /** A Pro block's page on Free (its Pro registry id): preview and what it is built from, no source. */
+  proBlock: z.string().regex(/^[a-z0-9-]+$/).optional(),
+  /** The All blocks page. */
+  blocks: z.boolean().optional(),
   category: categorySchema.optional(),
   minIOSVersion: z.string().optional(),
   version: z.string().default("1.0.0"),

@@ -7,6 +7,37 @@ import type { ChangelogEntry } from "@/components/changelog/changelog-grid";
  */
 export const changelog: ChangelogEntry[] = [
   {
+    slug: "blocks",
+    date: "Oct 19, 2026",
+    title: "Blocks",
+    summary: "A new part of the library: blocks, whole sections of an iOS screen, laid out, wired and given their states, ready to drop into any app. Six ship with SwiftPieces Pro, themed by its design system.",
+    points: [
+      "Sign In: email and password with autofill and validation on submit, a sign-in button that shows the work and the outcome, Sign in with Apple, and creating an account in the same block.",
+      "Account Settings: your profile, appearance and notification preferences bound to your app's values, exporting your data, sign out and deleting the account behind a calm confirmation.",
+      "Stats Overview: a headline metric and its change on a chart you scrub, a range control, metric tiles, and designed loading, empty and retry states.",
+      "Checkout: the bag with quantities, delivery, a promo code and a total that follows every change, then Apple Pay or one Pay button through to the placed order.",
+      "Plan and Usage: the subscription section of Settings, with usage meters that warn near a limit. Invite Friends: a referral section with your code, a share link and who joined.",
+      "Each block is one SwiftUI file themed by Pro's design system and re-skins with its thirteen families. `npx swiftpieces add SignInBlock` installs it with the design system, with a Pro license.",
+      "Blocks have their own page at /blocks and their own section in the docs, by category, with a still of each block and what is inside it.",
+    ],
+    visual: "windows",
+    tint: "orange",
+  },
+  {
+    slug: "fourteen-apps",
+    date: "Oct 15, 2026",
+    title: "14 new apps in the Playground",
+    summary: "The App Library grows to 34 remixes. Two new free apps, a gym log and a weather forecast, and twelve more with Pro, from focus sounds and screen time to films, wine, birding and parcels.",
+    points: [
+      "Free: a strength training log after Hevy, with a set table you check off, a rest timer, the records you beat and your progress; and a weather app after Mercury Weather, calm on a plain ground, with an hourly curve you scrub, rain by the hour and eight days on one cold-to-hot scale.",
+      "Pro: Endel, Opal, Things 3, Letterboxd, Vivino, stats.fm, Partiful, Merlin Bird ID, Finch, Parcel, Bear and Paku, each remixed end to end in six or seven screens.",
+      "Two new pieces carry them: Set Table, an exercise's sets with a check that tints the row and starts a rest timer, and Forecast Range, days of a forecast as capsules painted from cold to hot.",
+      "New icons for the remixes: binoculars, bird, archive, waveform, a raised hand and a bottle, plus weather symbols for sun and cloud, rain, storms, wind, an umbrella and a thermometer.",
+    ],
+    visual: "phones",
+    tint: "orange",
+  },
+  {
     slug: "crafted-pieces",
     date: "Oct 12, 2026",
     title: "Eight crafted pieces",

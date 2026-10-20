@@ -5,8 +5,10 @@
  * line comments). An optional sidecar <Name>.mdx next to it holds prose.
  * This script emits, mirroring React Bits' unified build (spec §4):
  *   registry/__registry__/index.json   public index (no file contents)
- *   registry/__registry__/items.json   full items, imported only by Route Handlers
+ *   registry/__registry__/blocks.json  the blocks' public index (no file contents)
+ *   registry/__registry__/items.json   full items, pieces and blocks, imported only by Route Handlers
  *   content/docs/<category>/<slug>.mdx generated docs pages
+ *   content/docs/blocks/...            generated block pages: free blocks with source, Pro blocks as locked pages
  *   registry/__registry__/docs.json    every docs page's URL, title and search text (search, sitemap)
  *   public/llms.txt                    AI discoverability
  *   public/schema/registry-item.json   JSON schema for the registry protocol
@@ -20,19 +22,25 @@ import remarkMdx from "remark-mdx";
 import { parse as parseYaml } from "yaml";
 import { z } from "zod";
 import {
+  blockItemSchema,
   categorySchema,
   registryItemSchema,
+  type BlockIndexEntry,
+  type BlockItem,
   type Category,
   type RegistryIndexEntry,
   type RegistryItem,
 } from "../lib/registry-schema";
 import { categories } from "../lib/categories";
+import { blockCategories, blockCategoryIds, blockPath, blockSlug, proBlocks, proBlockUrl, type BlockCategory } from "../lib/blocks";
 import { exploreProPages, proCatalog, proCountsLabel } from "../lib/pro-catalog";
 import { hubs, hubItems, hubPath } from "../lib/hubs";
 import { motionDrift } from "./sync-motion";
+import { SUMMARY_MAX, summaries } from "../registry/summaries";
 
 const ROOT = join(import.meta.dirname, "..");
 const SWIFT_DIR = join(ROOT, "registry/swift");
+const BLOCKS_DIR = join(ROOT, "registry/blocks");
 const OUT_DIR = join(ROOT, "registry/__registry__");
 const DOCS_DIR = join(ROOT, "content/docs");
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://swiftpieces.com";
@@ -93,12 +101,21 @@ const headerSchema = z.object({
   added: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
 });
 
+/** A block's header: a piece's, with a block category. `registryDependencies` names the pieces it is built from. */
+const blockHeaderSchema = headerSchema.extend({ category: z.enum(blockCategoryIds) });
+
 /**
  * The "New" badge marks only the latest wave: pieces sharing the most recent `added` date, and only for
  * this many days after it (measured at registry build time). An earlier wave loses it when the next ships.
  */
 const NEW_FOR_DAYS = 30;
 const isRecent = (added: string) => Date.now() - Date.parse(`${added}T00:00:00Z`) < NEW_FOR_DAYS * 86_400_000;
+/**
+ * Piece waves added on or before this date never show New, whatever NEW_FOR_DAYS says: the owner retired
+ * the 2026-10-12 wave early, on 2026-10-19, so its pieces sit with the rest of the library. The next wave
+ * (a later `added`) is New as usual. Blocks follow their own rule below.
+ */
+const PIECES_NEW_RETIRED_THROUGH = "2026-10-12";
 
 // Docs live under the single "components" root section: /docs/components/<category slug>/<piece slug>.
 export const docsPath = (category: Category, slug: string) => `/docs/components/${categories[category].slug}/${slug}`;
@@ -119,7 +136,7 @@ function mediaUrl(value?: string): string | undefined {
   return `${MEDIA_URL}/${value}`;
 }
 
-function parseHeader(source: string, file: string) {
+function parseHeader<S extends z.ZodType = typeof headerSchema>(source: string, file: string, schema?: S): { header: z.infer<S>; body: string } {
   const lines = source.split("\n");
   if (!lines[0]?.startsWith("// swiftpieces:")) {
     throw new Error(`${file}: first line must be "// swiftpieces:"`);
@@ -131,11 +148,11 @@ function parseHeader(source: string, file: string) {
     if (!line.startsWith("//")) break;
     yamlLines.push(line.replace(/^\/\/ ?/, ""));
   }
-  const parsed = headerSchema.safeParse(parseYaml(yamlLines.join("\n")));
+  const parsed = (schema ?? headerSchema).safeParse(parseYaml(yamlLines.join("\n")));
   if (!parsed.success) {
     throw new Error(`${file}: invalid header\n${parsed.error.issues.map((i) => `  ${i.path.join(".")}: ${i.message}`).join("\n")}`);
   }
-  return { header: parsed.data, body: lines.slice(end).join("\n").replace(/^\n+/, "") };
+  return { header: parsed.data as z.infer<S>, body: lines.slice(end).join("\n").replace(/^\n+/, "") };
 }
 
 export function toSlug(name: string): string {
@@ -231,7 +248,7 @@ function build() {
     }
   }
   const latestWave = items.reduce((max, i) => (i.added && i.added > max ? i.added : max), "");
-  for (const i of items) i.isNew = Boolean(i.added) && i.added === latestWave && isRecent(latestWave);
+  for (const i of items) i.isNew = Boolean(i.added) && i.added === latestWave && isRecent(latestWave) && latestWave > PIECES_NEW_RETIRED_THROUGH;
 
   const names = new Set(items.map((i) => i.name));
   for (const item of items) {
@@ -240,10 +257,13 @@ function build() {
     }
   }
 
-  // Every piece needs a recording scene, or previews silently go missing.
+  const blocks = buildBlocks(items);
+
+  // Every piece and block needs a recording scene, or previews silently go missing.
   const catalog = readFileSync(join(ROOT, "previews/SwiftPiecesPreviews/PreviewCatalog.swift"), "utf8");
-  const missingScenes = items.filter((i) => !catalog.includes(`"${i.name}"`)).map((i) => i.name);
+  const missingScenes = [...items, ...blocks].filter((i) => !catalog.includes(`"${i.name}"`)).map((i) => i.name);
   if (missingScenes.length) throw new Error(`PreviewCatalog.swift has no scene for: ${missingScenes.join(", ")}`);
+  checkSummaries([...items, ...blocks].map((i) => i.name));
 
   mkdirSync(OUT_DIR, { recursive: true });
   const index: RegistryIndexEntry[] = items.map((i) => ({
@@ -253,16 +273,91 @@ function build() {
     assets: i.assets.map(({ content: _c, ...f }) => f),
   }));
   writeFileSync(join(OUT_DIR, "index.json"), JSON.stringify(index, null, 2));
-  writeFileSync(join(OUT_DIR, "items.json"), JSON.stringify(Object.fromEntries(items.map((i) => [i.name, i])), null, 2));
+  const blockIndex: BlockIndexEntry[] = blocks.map((b) => ({
+    ...b,
+    files: b.files.map(({ content: _c, ...f }) => f),
+    shaders: b.shaders.map(({ content: _c, ...f }) => f),
+    assets: b.assets.map(({ content: _c, ...f }) => f),
+  }));
+  writeFileSync(join(OUT_DIR, "blocks.json"), JSON.stringify(blockIndex, null, 2));
+  writeFileSync(join(OUT_DIR, "items.json"), JSON.stringify(Object.fromEntries([...items, ...blocks].map((i) => [i.name, i])), null, 2));
 
   writeDocs(items);
+  writeBlockDocs(blocks);
   writeDocsIndex();
-  writeLlms(items);
+  writeLlms(items, blocks);
   writeSchema();
   writeReadmeCount(items.length, Object.keys(categories).length);
 
-  console.log(`registry: ${items.length} free pieces, ${items.filter((i) => i.liquidGlass).length} Liquid Glass, ${items.filter((i) => i.metal).length} Metal`);
+  console.log(`registry: ${items.length} free pieces, ${items.filter((i) => i.liquidGlass).length} Liquid Glass, ${items.filter((i) => i.metal).length} Metal; ${blocks.length} free blocks, ${proBlocks.length} Pro blocks listed`);
 }
+
+/**
+ * Free blocks: registry/blocks/<category>/<Name>Block.swift, with the same header as a piece but a block category.
+ * A block is built from pieces, which it names in `registryDependencies` and the CLI installs with it. It installs
+ * to SwiftPieces/Blocks/. Each one also needs a sidecar .mdx, since a block's page explains how its parts fit.
+ */
+function buildBlocks(pieces: RegistryItem[]): BlockItem[] {
+  mkdirSync(OUT_DIR, { recursive: true });
+  const pieceNames = new Set(pieces.map((p) => p.name));
+  const out: BlockItem[] = [];
+  for (const category of existsSync(BLOCKS_DIR) ? readdirSync(BLOCKS_DIR).sort() : []) {
+    const catDir = join(BLOCKS_DIR, category);
+    const parsedCat = z.enum(blockCategoryIds).safeParse(category);
+    if (!parsedCat.success) throw new Error(`Unknown block category folder: ${category} (lib/blocks.ts blockCategories)`);
+    for (const file of readdirSync(catDir).filter((f) => f.endsWith(".swift")).sort()) {
+      const name = basename(file, ".swift");
+      const abs = join(catDir, file);
+      if (!/Block$/.test(name)) throw new Error(`${relative(ROOT, abs)}: a block's type ends in "Block"`);
+      const { header, body } = parseHeader(readFileSync(abs, "utf8"), relative(ROOT, abs), blockHeaderSchema);
+      if (header.category !== parsedCat.data) throw new Error(`${file}: header category "${header.category}" does not match folder "${category}"`);
+      if (!existsSync(join(catDir, `${name}.mdx`))) throw new Error(`${relative(ROOT, abs)}: a block needs its notes in ${name}.mdx`);
+      if (!header.registryDependencies.length) throw new Error(`${file}: a block is built from pieces; name them in registryDependencies`);
+      for (const dep of header.registryDependencies) {
+        if (!pieceNames.has(dep)) throw new Error(`${name}: registryDependency "${dep}" is not a free piece`);
+      }
+      if (pieceNames.has(name)) throw new Error(`${name}: a block can't share a piece's name`);
+      out.push(blockItemSchema.parse({
+        name,
+        slug: blockSlug(name),
+        type: "registry:block",
+        title: header.title,
+        description: header.description,
+        category: header.category,
+        version: header.version,
+        minIOSVersion: header.minIOSVersion,
+        tags: header.tags,
+        registryDependencies: header.registryDependencies,
+        spmDependencies: header.spmDependencies,
+        requiredCapabilities: header.requiredCapabilities,
+        infoPlist: header.infoPlist,
+        shaders: [],
+        assets: [],
+        files: [{ path: relative(ROOT, abs), type: "registry:block", target: `SwiftPieces/Blocks/${file}`, content: withLicenseNotice(body) }],
+        preview: {},
+        docs: `${SITE_URL}${blockPath({ category: header.category, name })}`,
+        pro: header.pro,
+        added: header.added,
+        isNew: false,
+        // Every free piece is liquid glass, so a block built from them is too, as is one drawing its own.
+        liquidGlass: /pieceLiquid|glassEffect/.test(body) || header.registryDependencies.some((d) => pieces.find((p) => p.name === d)?.liquidGlass),
+        metal: false,
+      }));
+    }
+  }
+  const names = new Set(out.map((b) => b.name));
+  if (proCatalog.blocks !== proBlocks.length) throw new Error(`lib/pro-catalog.ts says Pro has ${proCatalog.blocks} blocks; lib/blocks.ts lists ${proBlocks.length}`);
+  for (const p of proBlocks) {
+    if (names.has(p.name) || pieceNames.has(p.name)) throw new Error(`Pro block ${p.name} shares a name with a free piece or block`);
+  }
+  // New follows the pieces' rule across free and Pro blocks together: the latest wave, while it is recent.
+  const latest = [...out.map((b) => b.added ?? ""), ...proBlocks.map((p) => p.added)].reduce((max, d) => (d > max ? d : max), "");
+  for (const b of out) b.isNew = Boolean(b.added) && b.added === latest && isRecent(latest);
+  // Pro blocks carry the badge by the same reckoning, computed here once so server and client agree.
+  writeFileSync(join(OUT_DIR, "pro-blocks.json"), JSON.stringify(proBlocks.map((p) => ({ ...p, slug: blockSlug(p.name), isNew: p.added === latest && isRecent(latest) })), null, 2));
+  return out;
+}
+
 
 /** The README's piece count is generated from the registry, so it cannot drift from the files. */
 function writeReadmeCount(pieces: number, categoryCount: number) {
@@ -315,6 +410,23 @@ function extractDocs(body: string) {
   return { summary, params, preview };
 }
 
+/**
+ * Every piece and free block shows a short description under its docs title (registry/summaries.ts),
+ * not the Swift header's full paragraph: one exists for each, none runs past SUMMARY_MAX, and none
+ * names something the registry no longer has.
+ */
+function checkSummaries(names: string[]) {
+  const missing = names.filter((n) => !summaries[n]);
+  const long = names.filter((n) => (summaries[n]?.length ?? 0) > SUMMARY_MAX);
+  const stale = Object.keys(summaries).filter((k) => !names.includes(k));
+  const problems = [
+    missing.length ? `no short description for ${missing.join(", ")}` : "",
+    long.length ? `over ${SUMMARY_MAX} characters: ${long.join(", ")}` : "",
+    stale.length ? `not in the registry: ${stale.join(", ")}` : "",
+  ].filter(Boolean);
+  if (problems.length) throw new Error(`registry/summaries.ts: ${problems.join("; ")}.`);
+}
+
 function writeDocs(items: RegistryItem[]) {
   // Everything under content/docs/components is generated, so the section is rebuilt from scratch; stale legacy category folders at the docs root go too.
   for (const cat of Object.keys(categories)) rmSync(join(DOCS_DIR, cat), { recursive: true, force: true });
@@ -323,11 +435,11 @@ function writeDocs(items: RegistryItem[]) {
   mkdirSync(root, { recursive: true });
 
   const cats = (Object.keys(categories) as Category[]).filter((c) => items.some((i) => i.category === c));
-  writeFileSync(join(root, "index.mdx"), `---\ntitle: "All SwiftUI components"\ndescription: "Every free SwiftPieces component for iOS with a live preview. Filter by category, then open a piece for its notes, parameters, source and install command."\nindex: true\n---\n\n{/* GENERATED FILE. Edit scripts/build-registry.ts. */}\n`);
+  writeFileSync(join(root, "index.mdx"), `---\ntitle: "All SwiftUI components"\ndescription: "Every free SwiftPieces component for iOS with a live preview. Filter by category, then open a piece for its source and install command."\nindex: true\n---\n\n{/* GENERATED FILE. Edit scripts/build-registry.ts. */}\n`);
   // Explore Pro: Pro's screens, flows and templates as cards that open on pro.swiftpieces.com. The cards
   // come from lib/pro-cards.json and public/pro-cards/, refreshed by scripts/pro-cards/capture.ts.
   writeFileSync(join(root, "screens.mdx"), `---\ntitle: "Screens"\ndescription: "Production-ready SwiftUI screens from SwiftPieces Pro. Each one is a complete, themed screen you drop into your app and wire to your data."\npro: "screen"\n---\n\n{/* GENERATED FILE. Edit scripts/build-registry.ts. */}\n`);
-  writeFileSync(join(root, "flows.mdx"), `---\ntitle: "Flows"\ndescription: "Whole journeys through SwiftPieces Pro's app templates: first run through sign in and the paywall, the core of each app, then profile and settings, screen by screen."\npro: "flow"\n---\n\n{/* GENERATED FILE. Edit scripts/build-registry.ts. */}\n`);
+  writeFileSync(join(root, "flows.mdx"), `---\ntitle: "Flows"\ndescription: "Whole journeys through SwiftPieces Pro's app templates, screen by screen: first run and sign in, the core of each app, then settings."\npro: "flow"\n---\n\n{/* GENERATED FILE. Edit scripts/build-registry.ts. */}\n`);
   writeFileSync(join(root, "templates.mdx"), `---\ntitle: "Templates"\ndescription: "Complete Xcode app templates from SwiftPieces Pro, wired end to end. Open the project, swap the brand and the copy, ship."\npro: "template"\n---\n\n{/* GENERATED FILE. Edit scripts/build-registry.ts. */}\n`);
   writeFileSync(join(root, "meta.json"), JSON.stringify({
     title: "Components",
@@ -343,7 +455,7 @@ function writeDocs(items: RegistryItem[]) {
     for (const item of members) {
       const sidecar = join(SWIFT_DIR, item.category, `${item.name}.mdx`);
       const prose = existsSync(sidecar) ? readFileSync(sidecar, "utf8").trim() : "";
-      const frontmatter = { title: item.title, description: item.description, piece: item.name, category: item.category, minIOSVersion: item.minIOSVersion, version: item.version, tags: item.tags, registryDependencies: item.registryDependencies };
+      const frontmatter = { title: item.title, description: summaries[item.name], piece: item.name, category: item.category, minIOSVersion: item.minIOSVersion, version: item.version, tags: item.tags, registryDependencies: item.registryDependencies };
       const fm = Object.entries(frontmatter).map(([k, v]) => `${k}: ${JSON.stringify(v)}`).join("\n");
       const docs = extractDocs(item.files[0].content ?? "");
       const paramsTable = docs.params.length ? `## Parameters\n\n| Parameter | Description |\n| --- | --- |\n${docs.params.map((p) => `| \`${p.name}\` | ${p.text.replace(/\|/g, "\\|")} |`).join("\n")}\n` : "";
@@ -351,10 +463,54 @@ function writeDocs(items: RegistryItem[]) {
       const sources = [item.files[0], ...item.shaders];
       const sourceTabs = sources.map((f) => { const lang = f.target.endsWith(".metal") ? "cpp" : "swift"; return `<Tab value="${basename(f.target)}">\n\n\`\`\`${lang} title="${basename(f.target)}"\n${f.content?.trimEnd()}\n\`\`\`\n\n</Tab>`; }).join("\n");
       const tabNames = sources.map((f) => `"${basename(f.target)}"`).join(", ");
-      writeFileSync(join(dir, `${item.slug}.mdx`), `---\n${fm}\n---\n\n{/* GENERATED FILE. Edit registry/swift/${item.category}/${item.name}.swift or ${item.name}.mdx instead. */}\n\n${docs.summary}\n\n${prose}\n\n${usage}\n${paramsTable}\n## Source\n\n<Tabs items={[${tabNames}]}>\n${sourceTabs}\n</Tabs>\n`);
+      // The page opens on Preview and Code (components/docs/showcase.tsx), the source highlighted here at build time
+      // as the Code tab, then the piece's facts, then its notes, usage and parameters.
+      const tone = item.category === "backgrounds" ? ' tone="black"' : "";
+      writeFileSync(join(dir, `${item.slug}.mdx`), `---\n${fm}\n---\n\n{/* GENERATED FILE. Edit registry/swift/${item.category}/${item.name}.swift or ${item.name}.mdx instead. */}\n\n<Showcase name="${item.name}"${tone}>\n\n<Tabs items={[${tabNames}]}>\n${sourceTabs}\n</Tabs>\n\n</Showcase>\n\n<PieceFacts name="${item.name}" />\n\n${docs.summary}\n\n${prose}\n\n${usage}\n${paramsTable}`);
     }
   }
-  writeFileSync(join(DOCS_DIR, "meta.json"), JSON.stringify({ title: "SwiftPieces", pages: ["introduction", "installation", "cli", "mcp", "liquid-glass", "guides", "components"] }, null, 2));
+  writeFileSync(join(DOCS_DIR, "meta.json"), JSON.stringify({ title: "SwiftPieces", pages: ["introduction", "installation", "cli", "mcp", "liquid-glass", "guides", "components", "blocks"] }, null, 2));
+}
+
+/**
+ * content/docs/blocks: the All blocks page, then a folder per block category holding its free blocks (notes, usage,
+ * parameters and source, like a piece) and its Pro blocks (a locked page: preview, what it is built from, and where
+ * to get it). Everything under it is generated, so the section is rebuilt from scratch.
+ */
+function writeBlockDocs(blocks: BlockItem[]) {
+  const root = join(DOCS_DIR, "blocks");
+  rmSync(root, { recursive: true, force: true });
+  mkdirSync(root, { recursive: true });
+  const total = blocks.length + proBlocks.length;
+  writeFileSync(join(root, "index.mdx"), `---\ntitle: "All SwiftUI blocks"\ndescription: "${blocks.length ? `Whole sections of an iOS screen: ${blocks.length} free and ${proBlocks.length} in Pro, each with its preview and source.` : `Whole sections of an iOS screen, laid out, wired and given their states: ${proBlocks.length} blocks in SwiftPieces Pro.`}"\nblocks: true\n---\n\n{/* GENERATED FILE. Edit scripts/build-registry.ts. */}\n`);
+  const cats = (Object.keys(blockCategories) as BlockCategory[]).filter((c) => blocks.some((b) => b.category === c) || proBlocks.some((p) => p.category === c));
+  writeFileSync(join(root, "meta.json"), JSON.stringify({ title: "Blocks", pages: ["index", `---Blocks · ${total}---`, ...cats.map((c) => blockCategories[c].slug)] }, null, 2));
+
+  for (const cat of cats) {
+    const dir = join(root, blockCategories[cat].slug);
+    mkdirSync(dir, { recursive: true });
+    const free = blocks.filter((b) => b.category === cat);
+    const paid = proBlocks.filter((p) => p.category === cat);
+    writeFileSync(join(dir, "meta.json"), JSON.stringify({ title: blockCategories[cat].title, description: blockCategories[cat].description, defaultOpen: false, pages: [...free.map((b) => b.slug), ...paid.map((p) => blockSlug(p.name))] }, null, 2));
+    for (const block of free) {
+      const sidecar = join(BLOCKS_DIR, block.category, `${block.name}.mdx`);
+      const prose = readFileSync(sidecar, "utf8").trim();
+      const frontmatter = { title: block.title, description: summaries[block.name], block: block.name, minIOSVersion: block.minIOSVersion, version: block.version, tags: block.tags, registryDependencies: block.registryDependencies };
+      const fm = Object.entries(frontmatter).map(([k, v]) => `${k}: ${JSON.stringify(v)}`).join("\n");
+      const docs = extractDocs(block.files[0].content ?? "");
+      const paramsTable = docs.params.length ? `## Parameters\n\n| Parameter | Description |\n| --- | --- |\n${docs.params.map((p) => `| \`${p.name}\` | ${p.text.replace(/\|/g, "\\|")} |`).join("\n")}\n` : "";
+      const usage = docs.preview ? `## Usage\n\n\`\`\`swift\n${docs.preview}\n\`\`\`\n` : "";
+      const file = block.files[0];
+      const fileName = basename(file.target);
+      // Like a piece's page: Preview and Code first (the block's own file; each piece has its source on its own page),
+      // then the block's facts with the pieces it is built from, then its notes, usage and parameters.
+      writeFileSync(join(dir, `${block.slug}.mdx`), `---\n${fm}\n---\n\n{/* GENERATED FILE. Edit registry/blocks/${block.category}/${block.name}.swift or ${block.name}.mdx instead. */}\n\n<Showcase name="${block.name}" kind="block">\n\n<Tabs items={["${fileName}"]}>\n<Tab value="${fileName}">\n\n\`\`\`swift title="${fileName}"\n${file.content?.trimEnd()}\n\`\`\`\n\n</Tab>\n</Tabs>\n\n</Showcase>\n\n<BlockFacts name="${block.name}" />\n\n${docs.summary}\n\n${prose}\n\n${usage}\n${paramsTable}`);
+    }
+    for (const p of paid) {
+      const fm = Object.entries({ title: p.title, description: p.summary, proBlock: p.id }).map(([k, v]) => `${k}: ${JSON.stringify(v)}`).join("\n");
+      writeFileSync(join(dir, `${blockSlug(p.name)}.mdx`), `---\n${fm}\n---\n\n{/* GENERATED FILE. Edit lib/blocks.ts (proBlocks) instead. */}\n\n<Showcase name="${p.name}" kind="block" still="/pro-blocks/${p.id}.webp" loop="/pro-blocks/${p.id}" proHref="${proBlockUrl(p.id)}" />\n\n<ProBlockFacts id="${p.id}" />\n\n${p.description}\n\nIts SwiftUI source comes with SwiftPieces Pro: [${p.title} in the Pro library](${proBlockUrl(p.id)}).\n`);
+    }
+  }
 }
 
 /**
@@ -449,7 +605,7 @@ function readGuides(): { title: string; description: string; url: string; body: 
     });
 }
 
-function writeLlms(items: RegistryItem[]) {
+function writeLlms(items: RegistryItem[], blocks: BlockItem[]) {
   const byCat = new Map<string, RegistryItem[]>();
   for (const i of items) byCat.set(i.category, [...(byCat.get(i.category) ?? []), i]);
   const guides = readGuides();
@@ -483,7 +639,7 @@ function writeLlms(items: RegistryItem[]) {
     "",
     "## Tools",
     "",
-    `- [App Library](${SITE_URL}/apps): App Store apps remixed as original SwiftUI screens to try, take apart and remix in the browser Playground. Three are free; the rest come with Pro.`,
+    `- [Playground](${SITE_URL}/apps): App Store apps remixed as original SwiftUI screens to try, take apart and remix in the browser. Five are free; the rest come with Pro.`,
     `- [Styles](${SITE_URL}/styles): make one style for every screen (accent, light and dark, iOS fonts, corners, cards, buttons, spacing, motion) on live SwiftUI components. A style travels as a short code (SP2-…) that the Playground's Style tab and its \`?style=\` links read, and exports as Theme.swift.`,
     "",
   ];
@@ -492,13 +648,23 @@ function writeLlms(items: RegistryItem[]) {
     for (const g of guides) lines.push(`- [${g.title}](${g.url}): ${g.description}`);
     lines.push("");
   }
-  lines.push("## Collections", "");
+  lines.push(
+    "## Blocks",
+    "",
+    blocks.length
+      ? `Whole sections of an iOS screen: the fields, buttons and charts laid out, wired and given their states. A free block installs with the pieces it is built from. ${blocks.length} are free; ${proBlocks.length} come with SwiftPieces Pro. All blocks: ${SITE_URL}/blocks`
+      : `Whole sections of an iOS screen: the fields, buttons and charts laid out, wired and given their states, themed by SwiftPieces Pro's design system. All ${proBlocks.length} come with SwiftPieces Pro and install with a Pro license. All blocks: ${SITE_URL}/blocks`,
+    "",
+  );
+  for (const b of blocks) lines.push(`- [${b.title}](${b.docs}): ${b.description} Built from ${b.registryDependencies.join(", ")}. Install: \`npx swiftpieces add ${b.name}\`. Registry: ${SITE_URL}/r/${b.name}.json`);
+  for (const p of proBlocks) lines.push(`- [${p.title}](${SITE_URL}${blockPath(p)}) (Pro): ${p.summary} Inside: ${p.parts.join(", ")}. Install with a Pro license: \`npx swiftpieces add ${p.name}\`. In SwiftPieces Pro: ${proBlockUrl(p.id)}`);
+  lines.push("", "## Collections", "");
   for (const h of hubs) lines.push(`- [${h.h1}](${SITE_URL}${hubPath(h.slug)}): ${h.description} (${hubItems(h, items).length} pieces)`);
   lines.push(
     "",
     "## SwiftPieces Pro",
     "",
-    `A separate paid library for building whole apps: ${proCountsLabel} (production-ready SwiftUI screens, flows that string them into whole journeys from first run to settings, complete Xcode projects, and agent skills that build the rest in the same design) at ${PRO_URL}/library, plus Pro remixing in the Playground at ${SITE_URL}/apps (all ${proCatalog.remixing.apps} apps in the App Library, remix any app with AI, keep up to ${proCatalog.remixing.saves} remixes). One plan with lifetime access; plan and pricing: ${PRO_URL}/pro. Pro MCP endpoint: ${PRO_URL}/api/mcp (license key required): search_library, get_item, list_kit, get_kit_item, apply_design_skill, apply_recipe.`,
+    `A separate paid library for building whole apps: ${proCountsLabel} (production-ready SwiftUI screens, flows that string them into whole journeys from first run to settings, complete Xcode projects, and agent skills that build the rest in the same design) at ${PRO_URL}/library, plus Pro remixing in the Playground at ${SITE_URL}/apps (all ${proCatalog.remixing.apps} apps, remix any app with AI, keep up to ${proCatalog.remixing.saves} remixes). One plan with lifetime access; plan and pricing: ${PRO_URL}/pro. Pro MCP endpoint: ${PRO_URL}/api/mcp (license key required): search_library, get_item, list_kit, get_kit_item, apply_design_skill, apply_recipe.`,
     "",
   );
   for (const [cat, list] of byCat) {
@@ -512,7 +678,7 @@ function writeLlms(items: RegistryItem[]) {
   }
   mkdirSync(join(ROOT, "public"), { recursive: true });
   writeFileSync(join(ROOT, "public/llms.txt"), lines.join("\n"));
-  writeLlmsFull(items, guides);
+  writeLlmsFull(items, guides, blocks);
 }
 
 /**
@@ -520,7 +686,7 @@ function writeLlms(items: RegistryItem[]) {
  * one request. Each piece's summary, notes and parameters (not its source, which the registry
  * serves), then each guide in full.
  */
-function writeLlmsFull(items: RegistryItem[], guides: ReturnType<typeof readGuides>) {
+function writeLlmsFull(items: RegistryItem[], guides: ReturnType<typeof readGuides>, blocks: BlockItem[]) {
   const out = [
     "# SwiftPieces: full text",
     "",
@@ -547,6 +713,26 @@ function writeLlmsFull(items: RegistryItem[], guides: ReturnType<typeof readGuid
       ...(prose ? [prose.replace(/^## /gm, "### "), ""] : []),
       ...(docs.params.length ? ["### Parameters", "", ...docs.params.map((p) => `- \`${p.name}\`: ${p.text}`), ""] : []),
     );
+  }
+  if (blocks.length) {
+    out.push("# Blocks", "");
+    for (const block of blocks) {
+      const docs = extractDocs(block.files[0].content ?? "");
+      const prose = readFileSync(join(BLOCKS_DIR, block.category, `${block.name}.mdx`), "utf8").trim();
+      out.push(
+        `## ${block.title} (\`${block.name}\`)`,
+        "",
+        `URL: ${block.docs}`,
+        `Category: ${blockCategories[block.category].title}. iOS ${block.minIOSVersion}+. Built from ${block.registryDependencies.join(", ")}.`,
+        `Install: npx swiftpieces add ${block.name} (installs the pieces it is built from too)`,
+        "",
+        block.description,
+        "",
+        ...(docs.summary ? [docs.summary, ""] : []),
+        ...(prose ? [prose.replace(/^## /gm, "### "), ""] : []),
+        ...(docs.params.length ? ["### Parameters", "", ...docs.params.map((p) => `- \`${p.name}\`: ${p.text}`), ""] : []),
+      );
+    }
   }
   if (guides.length) {
     out.push("# Guides", "");

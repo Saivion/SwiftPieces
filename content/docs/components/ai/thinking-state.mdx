@@ -1,6 +1,6 @@
 ---
 title: "Thinking State"
-description: "The \"assistant is working\" placeholder, laid out like the reply it becomes: a liquid glass header pill carrying a breathing mark and an elapsed-seconds label that morphs as it counts, over three presentations on one clock: block-colored rising dots, a sheen over reply-shaped bars, or a label whose glyphs carry the sheen. Plus a modifier that sweeps any view."
+description: "The assistant-is-working placeholder: a glass header with a breathing mark and elapsed seconds over dots, bars or a sheen."
 piece: "ThinkingState"
 category: "ai"
 minIOSVersion: "17.0"
@@ -11,38 +11,7 @@ registryDependencies: []
 
 {/* GENERATED FILE. Edit registry/swift/ai/ThinkingState.swift or ThinkingState.mdx instead. */}
 
-Placeholder for a reply that has not started. Every presentation mirrors the `StreamingReply` layout (mark and label, then content) so it resolves into the real message without a layout jump.
-
-## Notes
-
-- Every presentation shares the `StreamingReply` layout: a liquid glass header pill (breathing ink mark, name and a THINKING · 3S elapsed label that counts up) and then content sized to a body line, so swapping `ThinkingState` for a `StreamingReply` lands on the same pill and does not shift anything. Set `style.showsHeader = false` for content only.
-- `.dots` rises three block-colored dots (tangerine, sky, lilac by default), `.sheen` sweeps a band across reply-shaped bars, and `.text(label)` sweeps the band through the label's glyphs.
-- One `TimelineView` drives the mark's breath, the dots and the sheen, so they stay phase-locked. It starts when the placeholder appears: the first pass enters from the leading edge and the dots rise from rest. `duration` sets the period of one pass.
-- Each pass eases the band across over the first 80% of `duration`, then rests just clear of the view before the next. The band slides whole, so it keeps its width as it enters and leaves. The mark draws in and turns on the same beat and is back to full size and upright between passes, which is the `StreamingReply` mark's pose. Each dot eases out of rest and back, as in `StreamingReply`.
-- Each second the count morphs: the digits it shares with the last one hold still and the new ones blur in, in tabular figures, so the pill only widens (with a little give) when the count gains a digit. THINKING · holds still.
-- Pass `tint` to use one color for the dots, mark and sheen.
-- `.thinkingState(_:tint:)` masks a bright sweep to the view's own alpha, so it follows capsules, glyphs and text with no clipping setup. It runs the same paced 2.2-second pass, starting from the leading edge each time `isActive` turns true, and fades in and out with `isActive`. On a glass pill, put it on the label inside the glass, as the example does, so the sweep runs through the words and the glass stays clear.
-- `Style` (`ThinkingState.Style`): `dots`, `bar`, `sheen`, `mark`, `markInk`, `ink`, `text`, `muted`, `assistantName`, `showsHeader`.
-- Every string is semibold. Under Reduce Motion nothing moves, but the placeholder still shows it is working: the band becomes an even glow that brightens and fades in place on the same beat (over the bars, through the label's glyphs, and in the modifier), the dots hold still and ripple their opacity, the mark rests full size and upright, and the elapsed seconds crossfade. Reduce Transparency makes the pill solid.
-- Need a live timeline of tool calls with durations and results? That is the Tool Execution Card screen in SwiftPieces Pro.
-
-## Usage
-
-```swift
-ThinkingStateExample().preferredColorScheme(.light)
-```
-
-## Parameters
-
-| Parameter | Description |
-| --- | --- |
-| `presentation` | `.dots`, `.sheen` (reply-shaped bars), or `.text(label)`. |
-| `tint` | Optional single color for the dots, mark and sheen. `nil` uses the house blocks for the dots and a neutral sheen. |
-| `lineCount` | Number of placeholder bars in the `.sheen` presentation. |
-| `duration` | Seconds per sheen sweep; the dots and mark breathe on the same clock. |
-| `style` | Colors, the assistant name and whether the header with elapsed seconds shows. Defaults to the house palette. |
-
-## Source
+<Showcase name="ThinkingState">
 
 <Tabs items={["ThinkingState.swift"]}>
 <Tab value="ThinkingState.swift">
@@ -468,7 +437,7 @@ private struct PieceMotion {
 // and melt back into each other, and the frosted fallback before iOS 26. Each piece carries a copy of only
 // the parts it uses, so this file stands alone. Generated from registry/foundation/PieceLiquid.swift in the
 // SwiftPieces repo; edit it there, not here. The rules are in LIQUID_GLASS.md.
-// swiftpieces-liquid: 1.7.1 (liquid, morphText)
+// swiftpieces-liquid: 1.8.0 (liquid, morphText)
 
 /// The liquid glass language: one merge distance, two rest gaps, and the springs a bubble leaves and comes home on.
 ///
@@ -623,31 +592,46 @@ private struct PieceMorphText: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        Group {
-            if Self.splits(text) {
-                let glyphs = Array(text)
-                HStack(spacing: 0) {
-                    ForEach(glyphs.indices, id: \.self) { i in
-                        Text(String(glyphs[i]))
-                            .id("\(i)\(glyphs[i])")
-                            .transition(transition(i, scale: 0.6))
-                    }
-                }
-                // The letters' reading order, not the layout's: an HStack lays its children out backwards under a
-                // right-to-left layout.
-                .environment(\.layoutDirection, .leftToRight)
-            } else {
-                ZStack(alignment: .leading) {
-                    Text(text)
-                        .id(text)
-                        .transition(transition(0, scale: 0.9))
-                }
-            }
+        // The morphing label at its full size when it fits. When it doesn't (a long label at an accessibility text
+        // size, a narrow screen), the same words wrap onto a second line and shrink a little instead of running past
+        // the screen's edge; that one changes as a whole rather than letter by letter. A single word never splits
+        // across lines: it stays on one and shrinks further.
+        let oneWord = !text.contains(where: \.isWhitespace)
+        ViewThatFits(in: .horizontal) {
+            morphing.fixedSize()
+            Text(text)
+                .lineLimit(oneWord ? 1 : 2)
+                .multilineTextAlignment(.center)
+                .minimumScaleFactor(oneWord ? 0.5 : 0.75)
+                .fixedSize(horizontal: false, vertical: true)
+                .id(text)
+                .transition(transition(0, scale: 0.9))
         }
         .font(font)
-        .fixedSize()
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(text)
+    }
+
+    @ViewBuilder private var morphing: some View {
+        if Self.splits(text) {
+            let glyphs = Array(text)
+            HStack(spacing: 0) {
+                ForEach(glyphs.indices, id: \.self) { i in
+                    Text(String(glyphs[i]))
+                        .id("\(i)\(glyphs[i])")
+                        .transition(transition(i, scale: 0.6))
+                }
+            }
+            // The letters' reading order, not the layout's: an HStack lays its children out backwards under a
+            // right-to-left layout.
+            .environment(\.layoutDirection, .leftToRight)
+        } else {
+            ZStack(alignment: .leading) {
+                Text(text)
+                    .id(text)
+                    .transition(transition(0, scale: 0.9))
+            }
+        }
     }
 
     private func transition(_ i: Int, scale: CGFloat) -> AnyTransition {
@@ -685,3 +669,38 @@ private struct PieceMorphText: View {
 
 </Tab>
 </Tabs>
+
+</Showcase>
+
+<PieceFacts name="ThinkingState" />
+
+Placeholder for a reply that has not started. Every presentation mirrors the `StreamingReply` layout (mark and label, then content) so it resolves into the real message without a layout jump.
+
+## Notes
+
+- Every presentation shares the `StreamingReply` layout: a liquid glass header pill (breathing ink mark, name and a THINKING · 3S elapsed label that counts up) and then content sized to a body line, so swapping `ThinkingState` for a `StreamingReply` lands on the same pill and does not shift anything. Set `style.showsHeader = false` for content only.
+- `.dots` rises three block-colored dots (tangerine, sky, lilac by default), `.sheen` sweeps a band across reply-shaped bars, and `.text(label)` sweeps the band through the label's glyphs.
+- One `TimelineView` drives the mark's breath, the dots and the sheen, so they stay phase-locked. It starts when the placeholder appears: the first pass enters from the leading edge and the dots rise from rest. `duration` sets the period of one pass.
+- Each pass eases the band across over the first 80% of `duration`, then rests just clear of the view before the next. The band slides whole, so it keeps its width as it enters and leaves. The mark draws in and turns on the same beat and is back to full size and upright between passes, which is the `StreamingReply` mark's pose. Each dot eases out of rest and back, as in `StreamingReply`.
+- Each second the count morphs: the digits it shares with the last one hold still and the new ones blur in, in tabular figures, so the pill only widens (with a little give) when the count gains a digit. THINKING · holds still.
+- Pass `tint` to use one color for the dots, mark and sheen.
+- `.thinkingState(_:tint:)` masks a bright sweep to the view's own alpha, so it follows capsules, glyphs and text with no clipping setup. It runs the same paced 2.2-second pass, starting from the leading edge each time `isActive` turns true, and fades in and out with `isActive`. On a glass pill, put it on the label inside the glass, as the example does, so the sweep runs through the words and the glass stays clear.
+- `Style` (`ThinkingState.Style`): `dots`, `bar`, `sheen`, `mark`, `markInk`, `ink`, `text`, `muted`, `assistantName`, `showsHeader`.
+- Every string is semibold. Under Reduce Motion nothing moves, but the placeholder still shows it is working: the band becomes an even glow that brightens and fades in place on the same beat (over the bars, through the label's glyphs, and in the modifier), the dots hold still and ripple their opacity, the mark rests full size and upright, and the elapsed seconds crossfade. Reduce Transparency makes the pill solid.
+- Need a live timeline of tool calls with durations and results? That is the Tool Execution Card screen in SwiftPieces Pro.
+
+## Usage
+
+```swift
+ThinkingStateExample().preferredColorScheme(.light)
+```
+
+## Parameters
+
+| Parameter | Description |
+| --- | --- |
+| `presentation` | `.dots`, `.sheen` (reply-shaped bars), or `.text(label)`. |
+| `tint` | Optional single color for the dots, mark and sheen. `nil` uses the house blocks for the dots and a neutral sheen. |
+| `lineCount` | Number of placeholder bars in the `.sheen` presentation. |
+| `duration` | Seconds per sheen sweep; the dots and mark breathe on the same clock. |
+| `style` | Colors, the assistant name and whether the header with elapsed seconds shows. Defaults to the house palette. |

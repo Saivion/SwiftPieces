@@ -1,6 +1,6 @@
 ---
 title: "Fan Stack"
-description: "Overlapping avatars in liquid glass bubbles that melt into one shape where they overlap, then fan apart on tap or hold through necks that stretch and snap, the hidden faces budding out of the +N bubble as it melts into them. A drag scrubs across them: the avatar under the finger lifts with its neighbours rolling up after it, a glass name tag buds out of it and a haptic ticks, and releasing selects it."
+description: "Overlapping avatars in glass bubbles that fan apart on tap and scrub under the finger, a name tag budding out of the one you hold."
 piece: "FanStack"
 category: "controls"
 minIOSVersion: "17.0"
@@ -11,42 +11,7 @@ registryDependencies: []
 
 {/* GENERATED FILE. Edit registry/swift/controls/FanStack.swift or FanStack.mdx instead. */}
 
-Avatar group that expands into a selectable fan of liquid glass bubbles. Collapsed, the avatars overlap and their glass melts into one shape. Fanned, they rest apart, each its own bubble, so opening pulls them apart through necks that thin and snap. Avatars past `max` wait inside the "+N" bubble and bud out of it as it melts into them.
-
-## Notes
-
-- Each avatar's face sits inset in a liquid glass bubble. Collapsed, the avatars overlap and their glass melts into one shape; the avatar above cuts a rim's width out of the face below it, so a ring of glass shows between them.
-- Tap toggles the fan; a 300ms hold fans it and keeps the touch live so you can scrub. The closed stack sinks under the finger on touch-down, so a hold answers before the fan opens.
-- Fanned, the avatars are separate choices and rest apart, each its own bubble, so opening pulls them apart through necks that thin and snap. Avatars past `max` wait inside the "+N" bubble, shrunk with their faces hidden; as the fan opens they bud out of it while the "+N" bubble travels out with the first of them and melts into it, its count blurring away. Folding reverses: the hidden avatars melt home into the "+N" bubble as it buds back out.
-- While fanned, the avatar under the finger lifts with a little give (14% larger, a 4pt rise) and the avatars either side rise a little after it on looser springs, so a scrub rolls along the hand instead of hopping. Its full name buds out of it in a clear glass tag that rests a neck's width above it, joined to it, and melts back in when the finger moves on; its first name below turns to the stronger ink, and `.selection` ticks per crossing. The lift is height only, never sideways, so the avatar that looks lifted is the one a release picks.
-- Releasing on an avatar calls `onSelect` at once with a solid impact; the avatar drops back into the hand and the fold follows 100ms later, so the choice reads before the stack closes. Releasing a hold on empty space leaves the fan open; a tap on empty space closes it. A touch the system cancels (a scroll takes over) lets go without picking.
-- Initials sit on solid house blocks with dark ink, picked by a stable FNV-1a hash of the name. `Style` sets the block list, ink, the "+N" text, the captions and the tag's text. `ring`, `overflowFill` and `tagFill` no longer do anything: the cut, the "+N" bubble and the tag are glass.
-- Every name is in the hierarchy at all times. Opening staggers 35ms per avatar: the shown avatars spring apart on an elastic spring, the fan's signature give, firmed up so none swings into its neighbour's merge distance; the hidden ones bud out on the bud's split spring. Closing reverses, last avatar first, the shown ones on a quick spring with no overshoot and the hidden ones melting home with no bounce. Larger groups stagger tighter so the whole cascade stays within 200ms, and the frame moves halfway through it (with a small give opening, firm closing), so the layout around the stack moves with the avatars rather than ahead of them. First names arrive once their avatar has nearly landed.
-- Fanned, the avatars sit 26pt apart, so six at the default 44pt take about 394pt: give a big group the room, or a smaller `size`. The tag draws about 40pt above the avatars and first names 24pt below while fanned (the frame grows for the names only), so leave room above the stack. The tag is centred over its avatar, so on an end avatar a long name reaches past the stack's end by up to half its width: leave room beside the stack too.
-- `images` is a parallel array; it may be shorter than `names`, and `nil` entries fall back to initials.
-- Haptics: a soft impact when a touch or VoiceOver fans or closes the stack, a solid impact on its own for a pick, and nothing when the `isFanned` binding moves it.
-- Reduce Motion removes the stagger, the pause before a pick's fold, the scaling and the lift: avatars move to their places on short eases, the hidden ones and the "+N" bubble fade in place, the pressed stack shades instead of sinking (darker in light mode, lighter in dark), the hovered avatar shows a ring, and the name tag fades in. Haptics are unchanged. Reduce Transparency draws the glass solid. VoiceOver reads the collapsed stack as one element ("Priya Raman, Jonas Weber, and 3 more", double tap to expand) and each avatar as its own button once fanned.
-
-## Usage
-
-```swift
-FanStackExample().preferredColorScheme(.light)
-```
-
-## Parameters
-
-| Parameter | Description |
-| --- | --- |
-| `names` | Full names, in display order. First name is drawn on top while collapsed. |
-| `images` | Optional parallel array of images; `nil` entries fall back to initials on a block color. |
-| `size` | Diameter of each avatar in points. |
-| `max` | Avatars shown while collapsed before the rest fold into "+N". All fan open. |
-| `overlap` | Fraction of `size` each avatar overlaps the previous one while collapsed, 0–1. |
-| `onSelect` | Called with the name released on while fanned. Also used by VoiceOver's per-avatar action. |
-| `isFanned` | Optional binding to fan or collapse programmatically; written back when the user toggles it. |
-| `style` | Block colors, ink and the name tag's text. `.standard` is the house palette. |
-
-## Source
+<Showcase name="FanStack">
 
 <Tabs items={["FanStack.swift"]}>
 <Tab value="FanStack.swift">
@@ -765,7 +730,7 @@ private extension View {
 // and melt back into each other, and the frosted fallback before iOS 26. Each piece carries a copy of only
 // the parts it uses, so this file stands alone. Generated from registry/foundation/PieceLiquid.swift in the
 // SwiftPieces repo; edit it there, not here. The rules are in LIQUID_GLASS.md.
-// swiftpieces-liquid: 1.7.1 (liquid, bud)
+// swiftpieces-liquid: 1.8.0 (liquid, bud)
 
 /// The liquid glass language: one merge distance, two rest gaps, and the springs a bubble leaves and comes home on.
 ///
@@ -1029,3 +994,42 @@ private final class PieceBuds {
 
 </Tab>
 </Tabs>
+
+</Showcase>
+
+<PieceFacts name="FanStack" />
+
+Avatar group that expands into a selectable fan of liquid glass bubbles. Collapsed, the avatars overlap and their glass melts into one shape. Fanned, they rest apart, each its own bubble, so opening pulls them apart through necks that thin and snap. Avatars past `max` wait inside the "+N" bubble and bud out of it as it melts into them.
+
+## Notes
+
+- Each avatar's face sits inset in a liquid glass bubble. Collapsed, the avatars overlap and their glass melts into one shape; the avatar above cuts a rim's width out of the face below it, so a ring of glass shows between them.
+- Tap toggles the fan; a 300ms hold fans it and keeps the touch live so you can scrub. The closed stack sinks under the finger on touch-down, so a hold answers before the fan opens.
+- Fanned, the avatars are separate choices and rest apart, each its own bubble, so opening pulls them apart through necks that thin and snap. Avatars past `max` wait inside the "+N" bubble, shrunk with their faces hidden; as the fan opens they bud out of it while the "+N" bubble travels out with the first of them and melts into it, its count blurring away. Folding reverses: the hidden avatars melt home into the "+N" bubble as it buds back out.
+- While fanned, the avatar under the finger lifts with a little give (14% larger, a 4pt rise) and the avatars either side rise a little after it on looser springs, so a scrub rolls along the hand instead of hopping. Its full name buds out of it in a clear glass tag that rests a neck's width above it, joined to it, and melts back in when the finger moves on; its first name below turns to the stronger ink, and `.selection` ticks per crossing. The lift is height only, never sideways, so the avatar that looks lifted is the one a release picks.
+- Releasing on an avatar calls `onSelect` at once with a solid impact; the avatar drops back into the hand and the fold follows 100ms later, so the choice reads before the stack closes. Releasing a hold on empty space leaves the fan open; a tap on empty space closes it. A touch the system cancels (a scroll takes over) lets go without picking.
+- Initials sit on solid house blocks with dark ink, picked by a stable FNV-1a hash of the name. `Style` sets the block list, ink, the "+N" text, the captions and the tag's text. `ring`, `overflowFill` and `tagFill` no longer do anything: the cut, the "+N" bubble and the tag are glass.
+- Every name is in the hierarchy at all times. Opening staggers 35ms per avatar: the shown avatars spring apart on an elastic spring, the fan's signature give, firmed up so none swings into its neighbour's merge distance; the hidden ones bud out on the bud's split spring. Closing reverses, last avatar first, the shown ones on a quick spring with no overshoot and the hidden ones melting home with no bounce. Larger groups stagger tighter so the whole cascade stays within 200ms, and the frame moves halfway through it (with a small give opening, firm closing), so the layout around the stack moves with the avatars rather than ahead of them. First names arrive once their avatar has nearly landed.
+- Fanned, the avatars sit 26pt apart, so six at the default 44pt take about 394pt: give a big group the room, or a smaller `size`. The tag draws about 40pt above the avatars and first names 24pt below while fanned (the frame grows for the names only), so leave room above the stack. The tag is centred over its avatar, so on an end avatar a long name reaches past the stack's end by up to half its width: leave room beside the stack too.
+- `images` is a parallel array; it may be shorter than `names`, and `nil` entries fall back to initials.
+- Haptics: a soft impact when a touch or VoiceOver fans or closes the stack, a solid impact on its own for a pick, and nothing when the `isFanned` binding moves it.
+- Reduce Motion removes the stagger, the pause before a pick's fold, the scaling and the lift: avatars move to their places on short eases, the hidden ones and the "+N" bubble fade in place, the pressed stack shades instead of sinking (darker in light mode, lighter in dark), the hovered avatar shows a ring, and the name tag fades in. Haptics are unchanged. Reduce Transparency draws the glass solid. VoiceOver reads the collapsed stack as one element ("Priya Raman, Jonas Weber, and 3 more", double tap to expand) and each avatar as its own button once fanned.
+
+## Usage
+
+```swift
+FanStackExample().preferredColorScheme(.light)
+```
+
+## Parameters
+
+| Parameter | Description |
+| --- | --- |
+| `names` | Full names, in display order. First name is drawn on top while collapsed. |
+| `images` | Optional parallel array of images; `nil` entries fall back to initials on a block color. |
+| `size` | Diameter of each avatar in points. |
+| `max` | Avatars shown while collapsed before the rest fold into "+N". All fan open. |
+| `overlap` | Fraction of `size` each avatar overlaps the previous one while collapsed, 0–1. |
+| `onSelect` | Called with the name released on while fanned. Also used by VoiceOver's per-avatar action. |
+| `isFanned` | Optional binding to fan or collapse programmatically; written back when the user toggles it. |
+| `style` | Block colors, ink and the name tag's text. `.standard` is the house palette. |

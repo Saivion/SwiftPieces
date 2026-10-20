@@ -1,6 +1,6 @@
 ---
 title: "Drag to Dismiss"
-description: "A modifier that lets a photo, card, or sheet follow a two-axis drag, rounds and shrinks it toward the finger with progress over a styled scrim, then springs back or is tossed off along the drag vector at the speed of the flick past a distance or velocity threshold. A liquid glass close bubble drops in at the top as the drag gets going, and a \"Release to close\" pill buds out of it on a liquid neck the moment the drag passes the threshold, melting back in if it falls short."
+description: "A modifier that lets a photo, card or sheet follow the drag, then springs it back or tosses it away at the speed of the flick."
 piece: "DragToDismiss"
 category: "motion"
 minIOSVersion: "17.0"
@@ -11,42 +11,7 @@ registryDependencies: []
 
 {/* GENERATED FILE. Edit registry/swift/motion/DragToDismiss.swift or DragToDismiss.mdx instead. */}
 
-Photos-style dismiss: drag in any direction, the view rounds and shrinks toward the finger as it travels, the scrim thins, and a far enough drag or a fast flick tosses it off screen along the direction it was moving, at the finger's speed. Under Reduce Motion it fades where it is instead. The hint is liquid glass and stays put at the top of the layout frame while the view travels: a round close bubble drops in once the drag is under way, and the moment the drag arms, a pill with `style.hint` buds out of it, born inside the bubble and widening as it springs out to rest joined to it by a liquid neck. Fall back under the threshold and the pill melts home; let go and the pill melts home and the bubble lifts away.
-
-## Notes
-
-- Apply it to the full-size root of a sheet or full-screen cover, or to a card wrapped in `.frame(maxWidth: .infinity, maxHeight: .infinity)`, so the scrim covers the screen while only the content moves.
-- The view tracks the finger 1:1 in both axes and shrinks toward the point you grabbed, so that point stays under the finger. Past the threshold it keeps shrinking a little against rubber-band resistance instead of stopping dead, and the moment it arms it gives another 2% on the snap spring with the rigid tick, so the threshold shows as well as it feels.
-- Commit happens past `threshold` points of travel or when `predictedEndTranslation` projects past twice that. The fly-off follows the release direction and travels far enough to clear the container, each axis leaving at the finger's speed on a spring with no bounce, so a flick is thrown at its own pace and a slow release still leaves unhurried. The view stays solid for most of the flight and fades over its last stretch. `onDismiss` fires once, when the fly-off is logically complete.
-- Let go short of the threshold and it springs home at the speed it was moving, on a spring between the snap and the elastic settle (about 4.6% overshoot). Let go at the threshold, it passes home by about 5 points before it settles, partly covered as the view springs back to full size; the elastic swing would show a full-screen view's edge. Grab it again on the way home and it picks up under the finger without a jump, and the shrink moves its pivot to the new grab point within about a tenth of a second. A touch the system cancels (a call, an alert) brings it home too and re-enables the inner scroll view.
-- Scroll cooperation: a scroll view inside the content keeps priority until it is at its top. On iOS 18 the modifier watches the scroll view with `onScrollGeometryChange`; on iOS 17 feed it `scrollOffset` yourself. Upward drags at the top go to the scroll view, and the scroll view is disabled for the duration of a captured drag so it cannot bounce underneath.
-- Bind `progress` and scale your presenter from 0.94 toward 1 with it for sheet-like depth. It stays linear and reaches 1 at the threshold.
-- The hint is liquid glass and stays put at the top of the layout frame, like the scrim, while the view travels. Once the drag has gone a third of the way to the threshold, a round close bubble drops in on its own. The moment the drag arms, with the tick, a "Release to close" pill buds out of it: born inside the bubble as a small round bubble, it springs out to rest beside it on a liquid neck, widening to fit its words as it goes, and the pair stays centred. Fall back under the threshold and the pill narrows and melts home on a spring with no bounce; let go, and the pill melts home first and then the bubble lifts away. It never takes a touch.
-- Phases run idle, dragging, armed (a rigid tick at the threshold), returning, committing. Changes to idle, dragging, armed and returning arrive on the snap spring, so anything you bind to `phase:` swaps smoothly; committing rides the toss (the fade, under Reduce Motion). VoiceOver's escape gesture commits a downward dismiss.
-- Reduce Motion keeps the scale at 1, so there is no shrink and no arming give; instead the view dims slightly the moment it arms, on the same beat as the tick, a hint of the fade a release brings. It returns home on a short spring with no overshoot, and commits with a quick fade where the view is instead of flying it across the screen. The scrim, the rounding and the haptic stay, and the hint's bubble and pill fade in and out where they rest. Before iOS 26 the hint draws on a frosted material with a light rim and the pill sits beside the bubble without a neck; under Reduce Transparency it is solid.
-- `style:` sets the scrim (`#141414` at 0.5 by default, `.clear` for none), the shrink at full progress and the hint's words (`hint`, "Release to close" by default). Set `hint: nil` to hide the glass hint when the presenter draws its own from `phase:`.
-- The `#Preview` is the single card the modifier moves: a butter boarding pass, with the modifier's own scrim behind it and its glass hint at the top.
-- For a full gallery built around this gesture, see the Pro Gallery screen.
-
-## Usage
-
-```swift
-DragToDismissExample().preferredColorScheme(.light)
-```
-
-## Parameters
-
-| Parameter | Description |
-| --- | --- |
-| `threshold` | Drag distance in points that arms the dismiss. A flick whose projected travel passes twice this commits from a shorter drag. |
-| `cornerRadius` | Corner radius the view reaches at full progress; it starts square so full-screen content keeps its edges at rest. |
-| `progress` | Optional binding that receives the dismiss progress (0 at rest, 1 armed) so the presenter can scale its background from 0.94 back to 1. |
-| `scrollOffset` | Vertical offset of a scroll view inside the content. The drag is only captured at 0. On iOS 18 the modifier observes the inner scroll view itself. |
-| `phase` | Optional binding that receives the current phase (idle, dragging, armed, returning, committing), to dim chrome while dragging or drive a hint of your own (set `style.hint` to `nil` then). |
-| `style` | Scrim color and opacity at rest, how much the view shrinks at full progress, and the hint's words. `.standard` is a near-black `#141414` scrim at 0.5 with a 0.15 shrink and a "Release to close" hint. |
-| `onDismiss` | Called once the view has flown off (faded, under Reduce Motion); end the presentation here. |
-
-## Source
+<Showcase name="DragToDismiss">
 
 <Tabs items={["DragToDismiss.swift"]}>
 <Tab value="DragToDismiss.swift">
@@ -707,7 +672,7 @@ extension PieceMotion {
 // and melt back into each other, and the frosted fallback before iOS 26. Each piece carries a copy of only
 // the parts it uses, so this file stands alone. Generated from registry/foundation/PieceLiquid.swift in the
 // SwiftPieces repo; edit it there, not here. The rules are in LIQUID_GLASS.md.
-// swiftpieces-liquid: 1.7.1 (liquid, bud)
+// swiftpieces-liquid: 1.8.0 (liquid, bud)
 
 /// The liquid glass language: one merge distance, two rest gaps, and the springs a bubble leaves and comes home on.
 ///
@@ -971,3 +936,42 @@ private final class PieceBuds {
 
 </Tab>
 </Tabs>
+
+</Showcase>
+
+<PieceFacts name="DragToDismiss" />
+
+Photos-style dismiss: drag in any direction, the view rounds and shrinks toward the finger as it travels, the scrim thins, and a far enough drag or a fast flick tosses it off screen along the direction it was moving, at the finger's speed. Under Reduce Motion it fades where it is instead. The hint is liquid glass and stays put at the top of the layout frame while the view travels: a round close bubble drops in once the drag is under way, and the moment the drag arms, a pill with `style.hint` buds out of it, born inside the bubble and widening as it springs out to rest joined to it by a liquid neck. Fall back under the threshold and the pill melts home; let go and the pill melts home and the bubble lifts away.
+
+## Notes
+
+- Apply it to the full-size root of a sheet or full-screen cover, or to a card wrapped in `.frame(maxWidth: .infinity, maxHeight: .infinity)`, so the scrim covers the screen while only the content moves.
+- The view tracks the finger 1:1 in both axes and shrinks toward the point you grabbed, so that point stays under the finger. Past the threshold it keeps shrinking a little against rubber-band resistance instead of stopping dead, and the moment it arms it gives another 2% on the snap spring with the rigid tick, so the threshold shows as well as it feels.
+- Commit happens past `threshold` points of travel or when `predictedEndTranslation` projects past twice that. The fly-off follows the release direction and travels far enough to clear the container, each axis leaving at the finger's speed on a spring with no bounce, so a flick is thrown at its own pace and a slow release still leaves unhurried. The view stays solid for most of the flight and fades over its last stretch. `onDismiss` fires once, when the fly-off is logically complete.
+- Let go short of the threshold and it springs home at the speed it was moving, on a spring between the snap and the elastic settle (about 4.6% overshoot). Let go at the threshold, it passes home by about 5 points before it settles, partly covered as the view springs back to full size; the elastic swing would show a full-screen view's edge. Grab it again on the way home and it picks up under the finger without a jump, and the shrink moves its pivot to the new grab point within about a tenth of a second. A touch the system cancels (a call, an alert) brings it home too and re-enables the inner scroll view.
+- Scroll cooperation: a scroll view inside the content keeps priority until it is at its top. On iOS 18 the modifier watches the scroll view with `onScrollGeometryChange`; on iOS 17 feed it `scrollOffset` yourself. Upward drags at the top go to the scroll view, and the scroll view is disabled for the duration of a captured drag so it cannot bounce underneath.
+- Bind `progress` and scale your presenter from 0.94 toward 1 with it for sheet-like depth. It stays linear and reaches 1 at the threshold.
+- The hint is liquid glass and stays put at the top of the layout frame, like the scrim, while the view travels. Once the drag has gone a third of the way to the threshold, a round close bubble drops in on its own. The moment the drag arms, with the tick, a "Release to close" pill buds out of it: born inside the bubble as a small round bubble, it springs out to rest beside it on a liquid neck, widening to fit its words as it goes, and the pair stays centred. Fall back under the threshold and the pill narrows and melts home on a spring with no bounce; let go, and the pill melts home first and then the bubble lifts away. It never takes a touch.
+- Phases run idle, dragging, armed (a rigid tick at the threshold), returning, committing. Changes to idle, dragging, armed and returning arrive on the snap spring, so anything you bind to `phase:` swaps smoothly; committing rides the toss (the fade, under Reduce Motion). VoiceOver's escape gesture commits a downward dismiss.
+- Reduce Motion keeps the scale at 1, so there is no shrink and no arming give; instead the view dims slightly the moment it arms, on the same beat as the tick, a hint of the fade a release brings. It returns home on a short spring with no overshoot, and commits with a quick fade where the view is instead of flying it across the screen. The scrim, the rounding and the haptic stay, and the hint's bubble and pill fade in and out where they rest. Before iOS 26 the hint draws on a frosted material with a light rim and the pill sits beside the bubble without a neck; under Reduce Transparency it is solid.
+- `style:` sets the scrim (`#141414` at 0.5 by default, `.clear` for none), the shrink at full progress and the hint's words (`hint`, "Release to close" by default). Set `hint: nil` to hide the glass hint when the presenter draws its own from `phase:`.
+- The `#Preview` is the single card the modifier moves: a butter boarding pass, with the modifier's own scrim behind it and its glass hint at the top.
+- For a full gallery built around this gesture, see the Pro Gallery screen.
+
+## Usage
+
+```swift
+DragToDismissExample().preferredColorScheme(.light)
+```
+
+## Parameters
+
+| Parameter | Description |
+| --- | --- |
+| `threshold` | Drag distance in points that arms the dismiss. A flick whose projected travel passes twice this commits from a shorter drag. |
+| `cornerRadius` | Corner radius the view reaches at full progress; it starts square so full-screen content keeps its edges at rest. |
+| `progress` | Optional binding that receives the dismiss progress (0 at rest, 1 armed) so the presenter can scale its background from 0.94 back to 1. |
+| `scrollOffset` | Vertical offset of a scroll view inside the content. The drag is only captured at 0. On iOS 18 the modifier observes the inner scroll view itself. |
+| `phase` | Optional binding that receives the current phase (idle, dragging, armed, returning, committing), to dim chrome while dragging or drive a hint of your own (set `style.hint` to `nil` then). |
+| `style` | Scrim color and opacity at rest, how much the view shrinks at full progress, and the hint's words. `.standard` is a near-black `#141414` scrim at 0.5 with a 0.15 shrink and a "Release to close" hint. |
+| `onDismiss` | Called once the view has flown off (faded, under Reduce Motion); end the presentation here. |

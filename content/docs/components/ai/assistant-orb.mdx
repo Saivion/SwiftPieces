@@ -1,6 +1,6 @@
 ---
 title: "Assistant Orb"
-description: "A dark glass ball with a Siri-style voice wave inside, locked to the thinking state; four thin sine membranes travel through the equator of a refracting shell, drawn by a Metal color shader. The sphere never moves, only the wave, and a palette change crossfades its colours."
+description: "A dark glass ball with a Siri-style voice wave inside, drawn by a Metal shader and locked to the thinking state."
 piece: "AssistantOrb"
 category: "ai"
 minIOSVersion: "17.0"
@@ -11,42 +11,7 @@ registryDependencies: []
 
 {/* GENERATED FILE. Edit registry/swift/ai/AssistantOrb.swift or AssistantOrb.mdx instead. */}
 
-The assistant's mark while it thinks. Copy `AssistantOrb.metal` alongside this file; its `assistantOrbSiriWave` kernel compiles into your app's default Metal library.
-
-## Notes
-
-- Requires `AssistantOrb.metal` in the same target. The `[[ stitchable ]] assistantOrbSiriWave` function is looked up through `ShaderLibrary` at runtime. Its helpers live in the `assistantOrbSiri` namespace, so it can share a target with other orb kernels.
-- The orb has one look: thinking. Four thin sine membranes in blue, pink, orange and red travel left to right through the equator over a violet ground, seen through a refracting glass shell with a cool and warm rim. There is no idle or speaking phase, no audio level and no touch interaction. Colour is the only input: `palette` defaults to `.siri`, and `AssistantOrb.Palette(bands:ground:crest:rimCool:rimWarm:)` takes hex values or `Color`s for your brand. A palette change crossfades all eight colours on a calm spring, so a second change mid-fade turns from the colours on screen; under Reduce Motion it is a short colour fade. The motion never changes.
-- The sphere never scales, floats or pulses; only the wave inside it moves. It has no entrance of its own, so it arrives with whatever presents it. Put the orb on a dark surface and pair it with your own status copy if the step changes.
-- `size` sets a square frame. The ball fills 90% of it, so leave the frame square.
-- The clock restarts each time the orb appears, so the wave always enters on the same first pose and `Float` precision holds over long sessions.
-- Under Reduce Motion the wave rests on that first pose: a still frame that nothing moves or dims, and a palette change only recolours it in place. Your status copy carries the sense of progress there. Turning Reduce Motion off lets the wave flow on from that pose without a jump.
-- VoiceOver reads "Assistant" with "Thinking" as its value.
-
-## Usage
-
-```swift
-VStack(spacing: 20) {
-    AssistantOrb(size: 180, palette: .siri)
-    Text("Thinking")
-        .font(.subheadline)
-        .foregroundStyle(.secondary)
-}
-// One weight for every string, as in the rest of the library.
-.fontWeight(.semibold)
-.padding(32)
-.frame(maxWidth: .infinity, maxHeight: .infinity)
-.background(.black)
-```
-
-## Parameters
-
-| Parameter | Description |
-| --- | --- |
-| `size` | Diameter of the ball in points. 160 by default; the view is always a square of this side. |
-| `palette` | The eight colours of the wave, ground, crest and rim. `.siri` by default; build your own with `Palette(bands:ground:crest:rimCool:rimWarm:)` from hex or `Color`. A change crossfades on a calm spring. |
-
-## Source
+<Showcase name="AssistantOrb">
 
 <Tabs items={["AssistantOrb.swift", "AssistantOrb.metal"]}>
 <Tab value="AssistantOrb.swift">
@@ -479,3 +444,42 @@ half4 assistantOrbSiriWave(float2 position, half4 currentColor, float4 bounds, f
 
 </Tab>
 </Tabs>
+
+</Showcase>
+
+<PieceFacts name="AssistantOrb" />
+
+The assistant's mark while it thinks. Copy `AssistantOrb.metal` alongside this file; its `assistantOrbSiriWave` kernel compiles into your app's default Metal library.
+
+## Notes
+
+- Requires `AssistantOrb.metal` in the same target. The `[[ stitchable ]] assistantOrbSiriWave` function is looked up through `ShaderLibrary` at runtime. Its helpers live in the `assistantOrbSiri` namespace, so it can share a target with other orb kernels.
+- The orb has one look: thinking. Four thin sine membranes in blue, pink, orange and red travel left to right through the equator over a violet ground, seen through a refracting glass shell with a cool and warm rim. There is no idle or speaking phase, no audio level and no touch interaction. Colour is the only input: `palette` defaults to `.siri`, and `AssistantOrb.Palette(bands:ground:crest:rimCool:rimWarm:)` takes hex values or `Color`s for your brand. A palette change crossfades all eight colours on a calm spring, so a second change mid-fade turns from the colours on screen; under Reduce Motion it is a short colour fade. The motion never changes.
+- The sphere never scales, floats or pulses; only the wave inside it moves. It has no entrance of its own, so it arrives with whatever presents it. Put the orb on a dark surface and pair it with your own status copy if the step changes.
+- `size` sets a square frame. The ball fills 90% of it, so leave the frame square.
+- The clock restarts each time the orb appears, so the wave always enters on the same first pose and `Float` precision holds over long sessions.
+- Under Reduce Motion the wave rests on that first pose: a still frame that nothing moves or dims, and a palette change only recolours it in place. Your status copy carries the sense of progress there. Turning Reduce Motion off lets the wave flow on from that pose without a jump.
+- VoiceOver reads "Assistant" with "Thinking" as its value.
+
+## Usage
+
+```swift
+VStack(spacing: 20) {
+    AssistantOrb(size: 180, palette: .siri)
+    Text("Thinking")
+        .font(.subheadline)
+        .foregroundStyle(.secondary)
+}
+// One weight for every string, as in the rest of the library.
+.fontWeight(.semibold)
+.padding(32)
+.frame(maxWidth: .infinity, maxHeight: .infinity)
+.background(.black)
+```
+
+## Parameters
+
+| Parameter | Description |
+| --- | --- |
+| `size` | Diameter of the ball in points. 160 by default; the view is always a square of this side. |
+| `palette` | The eight colours of the wave, ground, crest and rim. `.siri` by default; build your own with `Palette(bands:ground:crest:rimCool:rimWarm:)` from hex or `Color`. A change crossfades on a calm spring. |

@@ -1,6 +1,6 @@
 ---
 title: "Odometer"
-description: "A number whose digits roll on individual slots like a mechanical counter, carrying from the low digits up so unchanged digits never move, with softened slot edges while rolling, dimmed decimals, a separate sign, a dashed loading state, and a tinted liquid glass delta chip that buds out from behind the figure after each change, rests joined beside it and melts back in."
+description: "A number whose digits roll on their own slots like a mechanical counter, with a glass delta chip that buds out after each change."
 piece: "Odometer"
 category: "data"
 minIOSVersion: "17.0"
@@ -11,38 +11,7 @@ registryDependencies: []
 
 {/* GENERATED FILE. Edit registry/swift/data/Odometer.swift or Odometer.mdx instead. */}
 
-Slot-machine number with a single spring-driven `Animatable` value behind every digit. The digits are content, set semibold at whatever size you give them. After a change the delta is a tinted glass chip that buds out from behind the figure's trailing edge, rests a neck's width beside it, and melts back behind it when it goes.
-
-## Notes
-
-- One `Animatable` number drives every slot. Each digit's roll is derived from that number and carries upward only while the digit below passes 9, so higher digits stay perfectly still until a carry reaches them. While a digit is between faces its slot edges soften, like a drum turning behind a window: the softening eases in as a digit leaves its face and out as it seats, so the edges sharpen with the landing. The roll runs on a spring with no bounce, so it never shows a digit the value never had, and its duration grows gently with the size of the change, up to 1.2 s; there is no per-frame loop.
-- A new value mid-roll merges into the turning drum instead of restarting it, and the layout keeps every slot the in-flight number still needs: a high slot that reads zero narrows to nothing along with its separator, and spare slots fold away only once the drum has stopped. Only the latest roll lands, clearing the tint and playing the settle tick, so `ticksOnSettle` gives one `.selection` tick per landing. A roll that lands behind the loading dashes clears its tint without a tick.
-- The layout (grouping separators, decimal separator, currency symbol) is read from the formatted target once per change. Use plain decimal or currency styles; compact notation such as `1.2K` will not match the rolled digits. Leading symbols always show, and the number never gives up width to the delta chip.
-- Decimals and their separator are dimmed by default. The sign is its own glyph and slides in or out at the zero crossing. After each change the delta is a liquid glass chip, tinted sage for up and red for down with ink text, that shows the signed amount for 1.6 s. It is born behind the figure's last digit, shrunk and clear, and buds out with visible give to rest a neck's width beside the number, its amount arriving just after, while the number makes room a beat behind the roll. Going away, its amount blurs off at once, its tint drains and it slides back behind the digits on a spring with no bounce, fading as it gets there, and the number closes up. A change while it is showing rolls its amount without overshoot, blurs its arrow across when the direction turns, and resizes and recolors the glass in place with a little give.
-- `Style` sets `up` and `down` (the chip's glass tints), `ink`, `muted`, `dimsFraction`, and `tintsWhileRolling` (tints the digits from the start of a roll until it lands, switching without a fade; best on dark grounds).
-- `isLoading` swaps every digit for a dash. When it ends, the dashes give way to digits at once and the first real value rolls up from zero.
-- Under Reduce Motion nothing rolls: the number lands on its new value at once, each changed digit switching in place, and with no roll there is no roll tint. The sign fades instead of sliding, and the delta chip fades in and out in place beside the number instead of budding; the dimmed decimals and the settle tick are unchanged. Under Reduce Transparency the chip's glass draws solid.
-- VoiceOver reads the final formatted value only, never the intermediate frames. Apply `.font` to the `Odometer` to set its size; the piece sets every string semibold, as the whole library does, so size alone sets the hierarchy. Slot sizes are measured from that font.
-- A full dashboard screen ships in SwiftPieces Pro (`dashboard-screen`).
-
-## Usage
-
-```swift
-OdometerExample().preferredColorScheme(.light)
-```
-
-## Parameters
-
-| Parameter | Description |
-| --- | --- |
-| `value` | The target value. Changing it rolls the digits from the current value. |
-| `format` | A decimal `FormatStyle` from `Double` to `String`, for example `.number.precision(.fractionLength(0))` or `.currency(code: "USD")`. Defaults to whole numbers. |
-| `isLoading` | Shows a dash in every digit slot instead of a value; the first real value rolls up from zero. |
-| `showsDelta` | Shows a signed delta chip of tinted glass beside the number for a moment after each change. |
-| `ticksOnSettle` | Plays a `.selection` haptic when a roll finishes. |
-| `style` | Delta chip tints, decimal dimming, and roll tinting. Defaults to `.standard`: sage for up, red for down, dimmed decimals, no tint while rolling. |
-
-## Source
+<Showcase name="Odometer">
 
 <Tabs items={["Odometer.swift"]}>
 <Tab value="Odometer.swift">
@@ -648,7 +617,7 @@ extension PieceMotion {
 // and melt back into each other, and the frosted fallback before iOS 26. Each piece carries a copy of only
 // the parts it uses, so this file stands alone. Generated from registry/foundation/PieceLiquid.swift in the
 // SwiftPieces repo; edit it there, not here. The rules are in LIQUID_GLASS.md.
-// swiftpieces-liquid: 1.7.1 (liquid, bud)
+// swiftpieces-liquid: 1.8.0 (liquid, bud)
 
 /// The liquid glass language: one merge distance, two rest gaps, and the springs a bubble leaves and comes home on.
 ///
@@ -912,3 +881,38 @@ private final class PieceBuds {
 
 </Tab>
 </Tabs>
+
+</Showcase>
+
+<PieceFacts name="Odometer" />
+
+Slot-machine number with a single spring-driven `Animatable` value behind every digit. The digits are content, set semibold at whatever size you give them. After a change the delta is a tinted glass chip that buds out from behind the figure's trailing edge, rests a neck's width beside it, and melts back behind it when it goes.
+
+## Notes
+
+- One `Animatable` number drives every slot. Each digit's roll is derived from that number and carries upward only while the digit below passes 9, so higher digits stay perfectly still until a carry reaches them. While a digit is between faces its slot edges soften, like a drum turning behind a window: the softening eases in as a digit leaves its face and out as it seats, so the edges sharpen with the landing. The roll runs on a spring with no bounce, so it never shows a digit the value never had, and its duration grows gently with the size of the change, up to 1.2 s; there is no per-frame loop.
+- A new value mid-roll merges into the turning drum instead of restarting it, and the layout keeps every slot the in-flight number still needs: a high slot that reads zero narrows to nothing along with its separator, and spare slots fold away only once the drum has stopped. Only the latest roll lands, clearing the tint and playing the settle tick, so `ticksOnSettle` gives one `.selection` tick per landing. A roll that lands behind the loading dashes clears its tint without a tick.
+- The layout (grouping separators, decimal separator, currency symbol) is read from the formatted target once per change. Use plain decimal or currency styles; compact notation such as `1.2K` will not match the rolled digits. Leading symbols always show, and the number never gives up width to the delta chip.
+- Decimals and their separator are dimmed by default. The sign is its own glyph and slides in or out at the zero crossing. After each change the delta is a liquid glass chip, tinted sage for up and red for down with ink text, that shows the signed amount for 1.6 s. It is born behind the figure's last digit, shrunk and clear, and buds out with visible give to rest a neck's width beside the number, its amount arriving just after, while the number makes room a beat behind the roll. Going away, its amount blurs off at once, its tint drains and it slides back behind the digits on a spring with no bounce, fading as it gets there, and the number closes up. A change while it is showing rolls its amount without overshoot, blurs its arrow across when the direction turns, and resizes and recolors the glass in place with a little give.
+- `Style` sets `up` and `down` (the chip's glass tints), `ink`, `muted`, `dimsFraction`, and `tintsWhileRolling` (tints the digits from the start of a roll until it lands, switching without a fade; best on dark grounds).
+- `isLoading` swaps every digit for a dash. When it ends, the dashes give way to digits at once and the first real value rolls up from zero.
+- Under Reduce Motion nothing rolls: the number lands on its new value at once, each changed digit switching in place, and with no roll there is no roll tint. The sign fades instead of sliding, and the delta chip fades in and out in place beside the number instead of budding; the dimmed decimals and the settle tick are unchanged. Under Reduce Transparency the chip's glass draws solid.
+- VoiceOver reads the final formatted value only, never the intermediate frames. Apply `.font` to the `Odometer` to set its size; the piece sets every string semibold, as the whole library does, so size alone sets the hierarchy. Slot sizes are measured from that font.
+- A full dashboard screen ships in SwiftPieces Pro (`dashboard-screen`).
+
+## Usage
+
+```swift
+OdometerExample().preferredColorScheme(.light)
+```
+
+## Parameters
+
+| Parameter | Description |
+| --- | --- |
+| `value` | The target value. Changing it rolls the digits from the current value. |
+| `format` | A decimal `FormatStyle` from `Double` to `String`, for example `.number.precision(.fractionLength(0))` or `.currency(code: "USD")`. Defaults to whole numbers. |
+| `isLoading` | Shows a dash in every digit slot instead of a value; the first real value rolls up from zero. |
+| `showsDelta` | Shows a signed delta chip of tinted glass beside the number for a moment after each change. |
+| `ticksOnSettle` | Plays a `.selection` haptic when a roll finishes. |
+| `style` | Delta chip tints, decimal dimming, and roll tinting. Defaults to `.standard`: sage for up, red for down, dimmed decimals, no tint while rolling. |

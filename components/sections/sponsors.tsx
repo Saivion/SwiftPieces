@@ -1,12 +1,13 @@
 import type { ReactNode } from "react";
 import { Container } from "@/components/ui/container";
 import { Eyebrow } from "@/components/ui/badge";
-import { Button, Arrow, TextLink } from "@/components/ui/button";
+import { Button, Arrow } from "@/components/ui/button";
 import { AnimatedText } from "@/components/ui/animated-text";
+import { pageLede } from "@/components/ui/section-header";
+import { Index } from "@/components/ui/panel";
 import { Reveal, RevealGroup, RevealItem } from "@/components/effects/reveal";
 import { DitherStage } from "@/components/visual/dither-stage";
-import { CornerDither } from "@/components/visual/corner-dither";
-import { SectionCopy, Glyph, heroTitle, sectionBody } from "@/components/sections/feature-row";
+import { SectionHead, Glyph, band, cardTitle, heroTitle } from "@/components/sections/feature-row";
 import { getRegistryIndex } from "@/lib/registry";
 import { getStarCount, formatCount } from "@/lib/github";
 import { getViews } from "@/lib/views";
@@ -14,6 +15,9 @@ import { sponsorLinks, tiers, type Sponsor, type Tier } from "@/lib/sponsors";
 import { cn } from "@/lib/cn";
 
 /* ---------- Hero ---------- */
+
+/** The quiet second action beside a primary pill: words and an arrow that nudges, as on the landing. */
+const quietLink = "group inline-flex h-[46px] items-center gap-2 px-2 text-[15px] font-semibold text-foreground";
 
 /** The ask, then the reach behind it: real counts only, so sponsors can judge what a placement is worth. */
 export async function SponsorHero() {
@@ -26,28 +30,29 @@ export async function SponsorHero() {
     "MIT + Commons Clause",
   ].filter(Boolean) as string[];
   return (
-    <section className="relative overflow-hidden pt-20 pb-10 md:pt-28">
+    <section className="relative pt-16 pb-12 md:pt-28 sm:pb-[68px] lg:pt-[120px]">
       <Container className="flex flex-col items-center text-center">
-        <Reveal priority><Eyebrow>Sponsor · Open-source SwiftUI</Eyebrow></Reveal>
-        {/* Same title and subtitle styles as the homepage and /pro heroes (feature-row.tsx). */}
-        <AnimatedText as="h1" text="Keep the pieces free." accent="free." className={cn("mt-8 max-w-4xl", heroTitle)} />
-        <Reveal priority delay={0.35}>
-          <p className={cn("mx-auto mt-6 max-w-xl", sectionBody)}>SwiftPieces is built and maintained by one developer. Sponsorship pays for new free pieces, updates for every iOS release, and the docs, CLI and MCP server that go with them. Companies get their logo in front of the iOS developers who use it.</p>
+        <Reveal priority>
+          <Eyebrow>
+            Sponsor
+            <span aria-hidden className="h-3 w-px bg-[var(--line-strong)]" />
+            <span className="text-muted">Open-source SwiftUI</span>
+          </Eyebrow>
         </Reveal>
-        <Reveal priority delay={0.45} className="mt-9 flex flex-col items-center gap-4 sm:flex-row">
+        {/* Same title and subtitle styles as the homepage and /pro heroes. */}
+        <AnimatedText as="h1" text="Keep the pieces free." accent="free." className={cn("mt-[30px] max-w-4xl", heroTitle)} />
+        <Reveal priority delay={0.35}>
+          <p className={cn("mx-auto mt-[26px] max-w-[580px]", pageLede)}>SwiftPieces is built and maintained by one developer. Sponsorship pays for new free pieces, updates for every iOS release, and the docs, CLI and MCP server that go with them. Companies get their logo in front of the iOS developers who use it.</p>
+        </Reveal>
+        <Reveal priority delay={0.45} className="mt-[38px] flex flex-wrap items-center justify-center gap-2.5">
           <Button href={sponsorLinks.github}>Sponsor on GitHub <Arrow /></Button>
           {/* Companies see the tiers first; the invoice email sits under the tier cards. */}
-          <TextLink href="#tiers">Company sponsorship</TextLink>
+          <a href="#tiers" className={quietLink}>Company sponsorship <Arrow /></a>
         </Reveal>
         <Reveal priority delay={0.55}>
-          <p className="t-meta mt-10 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-subtle">
-            {reach.map((r, i) => (
-              <span key={r} className="contents">
-                {i > 0 ? <span aria-hidden>·</span> : null}
-                <span>{r}</span>
-              </span>
-            ))}
-          </p>
+          <ul className="mt-12 flex flex-wrap items-center justify-center gap-2">
+            {reach.map((r) => <li key={r} className="inline-flex h-9 items-center rounded-full bg-surface px-[15px] text-[13.5px] whitespace-nowrap text-muted">{r}</li>)}
+          </ul>
         </Reveal>
       </Container>
     </section>
@@ -60,34 +65,38 @@ function Check() {
   return <svg aria-hidden viewBox="0 0 16 16" className="ai mt-[3px] size-3.5 shrink-0 text-foreground" fill="none" stroke="currentColor" strokeWidth="1.75"><path className="ai-check" pathLength={1} d="M3.5 8.5l3 3 6-7" strokeLinecap="round" strokeLinejoin="round" /></svg>;
 }
 
+/**
+ * One tier as a panel in the tiers' shared tray, set like the offer on pro.swiftpieces.com: who it is
+ * for, the name, the price large and regular-weight, the pitch, the perks under a hairline, the way in.
+ * Gold stands on a strip of the Pro cards' dithered ground; the others stay quiet.
+ */
 function TierCard({ tier, taken }: { tier: Tier; taken: number }) {
   const gold = tier.id === "gold";
   const full = tier.slots !== undefined && taken >= tier.slots;
   return (
-    <div className={cn("card relative flex h-full flex-col overflow-hidden", gold && "border-[var(--card-border-hover)]")}>
-      {/* Gold stands on the same dithered ground as the Pro cards; the others stay quiet. */}
+    <div className="panel flex h-full flex-col">
       {gold ? (
-        <div className="relative isolate h-24 overflow-hidden">
+        <div className="relative isolate h-20 overflow-hidden">
           <DitherStage seed="sponsor-gold" palette={["#ff7a3c", "#ff0000", "#ff8fb8", "#4d8dff"]} className="-z-10" />
         </div>
       ) : null}
-      <div className="flex flex-1 flex-col p-7">
-        <div className="flex items-center justify-between gap-3">
-          <span className={cn("p-meta", gold ? "text-accent" : "text-subtle")}>{tier.audience === "company" ? "Company" : "Individual"}</span>
-          {tier.slots ? <span className="rounded-[4px] border border-[var(--line)] px-1.5 py-0.5 text-[10px] font-semibold tracking-wider text-muted uppercase tabular-nums">{full ? "Full" : `${tier.slots - taken} of ${tier.slots} open`}</span> : null}
+      <div className="flex flex-1 flex-col p-6 md:p-7">
+        <div className="flex h-6 items-center justify-between gap-3">
+          <span className="text-[13px] font-medium text-subtle">{tier.audience === "company" ? "Company" : "Individual"}</span>
+          {tier.slots ? <span className="inline-flex h-6 items-center rounded-full border border-[var(--line-strong)] px-2.5 text-[11.5px] font-medium text-muted tabular-nums">{full ? "Full" : `${tier.slots - taken} of ${tier.slots} open`}</span> : null}
         </div>
-        <h3 className="mt-5 text-[18.5px] leading-[1.2] font-medium tracking-[-0.02em]">{tier.name}</h3>
-        <p className="mt-2 flex items-baseline gap-1">
-          <span className="text-[32.5px] leading-none font-medium tracking-[-0.04em] tabular-nums">${tier.price}</span>
-          <span className="text-[12.5px] text-muted">/ month</span>
+        <h3 className={cn("mt-5", cardTitle)}>{tier.name}</h3>
+        <p className="mt-3 flex items-baseline gap-1.5">
+          <span className="text-[44px] leading-none font-normal tracking-[-0.045em] tabular-nums">${tier.price}</span>
+          <span className="text-[13.5px] text-muted">/ month</span>
         </p>
-        <p className="mt-4 text-[13px] leading-[22px] text-pretty text-muted">{tier.pitch}</p>
-        <ul className="mt-6 flex flex-col gap-2.5">
-          {tier.perks.map((p) => <li key={p} className="flex gap-2.5 text-[13px] leading-snug text-foreground/90"><Check />{p}</li>)}
+        <p className="mt-4 text-[14px] leading-[23px] text-pretty text-muted">{tier.pitch}</p>
+        <ul className="mt-6 flex flex-col gap-3 border-t border-[var(--line)] pt-5">
+          {tier.perks.map((p) => <li key={p} className="flex gap-2.5 text-[13.5px] leading-snug text-foreground"><Check />{p}</li>)}
         </ul>
         <div className="mt-auto pt-8">
           {full ? (
-            <TextLink href={sponsorLinks.email}>Join the waitlist</TextLink>
+            <a href={sponsorLinks.email} className="group inline-flex items-center gap-2 text-[14.5px] font-semibold text-foreground">Join the waitlist <Arrow /></a>
           ) : (
             <Button href={sponsorLinks.github} variant={gold ? "primary" : "secondary"} className="w-full justify-center">Sponsor as {tier.name} <Arrow /></Button>
           )}
@@ -99,22 +108,24 @@ function TierCard({ tier, taken }: { tier: Tier; taken: number }) {
 
 export function SponsorTiers({ sponsors }: { sponsors: Sponsor[] }) {
   return (
-    <section id="tiers" className="relative scroll-mt-16 py-16 sm:py-24">
+    <section id="tiers" className={cn("relative scroll-mt-16", band)}>
       <Container>
-        <SectionCopy
+        <SectionHead
           tags={[{ label: "Monthly", icon: <Glyph.tag /> }, { label: "Cancel any time", icon: <Glyph.check /> }]}
           title="Four tiers, one for giving and three for being seen"
           body="Individual sponsorship is a thank-you. Company tiers buy placement where iOS developers read: the homepage, every docs page and the README."
         />
-        <RevealGroup className="mt-12 grid gap-4 sm:grid-cols-2 xl:grid-cols-4" stagger={0.08}>
-          {tiers.map((t) => (
-            <RevealItem key={t.id}>
-              <TierCard tier={t} taken={sponsors.filter((s) => s.tier === t.id).length} />
-            </RevealItem>
-          ))}
-        </RevealGroup>
+        <Reveal className="tray">
+          <RevealGroup className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4" stagger={0.08}>
+            {tiers.map((t) => (
+              <RevealItem key={t.id} className="h-full">
+                <TierCard tier={t} taken={sponsors.filter((s) => s.tier === t.id).length} />
+              </RevealItem>
+            ))}
+          </RevealGroup>
+        </Reveal>
         <Reveal>
-          <p className="mt-6 text-[13px] text-muted">Need an invoice, a yearly plan or a custom amount? <a href={sponsorLinks.email} className="u-link text-foreground">Email saivion@swiftpieces.com</a>.</p>
+          <p className="mt-6 text-[14px] text-muted">Need an invoice, a yearly plan or a custom amount? <a href={sponsorLinks.email} className="u-link font-medium text-foreground">Email saivion@swiftpieces.com</a>.</p>
         </Reveal>
       </Container>
     </section>
@@ -127,20 +138,20 @@ export function SponsorTiers({ sponsors }: { sponsors: Sponsor[] }) {
 function GoldSeat({ sponsor, price }: { sponsor?: Sponsor; price: number }) {
   if (sponsor) {
     return (
-      <a href={sponsor.url} target="_blank" rel="noreferrer sponsored" className="group flex h-40 flex-col items-center justify-center gap-3 px-6 transition-colors hover:bg-white/[0.02]">
+      <a href={sponsor.url} target="_blank" rel="noreferrer sponsored" className="group flex h-44 flex-col items-center justify-center gap-3 px-6 transition-colors hover:bg-surface-3">
         {/* eslint-disable-next-line @next/next/no-img-element -- remote sponsor avatars, sized in CSS */}
-        <img src={sponsor.logo} alt="" className="size-14 rounded-[6px] object-cover" loading="lazy" />
+        <img src={sponsor.logo} alt="" className="size-14 rounded-[14px] object-cover" loading="lazy" />
         <span className="truncate text-[14px] font-medium text-foreground">{sponsor.name}</span>
       </a>
     );
   }
   return (
-    <a href={sponsorLinks.github} className="group flex h-40 flex-col items-center justify-center gap-3 px-6 text-center transition-colors hover:bg-white/[0.02]">
-      <span aria-hidden className="grid size-10 place-items-center rounded-[6px] border border-dashed border-accent/40 text-accent transition-colors group-hover:border-accent">
+    <a href={sponsorLinks.github} className="group flex h-44 flex-col items-center justify-center gap-3 px-6 text-center transition-colors hover:bg-surface-3">
+      <span aria-hidden className="grid size-10 place-items-center rounded-full border border-[var(--line-strong)] text-muted transition-colors group-hover:text-foreground">
         <svg viewBox="0 0 16 16" className="ai ai-spin size-4" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"><path d="M8 3.5v9M3.5 8h9" /></svg>
       </span>
-      <span className="text-[13px] font-medium text-foreground">Your logo on the homepage</span>
-      <span className="-mt-1.5 inline-flex items-center gap-1.5 text-[12px] text-muted transition-colors group-hover:text-foreground">${price} / month <Arrow className="size-3" /></span>
+      <span className="text-[14px] font-medium text-foreground">Your logo on the homepage</span>
+      <span className="-mt-1.5 inline-flex items-center gap-1.5 text-[13px] text-muted transition-colors group-hover:text-foreground">${price} / month <Arrow className="size-3" /></span>
     </a>
   );
 }
@@ -150,12 +161,12 @@ function TierRow({ tier, open, children }: { tier: Tier; open: string; children:
   return (
     <div className="grid gap-4 border-b border-[var(--line)] py-6 md:grid-cols-[180px_1fr_auto] md:items-center md:gap-8">
       <div>
-        <p className="text-[14px] font-medium text-foreground">{tier.name}</p>
-        <p className="mt-1 text-[12px] text-subtle tabular-nums">${tier.price} / month</p>
+        <p className="text-[15px] font-medium text-foreground">{tier.name}</p>
+        <p className="mt-1 text-[13px] text-subtle tabular-nums">${tier.price} / month</p>
       </div>
       <div className="min-w-0">{children}</div>
-      <a href={sponsorLinks.github} className="group inline-flex items-center gap-1.5 text-[13px] font-medium text-muted transition-colors hover:text-foreground">
-        <span className="u-link">{open}</span> <Arrow className="size-3.5" />
+      <a href={sponsorLinks.github} className="group inline-flex items-center gap-2 text-[14px] font-semibold text-muted transition-colors hover:text-foreground">
+        {open} <Arrow className="size-3.5" />
       </a>
     </div>
   );
@@ -169,8 +180,8 @@ function LogoRow({ list, size }: { list: Sponsor[]; size: "silver" | "bronze" })
         <li key={s.name}>
           <a href={s.url} target="_blank" rel="noreferrer sponsored" className="flex items-center gap-2.5 text-foreground transition-opacity hover:opacity-80" title={s.name}>
             {/* eslint-disable-next-line @next/next/no-img-element -- remote sponsor avatars, sized in CSS */}
-            <img src={s.logo} alt="" className={cn("object-cover", size === "silver" ? "size-9 rounded-[5px]" : "size-7 rounded-[4px]")} loading="lazy" />
-            <span className={size === "silver" ? "text-[13px] font-medium" : "text-[12.5px]"}>{s.name}</span>
+            <img src={s.logo} alt="" className={cn("object-cover", size === "silver" ? "size-9 rounded-[10px]" : "size-7 rounded-[8px]")} loading="lazy" />
+            <span className={size === "silver" ? "text-[14px] font-medium" : "text-[13px]"}>{s.name}</span>
           </a>
         </li>
       ))}
@@ -179,9 +190,10 @@ function LogoRow({ list, size }: { list: Sponsor[]; size: "silver" | "bronze" })
 }
 
 /**
- * Gold is the only boxed thing in the section: a gradient-edged panel lit from its corner, with
- * three large seats in columns. Silver, Bronze and Supporters sit under it as plain rows, each with
- * its price, its sponsors (or a line about the open seat) and a link, so nothing competes with Gold.
+ * Gold is the only boxed thing in the section: a tray holding one panel, its head (the placement, the
+ * price and the open seats, marked with a live red dot while any are free) over three large seats in
+ * columns. Silver, Bronze and Supporters sit under it as plain hairline rows, each with its price, its
+ * sponsors (or a line about the open seat) and a link, so nothing competes with Gold.
  */
 export function SponsorWall({ sponsors }: { sponsors: Sponsor[] }) {
   const of = (id: Sponsor["tier"]) => sponsors.filter((s) => s.tier === id);
@@ -193,37 +205,34 @@ export function SponsorWall({ sponsors }: { sponsors: Sponsor[] }) {
   const silver = of("silver");
   const bronze = of("bronze");
   const supporters = of("supporter");
-  const empty = (text: string) => <p className="text-[13px] text-subtle">{text}</p>;
+  const empty = (text: string) => <p className="text-[14px] text-subtle">{text}</p>;
   return (
-    <section className="relative py-16 sm:py-24">
+    <section className={band}>
       <Container>
-        <SectionCopy
+        <SectionHead
           tags={[{ label: "Sponsors", icon: <Glyph.gift /> }]}
           title={sponsors.length ? "Thank you to the sponsors keeping it free" : "Be the first to sponsor SwiftPieces"}
           body={sponsors.length ? "Every name here pays for work that stays free for everyone." : "Every seat below is open. The first sponsors are listed first, and stay at the top of their tier."}
         />
 
-        <Reveal className="mt-12">
-          {/* Gold: a 1px gradient edge around a dark panel, with the Pro cards' halftone corner. */}
-          <div className="rounded-[7px] bg-[linear-gradient(135deg,#ff7a3c,#ff0000_35%,#ff8fb8_70%,#4d8dff)] p-px shadow-[0_24px_60px_-44px_rgb(255_0_0/0.5)]">
-            <div className="relative isolate overflow-hidden rounded-[6px] bg-[var(--gold-panel)]">
-              {/* The Pro cards' halftone corner, so Gold reads as part of that family. Smaller and dimmer than
-                  on the Pro cards: here the third seat's copy sits in that corner and has to stay legible. */}
-              <CornerDither className="pointer-events-none absolute right-0 bottom-0 -z-10 h-40 w-full opacity-70 [mask-image:radial-gradient(110%_110%_at_100%_100%,black_30%,transparent_72%)] lg:h-[62%] lg:w-[30%]" />
-              <div className="relative flex flex-wrap items-end justify-between gap-4 px-6 pt-6 md:px-8 md:pt-8">
+        <Reveal>
+          <div className="tray">
+            <div className="panel">
+              <div className="flex flex-wrap items-end justify-between gap-4 px-6 pt-6 md:px-8 md:pt-8">
                 <div>
-                  <p className="p-meta text-accent">Gold</p>
-                  <p className="mt-2 text-[18.5px] font-medium tracking-[-0.02em] text-foreground">The headline placement</p>
-                  <p className="mt-1.5 text-[13px] text-muted">On the homepage, at the top of this page and the README, and in the docs.</p>
+                  <p className="text-[13px] font-medium text-subtle">Gold</p>
+                  <p className={cn("mt-2", cardTitle)}>The headline placement</p>
+                  <p className="mt-2 text-[14.5px] text-muted">On the homepage, at the top of this page and the README, and in the docs.</p>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="text-[12.5px] text-muted tabular-nums">${goldTier.price} / month</span>
-                  <span className="rounded-[var(--radius)] border border-accent/30 bg-accent/10 px-3 py-1 text-[11.5px] font-semibold text-accent tabular-nums">
+                  <span className="text-[13.5px] text-muted tabular-nums">${goldTier.price} / month</span>
+                  <span className="inline-flex h-[30px] items-center gap-2 rounded-full bg-surface px-3 text-[12.5px] font-medium text-foreground tabular-nums">
+                    {open ? <span aria-hidden className="size-[7px] rounded-full bg-accent shadow-[0_0_0_3px_rgb(255_0_0/0.2)]" /> : null}
                     {open ? `${open} of ${seats} seats open` : "All seats taken"}
                   </span>
                 </div>
               </div>
-              <div className="relative mt-6 grid border-t border-white/[0.07] sm:grid-cols-3 sm:divide-x sm:divide-white/[0.07] max-sm:divide-y max-sm:divide-white/[0.07]">
+              <div className="mt-6 grid border-t border-[var(--line)] sm:grid-cols-3 sm:divide-x sm:divide-[var(--line)] max-sm:divide-y max-sm:divide-[var(--line)]">
                 {gold.map((s) => <GoldSeat key={s.name} sponsor={s} price={goldTier.price} />)}
                 {Array.from({ length: open }).map((_, i) => <GoldSeat key={i} price={goldTier.price} />)}
               </div>
@@ -231,7 +240,7 @@ export function SponsorWall({ sponsors }: { sponsors: Sponsor[] }) {
           </div>
 
           {/* The lower tiers: quiet rows, no boxes. */}
-          <div className="mt-4 border-t border-[var(--line)]">
+          <div className="mt-6 border-t border-[var(--line)]">
             <TierRow tier={tier("silver")} open="Become a Silver sponsor">
               {silver.length ? <LogoRow list={silver} size="silver" /> : empty("Open. Your logo on this page, the README and every docs page.")}
             </TierRow>
@@ -240,7 +249,7 @@ export function SponsorWall({ sponsors }: { sponsors: Sponsor[] }) {
             </TierRow>
             <TierRow tier={tier("supporter")} open="Sponsor on GitHub">
               {supporters.length ? (
-                <p className="text-[13px] leading-7 text-muted">
+                <p className="text-[14px] leading-7 text-muted">
                   {supporters.map((s, i) => (
                     <span key={s.name}>
                       {i > 0 ? ", " : null}
@@ -268,16 +277,17 @@ export function SponsorUse() {
     { title: "The tooling around it", body: "The docs, the CLI, the registry and the MCP server your agent installs from, kept free and online." },
   ];
   return (
-    <section className="relative py-16 sm:py-24">
+    <section className={band}>
       <Container>
-        <SectionCopy tags={[{ label: "Where it goes", icon: <Glyph.bolt /> }]} title="What sponsorship pays for" />
-        <RevealGroup className="mt-12 grid gap-4 md:grid-cols-3" stagger={0.08}>
+        <SectionHead tags={[{ label: "Where it goes", icon: <Glyph.bolt /> }]} title="What sponsorship pays for" />
+        <RevealGroup className="grid gap-3 md:grid-cols-3" stagger={0.08}>
           {items.map((it, i) => (
-            <RevealItem key={it.title}>
-              <div className="frame-dashed relative h-full p-7">
-                <span className="text-[12.5px] text-subtle tabular-nums">0{i + 1}</span>
-                <h3 className="mt-4 text-[15.5px] font-medium tracking-[-0.01em]">{it.title}</h3>
-                <p className="mt-2 text-[13px] leading-[22px] text-pretty text-muted">{it.body}</p>
+            <RevealItem key={it.title} className="h-full">
+              {/* Numbered tiles, as on pro.swiftpieces.com: the index, then the point well below it. */}
+              <div className="flex h-full min-h-[220px] flex-col rounded-[22px] bg-surface px-6 pt-[26px] pb-7">
+                <Index n={i + 1} />
+                <h3 className="mt-12 text-[19px] font-medium tracking-[-0.02em] sm:mt-14">{it.title}</h3>
+                <p className="mt-2.5 text-[14.5px] leading-[23px] text-pretty text-muted">{it.body}</p>
               </div>
             </RevealItem>
           ))}
@@ -308,13 +318,13 @@ export function SponsorStrip({ sponsors }: { sponsors: Sponsor[] }) {
   return (
     <Container className="py-10">
       <div className="flex flex-col items-center gap-5 sm:flex-row sm:justify-center sm:gap-8">
-        <a href="/sponsors" className="p-meta text-subtle transition-colors hover:text-foreground">Sponsored by</a>
-        <ul className="flex flex-wrap items-center justify-center gap-3">
+        <a href="/sponsors" className="text-[13px] font-medium text-subtle transition-colors hover:text-foreground">Sponsored by</a>
+        <ul className="flex flex-wrap items-center justify-center gap-2">
           {sponsors.map((s) => (
             <li key={s.name}>
-              <a href={s.url} target="_blank" rel="noreferrer sponsored" className="flex items-center gap-2.5 rounded-[var(--radius-sm)] px-3 py-2 text-[13px] font-medium text-muted transition-colors hover:bg-surface-2 hover:text-foreground">
+              <a href={s.url} target="_blank" rel="noreferrer sponsored" className="flex h-11 items-center gap-2.5 rounded-full bg-surface pr-4 pl-2 text-[13.5px] font-medium text-muted transition-colors hover:bg-surface-3 hover:text-foreground">
                 {/* eslint-disable-next-line @next/next/no-img-element -- remote sponsor avatars */}
-                <img src={s.logo} alt="" className="size-7 rounded-[6px] object-cover" loading="lazy" />
+                <img src={s.logo} alt="" className="size-7 rounded-full object-cover" loading="lazy" />
                 {s.name}
               </a>
             </li>
@@ -324,4 +334,3 @@ export function SponsorStrip({ sponsors }: { sponsors: Sponsor[] }) {
     </Container>
   );
 }
-

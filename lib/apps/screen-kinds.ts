@@ -1,4 +1,4 @@
-// What kind of screen each remixed screen is, for the App Library's "Browse by screen": one kind per
+// What kind of screen each remixed screen is, for the Playground's "Browse by screen": one kind per
 // screen, keyed by app slug, one entry per step of the app's remix, in step order. Hand-kept, like
 // screen-tags.ts: when a remix gains, loses or reorders a screen, update its line here too (the
 // directory refuses to build when a line and its remix disagree).
@@ -41,4 +41,18 @@ export const SCREEN_KINDS: Record<string, ScreenKind[]> = {
   waterllama: ["home", "tools", "progress", "progress", "progress", "social"],
   tripsy: ["calendar", "detail", "tools", "map", "social", "social", "stats"],
   sofa: ["list", "list", "discover", "list", "session", "calendar", "stats"],
+  "mercury-weather": ["home", "stats", "list", "map", "calendar", "stats", "tools"],
+  hevy: ["home", "session", "progress", "social", "stats", "detail", "stats"],
+  endel: ["session", "stats", "tools", "tools", "discover", "session", "session"],
+  opal: ["home", "stats", "list", "input", "session", "session", "tools"],
+  things: ["home", "list", "calendar", "input", "detail", "progress"],
+  letterboxd: ["discover", "detail", "input", "calendar", "social", "stats", "list"],
+  vivino: ["discover", "tools", "detail", "input", "list", "stats", "list"],
+  "stats-fm": ["home", "list", "detail", "stats", "calendar", "social", "social"],
+  partiful: ["home", "detail", "social", "input", "social", "tools", "discover"],
+  merlin: ["home", "session", "detail", "input", "tools", "discover", "progress"],
+  finch: ["home", "input", "session", "social", "stats", "progress", "input"],
+  parcel: ["list", "detail", "map", "input", "tools", "tools"],
+  bear: ["list", "list", "detail", "stats", "discover", "tools", "list"],
+  paku: ["map", "detail", "stats", "list", "tools", "tools", "tools"],
 };

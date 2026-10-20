@@ -1,12 +1,14 @@
 "use client";
 // The studio panel's controls, compact enough that a whole style fits one column: a setting as one
 // row (its name, its value, the native menu under it), a strip of colours, and a pad that sets
-// spacing and weight together. All inside the panel's dark island (.studio-dark in globals.css).
+// spacing and weight together. Graphite: pills of the tray colour on the panel, in the site's own
+// light or dark tokens.
 import { useRef, type KeyboardEvent, type PointerEvent, type ReactNode } from "react";
 import { FONT_CATEGORIES, bodyFonts, fontById, fonts, type Theme } from "@swiftpieces/builder";
 import { cn } from "@/lib/cn";
+import { field } from "./studio-frame";
 
-const row = "ai-host relative flex h-9 items-center justify-between gap-3 rounded-[var(--radius)] bg-[var(--studio-row)] px-3 text-[12.5px] transition-colors duration-200 hover:bg-[var(--studio-row-hover)] focus-within:outline-2 focus-within:outline-offset-1 focus-within:outline-accent";
+const row = `ai-host relative flex h-9 items-center justify-between gap-3 rounded-full px-3.5 text-[13px] focus-within:outline-2 focus-within:outline-offset-1 focus-within:outline-accent ${field}`;
 
 function Chevrons() {
   return (
@@ -19,8 +21,8 @@ function Chevrons() {
 /** A heading between groups of rows. */
 export function GroupLabel({ children, aside }: { children: ReactNode; aside?: ReactNode }) {
   return (
-    <div className="mt-5 mb-2 flex items-center justify-between gap-3 first:mt-0">
-      <h2 className="text-[12px] font-semibold text-foreground">{children}</h2>
+    <div className="mt-6 mb-2.5 flex items-center justify-between gap-3 px-1 first:mt-0">
+      <h2 className="text-[13px] font-medium text-foreground">{children}</h2>
       {aside}
     </div>
   );
@@ -93,7 +95,7 @@ export function ColorStrip({ setting, swatches, custom, onCustom }: { setting?: 
     <div className="flex items-center gap-1.5" data-setting={setting}>
       {/* isolate: the picked swatch's z-index lifts it above its neighbours only, never above the
           canvas that stays pinned over the scrolling settings on a phone. */}
-      <div role="radiogroup" aria-label="Accent" className="isolate flex h-9 min-w-0 flex-1 items-stretch overflow-visible rounded-[var(--radius)]">
+      <div role="radiogroup" aria-label="Accent" className="isolate flex h-9 min-w-0 flex-1 items-stretch overflow-visible rounded-full">
         {swatches.map((s, i) => (
           <button
             key={s.key}
@@ -104,9 +106,9 @@ export function ColorStrip({ setting, swatches, custom, onCustom }: { setting?: 
             title={s.label}
             onClick={s.pick}
             className={cn(
-              "relative min-w-0 flex-1 transition-[transform,box-shadow] duration-200 ease-[var(--ease-out)] focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent aria-checked:z-10 aria-checked:scale-y-[1.22] aria-checked:scale-x-[1.35] aria-checked:rounded-[var(--radius)] aria-checked:shadow-[0_0_0_2px_var(--studio-panel),0_0_0_3.5px_var(--foreground)]",
-              i === 0 && "rounded-l-[8px]",
-              i === swatches.length - 1 && "rounded-r-[8px]",
+              "relative min-w-0 flex-1 transition-[transform,box-shadow] duration-200 ease-[var(--ease-out)] focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent aria-checked:z-10 aria-checked:scale-y-[1.22] aria-checked:scale-x-[1.35] aria-checked:rounded-full aria-checked:shadow-[0_0_0_2px_var(--surface-2),0_0_0_3.5px_var(--foreground)]",
+              i === 0 && "rounded-l-full",
+              i === swatches.length - 1 && "rounded-r-full",
             )}
             style={{ background: s.color }}
           />
@@ -114,7 +116,7 @@ export function ColorStrip({ setting, swatches, custom, onCustom }: { setting?: 
       </div>
       <label
         title={custom ? `Custom ${custom}` : "Any colour"}
-        className={cn("relative grid size-9 flex-none cursor-pointer place-items-center rounded-[var(--radius)] bg-[var(--studio-row)] text-foreground transition-colors hover:bg-[var(--studio-row-hover)] focus-within:outline-2 focus-within:outline-accent", custom && "shadow-[0_0_0_2px_var(--studio-panel),0_0_0_3.5px_var(--foreground)]")}
+        className={cn("relative grid size-9 flex-none cursor-pointer place-items-center rounded-full text-foreground focus-within:outline-2 focus-within:outline-accent", field, custom && "shadow-[0_0_0_2px_var(--surface-2),0_0_0_3.5px_var(--foreground)]")}
         style={custom ? { background: custom } : undefined}
       >
         {custom ? null : (
@@ -137,8 +139,8 @@ const INSET_Y = 28;
 
 /**
  * Character: spacing (Airy at the top, Compact at the bottom) and weight (Quiet on the left, Bold on
- * the right) on one pad of dots. Tap or drag anywhere to set both; arrow keys move a step. Hairlines
- * cross at the dot, and the axis words light up at their ends.
+ * the right) on one pad, a faint mark at each of its twenty stops. Tap or drag anywhere to set both;
+ * arrow keys move a step. Hairlines cross at the knob, and the axis words light up at their ends.
  */
 export function CharacterPad({ setting, weight, density, onChange }: { setting?: string; weight: Theme["weight"]; density: Theme["density"]; onChange: (p: { weight: Theme["weight"]; density: Theme["density"] }) => void }) {
   const pad = useRef<HTMLDivElement>(null);
@@ -178,25 +180,34 @@ export function CharacterPad({ setting, weight, density, onChange }: { setting?:
         at(e);
       }}
       onPointerMove={(e) => e.buttons === 1 && at(e)}
-      className="relative h-[124px] cursor-crosshair touch-none overflow-hidden rounded-[var(--radius-lg)] bg-[var(--studio-row)] select-none focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent"
-      style={{ backgroundImage: "radial-gradient(circle, rgb(255 255 255 / .16) 1px, transparent 1.3px)", backgroundSize: "14px 14px", backgroundPosition: "7px 7px" }}
+      className="relative h-[124px] cursor-crosshair touch-none overflow-hidden rounded-[22px] bg-surface select-none focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent"
     >
-      <span aria-hidden className={`absolute inset-y-0 w-px -translate-x-1/2 bg-white/[.08] transition-[left] ${move}`} style={{ left }} />
-      <span aria-hidden className={`absolute inset-x-0 h-px -translate-y-1/2 bg-white/[.08] transition-[top] ${move}`} style={{ top }} />
+      {WEIGHTS.flatMap((_, i) =>
+        DENSITIES.map((_, j) => (
+          <span
+            key={`${i}-${j}`}
+            aria-hidden
+            className="absolute size-[3px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[var(--line-strong)]"
+            style={{ left: `calc(${INSET_X}px + (100% - ${INSET_X * 2}px) * ${i / (WEIGHTS.length - 1)})`, top: `calc(${INSET_Y}px + (100% - ${INSET_Y * 2}px) * ${j / (DENSITIES.length - 1)})` }}
+          />
+        )),
+      )}
+      <span aria-hidden className={`absolute inset-y-0 w-px -translate-x-1/2 bg-[var(--line)] transition-[left] ${move}`} style={{ left }} />
+      <span aria-hidden className={`absolute inset-x-0 h-px -translate-y-1/2 bg-[var(--line)] transition-[top] ${move}`} style={{ top }} />
       <Axis on={y === 0} className="top-2 left-1/2 -translate-x-1/2">Airy</Axis>
       <Axis on={y === DENSITIES.length - 1} className="bottom-2 left-1/2 -translate-x-1/2">Compact</Axis>
       <Axis on={x === 0} className="top-1/2 left-2 -translate-y-1/2 rotate-180 [writing-mode:vertical-rl]">Quiet</Axis>
       <Axis on={x === WEIGHTS.length - 1} className="top-1/2 right-2 -translate-y-1/2 [writing-mode:vertical-rl]">Bold</Axis>
-      <span aria-hidden className={`absolute size-4 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white shadow-[0_2px_8px_rgb(0_0_0/.5)] transition-[left,top] ${move}`} style={{ left, top }} />
+      <span aria-hidden className={`absolute size-4 -translate-x-1/2 -translate-y-1/2 rounded-full bg-foreground shadow-[0_2px_8px_rgb(0_0_0/.35)] transition-[left,top] ${move}`} style={{ left, top }} />
     </div>
   );
 }
 
 function Axis({ on, className, children }: { on: boolean; className: string; children: ReactNode }) {
-  return <span className={cn("pointer-events-none absolute text-[10px] leading-none transition-colors duration-300", on ? "text-foreground" : "text-subtle", className)}>{children}</span>;
+  return <span className={cn("pointer-events-none absolute text-[10.5px] leading-none font-medium transition-colors duration-300", on ? "text-foreground" : "text-subtle", className)}>{children}</span>;
 }
 
-/** A small toggle chip (a lock). */
+/** A small toggle chip (a lock): a tray-colour pill, the ink pill while pressed. */
 export function Chip({ pressed, onClick, title, children }: { pressed?: boolean; onClick: () => void; title?: string; children: ReactNode }) {
   return (
     <button
@@ -204,7 +215,7 @@ export function Chip({ pressed, onClick, title, children }: { pressed?: boolean;
       aria-pressed={pressed}
       title={title}
       onClick={onClick}
-      className="ai-host inline-flex h-7 flex-1 items-center justify-center gap-1 rounded-[var(--radius)] bg-[var(--studio-row)] px-1.5 text-[11px] font-medium text-muted transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent aria-pressed:bg-white aria-pressed:text-black"
+      className="ai-host inline-flex h-7 flex-1 items-center justify-center gap-1 rounded-full bg-surface px-1.5 text-[11.5px] font-medium text-muted transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent aria-pressed:bg-foreground aria-pressed:text-background"
     >
       {children}
     </button>

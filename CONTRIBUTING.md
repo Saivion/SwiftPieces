@@ -2,7 +2,7 @@
 
 Thanks for helping. This repository is the **free, open-source** library. It accepts new components, fixes, docs and previews.
 
-SwiftPieces Pro (blocks, screens, templates, Build Kit) is closed source and lives in a private repository. Please don't open PRs that add Pro-style content here; `npm run audit:public` will fail them, and so will CI.
+SwiftPieces Pro (screens, Pro blocks, templates, Build Kit) is closed source and lives in a private repository. Please don't open PRs that add Pro-style content here; `npm run audit:public` will fail them, and so will CI.
 
 ## Before you start
 
@@ -57,6 +57,18 @@ npm run motion:sync && npm run swift:typecheck && npm run registry:build && npm 
 A piece has to build and run in two kinds of app: one with Swift's default isolation, and one made with Xcode 26 or later, which makes the main actor the default. In the second, anything SwiftUI or UIKit calls off the main actor must opt out with `nonisolated`: layout value keys, helpers called from a shape's `path(in:)`, `VectorArithmetic` types and other pure math. A dynamic color is written `UIColor { @Sendable traits in … }`, because SwiftUI resolves colors on its render thread. `swift:typecheck` checks every piece both ways.
 
 `registry:build` regenerates `registry/__registry__`, `content/docs`, `public/llms.txt` and `public/schema`. **Commit what it generates.** CI fails if the generated output does not match the source, so a PR that edits a `.swift` file without rerunning the build will be rejected, and so will a hand edit to the generated files.
+
+## Adding a block
+
+A block is a whole section of a screen built from pieces: a sign-in form, an account settings section, a checkout. The pieces carry the interaction; the block lays them out, wires them together and gives them their states, so it drops into a screen with a closure or two.
+
+1. Create `registry/blocks/<category>/<Name>Block.swift` (categories are in `lib/blocks.ts`) with the same `// swiftpieces:` header as a piece. `registryDependencies` lists the pieces it is built from, on one line: the CLI and the MCP server install them with the block, and `swift:typecheck` compiles the block with them.
+2. Write `<Name>Block.mdx` beside it: how the pieces fit together, how to wire it to an app, what to change and how it reads with VoiceOver. A block's notes are required.
+3. Make the first `#Preview` a short, real use of the block: it becomes the Usage snippet.
+4. Add a scene in `previews/SwiftPiecesPreviews/Blocks/<Name>BlockScene.swift`, list the name in `PreviewCatalog.swift` and add its case.
+5. Add a web recreation in `components/previews/blocks/` on the block canvas (`components/previews/blocks/canvas.tsx`) and register it in `components/previews/index.tsx`.
+
+Blocks install to `SwiftPieces/Blocks/`. Pro's blocks are listed in `lib/blocks.ts` by name only; their source is never in this repository.
 
 ## Rules
 

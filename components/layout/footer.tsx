@@ -6,7 +6,7 @@ import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { FooterWordmark } from "@/components/layout/footer-wordmark";
 
 const columns: { title: string; links: { label: string; href: string }[] }[] = [
-  { title: "Free", links: [{ label: "Components", href: "/components" }, { label: "Styles", href: "/styles" }, { label: "Animations", href: "/components/animations" }, { label: "Liquid Glass", href: "/components/glass" }, { label: "Buttons", href: "/components/controls" }, { label: "Cards", href: "/components/cards" }, { label: "Inputs and forms", href: "/components/inputs" }, { label: "AI chat", href: "/components/ai" }] },
+  { title: "Free", links: [{ label: "Components", href: "/components" }, { label: "Blocks", href: "/blocks" }, { label: "Styles", href: "/styles" }, { label: "Animations", href: "/components/animations" }, { label: "Liquid Glass", href: "/components/glass" }, { label: "Buttons", href: "/components/controls" }, { label: "Cards", href: "/components/cards" }, { label: "Inputs and forms", href: "/components/inputs" }, { label: "AI chat", href: "/components/ai" }] },
   { title: "Pro", links: [{ label: "Screens", href: pro.screens }, { label: "Flows", href: pro.flows }, { label: "Templates", href: pro.templates }, { label: "MCP and Agents", href: pro.mcpDocs }, { label: "Pricing", href: pro.pricing }, { label: "Account", href: pro.account }] },
   { title: "Docs", links: [{ label: "Introduction", href: "/docs/introduction" }, { label: "Installation", href: "/docs/installation" }, { label: "CLI", href: "/docs/cli" }, { label: "MCP & agents", href: "/docs/mcp" }, { label: "Registry", href: "/r/index.json" }, { label: "llms.txt", href: "/llms.txt" }] },
   { title: "Guides", links: [{ label: "SwiftUI Animations", href: "/docs/guides/swiftui-animations" }, { label: "SwiftUI Buttons", href: "/docs/guides/swiftui-buttons" }, { label: "SwiftUI Cards", href: "/docs/guides/swiftui-cards" }, { label: "SwiftUI Haptics", href: "/docs/guides/swiftui-haptics" }, { label: "Loading States", href: "/docs/guides/swiftui-loading-states" }, { label: "Liquid Glass", href: "/docs/liquid-glass" }] },
@@ -16,33 +16,32 @@ const columns: { title: string; links: { label: string; href: string }[] }[] = [
 
 export function Footer() {
   return (
-    <footer className="relative overflow-hidden pt-24" data-tone="black">
-      <div aria-hidden className="dots-wide pointer-events-none absolute inset-0 opacity-50" style={{ maskImage: "linear-gradient(to bottom, transparent, black 40%)", WebkitMaskImage: "linear-gradient(to bottom, transparent, black 40%)" }} />
+    <footer className="relative overflow-hidden">
       <Container className="relative">
-        <div className="grid gap-12 sm:grid-cols-2 lg:grid-cols-[1.4fr_repeat(6,1fr)] lg:gap-6">
-          <div className="max-w-xs">
+        <div className="grid grid-cols-2 gap-x-6 gap-y-10 border-t border-line pt-16 sm:grid-cols-3 sm:pt-[72px] lg:grid-cols-[1.5fr_repeat(6,1fr)] lg:gap-8">
+          <div className="col-span-2 max-w-xs sm:col-span-3 lg:col-span-1">
             <Logo />
-            <p className="mt-5 text-sm leading-relaxed text-muted">A collection of beautifully animated SwiftUI components. Yours to use, always free.</p>
-            <div className="mt-6 flex items-center gap-2">
+            <p className="mt-4 max-w-[240px] text-[14px] leading-[22px] text-muted">A collection of beautifully animated SwiftUI components. Yours to use, always free.</p>
+            <div className="mt-[22px] flex items-center gap-2">
               {[
                 { href: site.github, label: "GitHub", d: "M8 .2a8 8 0 0 0-2.5 15.6c.4 0 .5-.2.5-.4v-1.5c-2.2.5-2.7-1-2.7-1-.4-.9-.9-1.2-.9-1.2-.7-.5.1-.5.1-.5.8.1 1.2.8 1.2.8.7 1.3 1.9.9 2.4.7.1-.5.3-.9.5-1.1-1.8-.2-3.7-.9-3.7-4a3 3 0 0 1 .8-2.1c-.1-.2-.4-1 .1-2.1 0 0 .7-.2 2.2.8a7.6 7.6 0 0 1 4 0c1.5-1 2.2-.8 2.2-.8.4 1.1.2 1.9.1 2.1a3 3 0 0 1 .8 2.1c0 3.1-1.9 3.8-3.7 4 .3.3.6.8.6 1.5v2.3c0 .2.1.5.6.4A8 8 0 0 0 8 .2Z" },
                 { href: site.twitter, label: "X", d: "M12.6 1h2.2L9.9 6.6 15.7 15h-4.5L7.7 10.4 3.6 15H1.4l5.3-6L1.1 1h4.6l3.2 4.2L12.6 1Zm-.8 12.7h1.2L4.9 2.2H3.6l8.2 11.5Z" },
               ].map((s) => (
-                <a key={s.label} href={s.href} aria-label={s.label} className="flex size-9 items-center justify-center rounded-[var(--radius-sm)] bg-surface-2 text-muted transition-colors hover:bg-surface-3 hover:text-foreground">
+                <a key={s.label} href={s.href} aria-label={s.label} className="flex size-[38px] items-center justify-center rounded-full border border-line text-muted transition-colors hover:bg-surface hover:text-foreground">
                   <svg viewBox="0 0 16 16" className="ai ai-lift size-4 overflow-visible" fill="currentColor"><path d={s.d} /></svg>
                 </a>
               ))}
             </div>
             {/* Light, dark or follow the system; remembered per browser. */}
-            <ThemeToggle className="mt-4" />
+            <ThemeToggle className="mt-3.5" />
           </div>
           {columns.map((col) => (
             <div key={col.title}>
-              <p className="p-meta mb-5 text-subtle">{col.title}</p>
-              <ul className="flex flex-col gap-2.5">
+              <p className="mb-3.5 text-[13.5px] font-medium text-foreground">{col.title}</p>
+              <ul className="flex flex-col">
                 {col.links.map((l) => (
                   <li key={l.label}>
-                    <Link href={l.href} className="text-[13px] text-muted transition-colors duration-300 hover:text-foreground">
+                    <Link href={l.href} className="block text-[14px] leading-[30px] text-muted transition-colors duration-200 hover:text-foreground">
                       {l.label}
                     </Link>
                   </li>
@@ -52,9 +51,9 @@ export function Footer() {
           ))}
         </div>
 
-        <div className="mt-10 flex flex-col gap-3 text-[11.5px] text-subtle md:flex-row md:items-center md:justify-between">
+        <div className="mt-16 flex flex-col gap-3 border-t border-line py-[22px] text-[13px] text-subtle md:flex-row md:items-center md:justify-between">
           <p>© {new Date().getFullYear()} SwiftPieces. Free pieces are MIT + Commons Clause.</p>
-          <p className="ai-host inline-flex items-center gap-1.5">Curated with<svg aria-label="love" viewBox="0 0 16 16" className="ai ai-beat size-3 overflow-visible text-accent" fill="currentColor"><path d="M8 14s-5.5-3.3-5.5-7.2A3 3 0 0 1 8 5.1a3 3 0 0 1 5.5 1.7C13.5 10.7 8 14 8 14z" /></svg>by <a href="https://x.com/saivion" target="_blank" rel="noreferrer" className="u-link text-foreground">Saivion</a></p>
+          <p className="ai-host inline-flex items-center gap-1.5">Curated with<svg aria-label="love" viewBox="0 0 16 16" className="ai ai-beat size-3 overflow-visible text-accent" fill="currentColor"><path d="M8 14s-5.5-3.3-5.5-7.2A3 3 0 0 1 8 5.1a3 3 0 0 1 5.5 1.7C13.5 10.7 8 14 8 14z" /></svg>by <a href="https://x.com/saivion" target="_blank" rel="noreferrer" className="u-link font-medium text-foreground">Saivion</a></p>
         </div>
         <FooterWordmark />
       </Container>

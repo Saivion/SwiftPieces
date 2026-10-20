@@ -2,7 +2,7 @@ import { formatCount } from "@/lib/format-count";
 import { site } from "@/lib/site";
 import { cn } from "@/lib/cn";
 
-/** GitHub pill with the live star count, the open-source signal in the navbar. */
+/** GitHub pill (outlined, Graphite): the mark, "Star" and the live count in muted ink, the open-source signal in the navbar. */
 export function GitHubStar({ stars, className }: { stars: number | null; className?: string }) {
   return (
     <a
@@ -10,7 +10,7 @@ export function GitHubStar({ stars, className }: { stars: number | null; classNa
       target="_blank"
       rel="noreferrer"
       aria-label={stars === null ? "Star SwiftPieces on GitHub" : `${stars} stars on GitHub`}
-      className={cn("group inline-flex h-9 items-center gap-2 rounded-[4px] bg-foreground px-3 text-[12.5px] font-semibold text-background transition-colors hover:bg-[var(--button-2-hover)]", className)}
+      className={cn("group inline-flex h-[38px] items-center gap-2 rounded-full border border-[var(--line-strong)] px-3.5 text-[13.5px] font-medium text-foreground transition-colors hover:bg-surface", className)}
     >
       {/* On hover the GitHub mark swaps for a gold star that pops in with two twinkling sparkles (CSS only, globals.css). */}
       <span aria-hidden className="gh-star relative size-4 shrink-0">
@@ -27,7 +27,8 @@ export function GitHubStar({ stars, className }: { stars: number | null; classNa
           <path fill="currentColor" d="M5 0C5.4 3.4 6.6 4.6 10 5 6.6 5.4 5.4 6.6 5 10 4.6 6.6 3.4 5.4 0 5 3.4 4.6 4.6 3.4 5 0z" />
         </svg>
       </span>
-      <span className="tabular-nums">{stars === null ? "Star" : formatCount(stars)}</span>
+      <span>Star</span>
+      {stars === null ? null : <span className="text-muted tabular-nums">{formatCount(stars)}</span>}
     </a>
   );
 }

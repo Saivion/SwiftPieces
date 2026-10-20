@@ -30,6 +30,8 @@ export const registryItemSchema = z.object({
   version: z.string().optional(),
   minIOSVersion: z.string().regex(/^\d+(\.\d+)?$/).default("17.0"),
   registryDependencies: z.array(pieceName).default([]),
+  /** A Pro item's Pro dependencies, by id ("design-system"): installed with it, from the Pro registry. */
+  dependencies: z.array(z.string().regex(/^[a-z0-9-]+$|^[A-Z][A-Za-z0-9]+$/, "expected an item id or name")).default([]),
   spmDependencies: z.array(spmDependencySchema).default([]),
   requiredCapabilities: z.array(z.string()).default([]),
   infoPlist: z.record(z.string(), z.string()).default({}),

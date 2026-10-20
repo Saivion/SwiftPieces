@@ -3,7 +3,7 @@
 // description: "A liquid glass async action button driven by one idle/loading/success/error/disabled phase: the signal glass capsule draws in around its label as a glass bubble buds out of its end carrying a spinning ring; on success the ring closes on a check and both turn sage, then the bubble melts home as the label morphs to its success title; an error morphs the label to the message on butter glass, turns the bubble into a retry and shakes."
 // category: controls
 // minIOSVersion: "17.0"
-// version: "2.3.0"
+// version: "2.3.1"
 // pro: swipe-to-confirm
 // tags: [button, loading, success, error, async, haptics]
 
@@ -84,7 +84,9 @@ public struct CommitButton: View {
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Binding private var phase: Phase
-    @State private var shownTitle: String
+    /// Which words the label shows. Kept as a choice rather than the words, so a `title` or `successTitle` that
+    /// changes while it shows (a checkout total) reaches the label at once.
+    @State private var showing: Wording = .title
     @State private var ringClosed = false
     @State private var checkDrawn = false
     @State private var bloomed = false
@@ -125,7 +127,17 @@ public struct CommitButton: View {
         self.collapses = collapses
         self.style = style
         self.action = action
-        self._shownTitle = State(initialValue: title)
+    }
+
+    private enum Wording: Equatable { case title, successTitle, message(String) }
+
+    /// The label's words: the title, the success title once it has taken over, or an error's message.
+    private var shownTitle: String {
+        switch showing {
+        case .title: title
+        case .successTitle: successTitle ?? title
+        case .message(let message): message
+        }
     }
 
     /// Loading, and success until the label has bloomed into its success title (or for good when there is none):
@@ -196,7 +208,7 @@ public struct CommitButton: View {
         .sensoryFeedback(.error, trigger: errorTicks)
         .onAppear {
             if phase == .loading, !spinning { spin() }
-            if case .error(let message) = phase { shownTitle = message }
+            if case .error(let message) = phase { showing = .message(message) }
             buds.place(bubbleWanted ? ["end"] : [])
         }
         .onChange(of: phase) { _, new in respond(to: new) }
@@ -216,6 +228,10 @@ public struct CommitButton: View {
 
     /// The glass capsule and its label. It draws in around the label while it works and opens back to full width
     /// with the outcome, its tint and label changing with it.
+    ///
+    /// The label gets the capsule's width and no more: the room the button is given, less the bubble while it is out.
+    /// A label too long for one line there (a long message, an accessibility text size, a narrow screen) wraps onto a
+    /// second line, and the capsule grows taller to hold it instead of wider.
     private var capsule: some View {
         let motion = PieceMotion(reduceMotion: reduceMotion)
         return HStack(spacing: 8) {
@@ -227,9 +243,11 @@ public struct CommitButton: View {
             PieceMorphText(text: shownTitle, font: style.font)
         }
         .foregroundStyle(ink)
-        .lineLimit(1)
         .padding(.horizontal, 28)
-        .frame(height: style.height)
+        // Keeps a taller label clear of the capsule's rounded ends. One line at the default size stays inside the
+        // style's height, so the capsule only grows when the label needs it.
+        .padding(.vertical, 11)
+        .frame(minHeight: style.height)
         .frame(maxWidth: collapsed ? nil : .infinity)
         .background { PressShade() }
         .pieceLiquid(Capsule(), tint: capsuleTint, interactive: false)
@@ -329,7 +347,7 @@ public struct CommitButton: View {
                 checkDrawn = false
             }
             bloomed = false
-            shownTitle = title
+            showing = .title
         case .success:
             // The arc coasts on as it closes, and the capsule and the bubble turn sage with it.
             withAnimation(motion.morph) { ringClosed = true }
@@ -339,14 +357,14 @@ public struct CommitButton: View {
                 guard !Task.isCancelled else { return }
                 checkDrawn = true
                 land(.success)
-                if let successTitle {
+                if successTitle != nil {
                     try? await Task.sleep(for: .milliseconds(reduceMotion ? 60 : 320))
                     guard !Task.isCancelled else { return }
                     // The bubble melts home with its check as the label morphs to the success title, the check now
                     // beside it, and the capsule opens back to full width.
                     withAnimation(motion.morph) {
                         bloomed = true
-                        shownTitle = successTitle
+                        showing = .successTitle
                     }
                 }
                 try? await Task.sleep(for: successHold)
@@ -357,7 +375,7 @@ public struct CommitButton: View {
             ringClosed = false
             checkDrawn = false
             bloomed = false
-            shownTitle = message
+            showing = .message(message)
             unfelt = .failure
             flow = Task {
                 // Let the capsule open back out and the bubble turn into the retry, then the shake and its haptic land
@@ -726,7 +744,7 @@ private extension View {
 // and melt back into each other, and the frosted fallback before iOS 26. Each piece carries a copy of only
 // the parts it uses, so this file stands alone. Generated from registry/foundation/PieceLiquid.swift in the
 // SwiftPieces repo; edit it there, not here. The rules are in LIQUID_GLASS.md.
-// swiftpieces-liquid: 1.7.1 (liquid, bud, morphText)
+// swiftpieces-liquid: 1.8.0 (liquid, bud, morphText)
 
 /// The liquid glass language: one merge distance, two rest gaps, and the springs a bubble leaves and comes home on.
 ///
@@ -999,31 +1017,46 @@ private struct PieceMorphText: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        Group {
-            if Self.splits(text) {
-                let glyphs = Array(text)
-                HStack(spacing: 0) {
-                    ForEach(glyphs.indices, id: \.self) { i in
-                        Text(String(glyphs[i]))
-                            .id("\(i)\(glyphs[i])")
-                            .transition(transition(i, scale: 0.6))
-                    }
-                }
-                // The letters' reading order, not the layout's: an HStack lays its children out backwards under a
-                // right-to-left layout.
-                .environment(\.layoutDirection, .leftToRight)
-            } else {
-                ZStack(alignment: .leading) {
-                    Text(text)
-                        .id(text)
-                        .transition(transition(0, scale: 0.9))
-                }
-            }
+        // The morphing label at its full size when it fits. When it doesn't (a long label at an accessibility text
+        // size, a narrow screen), the same words wrap onto a second line and shrink a little instead of running past
+        // the screen's edge; that one changes as a whole rather than letter by letter. A single word never splits
+        // across lines: it stays on one and shrinks further.
+        let oneWord = !text.contains(where: \.isWhitespace)
+        ViewThatFits(in: .horizontal) {
+            morphing.fixedSize()
+            Text(text)
+                .lineLimit(oneWord ? 1 : 2)
+                .multilineTextAlignment(.center)
+                .minimumScaleFactor(oneWord ? 0.5 : 0.75)
+                .fixedSize(horizontal: false, vertical: true)
+                .id(text)
+                .transition(transition(0, scale: 0.9))
         }
         .font(font)
-        .fixedSize()
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(text)
+    }
+
+    @ViewBuilder private var morphing: some View {
+        if Self.splits(text) {
+            let glyphs = Array(text)
+            HStack(spacing: 0) {
+                ForEach(glyphs.indices, id: \.self) { i in
+                    Text(String(glyphs[i]))
+                        .id("\(i)\(glyphs[i])")
+                        .transition(transition(i, scale: 0.6))
+                }
+            }
+            // The letters' reading order, not the layout's: an HStack lays its children out backwards under a
+            // right-to-left layout.
+            .environment(\.layoutDirection, .leftToRight)
+        } else {
+            ZStack(alignment: .leading) {
+                Text(text)
+                    .id(text)
+                    .transition(transition(0, scale: 0.9))
+            }
+        }
     }
 
     private func transition(_ i: Int, scale: CGFloat) -> AnyTransition {

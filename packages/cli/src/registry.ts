@@ -119,15 +119,20 @@ export async function fetchItem(registries: { free: string; pro: string }, name:
   }
   if (pro.status === 403) throw new RegistryError(`"${name}" is part of SwiftPieces Pro, and this license's account doesn't own SwiftPieces Pro. Get it at https://pro.swiftpieces.com/pro`, 403);
   if (!pro.ok) throw new RegistryError(`Pro registry returned ${pro.status} for "${name}"`, pro.status);
-  const item = parseItem(await pro.json(), name);
-  if (!item.files.some((file) => file.content !== undefined)) {
-    throw new RegistryError(
+  const needsPro = () =>
+    new RegistryError(
       licenseKey
         ? `"${name}" is part of SwiftPieces Pro, and this license does not include Pro access. Get it at https://pro.swiftpieces.com/pro`
         : `"${name}" is a Pro piece. Run \`npx swiftpieces login <key>\` with your license key, or get one at https://pro.swiftpieces.com/pro`,
       licenseKey ? 403 : 401,
     );
-  }
+  const body: unknown = await pro.json();
+  // Without Pro the registry answers 200 with the item's public metadata and no files (screens, templates and blocks
+  // alike). Say so before validating the item, which needs files.
+  const files = body && typeof body === "object" ? (body as { files?: unknown }).files : undefined;
+  if (!Array.isArray(files) || files.length === 0) throw needsPro();
+  const item = parseItem(body, name);
+  if (!item.files.some((file) => file.content !== undefined)) throw needsPro();
   return { item, source: "pro" };
 }
 

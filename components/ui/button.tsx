@@ -5,16 +5,17 @@ import { cn } from "@/lib/cn";
 type Variant = "primary" | "secondary" | "ghost" | "outline" | "dark";
 type Size = "sm" | "md" | "lg";
 
-// Pills everywhere, shared with Pro. Primary is the glossy accent pill.
-const base = "group inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-[4px] font-semibold select-none transition-[background-color,color,transform,border-color] duration-300 ease-[var(--ease-out)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-40 active:scale-[0.985]";
+// Graphite: every control is a pill. Primary is the ink pill (brand `.btn-solid`); red is never a button colour.
+const base = "group inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full font-semibold tracking-[-0.01em] select-none transition-[background-color,color,opacity,transform,border-color] duration-300 ease-[var(--ease-out)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-40 active:scale-[0.985]";
 const variants: Record<Variant, string> = {
   primary: "btn-solid",
-  secondary: "bg-foreground text-background hover:bg-[var(--button-2-hover)]",
-  ghost: "bg-surface-2 text-foreground hover:bg-surface-3",
-  outline: "pill bg-transparent text-foreground hover:border-[var(--card-border-hover)] hover:bg-surface-2",
+  // The soft pill: a panel with a hairline, for the second action beside a primary.
+  secondary: "border border-[var(--line-strong)] bg-surface-2 text-foreground hover:bg-surface-3",
+  ghost: "bg-surface text-foreground hover:bg-surface-3",
+  outline: "border border-[var(--line-strong)] bg-transparent text-foreground hover:bg-surface",
   dark: "btn-dark",
 };
-const sizes: Record<Size, string> = { sm: "h-9 px-4 text-[12.5px]", md: "h-11 px-5 text-sm", lg: "h-12 px-6 text-[14px]" };
+const sizes: Record<Size, string> = { sm: "h-[38px] px-4 text-[13.5px]", md: "h-[46px] px-[22px] text-[15px]", lg: "h-12 px-6 text-[15px]" };
 
 type Props = { variant?: Variant; size?: Size; href?: string; children: ReactNode; className?: string } & Omit<ComponentProps<"button">, "children">;
 

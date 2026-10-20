@@ -1,6 +1,6 @@
 ---
 title: "Tracking Tabs"
-description: "Tabs on a liquid glass track over a paging ScrollView. The indicator is a signal-tinted glass capsule in the same liquid as the track, riding the pages through fractional scroll progress and swelling a little while it travels, with title ink that turns exactly under its edge, optional counts, a pressed state that sinks it with the selected title, and a selection tick each time the page changes."
+description: "Tabs on a glass track over paging content, with a tinted indicator that rides the scroll and title ink that turns under its edge."
 piece: "TrackingTabs"
 category: "navigation"
 minIOSVersion: "17.0"
@@ -11,35 +11,7 @@ registryDependencies: []
 
 {/* GENERATED FILE. Edit registry/swift/navigation/TrackingTabs.swift or TrackingTabs.mdx instead. */}
 
-Tab bar on a liquid glass track with a scroll-linked, tinted glass indicator driving horizontally paged content. The track and the indicator are one liquid control: the indicator is a tinted glass capsule resting inside the clear glass track, in the same liquid group, and the titles sit on both.
-
-## Notes
-
-- Pages live in a horizontal `ScrollView` with `.scrollTargetBehavior(.paging)` and `containerRelativeFrame`, so each page is exactly one container wide. `selection` is synced with `scrollPosition(id:)` in both directions: a tap, or a change to `selection` from outside, lands the page on a spring with no overshoot, like native paging, so the pager never shows past its last page, and the pager fits the new page's height on that same spring, so both arrive as one move.
-- The titles sit on a clear liquid glass track, and the indicator is a signal-tinted glass capsule inside it, in the same liquid. It is positioned from fractional page progress (`contentOffset.x / containerSize.width` via `onScrollGeometryChange` on iOS 18, the page row's position in the `.scrollView` space on iOS 17), interpolated between measured title frames. Under a swipe it is a pure function of the scroll, coupled to the pages like a carriage on a rod: it follows them with no lag of its own, carries a flick's deceleration and lands where they land. While it travels it swells a couple of points, staying inside the track, and it settles flat on a title. A tap that jumps several pages keeps it swollen over the titles it passes, so it only settles where it lands. Coming in from a tap or an outside change it has a little give: it carries a couple of points past its title and snaps back while the page lands flat.
-- Each title is drawn twice, muted and ink, each cut by the indicator's outline, so the text turns ink exactly where the glass covers it and stays muted outside it. Optional `counts` show a monospaced count after each title and roll with `.numericText`. Every title and count is semibold.
-- States: resting, swiping (indicator between titles, swollen), pressed (the title sinks a couple of points; pressing the selected title sinks the indicator with it), and a `.selection` tick each time `selection` changes, from a tap or a swipe.
-- `Style` sets `indicator` (its glass tint), `title`, and `selectedTitle`; `.standard` is a signal indicator with house ink on it and muted titles on the clear track. `track` no longer does anything, since the track is clear glass; it stays so existing code compiles.
-- Titles are buttons with selected traits and their count as the value; 44 pt tall. Under Reduce Motion a tap lands the page and the indicator on a short spring with no overshoot, the indicator keeps its size while it travels, and a pressed title shades instead of sinking (darker in light mode, lighter in dark) while the indicator stays put. The indicator and the ink still follow your swipe, and the tick still plays. Before iOS 26 the track and indicator are frosted material with a light rim, and under Reduce Transparency they are solid.
-- A floating tab bar with a lens that stretches toward the finger ships in SwiftPieces Pro (`lens-tab-bar`).
-
-## Usage
-
-```swift
-TrackingTabsExample().preferredColorScheme(.light)
-```
-
-## Parameters
-
-| Parameter | Description |
-| --- | --- |
-| `titles` | One title per page, in order. |
-| `selection` | Index of the settled page. Tapping a title and swiping the pages both update it. |
-| `counts` | Optional count per page shown after its title, such as open tasks. Pass an empty array to hide counts. Defaults to none. |
-| `style` | Indicator and title colors. Defaults to `.standard`, the house palette with a signal indicator. |
-| `page` | Builds the page for a given index. Pages fill the container width. |
-
-## Source
+<Showcase name="TrackingTabs">
 
 <Tabs items={["TrackingTabs.swift"]}>
 <Tab value="TrackingTabs.swift">
@@ -578,7 +550,7 @@ private extension View {
 // and melt back into each other, and the frosted fallback before iOS 26. Each piece carries a copy of only
 // the parts it uses, so this file stands alone. Generated from registry/foundation/PieceLiquid.swift in the
 // SwiftPieces repo; edit it there, not here. The rules are in LIQUID_GLASS.md.
-// swiftpieces-liquid: 1.7.1 (liquid)
+// swiftpieces-liquid: 1.8.0 (liquid)
 
 /// The liquid glass language: one merge distance, two rest gaps, and the springs a bubble leaves and comes home on.
 ///
@@ -724,3 +696,35 @@ private extension View {
 
 </Tab>
 </Tabs>
+
+</Showcase>
+
+<PieceFacts name="TrackingTabs" />
+
+Tab bar on a liquid glass track with a scroll-linked, tinted glass indicator driving horizontally paged content. The track and the indicator are one liquid control: the indicator is a tinted glass capsule resting inside the clear glass track, in the same liquid group, and the titles sit on both.
+
+## Notes
+
+- Pages live in a horizontal `ScrollView` with `.scrollTargetBehavior(.paging)` and `containerRelativeFrame`, so each page is exactly one container wide. `selection` is synced with `scrollPosition(id:)` in both directions: a tap, or a change to `selection` from outside, lands the page on a spring with no overshoot, like native paging, so the pager never shows past its last page, and the pager fits the new page's height on that same spring, so both arrive as one move.
+- The titles sit on a clear liquid glass track, and the indicator is a signal-tinted glass capsule inside it, in the same liquid. It is positioned from fractional page progress (`contentOffset.x / containerSize.width` via `onScrollGeometryChange` on iOS 18, the page row's position in the `.scrollView` space on iOS 17), interpolated between measured title frames. Under a swipe it is a pure function of the scroll, coupled to the pages like a carriage on a rod: it follows them with no lag of its own, carries a flick's deceleration and lands where they land. While it travels it swells a couple of points, staying inside the track, and it settles flat on a title. A tap that jumps several pages keeps it swollen over the titles it passes, so it only settles where it lands. Coming in from a tap or an outside change it has a little give: it carries a couple of points past its title and snaps back while the page lands flat.
+- Each title is drawn twice, muted and ink, each cut by the indicator's outline, so the text turns ink exactly where the glass covers it and stays muted outside it. Optional `counts` show a monospaced count after each title and roll with `.numericText`. Every title and count is semibold.
+- States: resting, swiping (indicator between titles, swollen), pressed (the title sinks a couple of points; pressing the selected title sinks the indicator with it), and a `.selection` tick each time `selection` changes, from a tap or a swipe.
+- `Style` sets `indicator` (its glass tint), `title`, and `selectedTitle`; `.standard` is a signal indicator with house ink on it and muted titles on the clear track. `track` no longer does anything, since the track is clear glass; it stays so existing code compiles.
+- Titles are buttons with selected traits and their count as the value; 44 pt tall. Under Reduce Motion a tap lands the page and the indicator on a short spring with no overshoot, the indicator keeps its size while it travels, and a pressed title shades instead of sinking (darker in light mode, lighter in dark) while the indicator stays put. The indicator and the ink still follow your swipe, and the tick still plays. Before iOS 26 the track and indicator are frosted material with a light rim, and under Reduce Transparency they are solid.
+- A floating tab bar with a lens that stretches toward the finger ships in SwiftPieces Pro (`lens-tab-bar`).
+
+## Usage
+
+```swift
+TrackingTabsExample().preferredColorScheme(.light)
+```
+
+## Parameters
+
+| Parameter | Description |
+| --- | --- |
+| `titles` | One title per page, in order. |
+| `selection` | Index of the settled page. Tapping a title and swiping the pages both update it. |
+| `counts` | Optional count per page shown after its title, such as open tasks. Pass an empty array to hide counts. Defaults to none. |
+| `style` | Indicator and title colors. Defaults to `.standard`, the house palette with a signal indicator. |
+| `page` | Builds the page for a given index. Pages fill the container width. |

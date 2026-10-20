@@ -41,10 +41,10 @@ export function ProCardGrid({ type }: { type: ProCardType }) {
   const wide = type !== "screen";
   return (
     <div className="not-prose mb-10">
-      <p className="p-meta text-subtle">{list.length} {plural} in Pro</p>
+      <p className="text-[13px] font-medium text-subtle">{list.length} {plural} in Pro</p>
       <div className="mt-5 flex flex-wrap items-center gap-3">
         <Button href={listing} size="sm">Browse on Pro <External /></Button>
-        <Button href={pro.pricing} size="sm" variant="ghost">What's inside <Arrow className="size-3.5" /></Button>
+        <Button href={pro.pricing} size="sm" variant="secondary">What's inside <Arrow className="size-3.5" /></Button>
       </div>
       <div className={cn("mt-10 grid gap-4", wide ? "md:grid-cols-2" : "sm:grid-cols-2 xl:grid-cols-3")}>
         {list.map((card, i) => (
@@ -59,10 +59,10 @@ export function ProCardGrid({ type }: { type: ProCardType }) {
                   decoding="async"
                   className={cn("block w-full object-cover", wide ? "aspect-[16/10]" : "aspect-square")}
                 />
-                <span className="absolute top-3 left-3 inline-flex h-[18px] items-center rounded-[5px] bg-black/60 px-1.5 text-[10px] leading-none font-semibold text-white backdrop-blur-sm">Pro</span>
+                <span className="absolute top-3 left-3 inline-flex h-5 items-center rounded-full bg-[#000]/55 px-2 text-[10.5px] leading-none font-semibold text-[#fff] backdrop-blur-sm">Pro</span>
               </PanelMedia>
               <PanelBody>
-                <p className="p-meta text-subtle">{label} · {card.category}{"kind" in card && card.kind ? ` · ${card.kind}` : ""}</p>
+                <p className="text-[12.5px] font-medium text-subtle">{label} · {card.category}{"kind" in card && card.kind ? ` · ${card.kind}` : ""}</p>
                 <div className="mt-2 flex items-center justify-between gap-3">
                   <span className="flex min-w-0 items-center gap-2.5">
                     <p className="p-item min-w-0 truncate">{card.title}</p>
@@ -86,7 +86,7 @@ export function ProCardGrid({ type }: { type: ProCardType }) {
  * brand red at low opacity, the steps beside them in neutral.
  */
 function FlowSize({ screens, steps }: { screens: number; steps: number }) {
-  const chip = "inline-flex h-[22px] items-center gap-1.5 rounded-[6px] px-2 text-[11.5px] font-medium tabular-nums";
+  const chip = "inline-flex h-[22px] items-center gap-1.5 rounded-full px-2.5 text-[11.5px] font-medium tabular-nums";
   return (
     <p className="mt-3.5 flex flex-wrap items-center gap-1.5">
       <span className={cn(chip, "bg-accent/[0.13] text-accent")}>

@@ -1,6 +1,6 @@
 ---
 title: "Photo Viewer"
-description: "A full-screen photo surface with anchor-correct pinch zoom, momentum panning that gives a little at the bounds and rebounds, double-tap zoom about the tap, paging between images, and pinch-out or drag-down to dismiss with a fading scrim. A liquid glass close button and page counter float over the photos; while zoomed the counter floods with a light tint and rolls into a live zoom readout, and a single tap hides them."
+description: "A full-screen photo viewer with anchored pinch zoom, momentum panning, paging and drag to dismiss under glass controls."
 piece: "PhotoViewer"
 category: "media"
 minIOSVersion: "17.0"
@@ -11,41 +11,7 @@ registryDependencies: []
 
 {/* GENERATED FILE. Edit registry/swift/media/PhotoViewer.swift or PhotoViewer.mdx instead. */}
 
-Photos-style viewer: page horizontally at rest, zoom and pan a page, pinch past the minimum or drag vertically to dismiss.
-
-## Notes
-
-- Zoom is anchored to the pinch start and to a double tap, so the content under the fingers stays put. Past `maxScale` the pinch meets resistance that stiffens toward a ceiling about 35% higher, with a rigid tick; releasing brings it back into range. A pinch released past `maxScale` comes back with no overshoot, so the photo never dips below its scale or opens its edge. A pinch released below `minScale` that doesn't dismiss rebounds with visible give when swelling past rest covers the photo's swing, as it does for any pinch that began at rest; one pinched out from a zoomed, off-center view comes back with no overshoot instead. A double tap or a VoiceOver action zooms in with a little give and zooms out with none. None of these swings the photo past an edge. Returning to `minScale` plays a soft tick.
-- Pinch and pan follow the fingers directly, never animated. Past the scaled bounds a pan stiffens like a scroll view's edge. A released pan leaves at the finger's speed and coasts to `predictedEndTranslation`, clamped to the bounds, for longer the further it glides. An axis that runs into an edge keeps the finger's speed, carries on past the edge by a give that grows with the flick (under 80 pt), then rebounds; a pan that catches it there picks it up from inside the band instead of jumping.
-- At rest a page ignores horizontal drags so the paging `ScrollView` handles them; vertical drags and any drag during a pinch belong to the dismiss. Paging is disabled while zoomed or dismissing.
-- Two dismiss paths: drag vertically past 140 pt (or flick past a projected 280 pt) and the page slides off along the release direction at the speed you threw it; pinch below 80% of `minScale` and release, and it shrinks away. Both fade the scrim with progress and call `onDismiss` when the animation is logically complete. A pull that doesn't commit slides home at the speed you let go and settles with some give, and the scrim and chrome come back with the photo rather than ahead of it. A drag that catches it on the way home picks it up where it is drawn, so it never jumps to the finger.
-- A pinch and a drag can end in either order: the page settles once both have let go, so it never strands below `minScale` or off center. A touch the system cancels (a call, Control Center) lets go the same way, without dismissing.
-- Reduce Motion keeps every settle short with no overshoot or edge rebound, fades a committed dismiss where it is instead of flying or shrinking it, dims the close button on press instead of sinking it, and crossfades the counter instead of rolling its digits. Haptics and the scrim fade still mark each step. VoiceOver gets Zoom in, Reset zoom, and the escape gesture dismisses.
-- Floating chrome in liquid glass, apart in its corners. A 44 pt glass close button (shown when `onDismiss` is set) fades the viewer out and calls `onDismiss`; a glass counter reads "2 / 3" at rest and, while zoomed, floods with a light tint as its digits roll into the zoom readout ("2.5×"). The chrome is the dark glass with paper ink in either appearance, since the viewer is a darkroom. A single tap hides or shows the chrome: it snaps into place with a slight give and leaves quickly, and fades as a dismiss drag progresses. The close button sinks on press; the counter's glass reshapes with a little give, into the readout or wider when the count gains a digit, while its digits roll without overshoot, so the count and zoom level never read past their value. With a single photo the readout drops in on its own once you zoom.
-- `style:` (`PhotoViewer.Style`) sets `scrim` (near-black #121212), `chromeInk`, `zoomFill` (the counter's tint while zoomed) and `zoomInk`, `showsCloseButton`, and `showsCounter`. `chromeFill` is no longer used: the chrome is liquid glass. `.bare` draws photos only. The chrome is Liquid Glass on iOS 26, a frosted material before that, and solid under Reduce Transparency; its text is semibold, and the photos you pass in keep their own type.
-- The example pages through flat color prints; a dismiss collapses the viewer and the example presents it again, so the preview only ever shows the viewer.
-- For a full gallery screen, see the Pro Gallery screen (`depth-gallery`).
-
-## Usage
-
-```swift
-PhotoViewerExample()
-    .preferredColorScheme(.light)
-```
-
-## Parameters
-
-| Parameter | Description |
-| --- | --- |
-| `items` | The photos to page through. One item disables paging. |
-| `selection` | Optional binding to the visible item's id. |
-| `minScale` | Resting scale of a page. |
-| `maxScale` | Largest committed zoom; pinching past it rubber-bands, ticks, and springs back. |
-| `style` | Scrim and chrome. `.standard` draws a near-black scrim and, in liquid glass over it, a close button when `onDismiss` is set and a counter that reads "2 / 5" at rest and the zoom level while zoomed. |
-| `onDismiss` | Called once a dismiss gesture or the close button has finished animating; end the presentation here. |
-| `content` | The photo for an item, typically a resizable image with `.scaledToFit()`. |
-
-## Source
+<Showcase name="PhotoViewer">
 
 <Tabs items={["PhotoViewer.swift"]}>
 <Tab value="PhotoViewer.swift">
@@ -910,7 +876,7 @@ extension PieceMotion {
 // and melt back into each other, and the frosted fallback before iOS 26. Each piece carries a copy of only
 // the parts it uses, so this file stands alone. Generated from registry/foundation/PieceLiquid.swift in the
 // SwiftPieces repo; edit it there, not here. The rules are in LIQUID_GLASS.md.
-// swiftpieces-liquid: 1.7.1 (liquid, liquidPress)
+// swiftpieces-liquid: 1.8.0 (liquid, liquidPress)
 
 /// The liquid glass language: one merge distance, two rest gaps, and the springs a bubble leaves and comes home on.
 ///
@@ -1105,3 +1071,41 @@ private extension View {
 
 </Tab>
 </Tabs>
+
+</Showcase>
+
+<PieceFacts name="PhotoViewer" />
+
+Photos-style viewer: page horizontally at rest, zoom and pan a page, pinch past the minimum or drag vertically to dismiss.
+
+## Notes
+
+- Zoom is anchored to the pinch start and to a double tap, so the content under the fingers stays put. Past `maxScale` the pinch meets resistance that stiffens toward a ceiling about 35% higher, with a rigid tick; releasing brings it back into range. A pinch released past `maxScale` comes back with no overshoot, so the photo never dips below its scale or opens its edge. A pinch released below `minScale` that doesn't dismiss rebounds with visible give when swelling past rest covers the photo's swing, as it does for any pinch that began at rest; one pinched out from a zoomed, off-center view comes back with no overshoot instead. A double tap or a VoiceOver action zooms in with a little give and zooms out with none. None of these swings the photo past an edge. Returning to `minScale` plays a soft tick.
+- Pinch and pan follow the fingers directly, never animated. Past the scaled bounds a pan stiffens like a scroll view's edge. A released pan leaves at the finger's speed and coasts to `predictedEndTranslation`, clamped to the bounds, for longer the further it glides. An axis that runs into an edge keeps the finger's speed, carries on past the edge by a give that grows with the flick (under 80 pt), then rebounds; a pan that catches it there picks it up from inside the band instead of jumping.
+- At rest a page ignores horizontal drags so the paging `ScrollView` handles them; vertical drags and any drag during a pinch belong to the dismiss. Paging is disabled while zoomed or dismissing.
+- Two dismiss paths: drag vertically past 140 pt (or flick past a projected 280 pt) and the page slides off along the release direction at the speed you threw it; pinch below 80% of `minScale` and release, and it shrinks away. Both fade the scrim with progress and call `onDismiss` when the animation is logically complete. A pull that doesn't commit slides home at the speed you let go and settles with some give, and the scrim and chrome come back with the photo rather than ahead of it. A drag that catches it on the way home picks it up where it is drawn, so it never jumps to the finger.
+- A pinch and a drag can end in either order: the page settles once both have let go, so it never strands below `minScale` or off center. A touch the system cancels (a call, Control Center) lets go the same way, without dismissing.
+- Reduce Motion keeps every settle short with no overshoot or edge rebound, fades a committed dismiss where it is instead of flying or shrinking it, dims the close button on press instead of sinking it, and crossfades the counter instead of rolling its digits. Haptics and the scrim fade still mark each step. VoiceOver gets Zoom in, Reset zoom, and the escape gesture dismisses.
+- Floating chrome in liquid glass, apart in its corners. A 44 pt glass close button (shown when `onDismiss` is set) fades the viewer out and calls `onDismiss`; a glass counter reads "2 / 3" at rest and, while zoomed, floods with a light tint as its digits roll into the zoom readout ("2.5×"). The chrome is the dark glass with paper ink in either appearance, since the viewer is a darkroom. A single tap hides or shows the chrome: it snaps into place with a slight give and leaves quickly, and fades as a dismiss drag progresses. The close button sinks on press; the counter's glass reshapes with a little give, into the readout or wider when the count gains a digit, while its digits roll without overshoot, so the count and zoom level never read past their value. With a single photo the readout drops in on its own once you zoom.
+- `style:` (`PhotoViewer.Style`) sets `scrim` (near-black #121212), `chromeInk`, `zoomFill` (the counter's tint while zoomed) and `zoomInk`, `showsCloseButton`, and `showsCounter`. `chromeFill` is no longer used: the chrome is liquid glass. `.bare` draws photos only. The chrome is Liquid Glass on iOS 26, a frosted material before that, and solid under Reduce Transparency; its text is semibold, and the photos you pass in keep their own type.
+- The example pages through flat color prints; a dismiss collapses the viewer and the example presents it again, so the preview only ever shows the viewer.
+- For a full gallery screen, see the Pro Gallery screen (`depth-gallery`).
+
+## Usage
+
+```swift
+PhotoViewerExample()
+    .preferredColorScheme(.light)
+```
+
+## Parameters
+
+| Parameter | Description |
+| --- | --- |
+| `items` | The photos to page through. One item disables paging. |
+| `selection` | Optional binding to the visible item's id. |
+| `minScale` | Resting scale of a page. |
+| `maxScale` | Largest committed zoom; pinching past it rubber-bands, ticks, and springs back. |
+| `style` | Scrim and chrome. `.standard` draws a near-black scrim and, in liquid glass over it, a close button when `onDismiss` is set and a counter that reads "2 / 5" at rest and the zoom level while zoomed. |
+| `onDismiss` | Called once a dismiss gesture or the close button has finished animating; end the presentation here. |
+| `content` | The photo for an item, typically a resizable image with `.scaledToFit()`. |

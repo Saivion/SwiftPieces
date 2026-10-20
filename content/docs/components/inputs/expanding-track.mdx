@@ -1,6 +1,6 @@
 ---
 title: "Expanding Track"
-description: "A thumbless liquid glass slider: a glass bar that swells from 8pt to a 32pt bar under the finger with a solid color fill inside, shows detent dots while dragging, buds a glass readout bubble up out of the bar that rides the held edge on a liquid neck and melts back in when you let go, squishes past either end, and can carry an uppercase label with a big numeral; a second init selects a range with two sinking handles."
+description: "A thumbless glass slider that swells under the finger and buds a readout bubble that rides the edge, for a value or a range."
 piece: "ExpandingTrack"
 category: "inputs"
 minIOSVersion: "17.0"
@@ -11,43 +11,7 @@ registryDependencies: []
 
 {/* GENERATED FILE. Edit registry/swift/inputs/ExpandingTrack.swift or ExpandingTrack.mdx instead. */}
 
-Thumbless liquid glass slider that swells under the finger. Bind a `Double` for a single value or a `ClosedRange<Double>` for a range. The bar is a glass shape with the fill inside it. While you drag an untitled track, the value buds up out of the bar on a glass bubble that rides the held edge, joined to the bar by a liquid neck, and melts back in on release.
-
-## Notes
-
-- There is no thumb: the whole 44pt row is the hit area and the value follows the finger's x position directly, so the bar can rest at 8pt and still be easy to grab. Tracking is never animated: from the first touch, including a tap far from the current value, the edge of the fill sits under the finger. With a `step`, the value snaps from step to step beneath it while the edge stays with the finger, and on release the edge lands on its step with a little give. A VoiceOver step or a change from your code glides the fill (and the range handles) onto the new value on the same spring.
-- The bar is liquid glass carrying the fill as a solid block, with the detent dots and handles. While held it inflates to 32pt (`Style.activeHeight`) on a quick spring with no overshoot, and the dots at each `step` fade in a beat behind it, so they never show through a thin bar. On release they fade first and the bar settles back to 8pt with a little give. The swell runs on its own spring, apart from the fill edge, the squish and the landing, and a drag moves offsets and masks rather than resizing the fill.
-- Without a `title`, the value buds up out of the bar on a glass bubble the moment you touch it. The bubble rides the held edge, kept over the bar, and rests a liquid neck's width above it, so the two stay joined while you drag. Let go and it melts back into the bar, its number blurring away as it heads home. The bubble draws above the track's frame, so leave a little room above an untitled track.
-- Pass `title` for the labeled layout: an uppercase caption with the value as a big numeral above the track, decimals dimmed at the locale's separator. The numeral rolls to a new value after a programmatic or VoiceOver change, without overshooting it, and updates directly while you drag, so it stays legible under the finger. A titled track reads its value there, so it buds no bubble.
-- Pushing past either end, the bar gives toward the far end with rubber-band resistance, never more than about 24pt, and bulges slightly across, like silicone pressed against a stop. The value stays at the bound, and the readout bubble stays over the end of the bar as it gives. On release it springs back at the speed the finger was pushing. Push past the end again while it is still springing back and it eases onto the finger from where it is drawn instead of jumping.
-- Haptics: a selection tick per `step` crossing (every tenth of the span without a step), and a rigid impact when the value reaches a bound, in place of that step's tick. No haptic is added for the press or release itself; a touch-down that moves the value plays that change's tick or impact. The optional symbol lights while held and plays `.variableColor` when the value rises past a tick.
-- The range init keeps the handles apart by `minimumDistance` and lets the active ink handle sink into the fill; VoiceOver gets separate "Minimum" and "Maximum" adjustable elements, prefixed with the title when there is one.
-- A drag the system cancels lets go exactly like a release, so the bar never stays swollen and the bubble always melts back in.
-- `Style` carries the bar's glass tint (`trough`, neutral glass by default), the fill block, ink, labels and track metrics. `.standard` is the house palette (a brand red fill in neutral glass); pass `.init(fill:)` to use another block. All text is semibold. `.disabled(true)` greys the fill.
-- Reduce Motion: the bar stays at 8pt and its fill darkens a step while held (brightens in dark mode) instead of swelling, the readout bubble opens and closes in place above the held edge instead of budding, the ends stop the bar without any give, the edge lands on its step and glides to a new value on a short spring with no overshoot, and the numeral changes without rolling. Haptics, the symbol tint and its pulse are unchanged. Reduce Transparency draws the glass as solid shapes.
-- The drag starts on touch-down so the track responds to taps; inside a vertical `ScrollView` or sheet, a drag that begins on the track moves the value rather than scrolling.
-
-## Usage
-
-```swift
-ExpandingTrackExample()
-```
-
-## Parameters
-
-| Parameter | Description |
-| --- | --- |
-| `value` | Bound single value (single-value init). |
-| `range` | Bound selected range (range init). The two handles never cross. |
-| `bounds` | Minimum and maximum selectable values. |
-| `step` | Optional snapping increment. Also sets the spacing of the selection ticks and detent dots; without it, ticks fire every tenth of the span. |
-| `minimumDistance` | Smallest gap the range handles keep between them (range init only). |
-| `symbol` | Optional leading SF Symbol that plays a variable-color pulse each time the value rises past a tick. |
-| `title` | Optional label. Shows an uppercase caption with the value as a big numeral above the track (decimals dimmed), and becomes the VoiceOver label. A titled track reads its value there, so it buds no readout bubble. |
-| `style` | Colors and track metrics. Defaults to the SwiftPieces house palette, adapting to light and dark. |
-| `format` | Formats the readout and the VoiceOver value. Defaults to up to two decimals. |
-
-## Source
+<Showcase name="ExpandingTrack">
 
 <Tabs items={["ExpandingTrack.swift"]}>
 <Tab value="ExpandingTrack.swift">
@@ -780,7 +744,7 @@ extension PieceMotion {
 // and melt back into each other, and the frosted fallback before iOS 26. Each piece carries a copy of only
 // the parts it uses, so this file stands alone. Generated from registry/foundation/PieceLiquid.swift in the
 // SwiftPieces repo; edit it there, not here. The rules are in LIQUID_GLASS.md.
-// swiftpieces-liquid: 1.7.1 (liquid, bud)
+// swiftpieces-liquid: 1.8.0 (liquid, bud)
 
 /// The liquid glass language: one merge distance, two rest gaps, and the springs a bubble leaves and comes home on.
 ///
@@ -1044,3 +1008,43 @@ private final class PieceBuds {
 
 </Tab>
 </Tabs>
+
+</Showcase>
+
+<PieceFacts name="ExpandingTrack" />
+
+Thumbless liquid glass slider that swells under the finger. Bind a `Double` for a single value or a `ClosedRange<Double>` for a range. The bar is a glass shape with the fill inside it. While you drag an untitled track, the value buds up out of the bar on a glass bubble that rides the held edge, joined to the bar by a liquid neck, and melts back in on release.
+
+## Notes
+
+- There is no thumb: the whole 44pt row is the hit area and the value follows the finger's x position directly, so the bar can rest at 8pt and still be easy to grab. Tracking is never animated: from the first touch, including a tap far from the current value, the edge of the fill sits under the finger. With a `step`, the value snaps from step to step beneath it while the edge stays with the finger, and on release the edge lands on its step with a little give. A VoiceOver step or a change from your code glides the fill (and the range handles) onto the new value on the same spring.
+- The bar is liquid glass carrying the fill as a solid block, with the detent dots and handles. While held it inflates to 32pt (`Style.activeHeight`) on a quick spring with no overshoot, and the dots at each `step` fade in a beat behind it, so they never show through a thin bar. On release they fade first and the bar settles back to 8pt with a little give. The swell runs on its own spring, apart from the fill edge, the squish and the landing, and a drag moves offsets and masks rather than resizing the fill.
+- Without a `title`, the value buds up out of the bar on a glass bubble the moment you touch it. The bubble rides the held edge, kept over the bar, and rests a liquid neck's width above it, so the two stay joined while you drag. Let go and it melts back into the bar, its number blurring away as it heads home. The bubble draws above the track's frame, so leave a little room above an untitled track.
+- Pass `title` for the labeled layout: an uppercase caption with the value as a big numeral above the track, decimals dimmed at the locale's separator. The numeral rolls to a new value after a programmatic or VoiceOver change, without overshooting it, and updates directly while you drag, so it stays legible under the finger. A titled track reads its value there, so it buds no bubble.
+- Pushing past either end, the bar gives toward the far end with rubber-band resistance, never more than about 24pt, and bulges slightly across, like silicone pressed against a stop. The value stays at the bound, and the readout bubble stays over the end of the bar as it gives. On release it springs back at the speed the finger was pushing. Push past the end again while it is still springing back and it eases onto the finger from where it is drawn instead of jumping.
+- Haptics: a selection tick per `step` crossing (every tenth of the span without a step), and a rigid impact when the value reaches a bound, in place of that step's tick. No haptic is added for the press or release itself; a touch-down that moves the value plays that change's tick or impact. The optional symbol lights while held and plays `.variableColor` when the value rises past a tick.
+- The range init keeps the handles apart by `minimumDistance` and lets the active ink handle sink into the fill; VoiceOver gets separate "Minimum" and "Maximum" adjustable elements, prefixed with the title when there is one.
+- A drag the system cancels lets go exactly like a release, so the bar never stays swollen and the bubble always melts back in.
+- `Style` carries the bar's glass tint (`trough`, neutral glass by default), the fill block, ink, labels and track metrics. `.standard` is the house palette (a brand red fill in neutral glass); pass `.init(fill:)` to use another block. All text is semibold. `.disabled(true)` greys the fill.
+- Reduce Motion: the bar stays at 8pt and its fill darkens a step while held (brightens in dark mode) instead of swelling, the readout bubble opens and closes in place above the held edge instead of budding, the ends stop the bar without any give, the edge lands on its step and glides to a new value on a short spring with no overshoot, and the numeral changes without rolling. Haptics, the symbol tint and its pulse are unchanged. Reduce Transparency draws the glass as solid shapes.
+- The drag starts on touch-down so the track responds to taps; inside a vertical `ScrollView` or sheet, a drag that begins on the track moves the value rather than scrolling.
+
+## Usage
+
+```swift
+ExpandingTrackExample()
+```
+
+## Parameters
+
+| Parameter | Description |
+| --- | --- |
+| `value` | Bound single value (single-value init). |
+| `range` | Bound selected range (range init). The two handles never cross. |
+| `bounds` | Minimum and maximum selectable values. |
+| `step` | Optional snapping increment. Also sets the spacing of the selection ticks and detent dots; without it, ticks fire every tenth of the span. |
+| `minimumDistance` | Smallest gap the range handles keep between them (range init only). |
+| `symbol` | Optional leading SF Symbol that plays a variable-color pulse each time the value rises past a tick. |
+| `title` | Optional label. Shows an uppercase caption with the value as a big numeral above the track (decimals dimmed), and becomes the VoiceOver label. A titled track reads its value there, so it buds no readout bubble. |
+| `style` | Colors and track metrics. Defaults to the SwiftPieces house palette, adapting to light and dark. |
+| `format` | Formats the readout and the VoiceOver value. Defaults to up to two decimals. |

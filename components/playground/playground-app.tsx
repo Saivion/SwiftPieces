@@ -120,7 +120,7 @@ export default function PlaygroundApp({ page, project, onReady }: Props) {
       .catch(() => setCloud(null));
   }, [cloudId, remember]);
   // ?shot= opens at one App Store screenshot (the app page links here with it); ?screen= at one
-  // step of the remix (the App Library's Browse by screen); ?component= selects a component
+  // step of the remix (the Playground's Browse by screen); ?component= selects a component
   // (component pages link here with it); ?style= puts on a style made on /styles.
   const [asked] = useState(() => {
     const q = new URLSearchParams(window.location.search);
@@ -267,7 +267,7 @@ export default function PlaygroundApp({ page, project, onReady }: Props) {
         // "Open in the Playground", so a round trip comes back here.
         styles: (code) => `/styles?style=${encodeURIComponent(code)}&app=${current.slug}`,
         // Everyone without Pro sees what it adds (no prices here). Owners already have it all here.
-        ...(pro ? {} : { handoff: { label: "Take it further with Pro", desc: `Unlock all ${proCatalog.remixing.apps} apps and every future app, keep up to ${proCatalog.remixing.saves} remixes and remix with AI, with every screen, flow, template and the Build Kit.`, url: () => `${site.proUrl}/pro`, icon: "crown" as const, backdrop: <CornerDither /> } }),
+        ...(pro ? {} : { handoff: { label: "Take it further with Pro", desc: `Unlock all ${proCatalog.remixing.apps} apps and every future app, keep up to ${proCatalog.remixing.saves} remixes and remix with AI, with every screen, flow, template and the Build Kit.`, url: () => `${site.proUrl}/pro`, icon: "crown" as const } }),
       },
     }),
     [session, pro, signedIn, current, onEntry, signInHere, remember, aiSessionId],

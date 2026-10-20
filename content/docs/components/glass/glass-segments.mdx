@@ -1,45 +1,17 @@
 ---
 title: "Glass Segments"
-description: "A liquid glass segmented control: a signal-tinted glass indicator melted into a glass track as one surface. It moves like liquid, its leading edge reaching the new segment first and the trailing edge following, so it stretches across and gathers in. Grab it to scrub: it lifts under the finger, flattens against the ends and lands where the flick was heading, while the label ink flips exactly under its edge; tap still works."
+description: "A segmented control whose glass indicator moves like liquid, stretching across and gathering in, and follows a scrub."
 piece: "GlassSegments"
 category: "glass"
 minIOSVersion: "17.0"
-version: "2.3.0"
+version: "2.3.1"
 tags: ["segmented","picker","glass","drag","haptics"]
 registryDependencies: []
 ---
 
 {/* GENERATED FILE. Edit registry/swift/glass/GlassSegments.swift or GlassSegments.mdx instead. */}
 
-Visual tuning for `GlassSegments`. `standard` is a neutral glass track with a signal-tinted glass indicator melted into it, the house ink on the red; set `indicatorTint` for another tint.
-
-## Notes
-
-- Liquid glass: the track and the indicator are glass shapes in one liquid group (`GlassEffectContainer` on iOS 26). The track is neutral glass; the indicator is signal-tinted glass resting inside it, joined to it, so the two melt into one surface and the red reads as a lens of colour moving through the glass. The selected label sits on the red in the house ink, which reads on signal, sage and butter alike.
-- The indicator moves edge by edge. On a tap or an external change of `selection`, the edge facing the new segment leads on a quick spring and lands crisply while the far edge follows on a slightly slower one, so the indicator reaches across (about one and a third segments wide on a move to the neighbour) and gathers in to one segment with a little liquid give: the far edge passes its mark by about 3% of its travel and settles back. The leading edge never overshoots, so the indicator never pokes past the track at either end. Longer jumps stretch further (about two segments wide on a jump of three) and still land in under 0.4s.
-- A touch that lands on the indicator grabs it: it lifts (scale 1.04, deeper shadow) on a spring with no bounce and follows the finger directly, with no catch-up. Its leading edge reaches a little ahead with speed and relaxes when the finger rests. A touch anywhere else is a plain tap on that segment.
-- The indicator can be grabbed on the segment it is headed for while it is still moving there. It finishes that move under the finger instead of jumping to it, and the finger's own movement still applies directly.
-- Past either end, the edge at the wall gives no more than the 3pt track inset while the far edge follows against rubber-band resistance, so the indicator flattens against the end instead of leaving the track. The lift grows toward the wall there, so the lifted indicator stays inside the track too. The selection stays clamped.
-- Release commits to the segment the flick would land on (`predictedEndLocation`), and both edges leave at the finger's speed into the same edge-by-edge hand-off. The lift comes down on the release spring as the indicator lands. Let go flattened against an end, it springs back to full width without the push.
-- One `.selection` haptic fires each time the indicator's center crosses into a new segment, once on tap, and once on release only if it lands somewhere new. Changes made through the binding are silent.
-- The binding changes on a short spring with no overshoot, so views that read the selection can animate with it, and a chart or a total switched by it never swings past its new value. A drag that a parent scroll view cancels puts the indicator back in its segment.
-- Reduce Motion removes the stretch, the reach, the flattening and the lift scale (the shadow still lifts): both edges move together on a short spring with no overshoot. Reduce Transparency draws the track and the indicator as opaque fills, the indicator still in its tint. Before iOS 26 both are frosted and simply don't merge.
-- Segments share the width equally; the control fills its container, so constrain it with `.frame(width:)` when you want it compact.
-- Labels are drawn twice: once in `Style.ink`, and once in `Style.selectedInk` masked to the indicator's live shape, so the color hands over exactly under the indicator edge while it moves, stretches or flattens. All type is semibold.
-- `indicatorTint` sets the indicator's glass tint (`nil` is the house signal red; `.clear` leaves it neutral glass), and `GlassSegmentsStyle.block(_:)` makes one in another tint with dark ink.
-- The example floats the control over a few color blocks, since glass over a flat page reads as grey.
-- `Style` (`GlassSegments.Style`, alias of `GlassSegmentsStyle`): `ink`, `selectedInk`, `indicatorTint`, `font`, `disabledOpacity`; `track` and `indicatorSurface` are kept for existing code but no longer used, since both shapes are glass. `.disabled(true)` fades the control and ignores touches. The row height scales with Dynamic Type (capped at 1.5x).
-- For a floating tab bar whose lens follows the finger, see the Pro Lessons screen (`lens-tab-bar`).
-
-## Usage
-
-```swift
-GlassSegmentsExample()
-    .preferredColorScheme(.light)
-```
-
-
-## Source
+<Showcase name="GlassSegments">
 
 <Tabs items={["GlassSegments.swift"]}>
 <Tab value="GlassSegments.swift">
@@ -133,7 +105,8 @@ public struct GlassSegmentsStyle: Sendable {
 /// Liquid glass segmented control over any `Hashable` option type with a draggable indicator.
 ///
 /// The track and the indicator are glass shapes in one liquid group. The indicator rests inside the track, joined to it,
-/// so the two read as one surface with a tinted lens moving through it.
+/// so the two read as one surface with a tinted lens moving through it. The labels sit on top of the glass, outside the
+/// group, so they stay crisp over it.
 ///
 /// - Parameters:
 ///   - options: Segments in display order.
@@ -195,13 +168,17 @@ public struct GlassSegments<Option: Hashable>: View {
     public var body: some View {
         let motion = PieceMotion(reduceMotion: reduceMotion)
         PieceLiquidGroup {
-            row(motion)
+            glass
                 .frame(height: height * min(typeScale, 1.5))
                 .padding(inset)
                 // The track: one glass capsule under the whole row. It is the row's background, beside the indicator
                 // rather than holding it, so the two are never glass on glass and melt into one surface.
                 .background { Color.clear.pieceLiquid(.capsule, interactive: false) }
         }
+        // The labels, the indicator's shadow and the touch layer sit over the group, not in it: iOS 26's glass container
+        // composites its glass over the plain views among its shapes, so labels drawn there came out blurred under the
+        // track and hidden under the indicator. Same inset, so the row lines up with the glass exactly.
+        .overlay { row(motion).padding(inset) }
         .fontWeight(.semibold)
         .opacity(isEnabled ? 1 : style.disabledOpacity)
         .animation(motion.morph, value: isEnabled)
@@ -209,18 +186,22 @@ public struct GlassSegments<Option: Hashable>: View {
         .accessibilityElement(children: .contain)
     }
 
+    /// The indicator's scale: lifted while grabbed, except under Reduce Motion.
+    private var lift: CGFloat { dragging && !reduceMotion ? liftScale : 1 }
+
+    /// The glass that melts into the track: the indicator alone, on the same row geometry as the labels over it.
+    private var glass: some View {
+        GeometryReader { proxy in
+            pill(segmentWidth: proxy.size.width / CGFloat(max(options.count, 1)), lift: lift) { indicator($0) }
+        }
+    }
+
     private func row(_ motion: PieceMotion) -> some View {
         GeometryReader { proxy in
             let width = proxy.size.width
             let segmentWidth = width / CGFloat(max(options.count, 1))
-            let lift: CGFloat = dragging && !reduceMotion ? liftScale : 1
             ZStack(alignment: .leading) {
-                pill(segmentWidth: segmentWidth, lift: lift) { shape in
-                    ZStack {
-                        indicator(shape)
-                        shadow(shape)
-                    }
-                }
+                pill(segmentWidth: segmentWidth, lift: lift) { shadow($0) }
                 labels(segmentWidth: segmentWidth, height: proxy.size.height, color: style.ink, accessible: true)
                 // The same row in the selected ink, cut to the indicator, so the color hands over under its edge.
                 labels(segmentWidth: segmentWidth, height: proxy.size.height, color: style.selectedInk, accessible: false)
@@ -320,8 +301,8 @@ public struct GlassSegments<Option: Hashable>: View {
     }
 
     /// The indicator's shadow, deeper while it is grabbed (and the lift Reduce Motion keeps). The glass draws in its
-    /// group, so the shadow is its own layer: the indicator's shape casting it, cut back out, so it falls only on the
-    /// track around the indicator.
+    /// group, so the shadow is its own layer over it, under the labels: the indicator's shape casting it, cut back out,
+    /// so it falls only on the track around the indicator.
     private func shadow(_ shape: IndicatorShape) -> some View {
         shape
             .fill(.black)
@@ -727,7 +708,7 @@ private extension View {
 // and melt back into each other, and the frosted fallback before iOS 26. Each piece carries a copy of only
 // the parts it uses, so this file stands alone. Generated from registry/foundation/PieceLiquid.swift in the
 // SwiftPieces repo; edit it there, not here. The rules are in LIQUID_GLASS.md.
-// swiftpieces-liquid: 1.7.1 (liquid)
+// swiftpieces-liquid: 1.8.0 (liquid)
 
 /// The liquid glass language: one merge distance, two rest gaps, and the springs a bubble leaves and comes home on.
 ///
@@ -873,3 +854,35 @@ private extension View {
 
 </Tab>
 </Tabs>
+
+</Showcase>
+
+<PieceFacts name="GlassSegments" />
+
+Visual tuning for `GlassSegments`. `standard` is a neutral glass track with a signal-tinted glass indicator melted into it, the house ink on the red; set `indicatorTint` for another tint.
+
+## Notes
+
+- Liquid glass: the track and the indicator are glass shapes in one liquid group (`GlassEffectContainer` on iOS 26). The track is neutral glass; the indicator is signal-tinted glass resting inside it, joined to it, so the two melt into one surface and the red reads as a lens of colour moving through the glass. The selected label sits on the red in the house ink, which reads on signal, sage and butter alike.
+- The indicator moves edge by edge. On a tap or an external change of `selection`, the edge facing the new segment leads on a quick spring and lands crisply while the far edge follows on a slightly slower one, so the indicator reaches across (about one and a third segments wide on a move to the neighbour) and gathers in to one segment with a little liquid give: the far edge passes its mark by about 3% of its travel and settles back. The leading edge never overshoots, so the indicator never pokes past the track at either end. Longer jumps stretch further (about two segments wide on a jump of three) and still land in under 0.4s.
+- A touch that lands on the indicator grabs it: it lifts (scale 1.04, deeper shadow) on a spring with no bounce and follows the finger directly, with no catch-up. Its leading edge reaches a little ahead with speed and relaxes when the finger rests. A touch anywhere else is a plain tap on that segment.
+- The indicator can be grabbed on the segment it is headed for while it is still moving there. It finishes that move under the finger instead of jumping to it, and the finger's own movement still applies directly.
+- Past either end, the edge at the wall gives no more than the 3pt track inset while the far edge follows against rubber-band resistance, so the indicator flattens against the end instead of leaving the track. The lift grows toward the wall there, so the lifted indicator stays inside the track too. The selection stays clamped.
+- Release commits to the segment the flick would land on (`predictedEndLocation`), and both edges leave at the finger's speed into the same edge-by-edge hand-off. The lift comes down on the release spring as the indicator lands. Let go flattened against an end, it springs back to full width without the push.
+- One `.selection` haptic fires each time the indicator's center crosses into a new segment, once on tap, and once on release only if it lands somewhere new. Changes made through the binding are silent.
+- The binding changes on a short spring with no overshoot, so views that read the selection can animate with it, and a chart or a total switched by it never swings past its new value. A drag that a parent scroll view cancels puts the indicator back in its segment.
+- Reduce Motion removes the stretch, the reach, the flattening and the lift scale (the shadow still lifts): both edges move together on a short spring with no overshoot. Reduce Transparency draws the track and the indicator as opaque fills, the indicator still in its tint. Before iOS 26 both are frosted and simply don't merge.
+- Segments share the width equally; the control fills its container, so constrain it with `.frame(width:)` when you want it compact.
+- Labels are drawn twice: once in `Style.ink`, and once in `Style.selectedInk` masked to the indicator's live shape, so the color hands over exactly under the indicator edge while it moves, stretches or flattens. All type is semibold.
+- `indicatorTint` sets the indicator's glass tint (`nil` is the house signal red; `.clear` leaves it neutral glass), and `GlassSegmentsStyle.block(_:)` makes one in another tint with dark ink.
+- The example floats the control over a few color blocks, since glass over a flat page reads as grey.
+- `Style` (`GlassSegments.Style`, alias of `GlassSegmentsStyle`): `ink`, `selectedInk`, `indicatorTint`, `font`, `disabledOpacity`; `track` and `indicatorSurface` are kept for existing code but no longer used, since both shapes are glass. `.disabled(true)` fades the control and ignores touches. The row height scales with Dynamic Type (capped at 1.5x).
+- For a floating tab bar whose lens follows the finger, see the Pro Lessons screen (`lens-tab-bar`).
+
+## Usage
+
+```swift
+GlassSegmentsExample()
+    .preferredColorScheme(.light)
+```
+

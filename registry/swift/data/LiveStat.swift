@@ -2,7 +2,7 @@
 // title: Live Stat
 // description: "A liquid glass metric tile: a semibold display value that rolls with a spring and dims its decimals, a tinted delta chip, a sparkline you hold and scrub to retarget the value live while a glass flag buds out of the tile's top edge above your finger with the change from that point to the latest, a press that expands the line into a taller chart with low and high, and a tinted block variant."
 // category: data
-// version: "2.2.0"
+// version: "2.2.1"
 // pro: dashboard-screen
 // minIOSVersion: "17.0"
 // tags: [stat, kpi, sparkline, scrub, tile, numbers]
@@ -18,7 +18,7 @@ import SwiftUI
 /// - Parameters:
 ///   - label: Metric name shown above the value.
 ///   - value: Current value. Changing it rolls the number from the previous one.
-///   - format: Number format for the value, for example `.number` or `.currency(code: "USD")`. Defaults to `.number`.
+///   - format: Number format for the value, for example `.number`, `.percent` or `.currency(code: "USD")`. Defaults to `.number`.
 ///   - delta: Optional fractional change (0.12 is +12%) shown as a tinted chip on the panel: sage for up, red for down.
 ///   - series: History drawn as the sparkline, oldest first. Hold and drag it to scrub.
 ///   - tint: Sparkline color. Defaults to the style's `line`.
@@ -162,16 +162,17 @@ public struct LiveStat<Format: FormatStyle>: View where Format.FormatInput == Do
     private var panel: some View {
         let motion = PieceMotion(reduceMotion: reduceMotion)
         return VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .center) {
-                Text(label.uppercased())
-                    .font(.system(size: 12, weight: .semibold))
-                    .tracking(1.2)
-                    .foregroundStyle(style.muted)
-                    .lineLimit(1)
-                Spacer(minLength: 8)
-                if let delta {
-                    deltaChip(delta)
-                        .animation(isScrubbing ? motion.snap : motion.dismiss) { $0.opacity(isScrubbing ? 0.35 : 1) }
+            // Label and chip share a row while both fit whole. In a narrow tile, or a long label, the chip drops under
+            // the label instead, and the label wraps rather than truncating.
+            ViewThatFits(in: .horizontal) {
+                HStack(alignment: .center) {
+                    title.lineLimit(1)
+                    Spacer(minLength: 8)
+                    chip(motion)
+                }
+                VStack(alignment: .leading, spacing: 8) {
+                    title.fixedSize(horizontal: false, vertical: true)
+                    chip(motion)
                 }
             }
 
@@ -180,7 +181,9 @@ public struct LiveStat<Format: FormatStyle>: View where Format.FormatInput == Do
                 .tracking(-style.numeralSize * 0.02)
                 .monospacedDigit()
                 .lineLimit(1)
-                .minimumScaleFactor(0.5)
+                // A figure too wide for the tile shrinks rather than losing digits, to the same smallest size at every
+                // Dynamic Type size, so a large text size never truncates a value that fits at the default one.
+                .minimumScaleFactor(0.4 / max(numeralScale, 1))
                 .foregroundStyle(style.text)
 
             if hasLine {
@@ -198,6 +201,21 @@ public struct LiveStat<Format: FormatStyle>: View where Format.FormatInput == Do
         // The drawer's edge uncovers the detail row, so the content is clipped to the panel.
         .clipShape(.rect(cornerRadius: 20, style: .continuous))
         .pieceLiquid(.rect(cornerRadius: 20, style: .continuous), tint: panelTint, interactive: false)
+    }
+
+    private var title: some View {
+        Text(label.uppercased())
+            .font(.system(size: 12, weight: .semibold))
+            .tracking(1.2)
+            .foregroundStyle(style.muted)
+    }
+
+    /// The delta chip, dimmed while the flag speaks for the scrubbed point.
+    @ViewBuilder private func chip(_ motion: PieceMotion) -> some View {
+        if let delta {
+            deltaChip(delta)
+                .animation(isScrubbing ? motion.snap : motion.dismiss) { $0.opacity(isScrubbing ? 0.35 : 1) }
+        }
     }
 
     /// The panel's glass tint: none for the standard tile, the block's color for `.block(_:)`.
@@ -351,29 +369,61 @@ public struct LiveStat<Format: FormatStyle>: View where Format.FormatInput == Do
         return PieceMotion(reduceMotion: reduceMotion).transition(.scale(scale: 0.4, anchor: anchor).combined(with: .opacity))
     }
 
-    private var extremes: some View {
-        HStack(spacing: 16) {
-            if let lo = series.min(), let hi = series.max() {
-                extreme("Low", lo)
-                extreme("High", hi)
-                Spacer(minLength: 0)
-                Text("\(series.count) pts")
-                    .font(.system(size: 12, weight: .semibold, design: .monospaced))
-                    .foregroundStyle(style.muted)
+    @ViewBuilder private var extremes: some View {
+        if let lo = series.min(), let hi = series.max() {
+            // One row while it fits whole; in a narrow tile, low and high stack with their figures in a column.
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: 16) {
+                    extreme("Low", lo)
+                    extreme("High", hi)
+                    Spacer(minLength: 0)
+                    pointCount
+                }
+                VStack(alignment: .leading, spacing: 6) {
+                    Grid(alignment: .leading, horizontalSpacing: 6, verticalSpacing: 6) {
+                        GridRow {
+                            extremeTitle("Low")
+                            extremeFigure(lo)
+                        }
+                        GridRow {
+                            extremeTitle("High")
+                            extremeFigure(hi)
+                        }
+                    }
+                    pointCount
+                }
             }
         }
     }
 
+    private var pointCount: some View {
+        Text("\(series.count) pts")
+            .font(.system(size: 12, weight: .semibold, design: .monospaced))
+            .foregroundStyle(style.muted)
+            .lineLimit(1)
+    }
+
     private func extreme(_ title: String, _ value: Double) -> some View {
         HStack(spacing: 6) {
-            Text(title.uppercased())
-                .font(.system(size: 11, weight: .semibold))
-                .tracking(1)
-                .foregroundStyle(style.muted)
-            Text(value, format: format)
-                .font(.system(size: 13, weight: .semibold, design: .monospaced))
-                .foregroundStyle(style.text)
+            extremeTitle(title)
+            extremeFigure(value)
         }
+    }
+
+    private func extremeTitle(_ title: String) -> some View {
+        Text(title.uppercased())
+            .font(.system(size: 11, weight: .semibold))
+            .tracking(1)
+            .foregroundStyle(style.muted)
+            .lineLimit(1)
+    }
+
+    private func extremeFigure(_ value: Double) -> some View {
+        Text(value, format: format)
+            .font(.system(size: 13, weight: .semibold, design: .monospaced))
+            .foregroundStyle(style.text)
+            .lineLimit(1)
+            .minimumScaleFactor(0.6)
     }
 
     // MARK: Gesture
@@ -504,6 +554,9 @@ public struct LiveStat<Format: FormatStyle>: View where Format.FormatInput == Do
         .font(.system(size: 13, weight: .semibold))
         .monospacedDigit()
         .foregroundStyle(style.chipInk)
+        // Always one line at its full width; the header moves it under the label when the row is too narrow.
+        .lineLimit(1)
+        .fixedSize()
         .padding(.horizontal, 10)
         .frame(minHeight: 28)
         .background(up ? style.up : style.down, in: Capsule())
@@ -517,6 +570,24 @@ public struct LiveStat<Format: FormatStyle>: View where Format.FormatInput == Do
         let target: Double
         let format: Format
         let dim: Color
+        /// The format's own decimal separator, which dims the decimals and counts the places the target shows.
+        private let separator: String
+        /// Whether the target shows decimals, and so a dimmed tail.
+        private let targetHasDecimals: Bool
+        /// The power of ten one unit in the target's last shown place is worth in the value's own terms. Worked out
+        /// once per target here, not on every frame of the roll.
+        private let step: Int?
+
+        init(value: Double, target: Double, format: Format, dim: Color) {
+            self.value = value
+            self.target = target
+            self.format = format
+            self.dim = dim
+            separator = Self.decimalSeparator(of: format)
+            let places = Self.fractionDigits(format.format(target), separator: separator)
+            targetHasDecimals = places > 0
+            step = Self.stepExponent(for: target, format: format, separator: separator, places: places)
+        }
 
         nonisolated var animatableData: Double {
             get { value }
@@ -524,25 +595,68 @@ public struct LiveStat<Format: FormatStyle>: View where Format.FormatInput == Do
         }
 
         var body: some View {
-            let text = format.format(rounded)
-            let separator = Locale.current.decimalSeparator ?? "."
+            let text = format.format(shown)
             if let range = text.range(of: separator, options: .backwards), text[range.upperBound...].first?.isNumber == true {
-                Text("\(Text(String(text[..<range.lowerBound])))\(Text(String(text[range.lowerBound...])).foregroundStyle(dim))")
+                dimmed(text, from: range.lowerBound)
+            } else if targetHasDecimals, let last = text.lastIndex(where: \.isNumber), text.index(after: last) < text.endIndex {
+                // A whole frame on the way to a figure with decimals ("2%" heading for "3.2%") keeps its suffix as
+                // dim as the target's, so the sign doesn't flicker each time the roll passes a whole number.
+                dimmed(text, from: text.index(after: last))
             } else {
                 Text(text)
             }
         }
 
-        /// Rounds in-flight frames to the target's own decimal places, so a whole-number format never shows a long fraction mid-roll.
-        private var rounded: Double {
-            let final = format.format(target)
-            let separator = Locale.current.decimalSeparator ?? "."
-            var places = 0
-            if let range = final.range(of: separator, options: .backwards) {
-                places = final[range.upperBound...].prefix { $0.isNumber }.count
+        private func dimmed(_ text: String, from split: String.Index) -> Text {
+            Text("\(Text(String(text[..<split])))\(Text(String(text[split...])).foregroundStyle(dim))")
+        }
+
+        /// At rest, the target itself. In flight, the real value rounded to the last place the target shows, so a
+        /// whole-number format never flashes a long fraction mid-roll and a percent heading for 3.2% passes 1.6%, not
+        /// 1.61234%. Adding zero turns a negative zero into zero, so a roll through it never reads "-0%".
+        private var shown: Double {
+            guard value != target, let step else { return value }
+            let unit = pow(10, Double(abs(step)))
+            let rounded = step < 0 ? (value * unit).rounded() / unit : (value / unit).rounded() * unit
+            return rounded + 0
+        }
+
+        /// The format's locale when it is one of Foundation's number styles, else the current one.
+        nonisolated private static func decimalSeparator(of format: Format) -> String {
+            let locale = (format as? FloatingPointFormatStyle<Double>)?.locale
+                ?? (format as? FloatingPointFormatStyle<Double>.Percent)?.locale
+                ?? (format as? FloatingPointFormatStyle<Double>.Currency)?.locale
+                ?? .current
+            return locale.decimalSeparator ?? "."
+        }
+
+        nonisolated private static func fractionDigits(_ text: String, separator: String) -> Int {
+            guard let range = text.range(of: separator, options: .backwards) else { return 0 }
+            return text[range.upperBound...].prefix { $0.isNumber }.count
+        }
+
+        /// What one unit in the target's last shown place is worth before formatting: -2 for "$48,250.40", -3 for a
+        /// percent showing "3.2%" (0.032), 3 for a compact "48K". The format is asked rather than its string read as
+        /// the value, so this holds for any scale or notation: it is the smallest power of ten that moves the shown
+        /// figure without adding a decimal place the target doesn't show. Nil when nothing moves it.
+        nonisolated private static func stepExponent(for target: Double, format: Format, separator: String, places: Int) -> Int? {
+            guard target.isFinite else { return nil }
+            let shown = format.format(target)
+            func moves(_ exponent: Int) -> Bool {
+                let next = format.format(target + pow(10, Double(exponent)))
+                return next != shown && fractionDigits(next, separator: separator) <= places
             }
-            let scale = pow(10, Double(places))
-            return (value * scale).rounded() / scale
+            // Start at the shown places, which is right for plain numbers and currency, then walk to the edge.
+            var exponent = -places
+            if moves(exponent) {
+                while exponent > -15, moves(exponent - 1) { exponent -= 1 }
+                return exponent
+            }
+            while exponent < 15 {
+                exponent += 1
+                if moves(exponent) { return exponent }
+            }
+            return nil
         }
     }
 
@@ -768,7 +882,7 @@ extension PieceMotion {
 // and melt back into each other, and the frosted fallback before iOS 26. Each piece carries a copy of only
 // the parts it uses, so this file stands alone. Generated from registry/foundation/PieceLiquid.swift in the
 // SwiftPieces repo; edit it there, not here. The rules are in LIQUID_GLASS.md.
-// swiftpieces-liquid: 1.7.1 (liquid, bud)
+// swiftpieces-liquid: 1.8.0 (liquid, bud)
 
 /// The liquid glass language: one merge distance, two rest gaps, and the springs a bubble leaves and comes home on.
 ///

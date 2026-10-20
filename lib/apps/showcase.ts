@@ -1,10 +1,10 @@
-// The App Library header's before and after: an App Store screenshot (the developer's, labeled as
-// such) and the screen we remixed from it (ours). The stills of our screens live in
-// public/app-remixes and come from scripts/app-remixes/capture.ts; re-run it after a remix changes.
-// A pick from a Pro app shows its screen blurred, as Free shows every Pro screen.
+// The Playground headline's phones (components/apps/remix-headline.tsx): one screen we remixed from
+// each free pick, set into the words. The stills of our screens live in public/app-remixes and come
+// from scripts/app-remixes/capture.ts; re-run it after a remix changes. A pick from a Pro app shows
+// its screen blurred, as Free shows every Pro screen.
 import { apps, isProApp, lockedStill, type LibraryEntry } from "./index";
 
-/** The three free apps, each at a screen with clean App Store art and a remix that reads at a glance. */
+/** The three free apps, one per line of the headline, each at a screen whose remix reads at a glance on a small phone. */
 const PICKS = [
   { slug: "pocket-casts", shot: 2 },
   { slug: "waterllama", shot: 2 },

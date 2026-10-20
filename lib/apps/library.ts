@@ -236,4 +236,150 @@ export const LIBRARY: LibraryApp[] = [
       { shot: 6, step: 6, title: "Your year so far" },
     ],
   },
+  {
+    slug: "hevy", trackId: 1458862350, pattern: "flows/workout-log", name: "Hevy",
+    screens: [
+      { shot: 3, step: 0, title: "Routines to start" },
+      { shot: 1, step: 1, title: "Logging sets" },
+      { shot: 4, step: 3, title: "Friends' workouts" },
+      { shot: 7, step: 4, title: "Profile and weekly hours" },
+      { shot: 2, step: 5, title: "An exercise's progress" },
+    ],
+  },
+  {
+    slug: "mercury-weather", trackId: 1621800675, pattern: "flows/weather-forecast", name: "Mercury Weather",
+    screens: [
+      { shot: 1, step: 0, title: "A sunny day" },
+      { shot: 0, step: 1, title: "Rain on the way" },
+      { shot: 2, step: 5, title: "The days at a glance" },
+      { shot: 5, step: 4, title: "A trip's forecast" },
+      { shot: 7, step: 6, title: "Widgets" },
+    ],
+  },
+  {
+    slug: "endel", trackId: 1346247457, pattern: "flows/focus-soundscapes",
+    screens: [
+      { shot: 2, step: 0, title: "A soundscape playing" },
+      { shot: 0, step: 0, title: "Quiet controls under the scene" },
+      { shot: 5, step: 1, title: "Your guide through the day" },
+      { shot: 7, step: 5, title: "Relax" },
+      { shot: 4, step: 6, title: "Sleep" },
+    ],
+  },
+  {
+    slug: "opal", trackId: 1497465230, pattern: "flows/screen-time",
+    screens: [
+      { shot: 0, step: 0, title: "Less screen time than usual" },
+      { shot: 5, step: 0, title: "A score in three gauges" },
+      { shot: 3, step: 1, title: "Late-night insights" },
+      { shot: 2, step: 2, title: "Blocked apps and rules" },
+      { shot: 4, step: 4, title: "A one-tap focus timer" },
+      { shot: 1, step: 6, title: "The block screen" },
+    ],
+  },
+  {
+    slug: "things", trackId: 904237743, pattern: "flows/task-manager",
+    screens: [
+      { shot: 0, step: 0, title: "Lists, areas and projects" },
+      { shot: 1, step: 1, title: "Today and This Evening" },
+      { shot: 2, step: 2, title: "Upcoming, day by day" },
+      { shot: 3, step: 3, title: "A new to-do with a checklist" },
+      { shot: 4, step: 4, title: "A project in headings" },
+    ],
+  },
+  {
+    slug: "letterboxd", trackId: 1054271011, pattern: "flows/film-diary",
+    screens: [
+      { shot: 0, step: 1, title: "A film and its ratings" },
+      { shot: 1, step: 2, title: "Watched, like, rate" },
+      { shot: 2, step: 3, title: "The diary by month" },
+      { shot: 3, step: 4, title: "A review" },
+      { shot: 4, step: 6, title: "A numbered list" },
+    ],
+  },
+  {
+    slug: "vivino", trackId: 414461255, pattern: "flows/wine-ratings",
+    screens: [
+      { shot: 1, step: 1, title: "Scanning a label" },
+      { shot: 3, step: 2, title: "A wine and your match" },
+      { shot: 5, step: 4, title: "Food pairings" },
+      { shot: 2, step: 5, title: "Your taste by style" },
+      { shot: 6, step: 0, title: "Best offers for you" },
+    ],
+  },
+  {
+    slug: "stats-fm", trackId: 1526912392, pattern: "flows/listening-stats", name: "stats.fm",
+    screens: [
+      { shot: 0, step: 0, title: "Now playing and top artists" },
+      { shot: 6, step: 1, title: "Top tracks and their moves" },
+      { shot: 4, step: 2, title: "An artist's numbers" },
+      { shot: 5, step: 3, title: "The year against last year" },
+      { shot: 1, step: 4, title: "History by day" },
+      { shot: 3, step: 6, title: "A friend's audio features" },
+    ],
+  },
+  {
+    slug: "partiful", trackId: 1662982304, pattern: "flows/party-invites",
+    screens: [
+      { shot: 0, step: 1, title: "The event page and RSVP" },
+      { shot: 5, step: 2, title: "Blasts and reactions" },
+      { shot: 1, step: 3, title: "Picking a flyer" },
+      { shot: 2, step: 4, title: "Sharing the link" },
+      { shot: 6, step: 5, title: "Tickets and payouts" },
+      { shot: 4, step: 6, title: "Trending near you" },
+    ],
+  },
+  {
+    slug: "merlin", trackId: 773457673, pattern: "flows/bird-id", name: "Merlin Bird ID",
+    screens: [
+      { shot: 2, step: 1, title: "Sound ID listening" },
+      { shot: 7, step: 2, title: "A species and its range" },
+      { shot: 5, step: 3, title: "Step-by-step questions" },
+      { shot: 6, step: 4, title: "Framing a photo" },
+      { shot: 3, step: 5, title: "Birds likely near you" },
+    ],
+  },
+  {
+    slug: "finch", trackId: 1528595748, pattern: "flows/self-care-pet",
+    screens: [
+      { shot: 3, step: 2, title: "Off on an adventure" },
+      { shot: 1, step: 3, title: "Goals with a buddy" },
+      { shot: 4, step: 3, title: "Encouraging a buddy" },
+      { shot: 2, step: 3, title: "Sending good vibes" },
+      { shot: 5, step: 4, title: "Self-care progress" },
+      { shot: 6, step: 5, title: "A month's streak" },
+    ],
+  },
+  {
+    slug: "parcel", trackId: 375589283, pattern: "flows/package-tracker",
+    screens: [
+      { shot: 0, step: 0, title: "Deliveries by days to go" },
+      { shot: 1, step: 1, title: "A delivery's history and route" },
+      { shot: 4, step: 2, title: "The route, day by day" },
+      { shot: 3, step: 3, title: "Adding a tracking number" },
+      { shot: 2, step: 4, title: "Widgets" },
+    ],
+  },
+  {
+    slug: "bear", trackId: 1016366447, pattern: "flows/markdown-notes",
+    screens: [
+      { shot: 1, step: 0, title: "Tags in the sidebar" },
+      { shot: 0, step: 2, title: "A note with a table and a link" },
+      { shot: 4, step: 3, title: "Statistics and outline" },
+      { shot: 6, step: 4, title: "Search with matches lit up" },
+      { shot: 3, step: 5, title: "Themes" },
+      { shot: 7, step: 6, title: "Locked notes" },
+    ],
+  },
+  {
+    slug: "paku", trackId: 1534130193, pattern: "flows/air-quality",
+    screens: [
+      { shot: 6, step: 0, title: "The map of sensors" },
+      { shot: 4, step: 0, title: "Switching what the map shows" },
+      { shot: 0, step: 1, title: "A sensor's last 24 hours" },
+      { shot: 5, step: 4, title: "Alert settings" },
+      { shot: 1, step: 5, title: "Lock Screen and Live Activity" },
+      { shot: 3, step: 5, title: "Home Screen widgets" },
+    ],
+  },
 ];

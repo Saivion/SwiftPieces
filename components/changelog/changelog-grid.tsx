@@ -36,7 +36,7 @@ export function tintStyle(tint: Tint): CSSProperties {
 
 
 /** The lift and edge every changelog card shares on hover. */
-export const CARD = "group overflow-hidden rounded-[var(--radius)] border border-[var(--card-border)] bg-[var(--surface)] transition-[transform,box-shadow,border-color] duration-300 hover:-translate-y-0.5 hover:border-[var(--card-border-hover)] hover:shadow-[0_20px_44px_-26px_rgb(0_0_0/0.4)]";
+export const CARD = "group overflow-hidden rounded-[22px] bg-surface p-2 transition-[transform,background-color] duration-300 hover:-translate-y-0.5 hover:bg-surface-3";
 
 /**
  * Earlier updates as cards, as many across as the docs column fits: it measures the column rather
@@ -52,12 +52,12 @@ export function ChangelogGrid({ entries, seedFrom = 1 }: { entries: ChangelogEnt
         {entries.map((e, i) => (
           <li key={e.slug} className="flex flex-col">
             <Link href={changelogPath(e.slug)} className={cn(CARD, "flex h-full flex-col")}>
-              <div className="changelog-tint relative grid aspect-[16/10] place-items-center" style={tintStyle(e.tint)}>
+              <div className="changelog-tint relative grid aspect-[16/10] place-items-center rounded-[16px]" style={tintStyle(e.tint)}>
                 <Sketch kind={e.visual} seed={seedFrom + i} className="h-[42%] w-auto text-[#141414] transition-transform duration-500 group-hover:scale-[1.04]" />
               </div>
-              <div className="flex grow flex-col p-4 pb-5">
+              <div className="flex grow flex-col px-2.5 pt-4 pb-3">
                 <p className="text-[11.5px] leading-none text-subtle">{e.date}</p>
-                <h3 className="mt-3 line-clamp-2 text-[15px] leading-[1.3] font-semibold tracking-[-0.015em] text-foreground">{e.title}</h3>
+                <h3 className="mt-3 line-clamp-2 text-[16px] leading-[1.3] font-medium tracking-[-0.015em] text-foreground">{e.title}</h3>
                 <p className="mt-2 line-clamp-3 text-[12.5px] leading-[1.55] text-muted">{e.summary}</p>
                 <span className="mt-auto flex items-center gap-1 pt-4 text-[12px] font-medium text-subtle transition-colors duration-300 group-hover:text-foreground">
                   Read

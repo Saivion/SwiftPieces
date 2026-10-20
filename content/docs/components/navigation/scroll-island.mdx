@@ -1,6 +1,6 @@
 ---
 title: "Scroll Island"
-description: "A floating liquid glass island for long screens such as articles, recipes, docs, settings and product pages: it names the section in view and rings it in red with how much of the page has been read, morphs the title letter by letter as the page scrolls, buds a joined back-to-top bubble once the reader leaves the first section, scrubs sections under a sideways drag with a tick for each, and on a tap or a swipe up grows the same glass into a contents panel where a red puck stretches from row to row under the finger and the pick scrolls the page straight there."
+description: "A floating glass island that names the section in view, rings in how much is read and opens into a contents panel on tap."
 piece: "ScrollIsland"
 category: "navigation"
 minIOSVersion: "17.0"
@@ -11,45 +11,7 @@ registryDependencies: []
 
 {/* GENERATED FILE. Edit registry/swift/navigation/ScrollIsland.swift or ScrollIsland.mdx instead. */}
 
-A floating section island for long scrolling screens: which part am I in, how much is left, and a way to jump. The island names the section in view, rings it with how much of the page has been read, and opens in place into the screen's contents. It reads and writes the same selection your scroll view's `scrollPosition(id:)` does, so scrolling the page moves the island and picking a section scrolls the page. Put it over the scroll view with `.overlay(alignment: .bottom)`: it keeps above the home indicator and the keyboard, and only takes touches on itself, so the page behind it keeps scrolling. ```swift @State private var section: Recipe.Part.ID? @State private var read: Double? ScrollView { LazyVStack { ForEach(recipe.parts) { RecipePart($0).id($0.id) } } .scrollTargetLayout() } .scrollPosition(id: $section, anchor: .top) .overlay(alignment: .bottom) { ScrollIsland(sections: recipe.parts.map { .init(id: $0.id, title: $0.title, detail: $0.readingTime) }, selection: $section, progress: read) } ``` How much has been read, from the scroll offset (iOS 18; leave `read` nil before that and the island estimates it): ```swift .onScrollGeometryChange(for: Double.self) { geometry in let travel = geometry.contentSize.height + geometry.contentInsets.top + geometry.contentInsets.bottom - geometry.containerSize.height return travel > 0 ? (geometry.contentOffset.y + geometry.contentInsets.top) / travel : 1 } action: { _, fraction in read = min(max(fraction, 0), 1) } ```
-
-## Notes
-
-- Put it over a long `ScrollView` with `.overlay(alignment: .bottom)`, and give the island the same binding as the scroll view's `scrollPosition(id:)`: each section's view carries `.id(section.id)` inside a `.scrollTargetLayout()`. Scrolling the page updates the island; a pick, a scrub, an arrow key or the back-to-top bubble sets the binding, and the scroll view takes the page there. A `nil` selection reads as the first section.
-- It sits 8 points above the bottom safe area and 16 from each side, rides above the keyboard, and only takes touches on its own glass, so the page behind it keeps scrolling everywhere else.
-- Closed, it is one glass capsule hugging its bar: a 26 point ring whose red arc is the part of the page read, the section's title (it morphs letter by letter as the page moves on, and truncates with an ellipsis when it can't fit), a quiet "3 of 6" and a chevron. One section shows its title alone; an empty list draws nothing.
-- Pass `progress` from the scroll offset for a true reading (the doc comment and the example show the iOS 18 `onScrollGeometryChange` that computes it). `nil` estimates it from the section's place. The arc tracks a scroll as it goes and sweeps without overshoot after a jump.
-- Once the reader is past the first section a round back-to-top bubble buds out of the island's leading end and rests joined to it on a short liquid neck. Tapping it selects the first section; it melts back into the island when the page is back at the top, and while the contents are open. `showsTopButton: false` leaves it out.
-- Tap the island, or swipe up on it, and the same glass grows upward in place into the contents (up to `style.maxWidth`, 360 by default, and about 60% of the space it is given). The bar stays where it was, now reading the contents title and how much has been read; the rows arrive once the glass has grown and leave before it shrinks. Longer lists scroll inside the panel, opened on the current section.
-- In the contents the current section sits on a red puck with its title in dark ink. Press a row, or slide over the rows (a swipe up that carries on onto a row does the same, like a menu), and the puck follows: its leading edge first and the far edge a beat behind, so it stretches toward each row and gathers on it, with a selection tick per row. Let go and the page jumps there as the panel melts back into the pill. Lifting off the rows, or a touch the system takes, picks nothing. When the rows scroll, a tap picks instead.
-- Drag the closed island sideways to step through sections live, one per 32 points, with a tick for each; the title morphs as you go, the island gives with rubber-band resistance past the first and last, and letting go commits. The axis is decided after 8 points, so a swipe up opens it rather than scrubbing. Right to left mirrors the drag: later sections lie toward the trailing side.
-- Bind `isExpanded` to open or close the contents from your own controls (a toolbar button, say) or to know when they are open; omit it and the island keeps that state itself. A selection that changes while the contents are open moves the puck.
-- VoiceOver: closed, the island is one adjustable button, "Contents", with a value such as "Method, Section 3 of 6, 62% read" and the hint "Shows every section"; swipe up or down to step sections, double-tap to open. Open, focus moves into the list onto the current section; each row is a button with the selected trait and its reading time as the value, the bar closes the contents, and Escape (the two-finger scrub) closes them too. The bubble reads "Back to top".
-- Hardware keyboard: focus the island, then the left and right arrows step sections and Return, Space or the up arrow opens the contents; open, the up and down arrows move the puck, Return or Space picks and Escape closes.
-- Reduce Motion: the glass grows and shrinks on a short ease, the puck slides on one short spring without stretching, the title cross-fades instead of morphing, the bubble appears and leaves in place, the scrub has no lift or give, and a press shades instead of sinking. Reduce Transparency draws solid surfaces through the shared foundation.
-- Dynamic Type: the bar, the ring, the rows and the bubble scale. At the accessibility sizes the closed island drops the quiet position (VoiceOver still reads it) so the title keeps its room, and the contents scroll sooner. All text is one weight, semibold.
-- Haptics: a selection tick for each section a scrub or the puck crosses, an arrow key or the bubble; a light impact when the contents open and close.
-- Red is the read arc and the puck, nothing else. `Style` sets the accent, the ink on it, the label and secondary label colours, the ring's track and `maxWidth`. `Messages` replaces any of the copy: the contents title (such as "On this page"), the bubble's label, the hints, and the position, spoken position and read amount as closures over formatted numbers.
-
-## Usage
-
-```swift
-ScrollIslandExample()
-```
-
-## Parameters
-
-| Parameter | Description |
-| --- | --- |
-| `sections` | The screen's sections, in page order. Each has the `id` its view carries in the scroll view, a title and an optional short detail shown at the end of its row in the contents, such as a reading time. One section shows its title alone; none draws nothing. |
-| `selection` | The section in view, the same binding as the scroll view's `scrollPosition(id:)`. Scrolling the page updates it; picking a section, scrubbing the island or the back-to-top bubble sets it, which scrolls the page there. `nil` reads as the first section. |
-| `progress` | How much of the page has been read, from 0 to 1, drawn as the red arc of the ring and read out as "62% read". Compute it from the scroll offset (on iOS 18, `onScrollGeometryChange`). `nil` estimates it from the section's place in the list. |
-| `isExpanded` | Bind it to open or close the contents from your own controls, such as a toolbar button, or to know when they are open. Omit it and the island keeps this state itself. |
-| `showsTopButton` | Buds a round back-to-top bubble out of the island's leading end while the reader is past the first section. Defaults to `true`. |
-| `messages` | The island's copy. Defaults are localizable through your String Catalog; replace any line, such as `contents` with "On this page". |
-| `style` | Colors and the widest the island and its contents may grow. Defaults to the SwiftPieces house palette, adapting to light and dark, with red for the read arc and the contents' selection puck. |
-
-## Source
+<Showcase name="ScrollIsland">
 
 <Tabs items={["ScrollIsland.swift"]}>
 <Tab value="ScrollIsland.swift">
@@ -1344,7 +1306,7 @@ extension PieceMotion {
 // and melt back into each other, and the frosted fallback before iOS 26. Each piece carries a copy of only
 // the parts it uses, so this file stands alone. Generated from registry/foundation/PieceLiquid.swift in the
 // SwiftPieces repo; edit it there, not here. The rules are in LIQUID_GLASS.md.
-// swiftpieces-liquid: 1.7.1 (liquid, liquidPress, bud, morphText)
+// swiftpieces-liquid: 1.8.0 (liquid, liquidPress, bud, morphText)
 
 /// The liquid glass language: one merge distance, two rest gaps, and the springs a bubble leaves and comes home on.
 ///
@@ -1666,31 +1628,46 @@ private struct PieceMorphText: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        Group {
-            if Self.splits(text) {
-                let glyphs = Array(text)
-                HStack(spacing: 0) {
-                    ForEach(glyphs.indices, id: \.self) { i in
-                        Text(String(glyphs[i]))
-                            .id("\(i)\(glyphs[i])")
-                            .transition(transition(i, scale: 0.6))
-                    }
-                }
-                // The letters' reading order, not the layout's: an HStack lays its children out backwards under a
-                // right-to-left layout.
-                .environment(\.layoutDirection, .leftToRight)
-            } else {
-                ZStack(alignment: .leading) {
-                    Text(text)
-                        .id(text)
-                        .transition(transition(0, scale: 0.9))
-                }
-            }
+        // The morphing label at its full size when it fits. When it doesn't (a long label at an accessibility text
+        // size, a narrow screen), the same words wrap onto a second line and shrink a little instead of running past
+        // the screen's edge; that one changes as a whole rather than letter by letter. A single word never splits
+        // across lines: it stays on one and shrinks further.
+        let oneWord = !text.contains(where: \.isWhitespace)
+        ViewThatFits(in: .horizontal) {
+            morphing.fixedSize()
+            Text(text)
+                .lineLimit(oneWord ? 1 : 2)
+                .multilineTextAlignment(.center)
+                .minimumScaleFactor(oneWord ? 0.5 : 0.75)
+                .fixedSize(horizontal: false, vertical: true)
+                .id(text)
+                .transition(transition(0, scale: 0.9))
         }
         .font(font)
-        .fixedSize()
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(text)
+    }
+
+    @ViewBuilder private var morphing: some View {
+        if Self.splits(text) {
+            let glyphs = Array(text)
+            HStack(spacing: 0) {
+                ForEach(glyphs.indices, id: \.self) { i in
+                    Text(String(glyphs[i]))
+                        .id("\(i)\(glyphs[i])")
+                        .transition(transition(i, scale: 0.6))
+                }
+            }
+            // The letters' reading order, not the layout's: an HStack lays its children out backwards under a
+            // right-to-left layout.
+            .environment(\.layoutDirection, .leftToRight)
+        } else {
+            ZStack(alignment: .leading) {
+                Text(text)
+                    .id(text)
+                    .transition(transition(0, scale: 0.9))
+            }
+        }
     }
 
     private func transition(_ i: Int, scale: CGFloat) -> AnyTransition {
@@ -1728,3 +1705,45 @@ private struct PieceMorphText: View {
 
 </Tab>
 </Tabs>
+
+</Showcase>
+
+<PieceFacts name="ScrollIsland" />
+
+A floating section island for long scrolling screens: which part am I in, how much is left, and a way to jump. The island names the section in view, rings it with how much of the page has been read, and opens in place into the screen's contents. It reads and writes the same selection your scroll view's `scrollPosition(id:)` does, so scrolling the page moves the island and picking a section scrolls the page. Put it over the scroll view with `.overlay(alignment: .bottom)`: it keeps above the home indicator and the keyboard, and only takes touches on itself, so the page behind it keeps scrolling. ```swift @State private var section: Recipe.Part.ID? @State private var read: Double? ScrollView { LazyVStack { ForEach(recipe.parts) { RecipePart($0).id($0.id) } } .scrollTargetLayout() } .scrollPosition(id: $section, anchor: .top) .overlay(alignment: .bottom) { ScrollIsland(sections: recipe.parts.map { .init(id: $0.id, title: $0.title, detail: $0.readingTime) }, selection: $section, progress: read) } ``` How much has been read, from the scroll offset (iOS 18; leave `read` nil before that and the island estimates it): ```swift .onScrollGeometryChange(for: Double.self) { geometry in let travel = geometry.contentSize.height + geometry.contentInsets.top + geometry.contentInsets.bottom - geometry.containerSize.height return travel > 0 ? (geometry.contentOffset.y + geometry.contentInsets.top) / travel : 1 } action: { _, fraction in read = min(max(fraction, 0), 1) } ```
+
+## Notes
+
+- Put it over a long `ScrollView` with `.overlay(alignment: .bottom)`, and give the island the same binding as the scroll view's `scrollPosition(id:)`: each section's view carries `.id(section.id)` inside a `.scrollTargetLayout()`. Scrolling the page updates the island; a pick, a scrub, an arrow key or the back-to-top bubble sets the binding, and the scroll view takes the page there. A `nil` selection reads as the first section.
+- It sits 8 points above the bottom safe area and 16 from each side, rides above the keyboard, and only takes touches on its own glass, so the page behind it keeps scrolling everywhere else.
+- Closed, it is one glass capsule hugging its bar: a 26 point ring whose red arc is the part of the page read, the section's title (it morphs letter by letter as the page moves on, and truncates with an ellipsis when it can't fit), a quiet "3 of 6" and a chevron. One section shows its title alone; an empty list draws nothing.
+- Pass `progress` from the scroll offset for a true reading (the doc comment and the example show the iOS 18 `onScrollGeometryChange` that computes it). `nil` estimates it from the section's place. The arc tracks a scroll as it goes and sweeps without overshoot after a jump.
+- Once the reader is past the first section a round back-to-top bubble buds out of the island's leading end and rests joined to it on a short liquid neck. Tapping it selects the first section; it melts back into the island when the page is back at the top, and while the contents are open. `showsTopButton: false` leaves it out.
+- Tap the island, or swipe up on it, and the same glass grows upward in place into the contents (up to `style.maxWidth`, 360 by default, and about 60% of the space it is given). The bar stays where it was, now reading the contents title and how much has been read; the rows arrive once the glass has grown and leave before it shrinks. Longer lists scroll inside the panel, opened on the current section.
+- In the contents the current section sits on a red puck with its title in dark ink. Press a row, or slide over the rows (a swipe up that carries on onto a row does the same, like a menu), and the puck follows: its leading edge first and the far edge a beat behind, so it stretches toward each row and gathers on it, with a selection tick per row. Let go and the page jumps there as the panel melts back into the pill. Lifting off the rows, or a touch the system takes, picks nothing. When the rows scroll, a tap picks instead.
+- Drag the closed island sideways to step through sections live, one per 32 points, with a tick for each; the title morphs as you go, the island gives with rubber-band resistance past the first and last, and letting go commits. The axis is decided after 8 points, so a swipe up opens it rather than scrubbing. Right to left mirrors the drag: later sections lie toward the trailing side.
+- Bind `isExpanded` to open or close the contents from your own controls (a toolbar button, say) or to know when they are open; omit it and the island keeps that state itself. A selection that changes while the contents are open moves the puck.
+- VoiceOver: closed, the island is one adjustable button, "Contents", with a value such as "Method, Section 3 of 6, 62% read" and the hint "Shows every section"; swipe up or down to step sections, double-tap to open. Open, focus moves into the list onto the current section; each row is a button with the selected trait and its reading time as the value, the bar closes the contents, and Escape (the two-finger scrub) closes them too. The bubble reads "Back to top".
+- Hardware keyboard: focus the island, then the left and right arrows step sections and Return, Space or the up arrow opens the contents; open, the up and down arrows move the puck, Return or Space picks and Escape closes.
+- Reduce Motion: the glass grows and shrinks on a short ease, the puck slides on one short spring without stretching, the title cross-fades instead of morphing, the bubble appears and leaves in place, the scrub has no lift or give, and a press shades instead of sinking. Reduce Transparency draws solid surfaces through the shared foundation.
+- Dynamic Type: the bar, the ring, the rows and the bubble scale. At the accessibility sizes the closed island drops the quiet position (VoiceOver still reads it) so the title keeps its room, and the contents scroll sooner. All text is one weight, semibold.
+- Haptics: a selection tick for each section a scrub or the puck crosses, an arrow key or the bubble; a light impact when the contents open and close.
+- Red is the read arc and the puck, nothing else. `Style` sets the accent, the ink on it, the label and secondary label colours, the ring's track and `maxWidth`. `Messages` replaces any of the copy: the contents title (such as "On this page"), the bubble's label, the hints, and the position, spoken position and read amount as closures over formatted numbers.
+
+## Usage
+
+```swift
+ScrollIslandExample()
+```
+
+## Parameters
+
+| Parameter | Description |
+| --- | --- |
+| `sections` | The screen's sections, in page order. Each has the `id` its view carries in the scroll view, a title and an optional short detail shown at the end of its row in the contents, such as a reading time. One section shows its title alone; none draws nothing. |
+| `selection` | The section in view, the same binding as the scroll view's `scrollPosition(id:)`. Scrolling the page updates it; picking a section, scrubbing the island or the back-to-top bubble sets it, which scrolls the page there. `nil` reads as the first section. |
+| `progress` | How much of the page has been read, from 0 to 1, drawn as the red arc of the ring and read out as "62% read". Compute it from the scroll offset (on iOS 18, `onScrollGeometryChange`). `nil` estimates it from the section's place in the list. |
+| `isExpanded` | Bind it to open or close the contents from your own controls, such as a toolbar button, or to know when they are open. Omit it and the island keeps this state itself. |
+| `showsTopButton` | Buds a round back-to-top bubble out of the island's leading end while the reader is past the first section. Defaults to `true`. |
+| `messages` | The island's copy. Defaults are localizable through your String Catalog; replace any line, such as `contents` with "On this page". |
+| `style` | Colors and the widest the island and its contents may grow. Defaults to the SwiftPieces house palette, adapting to light and dark, with red for the read arc and the contents' selection puck. |

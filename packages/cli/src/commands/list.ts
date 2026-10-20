@@ -24,12 +24,20 @@ export async function list(opts: { category?: string; json?: boolean; pro?: bool
     console.log(JSON.stringify(filtered, null, 2));
     return;
   }
-  const byCat = new Map<string, typeof filtered>();
-  for (const i of filtered) byCat.set(i.category, [...(byCat.get(i.category) ?? []), i]);
-  for (const [cat, list] of byCat) {
-    console.log(`\n${cat}`);
-    for (const i of list) console.log(`  ${i.name.padEnd(26)} iOS ${i.minIOSVersion.padEnd(5)} ${(i.type ?? "free").padEnd(9)} ${i.description}`);
-  }
-  console.log(`\n${filtered.length} pieces from ${registry}. Add one with: npx swiftpieces add <Name>`);
+  // Blocks (whole sections of a screen, `type: "registry:block"`) list after the pieces, under their own heading.
+  const isBlock = (i: (typeof filtered)[number]) => i.type === "registry:block";
+  const print = (title: (cat: string) => string, list: typeof filtered) => {
+    const byCat = new Map<string, typeof filtered>();
+    for (const i of list) byCat.set(i.category, [...(byCat.get(i.category) ?? []), i]);
+    for (const [cat, items] of byCat) {
+      console.log(`\n${title(cat)}`);
+      for (const i of items) console.log(`  ${i.name.padEnd(26)} iOS ${i.minIOSVersion.padEnd(5)} ${(isBlock(i) ? "block" : (i.type ?? "free")).padEnd(9)} ${i.description}`);
+    }
+  };
+  const pieces = filtered.filter((i) => !isBlock(i));
+  const blocks = filtered.filter(isBlock);
+  print((cat) => cat, pieces);
+  print((cat) => `blocks · ${cat}`, blocks);
+  console.log(`\n${pieces.length} pieces${blocks.length ? ` and ${blocks.length} blocks` : ""} from ${registry}. Add one with: npx swiftpieces add <Name>${blocks.length ? " (a block brings the pieces it is built from)" : ""}`);
   if (!opts.pro) console.log(`SwiftPieces Pro screens and app templates: npx swiftpieces list --pro · Build Kit: npx swiftpieces list --kit${readLicenseKey() ? "" : "  (npx swiftpieces login to install them)"}`);
 }

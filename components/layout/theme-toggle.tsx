@@ -23,7 +23,7 @@ export function ThemeToggle({ className }: { className?: string }) {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
   return (
-    <div role="radiogroup" aria-label="Colour theme" className={cn("inline-flex items-center gap-0.5 rounded-[4px] bg-white/[.05] p-0.5", className)}>
+    <div role="radiogroup" aria-label="Colour theme" className={cn("inline-flex items-center gap-0.5 rounded-full bg-surface p-[3px]", className)}>
       {options.map((o) => {
         const active = mounted && theme === o.value;
         return (
@@ -36,8 +36,8 @@ export function ThemeToggle({ className }: { className?: string }) {
             title={o.label}
             onClick={() => setTheme(o.value)}
             className={cn(
-              "flex size-8 items-center justify-center rounded-[3px] transition-colors duration-200",
-              active ? "bg-white/[.1] text-foreground" : "text-muted hover:text-foreground",
+              "flex size-[30px] items-center justify-center rounded-full transition-colors duration-200",
+              active ? "bg-surface-2 text-foreground shadow-[0_1px_2px_rgb(0_0_0/0.18)]" : "text-muted hover:text-foreground",
             )}
           >
             <svg aria-hidden viewBox="0 0 16 16" className="ai size-4 overflow-visible" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">{o.parts}</svg>
@@ -57,7 +57,7 @@ export function ThemeButton({ className }: { className?: string }) {
   const { setTheme } = useTheme();
   const toggle = () => setTheme(document.documentElement.classList.contains("light") ? "dark" : "light");
   return (
-    <button type="button" onClick={toggle} aria-label="Switch light or dark mode" title="Light or dark" className={cn("flex size-9 items-center justify-center rounded-[4px] text-muted transition-colors hover:text-foreground", className)}>
+    <button type="button" onClick={toggle} aria-label="Switch light or dark mode" title="Light or dark" className={cn("flex size-[38px] items-center justify-center rounded-full text-muted transition-colors hover:text-foreground", className)}>
       <svg aria-hidden viewBox="0 0 16 16" className="ai size-4 overflow-visible [html.light_&]:hidden" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">{options[1].parts}</svg>
       <svg aria-hidden viewBox="0 0 16 16" className="ai hidden size-4 overflow-visible [html.light_&]:block" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">{options[2].parts}</svg>
     </button>
