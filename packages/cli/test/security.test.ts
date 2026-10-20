@@ -181,6 +181,28 @@ describe("registry policy", () => {
       await server.close();
     }
   });
+
+  it("never follows a redirect with the license key on it", async () => {
+    const server = await listen((req, res) => {
+      if (req.url?.startsWith("/elsewhere")) {
+        res.end(JSON.stringify({ name: "InviteFriendsBlock", type: "block", availability: "pro", entitled: true, files: [] }));
+        return;
+      }
+      res.statusCode = 302;
+      res.setHeader("location", "/elsewhere");
+      res.end();
+    });
+    try {
+      const registries = { free: `${server.origin}/r`, pro: `${server.origin}/pro` };
+      await assert.rejects(fetchItem(registries, "InviteFriendsBlock", "sp_live_test", { allowHttpLocalhost: true, trustRegistry: true }), (err: RegistryError) => {
+        assert.match(err.message, /answered with a redirect/);
+        return true;
+      });
+      assert.ok(!server.seen.some((r) => r.url.startsWith("/elsewhere")), "the key followed the redirect");
+    } finally {
+      await server.close();
+    }
+  });
 });
 
 describe("add", () => {

@@ -72,10 +72,16 @@ function withheld(target: URL, licenseKey: string | undefined, policy: FetchPoli
   return Boolean(licenseKey) && !sendsLicenseKey(target, policy);
 }
 
-/** fetch, but an unreachable host is a RegistryError with a plain-English message, never a stack trace. */
+/**
+ * fetch, but an unreachable host is a RegistryError with a plain-English message, never a stack trace.
+ * A request carrying the license key never follows a redirect: fetch would send the key on to wherever
+ * the redirect points (it drops only `Authorization` across origins), so a redirect is an error instead.
+ */
 export async function request(url: string, init?: RequestInit): Promise<Response> {
+  const carriesKey = Boolean(init?.headers && "x-license-key" in (init.headers as Record<string, string>));
+  let res: Response;
   try {
-    return await fetch(url, init);
+    res = await fetch(url, carriesKey ? { ...init, redirect: "manual" } : init);
   } catch {
     let host = url;
     try {
@@ -85,6 +91,10 @@ export async function request(url: string, init?: RequestInit): Promise<Response
     }
     throw new RegistryError(`Couldn't reach ${host}. Check your internet connection and try again. If it keeps failing, see https://github.com/saivion/swiftpieces/issues`);
   }
+  if (carriesKey && res.status >= 300 && res.status < 400) {
+    throw new RegistryError(`${new URL(url).origin} answered with a redirect. The license key is never sent on to another address, so nothing was installed.`, res.status);
+  }
+  return res;
 }
 
 function parseItem(data: unknown, name: string): RegistryItem {

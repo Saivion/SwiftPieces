@@ -6,7 +6,7 @@ import { list } from "./commands/list.js";
 import { login, logout, whoami } from "./commands/auth.js";
 
 const program = new Command();
-program.name("swiftpieces").description("Add SwiftPieces to your Xcode project. https://swiftpieces.com").version("0.4.0");
+program.name("swiftpieces").description("Add SwiftPieces to your Xcode project. https://swiftpieces.com").version("0.4.1");
 
 program
   .command("init")

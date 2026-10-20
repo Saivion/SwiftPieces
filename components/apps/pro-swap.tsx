@@ -1,21 +1,17 @@
 "use client";
 import { useEffect, useState, type ReactNode } from "react";
-import { proSession, proSessionHint } from "@/lib/pro-bridge";
+import { proSessionHint } from "@/lib/pro-bridge";
 
 /**
  * The Playground's Pro marks for whoever is looking: a Pro owner sees `pro` (Pro apps open for them,
- * so no lock), everyone else, and everyone while the check runs, sees `children`. The last check's
- * hint answers first, so an owner's locks don't flash on every page; it only changes a mark, never access.
+ * so no lock), everyone else sees `children`. It reads only the hint the Playground's own check left
+ * (lib/pro-bridge.ts), so the marketing pages it sits on never open the Pro token frame; it only
+ * changes a mark, never access.
  */
 export function ProSwap({ pro, children }: { pro: ReactNode; children: ReactNode }) {
   const [isPro, setIsPro] = useState(false);
   useEffect(() => {
-    let live = true;
-    if (proSessionHint() === "pro") setIsPro(true);
-    void proSession().then((s) => live && setIsPro(s === "pro"));
-    return () => {
-      live = false;
-    };
+    setIsPro(proSessionHint() === "pro");
   }, []);
   return <>{isPro ? pro : children}</>;
 }
