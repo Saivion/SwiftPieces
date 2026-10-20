@@ -4,7 +4,7 @@ description: "A liquid glass password field with a focus ring and a round glass 
 piece: "SecureEntry"
 category: "inputs"
 minIOSVersion: "17.0"
-version: "2.2.0"
+version: "2.3.0"
 tags: ["password","secure","strength","validation","form"]
 registryDependencies: []
 ---
@@ -18,10 +18,11 @@ Liquid glass password field with strength meter, live requirements, and inline e
 - The field is liquid glass, with a round glass reveal bubble joined to its end by a liquid neck. Revealing swaps `SecureField` for `TextField` instantly; the toggle re-targets `@FocusState` to the new field so the keyboard stays up, and its eye glyph blurs into the other. The bubble sinks under the finger.
 - Focus draws a 2pt ring around the field. The field's glass carries its state: `Style.error` (butter) while there is an error, `Style.success` (sage) once every requirement passes, neutral otherwise. Text on a tinted field turns to dark ink.
 - Everything below the field lines up with it and buds straight down out of it when it appears, then melts back into it when it goes, while the room it takes opens and closes on the same springs, so whatever sits below moves with it instead of jumping.
-- Setting `error` from `nil` shakes the field once with an `.error` haptic on the same beat, tints it butter, and buds a butter error chip out of its bottom edge to rest joined just under it. A new message for an error already showing blurs into the new wording in place, with no second shake or haptic, so live validation never buzzes per keystroke. To signal a later refusal, set `error` to `nil` when the user edits, so the next refused submit arrives from `nil` and shakes again. Clearing it melts the chip back into the field as the tint drains.
+- Setting `error` from `nil` shakes the field once with an `.error` haptic on the same beat, tints it butter, and buds a butter error chip out of its bottom edge to rest joined just under it. A new message for an error already showing blurs into the new wording in place, with no second shake or haptic, so live validation never buzzes per keystroke. To signal a later refusal, set `error` to `nil` when the user edits, so the next refused submit arrives from `nil` and shakes again. Clearing it melts the chip back into the field as the tint drains. VoiceOver hears each new or reworded message once, as an announcement.
 - The strength chip buds out of the field as typing starts and rests apart below it, beside a gauge that fades in. Its label morphs letter by letter from WEAK through FAIR and GOOD to STRONG, and the chip and gauge take the level's tint: butter while weak or fair, sage once good. The gauge changes length without overshoot, so the reading never wobbles.
 - Requirement chips bud out of the field while it is focused or filled, two to a row, resting apart. A met requirement clicks into sage glass with a small dip and swell, its check drawing in after the tint lands, with a `.selection` haptic. When all four pass, the field turns sage and a check blurs into it with a `.success` haptic in place of the tick and the pop of the last chip, and the chips stay a beat so the last one lands, then melt back into the field. Leaving the field melts them at once, and losing a rule during that beat keeps them.
-- `Style` sets every tint plus the field height (also the reveal bubble's diameter) and radius. All text is semibold. `.disabled(true)` dims the field.
+- `submitLabel` and `onSubmit` set the Return key and what it does, the same whether the password is hidden or revealed. Leave `submitLabel` as `nil` to keep a label set around the field. To chain fields, apply `.focused($focus, equals: .confirm)` to each `SecureEntry` (focus reaches the text field inside) and move focus in `onSubmit`.
+- `Style` sets every tint plus the field's minimum height and its radius. The field grows past that height when larger text needs it, and the reveal bubble grows with it, a circle as tall as the field on the same centre line. At accessibility text sizes the strength chip moves under its gauge, the requirement chips stack one to a row and wrap long labels, and a chip whose text wraps takes rounded corners in place of capsule ends. All text is semibold. `.disabled(true)` dims the field.
 - Reduce Motion: no shake and no press scale (the reveal bubble shades instead), the chips open and close where they rest instead of budding, the morphing label and the swapped glyphs crossfade, and met chips change tint without the pop. The tints, the drawn checks and every haptic remain. Reduce Transparency draws the glass as solid shapes.
 - For one-time codes after sign-in, see the Verify screen (code entry) in SwiftPieces Pro.
 
@@ -37,9 +38,11 @@ SecureEntryExample()
 | --- | --- |
 | `label` | Static caption above the field, also the placeholder and accessibility label. |
 | `text` | Bound password text. |
-| `error` | Validation message. Setting it from `nil` shakes the field once with an error haptic, tints it with `Style.error`, and buds an error chip out of its bottom edge. A new message for a standing error swaps in place; clear it to `nil` on edit so the next refused submit shakes again. |
+| `error` | Validation message. Setting it from `nil` shakes the field once with an error haptic, tints it with `Style.error`, buds an error chip out of its bottom edge, and announces the message to VoiceOver. A new message for a standing error swaps in place and is announced, without a second shake; clear it to `nil` on edit so the next refused submit shakes again. |
 | `showsStrength` | Show the strength gauge and its label chip once text is non-empty. |
 | `showsRequirements` | Show the 8+ / number / symbol / mixed-case chips while focused or filled. When all four pass the field takes the success tint with a check, and the chips melt back into it a beat later. |
+| `submitLabel` | The Return key label, e.g. `.go` or `.next`, hidden or revealed. `nil`, the default, keeps the label set around the field, `.return` unless one is. |
+| `onSubmit` | Called when Return is pressed, hidden or revealed. Submit the form or move focus to the next field here. |
 | `style` | Colors and field metrics. Defaults to the SwiftPieces house palette, adapting to light and dark. |
 
 ## Source
@@ -84,9 +87,11 @@ import SwiftUI
 /// - Parameters:
 ///   - label: Static caption above the field, also the placeholder and accessibility label.
 ///   - text: Bound password text.
-///   - error: Validation message. Setting it from `nil` shakes the field once with an error haptic, tints it with `Style.error`, and buds an error chip out of its bottom edge. A new message for a standing error swaps in place; clear it to `nil` on edit so the next refused submit shakes again.
+///   - error: Validation message. Setting it from `nil` shakes the field once with an error haptic, tints it with `Style.error`, buds an error chip out of its bottom edge, and announces the message to VoiceOver. A new message for a standing error swaps in place and is announced, without a second shake; clear it to `nil` on edit so the next refused submit shakes again.
 ///   - showsStrength: Show the strength gauge and its label chip once text is non-empty.
 ///   - showsRequirements: Show the 8+ / number / symbol / mixed-case chips while focused or filled. When all four pass the field takes the success tint with a check, and the chips melt back into it a beat later.
+///   - submitLabel: The Return key label, e.g. `.go` or `.next`, hidden or revealed. `nil`, the default, keeps the label set around the field, `.return` unless one is.
+///   - onSubmit: Called when Return is pressed, hidden or revealed. Submit the form or move focus to the next field here.
 ///   - style: Colors and field metrics. Defaults to the SwiftPieces house palette, adapting to light and dark.
 public struct SecureEntry: View {
     /// Colors and metrics. `.standard` is the house palette.
@@ -107,7 +112,7 @@ public struct SecureEntry: View {
         public var success: Color
         /// The error tint: the field and its error chip.
         public var error: Color
-        /// Field height, and the diameter of the reveal bubble.
+        /// Minimum field height. The field grows with Dynamic Type, and the reveal bubble is a circle as tall as the field.
         public var height: CGFloat
         /// Field corner radius.
         public var cornerRadius: CGFloat
@@ -134,6 +139,7 @@ public struct SecureEntry: View {
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.isEnabled) private var isEnabled
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @FocusState private var focus: Field?
     @State private var isRevealed = false
     @State private var shakeCount = 0
@@ -148,11 +154,25 @@ public struct SecureEntry: View {
     @State private var shownError: String?
     @State private var errorHeight: CGFloat = 0
     @State private var rulesHeight: CGFloat = 0
+    /// The strength chip's height: `meterHeight`, taller at large text sizes.
+    @State private var strengthChip: CGFloat = 22
+    /// Each requirement chip's height, so each buds from straight above its own place however its rows fall.
+    @State private var ruleHeights: [Int: CGFloat] = [:]
+    /// The reveal bubble's diameter: the field's height, which grows from `Style.height` with Dynamic Type.
+    @State private var bubble: CGFloat
+    /// One line of footnote text, for the chips' rounding.
+    @ScaledMetric(relativeTo: .footnote) private var footnoteLine: CGFloat = 16
+    /// The room either side of the strength chip's label, so large type stays clear of its rounded ends.
+    @ScaledMetric(relativeTo: .caption2) private var chipInset: CGFloat = 4
+    /// The requirement chip's ring and check, sized with its label.
+    @ScaledMetric(relativeTo: .footnote) private var ruleMark: CGFloat = 14
 
     private let label: String
     private let error: String?
     private let showsStrength: Bool
     private let showsRequirements: Bool
+    private let submitLabel: SubmitLabel?
+    private let submitAction: (() -> Void)?
     private let style: Style
 
     private enum Field { case secure, plain }
@@ -166,16 +186,38 @@ public struct SecureEntry: View {
     }
 
     private static let levels = ["Weak", "Fair", "Good", "Strong"]
-    /// The strength chip's height.
+    /// The strength chip's least height.
     private let meterHeight: CGFloat = 22
+    /// The strength gauge's thickness, and its gap to the chip.
+    private let gaugeHeight: CGFloat = 8
+    private let meterSpacing: CGFloat = 10
 
-    public init(_ label: String = "Password", text: Binding<String>, error: String? = nil, showsStrength: Bool = true, showsRequirements: Bool = true, style: Style = .standard) {
+    /// At accessibility text sizes the strength chip moves under its gauge and the requirement chips stack one to a
+    /// row with room to wrap, so no label is cut short in the column beside the reveal bubble.
+    private var stacked: Bool { dynamicTypeSize.isAccessibilitySize }
+
+    /// The strength room's height: the chip, with the gauge above it when stacked.
+    private var strengthHeight: CGFloat { stacked ? gaugeHeight + meterSpacing + strengthChip : max(strengthChip, gaugeHeight) }
+
+    public init(
+        _ label: String = "Password",
+        text: Binding<String>,
+        error: String? = nil,
+        showsStrength: Bool = true,
+        showsRequirements: Bool = true,
+        submitLabel: SubmitLabel? = nil,
+        onSubmit: (() -> Void)? = nil,
+        style: Style = .standard
+    ) {
         self.label = label
         self._text = text
         self.error = error
         self.showsStrength = showsStrength
         self.showsRequirements = showsRequirements
+        self.submitLabel = submitLabel
+        self.submitAction = onSubmit
         self.style = style
+        self._bubble = State(initialValue: style.height)
         // A field that opens already complete starts collapsed, so its set never tidies away on appear.
         self._collapsed = State(initialValue: showsRequirements && Self.requirements(for: text.wrappedValue).allSatisfy(\.met))
         self._shownError = State(initialValue: error)
@@ -208,7 +250,7 @@ public struct SecureEntry: View {
         let fieldTint: Color? = hasError ? style.error : checked ? style.success : style.field == .clear ? nil : style.field
         let ink = fieldTint == nil ? style.label : style.ink
         // Every part below lines up with the field, so each buds straight down out of it.
-        let column = style.height + PieceLiquid.joined
+        let column = bubble + PieceLiquid.joined
         // Read here, so this body observes the bubbles: the reads below sit in closures (the rooms' overlays, the grid) that are not re-run on
         // their own when a bubble changes, which would let one appear without its bud.
         let _ = (buds.present, buds.out)
@@ -221,8 +263,9 @@ public struct SecureEntry: View {
 
             PieceLiquidGroup {
                 VStack(alignment: .leading, spacing: 0) {
-                    // The field and the reveal bubble are one control, so they rest joined by a liquid neck.
-                    HStack(spacing: PieceLiquid.joined) {
+                    // The field and the reveal bubble are one control, so they rest joined by a liquid neck. The field
+                    // grows with Dynamic Type and the bubble grows with it, a circle as tall as the field on its centre line.
+                    JoinedRow(spacing: PieceLiquid.joined, minimum: style.height) {
                         HStack(spacing: 8) {
                             Group {
                                 if isRevealed {
@@ -239,6 +282,9 @@ public struct SecureEntry: View {
                             .textContentType(.password)
                             .textInputAutocapitalization(.never)
                             .autocorrectionDisabled()
+                            // Both fields share one Return key and one action, so revealing never changes what Return does.
+                            .modifier(ReturnKeyLabel(label: submitLabel))
+                            .onSubmit { submitAction?() }
                             .accessibilityLabel(label)
 
                             if checked {
@@ -251,7 +297,10 @@ public struct SecureEntry: View {
                             }
                         }
                         .padding(.horizontal, 18)
-                        .frame(height: style.height)
+                        // At least `Style.height`, taller once the text needs it, so large text sizes never clip. The
+                        // padding stays inside the minimum at the default size, so the field rests at exactly that height.
+                        .padding(.vertical, 10)
+                        .frame(minHeight: style.height)
                         // The focus ring is the glass's own content: glass drawn over a separate ring would blur it.
                         // It sits a few points in from the edge, so the reveal bubble's neck never cuts through it.
                         .overlay {
@@ -266,6 +315,7 @@ public struct SecureEntry: View {
 
                         revealButton
                     }
+                    .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { bubble = $0 }
                     // A new error shakes the field and its bubble once, on the beat of its haptic. Reduce Motion keeps it still.
                     .pieceShake(trigger: shakeCount)
                     // Over the rooms below it, so a bubble at home sits under the field and melts into it.
@@ -275,7 +325,7 @@ public struct SecureEntry: View {
                         slot(.error, gap: PieceLiquid.joined, height: errorHeight, measure: { errorHeight = $0 }) {
                             errorChip
                         }
-                        slot(.strength, gap: PieceLiquid.apart, height: meterHeight, measure: { _ in }) {
+                        slot(.strength, gap: PieceLiquid.apart, height: strengthHeight, measure: { _ in }) {
                             meter(score: max(passed, 1))
                         }
                         slot(.rules, gap: PieceLiquid.apart, height: rulesHeight, measure: { rulesHeight = $0 }) {
@@ -302,7 +352,10 @@ public struct SecureEntry: View {
         .onChange(of: error) { old, new in
             // An error arriving is the refusal. A parent rewording one already shown doesn't shake or buzz again.
             if old == nil, new != nil { shakeCount += 1 }
-            if let new { shownError = new }
+            guard let new else { return }
+            shownError = new
+            // VoiceOver hears each new or reworded message once, wherever its focus is.
+            if new != old { AccessibilityNotification.Announcement("Error: \(new)").post() }
         }
         .onChange(of: complete) { _, now in
             if !now { collapsed = false }
@@ -329,7 +382,8 @@ public struct SecureEntry: View {
                     .transition(motion.swap)
             }
             .animation(motion.snap, value: isRevealed)
-            .frame(width: style.height, height: style.height)
+            // The square `JoinedRow` gives it: as tall as the field.
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .pieceLiquid(.circle, tint: style.button == .clear ? nil : style.button, interactive: false)
             .contentShape(.circle)
         }
@@ -358,11 +412,14 @@ public struct SecureEntry: View {
             guard open.contains(part) else { return total }
             switch part {
             case .error: return total + PieceLiquid.joined + errorHeight
-            case .strength: return total + PieceLiquid.apart + meterHeight
+            case .strength: return total + PieceLiquid.apart + strengthHeight
             case .rules: return total + PieceLiquid.apart + rulesHeight
             }
         }
-        return CGSize(width: 0, height: -(rooms + depth + height * PieceLiquid.homeScale / 2))
+        // Home, shrunk, rests on the inside of the field's bottom edge. One too tall to fit inside the field (a long
+        // error at a large text size) hangs from just inside its top edge instead, never above it.
+        let shrunk = height * PieceLiquid.homeScale
+        return CGSize(width: 0, height: -(rooms + depth + shrunk / 2) + max(shrunk - bubble, 0))
     }
 
     /// The error chip: butter glass joined just under the field. Its message blurs from one wording to the next, and
@@ -386,7 +443,9 @@ public struct SecureEntry: View {
                 let out = buds.isOut("error")
                 face
                     .pieceBudContent(out: out)
-                    .pieceLiquid(.capsule, tint: out ? style.error : nil, interactive: false)
+                    // A capsule while the message fits on one line (its padded line height, with a little slack); a
+                    // long one wraps inside rounded corners instead.
+                    .pieceLiquid(ChipShape(maxRadius: (footnoteLine + 14) / 2 + 4), tint: out ? style.error : nil, interactive: false)
                     .pieceBud(out: out, home: homeOffset(above: [], depth: PieceLiquid.joined + errorHeight / 2, height: errorHeight))
                     .accessibilityElement(children: .ignore)
                     .accessibilityLabel("Error: \(message)")
@@ -395,32 +454,47 @@ public struct SecureEntry: View {
     }
 
     /// A gauge whose fill and tint move with the score, and a glass chip in the same tint whose label morphs from one
-    /// level to the next. The chip buds out of the field as typing starts; the gauge fades in beside it.
+    /// level to the next. The chip buds out of the field as typing starts; the gauge fades in beside it, or above it
+    /// at accessibility text sizes.
     private func meter(score: Int) -> some View {
         let motion = PieceMotion(reduceMotion: reduceMotion)
         let color = style.strength(score)
         let out = buds.isOut("strength")
-        return HStack(spacing: 10) {
+        let layout = stacked ? AnyLayout(VStackLayout(alignment: .leading, spacing: meterSpacing)) : AnyLayout(HStackLayout(spacing: meterSpacing))
+        return layout {
             GeometryReader { proxy in
                 ZStack(alignment: .leading) {
                     Capsule().fill(style.secondaryLabel.opacity(0.18))
                     Capsule().fill(color).frame(width: proxy.size.width * CGFloat(score) / 4)
                 }
             }
-            .frame(height: 8)
+            .frame(height: gaugeHeight)
             // The gauge is a reading, not chrome: it fades in with the chip and out ahead of it.
             .opacity(out ? 1 : 0)
             .animation(out ? motion.reveal : motion.dismiss, value: out)
+            // The widest level sets the chip's size, so it holds still while its label morphs and the label morphs at
+            // full size at every text size.
             ZStack {
-                Color.clear.frame(width: 64, height: meterHeight)
+                ForEach(Self.levels, id: \.self) { level in
+                    Text(level.uppercased())
+                        .font(.caption2.weight(.semibold))
+                        .tracking(0.8)
+                }
+            }
+            .hidden()
+            .padding(.horizontal, chipInset)
+            .padding(.vertical, 2)
+            .frame(minWidth: 64, minHeight: meterHeight)
+            .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { strengthChip = $0 }
+            .overlay {
                 if buds.contains("strength") {
                     PieceMorphText(text: Self.levels[score - 1].uppercased(), font: .caption2.weight(.semibold))
                         .tracking(0.8)
                         .foregroundStyle(style.ink)
                         .pieceBudContent(out: out)
-                        .frame(width: 64, height: meterHeight)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .pieceLiquid(.capsule, tint: out ? color : nil, interactive: false)
-                        .pieceBud(out: out, home: homeOffset(above: [.error], depth: PieceLiquid.apart + meterHeight / 2, height: meterHeight))
+                        .pieceBud(out: out, home: homeOffset(above: [.error], depth: PieceLiquid.apart + (stacked ? gaugeHeight + meterSpacing : 0) + strengthChip / 2, height: strengthChip))
                 }
             }
         }
@@ -433,13 +507,14 @@ public struct SecureEntry: View {
         .accessibilityHidden(!buds.contains("strength"))
     }
 
-    /// The requirement chips, two to a row, resting apart. Each cell is always laid out, so the grid's height is known
-    /// before its chips bud.
+    /// The requirement chips, two to a row (one at accessibility text sizes), resting apart. Each cell is always laid
+    /// out, so the grid's height is known before its chips bud.
     private func rules(_ requirements: [Requirement], pops: Bool) -> some View {
-        Grid(horizontalSpacing: PieceLiquid.apart, verticalSpacing: PieceLiquid.apart) {
-            ForEach([0, 2], id: \.self) { start in
+        let perRow = stacked ? 1 : 2
+        return Grid(horizontalSpacing: PieceLiquid.apart, verticalSpacing: PieceLiquid.apart) {
+            ForEach(Array(stride(from: 0, to: requirements.count, by: perRow)), id: \.self) { start in
                 GridRow {
-                    ForEach(start..<min(start + 2, requirements.count), id: \.self) { i in
+                    ForEach(start..<min(start + perRow, requirements.count), id: \.self) { i in
                         rule(requirements[i], index: i, pops: pops)
                     }
                 }
@@ -453,8 +528,16 @@ public struct SecureEntry: View {
         let motion = PieceMotion(reduceMotion: reduceMotion)
         let id = "rule\(index)"
         let out = buds.isOut(id)
-        let row = CGFloat(index / 2)
-        let chipHeight = max((rulesHeight - PieceLiquid.apart) / 2, 0)
+        // Where the chip sits in the grid: each row as tall as its tallest chip, the chip centred in it. Until the chips
+        // are measured, the rows share the grid's height evenly.
+        let perRow = stacked ? 1 : 2
+        let rows = (3 + perRow) / perRow
+        let even = max((rulesHeight - PieceLiquid.apart * CGFloat(rows - 1)) / CGFloat(rows), 0)
+        let rowHeight = { (row: Int) in
+            (row * perRow..<min(row * perRow + perRow, 4)).map { ruleHeights[$0] ?? even }.max() ?? even
+        }
+        let row = index / perRow
+        let top = (0..<row).reduce(CGFloat(0)) { $0 + rowHeight($1) + PieceLiquid.apart }
         let face = HStack(spacing: 6) {
             ZStack {
                 Circle().strokeBorder(style.secondaryLabel.opacity(0.6), lineWidth: 1.5)
@@ -466,10 +549,11 @@ public struct SecureEntry: View {
                     // The check draws once the tint has landed; a lost rule clears it at once.
                     .animation(requirement.met ? motion.snap.delay(0.08) : motion.dismiss, value: requirement.met)
             }
-            .frame(width: 14, height: 14)
+            .frame(width: min(ruleMark, 24), height: min(ruleMark, 24))
             Text(requirement.id)
                 .font(.footnote.weight(.semibold))
-                .lineLimit(1)
+                // One line beside its neighbour; stacked at accessibility sizes, a long label wraps rather than cut short.
+                .lineLimit(stacked ? nil : 1)
                 .minimumScaleFactor(0.8)
         }
         .foregroundStyle(requirement.met ? style.ink : style.secondaryLabel)
@@ -477,19 +561,21 @@ public struct SecureEntry: View {
         .frame(maxWidth: .infinity, minHeight: 32, alignment: .leading)
         return ZStack {
             face.hidden()
+                .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { ruleHeights[index] = $0 }
             if buds.contains(id) {
                 face
                     .pieceBudContent(out: out)
                     // A met rule clicks into its tint on its tick's beat; a lost one drains back. The tint drains at
-                    // home too, so a sage chip never sits over the field as it melts in.
-                    .pieceLiquid(.capsule, tint: out && requirement.met ? style.success : nil, interactive: false)
+                    // home too, so a sage chip never sits over the field as it melts in. A capsule while its label fits
+                    // on one line.
+                    .pieceLiquid(ChipShape(maxRadius: max(32, footnoteLine) / 2 + 4), tint: out && requirement.met ? style.success : nil, interactive: false)
                     .pieceLiquidScale(requirement.met && !reduceMotion ? 1 : 0.98)
                     .animation(requirement.met ? motion.snap : motion.dismiss, value: requirement.met)
                     // A met rule clicks into its tint with a small dip and swell on its tick's beat, the glass and its
                     // label together. The trigger is the rule's state, which changes once per edit. Reduce Motion
                     // keeps the tint change without the pop.
                     .pieceLiquidPop(trigger: requirement.met, amount: requirement.met && pops ? 0.04 : 0)
-                    .pieceBud(out: out, home: homeOffset(above: [.error, .strength], depth: PieceLiquid.apart + row * (chipHeight + PieceLiquid.apart) + chipHeight / 2, height: chipHeight))
+                    .pieceBud(out: out, home: homeOffset(above: [.error, .strength], depth: PieceLiquid.apart + top + rowHeight(row) / 2, height: ruleHeights[index] ?? even))
                     .accessibilityElement(children: .ignore)
                     .accessibilityLabel(requirement.id)
                     .accessibilityValue(requirement.met ? "Met" : "Not met")
@@ -551,6 +637,59 @@ public struct SecureEntry: View {
             return path
         }
     }
+
+    /// A capsule whose ends stop rounding at `maxRadius`, so a chip whose label wraps onto more lines becomes a rounded
+    /// rectangle rather than an oval whose curve cuts into its text. A chip of one line is a plain capsule.
+    private struct ChipShape: Shape {
+        var maxRadius: CGFloat
+
+        nonisolated func path(in rect: CGRect) -> Path {
+            rect.height / 2 <= maxRadius
+                ? Capsule().path(in: rect)
+                : RoundedRectangle(cornerRadius: maxRadius, style: .continuous).path(in: rect)
+        }
+    }
+
+    /// The field and its reveal bubble on one centre line. The field takes the width the bubble leaves it, and the
+    /// bubble is a circle as tall as the field, which is never shorter than `minimum` and grows with its text. Placed
+    /// left to right; SwiftUI mirrors a custom layout under a right-to-left layout itself.
+    private struct JoinedRow: Layout {
+        var spacing: CGFloat
+        var minimum: CGFloat
+
+        func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+            guard let field = subviews.first else { return .zero }
+            let side = side(width: proposal.width, field: field)
+            let width = field.sizeThatFits(ProposedViewSize(width: proposal.width.map { max($0 - spacing - side, 0) }, height: side)).width
+            return CGSize(width: width + spacing + side, height: side)
+        }
+
+        func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+            guard subviews.count == 2 else { return }
+            let side = side(width: bounds.width, field: subviews[0])
+            subviews[0].place(at: CGPoint(x: bounds.minX, y: bounds.midY), anchor: .leading, proposal: ProposedViewSize(width: max(bounds.width - spacing - side, 0), height: side))
+            subviews[1].place(at: CGPoint(x: bounds.maxX, y: bounds.midY), anchor: .trailing, proposal: ProposedViewSize(width: side, height: side))
+        }
+
+        /// The field's height beside a bubble of that height, never below `minimum`.
+        private func side(width: CGFloat?, field: LayoutSubview) -> CGFloat {
+            func height(beside side: CGFloat) -> CGFloat {
+                max(field.sizeThatFits(ProposedViewSize(width: width.map { max($0 - spacing - side, 0) }, height: nil)).height, minimum)
+            }
+            let first = height(beside: minimum)
+            // A taller field means a wider bubble, so measure once more at the width that leaves.
+            return first > minimum ? height(beside: first) : first
+        }
+    }
+
+    /// Sets the Return key's label when one is given, and otherwise leaves whatever the field's surroundings set.
+    private struct ReturnKeyLabel: ViewModifier {
+        let label: SubmitLabel?
+
+        func body(content: Content) -> some View {
+            if let label { content.submitLabel(label) } else { content }
+        }
+    }
 }
 
 /// A house-palette color that follows the interface style.
@@ -563,15 +702,21 @@ private func adaptive(light: UInt32, dark: UInt32) -> Color {
 
 // MARK: - Example
 
-/// The field mid-typing with its strength gauge and requirement chips, and a second field in its error state.
+/// The field mid-typing with its strength gauge and requirement chips, and a second field in its error state. Return
+/// in the first moves to the second.
 private struct SecureEntryExample: View {
+    private enum Field: Hashable { case new, confirm }
+
     @State private var password = "Juniper42"
     @State private var confirm = "Juniper24!"
+    @FocusState private var focus: Field?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 26) {
-            SecureEntry("New password", text: $password)
-            SecureEntry("Confirm password", text: $confirm, error: "Passwords do not match", showsStrength: false, showsRequirements: false)
+            SecureEntry("New password", text: $password, submitLabel: .next, onSubmit: { focus = .confirm })
+                .focused($focus, equals: .new)
+            SecureEntry("Confirm password", text: $confirm, error: "Passwords do not match", showsStrength: false, showsRequirements: false, submitLabel: .done)
+                .focused($focus, equals: .confirm)
         }
         .padding(.horizontal, 30)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -715,7 +860,7 @@ private extension View {
 // and melt back into each other, and the frosted fallback before iOS 26. Each piece carries a copy of only
 // the parts it uses, so this file stands alone. Generated from registry/foundation/PieceLiquid.swift in the
 // SwiftPieces repo; edit it there, not here. The rules are in LIQUID_GLASS.md.
-// swiftpieces-liquid: 1.7.1 (liquid, liquidPress, liquidPop, bud, morphText)
+// swiftpieces-liquid: 1.8.0 (liquid, liquidPress, liquidPop, bud, morphText)
 
 /// The liquid glass language: one merge distance, two rest gaps, and the springs a bubble leaves and comes home on.
 ///
@@ -1074,31 +1219,46 @@ private struct PieceMorphText: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        Group {
-            if Self.splits(text) {
-                let glyphs = Array(text)
-                HStack(spacing: 0) {
-                    ForEach(glyphs.indices, id: \.self) { i in
-                        Text(String(glyphs[i]))
-                            .id("\(i)\(glyphs[i])")
-                            .transition(transition(i, scale: 0.6))
-                    }
-                }
-                // The letters' reading order, not the layout's: an HStack lays its children out backwards under a
-                // right-to-left layout.
-                .environment(\.layoutDirection, .leftToRight)
-            } else {
-                ZStack(alignment: .leading) {
-                    Text(text)
-                        .id(text)
-                        .transition(transition(0, scale: 0.9))
-                }
-            }
+        // The morphing label at its full size when it fits. When it doesn't (a long label at an accessibility text
+        // size, a narrow screen), the same words wrap onto a second line and shrink a little instead of running past
+        // the screen's edge; that one changes as a whole rather than letter by letter. A single word never splits
+        // across lines: it stays on one and shrinks further.
+        let oneWord = !text.contains(where: \.isWhitespace)
+        ViewThatFits(in: .horizontal) {
+            morphing.fixedSize()
+            Text(text)
+                .lineLimit(oneWord ? 1 : 2)
+                .multilineTextAlignment(.center)
+                .minimumScaleFactor(oneWord ? 0.5 : 0.75)
+                .fixedSize(horizontal: false, vertical: true)
+                .id(text)
+                .transition(transition(0, scale: 0.9))
         }
         .font(font)
-        .fixedSize()
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(text)
+    }
+
+    @ViewBuilder private var morphing: some View {
+        if Self.splits(text) {
+            let glyphs = Array(text)
+            HStack(spacing: 0) {
+                ForEach(glyphs.indices, id: \.self) { i in
+                    Text(String(glyphs[i]))
+                        .id("\(i)\(glyphs[i])")
+                        .transition(transition(i, scale: 0.6))
+                }
+            }
+            // The letters' reading order, not the layout's: an HStack lays its children out backwards under a
+            // right-to-left layout.
+            .environment(\.layoutDirection, .leftToRight)
+        } else {
+            ZStack(alignment: .leading) {
+                Text(text)
+                    .id(text)
+                    .transition(transition(0, scale: 0.9))
+            }
+        }
     }
 
     private func transition(_ i: Int, scale: CGFloat) -> AnyTransition {
