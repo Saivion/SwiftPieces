@@ -31,7 +31,7 @@ export function Hero() {
             <AnimatedText as="h1" text="Build apps worthy of an App Store feature." accent="feature" className="mt-8 text-[34px] leading-[1.04] font-medium tracking-[-0.035em] text-balance sm:text-[42px] lg:text-[49px]" />
             <Reveal priority delay={0.35}><p className={cn("mt-6 max-w-xl", sectionBody)}>The motion, haptics and accessibility the best apps get right, as production SwiftUI components. Install with one command and make them yours.</p></Reveal>       
             <Reveal priority delay={0.45} className="mt-9 flex flex-wrap items-center gap-3">
-              <Button href="/components">Browse the library <Arrow /></Button>
+              <Button href="/components">Explore the library <Arrow /></Button>
               {/* The quiet second way in, in the underline style of the page's other text links. */}
               <Link href="/apps" className="group inline-flex h-11 items-center gap-2 px-3 text-sm font-semibold text-foreground">
                 <span className="u-link">Try the new Playground</span>
