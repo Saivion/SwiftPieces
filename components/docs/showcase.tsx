@@ -2,13 +2,16 @@
 import { useState, type ReactNode } from "react";
 import { PreviewFrame } from "@/components/previews/frame";
 import { PiecePreview } from "@/components/previews";
+import { Command } from "@/components/ui/code";
+import { cliCommand } from "@/lib/registry-paths";
 import { cn } from "@/lib/cn";
 
 /**
  * The top of a piece's or block's page: Preview and Code, one tab at a time, on one soft panel. The panel is the
  * stage's own ground (`--pv-bg`), so a preview's ground disappears into it and the piece or block stands on its own,
  * centred, with nothing around it. Code holds the source the registry build put here (the children: highlighted at
- * build time, so nothing is highlighted twice). A Pro block shows a still and keeps its source with Pro.
+ * build time, so nothing is highlighted twice). A Pro block shows a still and keeps its source with Pro. The install
+ * command sits right under the panel; a Pro block's needs a Pro license, which the CLI checks with the Pro registry.
  */
 export function Showcase({
   name,
@@ -34,6 +37,8 @@ export function Showcase({
 }) {
   const [tab, setTab] = useState<"preview" | "code">("preview");
   const block = kind === "block";
+  // A Pro block: shown as a still, its source with Pro.
+  const pro = Boolean(still || proHref);
   return (
     <section id="preview" className="not-prose mb-10 scroll-mt-28" aria-label={`${name} preview and code`}>
       <div className="flex items-center justify-between gap-4">
@@ -70,6 +75,12 @@ export function Showcase({
             {proHref ? <a href={proHref} className="u-link mt-1 text-[13px] font-semibold text-foreground">Open it in the Pro library ↗</a> : null}
           </div>
         )}
+      </div>
+
+      {/* How to install it, right under what it is. A Pro block's source comes only with a Pro license. */}
+      <div className="mt-4 max-w-xl">
+        <Command text={cliCommand({ name })} />
+        {pro ? <p className="mt-2 text-[12px] text-subtle">Needs a SwiftPieces Pro license: <code className="font-mono">npx swiftpieces login</code> first.</p> : null}
       </div>
     </section>
   );

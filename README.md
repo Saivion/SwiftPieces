@@ -40,7 +40,7 @@ Or open the file on [swiftpieces.com/components](https://swiftpieces.com/compone
 
 **77 pieces across 14 categories:** [text](https://swiftpieces.com/components/text), [backgrounds](https://swiftpieces.com/components/backgrounds), [Liquid Glass](https://swiftpieces.com/components/glass), [buttons and controls](https://swiftpieces.com/components/controls), [inputs and forms](https://swiftpieces.com/components/inputs), [cards](https://swiftpieces.com/components/cards), [lists](https://swiftpieces.com/components/lists), [navigation](https://swiftpieces.com/components/navigation), [sheets](https://swiftpieces.com/components/sheets), [feedback](https://swiftpieces.com/components/feedback), [motion](https://swiftpieces.com/components/motion), [data and charts](https://swiftpieces.com/components/data), [AI](https://swiftpieces.com/components/ai) and [media](https://swiftpieces.com/components/media).
 
-**Blocks:** whole sections of a screen built from the pieces and wired together: [sign in](https://swiftpieces.com/docs/blocks/auth/sign-in), [account settings](https://swiftpieces.com/docs/blocks/settings/account-settings), [a stats overview](https://swiftpieces.com/docs/blocks/analytics/stats-overview) and [checkout](https://swiftpieces.com/docs/blocks/commerce/checkout). `npx swiftpieces add SignInBlock` installs the block and the pieces it is built from. [All blocks](https://swiftpieces.com/blocks).
+**Blocks:** whole sections of a screen, laid out, wired and given their states: [sign in](https://swiftpieces.com/docs/blocks/auth/sign-in), [account settings](https://swiftpieces.com/docs/blocks/settings/account-settings), [a stats overview](https://swiftpieces.com/docs/blocks/analytics/stats-overview), [checkout](https://swiftpieces.com/docs/blocks/commerce/checkout) and more. Blocks come with SwiftPieces Pro: `npx swiftpieces add SignInBlock` installs one with Pro's design system once your license is signed in. [All blocks](https://swiftpieces.com/blocks).
 
 **Guides:** [SwiftUI animations](https://swiftpieces.com/docs/guides/swiftui-animations) · [SwiftUI buttons](https://swiftpieces.com/docs/guides/swiftui-buttons) · [SwiftUI cards](https://swiftpieces.com/docs/guides/swiftui-cards) · [SwiftUI haptics](https://swiftpieces.com/docs/guides/swiftui-haptics) · [Loading states](https://swiftpieces.com/docs/guides/swiftui-loading-states) · [Liquid Glass](https://swiftpieces.com/docs/liquid-glass)
 
@@ -77,7 +77,7 @@ npm run registry:build   # .swift -> registry JSON, docs pages, llms.txt
 npm run dev
 ```
 
-Use Node 22.22.0 or newer: `.nvmrc` pins 22.22.0, the line CI and Cloudflare's builds use. Pieces live in `registry/swift/<category>/` and blocks in `registry/blocks/<category>/`; after changing one, or `registry.json`, rerun `npm run registry:build` to regenerate the registry output.
+Use Node 22.22.0 or newer: `.nvmrc` pins 22.22.0, the line CI and Cloudflare's builds use. Pieces live in `registry/swift/<category>/`; after changing one, or `registry.json`, rerun `npm run registry:build` to regenerate the registry output.
 
 | Path | Purpose |
 | --- | --- |

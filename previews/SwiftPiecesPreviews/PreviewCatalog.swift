@@ -25,8 +25,6 @@ enum PreviewCatalog {
         "PictureHeadline",
         // crafted interactions, 2026-10-12
         "ScrollIsland", "StepTrail", "WaveformScrub", "VoiceRecorder", "NowPlaying", "WalletStack", "NoticeStack", "RangeLens",
-        // blocks, 2026-10-19: whole sections built from the pieces (scenes in Blocks/)
-        "SignInBlock", "AccountSettingsBlock", "StatsOverviewBlock", "CheckoutBlock",
     ]
 
     @MainActor @ViewBuilder
@@ -198,15 +196,6 @@ enum PreviewCatalog {
             Stage { NoticeStackScene() }
         case "RangeLens":
             Stage { RangeLensScene() }
-        // blocks: each scene lives in Blocks/<Name>Scene.swift
-        case "SignInBlock":
-            Stage { SignInBlockScene() }
-        case "AccountSettingsBlock":
-            Stage { AccountSettingsBlockScene() }
-        case "StatsOverviewBlock":
-            Stage { StatsOverviewBlockScene() }
-        case "CheckoutBlock":
-            Stage { CheckoutBlockScene() }
         default:
             Text("Unknown piece: \(name)")
         }

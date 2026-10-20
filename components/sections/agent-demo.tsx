@@ -110,10 +110,10 @@ export function AgentDemo() {
   };
 
   return (
-    <div ref={root}>
-    <Tilt className="relative">
+    <div ref={root} className="flex flex-1 flex-col">
+    <Tilt className="relative flex flex-1 flex-col">
       {/* The piece: an iPhone rising out of the stage, running the chart the conversation builds. */}
-      <Stage className="h-[440px] sm:h-[470px]">
+      <Stage className="h-[440px] sm:h-[470px] lg:h-auto lg:min-h-[470px] lg:flex-1">
         <div className="absolute inset-x-0 top-10 flex justify-center sm:top-11 md:justify-start md:pl-[7%]">
           <Parallax depth={-7} className="w-[264px] sm:w-[284px]">
             {/* A skeleton finance app; the chart is the piece the conversation builds. */}

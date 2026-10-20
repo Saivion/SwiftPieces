@@ -6,9 +6,9 @@ import { changelog, changelogPath } from "@/lib/changelog";
 import { cn } from "@/lib/cn";
 
 /**
- * What's new: the first thing in every docs page's right column, above "On this page", opening the
- * changelog. Its icon is the latest update's own drawing on its pastel, as on the update's card, so
- * the button changes with each release. The same glass as the Pro and Sponsors cards below it.
+ * What's new: the foot of the docs sidebar, opening the changelog. Its icon is the latest update's
+ * own drawing on its pastel, as on the update's card, so the button changes with each release. A
+ * panel pill on the sidebar's tray, like its active row.
  */
 export function WhatsNewButton() {
   const latest = changelog[0];
@@ -16,7 +16,7 @@ export function WhatsNewButton() {
   return (
     <Link
       href={changelogPath()}
-      className="group docs-glass mb-7 flex items-center gap-3 rounded-full py-2 pr-4 pl-2 outline-1 -outline-offset-1 outline-transparent transition-[outline-color] duration-300 hover:outline-[var(--card-border-hover)]"
+      className="group flex items-center gap-3 rounded-full bg-surface-2 py-2 pr-4 pl-2 shadow-[0_1px_2px_rgb(0_0_0/0.06)] outline-1 -outline-offset-1 outline-transparent transition-[outline-color] duration-300 hover:outline-[var(--card-border-hover)]"
     >
       <span className="changelog-tint grid size-8 shrink-0 place-items-center rounded-full" style={tintStyle(latest.tint)}>
         <Sketch kind={latest.visual} seed={1} icon className="size-[22px] text-[#141414]" />

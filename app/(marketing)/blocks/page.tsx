@@ -20,14 +20,14 @@ const paid = getProBlocks().length;
 
 export const metadata: Metadata = pageMetadata({
   title: "SwiftUI Blocks: Whole Sections of an iOS Screen",
-  description: `SwiftUI blocks for iOS: sign in, account settings, a stats overview, checkout and more, built from SwiftPieces components and wired. ${free} free, ${paid} in Pro.`,
+  description: `SwiftUI blocks for iOS: sign in, account settings, a stats overview, checkout and more, laid out, wired and ready to drop into any app.${free ? ` ${free} free, ${paid} in Pro.` : ` ${paid} blocks in SwiftPieces Pro.`}`,
   path: "/blocks",
 });
 
 /** How the library stacks up, smallest to largest. */
 const ladder = [
   { title: "Components", body: "One designed interaction each: a field, a button, a chart, a sheet.", href: "/components", cta: "Browse components" },
-  { title: "Blocks", body: "Components laid out, wired together and given their states: a whole section you drop into a screen.", href: "#blocks", cta: "You are here" },
+  { title: "Blocks", body: "A whole section of a screen, laid out, wired and given its states, that you drop into any app. In SwiftPieces Pro.", href: "#blocks", cta: "You are here" },
   { title: "Screens and apps", body: "Finished screens, the flows through them and complete app templates, in SwiftPieces Pro.", href: pro.library, cta: "Explore Pro" },
 ];
 
@@ -57,17 +57,17 @@ export default function BlocksPage() {
         <Container>
           <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,420px)] lg:items-end lg:gap-16">
             <Reveal>
-              <SectionLabel className="mb-5">{`${free + paid} blocks · ${free} free`}</SectionLabel>
+              <SectionLabel className="mb-5">{free ? `${free + paid} blocks · ${free} free` : `${paid} blocks · in Pro`}</SectionLabel>
               <h1 className={pageTitle}>Blocks</h1>
               <p className={cn("mt-5 max-w-[560px]", pageLede)}>
-                Whole sections of an iOS screen, built from SwiftPieces components. The fields, buttons and charts are already laid out, wired together and given their states: drop a block into a screen and connect it to your app.
+                Whole sections of an iOS screen. The fields, buttons and charts are already laid out, wired together and given their states: drop a block into any app and connect it with a closure or two.
               </p>
             </Reveal>
             <Reveal delay={0.1}>
               <LinkCells
                 links={[
-                  { title: "Browse in the docs", body: "The pieces inside, parameters, source and install for every block.", href: "/docs/blocks", badge: "New" },
-                  { title: "Blocks in SwiftPieces Pro", body: "Themed by Pro's design system, in every Pro style.", href: `${pro.library}/blocks` },
+                  { title: "Browse in the docs", body: "What is inside every block and how to install it.", href: "/docs/blocks", badge: "New" },
+                  { title: "Blocks in SwiftPieces Pro", body: "Live previews in every Pro style, with the SwiftUI source.", href: `${pro.library}/blocks` },
                 ]}
               />
             </Reveal>
@@ -83,9 +83,9 @@ export default function BlocksPage() {
           <section>
             <Reveal className="mb-9 flex flex-col gap-6 md:flex-row md:items-end md:justify-between md:gap-12">
               <div className="max-w-[640px]">
-                <h2 className={sectionTitle}>Built from the pieces you already know</h2>
+                <h2 className={sectionTitle}>One file, dropped into any app</h2>
                 <p className={cn("mt-4 max-w-[540px]", sectionBody)}>
-                  A block is plain SwiftUI in your project, like a piece. One command adds it with the components it is built from, and it is yours to change.
+                  A block is one plain SwiftUI file in your project. One command adds it with Pro&apos;s design system, it re-skins with your theme, and it is yours to change.
                 </p>
               </div>
               <code className="inline-flex h-10 w-fit shrink-0 items-center gap-2 rounded-full bg-surface px-4 font-mono text-[12.5px] text-foreground">

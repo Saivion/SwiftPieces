@@ -1,11 +1,10 @@
-import { LogoMark } from "@/components/ui/logo";
 import { Button, Arrow } from "@/components/ui/button";
 import { ProBadge } from "@/components/ui/pro-badge";
 import { proCatalog } from "@/lib/pro-catalog";
 import { pro } from "@/lib/site";
 
 /**
- * Get Pro: the Pro corner halftone moving behind the mark, then the pitch and one button. The docs
+ * Get Pro: SwiftPieces Pro's lockup, then the pitch and one button. The docs
  * show the library pitch; the playground passes its template's own title, copy and link, so both
  * places use the same card.
  */
@@ -17,11 +16,14 @@ export function ProCard({
 }: { title?: string; body?: string; meta?: string; cta?: { label: string; href: string } }) {
   return (
     <div className="docs-glass overflow-hidden rounded-[22px] p-2">
-      {/* The mark and the Pro badge on a panel: Graphite keeps the head of the card flat and quiet. */}
+      {/* SwiftPieces Pro's own lockup on a panel, as pro.swiftpieces.com's navbar draws it (Pro
+          components/layout/pro-logo.tsx): Pro's mark, red blocks on white (public/pro-logo-mark.png,
+          a copy of Pro's logo-mark.png), the name and the Pro badge. */}
       <div className="flex h-24 items-center justify-center rounded-[16px] bg-surface-2">
-        <span className="inline-flex items-center gap-2 text-[14.5px] font-semibold tracking-[-0.02em] text-foreground">
-          <LogoMark className="size-5" />
-          SwiftPieces
+        <span className="inline-flex items-center gap-2.5 whitespace-nowrap text-foreground">
+          {/* eslint-disable-next-line @next/next/no-img-element -- a 96px brand mark shown at 22px, like the brand LogoMark */}
+          <img src="/pro-logo-mark.png" alt="" aria-hidden width={22} height={22} className="size-[22px] object-cover" />
+          <span className="text-[15.5px] leading-none font-semibold tracking-[-0.03em]">SwiftPieces</span>
           <ProBadge size="sm" />
         </span>
       </div>

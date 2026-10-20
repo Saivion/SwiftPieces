@@ -1,5 +1,39 @@
 [
   {
+    "id": "sign-in",
+    "name": "SignInBlock",
+    "title": "Sign In",
+    "category": "auth",
+    "summary": "A sign-in section: email and password that validate on submit, Sign in with Apple, and creating an account in the same block.",
+    "description": "Email and password with real autofill, a show and hide toggle and validation on submit. One Sign in button runs your async sign in through working, done and failed, and Sign in with Apple and creating an account sit in the same block.",
+    "parts": [
+      "Email and password fields",
+      "Sign in button with its states",
+      "Sign in with Apple",
+      "Forgot password and create account"
+    ],
+    "added": "2026-10-19",
+    "slug": "sign-in",
+    "isNew": true
+  },
+  {
+    "id": "account-settings",
+    "name": "AccountSettingsBlock",
+    "title": "Account Settings",
+    "category": "settings",
+    "summary": "The account section at the top of Settings: profile, appearance, notifications, your data, sign out and deleting the account.",
+    "description": "The account section every app needs. Your profile with its photo, appearance and notification preferences bound to your app's own values, exporting your data, and signing out or deleting the account behind a calm confirmation.",
+    "parts": [
+      "Profile with photo",
+      "Appearance",
+      "Notification preferences",
+      "Sign out and delete account"
+    ],
+    "added": "2026-10-19",
+    "slug": "account-settings",
+    "isNew": true
+  },
+  {
     "id": "plan-usage",
     "name": "PlanUsageBlock",
     "title": "Plan and Usage",
@@ -31,6 +65,40 @@
     ],
     "added": "2026-10-19",
     "slug": "invite-friends",
+    "isNew": true
+  },
+  {
+    "id": "stats-overview",
+    "name": "StatsOverviewBlock",
+    "title": "Stats Overview",
+    "category": "analytics",
+    "summary": "The top of an analytics screen: a headline metric you scrub across ranges, the tiles beside it, and its loading and retry states.",
+    "description": "One headline metric with its change against the last period, on a chart you scrub to read any day. Switch the range and the line redraws; secondary metrics sit in tiles below, and loading, empty and failed states come designed.",
+    "parts": [
+      "Headline metric and its change",
+      "Chart you scrub",
+      "Range control",
+      "Metric tiles"
+    ],
+    "added": "2026-10-19",
+    "slug": "stats-overview",
+    "isNew": true
+  },
+  {
+    "id": "checkout",
+    "name": "CheckoutBlock",
+    "title": "Checkout",
+    "category": "commerce",
+    "summary": "A checkout section: the bag with quantities, delivery, a promo code, the total, Apple Pay and one Pay button through to the placed order.",
+    "description": "The bag with quantities you change in place, the delivery address and speed, a promo code and a total that follows every change. Pay with Apple Pay or the saved card; one Pay button runs your order through working, done and the placed confirmation.",
+    "parts": [
+      "Bag with quantities",
+      "Delivery address and speed",
+      "Promo code and total",
+      "Apple Pay and Pay button"
+    ],
+    "added": "2026-10-19",
+    "slug": "checkout",
     "isNew": true
   }
 ]

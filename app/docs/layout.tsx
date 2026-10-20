@@ -9,9 +9,9 @@ import { blockCategoryTitle, blockPath } from "@/lib/blocks";
 import { ProBadge } from "@/components/ui/pro-badge";
 import type * as PageTree from "fumadocs-core/page-tree";
 import { NewBadge } from "@/components/ui/new-badge";
-import { SidebarFilter, SidebarFooterLinks, CountedFolder } from "@/components/docs/sidebar";
+import { SidebarFilter, CountedFolder } from "@/components/docs/sidebar";
+import { WhatsNewButton } from "@/components/changelog/whats-new";
 import { SectionIcon } from "@/components/docs/section-icons";
-import { pro, site } from "@/lib/site";
 import { SidebarPreview, type SidebarPreviewEntry } from "@/components/docs/sidebar-preview";
 import { categoryTitle } from "@/lib/categories";
 import { proCards, type ProCardType } from "@/components/docs/pro-cards";
@@ -197,7 +197,7 @@ export default async function Layout({ children }: { children: ReactNode }) {
       // The brand lives in the navbar above, so the sidebar header drops it. The mobile sub-bar
       // (which opens the sidebar drawer) keeps a plain "Docs" label.
       nav={{ ...baseOptions().nav, title: <span className="text-[13px] font-medium text-muted md:hidden">Docs</span> }}
-      // The sidebar body holds only the docs tree; site links live in the footer row, search lives in the filter box.
+      // The sidebar body holds only the docs tree; What's new sits at its foot, search lives in the filter box.
       links={[]}
       githubUrl={undefined}
       searchToggle={{ enabled: false }}
@@ -214,18 +214,10 @@ export default async function Layout({ children }: { children: ReactNode }) {
             <SidebarPreview items={previewItems()} />
           </div>
         ),
+        // The foot of the sidebar opens the changelog, on every docs page and in the phone drawer.
         footer: (
-          <div key="sidebar-footer">
-          <SidebarFooterLinks
-            links={[
-              { label: "Components", href: "/components" },
-              { label: "Blocks", href: "/blocks" },
-              { label: "Pro", href: "/pro" },
-              { label: "Pricing", href: pro.pricing, external: true },
-              { label: "Sponsors", href: "/sponsors" },
-              { label: "GitHub", href: site.github, external: true },
-            ]}
-          />
+          <div key="sidebar-footer" className="border-t border-[var(--docs-line)] pt-3">
+            <WhatsNewButton />
           </div>
         ),
         components: { Folder: CountedFolder },

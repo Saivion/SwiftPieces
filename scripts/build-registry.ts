@@ -36,6 +36,7 @@ import { blockCategories, blockCategoryIds, blockPath, blockSlug, proBlocks, pro
 import { exploreProPages, proCatalog, proCountsLabel } from "../lib/pro-catalog";
 import { hubs, hubItems, hubPath } from "../lib/hubs";
 import { motionDrift } from "./sync-motion";
+import { SUMMARY_MAX, summaries } from "../registry/summaries";
 
 const ROOT = join(import.meta.dirname, "..");
 const SWIFT_DIR = join(ROOT, "registry/swift");
@@ -256,6 +257,7 @@ function build() {
   const catalog = readFileSync(join(ROOT, "previews/SwiftPiecesPreviews/PreviewCatalog.swift"), "utf8");
   const missingScenes = [...items, ...blocks].filter((i) => !catalog.includes(`"${i.name}"`)).map((i) => i.name);
   if (missingScenes.length) throw new Error(`PreviewCatalog.swift has no scene for: ${missingScenes.join(", ")}`);
+  checkSummaries([...items, ...blocks].map((i) => i.name));
 
   mkdirSync(OUT_DIR, { recursive: true });
   const index: RegistryIndexEntry[] = items.map((i) => ({
@@ -402,6 +404,23 @@ function extractDocs(body: string) {
   return { summary, params, preview };
 }
 
+/**
+ * Every piece and free block shows a short description under its docs title (registry/summaries.ts),
+ * not the Swift header's full paragraph: one exists for each, none runs past SUMMARY_MAX, and none
+ * names something the registry no longer has.
+ */
+function checkSummaries(names: string[]) {
+  const missing = names.filter((n) => !summaries[n]);
+  const long = names.filter((n) => (summaries[n]?.length ?? 0) > SUMMARY_MAX);
+  const stale = Object.keys(summaries).filter((k) => !names.includes(k));
+  const problems = [
+    missing.length ? `no short description for ${missing.join(", ")}` : "",
+    long.length ? `over ${SUMMARY_MAX} characters: ${long.join(", ")}` : "",
+    stale.length ? `not in the registry: ${stale.join(", ")}` : "",
+  ].filter(Boolean);
+  if (problems.length) throw new Error(`registry/summaries.ts: ${problems.join("; ")}.`);
+}
+
 function writeDocs(items: RegistryItem[]) {
   // Everything under content/docs/components is generated, so the section is rebuilt from scratch; stale legacy category folders at the docs root go too.
   for (const cat of Object.keys(categories)) rmSync(join(DOCS_DIR, cat), { recursive: true, force: true });
@@ -410,11 +429,11 @@ function writeDocs(items: RegistryItem[]) {
   mkdirSync(root, { recursive: true });
 
   const cats = (Object.keys(categories) as Category[]).filter((c) => items.some((i) => i.category === c));
-  writeFileSync(join(root, "index.mdx"), `---\ntitle: "All SwiftUI components"\ndescription: "Every free SwiftPieces component for iOS with a live preview. Filter by category, then open a piece for its notes, parameters, source and install command."\nindex: true\n---\n\n{/* GENERATED FILE. Edit scripts/build-registry.ts. */}\n`);
+  writeFileSync(join(root, "index.mdx"), `---\ntitle: "All SwiftUI components"\ndescription: "Every free SwiftPieces component for iOS with a live preview. Filter by category, then open a piece for its source and install command."\nindex: true\n---\n\n{/* GENERATED FILE. Edit scripts/build-registry.ts. */}\n`);
   // Explore Pro: Pro's screens, flows and templates as cards that open on pro.swiftpieces.com. The cards
   // come from lib/pro-cards.json and public/pro-cards/, refreshed by scripts/pro-cards/capture.ts.
   writeFileSync(join(root, "screens.mdx"), `---\ntitle: "Screens"\ndescription: "Production-ready SwiftUI screens from SwiftPieces Pro. Each one is a complete, themed screen you drop into your app and wire to your data."\npro: "screen"\n---\n\n{/* GENERATED FILE. Edit scripts/build-registry.ts. */}\n`);
-  writeFileSync(join(root, "flows.mdx"), `---\ntitle: "Flows"\ndescription: "Whole journeys through SwiftPieces Pro's app templates: first run through sign in and the paywall, the core of each app, then profile and settings, screen by screen."\npro: "flow"\n---\n\n{/* GENERATED FILE. Edit scripts/build-registry.ts. */}\n`);
+  writeFileSync(join(root, "flows.mdx"), `---\ntitle: "Flows"\ndescription: "Whole journeys through SwiftPieces Pro's app templates, screen by screen: first run and sign in, the core of each app, then settings."\npro: "flow"\n---\n\n{/* GENERATED FILE. Edit scripts/build-registry.ts. */}\n`);
   writeFileSync(join(root, "templates.mdx"), `---\ntitle: "Templates"\ndescription: "Complete Xcode app templates from SwiftPieces Pro, wired end to end. Open the project, swap the brand and the copy, ship."\npro: "template"\n---\n\n{/* GENERATED FILE. Edit scripts/build-registry.ts. */}\n`);
   writeFileSync(join(root, "meta.json"), JSON.stringify({
     title: "Components",
@@ -430,7 +449,7 @@ function writeDocs(items: RegistryItem[]) {
     for (const item of members) {
       const sidecar = join(SWIFT_DIR, item.category, `${item.name}.mdx`);
       const prose = existsSync(sidecar) ? readFileSync(sidecar, "utf8").trim() : "";
-      const frontmatter = { title: item.title, description: item.description, piece: item.name, category: item.category, minIOSVersion: item.minIOSVersion, version: item.version, tags: item.tags, registryDependencies: item.registryDependencies };
+      const frontmatter = { title: item.title, description: summaries[item.name], piece: item.name, category: item.category, minIOSVersion: item.minIOSVersion, version: item.version, tags: item.tags, registryDependencies: item.registryDependencies };
       const fm = Object.entries(frontmatter).map(([k, v]) => `${k}: ${JSON.stringify(v)}`).join("\n");
       const docs = extractDocs(item.files[0].content ?? "");
       const paramsTable = docs.params.length ? `## Parameters\n\n| Parameter | Description |\n| --- | --- |\n${docs.params.map((p) => `| \`${p.name}\` | ${p.text.replace(/\|/g, "\\|")} |`).join("\n")}\n` : "";
@@ -457,7 +476,7 @@ function writeBlockDocs(blocks: BlockItem[]) {
   rmSync(root, { recursive: true, force: true });
   mkdirSync(root, { recursive: true });
   const total = blocks.length + proBlocks.length;
-  writeFileSync(join(root, "index.mdx"), `---\ntitle: "All SwiftUI blocks"\ndescription: "Whole sections of an iOS screen, built from SwiftPieces components: ${blocks.length} free and ${proBlocks.length} in Pro. Open one for its preview, the pieces inside it, its source and install command."\nblocks: true\n---\n\n{/* GENERATED FILE. Edit scripts/build-registry.ts. */}\n`);
+  writeFileSync(join(root, "index.mdx"), `---\ntitle: "All SwiftUI blocks"\ndescription: "${blocks.length ? `Whole sections of an iOS screen: ${blocks.length} free and ${proBlocks.length} in Pro, each with its preview and source.` : `Whole sections of an iOS screen, laid out, wired and given their states: ${proBlocks.length} blocks in SwiftPieces Pro.`}"\nblocks: true\n---\n\n{/* GENERATED FILE. Edit scripts/build-registry.ts. */}\n`);
   const cats = (Object.keys(blockCategories) as BlockCategory[]).filter((c) => blocks.some((b) => b.category === c) || proBlocks.some((p) => p.category === c));
   writeFileSync(join(root, "meta.json"), JSON.stringify({ title: "Blocks", pages: ["index", `---Blocks · ${total}---`, ...cats.map((c) => blockCategories[c].slug)] }, null, 2));
 
@@ -470,7 +489,7 @@ function writeBlockDocs(blocks: BlockItem[]) {
     for (const block of free) {
       const sidecar = join(BLOCKS_DIR, block.category, `${block.name}.mdx`);
       const prose = readFileSync(sidecar, "utf8").trim();
-      const frontmatter = { title: block.title, description: block.description, block: block.name, minIOSVersion: block.minIOSVersion, version: block.version, tags: block.tags, registryDependencies: block.registryDependencies };
+      const frontmatter = { title: block.title, description: summaries[block.name], block: block.name, minIOSVersion: block.minIOSVersion, version: block.version, tags: block.tags, registryDependencies: block.registryDependencies };
       const fm = Object.entries(frontmatter).map(([k, v]) => `${k}: ${JSON.stringify(v)}`).join("\n");
       const docs = extractDocs(block.files[0].content ?? "");
       const paramsTable = docs.params.length ? `## Parameters\n\n| Parameter | Description |\n| --- | --- |\n${docs.params.map((p) => `| \`${p.name}\` | ${p.text.replace(/\|/g, "\\|")} |`).join("\n")}\n` : "";
@@ -626,11 +645,13 @@ function writeLlms(items: RegistryItem[], blocks: BlockItem[]) {
   lines.push(
     "## Blocks",
     "",
-    `Whole sections of an iOS screen, built from the pieces below: the fields, buttons and charts laid out, wired and given their states. A block installs with the pieces it is built from. ${blocks.length} are free; ${proBlocks.length} come with SwiftPieces Pro. All blocks: ${SITE_URL}/blocks`,
+    blocks.length
+      ? `Whole sections of an iOS screen: the fields, buttons and charts laid out, wired and given their states. A free block installs with the pieces it is built from. ${blocks.length} are free; ${proBlocks.length} come with SwiftPieces Pro. All blocks: ${SITE_URL}/blocks`
+      : `Whole sections of an iOS screen: the fields, buttons and charts laid out, wired and given their states, themed by SwiftPieces Pro's design system. All ${proBlocks.length} come with SwiftPieces Pro and install with a Pro license. All blocks: ${SITE_URL}/blocks`,
     "",
   );
   for (const b of blocks) lines.push(`- [${b.title}](${b.docs}): ${b.description} Built from ${b.registryDependencies.join(", ")}. Install: \`npx swiftpieces add ${b.name}\`. Registry: ${SITE_URL}/r/${b.name}.json`);
-  for (const p of proBlocks) lines.push(`- [${p.title}](${SITE_URL}${blockPath(p)}) (Pro): ${p.summary} Inside: ${p.parts.join(", ")}. In SwiftPieces Pro: ${proBlockUrl(p.id)}`);
+  for (const p of proBlocks) lines.push(`- [${p.title}](${SITE_URL}${blockPath(p)}) (Pro): ${p.summary} Inside: ${p.parts.join(", ")}. Install with a Pro license: \`npx swiftpieces add ${p.name}\`. In SwiftPieces Pro: ${proBlockUrl(p.id)}`);
   lines.push("", "## Collections", "");
   for (const h of hubs) lines.push(`- [${h.h1}](${SITE_URL}${hubPath(h.slug)}): ${h.description} (${hubItems(h, items).length} pieces)`);
   lines.push(

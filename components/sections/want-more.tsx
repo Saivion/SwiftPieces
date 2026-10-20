@@ -2,9 +2,8 @@ import cards from "@/lib/pro-cards.json";
 import { Container } from "@/components/ui/container";
 import { Reveal } from "@/components/effects/reveal";
 import { Button, Arrow } from "@/components/ui/button";
-import { band, sectionTitle, sectionBody } from "@/components/sections/feature-row";
+import { band, sectionTitle } from "@/components/sections/feature-row";
 import { ProBadge } from "@/components/ui/pro-badge";
-import { proCatalog } from "@/lib/pro-catalog";
 import { pro, site } from "@/lib/site";
 import { cn } from "@/lib/cn";
 
@@ -30,30 +29,37 @@ const wide = templates.flatMap((t, i) => (flows[i] ? [t, flows[i]] : [t]));
 export function WantMore() {
   return (
     <Container className={band}>
-      <section className="tray overflow-hidden pt-10 pb-8 sm:pt-[52px] sm:pb-11" aria-labelledby="want-more">
-        <Reveal className="flex flex-col gap-8 px-4 sm:px-10 lg:flex-row lg:items-end lg:justify-between lg:px-12">
-          <div className="max-w-[640px]">
-            <ProBadge className="mb-5" />
-            <h2 id="want-more" className={sectionTitle}>
-              Want more? <span className="text-subtle">Build the whole app with Pro.</span>
-            </h2>
-            <p className={cn("mt-4 max-w-[560px]", sectionBody)}>
-              {proCatalog.screens} finished screens, {proCatalog.flows.total} flows that string them into whole journeys and {proCatalog.templates} complete app templates, built from the same pieces and design system as the free library, plus a Build Kit that teaches your coding agent to build the rest to match, and Pro remixing in the Playground.
-            </p>
-          </div>
-          <div className="flex shrink-0 flex-wrap items-center gap-2.5">
-            <Button href={pro.library}>Explore Pro <Arrow /></Button>
-            {/* The quiet second action: words and an arrow. Pricing lives only on Pro. */}
-            <a href={pro.pricing} className="group inline-flex h-[46px] items-center gap-2 px-2 text-[15px] font-semibold text-foreground">
-              View pricing
-              <Arrow />
-            </a>
-          </div>
-        </Reveal>
+      {/* The tray's own 8px (brand .tray, which outranks utilities on the same element) holds the rows;
+          the heading sits inset on an inner box, as far from the top as from the sides. */}
+      <section className="tray overflow-hidden" aria-labelledby="want-more">
+        <div className="pt-4 sm:pt-6 lg:pt-10">
+          {/* The heading on the left, the two actions on the right on its last line. The rows of Pro's own
+              screens under it say what is inside, so the copy stops at the heading. */}
+          <Reveal className="flex flex-col gap-7 px-4 sm:px-6 lg:flex-row lg:items-end lg:justify-between lg:gap-16 lg:px-10">
+            <div>
+              <div className="mb-6 flex">
+                <ProBadge size="sm" />
+              </div>
+              <h2 id="want-more" className={sectionTitle}>
+                Want more?
+                <br />
+                <span className="text-muted">Build the whole app with Pro.</span>
+              </h2>
+            </div>
+            <div className="flex shrink-0 flex-wrap items-center gap-2.5 lg:pb-1">
+              <Button href={pro.library}>Explore Pro <Arrow /></Button>
+              {/* The quiet second action: words and an arrow. Pricing lives only on Pro. */}
+              <a href={pro.pricing} className="group inline-flex h-[46px] items-center gap-2 px-2 text-[15px] font-semibold text-foreground">
+                View pricing
+                <Arrow />
+              </a>
+            </div>
+          </Reveal>
 
-        <div className="mt-10 flex flex-col gap-3">
-          <Row items={screens} duration="90s" />
-          <Row items={wide} duration="110s" reverse />
+          <div className="mt-8 flex flex-col gap-2 sm:mt-10 lg:mt-12">
+            <Row items={screens} duration="90s" />
+            <Row items={wide} duration="110s" reverse />
+          </div>
         </div>
       </section>
     </Container>
@@ -63,8 +69,10 @@ export function WantMore() {
 /** One endless row: the cards twice over, so the loop never shows a seam. Hover pauses it. */
 function Row({ items, duration, reverse }: { items: Card[]; duration: string; reverse?: boolean }) {
   return (
-    <div className="marquee-pause overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_6%,black_94%,transparent)]">
-      <div className={cn("marquee flex w-max gap-3", reverse && "marquee-reverse")} style={{ ["--marquee-duration" as string]: duration }}>
+    // The row clips its ends; the 8px of padding above (taken back by the negative margin) is room for
+    // a card's hover lift, which the clip would otherwise cut off.
+    <div className="marquee-pause -mt-2 overflow-hidden pt-2 [mask-image:linear-gradient(to_right,transparent,black_6%,black_94%,transparent)]">
+      <div className={cn("marquee flex w-max gap-2", reverse && "marquee-reverse")} style={{ ["--marquee-duration" as string]: duration }}>
         {[...items, ...items].map((c, i) => (
           <ProTile key={`${c.id}-${i}`} card={c} copy={i >= items.length} />
         ))}
@@ -82,7 +90,7 @@ function ProTile({ card, copy }: { card: Card; copy: boolean }) {
       aria-hidden={copy || undefined}
       tabIndex={copy ? -1 : undefined}
       className={cn(
-        "group relative block shrink-0 overflow-hidden rounded-[18px] transition-transform duration-300 ease-out hover:-translate-y-1",
+        "group relative block shrink-0 overflow-hidden rounded-[22px] transition-transform duration-300 ease-out hover:-translate-y-1",
         wide ? "h-[180px] w-[290px] sm:h-[205px] sm:w-[330px]" : "size-[180px] sm:size-[205px]",
       )}
     >

@@ -25,7 +25,7 @@ export function CategoryDirectory({ hubs, items, current, className, after }: { 
           <li key={hub.slug} className="flex">
             <Link href={hubPath(hub.slug)} aria-current={active ? "page" : undefined} className={cn(dirTile, "w-full", active && "bg-surface-3")}>
               <span className="flex items-center justify-between gap-3 text-[15px] font-medium tracking-[-0.01em] sm:text-[16px]">
-                <span className={active ? "text-accent" : "text-foreground"}>{hub.name}</span>
+                <span className="text-foreground">{hub.name}</span>
                 <span className="text-[13px] font-medium tabular-nums text-subtle">{count}</span>
               </span>
               <span className={dirBlurb}>{hubBlurb(hub)}</span>

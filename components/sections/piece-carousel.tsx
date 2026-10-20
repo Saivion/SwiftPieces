@@ -60,11 +60,11 @@ export function PieceCarousel() {
   useEffect(() => () => clearTimeout(fade.current), []);
 
   return (
-    <div>
+    <div className="flex flex-1 flex-col">
       {/* The stage: the piece on show runs on an iPhone rising out of the artboard, in a skeleton of the
           screen it belongs on, and a terminal floats beside it typing the command that installs it. */}
       <Stage
-        className="h-[440px] sm:h-[470px]"
+        className="h-[440px] sm:h-[470px] lg:h-auto lg:min-h-[470px] lg:flex-1"
         overlay={
           <Parallax depth={18} className="absolute bottom-6 left-6 z-10 hidden w-[min(350px,calc(100%-48px))] md:block">
             <Terminal key={i} slide={SLIDES[i]} reduced={reduced} />
@@ -94,7 +94,7 @@ export function PieceCarousel() {
           the piece's beat, so the tab itself is the progress bar. On phones the names do not fit, so it
           is a stories-style row of hairline segments: pieces already shown stay lit, the current one
           fills, the rest wait dim. Names stay for screen readers, and the install line names the piece. */}
-      <div className="mt-2 overflow-x-auto px-1 [scrollbar-width:none] sm:px-0 [&::-webkit-scrollbar]:hidden">
+      <div className="mt-2 overflow-x-auto px-1 [scrollbar-width:none] sm:rounded-full sm:px-0 sm:[mask-image:linear-gradient(to_right,black_calc(100%-48px),transparent)] [&::-webkit-scrollbar]:hidden">
         <div role="tablist" aria-label="Pieces" className="flex w-full gap-1.5 sm:w-max sm:min-w-full sm:gap-1 sm:rounded-full sm:bg-surface-2 sm:p-1">
           {SLIDES.map((s, k) => {
             const active = k === i;

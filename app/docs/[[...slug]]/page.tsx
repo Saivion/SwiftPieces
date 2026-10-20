@@ -7,16 +7,12 @@ import { source } from "@/lib/source";
 import { getMDXComponents } from "@/components/mdx";
 import { PieceInstall } from "@/components/docs/piece-install";
 import { getBlock, getProBlock, getRegistryItem, getRegistryIndex, piecePath } from "@/lib/registry";
-import { Command } from "@/components/ui/code";
-import { cliCommand } from "@/lib/registry-paths";
 import { BlockGrid } from "@/components/blocks/block-grid";
 import { blockCards } from "@/lib/block-cards";
 import { blockCategories } from "@/lib/blocks";
 import { ShowcaseGrid } from "@/components/sections/showcase";
 import { ProCardGrid } from "@/components/docs/pro-cards";
 import { DocsAside, DocsAsideColumn } from "@/components/docs/docs-aside";
-import { WhatsNewButton } from "@/components/changelog/whats-new";
-import { getSponsorsFrom } from "@/lib/sponsors";
 import { PieceRelated } from "@/components/docs/piece-related";
 import { JsonLd } from "@/components/seo/json-ld";
 import { breadcrumbJsonLd, ORG_ID, pageMetadata, WEBSITE_ID } from "@/lib/seo";
@@ -50,15 +46,15 @@ export default async function Page(props: Props) {
   const fresh = item?.isNew || block?.isNew || proBlock?.isNew;
   // A block page ends with its neighbours: the same category first, then the rest.
   const related = block || proBlock ? blockCards().filter((c) => c.name !== (block ?? proBlock)!.name).sort((a, b) => Number(b.category === (block ?? proBlock)!.category) - Number(a.category === (block ?? proBlock)!.category)) : [];
-  const aside = <DocsAside sponsors={await getSponsorsFrom("silver")} />;
+  const aside = <DocsAside />;
 
   return (
     <DocsPage
       toc={hasToc ? page.data.toc : []}
       full={wide}
-      // What's new heads the right column on every docs page and Sponsors and Pro sit at its foot:
-      // around "On this page" where there is one, on their own where there is not (the full-width grids).
-      tableOfContent={hasToc ? { header: <WhatsNewButton />, footer: aside } : { enabled: true, component: <DocsAsideColumn><WhatsNewButton />{aside}</DocsAsideColumn> }}
+      // Pro sits at the foot of the right column on every docs page: under "On this page" where there
+      // is one, on its own where there is not (the full-width grids). What's new is in the sidebar.
+      tableOfContent={hasToc ? { footer: aside } : { enabled: true, component: <DocsAsideColumn>{aside}</DocsAsideColumn> }}
     >
       <JsonLd data={structuredData(page.url, page.data.title, page.data.description, page.slugs, item, block)} />
       <DocsTitle className={fresh ? "flex items-center gap-3" : undefined}>
@@ -66,13 +62,7 @@ export default async function Page(props: Props) {
         {fresh ? <NewBadge /> : null}
       </DocsTitle>
       <DocsDescription>{page.data.description}</DocsDescription>
-      {/* The install line right under the description; the page body opens on Preview and Code, then the facts. */}
-      {item || block || proBlock ? (
-        <div className="not-prose mb-8 max-w-xl">
-          <Command text={cliCommand(item ?? block ?? proBlock!)} />
-          {proBlock ? <p className="mt-2 text-[12px] text-subtle">Needs a SwiftPieces Pro license: <code className="font-mono">npx swiftpieces login</code> first.</p> : null}
-        </div>
-      ) : null}
+      {/* The page body opens on Preview and Code, with the install line right under them (components/docs/showcase.tsx), then the facts. */}
       {isIndex ? <div className="not-prose mb-10"><ShowcaseGrid items={getRegistryIndex()} /></div> : null}
       {isBlocksIndex ? <div className="not-prose mb-10"><BlockGrid cards={blockCards()} narrow /></div> : null}
       {proType ? <ProCardGrid type={proType} /> : null}

@@ -2,7 +2,7 @@
 import dynamic from "next/dynamic";
 import type { ComponentType } from "react";
 
-/** Web-equivalent animated previews of pieces and free blocks, keyed by Swift type name. Loaded lazily per chunk. */
+/** Web-equivalent animated previews of pieces, keyed by Swift type name. Loaded lazily per chunk. */
 const map: Record<string, ComponentType> = {
   TextReveal: dynamic(() => import("./text").then((m) => m.TextRevealPreview)),
   PictureHeadline: dynamic(() => import("./picture-headline").then((m) => m.PictureHeadlinePreview)),
@@ -81,11 +81,6 @@ const map: Record<string, ComponentType> = {
   WalletStack: dynamic(() => import("./wallet-stack").then((m) => m.WalletStackPreview)),
   NoticeStack: dynamic(() => import("./notice-stack").then((m) => m.NoticeStackPreview)),
   RangeLens: dynamic(() => import("./range-lens").then((m) => m.RangeLensPreview)),
-  // Blocks (lib/blocks.ts), drawn on the phone-width block canvas (./blocks/canvas.tsx).
-  SignInBlock: dynamic(() => import("./blocks/sign-in").then((m) => m.SignInBlockPreview)),
-  AccountSettingsBlock: dynamic(() => import("./blocks/account-settings").then((m) => m.AccountSettingsBlockPreview)),
-  StatsOverviewBlock: dynamic(() => import("./blocks/stats-overview").then((m) => m.StatsOverviewBlockPreview)),
-  CheckoutBlock: dynamic(() => import("./blocks/checkout").then((m) => m.CheckoutBlockPreview)),
 };
 
 /** One Picture Headline sticker on its own (the landing's floating mascot), from the preview's own chunk. */

@@ -25,12 +25,14 @@ export function Features() {
         title="Interactions that feel native"
         body="Picture headlines, swipe decks, glass menus and scrubbable charts, with the motion, haptics and states already done."
         cta={{ label: "Browse components", href: "/components" }}
+        // The two cards below are one bento with this tray, so they sit a tile gap under it, not a band.
+        className="pb-0 sm:pb-0"
       >
         <PiecesVisual />
       </FeatureRow>
 
       {/* The CLI and the agent, side by side: each a tray with its visual on top and its copy under it. */}
-      <div className="grid grid-cols-1 gap-4 pb-12 sm:pb-[68px] lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 pt-4 pb-12 sm:pb-[68px] lg:grid-cols-2">
         <FeatureCard
           tags={[{ label: "CLI", icon: <I.terminal /> }, { label: "Xcode 16", icon: <I.hammer /> }, { label: "Copy and paste", icon: <I.copy /> }]}
           title="One command into Xcode"
@@ -81,6 +83,11 @@ function PiecesVisual() {
         </>
       }
     >
+      {/* A quiet dot field the phone stands on: sharp around it, blurring and fading out toward the edges. */}
+      <Parallax depth={5} className="absolute -inset-6">
+        <div aria-hidden className="dot-field dot-field-soft absolute inset-0" />
+        <div aria-hidden className="dot-field absolute inset-0" />
+      </Parallax>
       <div className="absolute inset-x-0 top-12 flex justify-center sm:top-16">
         <Parallax depth={-7} className="w-[272px] sm:w-[296px]">
           {/* An onboarding screen whose headline is the piece: the words and stickers are the one thing on

@@ -149,22 +149,6 @@ export function SidebarFilter({ title = "Docs", meta }: { title?: string; meta?:
   );
 }
 
-export type FooterLink = { label: string; href: string; external?: boolean };
-
-/** Quiet site links at the foot of the sidebar, so the body of the sidebar holds only the docs tree. */
-export function SidebarFooterLinks({ links }: { links: FooterLink[] }) {
-  return (
-    <nav aria-label="Site" className="flex flex-wrap gap-x-3 gap-y-1 border-t border-[var(--docs-line)] px-2 pt-3 text-[11.5px] text-subtle">
-      {links.map((l) => (
-        <a key={l.href} href={l.href} {...(l.external ? { target: "_blank", rel: "noreferrer" } : {})} className="transition-colors hover:text-foreground">
-          {l.label}
-          {l.external ? <span aria-hidden className="ml-0.5">↗</span> : null}
-        </a>
-      ))}
-    </nav>
-  );
-}
-
 function countPages(node: PageTree.Folder): number {
   return node.children.reduce((n, c) => n + (c.type === "page" ? 1 : c.type === "folder" ? countPages(c) : 0), 0);
 }

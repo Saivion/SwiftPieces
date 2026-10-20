@@ -72,9 +72,9 @@ export function SectionHead({ tags, title, body, action, id, className }: { tags
  * A feature as a full-width showcase: the head row, then the visual on a tray across the container.
  * `children` is the visual; it should render a bare `Stage` (the panel) at the height it wants.
  */
-export function FeatureRow({ tags, title, body, cta, children }: { tags: Tag[]; title: string; body: string; cta: { label: string; href: string }; reverse?: boolean; children: ReactNode }) {
+export function FeatureRow({ tags, title, body, cta, className, children }: { tags: Tag[]; title: string; body: string; cta: { label: string; href: string }; reverse?: boolean; className?: string; children: ReactNode }) {
   return (
-    <section className={band}>
+    <section className={cn(band, className)}>
       <SectionHead tags={tags} title={title} body={body} action={cta} />
       <Reveal className="tray min-w-0">{children}</Reveal>
     </section>
@@ -88,7 +88,9 @@ export function FeatureRow({ tags, title, body, cta, children }: { tags: Tag[]; 
 export function FeatureCard({ tags, title, body, cta, children }: { tags: Tag[]; title: string; body: string; cta: { label: string; href: string }; children: ReactNode }) {
   return (
     <Reveal className="tray flex min-w-0 flex-col">
-      {children}
+      {/* The visual takes whatever height the copy leaves, so two cards side by side end their copy on
+          one line whatever each visual carries under its stage (the CLI card's rail). */}
+      <div className="flex min-w-0 flex-1 flex-col">{children}</div>
       <div className="px-3.5 pt-6 pb-4 sm:px-4">
         <Tags tags={tags} className="mb-4" />
         <h3 className={cardTitle}>{title}</h3>

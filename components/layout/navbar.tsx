@@ -123,7 +123,7 @@ export function Navbar({ star, starMobile, docked = false, fresh = 0 }: { star?:
           data-condensed={condensed}
           className={cn(
             "nav-glass group/nav relative mx-auto flex items-center justify-between transition-[max-width,height,margin,padding,border-radius,background-color,border-color,box-shadow] duration-500 ease-[var(--ease-out)]",
-            condensed ? "mt-3 h-14 max-w-[900px] rounded-full pr-2 pl-5" : docked ? DOCKED : "h-[var(--nav-h)] max-w-full rounded-none px-0",
+            condensed ? "mt-3 h-14 max-w-[1020px] rounded-full pr-2 pl-5" : docked ? DOCKED : "h-[var(--nav-h)] max-w-full rounded-none px-0",
           )}
           aria-label="Primary"
         >
@@ -166,25 +166,20 @@ export function Navbar({ star, starMobile, docked = false, fresh = 0 }: { star?:
           </ul>
 
           <div className="flex items-center gap-2">
-            {/* Search and theme are square icon buttons, so the bar has room for both. Only the full,
-                wide bar has space to spell search out as a field with its shortcut. */}
+            {/* Search and theme are round icon buttons on the full and the condensed bar alike; ⌘K
+                also opens search. */}
             <button
               type="button"
               onClick={() => setOpenSearch(true)}
-              // Hidden on the condensed (scrolled) bar, which is too tight for it; ⌘K still opens search.
-              className={cn(NAV_ICON, "hidden xl:w-auto xl:px-2.5", condensed ? "md:hidden" : "md:flex")}
+              className={cn(NAV_ICON, "hidden md:flex")}
               aria-label="Search"
               title="Search (⌘K)"
             >
               <svg aria-hidden viewBox="0 0 16 16" className="ai ai-search size-4 overflow-visible" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="7" cy="7" r="4.5" /><path d="M10.5 10.5L14 14" strokeLinecap="round" /></svg>
-              {/* Grows and folds with the bar, on its easing, so it never runs over the links mid-way. */}
-              <span className={cn("hidden items-center gap-2 overflow-hidden whitespace-nowrap transition-[max-width,padding,opacity] duration-500 ease-[var(--ease-out)] xl:flex", condensed ? "max-w-0 opacity-0" : "max-w-48 pl-2 opacity-100")}>
-                <span className="w-24 text-left text-[13.5px]">Search</span>
-                <kbd className="rounded-full bg-surface-2 px-2 py-0.5 font-sans text-[11px] font-medium text-muted">⌘K</kbd>
-              </span>
             </button>
             <ThemeButton className={cn(NAV_ICON, "hidden md:flex")} />
-            {star}
+            {/* Between lg and xl the bar is too narrow for the star beside the centred links. */}
+            <span className="hidden xl:contents">{star}</span>
             <Button href={pro.buy} size="sm" className="hidden sm:inline-flex">Get Pro</Button>
             <button type="button" onClick={() => setOpen((v) => !v)} className="flex size-[38px] items-center justify-center rounded-full border border-line text-muted transition-colors hover:text-foreground lg:hidden" aria-expanded={open} aria-label="Menu">
               {/* Three bars that fold into a cross and back (.ai-menu in app/globals.css), drawn from the button's centre. */}

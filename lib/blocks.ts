@@ -1,11 +1,12 @@
-// Blocks: whole sections of an iOS screen, built from SwiftPieces components. A sign-in block is the
-// form fields, the password entry and the commit button already laid out, wired and given their
-// states; you drop it into a screen and connect it to your app.
+// Blocks: whole sections of an iOS screen, laid out, wired and given their states. A sign-in block is the
+// fields, the button and Sign in with Apple already working; you drop it into a screen and connect it to your app.
 //
-// Free blocks live in registry/blocks/<category>/<Name>Block.swift and build like pieces
-// (scripts/build-registry.ts). Pro blocks live in SwiftPieces Pro; Free never reads the Pro registry
-// (Rev 3 §3.2), so `proBlocks` below is the one hand-kept copy of their names and summaries. Refresh it
-// from SwiftPiecesPro/registry/index.ts when a Pro block ships or changes.
+// Every block is a SwiftPieces Pro block since 2026-10-19: its source lives in SwiftPieces Pro, themed by Pro's
+// design system, and installs only with a Pro license, like Pro's screens and templates. Free lists them with a
+// still and their facts. Free never reads the Pro registry (Rev 3 §3.2), so `proBlocks` below is the one hand-kept
+// copy of their names and summaries. Refresh it from SwiftPiecesPro/registry/index.ts when a Pro block ships or
+// changes, and recapture its still (public/pro-blocks/<id>.webp) from its Pro page. The build still supports free
+// blocks in registry/blocks/<category>/<Name>Block.swift, should one ever ship.
 // Pure data: safe to import from client components.
 import { site } from "./site";
 
@@ -39,19 +40,39 @@ export type ProBlock = {
    * Pro's design system, like Pro's screens, so these are the block's own parts, not free pieces.
    */
   parts: string[];
-  /** Day it shipped ("YYYY-MM-DD"), for the New badge, the same rule as free blocks. */
+  /** Day it shipped ("YYYY-MM-DD"), for the New badge, the same rule as pieces. */
   added: string;
 };
 
 export const proBlocks: ProBlock[] = [
   {
+    id: "sign-in",
+    name: "SignInBlock",
+    title: "Sign In",
+    category: "auth",
+    summary: "The sign-in section of a welcome screen: email and password, Sign in with Apple, a passkey and Create account in one block.",
+    description: "Email and password on one card, checked on submit and then live, with Sign in running your closure through working, done and failed. Forgot password confirms inline, Sign in with Apple is the system button in the colour of the appearance, and a link at the foot switches to Create account with password rules that tick off.",
+    parts: ["Email and password with autofill", "Sign in with its working, done and failed states", "Sign in with Apple and a passkey", "Forgot password and create account"],
+    added: "2026-10-19",
+  },
+  {
+    id: "account-settings",
+    name: "AccountSettingsBlock",
+    title: "Account Settings",
+    category: "settings",
+    summary: "The account section at the top of Settings: profile and photo, appearance, notifications, your data, sign out and deletion.",
+    description: "The part of Settings every app with accounts needs. A profile card changes the photo and the name in place, appearance shows System, Light and Dark as small screens in your theme's colours, and notification toggles know when iOS has notifications off. Export my data, Sign out and Delete account each confirm and show their own working, done and failed states.",
+    parts: ["Profile with photo and name", "Appearance in your theme's colours", "Notification toggles", "Your data, sign out and delete account"],
+    added: "2026-10-19",
+  },
+  {
     id: "plan-usage",
     name: "PlanUsageBlock",
     title: "Plan and Usage",
     category: "settings",
-    summary: "The subscription section of Settings: the current plan, what has been used of it, and the way up.",
-    description: "Where a subscriber checks their plan. The plan sits on a solid card with its price and renewal date; usage meters below fill to what has been used and warn as one nears its limit; upgrading, managing the subscription in the App Store and restoring a purchase are one tap each.",
-    parts: ["Current plan card with its renewal", "Usage meters that warn near a limit", "Upgrade call to action", "Manage subscription and restore"],
+    summary: "The subscription section of Settings: the plan and its renewal, usage meters that warn near a limit, and the way up.",
+    description: "Where a subscriber checks their plan. A summary card names the plan with a tinted status chip, its price and when it renews, ends or leaves its trial; usage meters fill to what has been used and turn to warning and danger near a limit. Upgrade works, confirms and folds away on the top plan, and Manage subscription and Restore purchases use StoreKit by default.",
+    parts: ["Plan with its status and renewal", "Usage meters that warn near a limit", "Upgrade with its states", "Manage subscription and restore"],
     added: "2026-10-19",
   },
   {
@@ -59,9 +80,29 @@ export const proBlocks: ProBlock[] = [
     name: "InviteFriendsBlock",
     title: "Invite Friends",
     category: "social",
-    summary: "A referral section: the reward and how close you are, your invite code to copy or share, and who joined.",
-    description: "A referral section that pays for itself. A reward track fills a seat for each friend who joins; the invite code copies with one tap and shares through the system share sheet; invited friends list below with where each one is, from invited to joined.",
-    parts: ["Reward track that fills per friend", "Invite code you copy", "Share button", "Invited friends and their status"],
+    summary: "A referral section: what both people get, a track that fills as friends join, the invite code to copy or share, and who you invited.",
+    description: "The referral section of an account or rewards screen. One card states the reward, fills a seat on a quiet track for each friend who joins, copies the invite code with one tap and opens the system share sheet. Invited friends list below with a status chip, and pending invites can be reminded.",
+    parts: ["Reward and a track that fills per friend", "Invite code you copy", "Share invite", "Invited friends with their status"],
+    added: "2026-10-19",
+  },
+  {
+    id: "stats-overview",
+    name: "StatsOverviewBlock",
+    title: "Stats Overview",
+    category: "analytics",
+    summary: "The top of a dashboard: a headline metric and its change, a chart you scrub across 1W to 1Y, and metric tiles.",
+    description: "The section at the top of an analytics or dashboard screen. One card holds the headline metric with its change against the previous period and a Swift Charts line you drag across to read any day, with the previous period dashed beneath and a 1W to 1Y control that morphs the line. Metric tiles sit below, and loading, empty and failed states are built in.",
+    parts: ["Headline metric and its change", "Chart you scrub", "Range control from 1W to 1Y", "Metric tiles"],
+    added: "2026-10-19",
+  },
+  {
+    id: "checkout",
+    name: "CheckoutBlock",
+    title: "Checkout",
+    category: "commerce",
+    summary: "A checkout section: the bag with quantities, delivery, a promo code, the total, Apple Pay and one Pay button through to the placed order.",
+    description: "The bag with quantities you change in place, the delivery address and speed, a promo code and a total that follows every change. Pay with Apple Pay or the saved card; one Pay button runs your order through working, done and the placed confirmation.",
+    parts: ["Bag with quantities", "Delivery address and speed", "Promo code and total", "Apple Pay and Pay button"],
     added: "2026-10-19",
   },
 ];

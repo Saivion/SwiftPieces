@@ -377,10 +377,10 @@ html.light {
   color-scheme: light;
   --background: #f5f5f3;
   --foreground: #141414;
-  --surface: #ebebe8;
+  --surface: #efefec;
   --surface-2: #ffffff;
   --surface-3: #ffffff;
-  --surface-muted: #e2e2de;
+  --surface-muted: #e9e9e5;
   --text-muted: #5f5f5b;
   --text-subtle: #8a8a86;
   --accent-soft: rgba(255, 0, 0, 0.1);
@@ -391,8 +391,8 @@ html.light {
   --card-border-hover: rgba(0, 0, 0, 0.16);
   --color-white: #141414;
   --color-black: #ffffff;
-  --footer-word: #ebebe8;
-  --footer-slot: #ebebe8;
+  --footer-word: #efefec;
+  --footer-slot: #efefec;
   --footer-dash: transparent;
   --beta: #0084d1;
   --new: #d6306f;            /* deeper pink, so the label holds up on a light ground */
@@ -412,7 +412,7 @@ html.light {
   --scrub-line: #141414; --scrub-surface: #ffffff; --scrub-raised: #f1efea;
 }
 /* The footer asks for a black ground in dark; in light it sits on the page ground. */
-html.light [data-tone="black"] { --background: #f5f5f3; --surface: #ebebe8; --surface-2: #ffffff; }
+html.light [data-tone="black"] { --background: #f5f5f3; --surface: #efefec; --surface-2: #ffffff; }
 
 /* Footer wordmark: solid, in --footer-word (dark / light values). The Pro halftone swell rises
    behind its base from both bottom corners (components/layout/footer.tsx). */
@@ -747,3 +747,66 @@ html.light .pv-glass-pass { filter: var(--pv-goo-light) var(--pv-goo-lift); }
    in it lands on a GPU layer, where WebKit would drop its SVG filter and paint the raw shapes. It follows the content
    pass frame by frame instead. */
 .pv-glass-sync, .pv-glass-sync * { transition: none !important; animation: none !important; }
+
+/* A quiet field of dots behind the landing's first feature visual (components/sections/features.tsx):
+   one dot every 20px in the strong hairline colour, sharp around the phone and fading out into a soft,
+   blurred ring, so the dots gather in the middle and never cover the panel. */
+.dot-field {
+  background-image: radial-gradient(circle, var(--line-strong) 1.1px, transparent 1.6px);
+  background-size: 20px 20px;
+  background-position: center;
+  mask-image: radial-gradient(ellipse 30% 44% at 50% 50%, #000 35%, transparent 100%);
+}
+.dot-field-soft {
+  background-image: radial-gradient(circle, var(--line-strong) 1.6px, transparent 2.4px);
+  filter: blur(1.5px);
+  mask-image: radial-gradient(ellipse 46% 64% at 50% 50%, transparent 30%, #000 52%, transparent 100%);
+}
+
+/* The brand aura (the landing's closing card, components/sections/get-started.tsx, and the Pro offer's
+   main card, components/sections/pro-landing.tsx): four soft blooms in the ribbon colours only (orange,
+   red, pink, blue, as hero-lines.tsx), rising from below the bottom edge and drifting slowly. Gradients,
+   not blur filters, and only transforms animate, so it stays on the compositor. It sits under its
+   card's content (z-index -1), so the card isolates a stacking context; the mask keeps the top clean.
+   Keep in step with Pro's globals.css. */
+.aura {
+  position: absolute; inset: 0; z-index: -1; overflow: hidden; pointer-events: none;
+  --aura-o: 0.42;
+  mask-image: linear-gradient(to top, #000 0%, #000 22%, transparent 78%);
+}
+html.light .aura { --aura-o: 0.34; }
+.aura > i {
+  /* Sized to the card's width but never smaller than a bloom, and pushed down by its own height
+     (translate, which the drift's transform adds to), so a narrow, tall card glows as a wide one does. */
+  position: absolute; bottom: 0; width: max(38%, 300px); aspect-ratio: 1; border-radius: 50%;
+  translate: 0 42%; opacity: var(--aura-o); will-change: transform;
+  animation: aura-drift var(--aura-d, 22s) ease-in-out infinite alternate;
+}
+.aura > i:nth-child(1) { left: -2%; background: radial-gradient(closest-side, #ff7a3c, transparent); --aura-d: 19s; }
+.aura > i:nth-child(2) { left: 22%; translate: 0 50%; background: radial-gradient(closest-side, #ff0000, transparent); --aura-d: 23s; animation-delay: -7s; }
+.aura > i:nth-child(3) { left: 44%; background: radial-gradient(closest-side, #ff8fb8, transparent); --aura-d: 21s; animation-delay: -13s; }
+.aura > i:nth-child(4) { left: 66%; translate: 0 46%; background: radial-gradient(closest-side, #4d8dff, transparent); --aura-d: 26s; animation-delay: -4s; }
+@keyframes aura-drift {
+  0% { transform: translate3d(-8%, 6%, 0) scale(1); }
+  50% { transform: translate3d(6%, -8%, 0) scale(1.14); }
+  100% { transform: translate3d(10%, 2%, 0) scale(0.92); }
+}
+@media (prefers-reduced-motion: reduce) { .aura > i { animation: none; } }
+
+/* The hero's row of live pieces (components/sections/hero.tsx, hero-row.tsx). At the top of the page the
+   tiles rest in a shallow fan: the outer ones lower (--ty) and tilted out (--rot), pivoting on their
+   bottom edge. HeroRow writes --p from 0 to 1 over the first scroll, drawing them up into a straight
+   line. The inner box rises in once on load, the middle tile first. */
+.hero-row { --p: 0; }
+.hero-tile {
+  transform-origin: 50% 100%;
+  transform: translate3d(0, calc(var(--ty, 0px) * (1 - var(--p))), 0) rotate(calc(var(--rot, 0deg) * (1 - var(--p))));
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+.hero-tile-in { animation: hero-tile-in 0.9s cubic-bezier(0.22, 1, 0.36, 1) both; }
+@keyframes hero-tile-in { from { opacity: 0; transform: translateY(56px); } }
+@media (prefers-reduced-motion: reduce) {
+  .hero-tile { transition: none; }
+  .hero-tile-in { animation: none; }
+}

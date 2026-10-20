@@ -22,12 +22,6 @@
 			path = "../registry/swift";
 			sourceTree = "<group>";
 		};
-		5A0000010000000000000020 /* Blocks */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			name = Blocks;
-			path = "../registry/blocks";
-			sourceTree = "<group>";
-		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -46,7 +40,6 @@
 			children = (
 				5A000001000000000000000B /* SwiftPiecesPreviews */,
 				5A000001000000000000000C /* Pieces */,
-				5A0000010000000000000020 /* Blocks */,
 				5A0000010000000000000009 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -77,7 +70,6 @@
 			fileSystemSynchronizedGroups = (
 				5A000001000000000000000B /* SwiftPiecesPreviews */,
 				5A000001000000000000000C /* Pieces */,
-				5A0000010000000000000020 /* Blocks */,
 			);
 			name = SwiftPiecesPreviews;
 			packageProductDependencies = (
