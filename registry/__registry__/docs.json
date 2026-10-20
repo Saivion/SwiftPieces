@@ -4335,6 +4335,14 @@
         },
         {
           "heading": "notes",
+          "content": "A new `title` or `successTitle` reaches the label as soon as it changes, morphing letter by letter, so a checkout's \"Pay $64.00\" can follow its total. It never restarts the work, the outcome or the hold, and an error keeps showing its message until the next try."
+        },
+        {
+          "heading": "notes",
+          "content": "The label gets the capsule's width and no more: the room you give the button, less the bubble while it is out. A label too long for one line there (a long error, an accessibility text size, a narrow screen) wraps onto a second line, shrinking a little if it must, and the capsule grows taller to hold it instead of wider. It never runs past the screen's edge, with `collapses` on or off."
+        },
+        {
+          "heading": "notes",
           "content": "Tapping in the error state, on the label or on the retry bubble, fires the action again (VoiceOver hears \"Double tap to try again\"). The button ignores taps while loading or succeeding without dimming."
         },
         {
@@ -4720,6 +4728,10 @@
         {
           "heading": "notes",
           "content": "The control is a clear liquid glass capsule with a tinted puck at its leading end holding the symbol. At touch-down the tint wells out of the puck to the capsule's height, then sweeps through the glass at a steady speed while held, driven by a `TimelineView`, so the edge always shows the real time left. An ink copy of the label, puck and milestone dots is cut to the fill, so all of them invert exactly under its edge."
+        },
+        {
+          "heading": "notes",
+          "content": "The title sits centred on the capsule, balanced against the puck, when it fits there. A longer one centres in all the room after the puck, and one too long for that (an accessibility text size, a narrow screen) wraps onto a second line, shrinking a little if it must, while the capsule grows taller to hold it. It never runs past the capsule, and the fill, the puck and the dots follow the taller capsule."
         },
         {
           "heading": "notes",
@@ -5207,7 +5219,7 @@
         },
         {
           "heading": "notes",
-          "content": "The tile is a liquid glass panel: neutral glass by default, tinted with the block's color for `.block(_:)`. The value is an `Animatable` text in semibold 40 pt display type with dimmed decimals. A spring with no bounce interpolates real numbers through your `format`, so a roll from rest never shows a value past the one it is heading to, and in-flight frames round to the target's own decimal places, so whole-number formats never flash a long fraction mid-roll."
+          "content": "The tile is a liquid glass panel: neutral glass by default, tinted with the block's color for `.block(_:)`. The value is an `Animatable` text in semibold 40 pt display type with dimmed decimals. A spring with no bounce interpolates real numbers through your `format`, so a roll from rest never shows a value past the one it is heading to. In-flight frames round to the last place the target shows, measured in the format's own terms, so a whole-number format never flashes a long fraction mid-roll and a `.percent` heading for 3.2% passes 1.6% on the way; a `.scale` or compact notation rolls the same way. At rest the figure is exactly what your format prints."
         },
         {
           "heading": "notes",
@@ -5224,6 +5236,10 @@
         {
           "heading": "notes",
           "content": "The delta is a tinted chip with ink on the panel: sage for up, red for down. It is a fill rather than a glass shape of its own, so the tile reads as one surface. It dims while you scrub, while the flag speaks for the point. Under Increase Contrast it gains a 1 pt outline."
+        },
+        {
+          "heading": "notes",
+          "content": "The tile holds up at half a phone's width and at large text sizes. When the label and the chip don't fit side by side, the chip moves under the label and a long label wraps instead of truncating; the chip always stays on one line. A figure too wide for the tile shrinks to fit rather than losing digits, to the same smallest size at every Dynamic Type size, and in a narrow tile the expanded low and high row stacks into a column."
         },
         {
           "heading": "notes",
@@ -5267,7 +5283,7 @@
         },
         {
           "heading": "parameters",
-          "content": "Number format for the value, for example `.number` or `.currency(code: \"USD\")`. Defaults to `.number`."
+          "content": "Number format for the value, for example `.number`, `.percent` or `.currency(code: \"USD\")`. Defaults to `.number`."
         },
         {
           "heading": "parameters",
@@ -5771,6 +5787,10 @@
         },
         {
           "heading": "notes",
+          "content": "The figure is never cut short. Beside the chip it may shrink to 90% at most; when the widest figure and chip any range can show don't fit side by side at that size (a narrow card, a large figure, or a large Dynamic Type size), the chip sits under the figure instead, and only then does the figure scale down further, if it still can't fit on its own line. The choice is made once for the whole chart, across every range, so neither a scrub nor a range switch changes the readout's shape or moves the chart."
+        },
+        {
+          "heading": "notes",
           "content": "One finger drags to scrub: a rule and a butter dot sit on the nearest point, and a glass flag grows out of the top of the rule with its time. They move with the finger on the same frame and never ease after it, so the figure, the rule, the dot and the flag always agree, and `.selection` ticks at each point reached (not on release). Touching down brings the cursor in with the dot a beat ahead; letting go clears it and the flag sinks back into the rule. Holding still for 300 ms before moving pins the point under the finger as an anchor: the dot pops with a rigid tap and the drag becomes a range, a solid band fills the span and the figure shows the signed change with its percent. The range's change also buds out of the flag's side, on the side toward the middle of the plot, as a tinted glass chip that rests joined to the flag by a liquid neck; the flag keeps the pair inside the plot, and when the range ends the chip's tint drains and it melts back into the flag."
         },
         {
@@ -5783,7 +5803,7 @@
         },
         {
           "heading": "notes",
-          "content": "At rest: no y-axis, one dashed baseline at the first value, monospaced min and max markers, the latest point as a butter dot, and three uppercase date labels whose format follows the span of the range. The picker is a row of glass segments, 44 pt tall, joined by liquid necks: segments press in lightly, and the one you pick swells and takes the accent tint, which flows to it through the necks with a little give while the one it leaves narrows and drains back to clear glass. A range set through `range` from outside moves it the same way."
+          "content": "At rest: no y-axis, one dashed baseline at the first value, monospaced min and max markers that shift inward to stay inside the plot when the min or max is the first or last point (on the latest point they sit off its corner, clear of the dot), the latest point as a butter dot, and three uppercase date labels whose format follows the span of the range. The picker is a row of glass segments, 44 pt tall, joined by liquid necks: segments press in lightly, and the one you pick swells and takes the accent tint, which flows to it through the necks with a little give while the one it leaves narrows and drains back to clear glass. A range set through `range` from outside moves it the same way."
         },
         {
           "heading": "notes",
@@ -5791,7 +5811,7 @@
         },
         {
           "heading": "notes",
-          "content": "VoiceOver gets one element with the latest value and change; swipe up or down steps the scrub point, and swiping up past the latest point lets it go."
+          "content": "VoiceOver reads the readout and the plot as one element with the range, the latest value and change; swipe up or down steps the scrub point, and swiping up past the latest point lets it go. Each range segment is its own button, and the picked one reads as selected."
         },
         {
           "heading": "notes",
@@ -8607,7 +8627,7 @@
         },
         {
           "heading": "notes",
-          "content": "Setting `error` from `nil` shakes the field once with an `.error` haptic on the same beat, tints it butter, and buds a butter error chip out of its bottom edge to rest joined just under it. A new message for an error already showing blurs into the new wording in place, with no second shake or haptic, so live validation never buzzes per keystroke. To signal a later refusal, set `error` to `nil` when the user edits, so the next refused submit arrives from `nil` and shakes again. Clearing it melts the chip back into the field as the tint drains."
+          "content": "Setting `error` from `nil` shakes the field once with an `.error` haptic on the same beat, tints it butter, and buds a butter error chip out of its bottom edge to rest joined just under it. A new message for an error already showing blurs into the new wording in place, with no second shake or haptic, so live validation never buzzes per keystroke. To signal a later refusal, set `error` to `nil` when the user edits, so the next refused submit arrives from `nil` and shakes again. Clearing it melts the chip back into the field as the tint drains. VoiceOver hears each new or reworded message once, as an announcement."
         },
         {
           "heading": "notes",
@@ -8619,7 +8639,11 @@
         },
         {
           "heading": "notes",
-          "content": "`Style` sets every tint plus the field height (also the reveal bubble's diameter) and radius. All text is semibold. `.disabled(true)` dims the field."
+          "content": "`submitLabel` and `onSubmit` set the Return key and what it does, the same whether the password is hidden or revealed. Leave `submitLabel` as `nil` to keep a label set around the field. To chain fields, apply `.focused($focus, equals: .confirm)` to each `SecureEntry` (focus reaches the text field inside) and move focus in `onSubmit`."
+        },
+        {
+          "heading": "notes",
+          "content": "`Style` sets every tint plus the field's minimum height and its radius. The field grows past that height when larger text needs it, and the reveal bubble grows with it, a circle as tall as the field on the same centre line. At accessibility text sizes the strength chip moves under its gauge, the requirement chips stack one to a row and wrap long labels, and a chip whose text wraps takes rounded corners in place of capsule ends. All text is semibold. `.disabled(true)` dims the field."
         },
         {
           "heading": "notes",
@@ -8659,7 +8683,7 @@
         },
         {
           "heading": "parameters",
-          "content": "Validation message. Setting it from `nil` shakes the field once with an error haptic, tints it with `Style.error`, and buds an error chip out of its bottom edge. A new message for a standing error swaps in place; clear it to `nil` on edit so the next refused submit shakes again."
+          "content": "Validation message. Setting it from `nil` shakes the field once with an error haptic, tints it with `Style.error`, buds an error chip out of its bottom edge, and announces the message to VoiceOver. A new message for a standing error swaps in place and is announced, without a second shake; clear it to `nil` on edit so the next refused submit shakes again."
         },
         {
           "heading": "parameters",
@@ -8676,6 +8700,22 @@
         {
           "heading": "parameters",
           "content": "Show the 8+ / number / symbol / mixed-case chips while focused or filled. When all four pass the field takes the success tint with a check, and the chips melt back into it a beat later."
+        },
+        {
+          "heading": "parameters",
+          "content": "`submitLabel`"
+        },
+        {
+          "heading": "parameters",
+          "content": "The Return key label, e.g. `.go` or `.next`, hidden or revealed. `nil`, the default, keeps the label set around the field, `.return` unless one is."
+        },
+        {
+          "heading": "parameters",
+          "content": "`onSubmit`"
+        },
+        {
+          "heading": "parameters",
+          "content": "Called when Return is pressed, hidden or revealed. Submit the form or move focus to the next field here."
         },
         {
           "heading": "parameters",

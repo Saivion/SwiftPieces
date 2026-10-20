@@ -3,7 +3,7 @@
 // description: "A press-and-hold liquid glass capsule for destructive or important actions: the signal tint wells out of the leading puck while held and sweeps through the glass, passing three milestone dots with rising haptics and inverting the label under it, drains back into the puck on an early release, and on completion turns sage, morphs its label and buds a sage check bubble out of its end."
 // category: controls
 // minIOSVersion: "17.0"
-// version: "2.2.0"
+// version: "2.2.1"
 // pro: swipe-to-confirm
 // tags: [button, hold, confirm, destructive, haptics, glass]
 
@@ -93,9 +93,8 @@ public struct HoldToConfirm: View {
     @State private var touchSpent = false
     /// Resets when the system cancels a touch (a scroll takes over, an alert comes up), which skips onEnded.
     @GestureState private var touching = false
-    /// The whole control, for the drag's bounds, and the glass capsule's own width, which narrows while the check is out.
+    /// The whole control, for the drag's bounds.
     @State private var size: CGSize = .zero
-    @State private var trackWidth: CGFloat = 0
     @State private var ticks = 0
     @State private var passed = 0
     @State private var tickIntensity: Double = 0.35
@@ -193,26 +192,33 @@ public struct HoldToConfirm: View {
 
     /// The clear glass capsule and everything it carries: the title on the glass, the tinted puck, and the fill that
     /// sweeps out of it.
+    ///
+    /// The title sizes the capsule: the style's height, and taller when a long title wraps onto a second line (an
+    /// accessibility text size, a narrow screen), never wider than the room it is given. Everything else is drawn
+    /// in the space the title makes.
     private func capsule(level: Double) -> some View {
         let motion = PieceMotion(reduceMotion: reduceMotion)
         let inset = (style.height - puck) / 2
-        return ZStack(alignment: .leading) {
-            if style.milestones {
-                milestones(onFill: false)
+        return label(ink: restInk, inset: inset)
+            .frame(minHeight: style.height)
+            .background {
+                if style.milestones {
+                    milestones(onFill: false)
+                }
             }
-            label(ink: restInk, inset: inset)
-            // The puck is where the liquid starts and where it drains back to. It stays under the fill, so the
-            // confirmed block fades out over it rather than taking it along.
-            symbol(ink: tint == nil ? style.ink : .white)
-                .frame(width: puck, height: puck)
-                .background(restFill, in: Circle())
-                .padding(.leading, inset)
-            fillLayer(level: level, inset: inset)
-        }
-        .frame(height: style.height)
-        .clipShape(Capsule())
-        .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { trackWidth = $0 }
-        .pieceLiquid(Capsule(), interactive: false)
+            .overlay(alignment: .leading) {
+                ZStack(alignment: .leading) {
+                    // The puck is where the liquid starts and where it drains back to. It stays under the fill, so
+                    // the confirmed block fades out over it rather than taking it along.
+                    symbol(ink: tint == nil ? style.ink : .white)
+                        .frame(width: puck, height: puck)
+                        .background(restFill, in: Circle())
+                        .padding(.leading, inset)
+                    fillLayer(level: level, inset: inset)
+                }
+            }
+            .clipShape(Capsule())
+            .pieceLiquid(Capsule(), interactive: false)
         // Confirmed, the label morphs as the capsule draws its end in to let the check bud out.
         .animation(committed ? motion.cascade(motion.morph, index: 1, step: beat) : motion.dismiss, value: committed)
     }
@@ -224,28 +230,25 @@ public struct HoldToConfirm: View {
             .foregroundStyle(ink)
     }
 
-    /// The title, centred in the space after the puck. It morphs letter by letter to the committed title and back.
+    /// The title, beside the puck. It morphs letter by letter to the committed title and back.
     private func label(ink: Color, inset: CGFloat) -> some View {
-        PieceMorphText(text: shownTitle)
-            .foregroundStyle(ink)
-            .frame(maxWidth: .infinity)
-            .padding(.leading, puck + inset)
-            // Balance the puck so the title stays optically centered.
-            .padding(.trailing, puck + inset)
+        TitleRoom(lead: puck + inset + 8, trail: style.height / 2) {
+            PieceMorphText(text: shownTitle)
+        }
+        .foregroundStyle(ink)
+        // Keeps a wrapped title clear of the capsule's rounded ends and the milestone dots. One line at the default
+        // size stays inside the style's height, so the capsule only grows when the title needs it.
+        .padding(.vertical, 11)
     }
 
     /// The fill and everything drawn on it, cut to the channel, so the puck, label and dots invert exactly under
     /// the edge. At rest the channel is exactly the puck; it wells out to the capsule's height at touch-down and sinks
     /// back into the puck once a release has drained.
     private func fillLayer(level: Double, inset: CGFloat) -> some View {
-        // From the puck's size to the capsule's height. Under Reduce Motion it fades in and out over the puck instead.
-        let rest = puck / style.height
-        let grown = reduceMotion ? 1 : rest + (1 - rest) * well
-        let center = UnitPoint(x: trackWidth > 0 ? style.height / 2 / trackWidth : 0, y: 0.5)
+        // From the puck to the capsule's height. Under Reduce Motion it fades in and out over the puck instead.
+        let channel = Channel(level: level, well: reduceMotion ? 1 : well, puck: puck, puckCenter: style.height / 2)
         return ZStack(alignment: .leading) {
-            Channel(level: level)
-                .fill(fillColor)
-                .scaleEffect(grown, anchor: center)
+            channel.fill(fillColor)
             ZStack(alignment: .leading) {
                 if style.milestones {
                     milestones(onFill: true, level: level)
@@ -255,9 +258,7 @@ public struct HoldToConfirm: View {
                     .frame(width: puck, height: puck)
                     .padding(.leading, inset)
             }
-            .mask {
-                Channel(level: level).scaleEffect(grown, anchor: center)
-            }
+            .mask { channel }
         }
         // Fades as one layer, so the ink stays solid over the puck instead of washing out mid-fade.
         .compositingGroup()
@@ -291,7 +292,7 @@ public struct HoldToConfirm: View {
     /// that starts mid-drain. Each loses it once the edge has passed back over it, out of sight.
     private func milestones(onFill: Bool, level: Double = 0) -> some View {
         let motion = PieceMotion(reduceMotion: reduceMotion)
-        // Laid out in whatever width the capsule has, so the dots never push on the capsule's size.
+        // Laid out in whatever size the capsule has, along its bottom edge, so the dots never push on its size.
         return GeometryReader { proxy in
             ForEach(1..<4) { i in
                 let on = onFill && passed >= i && level >= Double(i) / 4
@@ -301,10 +302,9 @@ public struct HoldToConfirm: View {
                     .scaleEffect(on && !reduceMotion ? 1.6 : 1)
                     // Decoration paired with the tick, so it pops with elastic give. The fill itself stays on the clock.
                     .animation(motion.follow(PieceMotion.elastic, rank: 0), value: on)
-                    .position(x: style.height + (proxy.size.width - style.height) * Double(i) / 4, y: style.height - 9)
+                    .position(x: style.height + (proxy.size.width - style.height) * Double(i) / 4, y: proxy.size.height - 9)
             }
         }
-        .frame(height: style.height)
         // Hidden while confirmed. The glass's set returns as the block fades; the fill's set goes with the block.
         .opacity((onFill ? sealed : committed) ? 0 : 1)
     }
@@ -515,18 +515,66 @@ public struct HoldToConfirm: View {
         private func elapsed(at date: Date) -> TimeInterval { max(date.timeIntervalSince(start), 0) }
     }
 
-    /// The fill's shape: a capsule from the leading edge, the puck's circle at 0 and the whole track at 1.
+    /// The fill's shape: a capsule from the leading edge, the end's circle at 0 and the whole track at 1. While it
+    /// wells out of the puck it grows, about the puck, from the puck's circle (`well` 0) to the capsule's full height
+    /// (`well` 1), with its leading circle moving from the puck's centre to the centre of the capsule's end. At the
+    /// style's height the two centres are one point, so it simply scales about the puck.
     private struct Channel: Shape {
         var level: Double
+        var well: CGFloat
+        /// The puck's diameter, and how far its centre sits from the leading edge.
+        var puck: CGFloat
+        var puckCenter: CGFloat
 
-        var animatableData: Double {
-            get { level }
-            set { level = newValue }
+        var animatableData: AnimatablePair<Double, CGFloat> {
+            get { AnimatablePair(level, well) }
+            set {
+                level = newValue.first
+                well = newValue.second
+            }
         }
 
-        func path(in rect: CGRect) -> Path {
-            let width = rect.height + (rect.width - rect.height) * min(max(level, 0), 1)
-            return Capsule().path(in: CGRect(x: rect.minX, y: rect.minY, width: min(width, rect.width), height: rect.height))
+        nonisolated func path(in rect: CGRect) -> Path {
+            let full = rect.height
+            guard full > 0 else { return Path() }
+            let height = puck + (full - puck) * well
+            let scale = height / full
+            let center = puckCenter + (full / 2 - puckCenter) * well
+            let width = (full + (rect.width - full) * min(max(level, 0), 1)) * scale
+            return Capsule().path(in: CGRect(x: rect.minX + center - height / 2, y: rect.midY - height / 2, width: width, height: height))
+        }
+    }
+
+    /// Lays the title out across the capsule. When it fits between the puck and a matching margin at the far end it
+    /// sits centred on the whole capsule, balanced against the puck; when it doesn't, it centres in all the room after
+    /// the puck, so a long title uses that room before it wraps onto a second line. Its width never exceeds the room.
+    private struct TitleRoom: Layout {
+        /// From the leading edge to where the title may start: past the puck, with a little air.
+        var lead: CGFloat
+        /// The margin kept at the trailing end when the title needs more than the balanced room.
+        var trail: CGFloat
+
+        func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+            guard let title = subviews.first else { return .zero }
+            guard let width = proposal.width else {
+                let ideal = title.sizeThatFits(.unspecified)
+                return CGSize(width: ideal.width + lead * 2, height: ideal.height)
+            }
+            let room = room(in: width, for: title)
+            return CGSize(width: width, height: title.sizeThatFits(ProposedViewSize(width: room.width, height: nil)).height)
+        }
+
+        func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+            guard let title = subviews.first else { return }
+            let room = room(in: bounds.width, for: title)
+            title.place(at: CGPoint(x: bounds.minX + room.midX, y: bounds.midY), anchor: .center, proposal: ProposedViewSize(width: room.width, height: nil))
+        }
+
+        private func room(in width: CGFloat, for title: LayoutSubview) -> (midX: CGFloat, width: CGFloat) {
+            let balanced = max(width - lead * 2, 0)
+            if title.sizeThatFits(.unspecified).width <= balanced { return (width / 2, balanced) }
+            let room = max(width - lead - trail, 0)
+            return (lead + room / 2, room)
         }
     }
 }
@@ -676,7 +724,7 @@ private extension View {
 // and melt back into each other, and the frosted fallback before iOS 26. Each piece carries a copy of only
 // the parts it uses, so this file stands alone. Generated from registry/foundation/PieceLiquid.swift in the
 // SwiftPieces repo; edit it there, not here. The rules are in LIQUID_GLASS.md.
-// swiftpieces-liquid: 1.7.1 (liquid, bud, morphText)
+// swiftpieces-liquid: 1.8.0 (liquid, bud, morphText)
 
 /// The liquid glass language: one merge distance, two rest gaps, and the springs a bubble leaves and comes home on.
 ///
@@ -949,31 +997,46 @@ private struct PieceMorphText: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        Group {
-            if Self.splits(text) {
-                let glyphs = Array(text)
-                HStack(spacing: 0) {
-                    ForEach(glyphs.indices, id: \.self) { i in
-                        Text(String(glyphs[i]))
-                            .id("\(i)\(glyphs[i])")
-                            .transition(transition(i, scale: 0.6))
-                    }
-                }
-                // The letters' reading order, not the layout's: an HStack lays its children out backwards under a
-                // right-to-left layout.
-                .environment(\.layoutDirection, .leftToRight)
-            } else {
-                ZStack(alignment: .leading) {
-                    Text(text)
-                        .id(text)
-                        .transition(transition(0, scale: 0.9))
-                }
-            }
+        // The morphing label at its full size when it fits. When it doesn't (a long label at an accessibility text
+        // size, a narrow screen), the same words wrap onto a second line and shrink a little instead of running past
+        // the screen's edge; that one changes as a whole rather than letter by letter. A single word never splits
+        // across lines: it stays on one and shrinks further.
+        let oneWord = !text.contains(where: \.isWhitespace)
+        ViewThatFits(in: .horizontal) {
+            morphing.fixedSize()
+            Text(text)
+                .lineLimit(oneWord ? 1 : 2)
+                .multilineTextAlignment(.center)
+                .minimumScaleFactor(oneWord ? 0.5 : 0.75)
+                .fixedSize(horizontal: false, vertical: true)
+                .id(text)
+                .transition(transition(0, scale: 0.9))
         }
         .font(font)
-        .fixedSize()
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(text)
+    }
+
+    @ViewBuilder private var morphing: some View {
+        if Self.splits(text) {
+            let glyphs = Array(text)
+            HStack(spacing: 0) {
+                ForEach(glyphs.indices, id: \.self) { i in
+                    Text(String(glyphs[i]))
+                        .id("\(i)\(glyphs[i])")
+                        .transition(transition(i, scale: 0.6))
+                }
+            }
+            // The letters' reading order, not the layout's: an HStack lays its children out backwards under a
+            // right-to-left layout.
+            .environment(\.layoutDirection, .leftToRight)
+        } else {
+            ZStack(alignment: .leading) {
+                Text(text)
+                    .id(text)
+                    .transition(transition(0, scale: 0.9))
+            }
+        }
     }
 
     private func transition(_ i: Int, scale: CGFloat) -> AnyTransition {
