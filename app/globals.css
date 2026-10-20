@@ -795,3 +795,22 @@ html.light .aura { --aura-o: 0.34; }
   .hero-tile { transition: none; }
   .hero-tile-in { animation: none; }
 }
+
+/* The Blocks announcement (components/announce/blocks-announcement.tsx): the backdrop fades in, the card
+   rises and settles, and the three block stills deal out into their fan (--x, --y, --r per tile), the
+   middle one first. Leaving plays it back quickly. Reduce Motion shows it at rest. */
+.announce-backdrop { animation: announce-fade 0.3s ease-out both; }
+.announce-card { animation: announce-rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.announce-tile {
+  transform: translate3d(var(--x, 0), var(--y, 0), 0) rotate(var(--r, 0));
+  animation: announce-deal 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.announce-out .announce-backdrop { animation: announce-fade 0.22s ease-in reverse both; }
+.announce-out .announce-card { animation: announce-leave 0.22s ease-in both; }
+@keyframes announce-fade { from { opacity: 0; } }
+@keyframes announce-rise { from { opacity: 0; transform: translateY(24px) scale(0.97); } }
+@keyframes announce-leave { to { opacity: 0; transform: translateY(12px) scale(0.98); } }
+@keyframes announce-deal { from { opacity: 0; transform: translate3d(0, 40px, 0) rotate(0); } }
+@media (prefers-reduced-motion: reduce) {
+  .announce-backdrop, .announce-card, .announce-tile, .announce-out .announce-backdrop, .announce-out .announce-card { animation: none; }
+}
