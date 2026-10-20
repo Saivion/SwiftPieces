@@ -1,6 +1,6 @@
 # @swiftpieces/builder
 
-The engine behind the Playground on swiftpieces.com: one per app in the app library (/playground/lungy: the app's recreated screens beside its App Store screenshots). Three apps are free; the rest open for Pro accounts, whose screens come from the Pro API (see Patterns). Pro (pro.swiftpieces.com) uses the core to validate what the Playground saves and asks for.
+The engine behind the Playground on swiftpieces.com: one per app in the app library (/playground/lungy: the app's recreated screens beside its App Store screenshots). Five apps are free; the rest open for Pro accounts, whose screens come from the Pro API (see Patterns). Pro (pro.swiftpieces.com) uses the core to validate what the Playground saves and asks for.
 
 **Explore → Interact → Inspect → Remix → Build.** Someone opens a screen, a flow, a UI element or an interaction, uses it on a running iPhone (taps, swipes, sheets, springs, haptics), takes any part apart, remixes it, and takes the SwiftUI.
 
@@ -56,7 +56,7 @@ A host that opens one thing instead of the catalog (an app's recreation) passes 
 
 Each app in the sites' app library is paired with one pattern: an original screen or flow in `definitions/catalog/recreations/`. Our names, copy and colors; nothing here names or depicts a third-party app (the sites keep the App Store facts and label them as the developer's).
 
-Every app's entry is here (`<slug>.ts`: what it is, its steps, what makes each screen work). Three apps are free (`FREE_RECREATIONS`) and built here (`<slug>.build.ts`); the rest are Pro (`availability: "pro"`) and their builds live only in the Pro repo (`lib/apps/builds`), written with the same kit (`@swiftpieces/builder/catalog`). On a plan without Pro a Pro entry opens locked: nothing of it loads, and the host draws the stage (`lockedStage`). When the plan changes to Pro, the entry opens as it was asked for. Free's playground adds a catalog source that fetches the Pro builds from the Pro API for Pro sessions. `test/patterns.test.ts` checks the free patterns build clean and that no Pro build is in this package, and `npx tsx scripts/typecheck-playground.ts patterns` compiles them; Pro's `tests/apps.test.ts` does the same for its builds.
+Every app's entry is here (`<slug>.ts`: what it is, its steps, what makes each screen work). Five apps are free (`FREE_RECREATIONS`) and built here (`<slug>.build.ts`); the rest are Pro (`availability: "pro"`) and their builds live only in the Pro repo (`lib/apps/builds`), written with the same kit (`@swiftpieces/builder/catalog`). On a plan without Pro a Pro entry opens locked: nothing of it loads, and the host draws the stage (`lockedStage`). When the plan changes to Pro, the entry opens as it was asked for. Free's playground adds a catalog source that fetches the Pro builds from the Pro API for Pro sessions. `test/patterns.test.ts` checks the free patterns build clean and that no Pro build is in this package, and `npx tsx scripts/typecheck-playground.ts patterns` compiles them; Pro's `tests/apps.test.ts` does the same for its builds.
 
 ## Using it
 

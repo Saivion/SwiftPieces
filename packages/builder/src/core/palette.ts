@@ -187,6 +187,18 @@ export const icons: Array<{ id: string; label: string }> = [
   { id: "eye.slash", label: "Hidden" },
   { id: "battery.100", label: "Battery" },
   { id: "wifi", label: "Wi-Fi" },
+  { id: "cloud.sun", label: "Sun behind cloud" },
+  { id: "cloud.rain", label: "Rain cloud" },
+  { id: "cloud.bolt", label: "Storm cloud" },
+  { id: "wind", label: "Wind" },
+  { id: "umbrella", label: "Umbrella" },
+  { id: "thermometer.medium", label: "Thermometer" },
+  { id: "binoculars", label: "Binoculars" },
+  { id: "bird", label: "Bird" },
+  { id: "archivebox", label: "Archive" },
+  { id: "waveform", label: "Waveform" },
+  { id: "hand.raised", label: "Raised hand" },
+  { id: "waterbottle", label: "Bottle" },
 ];
 const iconIds = new Set(icons.map((i) => i.id));
 export const isIcon = (id: unknown): id is string => typeof id === "string" && iconIds.has(id);

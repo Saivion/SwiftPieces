@@ -19,7 +19,7 @@ export type AppCard = {
   aspect: string;
   pattern: string;
   patternSummary: string;
-  /** Its remix opens with Pro (three apps are free). */
+  /** Its remix opens with Pro (five apps are free). */
   pro: boolean;
 };
 
