@@ -110,6 +110,12 @@ const blockHeaderSchema = headerSchema.extend({ category: z.enum(blockCategoryId
  */
 const NEW_FOR_DAYS = 30;
 const isRecent = (added: string) => Date.now() - Date.parse(`${added}T00:00:00Z`) < NEW_FOR_DAYS * 86_400_000;
+/**
+ * Piece waves added on or before this date never show New, whatever NEW_FOR_DAYS says: the owner retired
+ * the 2026-10-12 wave early, on 2026-10-19, so its pieces sit with the rest of the library. The next wave
+ * (a later `added`) is New as usual. Blocks follow their own rule below.
+ */
+const PIECES_NEW_RETIRED_THROUGH = "2026-10-12";
 
 // Docs live under the single "components" root section: /docs/components/<category slug>/<piece slug>.
 export const docsPath = (category: Category, slug: string) => `/docs/components/${categories[category].slug}/${slug}`;
@@ -242,7 +248,7 @@ function build() {
     }
   }
   const latestWave = items.reduce((max, i) => (i.added && i.added > max ? i.added : max), "");
-  for (const i of items) i.isNew = Boolean(i.added) && i.added === latestWave && isRecent(latestWave);
+  for (const i of items) i.isNew = Boolean(i.added) && i.added === latestWave && isRecent(latestWave) && latestWave > PIECES_NEW_RETIRED_THROUGH;
 
   const names = new Set(items.map((i) => i.name));
   for (const item of items) {

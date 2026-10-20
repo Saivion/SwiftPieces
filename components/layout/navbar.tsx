@@ -40,7 +40,7 @@ const menus: Menu[] = [
     also: ["/playground"],
     items: [
       { label: "Apps", href: "/apps", desc: "Remix real app screens in the Playground", icon: "playground", badge: "Beta" },
-      { label: "Styles", href: "/styles", desc: "Make one theme for every screen and app", icon: "style", badge: "New" },
+      { label: "Styles", href: "/styles", desc: "Make one theme for every screen and app", icon: "style" },
     ],
   },
   {

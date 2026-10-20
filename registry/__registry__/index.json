@@ -553,7 +553,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/cards/wallet-stack",
     "added": "2026-10-12",
-    "isNew": true,
+    "isNew": false,
     "liquidGlass": true,
     "metal": false
   },
@@ -928,7 +928,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/data/range-lens",
     "added": "2026-10-12",
-    "isNew": true,
+    "isNew": false,
     "liquidGlass": true,
     "metal": false
   },
@@ -2341,7 +2341,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/media/now-playing",
     "added": "2026-10-12",
-    "isNew": true,
+    "isNew": false,
     "liquidGlass": true,
     "metal": false
   },
@@ -2512,7 +2512,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/media/voice-recorder",
     "added": "2026-10-12",
-    "isNew": true,
+    "isNew": false,
     "liquidGlass": true,
     "metal": false
   },
@@ -2554,7 +2554,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/media/waveform-scrub",
     "added": "2026-10-12",
-    "isNew": true,
+    "isNew": false,
     "liquidGlass": true,
     "metal": false
   },
@@ -2722,7 +2722,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/navigation/scroll-island",
     "added": "2026-10-12",
-    "isNew": true,
+    "isNew": false,
     "liquidGlass": true,
     "metal": false
   },
@@ -2767,7 +2767,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/navigation/step-trail",
     "added": "2026-10-12",
-    "isNew": true,
+    "isNew": false,
     "liquidGlass": true,
     "metal": false
   },
@@ -2931,7 +2931,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/sheets/notice-stack",
     "added": "2026-10-12",
-    "isNew": true,
+    "isNew": false,
     "liquidGlass": true,
     "metal": false
   },

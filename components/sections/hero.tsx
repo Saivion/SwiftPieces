@@ -1,13 +1,14 @@
 import type { CSSProperties } from "react";
 import { Container } from "@/components/ui/container";
-import { Eyebrow } from "@/components/ui/badge";
+// Off with the eyebrow below until its replacement lands.
+// import { Eyebrow } from "@/components/ui/badge";
 import { Button, Arrow } from "@/components/ui/button";
 import Link from "next/link";
 import { NewBadge } from "@/components/ui/new-badge";
 import { AnimatedText } from "@/components/ui/animated-text";
 import { Reveal } from "@/components/effects/reveal";
 import { HeroLines } from "@/components/visual/hero-lines";
-import { LiveViews } from "@/components/sections/live-views";
+// import { LiveViews } from "@/components/sections/live-views";
 import { HeroRow } from "@/components/sections/hero-row";
 import { PreviewFrame } from "@/components/previews/frame";
 import { PiecePreview } from "@/components/previews";
@@ -39,9 +40,10 @@ export function Hero() {
           the hero's top edge. */}
       <HeroLines />
       <Container className="relative z-10 text-center">
-        <Reveal priority><Eyebrow>New components every week<LiveViews /></Eyebrow></Reveal>
+        {/* The eyebrow (and its live view count) is off for now: something new goes here soon.
+        <Reveal priority><Eyebrow>New components every week<LiveViews /></Eyebrow></Reveal> */}
         <AnimatedText as="h1" text="Build apps worthy of an App Store feature." accent="feature" className="mx-auto mt-[28px] max-w-[980px] text-[44px] leading-none font-normal tracking-[-0.04em] text-balance sm:text-[62px] lg:text-[80px] lg:tracking-[-0.05em]" />
-        <Reveal priority delay={0.35}><p className="mx-auto mt-6 max-w-[560px] text-[16.5px] leading-[27px] text-pretty text-muted sm:text-[18px] sm:leading-[30px]">The motion, haptics and accessibility the best apps get right, as production SwiftUI components. Install with one command and make them yours.</p></Reveal>
+        <Reveal priority delay={0.35}><p className="mx-auto mt-6 max-w-[560px] text-[16.5px] leading-[27px] text-balance text-muted sm:text-[18px] sm:leading-[30px]">Free SwiftUI components with the motion, haptics and accessibility the best apps get right. Install with one command and make them yours.</p></Reveal>
         <Reveal priority delay={0.45} className="mt-9 flex flex-wrap items-center justify-center gap-2.5">
           <Button href="/components">Explore the library <Arrow /></Button>
           {/* The quiet second way in: words, the Beta badge and an arrow that nudges. */}

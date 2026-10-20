@@ -208,9 +208,11 @@ html:not([data-motion]) .remix-progress { animation-play-state: paused; }
   animation-delay: var(--sp-delay, 0s);
 }
 
-/* The clipping box each word rises out of. Vertical padding is cancelled by an equal negative
-   margin so descenders are not cropped and the line box keeps its original height. */
-.sp-word-mask { display: inline-block; overflow: hidden; padding-block: 0.12em; margin-block: -0.12em; vertical-align: bottom; }
+/* The clipping box each word rises out of. Padding is cancelled by an equal negative margin, so the
+   layout is untouched: vertically so descenders are not cropped and the line box keeps its height,
+   sideways so a letter that overhangs its advance under the display type's tight tracking (the "w"
+   that ends "flow") is not shaved at the word's edge. */
+.sp-word-mask { display: inline-block; overflow: hidden; padding: 0.12em 0.1em; margin: -0.12em -0.1em; vertical-align: bottom; }
 
 @supports (animation-timeline: view()) {
   .sp-reveal {

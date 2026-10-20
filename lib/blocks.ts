@@ -100,9 +100,9 @@ export const proBlocks: ProBlock[] = [
     name: "CheckoutBlock",
     title: "Checkout",
     category: "commerce",
-    summary: "A checkout section: the bag with quantities, delivery, a promo code, the total, Apple Pay and one Pay button through to the placed order.",
-    description: "The bag with quantities you change in place, the delivery address and speed, a promo code and a total that follows every change. Pay with Apple Pay or the saved card; one Pay button runs your order through working, done and the placed confirmation.",
-    parts: ["Bag with quantities", "Delivery address and speed", "Promo code and total", "Apple Pay and Pay button"],
+    summary: "A one-column checkout: bag with steppers, address and delivery speed, promo code, summary, then Pay or Apple Pay to the placed order.",
+    description: "The checkout section of a cart or checkout screen. Each bag line has a quantity stepper, and the line price, summary and Pay label roll as quantities change; delivery shows the address with Change and each speed with its day and price, and a promo code applies or explains why not. Pay shows its working, done and failed states in place, Apple Pay uses the system button, and the block settles into the placed order with its number and arrival day.",
+    parts: ["Bag with quantity steppers", "Address and delivery speed", "Promo code and a total that follows", "Pay and Apple Pay to the placed order"],
     added: "2026-10-19",
   },
 ];

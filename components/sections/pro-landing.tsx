@@ -1,5 +1,6 @@
 import { Container } from "@/components/ui/container";
-import { Eyebrow } from "@/components/ui/badge";
+// Off with the eyebrow in ProHero until its replacement lands, as on the home hero.
+// import { Eyebrow } from "@/components/ui/badge";
 import { Button, Arrow } from "@/components/ui/button";
 import { AnimatedText } from "@/components/ui/animated-text";
 import { ProBadge } from "@/components/ui/pro-badge";
@@ -10,7 +11,7 @@ import { DitherStage } from "@/components/visual/dither-stage";
 import { Reveal, RevealGroup, RevealItem } from "@/components/effects/reveal";
 import { cn } from "@/lib/cn";
 import { pro } from "@/lib/site";
-import { buildKitLine, namesWithMore, proCatalog, proCountsLabel, remixingLine, remixingPoint } from "@/lib/pro-catalog";
+import { namesWithMore, proCatalog, proCountsLabel, remixingPoint } from "@/lib/pro-catalog";
 import { getRegistryIndex } from "@/lib/registry";
 
 // Marketing copy only. Counts and names come from lib/pro-catalog.ts, the one hand-maintained copy of Pro's catalog.
@@ -58,16 +59,17 @@ export function ProHero() {
   return (
     <section className="relative pt-16 pb-14 md:pt-28 md:pb-16 lg:pt-[120px]">
       <Container className="flex flex-col items-center text-center">
+        {/* The eyebrow is off for now, as on the home hero: something new goes here soon.
         <Reveal priority>
           <Eyebrow>
             SwiftPieces Pro
             <span aria-hidden className="h-3 w-px bg-[var(--line-strong)]" />
             <span className="text-muted">Production-ready SwiftUI</span>
           </Eyebrow>
-        </Reveal>
+        </Reveal> */}
         <AnimatedText as="h1" text="Every flow a featured app needs." accent="featured" className={cn("mt-[30px] max-w-[880px]", heroTitle)} />
         <Reveal priority delay={0.35}>
-          <p className={cn("mx-auto mt-[26px] max-w-[580px]", pageLede)}>Free is a taste. Pro is the complete library: production-ready screens, whole flows, full app templates, the Build Kit for your coding agent and Pro remixing in the Playground. Copy the source. Make it yours.</p>
+          <p className={cn("mx-auto mt-[26px] max-w-[580px]", pageLede)}>Screens, flows and complete app templates in SwiftUI, with a Build Kit for your coding agent.</p>
         </Reveal>
         <Reveal priority delay={0.45} className="mt-[38px] flex flex-wrap items-center justify-center gap-2.5">
           <Button href={buy}>Start building <Arrow /></Button>
@@ -167,18 +169,18 @@ export function ProGallery() {
 
 export function WhatYouGet() {
   const items = [
-    { value: screens, label: "Screens", detail: `${namesWithMore(proCatalog.screenExamples)}. Production-ready, not mockups.` },
-    { value: proCatalog.flows.total, label: "Flows", detail: `Whole journeys through every template: ${proCatalog.flows.onboarding} first runs through sign in and the paywall, ${proCatalog.flows.core} core journeys and ${proCatalog.flows.account} profile and settings flows.` },
-    { value: templates, label: "App templates", detail: `Complete Xcode projects: ${namesWithMore(proCatalog.templateNames, 5)} apps, each a running app you download, rename and ship.` },
-    { value: proCatalog.buildKit.total, label: "Build Kit items", detail: `${buildKitLine}.` },
-    { value: proCatalog.remixing.apps, label: "Apps to remix", detail: `${remixingLine}.` },
+    { value: screens, label: "Screens", detail: `${namesWithMore(proCatalog.screenExamples, 3)}. Finished, not mockups.` },
+    { value: proCatalog.flows.total, label: "Flows", detail: "Whole journeys, from first run to settings." },
+    { value: templates, label: "App templates", detail: "Complete Xcode apps you rename and ship." },
+    { value: proCatalog.buildKit.total, label: "Build Kit items", detail: "Styles, briefs and recipes your agent follows." },
+    { value: proCatalog.remixing.apps, label: "Apps to remix", detail: "Every Playground app, remixed with AI." },
   ];
   return (
     <section className={band}>
       <Container>
         <SectionHead
           tags={[{ label: "Screens", icon: <Glyph.phone /> }, { label: "Flows", icon: <Glyph.flow /> }, { label: "App templates", icon: <Glyph.grid /> }, { label: "Build Kit", icon: <Glyph.wand /> }, { label: "Remixing", icon: <Glyph.split /> }]}
-          title="Finished screens, whole flows and apps, and an agent that builds the rest to match"
+          title="What you get"
         />
         <RevealGroup className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5" stagger={0.08}>
           {items.map((s) => (
@@ -239,12 +241,12 @@ export function Compare() {
       <Container>
         <SectionHead
           tags={[{ label: "Free", icon: <Glyph.gift /> }, { label: "Pro", icon: <Glyph.split /> }]}
-          title="A curated taste, then the complete library"
-          body="Free gives you standout pieces for a single moment, and blocks that lay them out as a section. Pro gives you the screens, its own themed blocks, the flows through them and the complete apps around them. Both are plain SwiftUI source in your project, so mixing them is the normal case."
+          title="Free to start, Pro to finish"
+          body="Both are plain SwiftUI in your project, so you can mix them freely."
         />
         <Reveal className="tray grid gap-2 lg:grid-cols-2 lg:gap-y-0">
-          <PlanCard tag="Free library" title="A curated taste of SwiftPieces." body={`${freeCount} animated pieces, Liquid Glass effects and Metal shaders, and blocks built from them. Genuinely good, and free to ship wherever a screen feels flat.`} points={["MIT + Commons Clause, forever", "Single-file pieces, and blocks built from them", "Install by CLI, MCP or copy-paste"]} cta="See what Pro adds" />
-          <PlanCard tag="SwiftPieces Pro" title="Every flow a featured app needs." body="Complete SwiftUI app flows, templates and screens, and a Build Kit that teaches your coding agent the same design. Install by copy, CLI or MCP." points={[proCountsLabel, remixingPoint, "Full SwiftUI source that lives in your project", "Lifetime access, everything added later included"]} cta="Get SwiftPieces Pro" pro />
+          <PlanCard tag="Free library" title="A curated taste." body={`${freeCount} animated pieces and the blocks built from them, free to ship.`} points={["MIT + Commons Clause, forever", "Single-file pieces, and blocks built from them", "Install by CLI, MCP or copy-paste"]} cta="See what Pro adds" />
+          <PlanCard tag="SwiftPieces Pro" title="The complete library." body="Screens, flows and full app templates, plus a Build Kit for your agent." points={[proCountsLabel, remixingPoint, "Full SwiftUI source that lives in your project", "Lifetime access, everything added later included"]} cta="Get SwiftPieces Pro" pro />
         </Reveal>
       </Container>
     </section>
@@ -255,16 +257,16 @@ export function Compare() {
 
 export function TryFirst() {
   const cards = [
-    { eyebrow: "Pro screen", cat: "Finance", title: "Wallet", body: "Stacked cards and passes you tap forward, fan out and reorder, with springs and haptics already tuned.", kind: "screen" as Kind, more: "More screens", href: pro.screens, seed: "try-wallet" },
-    { eyebrow: "Pro flow", cat: "Travel", title: "Book A Stay", body: "Wayfare's whole booking journey, eleven steps from a trip's recommendation through the booking card and checkout to a swipe to pay.", kind: "flow" as Kind, more: "More flows", href: `${pro.flows}/wayfare-book-a-stay`, seed: "try-book-a-stay" },
-    { eyebrow: "Pro template", cat: "AI", title: "AI Assistant", body: "Nimbus, a complete Xcode project with streaming chat, a conversation library, voice mode and widgets. Download it and it runs.", kind: "template" as Kind, more: "More templates", href: pro.templates, seed: "try-assistant" },
+    { eyebrow: "Pro screen", cat: "Finance", title: "Wallet", body: "Cards and passes you tap forward, fan out and reorder.", kind: "screen" as Kind, more: "More screens", href: pro.screens, seed: "try-wallet" },
+    { eyebrow: "Pro flow", cat: "Travel", title: "Book A Stay", body: "Wayfare's booking journey, from a trip pick to a swipe to pay.", kind: "flow" as Kind, more: "More flows", href: `${pro.flows}/wayfare-book-a-stay`, seed: "try-book-a-stay" },
+    { eyebrow: "Pro template", cat: "AI", title: "AI Assistant", body: "Nimbus, a complete Xcode app with chat, voice mode and widgets.", kind: "template" as Kind, more: "More templates", href: pro.templates, seed: "try-assistant" },
   ];
   return (
     <section className={band}>
       <Container>
         <SectionHead
           tags={[{ label: "Look before you buy", icon: <Glyph.eye /> }]}
-          title="Every Pro piece has a public page. Look, then decide"
+          title="Every piece has a public page"
         />
         <RevealGroup className="grid gap-3 lg:grid-cols-3" stagger={0.1}>
           {cards.map((c, i) => (
@@ -365,7 +367,7 @@ export function ProCTA({ className }: { className?: string }) {
             <div aria-hidden className="aura"><i /><i /><i /><i /></div>
             <Tags tags={[{ label: "One purchase", icon: <Glyph.tag /> }]} className="mb-5" />
             <h2 className={cn("max-w-md", sectionTitle)}>One Payment. Lifetime Access.</h2>
-            <p className={cn("mt-4 max-w-md", sectionBody)}>The complete library, {proCountsLabel}, delivered as Swift you keep, with Pro remixing in the Playground.</p>
+            <p className={cn("mt-4 max-w-md", sectionBody)}>The complete library as Swift you keep, with Pro remixing in the Playground.</p>
             <ul className="mt-8 flex flex-col gap-3 border-t border-[var(--line)] pt-6">
               {promises.map((p) => <li key={p} className="flex gap-2.5 text-[14px] leading-snug text-foreground"><Check strong />{p}</li>)}
             </ul>

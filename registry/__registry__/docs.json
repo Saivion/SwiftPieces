@@ -2501,7 +2501,7 @@
   {
     "url": "/docs/blocks/analytics/stats-overview",
     "title": "Stats Overview",
-    "description": "The top of an analytics screen: a headline metric you scrub across ranges, the tiles beside it, and its loading and retry states.",
+    "description": "The top of a dashboard: a headline metric and its change, a chart you scrub across 1W to 1Y, and metric tiles.",
     "breadcrumbs": [
       "SwiftPieces",
       "Blocks",
@@ -2511,7 +2511,7 @@
     "structuredData": {
       "contents": [
         {
-          "content": "One headline metric with its change against the last period, on a chart you scrub to read any day. Switch the range and the line redraws; secondary metrics sit in tiles below, and loading, empty and failed states come designed."
+          "content": "The section at the top of an analytics or dashboard screen. One card holds the headline metric with its change against the previous period and a Swift Charts line you drag across to read any day, with the previous period dashed beneath and a 1W to 1Y control that morphs the line. Metric tiles sit below, and loading, empty and failed states are built in."
         },
         {
           "content": "Its SwiftUI source comes with SwiftPieces Pro: Stats Overview in the Pro library."
@@ -2523,7 +2523,7 @@
   {
     "url": "/docs/blocks/auth/sign-in",
     "title": "Sign In",
-    "description": "A sign-in section: email and password that validate on submit, Sign in with Apple, and creating an account in the same block.",
+    "description": "The sign-in section of a welcome screen: email and password, Sign in with Apple, a passkey and Create account in one block.",
     "breadcrumbs": [
       "SwiftPieces",
       "Blocks",
@@ -2533,7 +2533,7 @@
     "structuredData": {
       "contents": [
         {
-          "content": "Email and password with real autofill, a show and hide toggle and validation on submit. One Sign in button runs your async sign in through working, done and failed, and Sign in with Apple and creating an account sit in the same block."
+          "content": "Email and password on one card, checked on submit and then live, with Sign in running your closure through working, done and failed. Forgot password confirms inline, Sign in with Apple is the system button in the colour of the appearance, and a link at the foot switches to Create account with password rules that tick off."
         },
         {
           "content": "Its SwiftUI source comes with SwiftPieces Pro: Sign In in the Pro library."
@@ -2545,7 +2545,7 @@
   {
     "url": "/docs/blocks/commerce/checkout",
     "title": "Checkout",
-    "description": "A checkout section: the bag with quantities, delivery, a promo code, the total, Apple Pay and one Pay button through to the placed order.",
+    "description": "A one-column checkout: bag with steppers, address and delivery speed, promo code, summary, then Pay or Apple Pay to the placed order.",
     "breadcrumbs": [
       "SwiftPieces",
       "Blocks",
@@ -2555,7 +2555,7 @@
     "structuredData": {
       "contents": [
         {
-          "content": "The bag with quantities you change in place, the delivery address and speed, a promo code and a total that follows every change. Pay with Apple Pay or the saved card; one Pay button runs your order through working, done and the placed confirmation."
+          "content": "The checkout section of a cart or checkout screen. Each bag line has a quantity stepper, and the line price, summary and Pay label roll as quantities change; delivery shows the address with Change and each speed with its day and price, and a promo code applies or explains why not. Pay shows its working, done and failed states in place, Apple Pay uses the system button, and the block settles into the placed order with its number and arrival day."
         },
         {
           "content": "Its SwiftUI source comes with SwiftPieces Pro: Checkout in the Pro library."
@@ -2567,7 +2567,7 @@
   {
     "url": "/docs/blocks/settings/account-settings",
     "title": "Account Settings",
-    "description": "The account section at the top of Settings: profile, appearance, notifications, your data, sign out and deleting the account.",
+    "description": "The account section at the top of Settings: profile and photo, appearance, notifications, your data, sign out and deletion.",
     "breadcrumbs": [
       "SwiftPieces",
       "Blocks",
@@ -2577,7 +2577,7 @@
     "structuredData": {
       "contents": [
         {
-          "content": "The account section every app needs. Your profile with its photo, appearance and notification preferences bound to your app's own values, exporting your data, and signing out or deleting the account behind a calm confirmation."
+          "content": "The part of Settings every app with accounts needs. A profile card changes the photo and the name in place, appearance shows System, Light and Dark as small screens in your theme's colours, and notification toggles know when iOS has notifications off. Export my data, Sign out and Delete account each confirm and show their own working, done and failed states."
         },
         {
           "content": "Its SwiftUI source comes with SwiftPieces Pro: Account Settings in the Pro library."
@@ -2589,7 +2589,7 @@
   {
     "url": "/docs/blocks/settings/plan-usage",
     "title": "Plan and Usage",
-    "description": "The subscription section of Settings: the current plan, what has been used of it, and the way up.",
+    "description": "The subscription section of Settings: the plan and its renewal, usage meters that warn near a limit, and the way up.",
     "breadcrumbs": [
       "SwiftPieces",
       "Blocks",
@@ -2599,7 +2599,7 @@
     "structuredData": {
       "contents": [
         {
-          "content": "Where a subscriber checks their plan. The plan sits on a solid card with its price and renewal date; usage meters below fill to what has been used and warn as one nears its limit; upgrading, managing the subscription in the App Store and restoring a purchase are one tap each."
+          "content": "Where a subscriber checks their plan. A summary card names the plan with a tinted status chip, its price and when it renews, ends or leaves its trial; usage meters fill to what has been used and turn to warning and danger near a limit. Upgrade works, confirms and folds away on the top plan, and Manage subscription and Restore purchases use StoreKit by default."
         },
         {
           "content": "Its SwiftUI source comes with SwiftPieces Pro: Plan and Usage in the Pro library."
@@ -2611,7 +2611,7 @@
   {
     "url": "/docs/blocks/social/invite-friends",
     "title": "Invite Friends",
-    "description": "A referral section: the reward and how close you are, your invite code to copy or share, and who joined.",
+    "description": "A referral section: what both people get, a track that fills as friends join, the invite code to copy or share, and who you invited.",
     "breadcrumbs": [
       "SwiftPieces",
       "Blocks",
@@ -2621,7 +2621,7 @@
     "structuredData": {
       "contents": [
         {
-          "content": "A referral section that pays for itself. A reward track fills a seat for each friend who joins; the invite code copies with one tap and shares through the system share sheet; invited friends list below with where each one is, from invited to joined."
+          "content": "The referral section of an account or rewards screen. One card states the reward, fills a seat on a quiet track for each friend who joins, copies the invite code with one tap and opens the system share sheet. Invited friends list below with a status chip, and pending invites can be reminded."
         },
         {
           "content": "Its SwiftUI source comes with SwiftPieces Pro: Invite Friends in the Pro library."

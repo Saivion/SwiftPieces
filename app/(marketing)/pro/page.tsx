@@ -21,7 +21,7 @@ export default function ProPage() {
       <WhatYouGet />
       <Compare />
       <TryFirst />
-      <Questions items={proFaqs} spacing={band} body="Straight answers on licensing, updates and how Pro fits with the free library." />
+      <Questions items={proFaqs} spacing={band} body="Licensing, updates and how Pro fits with Free." />
       <ProCTA />
     </div>
   );
