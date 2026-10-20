@@ -3,10 +3,11 @@
 //
 // Every block is a SwiftPieces Pro block since 2026-10-19: its source lives in SwiftPieces Pro, themed by Pro's
 // design system, and installs only with a Pro license, like Pro's screens and templates. Free lists them with a
-// still and their facts. Free never reads the Pro registry (Rev 3 §3.2), so `proBlocks` below is the one hand-kept
-// copy of their names and summaries. Refresh it from SwiftPiecesPro/registry/index.ts when a Pro block ships or
-// changes, and recapture its still (public/pro-blocks/<id>.webp) from its Pro page. The build still supports free
-// blocks in registry/blocks/<category>/<Name>Block.swift, should one ever ship.
+// still, a recorded loop and their facts. Free never reads the Pro registry (Rev 3 §3.2), so `proBlocks` below is
+// the one hand-kept copy of their names and summaries. Refresh it from SwiftPiecesPro/registry/index.ts when a Pro
+// block ships or changes, and re-record its still and loop (public/pro-blocks/<id>.webp, .webm and .mp4) with Pro's
+// scripts/block-loops.ts. The build still supports free blocks in registry/blocks/<category>/<Name>Block.swift,
+// should one ever ship.
 // Pure data: safe to import from client components.
 import { site } from "./site";
 

@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import type { BlockCard as Card } from "@/lib/block-cards";
 import { PreviewFrame } from "@/components/previews/frame";
 import { PiecePreview } from "@/components/previews";
+import { BlockLoop } from "./block-loop";
 import { FilterButton, FilterPill } from "@/components/sections/showcase";
 import { RevealGroup, RevealItem } from "@/components/effects/reveal";
 import { NewBadge } from "@/components/ui/new-badge";
@@ -12,18 +13,17 @@ import { cn } from "@/lib/cn";
 
 /**
  * A block as a card (Graphite's library card): its live preview on the square block stage, a panel inset
- * in a tray (Pro blocks show a still of Pro's own preview), then its category and whether it is free or
- * Pro, its name, one line on what it does, and what it is built from as outlined pills. Blocks are fewer
- * and bigger than pieces, so their cards carry their words instead of a hover label.
+ * in a tray (Pro blocks play a recording of Pro's own preview, block-loop.tsx), then its category and whether
+ * it is free or Pro, its name, one line on what it does, and what it is built from as outlined pills. Blocks
+ * are fewer and bigger than pieces, so their cards carry their words instead of a hover label.
  */
 export function BlockCard({ card, priority = false }: { card: Card; priority?: boolean }) {
   const pro = card.kind === "pro";
   return (
     <Link href={card.href} className="group relative flex h-full flex-col rounded-[26px] bg-surface p-1.5 transition-colors duration-200 hover:bg-surface-3">
       <PreviewFrame aspect="aspect-square">
-        {pro && card.still ? (
-          // eslint-disable-next-line @next/next/no-img-element -- a static still; next/image would re-encode it per width for no gain
-          <img src={card.still} alt={`${card.title}, a SwiftPieces Pro block`} loading={priority ? "eager" : "lazy"} decoding="async" className="absolute inset-0 size-full object-cover" />
+        {pro && card.still && card.loop ? (
+          <BlockLoop still={card.still} loop={card.loop} alt={`${card.title}, a SwiftPieces Pro block`} eager={priority} />
         ) : (
           <PiecePreview name={card.name} />
         )}

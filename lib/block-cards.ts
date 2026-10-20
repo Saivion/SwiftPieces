@@ -16,8 +16,10 @@ export type BlockCard = {
   href: string;
   /** Pro blocks: where it opens in Pro's library. */
   proHref?: string;
-  /** Pro blocks: a still of Pro's own preview card (public/pro-blocks/<id>.webp). */
+  /** Pro blocks: a still of Pro's own preview card (public/pro-blocks/<id>.webp), its loop's first frame. */
   still?: string;
+  /** Pro blocks: that card's loop, without its extension (public/pro-blocks/<id>.webm and .mp4). */
+  loop?: string;
   isNew: boolean;
   /** Free blocks: the pieces inside, with their pages. Pro blocks: the parts Pro's library lists. */
   parts: { label: string; href?: string }[];
@@ -48,6 +50,7 @@ export function blockCards(): BlockCard[] {
     href: blockPath(p),
     proHref: proBlockUrl(p.id),
     still: `/pro-blocks/${p.id}.webp`,
+    loop: `/pro-blocks/${p.id}`,
     isNew: p.isNew,
     parts: p.parts.map((label) => ({ label })),
   }));

@@ -2,6 +2,7 @@
 import { useState, type ReactNode } from "react";
 import { PreviewFrame } from "@/components/previews/frame";
 import { PiecePreview } from "@/components/previews";
+import { BlockLoop } from "@/components/blocks/block-loop";
 import { Command } from "@/components/ui/code";
 import { cliCommand } from "@/lib/registry-paths";
 import { cn } from "@/lib/cn";
@@ -10,14 +11,16 @@ import { cn } from "@/lib/cn";
  * The top of a piece's or block's page: Preview and Code, one tab at a time, on one soft panel. The panel is the
  * stage's own ground (`--pv-bg`), so a preview's ground disappears into it and the piece or block stands on its own,
  * centred, with nothing around it. Code holds the source the registry build put here (the children: highlighted at
- * build time, so nothing is highlighted twice). A Pro block shows a still and keeps its source with Pro. The install
- * command sits right under the panel; a Pro block's needs a Pro license, which the CLI checks with the Pro registry.
+ * build time, so nothing is highlighted twice). A Pro block plays a recording of Pro's preview over its still
+ * (block-loop.tsx) and keeps its source with Pro. The install command sits right under the panel; a Pro block's
+ * needs a Pro license, which the CLI checks with the Pro registry.
  */
 export function Showcase({
   name,
   kind = "piece",
   tone = "dark",
   still,
+  loop,
   note,
   proHref,
   children,
@@ -29,6 +32,8 @@ export function Showcase({
   tone?: "dark" | "black";
   /** A Pro block's still, shown instead of a live preview. */
   still?: string;
+  /** A Pro block's recorded loop, without its extension, played over the still. */
+  loop?: string;
   /** What the preview is, beside the tabs. */
   note?: string;
   /** A Pro block: where its source is, shown in the Code tab instead of code. */
@@ -46,7 +51,7 @@ export function Showcase({
           <TabButton active={tab === "preview"} onClick={() => setTab("preview")} icon={<EyeIcon />}>Preview</TabButton>
           <TabButton active={tab === "code"} onClick={() => setTab("code")} icon={<CodeIcon />}>Code</TabButton>
         </div>
-        <p className="hidden text-[12.5px] text-subtle sm:block">{note ?? (still ? "Pro block · still" : block ? "Live block · sample data" : "Live preview")}</p>
+        <p className="hidden text-[12.5px] text-subtle sm:block">{note ?? (still ? (loop ? "Pro block · recorded from Pro" : "Pro block · still") : block ? "Live block · sample data" : "Live preview")}</p>
       </div>
 
       {/* The preview sits on a tray, its own ground (--pv-bg) the panel inside it. */}
@@ -54,7 +59,9 @@ export function Showcase({
         <div className={cn("overflow-hidden rounded-[23px] px-4 py-6 sm:px-10 sm:py-10", tone === "black" ? "bg-black" : "bg-[var(--pv-bg)]")}>
           <div className={cn("mx-auto w-full", block ? "max-w-[560px]" : "max-w-[600px]")}>
             <PreviewFrame aspect={block ? "aspect-square" : "aspect-[4/3]"} tone={tone} className="w-full">
-              {still ? (
+              {still && loop ? (
+                <BlockLoop still={still} loop={loop} alt={`${name}, a SwiftPieces Pro block`} eager fit="contain" />
+              ) : still ? (
                 // eslint-disable-next-line @next/next/no-img-element -- a static still of a Pro block
                 <img src={still} alt={`${name}, a SwiftPieces Pro block`} className="absolute inset-0 size-full object-contain" />
               ) : (

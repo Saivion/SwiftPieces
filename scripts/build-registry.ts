@@ -508,7 +508,7 @@ function writeBlockDocs(blocks: BlockItem[]) {
     }
     for (const p of paid) {
       const fm = Object.entries({ title: p.title, description: p.summary, proBlock: p.id }).map(([k, v]) => `${k}: ${JSON.stringify(v)}`).join("\n");
-      writeFileSync(join(dir, `${blockSlug(p.name)}.mdx`), `---\n${fm}\n---\n\n{/* GENERATED FILE. Edit lib/blocks.ts (proBlocks) instead. */}\n\n<Showcase name="${p.name}" kind="block" still="/pro-blocks/${p.id}.webp" proHref="${proBlockUrl(p.id)}" />\n\n<ProBlockFacts id="${p.id}" />\n\n${p.description}\n\nIts SwiftUI source comes with SwiftPieces Pro: [${p.title} in the Pro library](${proBlockUrl(p.id)}).\n`);
+      writeFileSync(join(dir, `${blockSlug(p.name)}.mdx`), `---\n${fm}\n---\n\n{/* GENERATED FILE. Edit lib/blocks.ts (proBlocks) instead. */}\n\n<Showcase name="${p.name}" kind="block" still="/pro-blocks/${p.id}.webp" loop="/pro-blocks/${p.id}" proHref="${proBlockUrl(p.id)}" />\n\n<ProBlockFacts id="${p.id}" />\n\n${p.description}\n\nIts SwiftUI source comes with SwiftPieces Pro: [${p.title} in the Pro library](${proBlockUrl(p.id)}).\n`);
     }
   }
 }
