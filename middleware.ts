@@ -5,6 +5,13 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
  * Per-IP request budgets for the API. Pages are only touched by the Server Action guard below: the
  * matcher admits `/api`, the CLI's `/r` registry paths, and page POSTs shaped like a Server Action.
  *
+ * On Cloudflare the matcher admits every page, though: OpenNext matches middleware by each matcher's
+ * path regexp alone and drops `has` conditions (@opennextjs/aws core/routing/util.js,
+ * getMiddlewareMatch), so the Server Action entries below match every page view, client navigation
+ * and link prefetch. The budgets and the body cap therefore check the path themselves (`isApiPath`)
+ * and never see a page: a page counted against the API's 60 a minute, and browsing /apps (a prefetch
+ * per app link) answered the next click with a 429 (2026-10-20).
+ *
  *   - A budget per minute. Search gets a larger one because the docs search box queries as you
  *     type. The view counter's write path has its own limit in its route.
  *   - A cap on request bodies, so nothing is parsed past a sensible size.
@@ -47,6 +54,11 @@ function tooLarge(req: NextRequest): boolean {
 
 const noStore = { "Cache-Control": "no-store" };
 
+/** The API and the CLI's registry: the only paths the budgets and the body cap apply to. */
+function isApiPath(pathname: string): boolean {
+  return /^\/(api|r)\//.test(pathname);
+}
+
 /**
  * The site has no Server Actions, so a POST that Next would treat as one only comes from scanners
  * (they probe `/`, `/api` and `/app` with a `Next-Action` header). Next 16 answers such a POST that
@@ -55,7 +67,7 @@ const noStore = { "Cache-Control": "no-store" };
  * `getServerActionRequestMetadata`. Route handlers under `/api/` and `/r/` take their own POSTs.
  */
 function isServerActionPost(req: NextRequest): boolean {
-  if (req.method !== "POST" || /^\/(api|r)\//.test(req.nextUrl.pathname)) return false;
+  if (req.method !== "POST" || isApiPath(req.nextUrl.pathname)) return false;
   const type = req.headers.get("content-type") ?? "";
   return req.headers.has("next-action") || type.startsWith("application/x-www-form-urlencoded") || type.startsWith("multipart/form-data");
 }
@@ -64,6 +76,8 @@ export default async function middleware(req: NextRequest) {
   if (isServerActionPost(req)) {
     return new NextResponse(null, { status: 405, headers: { ...noStore, Allow: "GET, HEAD" } });
   }
+  // Every other page request goes straight through: pages are never budgeted (see the note at the top).
+  if (!isApiPath(req.nextUrl.pathname)) return NextResponse.next();
   if (tooLarge(req)) {
     return NextResponse.json({ error: "payload_too_large", message: `Request bodies are limited to ${MAX_BODY_BYTES / 1024}KB.` }, { status: 413, headers: noStore });
   }
@@ -76,8 +90,9 @@ export default async function middleware(req: NextRequest) {
   return NextResponse.next();
 }
 
-// Next reads the matcher statically, so it stays literal. The `has` entries only admit Server
-// Action-shaped requests, so ordinary page views still skip middleware.
+// Next reads the matcher statically, so it stays literal. The `has` entries are meant to admit only
+// Server Action-shaped requests, and do under `next start`; OpenNext ignores `has`, so on Cloudflare
+// every page runs middleware and leaves it at `isApiPath`.
 export const config = {
   matcher: [
     "/api/:path*",
