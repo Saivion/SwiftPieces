@@ -19,6 +19,9 @@ const sizes: Record<Size, string> = { sm: "h-[38px] px-4 text-[13.5px]", md: "h-
 
 type Props = { variant?: Variant; size?: Size; href?: string; children: ReactNode; className?: string } & Omit<ComponentProps<"button">, "children">;
 
+/** A button's classes on their own, for a link that needs its own handlers or a ref (Button's link takes neither). */
+export const buttonClass = (variant: Variant = "primary", size: Size = "md", className?: string) => cn(base, variants[variant], sizes[size], className);
+
 export function Button({ variant = "primary", size = "md", href, className, children, ...rest }: Props) {
   const cls = cn(base, variants[variant], sizes[size], className);
   const inner = <>{children}</>;
