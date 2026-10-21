@@ -10,6 +10,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "npm run registry:build && npm run builder:build && next build",
+    "postbuild": "node scripts/strip-empty-source-maps.mjs",
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
