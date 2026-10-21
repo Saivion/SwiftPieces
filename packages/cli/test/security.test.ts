@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
-import { lstatSync, mkdtempSync, mkdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { linkSync, lstatSync, mkdtempSync, mkdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { after, before, describe, it } from "node:test";
@@ -120,6 +120,18 @@ describe("path containment", () => {
     rmSync(outside, { recursive: true, force: true });
   });
 
+  it("rejects a hard-linked file and leaves the other link alone", () => {
+    const root = tempDir();
+    const outside = tempDir();
+    const target = join(outside, "secret.txt");
+    writeFileSync(target, "keep");
+    linkSync(target, join(root, "Widget.swift"));
+    assert.throws(() => writeInside(root, "Widget.swift", "replaced"), PathEscapeError);
+    assert.equal(readFileSync(target, "utf8"), "keep");
+    rmSync(root, { recursive: true, force: true });
+    rmSync(outside, { recursive: true, force: true });
+  });
+
   it("keeps a Build Kit file inside the skills directory", () => {
     const root = tempDir();
     const skills = join(root, "skills");
@@ -177,6 +189,28 @@ describe("registry policy", () => {
         assert.match(err.message, /does not include Pro access/);
         return true;
       });
+    } finally {
+      await server.close();
+    }
+  });
+
+  it("never follows a redirect with the license key on it", async () => {
+    const server = await listen((req, res) => {
+      if (req.url?.startsWith("/elsewhere")) {
+        res.end(JSON.stringify({ name: "InviteFriendsBlock", type: "block", availability: "pro", entitled: true, files: [] }));
+        return;
+      }
+      res.statusCode = 302;
+      res.setHeader("location", "/elsewhere");
+      res.end();
+    });
+    try {
+      const registries = { free: `${server.origin}/r`, pro: `${server.origin}/pro` };
+      await assert.rejects(fetchItem(registries, "InviteFriendsBlock", "sp_live_test", { allowHttpLocalhost: true, trustRegistry: true }), (err: RegistryError) => {
+        assert.match(err.message, /answered with a redirect/);
+        return true;
+      });
+      assert.ok(!server.seen.some((r) => r.url.startsWith("/elsewhere")), "the key followed the redirect");
     } finally {
       await server.close();
     }

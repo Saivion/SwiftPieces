@@ -71,7 +71,7 @@ LIQUID_GLASS.md
 
 # ─── Tests (kept local, not published) ──────────────────────
 # Scratch specs stay untracked. The CLI and builder suites, the ISR cache retention check and the
-# middleware's budgets (pages are never rate-limited) are committed and run in CI.
+# middleware's budgets (pages are never rate-limited) and its unknown-page list are committed and run in CI.
 *.test.ts
 *.test.tsx
 *.spec.ts
@@ -80,6 +80,7 @@ LIQUID_GLASS.md
 !packages/builder/test/*.test.ts
 !lib/cache-retention.test.ts
 !lib/middleware.test.ts
+!lib/known-pages.test.ts
 
 # ─── Internal notes, briefs and scratch (not public docs) ────
 # Public docs live in content/docs/, README.md and CONTRIBUTING.md.

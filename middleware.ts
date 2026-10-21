@@ -1,9 +1,12 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { isKnownPage, knownPageSets, type KnownPages } from "@/lib/known-pages";
+import knownPagesManifest from "@/registry/__registry__/known-pages.json";
 
 /**
- * Per-IP request budgets for the API. Pages are only touched by the Server Action guard below: the
- * matcher admits `/api`, the CLI's `/r` registry paths, and page POSTs shaped like a Server Action.
+ * Per-IP request budgets for the API. Pages are only touched by the Server Action guard and the
+ * unknown-page check below: the matcher admits `/api`, the CLI's `/r` registry paths, `/docs`, and
+ * page POSTs shaped like a Server Action.
  *
  * On Cloudflare the matcher admits every page, though: OpenNext matches middleware by each matcher's
  * path regexp alone and drops `has` conditions (@opennextjs/aws core/routing/util.js,
@@ -72,7 +75,25 @@ function isServerActionPost(req: NextRequest): boolean {
   return req.headers.has("next-action") || type.startsWith("application/x-www-form-urlencoded") || type.startsWith("multipart/form-data");
 }
 
+/**
+ * Docs pages and registry names the prerendered routes don't have (lib/known-pages.ts). A docs URL
+ * gets the not-found page from a path no route matches, a registry name a plain 404, so no render
+ * of theirs is ever written to the incremental cache.
+ */
+const KNOWN_PAGES = knownPageSets(knownPagesManifest as KnownPages);
+const NOT_FOUND_PATH = "/_unknown-page";
+
+function unknownPage(req: NextRequest): "page" | "registry" | null {
+  if (req.method !== "GET" && req.method !== "HEAD") return null;
+  const path = req.nextUrl.pathname;
+  if (!/^\/(docs|r|api\/registry)(\/|$)/.test(path) || isKnownPage(path, KNOWN_PAGES)) return null;
+  return path.startsWith("/docs") ? "page" : "registry";
+}
+
 export default async function middleware(req: NextRequest) {
+  const unknown = unknownPage(req);
+  if (unknown === "page") return NextResponse.rewrite(new URL(NOT_FOUND_PATH, req.url), { headers: noStore });
+  if (unknown === "registry") return new NextResponse("Not found", { status: 404, headers: { ...noStore, "Access-Control-Allow-Origin": "*" } });
   if (isServerActionPost(req)) {
     return new NextResponse(null, { status: 405, headers: { ...noStore, Allow: "GET, HEAD" } });
   }
@@ -90,13 +111,15 @@ export default async function middleware(req: NextRequest) {
   return NextResponse.next();
 }
 
-// Next reads the matcher statically, so it stays literal. The `has` entries are meant to admit only
+// Next reads the matcher statically, so it stays literal. `/docs` is listed for the unknown-page
+// check, which must run under `next start` too. The `has` entries are meant to admit only
 // Server Action-shaped requests, and do under `next start`; OpenNext ignores `has`, so on Cloudflare
 // every page runs middleware and leaves it at `isApiPath`.
 export const config = {
   matcher: [
     "/api/:path*",
     "/r/:path*",
+    "/docs/:path*",
     { source: "/((?!_next/|api/|r/).*)", has: [{ type: "header", key: "next-action" }] },
     { source: "/((?!_next/|api/|r/).*)", has: [{ type: "header", key: "content-type", value: "application/x-www-form-urlencoded.*" }] },
     { source: "/((?!_next/|api/|r/).*)", has: [{ type: "header", key: "content-type", value: "multipart/form-data.*" }] },
