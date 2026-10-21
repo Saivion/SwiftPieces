@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 
@@ -59,5 +59,9 @@ export function readLicenseKey(): string | undefined {
 export function writeLicenseKey(key: string | null) {
   mkdirSync(AUTH_DIR, { recursive: true, mode: 0o700 });
   writeFileSync(AUTH_FILE, JSON.stringify(key ? { licenseKey: key } : {}, null, 2) + "\n", { mode: 0o600 });
+  // `mode` only applies when a file or folder is created; tighten ones an older version (or a
+  // hand edit) left readable by others.
+  chmodSync(AUTH_DIR, 0o700);
+  chmodSync(AUTH_FILE, 0o600);
   return AUTH_FILE;
 }
