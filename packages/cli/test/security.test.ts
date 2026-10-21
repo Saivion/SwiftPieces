@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
-import { lstatSync, mkdtempSync, mkdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { linkSync, lstatSync, mkdtempSync, mkdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { after, before, describe, it } from "node:test";
@@ -114,6 +114,18 @@ describe("path containment", () => {
     const target = join(outside, "secret.txt");
     writeFileSync(target, "keep");
     symlinkSync(target, join(root, "Widget.swift"));
+    assert.throws(() => writeInside(root, "Widget.swift", "replaced"), PathEscapeError);
+    assert.equal(readFileSync(target, "utf8"), "keep");
+    rmSync(root, { recursive: true, force: true });
+    rmSync(outside, { recursive: true, force: true });
+  });
+
+  it("rejects a hard-linked file and leaves the other link alone", () => {
+    const root = tempDir();
+    const outside = tempDir();
+    const target = join(outside, "secret.txt");
+    writeFileSync(target, "keep");
+    linkSync(target, join(root, "Widget.swift"));
     assert.throws(() => writeInside(root, "Widget.swift", "replaced"), PathEscapeError);
     assert.equal(readFileSync(target, "utf8"), "keep");
     rmSync(root, { recursive: true, force: true });

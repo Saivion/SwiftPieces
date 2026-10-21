@@ -148,12 +148,27 @@ export function existingRegularFile(root: string, rel: string): boolean {
   }
 }
 
+/**
+ * An existing file with more than one link shares its contents with a path that may be anywhere,
+ * so truncating it (an `--overwrite`) would write there too. Refused, like a symlink.
+ */
+function assertNotHardLinked(path: string): void {
+  let stat;
+  try {
+    stat = lstatSync(path);
+  } catch {
+    return;
+  }
+  if (stat.isFile() && stat.nlink > 1) throw new PathEscapeError(`Refusing to write through a hard link: ${path}`);
+}
+
 /** Writes `content` at `rel` inside `root`. Creates parent directories. Does not follow symlinks. */
 export function writeInside(root: string, rel: string, content: string): string {
   const dest = resolveInside(root, rel);
   ensureRoot(root);
   mkdirInside(root, dirname(dest));
   assertNoSymlinkEscape(root, dest);
+  assertNotHardLinked(dest);
   const flags = constants.O_WRONLY | constants.O_CREAT | constants.O_TRUNC | constants.O_NOFOLLOW;
   let fd: number;
   try {

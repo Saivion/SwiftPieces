@@ -43,6 +43,8 @@ export function createMcpHandler(opts: { name: string; version: string; tools: T
   const byName = new Map(opts.tools.map((t) => [t.name, t]));
 
   async function handle(msg: Rpc) {
+    // A batch entry or body that isn't a request object (null, a number, a string) is invalid, not a crash.
+    if (!msg || typeof msg !== "object" || typeof msg.method !== "string") return { jsonrpc: "2.0" as const, id: null, error: { code: -32600, message: "Invalid Request" } };
     const ok = (result: unknown) => ({ jsonrpc: "2.0" as const, id: msg.id ?? null, result });
     const err = (code: number, message: string) => ({ jsonrpc: "2.0" as const, id: msg.id ?? null, error: { code, message } });
     switch (msg.method) {
