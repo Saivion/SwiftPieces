@@ -98,7 +98,7 @@ export function HeroLines() {
       ox = w - dw;
       const narrow = w < h;
       top = narrow ? 0.44 : 0.02;
-      spread = narrow ? 1.9 : 1.75;
+      spread = narrow ? 2.3 : 2.4;
       canvas.width = Math.round(w * dpr);
       canvas.height = Math.round(h * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
