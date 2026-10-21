@@ -36,7 +36,9 @@ for f in .env .env.local .env.production .dev.vars; do grep -qxF "$f" .gitignore
 # build output that is not. The loose re_ pattern matches identifiers inside Xcode's build index
 # and wrangler's dev bundle, both gitignored, so scanning the tree failed this gate every time it
 # ran locally. A gate that always fails is a gate nobody reads.
-if git grep -lE "(sk|pk)_(live|test)_[A-Za-z0-9]{12,}|am_sk_[A-Za-z0-9]{8,}|re_[A-Za-z0-9]{16,}|AKIA[0-9A-Z]{16}|phx_[A-Za-z0-9]{20,}" -- . ':!*.example*' 2>/dev/null | grep -q .; then note FAIL "secret-looking values in tracked files"; fail=1; else note ok "no secret-looking values in tracked files"; fi
+# sp_live_ is a SwiftPieces Pro license key (Pro's lib/license.ts): 32 characters after the prefix, so
+# usage text and test placeholders ("sp_live_test") stay well under the 16 this asks for.
+if git grep -lE "(sk|pk)_(live|test)_[A-Za-z0-9]{12,}|am_sk_[A-Za-z0-9]{8,}|re_[A-Za-z0-9]{16,}|AKIA[0-9A-Z]{16}|phx_[A-Za-z0-9]{20,}|sp_live_[A-Za-z0-9]{16,}" -- . ':!*.example*' 2>/dev/null | grep -q .; then note FAIL "secret-looking values in tracked files"; fail=1; else note ok "no secret-looking values in tracked files"; fi
 
 # 4. No premium Swift in public/ or built assets (every free piece is MIT + Commons Clause, so we only check nothing outside registry/ ships Swift).
 if grep -rl "import SwiftUI" public .open-next/assets 2>/dev/null | grep -q .; then note FAIL "Swift source under public/ or built assets"; fail=1; else note ok "no Swift source in public assets"; fi
@@ -51,6 +53,10 @@ recreations=packages/builder/src/definitions/catalog/recreations
 free=$(sed -n 's/^export const FREE_RECREATIONS.*= \[\(.*\)\];$/\1/p' "$recreations/index.ts" | tr -d '" ' | tr ',' '\n' | sort)
 built=$(ls "$recreations" | sed -n 's/\.build\.ts$//p' | sort)
 if [ -n "$free" ] && [ "$free" = "$built" ]; then note ok "only the free apps' remixes are built here ($(echo "$free" | wc -l | tr -d ' '))"; else note FAIL "app remix builds here don't match FREE_RECREATIONS: $(echo $built)"; fail=1; fi
+#    File names alone miss a build kept under any other name, so no tracked file but the free apps'
+#    <slug>.build.ts may define an app build at all.
+stray=$(git grep -l "export const build: CatalogBuilder" -- . ":!scripts/audit-public.sh" 2>/dev/null | grep -v -x -F "$(echo "$free" | sed "s|^|$recreations/|; s|$|.build.ts|")")
+if [ -z "$stray" ]; then note ok "no app build outside the free apps' build files"; else note FAIL "app builds outside the free apps' build files: $(echo $stray)"; fail=1; fi
 if [ -d packages/builder/dist/definitions/catalog/recreations ]; then
   dist=$(ls packages/builder/dist/definitions/catalog/recreations | sed -n 's/\.build\.js$//p' | sort)
   if [ "$dist" = "$free" ]; then note ok "the builder dist holds only the free apps' builds"; else note FAIL "the builder dist holds other builds (stale? npm run builder:build): $(echo $dist)"; fail=1; fi

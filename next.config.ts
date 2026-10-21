@@ -23,18 +23,21 @@ const SECURITY_HEADERS = [
  * hijacking, no framing, forms only to this site, and network calls only to Pro (the session and,
  * later, saves) and PostHog. It matters because Free is same-site with Pro.
  *
- * Report-only while it is tested locally: violations show in the console and nothing is blocked.
- * Switch the header name to Content-Security-Policy once a full pass shows none.
+ * Enforced (2026-10-20), after a pass over every pre-rendered page and every client chunk found
+ * nothing loaded from outside these lists: App Store images, Google Fonts for the Playground's brand
+ * fonts, the Pro site and its Clerk host, and PostHog. Anything new from another host needs its
+ * directive here first, or the browser blocks it.
  */
 const PRO_ORIGIN = new URL(process.env.NEXT_PUBLIC_PRO_EMBED_URL ?? process.env.NEXT_PUBLIC_PRO_URL ?? "https://pro.swiftpieces.com").origin;
 const MEDIA_ORIGIN = new URL(process.env.NEXT_PUBLIC_MEDIA_URL ?? "https://media.swiftpieces.com").origin;
 const POSTHOG_HOST = process.env.NEXT_PUBLIC_POSTHOG_HOST;
 const POSTHOG_ORIGIN = POSTHOG_HOST ? new URL(POSTHOG_HOST).origin : null;
-// PostHog's hosts: events go to us.i.posthog.com, its scripts and remote config come from
-// us-assets.i.posthog.com, so both directives take the wildcard.
-const POSTHOG_SCRIPT_ORIGIN = POSTHOG_ORIGIN
-  ? `https://*.${new URL(POSTHOG_ORIGIN).hostname.split(".").slice(-2).join(".")}`
-  : null;
+// PostHog's hosts: events go to <region>.i.posthog.com, and its scripts and remote config come from
+// <region>-assets.i.posthog.com. Scripts may come from that one asset host only (a wildcard would let
+// any posthog.com subdomain run here); network calls may go to both. A reverse proxy serves both.
+const POSTHOG_REGION = POSTHOG_ORIGIN ? new URL(POSTHOG_ORIGIN).hostname.match(/^([a-z]+)\.i\.posthog\.com$/)?.[1] : undefined;
+const POSTHOG_SCRIPT_ORIGIN = POSTHOG_ORIGIN ? (POSTHOG_REGION ? `https://${POSTHOG_REGION}-assets.i.posthog.com` : POSTHOG_ORIGIN) : null;
+const POSTHOG_CONNECT = POSTHOG_ORIGIN ? [...new Set([POSTHOG_ORIGIN, POSTHOG_SCRIPT_ORIGIN])].join(" ") : null;
 const dev = process.env.NODE_ENV === "development";
 const CSP = [
   "default-src 'self'",
@@ -43,7 +46,7 @@ const CSP = [
   "font-src 'self' data: https://fonts.gstatic.com",
   `img-src 'self' data: blob: https://is1-ssl.mzstatic.com ${MEDIA_ORIGIN}`,
   `media-src 'self' blob: ${MEDIA_ORIGIN}`,
-  `connect-src 'self' ${PRO_ORIGIN}${POSTHOG_SCRIPT_ORIGIN ? ` ${POSTHOG_SCRIPT_ORIGIN}` : ""}${dev ? " ws: http://localhost:* http://127.0.0.1:*" : ""}`,
+  `connect-src 'self' ${PRO_ORIGIN}${POSTHOG_CONNECT ? ` ${POSTHOG_CONNECT}` : ""}${dev ? " ws: http://localhost:* http://127.0.0.1:*" : ""}`,
   ...(POSTHOG_ORIGIN ? ["worker-src 'self' blob:"] : []),
   // The Pro site's hidden token page (lib/pro-bridge.ts) is the only frame this site loads. While it
   // loads, Clerk may pass it through its own host (the Frontend API) to refresh the session.
@@ -54,7 +57,7 @@ const CSP = [
   "form-action 'self'",
   ...(dev ? [] : ["upgrade-insecure-requests"]),
 ].join("; ");
-SECURITY_HEADERS.push({ key: "Content-Security-Policy-Report-Only", value: CSP });
+SECURITY_HEADERS.push({ key: "Content-Security-Policy", value: CSP });
 
 /** Every category slug, for the redirects below. */
 const CATEGORY_SLUGS = Object.values(categories).map((c) => c.slug).join("|");

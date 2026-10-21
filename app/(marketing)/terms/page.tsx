@@ -26,7 +26,7 @@ export default function TermsPage() {
       </p>
 
       <h2>SwiftPieces Pro</h2>
-      <p>SwiftPieces Pro is a one-time purchase and a per-developer license with lifetime access. Each developer using Pro pieces needs their own license. Refunds are available within 14 days if you have not downloaded Pro content.</p>
+      <p>SwiftPieces Pro is a one-time purchase and a per-developer license with lifetime access. Each developer using Pro pieces needs their own license. All purchases are final and non-refundable: Pro&apos;s source is yours as soon as you buy, so by completing a purchase you ask for access to start straight away and agree that it can&apos;t be cancelled or refunded once it has.</p>
 
       <h2 id="third-party-apps">The Playground and third-party apps</h2>
       <p>The Playground shows apps that are publicly listed on Apple&apos;s App Store. Each app&apos;s name, icon, screenshots and listing details come from its public App Store listing, are credited to its developer, and link to the app&apos;s App Store page. Screenshots are shown as the App Store serves them; we don&apos;t copy, host or sell them, and none of them sit behind SwiftPieces Pro.</p>
