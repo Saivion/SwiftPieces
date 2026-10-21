@@ -61,3 +61,22 @@ describe("middleware budgets", () => {
     assert.notEqual((await middleware(request("/playground/daylio", big))).status, 413);
   });
 });
+
+describe("middleware unknown pages", () => {
+  it("answers a made-up registry name itself, without the route", async () => {
+    const res = await middleware(request("/r/NoSuchPiece-zz.json"));
+    assert.equal(res.status, 404);
+    assert.equal(res.headers.get("cache-control"), "no-store");
+  });
+
+  it("sends a made-up docs page to the not-found page", async () => {
+    const res = await middleware(request("/docs/no-such-page-zz"));
+    assert.match(res.headers.get("x-middleware-rewrite") ?? "", /\/_unknown-page$/);
+  });
+
+  it("lets a real docs page through", async () => {
+    const res = await middleware(request("/docs/introduction"));
+    assert.equal(res.headers.get("x-middleware-rewrite"), null);
+    assert.equal(res.headers.get("x-middleware-next"), "1");
+  });
+});
