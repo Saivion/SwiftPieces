@@ -6,7 +6,7 @@ import { AnimatedText } from "@/components/ui/animated-text";
 import { pageLede } from "@/components/ui/section-header";
 import { Index } from "@/components/ui/panel";
 import { Reveal, RevealGroup, RevealItem } from "@/components/effects/reveal";
-import { DitherStage } from "@/components/visual/dither-stage";
+import { GrainStage } from "@/components/visual/grain-stage";
 import { SectionHead, Glyph, band, cardTitle, heroTitle } from "@/components/sections/feature-row";
 import { getRegistryIndex } from "@/lib/registry";
 import { getStarCount, formatCount } from "@/lib/github";
@@ -68,7 +68,7 @@ function Check() {
 /**
  * One tier as a panel in the tiers' shared tray, set like the offer on pro.swiftpieces.com: who it is
  * for, the name, the price large and regular-weight, the pitch, the perks under a hairline, the way in.
- * Gold stands on a strip of the Pro cards' dithered ground; the others stay quiet.
+ * Gold stands on a strip of the Pro cards' grain ground; the others stay quiet.
  */
 function TierCard({ tier, taken }: { tier: Tier; taken: number }) {
   const gold = tier.id === "gold";
@@ -77,7 +77,7 @@ function TierCard({ tier, taken }: { tier: Tier; taken: number }) {
     <div className="panel flex h-full flex-col">
       {gold ? (
         <div className="relative isolate h-20 overflow-hidden">
-          <DitherStage seed="sponsor-gold" palette={["#ff7a3c", "#ff0000", "#ff8fb8", "#4d8dff"]} className="-z-10" />
+          <GrainStage seed="sponsor-gold" grain="teardowns" className="-z-10" />
         </div>
       ) : null}
       <div className="flex flex-1 flex-col p-6 md:p-7">

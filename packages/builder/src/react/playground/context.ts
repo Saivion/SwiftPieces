@@ -43,7 +43,7 @@ export type PlaygroundHost = {
       url: (blob: string | null) => string;
       /** Its icon (the Pro crown, say); an arrow out when absent. */
       icon?: "crown" | "external";
-      /** The host's artwork drawn behind this one card (Free: its dithered field), so it stands apart. */
+      /** The host's artwork drawn behind this one card (Free: its grain stage), so it stands apart. */
       backdrop?: ReactNode;
     };
     /**
@@ -68,7 +68,7 @@ export type PlaygroundHost = {
   /** The site mark in the top bar, linking home. */
   brand?: { href: string; name: string; mark?: ReactNode };
   /**
-   * The site's colour artwork (Free: the dithered field its landing cards stand on), filling the
+   * The site's colour artwork (Free: the grain stage its landing cards stand on), filling the
    * colour side of the Build dialog. Absent: a soft gradient in the accent.
    */
   art?: ReactNode;

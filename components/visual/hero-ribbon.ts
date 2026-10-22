@@ -8,7 +8,7 @@ type RGB = [number, number, number];
 type Ctx = CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
 type Surface = HTMLCanvasElement | OffscreenCanvas;
 
-/** The brand's dither palette, in the order it runs across the ribbon: orange, red, pink, blue. */
+/** The brand's palette, in the order it runs across the ribbon: orange, red, pink, blue. */
 const STOPS: RGB[] = [
   [255, 122, 60],
   [255, 0, 0],
