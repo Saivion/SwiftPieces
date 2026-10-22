@@ -137,7 +137,7 @@ A worktree holds only tracked files, so `.env.local` and `.dev.vars` aren't ther
 | Deploy command | `npx opennextjs-cloudflare deploy` |
 | Non-production branch deploy command | `npx opennextjs-cloudflare upload` |
 | Builds for non-production branches | on |
-| Build variables | `NODE_VERSION` = `22`, `NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN` and `NEXT_PUBLIC_POSTHOG_HOST` (optional) |
+| Build variables | `NODE_VERSION` = `22.23.4`, `NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN` and `NEXT_PUBLIC_POSTHOG_HOST` (optional) |
 
 Build variables are read while building, not by the running Worker. PostHog only starts on swiftpieces.com itself, so preview URLs and local builds never count toward the numbers.
 
