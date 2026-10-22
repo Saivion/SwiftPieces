@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef } from "react";
-import { type GrainFamily, type GrainLines, grainSpec, paintGrain } from "@/lib/grain";
+import { type GrainKind, grainSpec, paintGrain } from "@/lib/grain";
 import { cn } from "@/lib/cn";
 
 /**
@@ -29,30 +29,31 @@ function enqueue(job: () => void): () => void {
 }
 
 /**
- * The ground every preview stands on: blurred colour fields under a fine grain, with a white line
- * layer. The seed picks the grain family, nudges its fields and picks the line layer, so each stage is
- * its own. `grain` and `lines` pin either. Ported from SwiftPiecesPro (components/previews/grain-stage.tsx).
+ * The ground every preview stands on: soft colour fields under a fine grain, with a white line motif.
+ * `kind` sets the palette and motif, so every screen card reads as a screen and every flow as a flow;
+ * the seed moves the fields and places the motif, so each stage is its own. Ported from
+ * SwiftPiecesPro (components/previews/grain-stage.tsx).
  */
 export function GrainStage({
   seed,
-  grain,
-  lines,
+  kind = "brand",
+  lines = true,
   className,
 }: {
   seed: string;
-  grain?: GrainFamily;
-  lines?: GrainLines | false;
+  kind?: GrainKind;
+  lines?: boolean;
   className?: string;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const spec = grainSpec(seed, { family: grain, lines });
+  const spec = grainSpec(seed, kind, lines);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const parent = canvas.parentElement;
     if (!parent) return;
-    const recipe = grainSpec(seed, { family: grain, lines });
+    const recipe = grainSpec(seed, kind, lines);
     let near = false;
     let cancel: (() => void) | null = null;
     let painted = "";
@@ -85,7 +86,7 @@ export function GrainStage({
       io.disconnect();
       cancel?.();
     };
-  }, [seed, grain, lines]);
+  }, [seed, kind, lines]);
 
   return (
     <canvas
