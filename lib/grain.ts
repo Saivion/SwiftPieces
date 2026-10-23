@@ -8,7 +8,7 @@
  * Shared with SwiftPiecesPro (lib/brand/grain.ts). Keep the two in step.
  */
 
-export type GrainKind = "screen" | "flow" | "template" | "kit" | "brand";
+export type GrainKind = "screen" | "flow" | "template" | "kit" | "block" | "brand";
 
 type Stop = readonly [at: number, color: string];
 type Blob = readonly [x: number, y: number, radius: number, color: string];
@@ -37,6 +37,11 @@ const PALETTES: Record<GrainKind, { base: readonly Stop[]; blobs: readonly Blob[
   kit: {
     base: [[0, "#fff6ec"], [0.34, "#ffd9b0"], [0.58, "#ff9a4a"], [0.8, "#e0561c"], [1, "#3a1205"]],
     blobs: [[0.8, 0.12, 0.4, "#fff0dc"], [0.16, 0.42, 0.3, "#ffc47a"], [0.8, 0.68, 0.3, "#ff7a3c"], [0.34, 0.98, 0.42, "#2e0d04"], [0.5, 0.55, 0.22, "#ffb067"]],
+  },
+  // Blocks, "Lagoon": mint to sea green to deep teal.
+  block: {
+    base: [[0, "#effbf6"], [0.34, "#b6ecda"], [0.58, "#2fc4a0"], [0.8, "#0b7a74"], [1, "#03222a"]],
+    blobs: [[0.84, 0.1, 0.4, "#e3fbf1"], [0.14, 0.42, 0.3, "#8fe3c8"], [0.84, 0.66, 0.3, "#16a39a"], [0.3, 0.98, 0.42, "#021a22"], [0.54, 0.5, 0.22, "#7fe0d2"]],
   },
   // Everything else, "Signature": the whole brand sweep, honeydew and blue haze over pink, orange, red.
   brand: {
@@ -341,6 +346,35 @@ const MOTIFS: Record<GrainKind, Motif> = {
       }
     }
     ctx.setLineDash([]);
+  },
+
+  /** Blocks: columns of stacked sections, a page's layout drawn in outline, fading out from a bright spot. */
+  block(ctx, W, H, _dpr, r) {
+    const U = Math.max(W, H);
+    const cols = 5 + Math.floor(r() * 3);
+    const pitch = (W * 1.2) / cols;
+    const colW = pitch * 0.8;
+    const gap = pitch * 0.12;
+    const ox = -W * 0.1 + (pitch - colW) / 2;
+    const fx = W * (0.3 + r() * 0.4);
+    const fy = H * (0.3 + r() * 0.4);
+    const reach = U * 0.8;
+    for (let c = 0; c < cols; c++) {
+      const x = ox + c * pitch;
+      let y = -r() * pitch;
+      while (y < H) {
+        const h = pitch * (0.35 + r() * 1.1);
+        const cy = y + h / 2;
+        const a = 0.42 * clamp01(1 - Math.hypot(x + colW / 2 - fx, cy - fy) / reach);
+        if (a >= 0.03) {
+          ctx.globalAlpha = a;
+          ctx.beginPath();
+          ctx.roundRect(x, y, colW, h, Math.min(colW, h) * 0.18);
+          ctx.stroke();
+        }
+        y += h + gap;
+      }
+    }
   },
 
   /** Everything else: parallel beams on a slant, gathered into a few soft bands of light. */
