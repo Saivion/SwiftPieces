@@ -137,9 +137,9 @@ A worktree holds only tracked files, so `.env.local` and `.dev.vars` aren't ther
 | Deploy command | `npx opennextjs-cloudflare deploy` |
 | Non-production branch deploy command | `npx opennextjs-cloudflare upload` |
 | Builds for non-production branches | on |
-| Build variables | `NODE_VERSION` = `22.23.4`, `NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN` and `NEXT_PUBLIC_POSTHOG_HOST` (optional) |
+| Build variables | `NODE_VERSION` = `22.23.4`, `NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN`, `NEXT_PUBLIC_POSTHOG_HOST` and `NEXT_PUBLIC_DATABUDDY_CLIENT_ID` (optional) |
 
-Build variables are read while building, not by the running Worker. PostHog only starts on swiftpieces.com itself, so preview URLs and local builds never count toward the numbers.
+Build variables are read while building, not by the running Worker. PostHog and Databuddy only start on swiftpieces.com itself, so preview URLs and local builds never count toward the numbers.
 
 **ISR cache retention.** The prerendered pages and ISR entries live in the `swiftpieces-cache` R2 bucket under `incremental-cache/<build id>/`. Every deploy and every preview upload writes the whole site again under a new build ID, about 160 MB, and nothing reads the old build's copy after that. R2 has no per-object expiry, so a lifecycle rule on the bucket removes cache entries a week after they were last written:
 
@@ -152,12 +152,15 @@ Or in the dashboard: R2 → `swiftpieces-cache` → Settings → Object lifecycl
 
 **Analytics (swiftpieces.com only).** The official deploy measures page views, visits and Playground usage with PostHog, and shows the all-time page views in the hero ("Explored N times"). PostHog never starts anywhere else, so forks, previews and local builds send nothing, and there is nothing to configure to run this project.
 
+Databuddy runs beside PostHog, on swiftpieces.com only too: page views, Web Vitals, errors, outbound link clicks and the Playground's key events (`lib/analytics.ts`), plus AI crawlers' reads of pages, `llms.txt` and `llms-full.txt`, reported by `middleware.ts`. Its script waits until the page has loaded and the browser is idle. Error tracking needs Databuddy's Hobby plan or above.
+
 | Variable | Where | What |
 | --- | --- | --- |
 | `NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN` | Build variable, `.env.local` | The project token (`phc_…`). Public by design; inlined at build. |
 | `NEXT_PUBLIC_POSTHOG_HOST` | Build variable, `.env.local` | `https://us.i.posthog.com`, or the EU host. |
 | `POSTHOG_PERSONAL_API_KEY` | Worker secret | A personal API key with **Query: Read**, for the hero's count. A real credential: never commit it. |
 | `POSTHOG_PROJECT_ID` | Worker secret | The project's number (PostHog → Settings → Project). |
+| `NEXT_PUBLIC_DATABUDDY_CLIENT_ID` | Build variable, `.env.local` | The Databuddy website's Client ID. Public by design; inlined at build. Without it Databuddy is off and the CSP leaves its hosts out. |
 
 Set the two secrets with `npx wrangler secret put <NAME>`. The site sets no cookies, so the PostHog project needs **Cookieless tracking** switched on in its settings; without it, PostHog ignores the site's events. Those events carry no country: PostHog hashes the IP address before GeoIP runs.
 

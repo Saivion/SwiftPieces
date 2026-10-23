@@ -7,7 +7,7 @@ const CONTACT = "saivion@swiftpieces.com";
 export const metadata = {
   ...pageMetadata({
     title: "Privacy",
-    description: "swiftpieces.com has no accounts and sets no cookies. Playground remixes stay in your browser, and analytics keep nothing on your device. Accounts and purchases are handled on pro.swiftpieces.com under its own policy.",
+    description: "swiftpieces.com has no accounts and sets no cookies. Playground remixes stay in your browser, and analytics keep only a random visitor ID there. Accounts and purchases are handled on pro.swiftpieces.com under its own policy.",
     path: "/privacy",
   }),
   robots: { index: false, follow: true },
@@ -21,6 +21,7 @@ export default function PrivacyPage() {
 
       <h2>Analytics</h2>
       <p>We measure page views, clicks and Playground usage, such as which step of a recreation people reach, with PostHog, so we can see what people use and improve it. It sets no cookies and keeps nothing in your browser. PostHog turns your IP address into a hash that changes every day, so it can tell visits apart without keeping the address, and records general details such as your browser and device type. Playground events never include anything you build or type. If your browser sends Do Not Track or Global Privacy Control, nothing is recorded.</p>
+      <p>We also use Databuddy to measure page views, how fast pages load, errors, and clicks on links that leave the site. It sets no cookies either, but it keeps a random visitor ID in your browser&apos;s local storage and the current visit in session storage, so it can tell visits apart. Clearing your browser data removes both. Databuddy hashes that ID with a value that changes every day, doesn&apos;t keep your IP address, and records general details such as your browser, device type and approximate location. It also honors Do Not Track and Global Privacy Control. When an AI crawler reads the site, our server tells Databuddy which page it read and which crawler it was; requests from ordinary browsers are never part of that.</p>
 
       <h2>The Playground</h2>
       <p>Your remixes are saved in your own browser&apos;s storage and never reach our servers. Clearing your browser data removes them.</p>
