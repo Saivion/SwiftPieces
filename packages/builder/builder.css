@@ -442,7 +442,7 @@ button.spp-tree-row:hover { background: var(--spp-fill); }
 .spp-build-opt:hover:not(:disabled) { background: var(--spp-fill); }
 .spp-build-opt:active:not(:disabled) { transform: scale(.98); }
 .spp-build-opt:disabled { opacity: .5; cursor: default; }
-/* The Pro card: the host's artwork (Free's dithered field) behind it, clipped to the card, the text above. */
+/* The Pro card: the host's artwork (Free's grain stage) behind it, clipped to the card, the text above. */
 .spp-build-backdrop { position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none;
   /* Kept to the corner, clear of the words: fades out well before it reaches the text. */
   -webkit-mask-image: radial-gradient(48% 90% at 100% 100%, #000 20%, transparent 70%); mask-image: radial-gradient(48% 90% at 100% 100%, #000 20%, transparent 70%); }

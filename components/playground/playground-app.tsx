@@ -14,7 +14,7 @@ import { patternsCatalogSource } from "@swiftpieces/builder/catalog";
 import { Playground, type PlaygroundHost, BuildArt } from "@swiftpieces/builder/react";
 import type { SourceResolver } from "@swiftpieces/builder/export";
 import { LogoMark } from "@/components/ui/logo";
-import { CornerDither } from "@/components/visual/corner-dither";
+import { GrainStage } from "@/components/visual/grain-stage";
 import { apps, cdn, shotFor, type LibraryEntry } from "@/lib/apps";
 import { SCREEN_TAGS } from "@/lib/apps/screen-tags";
 import { capture, log } from "@/lib/analytics";
@@ -157,8 +157,8 @@ export default function PlaygroundApp({ page, project, onReady }: Props) {
       storageKey: "sp:play",
       back: { href: `/apps/${current.slug}`, label: current.name },
       brand: { href: "/", name: "SwiftPieces", mark: <LogoMark /> },
-      // The Build sheet shows the app itself, its screens in its own style, over Pro's animated halftone.
-      art: <BuildArt backdrop={<CornerDither />} />,
+      // The Build sheet shows the app itself, its screens in its own style, over a grain stage seeded by the app.
+      art: <BuildArt backdrop={<GrainStage seed={`build-${current.slug}`} />} />,
       crumbs: [{ label: "Apps", href: "/apps" }, { label: current.name, href: `/apps/${current.slug}` }, { label: current.pattern.title }],
       // The site's navbar sits above (app/(builder)/layout.tsx), like the docs; one panel on the left.
       layout: "docked",

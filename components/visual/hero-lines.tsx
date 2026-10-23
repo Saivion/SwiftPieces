@@ -4,7 +4,7 @@ import { createRibbon, type RibbonMessage } from "@/components/visual/hero-ribbo
 
 /**
  * The hero's ground: a ribbon of hairlines that rises from the bottom left and twists toward the top
- * right, with light surging along each line. Replaces the halftone Swift mark (hero-dither.tsx). The
+ * right, with light surging along each line. The
  * drawing itself is in hero-ribbon.ts.
  *
  * The ribbon is a family of curves around one centreline. Each line sits at its own offset across the

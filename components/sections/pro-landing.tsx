@@ -7,7 +7,7 @@ import { ProBadge } from "@/components/ui/pro-badge";
 import { pageLede } from "@/components/ui/section-header";
 import { RowLink, SectionHead, Tags, Glyph, band, cardTitle, heroTitle, sectionTitle, sectionBody } from "@/components/sections/feature-row";
 import { CountUp } from "@/components/ui/stat";
-import { DitherStage } from "@/components/visual/dither-stage";
+import { GrainStage } from "@/components/visual/grain-stage";
 import { Reveal, RevealGroup, RevealItem } from "@/components/effects/reveal";
 import { cn } from "@/lib/cn";
 import { pro } from "@/lib/site";
@@ -186,10 +186,10 @@ export function WhatYouGet() {
           {items.map((s) => (
             <RevealItem key={s.label}>
               <a href={buy} className="group flex h-full flex-col rounded-[26px] bg-surface p-1.5 transition-colors duration-200 hover:bg-surface-3">
-                {/* The same dithered Pro ground as Pro's library cards, seeded per card, on the inset panel.
-                    The count is ink on it in both themes (the ground is always light), so it is a fixed colour. */}
-                <div className="relative isolate flex h-[168px] flex-col justify-end overflow-hidden rounded-[20px] p-5 text-[#141414]">
-                  <DitherStage seed={`pro-page-${s.label}`} className="-z-10 transition-transform duration-700 ease-out group-hover:scale-[1.03]" />
+                {/* The same grain ground as Pro's library cards, seeded per card, on the inset panel.
+                    The count is white on it in both themes, as on the covers, so it is a fixed colour. */}
+                <div className="relative isolate flex h-[168px] flex-col justify-end overflow-hidden rounded-[20px] p-5 text-[#fff]">
+                  <GrainStage seed={`pro-page-${s.label}`} className="-z-10 transition-transform duration-700 ease-out group-hover:scale-[1.03]" />
                   <CountUp value={s.value} className="text-[56px] leading-[0.9] font-normal tracking-[-0.045em] tabular-nums" />
                 </div>
                 <div className="px-3.5 pt-5 pb-4">
@@ -271,11 +271,11 @@ export function TryFirst() {
         <RevealGroup className="grid gap-3 lg:grid-cols-3" stagger={0.1}>
           {cards.map((c, i) => (
             <RevealItem key={c.title} className="h-full">
-              {/* Graphite's library card: the same dithered ground as Pro's library cards on a panel inset in
+              {/* Graphite's library card: the same grain ground as Pro's library cards on a panel inset in
                   a tray, the device rising out of its bottom edge, the words under it. */}
               <div className="group flex h-full flex-col rounded-[26px] bg-surface p-1.5">
                 <a href={c.href} className="relative isolate block h-[260px] overflow-hidden rounded-[20px]" aria-label={`${c.title} in SwiftPieces Pro`}>
-                  <DitherStage seed={c.seed} className="-z-10 transition-transform duration-700 ease-out group-hover:scale-[1.03]" />
+                  <GrainStage seed={c.seed} className="-z-10 transition-transform duration-700 ease-out group-hover:scale-[1.03]" />
                   {c.kind === "flow" ? (
                     <div className="absolute inset-x-0 top-10 origin-top scale-[1.35] transition-transform duration-500 ease-out group-hover:-translate-y-1">
                       <FlowMock i={i + 2} />
@@ -306,7 +306,7 @@ export function TryFirst() {
                       <Mock kind={c.kind} i={i + 3} />
                     </div>
                   )}
-                  {/* Fixed black and white: it sits on the always-light dither, in both themes. */}
+                  {/* Fixed black and white: it sits on the grain, in both themes. */}
                   <span className="absolute top-3.5 left-3.5 inline-flex h-6 items-center rounded-full bg-[#000]/55 px-2.5 text-[11.5px] font-semibold text-[#fff] backdrop-blur-sm">{c.eyebrow}</span>
                 </a>
                 <div className="flex flex-1 flex-col px-4 pt-5 pb-4 sm:px-5">
