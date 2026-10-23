@@ -35,6 +35,7 @@ import { categories } from "../lib/categories";
 import { blockCategories, blockCategoryIds, blockPath, blockSlug, proBlocks, proBlockUrl, type BlockCategory } from "../lib/blocks";
 import { exploreProPages, proCatalog, proCountsLabel } from "../lib/pro-catalog";
 import { hubs, hubItems, hubPath } from "../lib/hubs";
+import { changelog, changelogPath } from "../lib/changelog";
 import { motionDrift } from "./sync-motion";
 import type { KnownPages } from "../lib/known-pages";
 import { SUMMARY_MAX, summaries } from "../registry/summaries";
@@ -557,13 +558,20 @@ function writeDocsIndex() {
   writeKnownPages(pages.map((p) => p.url));
 }
 
-/** registry/__registry__/known-pages.json: the URLs the docs and registry routes answer, for middleware.ts (lib/known-pages.ts). */
+/**
+ * registry/__registry__/known-pages.json: the URLs the docs and registry routes answer, for middleware.ts (lib/known-pages.ts).
+ * The changelog's pages are routes of their own beside the docs catch-all (app/docs/changelog), so they're added here:
+ * without them middleware sent /docs/changelog and every update's page to the not-found page.
+ */
 function writeKnownPages(urls: string[]) {
   const index = JSON.parse(readFileSync(join(OUT_DIR, "index.json"), "utf8")) as { name: string; slug: string }[];
   const blockIndex = JSON.parse(readFileSync(join(OUT_DIR, "blocks.json"), "utf8")) as { name: string; slug: string }[];
-  const docs = urls.map((u) => u.replace(/^\/docs\/?/, ""));
+  const docSlug = (u: string) => u.replace(/^\/docs\/?/, "");
+  const docs = urls.map(docSlug);
+  const changelogPages = [changelogPath(), ...changelog.map((e) => changelogPath(e.slug))].map(docSlug);
   const known: KnownPages = {
-    docs,
+    docs: [...docs, ...changelogPages],
+    // From the catch-all's pages only: an older /docs/<section>/<piece> URL never meant the changelog.
     docsSections: [...new Set(docs.flatMap((d) => d.split("/").slice(0, -1)))],
     registry: [...new Set(["index", ...index.flatMap((i) => [i.name, i.slug]), ...blockIndex.flatMap((b) => [b.name, b.slug])])],
     pieces: [...new Set(index.flatMap((i) => [i.name, i.slug]))],

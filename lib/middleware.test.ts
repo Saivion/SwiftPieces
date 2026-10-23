@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import { after, before, describe, it } from "node:test";
-import { NextRequest } from "next/server";
+import { NextRequest, type NextFetchEvent } from "next/server";
 import middleware from "../middleware";
+import { changelog, changelogPath } from "./changelog";
 
 /**
  * On Cloudflare the middleware runs for every page: OpenNext matches it by each matcher's path regexp
@@ -78,5 +79,69 @@ describe("middleware unknown pages", () => {
     const res = await middleware(request("/docs/introduction"));
     assert.equal(res.headers.get("x-middleware-rewrite"), null);
     assert.equal(res.headers.get("x-middleware-next"), "1");
+  });
+
+  // The changelog's routes sit beside the docs catch-all, and were sent to the not-found page until
+  // the manifest listed them (2026-10-23).
+  it("lets the changelog and every update's page through", async () => {
+    for (const path of [changelogPath(), ...changelog.map((e) => changelogPath(e.slug))]) {
+      const res = await middleware(request(path));
+      assert.equal(res.headers.get("x-middleware-rewrite"), null, `${path} went to the not-found page`);
+      assert.equal(res.headers.get("x-middleware-next"), "1", `${path} did not pass through`);
+    }
+  });
+
+  it("still sends a made-up changelog update to the not-found page", async () => {
+    for (const path of ["/docs/changelog/no-such-update-zz", "/docs/changelog/ParallaxCard"]) {
+      const res = await middleware(request(path));
+      assert.match(res.headers.get("x-middleware-rewrite") ?? "", /\/_unknown-page$/, path);
+    }
+  });
+});
+
+describe("middleware AI agent reports", () => {
+  const GPTBOT = "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko); compatible; GPTBot/1.2; +https://openai.com/gptbot";
+  const SAFARI = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15";
+  const realFetch = globalThis.fetch;
+  let sent: { url: string; body: Record<string, unknown> }[] = [];
+
+  before(() => {
+    process.env.NEXT_PUBLIC_DATABUDDY_CLIENT_ID = "test-website";
+    globalThis.fetch = (async (url: string, init?: RequestInit) => {
+      sent.push({ url: String(url), body: JSON.parse(String(init?.body)) });
+      return new Response(null, { status: 200 });
+    }) as typeof fetch;
+  });
+  after(() => {
+    delete process.env.NEXT_PUBLIC_DATABUDDY_CLIENT_ID;
+    globalThis.fetch = realFetch;
+  });
+
+  /** Runs the middleware with an event, then waits for what it handed to waitUntil. */
+  async function run(req: NextRequest) {
+    sent = [];
+    const pending: Promise<unknown>[] = [];
+    const res = await middleware(req, { waitUntil: (p: Promise<unknown>) => pending.push(p) } as unknown as NextFetchEvent);
+    await Promise.all(pending);
+    return res;
+  }
+
+  it("reports a crawler's read of a page and of llms.txt, after passing the request through", async () => {
+    const page = await run(request("/docs/introduction", { headers: { "user-agent": GPTBOT } }));
+    assert.equal(page.headers.get("x-middleware-next"), "1");
+    assert.equal(sent.length, 1);
+    assert.equal(sent[0].url, "https://basket.databuddy.cc/ai-traffic");
+    assert.equal(sent[0].body.websiteId, "test-website");
+    assert.equal(sent[0].body.path, "/docs/introduction");
+
+    await run(request("/llms.txt", { headers: { "user-agent": GPTBOT } }));
+    assert.equal(sent[0].body.format, "llms");
+  });
+
+  it("sends nothing for a browser, or from a host other than swiftpieces.com", async () => {
+    await run(request("/apps", { headers: { "user-agent": SAFARI } }));
+    assert.equal(sent.length, 0);
+    await run(new NextRequest("https://swiftpieces-preview.workers.dev/apps", { headers: { "user-agent": GPTBOT } }));
+    assert.equal(sent.length, 0);
   });
 });

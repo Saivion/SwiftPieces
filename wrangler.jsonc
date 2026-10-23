@@ -4,7 +4,9 @@
   "main": ".open-next/worker.js",
   "compatibility_date": "2026-09-13",
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
-  "assets": { "directory": ".open-next/assets", "binding": "ASSETS" },
+  // Static files skip the Worker, except these two: AI tools fetch them most, and middleware.ts reports
+  // AI agents' reads to Databuddy. OpenNext still serves them from ASSETS, after the middleware.
+  "assets": { "directory": ".open-next/assets", "binding": "ASSETS", "run_worker_first": ["/llms.txt", "/llms-full.txt"] },
   "observability": { "enabled": true },
   "services": [{ "binding": "WORKER_SELF_REFERENCE", "service": "swiftpieces" }],
   // Per-IP budgets per minute for the API.

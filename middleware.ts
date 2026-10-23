@@ -1,19 +1,21 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { NextResponse, type NextFetchEvent, type NextRequest } from "next/server";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { trackAgents } from "@databuddy/sdk/agents";
 import { isKnownPage, knownPageSets, type KnownPages } from "@/lib/known-pages";
+import { site } from "@/lib/site";
 import knownPagesManifest from "@/registry/__registry__/known-pages.json";
 
 /**
- * Per-IP request budgets for the API. Pages are only touched by the Server Action guard and the
- * unknown-page check below: the matcher admits `/api`, the CLI's `/r` registry paths, `/docs`, and
- * page POSTs shaped like a Server Action.
+ * Per-IP request budgets for the API. Pages are only touched by the Server Action guard, the
+ * unknown-page check and the AI agent report below. The matcher admits every path but Next's own.
  *
- * On Cloudflare the matcher admits every page, though: OpenNext matches middleware by each matcher's
- * path regexp alone and drops `has` conditions (@opennextjs/aws core/routing/util.js,
- * getMiddlewareMatch), so the Server Action entries below match every page view, client navigation
- * and link prefetch. The budgets and the body cap therefore check the path themselves (`isApiPath`)
- * and never see a page: a page counted against the API's 60 a minute, and browsing /apps (a prefetch
- * per app link) answered the next click with a 429 (2026-10-20).
+ * It used to admit only `/api`, the CLI's `/r` registry paths, `/docs`, and page POSTs shaped like a
+ * Server Action (`has` conditions). OpenNext matches middleware by each matcher's path regexp alone
+ * and drops `has` (@opennextjs/aws core/routing/util.js, getMiddlewareMatch), so on Cloudflare it ran
+ * for every page view, client navigation and link prefetch anyway. The budgets and the body cap
+ * therefore check the path themselves (`isApiPath`) and never see a page: a page counted against the
+ * API's 60 a minute, and browsing /apps (a prefetch per app link) answered the next click with a 429
+ * (2026-10-20).
  *
  *   - A budget per minute. Search gets a larger one because the docs search box queries as you
  *     type. The view counter's write path has its own limit in its route.
@@ -90,7 +92,20 @@ function unknownPage(req: NextRequest): "page" | "registry" | null {
   return path.startsWith("/docs") ? "page" : "registry";
 }
 
-export default async function middleware(req: NextRequest) {
+/**
+ * AI crawlers and coding agents (GPTBot, ClaudeBot, Claude Code) never run Databuddy's script, so their
+ * reads are reported from here, for its AI Agents page. Only a request from a known agent sends
+ * anything, after the response, and a failure is silent (@databuddy/sdk/agents). swiftpieces.com only,
+ * like the script (lib/analytics.ts).
+ */
+function reportAgent(req: NextRequest, event: NextFetchEvent | undefined) {
+  const websiteId = process.env.NEXT_PUBLIC_DATABUDDY_CLIENT_ID;
+  if (!websiteId || !event || req.nextUrl.hostname !== new URL(site.url).hostname) return;
+  event.waitUntil(trackAgents(req, { websiteId }));
+}
+
+export default async function middleware(req: NextRequest, event?: NextFetchEvent) {
+  reportAgent(req, event);
   const unknown = unknownPage(req);
   if (unknown === "page") return NextResponse.rewrite(new URL(NOT_FOUND_PATH, req.url), { headers: noStore });
   if (unknown === "registry") return new NextResponse("Not found", { status: 404, headers: { ...noStore, "Access-Control-Allow-Origin": "*" } });
@@ -111,17 +126,10 @@ export default async function middleware(req: NextRequest) {
   return NextResponse.next();
 }
 
-// Next reads the matcher statically, so it stays literal. `/docs` is listed for the unknown-page
-// check, which must run under `next start` too. The `has` entries are meant to admit only
-// Server Action-shaped requests, and do under `next start`; OpenNext ignores `has`, so on Cloudflare
-// every page runs middleware and leaves it at `isApiPath`.
+// Next reads the matcher statically, so it stays literal. Every path but Next's own assets, because
+// the AI agent report wants every read. That was already true on Cloudflare (see the note at the
+// top); now `next start` agrees. llms.txt and llms-full.txt are static files: they reach the Worker,
+// and so this middleware, only because wrangler.jsonc lists them in `run_worker_first`.
 export const config = {
-  matcher: [
-    "/api/:path*",
-    "/r/:path*",
-    "/docs/:path*",
-    { source: "/((?!_next/|api/|r/).*)", has: [{ type: "header", key: "next-action" }] },
-    { source: "/((?!_next/|api/|r/).*)", has: [{ type: "header", key: "content-type", value: "application/x-www-form-urlencoded.*" }] },
-    { source: "/((?!_next/|api/|r/).*)", has: [{ type: "header", key: "content-type", value: "multipart/form-data.*" }] },
-  ],
+  matcher: ["/((?!_next/).*)"],
 };
