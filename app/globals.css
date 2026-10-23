@@ -283,13 +283,14 @@
 html.promo-off { --promo-h: 0px; }
 html.promo-off .promo-slot { display: none; }
 
+/* The slot owns the height, so tucking it away frees the space: the condensed pill then sits at the
+   top of the window, not 40px down where the bar was. */
 .promo-slot {
-  display: grid; grid-template-rows: 1fr;
-  transition: grid-template-rows .5s var(--ease-out), opacity .35s var(--ease-out);
+  height: 40px; overflow: hidden;
+  transition: height .5s var(--ease-out), opacity .35s var(--ease-out);
 }
 /* Scrolled (the navbar condenses into its pill) or with the phone menu open, the bar tucks away. */
-.promo-slot[data-hidden] { grid-template-rows: 0fr; opacity: 0; }
-.promo-slot > .promo-bar { min-height: 0; }
+.promo-slot[data-hidden] { height: 0; opacity: 0; }
 
 .promo-bar {
   --pearl-a: #ffd3ea; --pearl-b: #ddd6ff; --pearl-c: #d3e6ff; --pearl-d: #fff0c9;
