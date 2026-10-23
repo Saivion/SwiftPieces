@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { after, before, describe, it } from "node:test";
 import { NextRequest, type NextFetchEvent } from "next/server";
 import middleware from "../middleware";
+import { changelog, changelogPath } from "./changelog";
 
 /**
  * On Cloudflare the middleware runs for every page: OpenNext matches it by each matcher's path regexp
@@ -80,6 +81,22 @@ describe("middleware unknown pages", () => {
     assert.equal(res.headers.get("x-middleware-next"), "1");
   });
 
+  // The changelog's routes sit beside the docs catch-all, and were sent to the not-found page until
+  // the manifest listed them (2026-10-23).
+  it("lets the changelog and every update's page through", async () => {
+    for (const path of [changelogPath(), ...changelog.map((e) => changelogPath(e.slug))]) {
+      const res = await middleware(request(path));
+      assert.equal(res.headers.get("x-middleware-rewrite"), null, `${path} went to the not-found page`);
+      assert.equal(res.headers.get("x-middleware-next"), "1", `${path} did not pass through`);
+    }
+  });
+
+  it("still sends a made-up changelog update to the not-found page", async () => {
+    for (const path of ["/docs/changelog/no-such-update-zz", "/docs/changelog/ParallaxCard"]) {
+      const res = await middleware(request(path));
+      assert.match(res.headers.get("x-middleware-rewrite") ?? "", /\/_unknown-page$/, path);
+    }
+  });
 });
 
 describe("middleware AI agent reports", () => {
