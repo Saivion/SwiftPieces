@@ -186,7 +186,7 @@ export function WhatYouGet() {
           {items.map((s) => (
             <RevealItem key={s.label}>
               <a href={buy} className="group flex h-full flex-col rounded-[26px] bg-surface p-1.5 transition-colors duration-200 hover:bg-surface-3">
-                {/* The same grain ground as Pro's library cards, seeded per card, on the inset panel.
+                {/* Free shows Pro's work on the signature grain, seeded per card, on the inset panel.
                     The count is white on it in both themes, as on the covers, so it is a fixed colour. */}
                 <div className="relative isolate flex h-[168px] flex-col justify-end overflow-hidden rounded-[20px] p-5 text-[#fff]">
                   <GrainStage seed={`pro-page-${s.label}`} className="-z-10 transition-transform duration-700 ease-out group-hover:scale-[1.03]" />
@@ -271,7 +271,7 @@ export function TryFirst() {
         <RevealGroup className="grid gap-3 lg:grid-cols-3" stagger={0.1}>
           {cards.map((c, i) => (
             <RevealItem key={c.title} className="h-full">
-              {/* Graphite's library card: the same grain ground as Pro's library cards on a panel inset in
+              {/* Graphite's library card: the signature grain ground as Pro's library cards on a panel inset in
                   a tray, the device rising out of its bottom edge, the words under it. */}
               <div className="group flex h-full flex-col rounded-[26px] bg-surface p-1.5">
                 <a href={c.href} className="relative isolate block h-[260px] overflow-hidden rounded-[20px]" aria-label={`${c.title} in SwiftPieces Pro`}>

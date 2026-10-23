@@ -1,62 +1,66 @@
 /**
- * The grain stage: four to six blurred colour fields, light and cool on top, dark and warm below,
- * under a 1px grey grain that shows in the light areas and fades in the dark ones, with an optional
- * fine white line layer (rays, contours, waves, dots, lenses). Every stage is seeded: the seed picks
- * a family, nudges its fields, and picks and places the line layer, so no two stages match.
+ * The grain stage: soft colour fields in a SwiftPieces palette, light on top and deep below, under a
+ * 1px grey grain that shows in the light areas and fades in the dark ones, with a fine white line
+ * motif. Each kind of thing in the library has its own palette and motif, so every screen card reads
+ * as a screen and every flow as a flow; the seed moves the fields, tilts the light and places the
+ * motif, so no two stages match.
  *
  * Shared with SwiftPiecesPro (lib/brand/grain.ts). Keep the two in step.
  */
 
-export type GrainFamily = "teardowns" | "builders" | "workflow" | "notes" | "latenight" | "public";
-export type GrainLines = "none" | "rays" | "contours" | "waves" | "dots" | "lenses";
+export type GrainKind = "screen" | "flow" | "template" | "kit" | "brand";
 
 type Stop = readonly [at: number, color: string];
 type Blob = readonly [x: number, y: number, radius: number, color: string];
 
-/** Each family uses neighbouring hues only: a vertical base, then soft fields laid over it. */
-const FAMILIES: Record<GrainFamily, { base: readonly Stop[]; blobs: readonly Blob[] }> = {
-  teardowns: {
-    base: [[0, "#97a3db"], [0.42, "#b58dc4"], [0.64, "#d8714c"], [1, "#e0a24c"]],
-    blobs: [[0.1, 0.12, 0.42, "#7f97e2"], [0.86, 0.22, 0.4, "#d590c4"], [0.5, 0.42, 0.32, "#a983bd"], [0.08, 0.84, 0.38, "#dc583a"], [0.55, 0.98, 0.42, "#f2b847"], [0.96, 0.86, 0.34, "#d97b5c"]],
+/**
+ * Palettes built from the brand's red, orange, pink and blue, each kept to neighbouring hues:
+ * a vertical base, then soft fields laid over it.
+ */
+const PALETTES: Record<GrainKind, { base: readonly Stop[]; blobs: readonly Blob[] }> = {
+  // Screens, "Ember": blush to the brand red to wine.
+  screen: {
+    base: [[0, "#fff1ef"], [0.34, "#ffbdb5"], [0.58, "#ff5148"], [0.8, "#c8101e"], [1, "#2c0308"]],
+    blobs: [[0.2, 0.1, 0.4, "#ffe6e2"], [0.86, 0.34, 0.3, "#ff8f86"], [0.14, 0.68, 0.34, "#ff2a2a"], [0.7, 0.98, 0.42, "#3d0410"], [0.58, 0.52, 0.24, "#ff6b5e"]],
   },
-  builders: {
-    base: [[0, "#8aa0ad"], [0.38, "#a2a7a2"], [0.56, "#ddb07a"], [0.76, "#a8502a"], [1, "#1a0d0a"]],
-    blobs: [[0.12, 0.56, 0.34, "#f1ce8e"], [0.88, 0.6, 0.34, "#e0772f"], [0.5, 1.04, 0.42, "#140807"], [0.6, 0.08, 0.5, "#8399a8"], [0.3, 0.3, 0.3, "#9fa9a8"]],
+  // Flows, "Tide": ice to the brand blue to midnight.
+  flow: {
+    base: [[0, "#eef3ff"], [0.34, "#b9cdff"], [0.58, "#4d8dff"], [0.8, "#1f3fa8"], [1, "#070d2b"]],
+    blobs: [[0.86, 0.12, 0.4, "#e2eaff"], [0.12, 0.44, 0.3, "#8fb3ff"], [0.82, 0.62, 0.3, "#3a6cf0"], [0.3, 0.98, 0.42, "#050a24"], [0.56, 0.38, 0.22, "#a9a7ff"]],
   },
-  workflow: {
-    base: [[0, "#dfe3e7"], [0.34, "#b8cec5"], [0.6, "#3f7377"], [1, "#132834"]],
-    blobs: [[0.08, 0.46, 0.34, "#8dc3a6"], [0.5, 0.04, 0.46, "#e7e9ee"], [0.88, 0.56, 0.34, "#506a6f"], [0.28, 0.96, 0.4, "#0e202e"], [0.86, 0.92, 0.36, "#28495a"]],
+  // Templates, "Dusk": blush to the brand pink to violet to plum.
+  template: {
+    base: [[0, "#fff0f6"], [0.34, "#ffc2da"], [0.58, "#e07ad0"], [0.8, "#6b33c9"], [1, "#170a36"]],
+    blobs: [[0.16, 0.14, 0.4, "#ffe3ee"], [0.86, 0.4, 0.32, "#ff8fb8"], [0.2, 0.7, 0.32, "#a14fe0"], [0.76, 0.98, 0.42, "#12082c"], [0.54, 0.55, 0.24, "#ff9fd0"]],
   },
-  notes: {
-    base: [[0, "#cfd8dd"], [0.34, "#adbc9c"], [0.6, "#7a9050"], [1, "#1d2c15"]],
-    blobs: [[0.14, 0.52, 0.34, "#b6c27b"], [0.86, 0.1, 0.4, "#d9e1e7"], [0.8, 0.64, 0.34, "#5b7937"], [0.4, 1.02, 0.42, "#141f0e"]],
+  // Build Kit, "Flare": cream to the brand orange to ember.
+  kit: {
+    base: [[0, "#fff6ec"], [0.34, "#ffd9b0"], [0.58, "#ff9a4a"], [0.8, "#e0561c"], [1, "#3a1205"]],
+    blobs: [[0.8, 0.12, 0.4, "#fff0dc"], [0.16, 0.42, 0.3, "#ffc47a"], [0.8, 0.68, 0.3, "#ff7a3c"], [0.34, 0.98, 0.42, "#2e0d04"], [0.5, 0.55, 0.22, "#ffb067"]],
   },
-  latenight: {
-    base: [[0, "#aa9bd8"], [0.4, "#9884c6"], [0.7, "#4c2878"], [1, "#1d1036"]],
-    blobs: [[0.8, 0.42, 0.28, "#e297c9"], [0.14, 0.14, 0.4, "#b8aae2"], [0.24, 0.76, 0.34, "#5a2c88"], [0.62, 0.94, 0.4, "#160a2b"], [0.56, 0.56, 0.24, "#c07ab9"]],
-  },
-  public: {
-    base: [[0, "#dfe2e7"], [0.34, "#e8cfb2"], [0.56, "#df895a"], [0.8, "#c64f2d"], [1, "#6c2318"]],
-    blobs: [[0.86, 0.4, 0.34, "#f5d1a2"], [0.14, 0.56, 0.3, "#e69f79"], [0.4, 0.76, 0.38, "#cf562d"], [0.86, 0.96, 0.34, "#7a281b"], [0.2, 0.08, 0.4, "#e4e7eb"]],
+  // Everything else, "Signature": the whole brand sweep, honeydew and blue haze over pink, orange, red.
+  brand: {
+    base: [[0, "#fdeef3"], [0.32, "#ffc1d6"], [0.56, "#ff8a5c"], [0.8, "#f2361c"], [1, "#4a0a08"]],
+    blobs: [[0.14, 0.1, 0.4, "#cfdcff"], [0.86, 0.3, 0.34, "#ff8fb8"], [0.2, 0.62, 0.32, "#ff7a3c"], [0.8, 0.82, 0.34, "#ff2a12"], [0.46, 1.02, 0.4, "#3a0606"]],
   },
 };
 
-export const GRAIN_FAMILIES = Object.keys(FAMILIES) as GrainFamily[];
-const LINES: GrainLines[] = ["rays", "contours", "waves", "dots", "lenses", "none"];
+export const GRAIN_KINDS = Object.keys(PALETTES) as GrainKind[];
 
 export type GrainSpec = {
-  family: GrainFamily;
-  lines: GrainLines;
-  /** A CSS colour for the canvas until it paints: the family's middle tone. */
+  kind: GrainKind;
+  /** Draw the kind's white line motif. */
+  lines: boolean;
+  /** A CSS colour for the canvas until it paints: the palette's middle tone. */
   fallback: string;
-  /** Seeded 0..1 values the paint reads: field nudges, warp phase, line placement. */
+  /** Seeds the field nudges, the light's tilt, the motif's placement and the grain. */
   seed: number;
 };
 
 function hash(s: string) {
   let h = 2166136261;
   for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 16777619);
-  // FNV alone leaves similar seeds ("kit-a", "kit-b") sharing low bits; mix them so families spread.
+  // FNV alone leaves similar seeds ("kit-a", "kit-b") sharing low bits; mix them so stages spread.
   h ^= h >>> 16;
   h = Math.imul(h, 0x85ebca6b);
   h ^= h >>> 13;
@@ -77,18 +81,14 @@ function rng(seed: number) {
   };
 }
 
-/** Stable recipe for a seed. `family` and `lines` override what the seed would pick. */
-export function grainSpec(seed: string, opts: { family?: GrainFamily; lines?: GrainLines | false } = {}): GrainSpec {
-  const n = hash(seed);
-  const family = opts.family ?? GRAIN_FAMILIES[n % GRAIN_FAMILIES.length] ?? "teardowns";
-  // Different bits from the family's, so every family meets every line layer.
-  const lines = opts.lines === false ? "none" : (opts.lines ?? LINES[(n >>> 8) % LINES.length] ?? "none");
-  const base = FAMILIES[family].base;
+/** Stable recipe for a seed on a kind of stage. */
+export function grainSpec(seed: string, kind: GrainKind = "brand", lines = true): GrainSpec {
+  const base = PALETTES[kind].base;
   const mid = base[Math.floor(base.length / 2)];
-  return { family, lines, fallback: mid ? mid[1] : "#888", seed: hash(`${seed}:grain`) };
+  return { kind, lines, fallback: mid ? mid[1] : "#888", seed: hash(`${kind}:${seed}`) };
 }
 
-/* ---------- colour (OKLab, so blends stay clean) ---------- */
+/* ---------- colour (mixed in linear light: smooth, and it never leaves the gamut) ---------- */
 
 type Lab = [number, number, number];
 
@@ -104,35 +104,22 @@ function linToSrgb(x: number) {
 
 function toLab(hex: string): Lab {
   const n = Number.parseInt(hex.slice(1), 16);
-  const r = srgbToLin((n >> 16) & 255);
-  const g = srgbToLin((n >> 8) & 255);
-  const b = srgbToLin(n & 255);
-  const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b);
-  const m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b);
-  const s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);
-  return [
-    0.2104542553 * l + 0.793617785 * m - 0.0040720468 * s,
-    1.9779984951 * l - 2.428592205 * m + 0.4505937099 * s,
-    0.0259040371 * l + 0.7827717662 * m - 0.808675766 * s,
-  ];
+  return [srgbToLin((n >> 16) & 255), srgbToLin((n >> 8) & 255), srgbToLin(n & 255)];
 }
 
-function fromLab(L: number, A: number, B: number, out: number[], o: number) {
-  const l = (L + 0.3963377774 * A + 0.2158037573 * B) ** 3;
-  const m = (L - 0.1055613458 * A - 0.0638541728 * B) ** 3;
-  const s = (L - 0.0894841775 * A - 1.291485548 * B) ** 3;
-  out[o] = linToSrgb(4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s);
-  out[o + 1] = linToSrgb(-1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s);
-  out[o + 2] = linToSrgb(-0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s);
+function fromLab(L: number, A: number, B: number, out: number[]) {
+  out[0] = linToSrgb(L);
+  out[1] = linToSrgb(A);
+  out[2] = linToSrgb(B);
 }
 
-const LABS = new Map<GrainFamily, { base: Array<[number, Lab]>; blobs: Array<[number, number, number, Lab]> }>();
-function labs(family: GrainFamily) {
-  let f = LABS.get(family);
+const LABS = new Map<GrainKind, { base: Array<[number, Lab]>; blobs: Array<[number, number, number, Lab]> }>();
+function labs(kind: GrainKind) {
+  let f = LABS.get(kind);
   if (!f) {
-    const src = FAMILIES[family];
+    const src = PALETTES[kind];
     f = { base: src.base.map(([t, c]) => [t, toLab(c)]), blobs: src.blobs.map(([x, y, r, c]) => [x, y, r, toLab(c)]) };
-    LABS.set(family, f);
+    LABS.set(kind, f);
   }
   return f;
 }
@@ -150,13 +137,19 @@ export function paintGrain(canvas: HTMLCanvasElement, width: number, height: num
   const H = Math.max(1, Math.round(height * dpr));
   if (canvas.width !== W) canvas.width = W;
   if (canvas.height !== H) canvas.height = H;
-  const ctx = canvas.getContext("2d", { alpha: false });
+  // Read back once for the grain; a CPU-backed canvas makes that cheap.
+  const ctx = canvas.getContext("2d", { alpha: false, willReadFrequently: true });
   if (!ctx) return;
 
   const r = rng(spec.seed);
-  const f = labs(spec.family);
-  // The seed's own version of the family: every field nudged, resized, and the warp phased.
-  const blobs = f.blobs.map(([x, y, rad, c]) => [x + (r() - 0.5) * 0.22, y + (r() - 0.5) * 0.1, rad * (0.85 + r() * 0.3), c] as const);
+  const f = labs(spec.kind);
+  // The seed's own take on the palette: the composition maybe mirrored, every field nudged and
+  // resized, the light tilted a little off vertical, the warp phased.
+  const mirror = r() < 0.5;
+  const blobs = f.blobs.map(([x, y, rad, c]) => [(mirror ? 1 - x : x) + (r() - 0.5) * 0.24, y + (r() - 0.5) * 0.12, rad * (0.85 + r() * 0.3), c] as const);
+  const tilt = (r() - 0.5) * 0.4;
+  const cos = Math.cos(tilt);
+  const sin = Math.sin(tilt);
   const phase = r() * Math.PI * 2;
 
   // 1. The colour field, coarse.
@@ -182,12 +175,14 @@ export function paintGrain(canvas: HTMLCanvasElement, width: number, height: num
       // A gentle warp, so no field reads as a circle.
       const wx = nx + 0.035 * Math.sin(ny * 5.1 + phase);
       const wy = ny + 0.03 * Math.sin(nx * 4.3 + phase * 0.7) + 0.02 * Math.sin((nx + ny) * 7 + phase);
+      // Light falls along the tilted vertical.
+      const v = 0.5 + (wy - 0.5) * cos + (wx - 0.5) * sin;
       let k = 0;
-      while (k < base.length - 2 && wy > (base[k + 1]?.[0] ?? 1)) k++;
+      while (k < base.length - 2 && v > (base[k + 1]?.[0] ?? 1)) k++;
       const a = base[k];
       const b = base[k + 1] ?? a;
       if (!a || !b) continue;
-      let t = b[0] === a[0] ? 0 : (wy - a[0]) / (b[0] - a[0]);
+      let t = b[0] === a[0] ? 0 : (v - a[0]) / (b[0] - a[0]);
       t = t < 0 ? 0 : t > 1 ? 1 : t;
       t = t * t * (3 - 2 * t);
       let L = a[1][0] + (b[1][0] - a[1][0]) * t;
@@ -202,7 +197,7 @@ export function paintGrain(canvas: HTMLCanvasElement, width: number, height: num
         A += (c[1] - A) * w;
         B += (c[2] - B) * w;
       }
-      fromLab(L, A, B, rgb, 0);
+      fromLab(L, A, B, rgb);
       const o = (y * fw + x) * 4;
       px[o] = rgb[0] ?? 0;
       px[o + 1] = rgb[1] ?? 0;
@@ -238,114 +233,141 @@ export function paintGrain(canvas: HTMLCanvasElement, width: number, height: num
   }
   ctx.putImageData(out, 0, 0);
 
-  // 3. The line layer.
-  if (spec.lines !== "none") drawLines(ctx, W, H, dpr, spec.lines, r);
+  // 3. The kind's line motif.
+  if (spec.lines) {
+    ctx.save();
+    ctx.strokeStyle = "#fff";
+    ctx.fillStyle = "#fff";
+    ctx.lineWidth = 0.75 * dpr;
+    ctx.lineJoin = "round";
+    MOTIFS[spec.kind](ctx, W, H, dpr, r);
+    ctx.restore();
+  }
 }
 
-function drawLines(ctx: CanvasRenderingContext2D, W: number, H: number, dpr: number, kind: GrainLines, r: () => number) {
-  // One unit for every layer, so a wide strip and a square get lines at the same spacing.
-  const U = Math.max(W, H);
-  ctx.save();
-  ctx.strokeStyle = "#fff";
-  ctx.fillStyle = "#fff";
-  ctx.lineWidth = 0.75 * dpr;
-  ctx.lineJoin = "round";
+type Motif = (ctx: CanvasRenderingContext2D, W: number, H: number, dpr: number, r: () => number) => void;
 
-  if (kind === "rays") {
-    const cx = W * (0.35 + r() * 0.3);
-    const cy = H * (0.5 + r() * 0.2);
-    const n = 96 + Math.floor(r() * 40);
-    const freq = 13 + r() * 6;
-    const fade = ctx.createRadialGradient(cx, cy, U * 0.06, cx, cy, U * 0.4);
-    fade.addColorStop(0, "rgba(255,255,255,0)");
-    fade.addColorStop(1, "rgba(255,255,255,0.32)");
-    ctx.strokeStyle = fade;
+const clamp01 = (n: number) => (n < 0 ? 0 : n > 1 ? 1 : n);
+
+const MOTIFS: Record<GrainKind, Motif> = {
+  /** Screens: phone outlines nested outward from a point, like a device echoing into the ground. */
+  screen(ctx, W, H, _dpr, r) {
+    const U = Math.max(W, H);
+    const cx = W * (0.36 + r() * 0.28);
+    const cy = H * (0.45 + r() * 0.25);
+    const step = U * (0.05 + r() * 0.015);
+    for (let k = 2; k < 16; k++) {
+      const h = step * k * 1.6;
+      const w = h * 0.49;
+      ctx.globalAlpha = 0.34 * (1 - k / 16);
+      ctx.beginPath();
+      ctx.roundRect(cx - w / 2, cy - h / 2, w, h, w * 0.24);
+      ctx.stroke();
+    }
+  },
+
+  /** Flows: a ribbon of threads that twists across the stage, one step leading to the next. */
+  flow(ctx, W, H, _dpr, r) {
+    const n = 26;
+    const y0 = H * (0.75 + r() * 0.25);
+    const y1 = H * (0.05 + r() * 0.25);
+    const bend = H * (r() - 0.5) * 0.5;
+    const span = Math.min(W, H) * (0.7 + r() * 0.3);
+    const twist = Math.PI * (0.9 + r() * 0.8);
+    const phase = r() * Math.PI * 2;
     for (let i = 0; i < n; i++) {
-      const th = (i / n) * Math.PI * 2;
+      const o = i / (n - 1) - 0.5;
+      ctx.globalAlpha = 0.14 + 0.2 * (1 - Math.abs(o) * 2);
       ctx.beginPath();
-      for (let s = 0; s <= 60; s++) {
-        const rr = U * (0.06 + s * 0.016);
-        const ang = th + 0.035 * Math.sin((rr / U) * freq + i * 0.45);
-        const x = cx + Math.cos(ang) * rr;
-        const y = cy + Math.sin(ang) * rr * 0.92;
+      for (let s = 0; s <= 90; s++) {
+        const t = s / 90;
+        const x = -0.1 * W + t * 1.2 * W;
+        const yc = y0 + (y1 - y0) * t + bend * Math.sin(t * Math.PI);
+        const off = o * span * (0.58 + 0.42 * Math.cos(t * twist + phase)) * (0.55 + 0.45 * Math.sin(t * Math.PI));
+        const y = yc + off;
         if (s) ctx.lineTo(x, y);
         else ctx.moveTo(x, y);
       }
       ctx.stroke();
     }
-  } else if (kind === "contours") {
-    const cx = W * (0.35 + r() * 0.3);
-    const cy = H * (0.5 + r() * 0.25);
-    const lobes = 2 + Math.floor(r() * 3);
-    for (let k = 0; k < 52; k++) {
-      const R = U * (0.04 + k * 0.022);
-      ctx.beginPath();
-      for (let s = 0; s <= 140; s++) {
-        const th = (s / 140) * Math.PI * 2;
-        const rr = R * (1 + 0.035 * Math.sin(th * lobes + k * 0.35) + 0.02 * Math.sin(th * 5 - k * 0.2));
-        const x = cx + Math.cos(th) * rr * 1.08;
-        const y = cy + Math.sin(th) * rr * 0.86;
-        if (s) ctx.lineTo(x, y);
-        else ctx.moveTo(x, y);
-      }
-      ctx.globalAlpha = 0.16 + Math.min(0.2, k * 0.006);
-      ctx.stroke();
-    }
-  } else if (kind === "waves") {
-    const gap = U / (28 + r() * 8);
-    const f1 = 7 + r() * 4;
-    const f2 = 15 + r() * 5;
-    const p = r() * 6.28;
-    const n = Math.ceil(H / gap) + 2;
-    for (let i = 0; i < n; i++) {
-      const y0 = (i - 0.5) * gap;
-      const amp = gap * (0.3 + 0.6 * Math.abs(Math.sin(i * 0.37 + p)));
-      ctx.beginPath();
-      for (let s = 0; s <= 120; s++) {
-        const x = (s / 120) * W;
-        const u = x / U;
-        const y = y0 + amp * Math.sin(u * f1 + i * 0.55 + p) + amp * 0.6 * Math.sin(u * f2 - i * 0.3);
-        if (s) ctx.lineTo(x, y);
-        else ctx.moveTo(x, y);
-      }
-      ctx.globalAlpha = 0.22 + 0.18 * (i / n);
-      ctx.stroke();
-    }
-  } else if (kind === "dots") {
-    const step = U / (20 + Math.floor(r() * 8));
-    const ox = r() * step;
-    const oy = r() * step;
-    ctx.globalAlpha = 0.5;
-    for (let y = oy; y < H; y += step) {
-      for (let x = ox; x < W; x += step) {
+  },
+
+  /** Templates: a home screen's icon grid, fading out from a bright spot. */
+  template(ctx, W, H, _dpr, r) {
+    const U = Math.max(W, H);
+    const pitch = U / (8 + Math.floor(r() * 4));
+    const size = pitch * 0.62;
+    const ox = r() * pitch;
+    const oy = r() * pitch;
+    const fx = W * (0.3 + r() * 0.4);
+    const fy = H * (0.3 + r() * 0.4);
+    const reach = U * 0.75;
+    for (let y = oy - pitch; y < H + pitch; y += pitch) {
+      for (let x = ox - pitch; x < W + pitch; x += pitch) {
+        const dist = Math.hypot(x - fx, y - fy);
+        const a = 0.42 * clamp01(1 - dist / reach);
+        if (a < 0.03) continue;
+        ctx.globalAlpha = a;
         ctx.beginPath();
-        ctx.arc(x, y, 1.1 * dpr, 0, Math.PI * 2);
+        ctx.roundRect(x - size / 2, y - size / 2, size, size, size * 0.24);
+        ctx.stroke();
+      }
+    }
+  },
+
+  /** Build Kit: orbits from a corner, broken into arcs, with nodes riding them, like an agent's loop. */
+  kit(ctx, W, H, dpr, r) {
+    const U = Math.max(W, H);
+    const cx = r() < 0.5 ? W * (0.02 + r() * 0.1) : W * (0.88 + r() * 0.1);
+    const cy = H * (0.9 + r() * 0.12);
+    const step = U * (0.032 + r() * 0.01);
+    for (let k = 1; k < 40; k++) {
+      const R = step * k;
+      const dash = R * (0.3 + r() * 0.5);
+      const gap = R * (0.04 + r() * 0.12);
+      ctx.globalAlpha = 0.22 + Math.min(0.18, k * 0.008);
+      ctx.setLineDash([dash, gap]);
+      ctx.lineDashOffset = r() * (dash + gap);
+      ctx.beginPath();
+      ctx.arc(cx, cy, R, 0, Math.PI * 2);
+      ctx.stroke();
+      if (r() < 0.45) {
+        const a = r() * Math.PI * 2;
+        ctx.setLineDash([]);
+        ctx.globalAlpha = 0.6;
+        ctx.beginPath();
+        ctx.arc(cx + Math.cos(a) * R, cy + Math.sin(a) * R, 1.6 * dpr, 0, Math.PI * 2);
         ctx.fill();
       }
     }
-  } else if (kind === "lenses") {
-    // A loose ring of lens outlines around the middle, each turned along or across it.
-    const n = 10 + Math.floor(r() * 4);
-    const turn = r() * Math.PI;
-    ctx.globalAlpha = 0.34;
-    for (let i = 0; i < n; i++) {
-      const a = turn + (i / n) * Math.PI * 2;
-      const dist = 0.36 + r() * 0.16;
-      const x = W / 2 + Math.cos(a) * W * dist;
-      const y = H / 2 + Math.sin(a) * H * dist;
-      const len = U * (0.12 + r() * 0.12);
-      const rot = a + (r() < 0.5 ? 0 : Math.PI / 2);
-      ctx.save();
-      ctx.translate(x, y);
-      ctx.rotate(rot);
-      const bulge = len * 0.36;
+    ctx.setLineDash([]);
+  },
+
+  /** Everything else: parallel beams on a slant, gathered into a few soft bands of light. */
+  brand(ctx, W, H, _dpr, r) {
+    const U = Math.max(W, H);
+    const angle = -Math.PI / 3 + (r() - 0.5) * 0.5;
+    const dx = Math.cos(angle);
+    const dy = Math.sin(angle);
+    const nx = -dy;
+    const ny = dx;
+    const gap = U / (44 + r() * 16);
+    const freq = 2 + r() * 2;
+    const phase = r() * Math.PI * 2;
+    const reach = Math.hypot(W, H);
+    const n = Math.ceil(reach / gap);
+    for (let i = -n; i <= n; i++) {
+      const o = i * gap;
+      const band = Math.max(0, Math.sin((o / reach) * Math.PI * freq + phase));
+      const a = 0.36 * band * band;
+      if (a < 0.03) continue;
+      const px = W / 2 + nx * o;
+      const py = H / 2 + ny * o;
+      ctx.globalAlpha = a;
       ctx.beginPath();
-      ctx.moveTo(-len, 0);
-      ctx.quadraticCurveTo(0, -bulge, len, 0);
-      ctx.quadraticCurveTo(0, bulge, -len, 0);
+      ctx.moveTo(px - dx * reach, py - dy * reach);
+      ctx.lineTo(px + dx * reach, py + dy * reach);
       ctx.stroke();
-      ctx.restore();
     }
-  }
-  ctx.restore();
-}
+  },
+};

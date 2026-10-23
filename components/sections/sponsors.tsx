@@ -77,7 +77,7 @@ function TierCard({ tier, taken }: { tier: Tier; taken: number }) {
     <div className="panel flex h-full flex-col">
       {gold ? (
         <div className="relative isolate h-20 overflow-hidden">
-          <GrainStage seed="sponsor-gold" grain="teardowns" className="-z-10" />
+          <GrainStage seed="sponsor-gold" className="-z-10" />
         </div>
       ) : null}
       <div className="flex flex-1 flex-col p-6 md:p-7">
