@@ -29,6 +29,7 @@ export default function PrivacyPage() {
 
       <h2>SwiftPieces Pro</h2>
       <p>If you&apos;re signed in to pro.swiftpieces.com, the Playground asks it whether you own Pro, so it can offer Pro features. Your browser sends your Pro session to pro.swiftpieces.com for that check; swiftpieces.com never sees or stores it.</p>
+      <p>pro.swiftpieces.com uses Databuddy the same way, and also records when an account is created, checkout is opened, Pro is bought, a license key is created or a template is downloaded, without any details of the account or the payment. While you&apos;re signed in there, Databuddy links your visits to your account&apos;s ID, never your name or email, so visits from your devices count as one person; signing out unlinks them.</p>
 
       <h2>App Store content</h2>
       <p>The Playground shows public App Store listings. Screenshots and icons load from Apple&apos;s servers, so your browser requests them from Apple as it would on the App Store.</p>
