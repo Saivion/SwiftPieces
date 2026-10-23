@@ -12,6 +12,8 @@ import { SectionIcon } from "@/components/docs/section-icons";
 import { ThemeButton, ThemeToggle } from "@/components/layout/theme-toggle";
 import { cn } from "@/lib/cn";
 import { pro } from "@/lib/site";
+import { PromoBar } from "@/components/announce/promo-bar";
+import type { Promo } from "@/lib/promo";
 
 type NavLink = { label: string; href: string; badge?: string };
 type MenuItem = NavLink & { desc: string; icon: Parameters<typeof SectionIcon>[0]["kind"]; /** The icon's colour, when it isn't the text's. */ tone?: string };
@@ -78,7 +80,7 @@ function Badge({ label }: { label?: string }) {
  * `fresh` is how many pieces carry the New badge right now (the registry's latest wave, 0 when it has
  * aged out). The layouts read it on the server, so the registry never reaches this client chunk.
  */
-export function Navbar({ star, starMobile, docked = false, fresh = 0 }: { star?: ReactNode; starMobile?: ReactNode; docked?: boolean; fresh?: number }) {
+export function Navbar({ star, starMobile, docked = false, fresh = 0, promo }: { star?: ReactNode; starMobile?: ReactNode; docked?: boolean; fresh?: number; promo?: Promo | null }) {
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
@@ -118,6 +120,8 @@ export function Navbar({ star, starMobile, docked = false, fresh = 0 }: { star?:
         scroll changed the page layout; scroll anchoring then moved the page back under the
         threshold and the bar grew again, so it oscillated on its own near the top. */}
     <header className={cn("fixed inset-x-0 top-0 z-50 transition-colors duration-500 ease-[var(--ease-out)]", open ? "bg-background" : "bg-transparent")}>
+      {/* The announcement bar rides above the bar and tucks away once it condenses or the menu opens. */}
+      {promo && !docked && <PromoBar promo={promo} hidden={scrolled || open} />}
       <Shell docked={docked}>
         <nav
           data-condensed={condensed}
@@ -191,7 +195,7 @@ export function Navbar({ star, starMobile, docked = false, fresh = 0 }: { star?:
         </nav>
       </Shell>
     </header>
-    <div aria-hidden className="h-[var(--nav-h)] shrink-0" />
+    <div aria-hidden className={cn("shrink-0", promo && !docked ? "h-[calc(var(--nav-h)+var(--promo-h))]" : "h-[var(--nav-h)]")} />
 
       {/* Mobile sheet: sibling of the header, never a descendant of a backdrop-filter element. */}
       <div className={cn("fixed inset-x-0 top-14 bottom-0 z-40 bg-background transition-opacity duration-300 lg:hidden", open ? "opacity-100" : "pointer-events-none opacity-0")} aria-hidden={!open} inert={!open}>

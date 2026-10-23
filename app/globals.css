@@ -249,14 +249,137 @@
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 0), 0 0 0 0 rgb(0 0 0 / 0);
 }
 .nav-glass[data-condensed="true"] {
-  /* Scrolled, the bar condenses into a capsule of the tray colour over a soft blur, one hairline, a float shadow. */
-  background-color: color-mix(in srgb, var(--surface) 82%, transparent);
-  border-color: var(--line);
-  box-shadow: var(--shadow-float);
-  -webkit-backdrop-filter: blur(14px) saturate(160%);
-  backdrop-filter: blur(14px) saturate(160%);
+  /* Scrolled, the bar condenses into a capsule of clear liquid glass: a thin tint over a strong,
+     saturated blur, so what scrolls beneath shows through bright; a gloss across its top half; a
+     lit upper rim and a softer lower one, like light caught in the edge of a lens; a soft float shadow. No colour of its own. */
+  --glass-tint: color-mix(in srgb, var(--surface) 18%, transparent);
+  --glass-gloss: rgb(255 255 255 / 0.07);
+  --glass-rim: rgb(255 255 255 / 0.24);
+  --glass-rim-low: rgb(255 255 255 / 0.08);
+  background-color: transparent;
+  background-image: linear-gradient(180deg, var(--glass-gloss), transparent 58%), linear-gradient(var(--glass-tint), var(--glass-tint));
+  border-color: rgb(255 255 255 / 0.08);
+  /* Edges like a thick lens: a bright upper lip, a softer lower one, and light pooled inside both rims. */
+  box-shadow: inset 0 1px 0 var(--glass-rim), inset 0 -1px 0 var(--glass-rim-low), inset 0 10px 18px -14px var(--glass-rim), inset 0 -12px 22px -16px var(--glass-rim), 0 18px 40px -24px rgb(0 0 0 / 0.45);
+  -webkit-backdrop-filter: blur(12px) saturate(150%) brightness(1.04);
+  backdrop-filter: blur(12px) saturate(150%) brightness(1.04);
+}
+.light .nav-glass[data-condensed="true"] {
+  --glass-tint: color-mix(in srgb, #ffffff 22%, transparent);
+  --glass-gloss: rgb(255 255 255 / 0.5);
+  --glass-rim: rgb(255 255 255 / 0.95);
+  --glass-rim-low: rgb(255 255 255 / 0.5);
+  border-color: rgb(0 0 0 / 0.06);
 }
 @media (prefers-reduced-motion: reduce) { .nav-glass { transition: none !important; } }
+
+/* Announcement bar (components/announce/promo-bar.tsx), over the navbar on the marketing pages.
+   Pearl glass: a few soft pastel clouds drift slowly under a clear, blurred pane, so the bar reads as
+   one sheet of glass with a faint iridescence rather than a coloured band. The pill is the same glass,
+   brighter, with its own pastel glow and a hairline rim. --promo-h is the bar's height while it shows,
+   0 once closed, so the navbar spacer can add it. */
+:root { --promo-h: 0px; }
+:root:has(.promo-slot) { --promo-h: 40px; }
+html.promo-off { --promo-h: 0px; }
+html.promo-off .promo-slot { display: none; }
+
+.promo-slot {
+  display: grid; grid-template-rows: 1fr;
+  transition: grid-template-rows .5s var(--ease-out), opacity .35s var(--ease-out);
+}
+/* Scrolled (the navbar condenses into its pill) or with the phone menu open, the bar tucks away. */
+.promo-slot[data-hidden] { grid-template-rows: 0fr; opacity: 0; }
+.promo-slot > .promo-bar { min-height: 0; }
+
+.promo-bar {
+  --pearl-a: #ffd3ea; --pearl-b: #ddd6ff; --pearl-c: #d3e6ff; --pearl-d: #fff0c9;
+  --promo-tint: color-mix(in srgb, var(--background) 30%, transparent);
+  --promo-aura-opacity: .22;
+  --pill-base: #1c1c1e; --pill-glow: 16%; --pill-rim: rgb(255 255 255 / 0.16); --pill-ink: var(--foreground); --pill-lip: rgb(255 255 255 / 0.12);
+  position: relative; isolation: isolate; overflow: hidden;
+  height: 40px; border-bottom: 1px solid var(--line);
+  display: flex; align-items: center; justify-content: center;
+}
+.light .promo-bar {
+  --promo-tint: color-mix(in srgb, #ffffff 40%, transparent);
+  --promo-aura-opacity: .85;
+  --pill-base: #ffffff; --pill-glow: 85%; --pill-rim: rgb(0 0 0 / 0.16); --pill-ink: #111111; --pill-lip: rgb(255 255 255 / 0.95);
+}
+
+.promo-aura { position: absolute; inset: -40px -10%; z-index: -2; opacity: var(--promo-aura-opacity); filter: blur(22px); }
+.promo-aura i {
+  position: absolute; top: 50%; width: 30%; height: 110px; margin-top: -55px; border-radius: 50%;
+  background: var(--c); animation: promo-drift var(--t) ease-in-out infinite alternate; animation-delay: var(--d);
+}
+.promo-aura i:nth-child(1) { --c: var(--pearl-a); --t: 22s; --d: -3s; left: 2%; }
+.promo-aura i:nth-child(2) { --c: var(--pearl-b); --t: 27s; --d: -11s; left: 26%; }
+.promo-aura i:nth-child(3) { --c: var(--pearl-c); --t: 19s; --d: -6s; left: 50%; }
+.promo-aura i:nth-child(4) { --c: var(--pearl-d); --t: 31s; --d: -15s; left: 72%; }
+@keyframes promo-drift {
+  0%   { translate: -8vw 4px; scale: 1 .9; }
+  50%  { translate: 4vw -6px; scale: 1.15 1.05; }
+  100% { translate: 10vw 2px; scale: .92 1; }
+}
+
+.promo-glass {
+  position: absolute; inset: 0; z-index: -1;
+  background: var(--promo-tint);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  backdrop-filter: blur(16px) saturate(140%);
+}
+
+.promo-line {
+  display: flex; align-items: center; gap: 14px; min-width: 0; max-width: 100%;
+  padding: 0 44px 0 16px; height: 100%;
+  font-size: 13.5px; letter-spacing: -0.01em; color: var(--foreground);
+}
+.promo-message { display: flex; gap: 6px; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-muted); }
+.promo-message b { font-weight: 600; color: var(--foreground); }
+.promo-short { display: none; }
+.promo-sep { opacity: .45; }
+.promo-clock { font-variant-numeric: tabular-nums; font-weight: 600; }
+
+/* The pill, after the reference: white (or graphite) glass with a faint pastel glow inside, a hairline rim. */
+.promo-cta {
+  flex: none; display: inline-flex; align-items: center; gap: 5px;
+  height: 28px; padding: 0 12px 0 14px; border-radius: 999px;
+  border: 1px solid var(--pill-rim);
+  color: var(--pill-ink); font-size: 13px; font-weight: 500;
+  background:
+    radial-gradient(55% 90% at 18% 30%, color-mix(in srgb, var(--pearl-a) var(--pill-glow), transparent), transparent 70%),
+    radial-gradient(50% 90% at 50% 100%, color-mix(in srgb, var(--pearl-b) var(--pill-glow), transparent), transparent 70%),
+    radial-gradient(50% 80% at 85% 25%, color-mix(in srgb, var(--pearl-d) var(--pill-glow), transparent), transparent 70%),
+    radial-gradient(40% 70% at 70% 80%, color-mix(in srgb, var(--pearl-c) var(--pill-glow), transparent), transparent 70%),
+    var(--pill-base);
+  box-shadow: inset 0 1px 0 var(--pill-lip), 0 1px 2px rgb(0 0 0 / 0.06);
+  transition: box-shadow .3s var(--ease-out), border-color .3s var(--ease-out);
+}
+.promo-line:hover .promo-cta { border-color: color-mix(in srgb, var(--foreground) 28%, transparent); box-shadow: inset 0 1px 0 var(--pill-lip), 0 2px 8px rgb(0 0 0 / 0.08); }
+.promo-line:focus-visible { outline: none; }
+.promo-line:focus-visible .promo-cta { box-shadow: 0 0 0 2px var(--background), 0 0 0 4px var(--foreground); }
+.promo-close {
+  position: absolute; right: 10px; top: 50%; translate: 0 -50%;
+  display: grid; place-items: center; width: 24px; height: 24px; border-radius: 99px;
+  color: color-mix(in srgb, var(--foreground) 50%, transparent);
+  transition: color .2s, background-color .2s;
+}
+.promo-close:hover { color: var(--foreground); background: color-mix(in srgb, var(--foreground) 8%, transparent); }
+
+@media (max-width: 639px) {
+  .promo-line { gap: 10px; padding-left: 12px; padding-right: 38px; font-size: 13px; }
+  .promo-long, .promo-sep { display: none; }
+  .promo-short { display: inline; }
+  .promo-emphasis { display: none; }
+}
+@media (min-width: 640px) and (max-width: 899px) { .promo-emphasis { display: none; } }
+
+/* The clouds wait for the motion gate like the other first-screen loops; Reduce Motion stills them. */
+html:not([data-motion]) .promo-aura i { animation-play-state: paused; }
+@media (prefers-reduced-motion: reduce) {
+  .promo-aura i { animation: none; }
+  .promo-slot { transition: none; }
+}
+
 
 /* Landing CLI carousel (components/sections/piece-carousel.tsx): the rail tab fills over the
    piece's beat; the stage crossfades, the incoming piece rising and sharpening in. */
