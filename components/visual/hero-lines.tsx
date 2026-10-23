@@ -84,10 +84,10 @@ export function HeroLines() {
       ref={ref}
       aria-hidden
       // Faded out behind the copy inside the drawing itself, so the headline and buttons sit on clean ground.
-      // It starts a navbar's height above the hero and runs up behind the fixed navbar to the top of the
+      // It starts a navbar's height (and the announcement bar's, --promo-h) above the hero and runs up behind the fixed navbar to the top of the
       // page, so the ribbon leaves through the top of the window instead of stopping at a hard edge
       // under the bar.
-      className="pointer-events-none absolute inset-x-0 bottom-0 -top-[var(--nav-h)] z-0 h-[calc(100%+var(--nav-h))] w-full"
+      className="pointer-events-none absolute inset-x-0 bottom-0 -top-[calc(var(--nav-h)+var(--promo-h))] z-0 h-[calc(100%+var(--nav-h)+var(--promo-h))] w-full"
     />
   );
 }
