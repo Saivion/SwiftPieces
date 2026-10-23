@@ -8,7 +8,6 @@ import { pageLede } from "@/components/ui/section-header";
 import { RowLink, SectionHead, Tags, Glyph, band, cardTitle, heroTitle, sectionTitle, sectionBody } from "@/components/sections/feature-row";
 import { CountUp } from "@/components/ui/stat";
 import { GrainStage } from "@/components/visual/grain-stage";
-import type { GrainKind } from "@/lib/grain";
 import { Reveal, RevealGroup, RevealItem } from "@/components/effects/reveal";
 import { cn } from "@/lib/cn";
 import { pro } from "@/lib/site";
@@ -170,11 +169,11 @@ export function ProGallery() {
 
 export function WhatYouGet() {
   const items = [
-    { value: screens, label: "Screens", grain: "screen" as GrainKind, detail: `${namesWithMore(proCatalog.screenExamples, 3)}. Finished, not mockups.` },
-    { value: proCatalog.flows.total, label: "Flows", grain: "flow" as GrainKind, detail: "Whole journeys, from first run to settings." },
-    { value: templates, label: "App templates", grain: "template" as GrainKind, detail: "Complete Xcode apps you rename and ship." },
-    { value: proCatalog.buildKit.total, label: "Build Kit items", grain: "kit" as GrainKind, detail: "Styles, briefs and recipes your agent follows." },
-    { value: proCatalog.remixing.apps, label: "Apps to remix", grain: "brand" as GrainKind, detail: "Every Playground app, remixed with AI." },
+    { value: screens, label: "Screens", detail: `${namesWithMore(proCatalog.screenExamples, 3)}. Finished, not mockups.` },
+    { value: proCatalog.flows.total, label: "Flows", detail: "Whole journeys, from first run to settings." },
+    { value: templates, label: "App templates", detail: "Complete Xcode apps you rename and ship." },
+    { value: proCatalog.buildKit.total, label: "Build Kit items", detail: "Styles, briefs and recipes your agent follows." },
+    { value: proCatalog.remixing.apps, label: "Apps to remix", detail: "Every Playground app, remixed with AI." },
   ];
   return (
     <section className={band}>
@@ -187,10 +186,10 @@ export function WhatYouGet() {
           {items.map((s) => (
             <RevealItem key={s.label}>
               <a href={buy} className="group flex h-full flex-col rounded-[26px] bg-surface p-1.5 transition-colors duration-200 hover:bg-surface-3">
-                {/* The same grain ground as Pro's library cards, in each kind's own look, on the inset panel.
+                {/* Free shows Pro's work on the signature grain, seeded per card, on the inset panel.
                     The count is white on it in both themes, as on the covers, so it is a fixed colour. */}
                 <div className="relative isolate flex h-[168px] flex-col justify-end overflow-hidden rounded-[20px] p-5 text-[#fff]">
-                  <GrainStage seed={`pro-page-${s.label}`} kind={s.grain} className="-z-10 transition-transform duration-700 ease-out group-hover:scale-[1.03]" />
+                  <GrainStage seed={`pro-page-${s.label}`} className="-z-10 transition-transform duration-700 ease-out group-hover:scale-[1.03]" />
                   <CountUp value={s.value} className="text-[56px] leading-[0.9] font-normal tracking-[-0.045em] tabular-nums" />
                 </div>
                 <div className="px-3.5 pt-5 pb-4">
@@ -272,11 +271,11 @@ export function TryFirst() {
         <RevealGroup className="grid gap-3 lg:grid-cols-3" stagger={0.1}>
           {cards.map((c, i) => (
             <RevealItem key={c.title} className="h-full">
-              {/* Graphite's library card: the same grain ground as Pro's library cards on a panel inset in
+              {/* Graphite's library card: the signature grain ground as Pro's library cards on a panel inset in
                   a tray, the device rising out of its bottom edge, the words under it. */}
               <div className="group flex h-full flex-col rounded-[26px] bg-surface p-1.5">
                 <a href={c.href} className="relative isolate block h-[260px] overflow-hidden rounded-[20px]" aria-label={`${c.title} in SwiftPieces Pro`}>
-                  <GrainStage seed={c.seed} kind={c.kind} className="-z-10 transition-transform duration-700 ease-out group-hover:scale-[1.03]" />
+                  <GrainStage seed={c.seed} className="-z-10 transition-transform duration-700 ease-out group-hover:scale-[1.03]" />
                   {c.kind === "flow" ? (
                     <div className="absolute inset-x-0 top-10 origin-top scale-[1.35] transition-transform duration-500 ease-out group-hover:-translate-y-1">
                       <FlowMock i={i + 2} />
