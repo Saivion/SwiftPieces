@@ -27,9 +27,10 @@ const PEN = 0.07;
 /**
  * The aura's strength, 0..1: a haze in the ribbon's own colours behind the threads, which glows on
  * the dark theme and tints the light one. Chosen at 0.6 in the ribbon studio (2026-10-21), then
- * eased to 0.35 the same day, when it read as a shadow behind the threads.
+ * eased to 0.35 the same day, when it read as a shadow behind the threads. Off since 2026-10-24
+ * (Saivion: "just keep lines"); the ribbon is the threads alone.
  */
-const AURA = 0.35;
+const AURA = 0;
 /**
  * The aura is drawn this much smaller than the hero, on its own canvas behind the threads, blurred
  * there and scaled up by the browser: soft, and it never costs a full-size paint.
