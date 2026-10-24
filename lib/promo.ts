@@ -22,7 +22,7 @@ export const promoKey = (id: string) => `sp-promo-${id}`;
  */
 export const promo: Promo | null = {
   id: "pro-2026-10",
-  message: "Every screen, flow, block and app template in SwiftPieces Pro, for good.",
+  message: "Every screen, pattern, flow and app template in SwiftPieces Pro, for good.",
   emphasis: "One payment.",
   short: "Every screen and template, in Pro.",
   cta: { label: "Get Pro", href: pro.home },
