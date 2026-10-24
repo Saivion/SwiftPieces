@@ -1,0 +1,11 @@
+{
+  "title": "Prompt Input",
+  "description": "Composers that attach, dictate, mention and switch models.",
+  "defaultOpen": false,
+  "pages": [
+    "composer-attachments",
+    "composer-dictation",
+    "composer-mentions",
+    "composer-modes"
+  ]
+}

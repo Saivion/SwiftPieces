@@ -9,7 +9,7 @@ import { PromoBoot } from "@/components/announce/promo-boot";
 import { promo } from "@/lib/promo";
 
 /** The three blocks the announcement fans out, left to right, the middle one in front. */
-const ANNOUNCED = ["sign-in", "stats-overview", "checkout"];
+const ANNOUNCED = ["chat-thread", "search-tab-bar", "sign-in"];
 
 /**
  * The star pill paints the count from the page's build, so it never shows the bare "Star" while

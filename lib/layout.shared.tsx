@@ -18,7 +18,7 @@ export function baseOptions(): BaseLayoutProps {
     githubUrl: site.github,
     links: [
       { text: "Components", url: "/components", active: "url" },
-      { text: "Pro library", url: "/blocks" },
+      { text: "Pro library", url: "/patterns" },
       { text: "Pricing", url: pro.pricing, external: true },
     ],
   };

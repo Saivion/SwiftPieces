@@ -1,0 +1,11 @@
+{
+  "title": "Agents",
+  "description": "Plans, tool calls, approvals and live runs for agents.",
+  "defaultOpen": false,
+  "pages": [
+    "agent-plan",
+    "tool-calls",
+    "agent-approval",
+    "agent-run"
+  ]
+}

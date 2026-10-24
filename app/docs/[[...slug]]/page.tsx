@@ -74,8 +74,8 @@ export default async function Page(props: Props) {
         {related.length ? (
           <section className="not-prose mt-16" aria-labelledby="related-heading">
             <div className="flex flex-wrap items-baseline justify-between gap-3">
-              <h2 id="related-heading" className="t-h3">More blocks</h2>
-              <a href="/blocks" className="u-link text-[13px] font-semibold text-foreground">All blocks →</a>
+              <h2 id="related-heading" className="t-h3">More patterns</h2>
+              <a href="/patterns" className="u-link text-[13px] font-semibold text-foreground">All patterns →</a>
             </div>
             <div className="mt-5"><BlockGrid cards={related} filters={false} limit={3} narrow /></div>
           </section>
@@ -96,9 +96,9 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
   const item = page.data.piece ? getRegistryItem(page.data.piece) : null;
   // Canonical, share tags and a snippet-length description for every docs and piece page. A piece
   // page is titled with what people search for ("Swipe Deck: SwiftUI Swipeable Card Stack").
-  // A block is titled as the section it is ("Sign In: SwiftUI Sign In Block").
+  // A pattern is titled as the section it is ("Sign In: SwiftUI Sign In Pattern").
   if (page.data.block || page.data.proBlock) {
-    const title = `${page.data.title}: SwiftUI ${page.data.title} Block${page.data.proBlock ? " (Pro)" : ""}`;
+    const title = `${page.data.title}: SwiftUI ${page.data.title} Pattern${page.data.proBlock ? " (Pro)" : ""}`;
     return pageMetadata({ title, description: page.data.description ?? site.description, path: page.url, type: "article" });
   }
   if (item) {
@@ -116,7 +116,7 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
 /** Docs section names for breadcrumbs, by first path segment. */
 const SECTIONS: Record<string, [string, string]> = {
   components: ["Components", "/components"],
-  blocks: ["Blocks", "/blocks"],
+  patterns: ["Patterns", "/patterns"],
   guides: ["Guides", "/docs/guides"],
 };
 
@@ -129,14 +129,14 @@ function structuredData(path: string, title: string, description: string | undef
   const url = new URL(path, site.url).href;
   const trail: [string, string][] = [["SwiftPieces", "/"]];
   if (block) {
-    trail.push(["Blocks", "/blocks"], [blockCategories[block.category].title, "/blocks"], [block.title, path]);
+    trail.push(["Patterns", "/patterns"], [blockCategories[block.category].title, "/patterns"], [block.title, path]);
     return {
       "@context": "https://schema.org",
       "@graph": [
         {
           "@type": "SoftwareSourceCode",
           "@id": `${url}#code`,
-          name: `${block.title}: SwiftUI ${block.title} Block`,
+          name: `${block.title}: SwiftUI ${block.title} Pattern`,
           alternateName: block.name,
           description: block.description,
           url,

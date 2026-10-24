@@ -1,0 +1,11 @@
+{
+  "title": "Tab Bars",
+  "description": "Bottom bars, floating bars with search, and tab strips.",
+  "defaultOpen": false,
+  "pages": [
+    "action-tab-bar",
+    "accessory-tab-bar",
+    "top-tabs",
+    "search-tab-bar"
+  ]
+}

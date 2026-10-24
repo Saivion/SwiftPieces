@@ -1,8 +1,0 @@
-{
-  "title": "Commerce",
-  "description": "Bag, delivery and payment as one checkout you can step back through.",
-  "defaultOpen": false,
-  "pages": [
-    "checkout"
-  ]
-}

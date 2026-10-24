@@ -55,7 +55,7 @@ const quietLink = "group inline-flex h-[46px] items-center gap-2 px-2 text-[15px
 const chip = "inline-flex h-9 items-center rounded-full bg-surface px-[15px] text-[13.5px] whitespace-nowrap text-muted";
 
 export function ProHero() {
-  const facts = [`${screens} screens`, `${proCatalog.flows.total} flows`, `${templates} app templates`, `${buildKit.total}-item Build Kit`, "Pro remixing", "Swift source, no runtime"];
+  const facts = [`${screens} screens`, `${proCatalog.blocks} patterns`, `${proCatalog.flows.total} flows`, `${templates} app templates`, `${buildKit.total}-item Build Kit`, "Pro remixing", "Swift source, no runtime"];
   return (
     <section className="relative pt-16 pb-14 md:pt-28 md:pb-16 lg:pt-[120px]">
       <Container className="flex flex-col items-center text-center">
@@ -245,7 +245,7 @@ export function Compare() {
           body="Both are plain SwiftUI in your project, so you can mix them freely."
         />
         <Reveal className="tray grid gap-2 lg:grid-cols-2 lg:gap-y-0">
-          <PlanCard tag="Free library" title="A curated taste." body={`${freeCount} animated pieces and the blocks built from them, free to ship.`} points={["MIT + Commons Clause, forever", "Single-file pieces, and blocks built from them", "Install by CLI, MCP or copy-paste"]} cta="See what Pro adds" />
+          <PlanCard tag="Free library" title="A curated taste." body={`${freeCount} animated pieces, free to ship.`} points={["MIT + Commons Clause, forever", "Single-file pieces, and blocks built from them", "Install by CLI, MCP or copy-paste"]} cta="See what Pro adds" />
           <PlanCard tag="SwiftPieces Pro" title="The complete library." body="Screens, flows and full app templates, plus a Build Kit for your agent." points={[proCountsLabel, remixingPoint, "Full SwiftUI source that lives in your project", "Lifetime access, everything added later included"]} cta="Get SwiftPieces Pro" pro />
         </Reveal>
       </Container>

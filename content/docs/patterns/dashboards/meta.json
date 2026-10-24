@@ -1,0 +1,8 @@
+{
+  "title": "Dashboards",
+  "description": "Metrics and charts at the top of a screen.",
+  "defaultOpen": false,
+  "pages": [
+    "stats-overview"
+  ]
+}

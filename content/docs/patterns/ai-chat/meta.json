@@ -1,0 +1,11 @@
+{
+  "title": "AI Chat",
+  "description": "Conversations with an assistant, from the first prompt to the history.",
+  "defaultOpen": false,
+  "pages": [
+    "chat-thread",
+    "chat-welcome",
+    "chat-history",
+    "chat-attachments"
+  ]
+}

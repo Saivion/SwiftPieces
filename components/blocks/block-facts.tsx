@@ -50,7 +50,7 @@ export function BlockFacts({ name }: { name: string }) {
     <div className="not-prose mb-10 rounded-[var(--radius)] bg-surface p-5">
       <div className="flex flex-wrap gap-1.5">
         <Badge tone="accent">Free · MIT + Commons Clause</Badge>
-        <Badge tone="outline">Block · {blockCategories[block.category].title}</Badge>
+        <Badge tone="outline">Pattern · {blockCategories[block.category].title}</Badge>
         <Badge tone="outline">iOS {block.minIOSVersion}+</Badge>
         {block.liquidGlass ? <Badge tone="outline">Liquid Glass</Badge> : null}
         {block.tags.map((t) => <Badge key={t}>{t}</Badge>)}
@@ -88,7 +88,7 @@ export function ProBlockFacts({ id }: { id: string }) {
       <div className="rounded-[22px] bg-surface p-5 sm:p-6">
         <div className="flex flex-wrap items-center gap-1.5">
           <ProBadge size="sm" />
-          <Badge tone="outline">Block · {blockCategories[block.category].title}</Badge>
+          <Badge tone="outline">Pattern · {blockCategories[block.category].title}</Badge>
           <Badge tone="outline">iOS 17+</Badge>
           <Badge tone="outline">Themed by Pro&apos;s design system</Badge>
         </div>

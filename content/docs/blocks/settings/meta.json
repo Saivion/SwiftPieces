@@ -1,9 +1,0 @@
-{
-  "title": "Settings",
-  "description": "Account and preference sections with the controls already chosen.",
-  "defaultOpen": false,
-  "pages": [
-    "account-settings",
-    "plan-usage"
-  ]
-}

@@ -35,7 +35,7 @@ export const POST = createMcpHandler({
     },
     {
       name: "search_blocks",
-      description: "Search SwiftPieces blocks (whole sections of a screen built from pieces, such as sign in, account settings, a stats overview or checkout) by keyword, optionally by block category. Free blocks install with get_piece/install_piece; Pro blocks come from the Pro server.",
+      description: "Search SwiftPieces patterns, also called blocks (whole sections of a screen such as a chat thread, a prompt composer, a tab bar, a settings group, a form, a sheet, sign in or checkout), by keyword, optionally by category. Every pattern is in SwiftPieces Pro and installs from the Pro server; a free block, should one ship, installs with get_piece/install_piece.",
       inputSchema: { type: "object", properties: { query: { type: "string" }, category: { type: "string", enum: [...blockCategoryIds] } } },
       handler: ({ query, category }) => {
         const q = String(query ?? "").toLowerCase();
@@ -57,7 +57,7 @@ export const POST = createMcpHandler({
       inputSchema: { type: "object", properties: { name: { type: "string" } }, required: ["name"] },
       handler: async ({ name }) => {
         const item = (await loadFullRegistryItem(String(name))) ?? (await loadFullBlock(String(name)));
-        if (!item) throw new Error(`No free piece or block named "${name}". If it is a Pro screen, block, flow or template, use the Pro MCP at ${pro.mcp}.`);
+        if (!item) throw new Error(`No free piece or block named "${name}". If it is a Pro screen, pattern, flow or template, use the Pro MCP at ${pro.mcp}.`);
         return item;
       },
     },
@@ -75,7 +75,7 @@ export const POST = createMcpHandler({
     },
     {
       name: "list_categories",
-      description: "List free piece categories and block categories with counts, and links to the SwiftPieces Pro library (screens, blocks, flows and app templates).",
+      description: "List free piece categories and pattern categories with counts, and links to the SwiftPieces Pro library (screens, patterns, flows and app templates).",
       inputSchema: { type: "object", properties: {} },
       handler: () => {
         const counts: Record<string, number> = {};
@@ -83,7 +83,7 @@ export const POST = createMcpHandler({
         const blocks: Record<string, { free: number; pro: number }> = {};
         for (const b of getBlocks()) (blocks[b.category] ??= { free: 0, pro: 0 }).free += 1;
         for (const p of getProBlocks()) (blocks[p.category] ??= { free: 0, pro: 0 }).pro += 1;
-        return { free: counts, blocks, pro: { library: pro.library, screens: pro.screens, blocks: `${pro.library}/blocks`, flows: pro.flows, templates: pro.templates, mcp: pro.mcp } };
+        return { free: counts, blocks, pro: { library: pro.library, screens: pro.screens, patterns: pro.patterns, flows: pro.flows, templates: pro.templates, mcp: pro.mcp } };
       },
     },
     {

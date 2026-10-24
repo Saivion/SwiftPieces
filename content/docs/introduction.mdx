@@ -3,7 +3,7 @@ title: Introduction
 description: SwiftPieces is the central place for animated SwiftUI pieces. Copy one file, run one command, or let your agent install it.
 ---
 
-SwiftPieces is a free library (MIT + Commons Clause) of animated SwiftUI components built around iOS 26 Liquid Glass and Metal shaders, blocks built from them, and a curated taste of what SwiftPieces Pro offers in full: production-ready SwiftUI screens, more blocks, whole flows and complete app templates. Read [why SwiftPieces exists and how it is funded](/about).
+SwiftPieces is a free library (MIT + Commons Clause) of animated SwiftUI components built around iOS 26 Liquid Glass and Metal shaders, and a curated taste of what SwiftPieces Pro offers in full: production-ready SwiftUI screens, patterns, whole flows and complete app templates. Read [why SwiftPieces exists and how it is funded](/about).
 
 ## What earns a place
 
@@ -17,13 +17,13 @@ A piece is here because it saves an afternoon: the design, the motion, the gestu
 - **Parameters, not forks.** Every piece is customized through init parameters with sensible defaults.
 - **Accessible by default.** Dynamic Type, semantic colors, and respect for Reduce Motion and Reduce Transparency.
 
-## What a block is
+## What a pattern is
 
-A block is a whole section of a screen built from pieces: a [sign-in form](/docs/blocks/auth/sign-in), an [account settings section](/docs/blocks/settings/account-settings), a [stats overview](/docs/blocks/analytics/stats-overview), a [checkout](/docs/blocks/commerce/checkout). The pieces inside carry the interaction, the motion and the haptics; the block lays them out, wires them together and gives them their states, so you drop it into a screen and connect it to your app with a closure or two.
+A pattern is a whole section of a screen: a [chat thread](/docs/patterns/ai-chat/chat-thread), a [tab bar with search](/docs/patterns/tab-bars/search-tab-bar), an [account settings section](/docs/patterns/settings/account-settings), a [sign-in form](/docs/patterns/auth/sign-in), a [checkout](/docs/patterns/commerce/checkout). It lays out the controls, wires them together and gives them their states, so you drop it into a screen and connect it to your app with a closure or two.
 
-- **One `.swift` file** named `<Name>Block`, plus the pieces it is built from, which it lists as dependencies. The CLI and the MCP server install them together.
-- **Yours to change.** Like a piece, a block is plain SwiftUI in your project. Rearrange it, restyle it, or take the parts you need.
-- **Free and Pro.** Free blocks use the house style of the pieces. SwiftPieces Pro's blocks are themed by its design system and re-skin with any of its families. [All blocks](/docs/blocks).
+- **One `.swift` file**, themed by SwiftPieces Pro's design system, which installs with it. The CLI and the Pro MCP server add both.
+- **Yours to change.** Like a piece, a pattern is plain SwiftUI in your project. Rearrange it, restyle it, or take the parts you need.
+- **In SwiftPieces Pro.** All 46 patterns, in twelve categories, come with Pro and re-skin with any of its families. [All patterns](/docs/patterns).
 
 ## Three ways to install
 

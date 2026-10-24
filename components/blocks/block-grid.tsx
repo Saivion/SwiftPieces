@@ -23,7 +23,7 @@ export function BlockCard({ card, priority = false }: { card: Card; priority?: b
     <Link href={card.href} className="group relative flex h-full flex-col rounded-[26px] bg-surface p-1.5 transition-colors duration-200 hover:bg-surface-3">
       <PreviewFrame aspect="aspect-square">
         {pro && card.still && card.loop ? (
-          <BlockLoop still={card.still} loop={card.loop} alt={`${card.title}, a SwiftPieces Pro block`} eager={priority} />
+          <BlockLoop still={card.still} loop={card.loop} alt={`${card.title}, a SwiftPieces Pro pattern`} eager={priority} />
         ) : (
           <PiecePreview name={card.name} />
         )}
