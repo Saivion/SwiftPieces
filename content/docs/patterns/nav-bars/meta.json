@@ -1,0 +1,11 @@
+{
+  "title": "Navigation Bars",
+  "description": "Headers and top bars that open a screen.",
+  "defaultOpen": false,
+  "pages": [
+    "greeting-header",
+    "scope-header",
+    "location-header",
+    "selection-toolbar"
+  ]
+}

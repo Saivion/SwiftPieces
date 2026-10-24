@@ -1,0 +1,11 @@
+{
+  "title": "Forms",
+  "description": "Profiles, addresses, feedback and step-by-step forms.",
+  "defaultOpen": false,
+  "pages": [
+    "profile-form",
+    "address-form",
+    "feedback-form",
+    "step-form"
+  ]
+}

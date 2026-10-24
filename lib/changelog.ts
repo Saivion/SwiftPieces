@@ -7,6 +7,21 @@ import type { ChangelogEntry } from "@/components/changelog/changelog-grid";
  */
 export const changelog: ChangelogEntry[] = [
   {
+    slug: "patterns",
+    date: "Oct 24, 2026",
+    title: "Blocks are now Patterns",
+    summary: "Blocks take the name SwiftPieces Pro gave them: Patterns. Forty new ones join the first six, for 46 whole sections of an iOS screen in Pro's twelve categories, each with its recording and what is inside.",
+    points: [
+      "AI Chat, Prompt Input and Agents: a streaming chat thread, a welcome with suggestions, chat history, attachments, four composers, an agent's plan, tool calls, approvals and a live run.",
+      "Navigation Bars and Tab Bars: greeting, scope and location headers, a selection toolbar, an action tab bar, an accessory tab bar, top tabs and a tab bar with search.",
+      "Lists, Settings, Forms and Sheets: a notification inbox, search, an activity timeline, a file list, notification, privacy, storage and help settings, four forms, a share sheet, a permission primer, What's New and a schedule sheet.",
+      "Auth and Onboarding: email link sign in, reset password, profile setup and an interests picker, beside Sign In.",
+      "Every pattern is one SwiftUI file themed by Pro's design system and installs with a Pro license. The library is at /patterns and /docs/patterns; old /blocks links forward there.",
+    ],
+    visual: "windows",
+    tint: "blue",
+  },
+  {
     slug: "blocks",
     date: "Oct 19, 2026",
     title: "Blocks",

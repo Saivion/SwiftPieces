@@ -79,7 +79,7 @@ function flatSidebar(tree: PageTree.Root): PageTree.Root {
   const landing = (f: PageTree.Folder | undefined, url: string) => (f?.index?.url === url ? f.index : f?.children.find((c): c is PageTree.Item => c.type === "page" && c.url === url));
   const holds = (url: string) => folders.find((f) => Boolean(landing(f, url)));
   const components = holds("/docs/components");
-  const blocksRoot = holds("/docs/blocks");
+  const blocksRoot = holds("/docs/patterns");
   const guides = holds("/docs/guides");
   const componentsIndex = landing(components, "/docs/components");
   const guidesIndex = landing(guides, "/docs/guides");
@@ -95,7 +95,7 @@ function flatSidebar(tree: PageTree.Root): PageTree.Root {
   out.push({ type: "page", name: "Changelog", url: changelogPath() });
 
   if (components && componentsIndex) {
-    // Components, then blocks: each a heading with its count, its "All" row, then one collapsible folder per
+    // Components, then patterns: each a heading with its count, its "All" row, then one collapsible folder per
     // category, closed until you are on one of its pages (or the filter is looking inside it).
     out.push(heading("Components", index.length, "free"), tiered(withEnd({ ...componentsIndex, name: "All Components" }, fresh.size ? <NewBadge>{`${fresh.size} New`}</NewBadge> : <span className="text-[11px] tabular-nums text-subtle">{index.length}</span>), "free"));
     for (const cat of components.children.filter((n): n is PageTree.Folder => n.type === "folder")) {
@@ -136,8 +136,8 @@ function flatSidebar(tree: PageTree.Root): PageTree.Root {
 }
 
 /**
- * Blocks: an "All Blocks" row, then one collapsible folder per category with its count, closed until you are on
- * one of its pages. A category holding Pro blocks wears the Pro badge, and so does each Pro block's row.
+ * Patterns (Pro's, in Pro's categories): an "All Patterns" row, then one collapsible folder per category, closed
+ * until you are on one of its pages. A category holding Pro patterns wears the Pro badge, and so does each row.
  */
 function blockSection(root: PageTree.Folder | undefined): PageTree.Node[] {
   if (!root) return [];
@@ -145,10 +145,10 @@ function blockSection(root: PageTree.Folder | undefined): PageTree.Node[] {
   const paid = getProBlocks();
   const proUrls = new Set(paid.map((p) => blockPath(p)));
   const freshUrls = new Set([...free.filter((b) => b.isNew).map((b) => blockPath(b)), ...paid.filter((p) => p.isNew).map((p) => blockPath(p))]);
-  const index = root.index?.url === "/docs/blocks" ? root.index : root.children.find((c): c is PageTree.Item => c.type === "page" && c.url === "/docs/blocks");
+  const index = root.index?.url === "/docs/patterns" ? root.index : root.children.find((c): c is PageTree.Item => c.type === "page" && c.url === "/docs/patterns");
   const total = free.length + paid.length;
-  const out: PageTree.Node[] = [heading("Blocks", total)];
-  if (index) out.push(withEnd({ ...index, name: "All Blocks" }, freshUrls.size ? <NewBadge>{`${freshUrls.size} New`}</NewBadge> : <span className="text-[11px] tabular-nums text-subtle">{total}</span>));
+  const out: PageTree.Node[] = [heading("Patterns", total)];
+  if (index) out.push(withEnd({ ...index, name: "All Patterns" }, freshUrls.size ? <NewBadge>{`${freshUrls.size} New`}</NewBadge> : <span className="text-[11px] tabular-nums text-subtle">{total}</span>));
   for (const folder of root.children.filter((n): n is PageTree.Folder => n.type === "folder")) {
     const pages = folder.children.filter((n): n is PageTree.Item => n.type === "page");
     const hasPro = pages.some((p) => proUrls.has(p.url));
@@ -174,8 +174,8 @@ function previewItems(): Record<string, SidebarPreviewEntry> {
   for (const e of getRegistryIndex()) {
     out[piecePath(e)] = { kind: "piece", name: e.name, title: e.title, label: categoryTitle(e.category), tone: e.category === "backgrounds" ? "black" : "dark" };
   }
-  for (const b of getBlocks()) out[blockPath(b)] = { kind: "piece", name: b.name, title: b.title, label: `Block · ${blockCategoryTitle(b.category)}`, tone: "dark" };
-  for (const p of getProBlocks()) out[blockPath(p)] = { kind: "image", src: `/pro-blocks/${p.id}.webp`, title: p.title, label: `Pro block · ${blockCategoryTitle(p.category)}` };
+  for (const b of getBlocks()) out[blockPath(b)] = { kind: "piece", name: b.name, title: b.title, label: `Pattern · ${blockCategoryTitle(b.category)}`, tone: "dark" };
+  for (const p of getProBlocks()) out[blockPath(p)] = { kind: "image", src: `/pro-blocks/${p.id}.webp`, title: p.title, label: `Pro pattern · ${blockCategoryTitle(p.category)}` };
   const screen = proCards("screen")[0];
   const flow = proCards("flow")[0];
   const template = proCards("template")[0];
@@ -210,7 +210,7 @@ export default async function Layout({ children }: { children: ReactNode }) {
         prefetch: false,
         banner: (
           <div key="sidebar-banner">
-            <SidebarFilter meta={`${getRegistryIndex().length} components · ${getBlocks().length + getProBlocks().length} blocks`} />
+            <SidebarFilter meta={`${getRegistryIndex().length} components · ${getBlocks().length + getProBlocks().length} patterns`} />
             <SidebarPreview items={previewItems()} />
           </div>
         ),

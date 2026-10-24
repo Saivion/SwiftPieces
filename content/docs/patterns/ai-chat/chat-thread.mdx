@@ -1,0 +1,15 @@
+---
+title: "Chat Thread"
+description: "The message list of an assistant chat: replies in light markdown that stream in with Stop, then Copy, Regenerate, rate and Share."
+proBlock: "chat-thread"
+---
+
+{/* GENERATED FILE. Edit lib/blocks.ts (proBlocks) instead. */}
+
+<Showcase name="ChatThreadBlock" kind="block" still="/pro-blocks/chat-thread.webp" loop="/pro-blocks/chat-thread" proHref="https://pro.swiftpieces.com/library/patterns/chat-thread" />
+
+<ProBlockFacts id="chat-thread" />
+
+The thread of an assistant conversation. The person's turns sit on the fill and replies are plain text with paragraphs, bold, lists, inline code and code blocks with Copy, streamed from an AsyncThrowingStream your app provides, with Stop. Finished replies get Copy, Regenerate, thumbs up and down and Share; a failed reply shows its error with Retry, and the thread exposes an anchor so your scroll view can follow the stream or offer Jump to latest.
+
+Its SwiftUI source comes with SwiftPieces Pro: [Chat Thread in the Pro library](https://pro.swiftpieces.com/library/patterns/chat-thread).

@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 import { createMDX } from "fumadocs-mdx/next";
 import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
 import { categories } from "./lib/categories";
-import { blockCategories } from "./lib/blocks";
+import { blockCategories, legacyBlockDocs } from "./lib/blocks";
 import { LIBRARY } from "./lib/apps/library";
 
 // Lets `next dev` see Cloudflare bindings (D1, R2, KV) from wrangler.jsonc.
@@ -107,8 +107,14 @@ const config: NextConfig = {
       { source: "/docs/components/ai/code-block", destination: "/docs/components/ai/source-stack", permanent: true },
       // The docs sidebar's category folders have no page of their own; their URL leads to the hub.
       { source: `/docs/components/:category(${CATEGORY_SLUGS})`, destination: "/components/:category", permanent: true },
-      // Block categories are sidebar folders too, with no page of their own: their URL leads to the blocks.
-      { source: `/docs/blocks/:category(${BLOCK_CATEGORY_SLUGS})`, destination: "/blocks", permanent: false },
+      // Pattern categories are sidebar folders too, with no page of their own: their URL leads to the patterns.
+      { source: `/docs/patterns/:category(${BLOCK_CATEGORY_SLUGS})`, destination: "/patterns", permanent: false },
+      // Blocks became Patterns on 2026-10-24, in Pro's categories, as on pro.swiftpieces.com. The first six kept
+      // their slugs; two moved category (Invite Friends to Settings, Stats Overview to Dashboards).
+      { source: "/blocks", destination: "/patterns", permanent: true },
+      { source: "/docs/blocks", destination: "/docs/patterns", permanent: true },
+      ...legacyBlockDocs.map(([from, to]) => ({ source: `/docs/blocks/${from}`, destination: `/docs/patterns/${to}`, permanent: true })),
+      { source: "/docs/blocks/:path*", destination: "/patterns", permanent: true },
     ];
   },
   async rewrites() {

@@ -1,0 +1,11 @@
+{
+  "title": "Lists and Feeds",
+  "description": "Inboxes, search, timelines and file lists.",
+  "defaultOpen": false,
+  "pages": [
+    "notification-inbox",
+    "search-panel",
+    "activity-timeline",
+    "file-list"
+  ]
+}

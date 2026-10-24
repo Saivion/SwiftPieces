@@ -59,9 +59,9 @@ export function blockCards(): BlockCard[] {
   return [...free, ...pro].sort((a, b) => rank(a) - rank(b));
 }
 
-/** "4 free blocks and 2 in Pro". */
+/** "4 free patterns and 2 in Pro". */
 export function blockCountsLabel(): string {
   const free = getBlocks().length;
   const pro = getProBlocks().length;
-  return `${free} free ${free === 1 ? "block" : "blocks"} and ${pro} in Pro`;
+  return `${free} free ${free === 1 ? "pattern" : "patterns"} and ${pro} in Pro`;
 }

@@ -1,0 +1,14 @@
+{
+  "title": "Settings",
+  "description": "The groups every Settings screen needs.",
+  "defaultOpen": false,
+  "pages": [
+    "plan-usage",
+    "invite-friends",
+    "account-settings",
+    "notification-settings",
+    "privacy-settings",
+    "help-support",
+    "storage-settings"
+  ]
+}

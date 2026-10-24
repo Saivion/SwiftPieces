@@ -34,7 +34,7 @@ describe("middleware budgets", () => {
       request("/apps"),
       request("/playground/daylio"),
       request("/playground/daylio?_rsc=abc", { headers: { rsc: "1" } }),
-      request("/blocks?_rsc=abc", { headers: { rsc: "1", "next-router-prefetch": "1" } }),
+      request("/patterns?_rsc=abc", { headers: { rsc: "1", "next-router-prefetch": "1" } }),
       request("/"),
     ]) {
       const res = await middleware(req);

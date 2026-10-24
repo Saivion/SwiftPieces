@@ -8,17 +8,17 @@ import { NewBadge } from "@/components/ui/new-badge";
 import { cn } from "@/lib/cn";
 
 /** Bump the date when a new announcement replaces this one, so everyone sees the next one once. */
-const SEEN_KEY = "sp-announce-blocks-2026-10";
+const SEEN_KEY = "sp-announce-patterns-2026-10";
 /** How long after a page settles before the card comes up, so it never fights the first paint. */
 const DELAY_MS = 1400;
 
 export type AnnouncedBlock = { id: string; title: string; still: string };
 
 /**
- * The Blocks announcement: once per visitor, a card over the page that introduces the blocks tier and
- * sends people to /blocks. Graphite's shape: a tray holding a panel, three block stills fanned on a
+ * The Patterns announcement: once per visitor, a card over the page that introduces Pro's patterns and
+ * sends people to /patterns. Graphite's shape: a tray holding a panel, three pattern stills fanned on a
  * quiet dot field at the top, the mark with the New badge, one statement line, one sentence, then an
- * ink pill and a quiet "Maybe later". Never on the blocks pages themselves, where it would announce
+ * ink pill and a quiet "Maybe later". Never on the patterns pages themselves, where it would announce
  * what is already on screen. Dismissed (any way) means gone, remembered in this browser only.
  */
 export function BlocksAnnouncement({ blocks, count }: { blocks: AnnouncedBlock[]; count: number }) {
@@ -26,7 +26,7 @@ export function BlocksAnnouncement({ blocks, count }: { blocks: AnnouncedBlock[]
   const [open, setOpen] = useState(false);
   const [leaving, setLeaving] = useState(false);
   const dialog = useRef<HTMLDivElement>(null);
-  const onBlocks = pathname.startsWith("/blocks") || pathname.startsWith("/docs/blocks");
+  const onBlocks = pathname.startsWith("/patterns") || pathname.startsWith("/docs/patterns");
 
   useEffect(() => {
     if (onBlocks) return;
@@ -115,17 +115,17 @@ export function BlocksAnnouncement({ blocks, count }: { blocks: AnnouncedBlock[]
           <div className="px-5 pt-3 pb-5 sm:px-7 sm:pb-7">
             <p className="flex items-center gap-2 text-[14px] font-medium text-foreground">
               <LogoMark className="size-5" />
-              Blocks
+              Patterns
               <NewBadge />
             </p>
             <h2 id="announce-title" className="mt-4 text-[26px] leading-[1.1] font-normal tracking-[-0.03em] text-balance sm:text-[30px]">Whole sections, ready to drop in.</h2>
             <p className="mt-3 text-[15px] leading-[25px] text-pretty text-muted">
-              Sign in, checkout, settings and dashboards, built from the pieces and themed by one design system. {count} blocks to start, in SwiftPieces Pro.
+              AI chat, tab bars, settings, forms, sign in and checkout, themed by one design system. {count} patterns in 12 categories, in SwiftPieces Pro.
             </p>
             <div className="mt-6 flex gap-2.5">
-              {/* Going to the blocks counts as seen, like closing. */}
-              <Link href="/blocks" onClick={close} className={buttonClass("primary", "md", "flex-1")}>
-                Explore Blocks <Arrow />
+              {/* Going to the patterns counts as seen, like closing. */}
+              <Link href="/patterns" onClick={close} className={buttonClass("primary", "md", "flex-1")}>
+                Explore Patterns <Arrow />
               </Link>
               <Button variant="secondary" onClick={close}>Maybe later</Button>
             </div>

@@ -1,0 +1,11 @@
+{
+  "title": "Sheets and Alerts",
+  "description": "Sheets, permission asks and release notes.",
+  "defaultOpen": false,
+  "pages": [
+    "share-sheet",
+    "permission-primer",
+    "whats-new",
+    "schedule-sheet"
+  ]
+}

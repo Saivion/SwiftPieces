@@ -1,8 +1,0 @@
-{
-  "title": "Auth",
-  "description": "Sign in, sign up and verification, laid out and wired to your backend in one closure.",
-  "defaultOpen": false,
-  "pages": [
-    "sign-in"
-  ]
-}

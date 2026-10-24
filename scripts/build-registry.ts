@@ -8,7 +8,7 @@
  *   registry/__registry__/blocks.json  the blocks' public index (no file contents)
  *   registry/__registry__/items.json   full items, pieces and blocks, imported only by Route Handlers
  *   content/docs/<category>/<slug>.mdx generated docs pages
- *   content/docs/blocks/...            generated block pages: free blocks with source, Pro blocks as locked pages
+ *   content/docs/patterns/...          generated pattern pages: free blocks with source, Pro patterns as locked pages
  *   registry/__registry__/docs.json    every docs page's URL, title and search text (search, sitemap)
  *   public/llms.txt                    AI discoverability
  *   public/schema/registry-item.json   JSON schema for the registry protocol
@@ -32,7 +32,7 @@ import {
   type RegistryItem,
 } from "../lib/registry-schema";
 import { categories } from "../lib/categories";
-import { blockCategories, blockCategoryIds, blockPath, blockSlug, proBlocks, proBlockUrl, type BlockCategory } from "../lib/blocks";
+import { blockCategories, blockCategoryIds, blockPath, blockSlug, patternSlug, proBlocks, proBlockUrl, type BlockCategory } from "../lib/blocks";
 import { exploreProPages, proCatalog, proCountsLabel } from "../lib/pro-catalog";
 import { hubs, hubItems, hubPath } from "../lib/hubs";
 import { changelog, changelogPath } from "../lib/changelog";
@@ -348,7 +348,7 @@ function buildBlocks(pieces: RegistryItem[]): BlockItem[] {
     }
   }
   const names = new Set(out.map((b) => b.name));
-  if (proCatalog.blocks !== proBlocks.length) throw new Error(`lib/pro-catalog.ts says Pro has ${proCatalog.blocks} blocks; lib/blocks.ts lists ${proBlocks.length}`);
+  if (proCatalog.blocks !== proBlocks.length) throw new Error(`lib/pro-catalog.ts says Pro has ${proCatalog.blocks} patterns; lib/blocks.ts lists ${proBlocks.length}`);
   for (const p of proBlocks) {
     if (names.has(p.name) || pieceNames.has(p.name)) throw new Error(`Pro block ${p.name} shares a name with a free piece or block`);
   }
@@ -356,7 +356,7 @@ function buildBlocks(pieces: RegistryItem[]): BlockItem[] {
   const latest = [...out.map((b) => b.added ?? ""), ...proBlocks.map((p) => p.added)].reduce((max, d) => (d > max ? d : max), "");
   for (const b of out) b.isNew = Boolean(b.added) && b.added === latest && isRecent(latest);
   // Pro blocks carry the badge by the same reckoning, computed here once so server and client agree.
-  writeFileSync(join(OUT_DIR, "pro-blocks.json"), JSON.stringify(proBlocks.map((p) => ({ ...p, slug: blockSlug(p.name), isNew: p.added === latest && isRecent(latest) })), null, 2));
+  writeFileSync(join(OUT_DIR, "pro-blocks.json"), JSON.stringify(proBlocks.map((p) => ({ ...p, slug: patternSlug(p), isNew: p.added === latest && isRecent(latest) })), null, 2));
   return out;
 }
 
@@ -471,29 +471,31 @@ function writeDocs(items: RegistryItem[]) {
       writeFileSync(join(dir, `${item.slug}.mdx`), `---\n${fm}\n---\n\n{/* GENERATED FILE. Edit registry/swift/${item.category}/${item.name}.swift or ${item.name}.mdx instead. */}\n\n<Showcase name="${item.name}"${tone}>\n\n<Tabs items={[${tabNames}]}>\n${sourceTabs}\n</Tabs>\n\n</Showcase>\n\n<PieceFacts name="${item.name}" />\n\n${docs.summary}\n\n${prose}\n\n${usage}\n${paramsTable}`);
     }
   }
-  writeFileSync(join(DOCS_DIR, "meta.json"), JSON.stringify({ title: "SwiftPieces", pages: ["introduction", "installation", "cli", "mcp", "liquid-glass", "guides", "components", "blocks"] }, null, 2));
+  writeFileSync(join(DOCS_DIR, "meta.json"), JSON.stringify({ title: "SwiftPieces", pages: ["introduction", "installation", "cli", "mcp", "liquid-glass", "guides", "components", "patterns"] }, null, 2));
 }
 
 /**
- * content/docs/blocks: the All blocks page, then a folder per block category holding its free blocks (notes, usage,
- * parameters and source, like a piece) and its Pro blocks (a locked page: preview, what it is built from, and where
- * to get it). Everything under it is generated, so the section is rebuilt from scratch.
+ * content/docs/patterns: the All patterns page, then a folder per category (Pro's) holding its free blocks (notes,
+ * usage, parameters and source, like a piece) and its Pro patterns (a locked page: preview, what is inside, and where
+ * to get it). Everything under it is generated, so the section is rebuilt from scratch. The old content/docs/blocks
+ * goes with it; next.config.ts forwards its URLs.
  */
 function writeBlockDocs(blocks: BlockItem[]) {
-  const root = join(DOCS_DIR, "blocks");
+  rmSync(join(DOCS_DIR, "blocks"), { recursive: true, force: true });
+  const root = join(DOCS_DIR, "patterns");
   rmSync(root, { recursive: true, force: true });
   mkdirSync(root, { recursive: true });
   const total = blocks.length + proBlocks.length;
-  writeFileSync(join(root, "index.mdx"), `---\ntitle: "All SwiftUI blocks"\ndescription: "${blocks.length ? `Whole sections of an iOS screen: ${blocks.length} free and ${proBlocks.length} in Pro, each with its preview and source.` : `Whole sections of an iOS screen, laid out, wired and given their states: ${proBlocks.length} blocks in SwiftPieces Pro.`}"\nblocks: true\n---\n\n{/* GENERATED FILE. Edit scripts/build-registry.ts. */}\n`);
+  writeFileSync(join(root, "index.mdx"), `---\ntitle: "All SwiftUI patterns"\ndescription: "${blocks.length ? `Whole sections of an iOS screen: ${blocks.length} free and ${proBlocks.length} in Pro, each with its preview and source.` : `Whole sections of an iOS screen, laid out, wired and given their states: ${proBlocks.length} patterns in SwiftPieces Pro.`}"\nblocks: true\n---\n\n{/* GENERATED FILE. Edit scripts/build-registry.ts. */}\n`);
   const cats = (Object.keys(blockCategories) as BlockCategory[]).filter((c) => blocks.some((b) => b.category === c) || proBlocks.some((p) => p.category === c));
-  writeFileSync(join(root, "meta.json"), JSON.stringify({ title: "Blocks", pages: ["index", `---Blocks · ${total}---`, ...cats.map((c) => blockCategories[c].slug)] }, null, 2));
+  writeFileSync(join(root, "meta.json"), JSON.stringify({ title: "Patterns", pages: ["index", `---Patterns · ${total}---`, ...cats.map((c) => blockCategories[c].slug)] }, null, 2));
 
   for (const cat of cats) {
     const dir = join(root, blockCategories[cat].slug);
     mkdirSync(dir, { recursive: true });
     const free = blocks.filter((b) => b.category === cat);
     const paid = proBlocks.filter((p) => p.category === cat);
-    writeFileSync(join(dir, "meta.json"), JSON.stringify({ title: blockCategories[cat].title, description: blockCategories[cat].description, defaultOpen: false, pages: [...free.map((b) => b.slug), ...paid.map((p) => blockSlug(p.name))] }, null, 2));
+    writeFileSync(join(dir, "meta.json"), JSON.stringify({ title: blockCategories[cat].title, description: blockCategories[cat].description, defaultOpen: false, pages: [...free.map((b) => b.slug), ...paid.map((p) => patternSlug(p))] }, null, 2));
     for (const block of free) {
       const sidecar = join(BLOCKS_DIR, block.category, `${block.name}.mdx`);
       const prose = readFileSync(sidecar, "utf8").trim();
@@ -510,7 +512,7 @@ function writeBlockDocs(blocks: BlockItem[]) {
     }
     for (const p of paid) {
       const fm = Object.entries({ title: p.title, description: p.summary, proBlock: p.id }).map(([k, v]) => `${k}: ${JSON.stringify(v)}`).join("\n");
-      writeFileSync(join(dir, `${blockSlug(p.name)}.mdx`), `---\n${fm}\n---\n\n{/* GENERATED FILE. Edit lib/blocks.ts (proBlocks) instead. */}\n\n<Showcase name="${p.name}" kind="block" still="/pro-blocks/${p.id}.webp" loop="/pro-blocks/${p.id}" proHref="${proBlockUrl(p.id)}" />\n\n<ProBlockFacts id="${p.id}" />\n\n${p.description}\n\nIts SwiftUI source comes with SwiftPieces Pro: [${p.title} in the Pro library](${proBlockUrl(p.id)}).\n`);
+      writeFileSync(join(dir, `${patternSlug(p)}.mdx`), `---\n${fm}\n---\n\n{/* GENERATED FILE. Edit lib/blocks.ts (proBlocks) instead. */}\n\n<Showcase name="${p.name}" kind="block" still="/pro-blocks/${p.id}.webp" loop="/pro-blocks/${p.id}" proHref="${proBlockUrl(p.id)}" />\n\n<ProBlockFacts id="${p.id}" />\n\n${p.description}\n\nIts SwiftUI source comes with SwiftPieces Pro: [${p.title} in the Pro library](${proBlockUrl(p.id)}).\n`);
     }
   }
 }
@@ -673,11 +675,11 @@ function writeLlms(items: RegistryItem[], blocks: BlockItem[]) {
     lines.push("");
   }
   lines.push(
-    "## Blocks",
+    "## Patterns",
     "",
     blocks.length
-      ? `Whole sections of an iOS screen: the fields, buttons and charts laid out, wired and given their states. A free block installs with the pieces it is built from. ${blocks.length} are free; ${proBlocks.length} come with SwiftPieces Pro. All blocks: ${SITE_URL}/blocks`
-      : `Whole sections of an iOS screen: the fields, buttons and charts laid out, wired and given their states, themed by SwiftPieces Pro's design system. All ${proBlocks.length} come with SwiftPieces Pro and install with a Pro license. All blocks: ${SITE_URL}/blocks`,
+      ? `Whole sections of an iOS screen: the fields, buttons and charts laid out, wired and given their states. A free block installs with the pieces it is built from. ${blocks.length} are free; ${proBlocks.length} come with SwiftPieces Pro. All patterns: ${SITE_URL}/patterns`
+      : `Whole sections of an iOS screen: chats, composers, nav and tab bars, lists, settings, forms, sheets, sign-in and checkout, laid out, wired and given their states, themed by SwiftPieces Pro's design system. All ${proBlocks.length} come with SwiftPieces Pro and install with a Pro license. All patterns: ${SITE_URL}/patterns`,
     "",
   );
   for (const b of blocks) lines.push(`- [${b.title}](${b.docs}): ${b.description} Built from ${b.registryDependencies.join(", ")}. Install: \`npx swiftpieces add ${b.name}\`. Registry: ${SITE_URL}/r/${b.name}.json`);

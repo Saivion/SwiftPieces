@@ -51,7 +51,7 @@ export function Showcase({
           <TabButton active={tab === "preview"} onClick={() => setTab("preview")} icon={<EyeIcon />}>Preview</TabButton>
           <TabButton active={tab === "code"} onClick={() => setTab("code")} icon={<CodeIcon />}>Code</TabButton>
         </div>
-        <p className="hidden text-[12.5px] text-subtle sm:block">{note ?? (still ? (loop ? "Pro block · recorded from Pro" : "Pro block · still") : block ? "Live block · sample data" : "Live preview")}</p>
+        <p className="hidden text-[12.5px] text-subtle sm:block">{note ?? (still ? (loop ? "Pro pattern · recorded from Pro" : "Pro pattern · still") : block ? "Live pattern · sample data" : "Live preview")}</p>
       </div>
 
       {/* The preview sits on a tray, its own ground (--pv-bg) the panel inside it. */}
@@ -60,10 +60,10 @@ export function Showcase({
           <div className={cn("mx-auto w-full", block ? "max-w-[560px]" : "max-w-[600px]")}>
             <PreviewFrame aspect={block ? "aspect-square" : "aspect-[4/3]"} tone={tone} className="w-full">
               {still && loop ? (
-                <BlockLoop still={still} loop={loop} alt={`${name}, a SwiftPieces Pro block`} eager fit="contain" />
+                <BlockLoop still={still} loop={loop} alt={`${name}, a SwiftPieces Pro pattern`} eager fit="contain" />
               ) : still ? (
                 // eslint-disable-next-line @next/next/no-img-element -- a static still of a Pro block
-                <img src={still} alt={`${name}, a SwiftPieces Pro block`} className="absolute inset-0 size-full object-contain" />
+                <img src={still} alt={`${name}, a SwiftPieces Pro pattern`} className="absolute inset-0 size-full object-contain" />
               ) : (
                 <PiecePreview name={name} />
               )}
@@ -78,7 +78,7 @@ export function Showcase({
         ) : (
           <div className="flex min-h-[220px] flex-col items-center justify-center gap-3 rounded-[23px] bg-surface-2 px-6 text-center">
             <p className="text-[14px] font-semibold text-foreground">The SwiftUI source comes with SwiftPieces Pro.</p>
-            <p className="max-w-sm text-[12.5px] text-muted">Every Pro block installs with one command once your license is signed in, and re-skins with Pro&apos;s design system.</p>
+            <p className="max-w-sm text-[12.5px] text-muted">Every Pro pattern installs with one command once your license is signed in, and re-skins with Pro&apos;s design system.</p>
             {proHref ? <a href={proHref} className="u-link mt-1 text-[13px] font-semibold text-foreground">Open it in the Pro library ↗</a> : null}
           </div>
         )}

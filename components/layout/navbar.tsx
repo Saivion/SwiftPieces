@@ -30,8 +30,8 @@ const menus: Menu[] = [
     href: "/components",
     items: [
       { label: "Components", href: "/components", desc: "Single-file SwiftUI pieces with live previews", icon: "components" },
-      { label: "Blocks", href: "/blocks", desc: "Whole sections of a screen, built from the pieces", icon: "blocks", badge: "New" },
       { label: "Screens", href: pro.screens, desc: "Finished screens, themed by one design system", icon: "screens", badge: "Pro" },
+      { label: "Patterns", href: "/patterns", desc: "Whole sections of a screen, ready to drop in", icon: "blocks", badge: "Pro" },
       { label: "Flows", href: pro.flows, desc: "Whole journeys, from first run to settings", icon: "flows", badge: "Pro" },
       { label: "Templates", href: pro.templates, desc: "Complete apps as Xcode projects", icon: "templates", badge: "Pro" },
     ],

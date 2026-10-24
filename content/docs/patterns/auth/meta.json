@@ -1,0 +1,12 @@
+{
+  "title": "Auth and Onboarding",
+  "description": "Sign in, recovery and first-run setup.",
+  "defaultOpen": false,
+  "pages": [
+    "sign-in",
+    "magic-link",
+    "reset-password",
+    "profile-setup",
+    "interests-picker"
+  ]
+}
