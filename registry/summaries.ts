@@ -34,6 +34,8 @@ export const summaries: Record<string, string> = {
   ElasticButton: "A button style that squashes toward the touch, stretches with the drag, deepens on a hold and springs back with the give you put in.",
   FanStack: "Overlapping avatars in glass bubbles that fan apart on tap and scrub under the finger, a name tag budding out of the one you hold.",
   HoldToConfirm: "A press-and-hold glass capsule for destructive actions that fills as you hold, ticks past milestones and confirms with a check.",
+  LevelPicker: "A stepped slider for a few named levels: the red thumb rides a glass track, ticks at each stop and settles where a flick would land.",
+  LiquidSwitch: "A toggle whose red fill pours across a glass track as the thumb crosses, swelling under the finger, with a drag that follows and flips.",
   TimerDial: "A countdown ring you set by dragging a glass knob around it, with a tick per step, a warning zone and start, pause and reset bubbles.",
 
   // Data and charts
@@ -61,15 +63,20 @@ export const summaries: Record<string, string> = {
   // Inputs and forms
   AddressField: "An address field whose suggestions pour out as a glass list and resolve into a structured address with street, city and coordinate.",
   AmountField: "A currency entry that formats live in the user's locale as each digit rolls in, pastes cleanly and refuses amounts over the limit.",
+  ChoiceGroup: "Radio and checkbox rows on a glass card: one red drop flows from ring to ring, and checked boxes flood red with a popping check.",
   DateRangePicker: "A start-to-end date range picker on a paged month grid, the range pouring between two glass bubbles like liquid.",
+  DateStrip: "A week of dates in a row from the user's calendar: the red pill flows to the day you tap, and swiping pages by week.",
   ExpandingTrack: "A thumbless glass slider that swells under the finger and buds a readout bubble that rides the edge, for a value or a range.",
   FilterRail: "A scrolling rail of glass filter chips for one pick or many, with a red puck that stretches between chips and a Clear chip.",
   FormField: "A liquid glass text field with a floating label, a clear bubble, a character counter and validation that waits until you leave.",
+  InterestChips: "Wrapping glass chips for picking several things: each floods red as its check grows in, and a limit dims the rest and shakes refusals.",
   LocationPicker: "A map picker with a red pin that lifts while the map moves and drops into place, looking up the address under it on a glass card.",
   RangeSlider: "A dual-thumb slider: glass bubble thumbs joined by a tinted span, readout chips that merge as they meet, and steps that tick.",
   ScrubStepper: "A glass stepper you tap, hold to repeat or scrub sideways across, with buttons that melt into the pill at a bound.",
   SecureEntry: "A glass password field with a reveal bubble, a strength chip and requirement chips that turn sage with a check as each rule passes.",
   SignaturePad: "A signature field with smooth, velocity-weighted ink and a glass toolbar for undo and clear, exporting to PNG or vector PDF.",
+  SwatchPicker: "A row of named color swatches whose selection ring flows to the one you tap, with a check in whichever ink reads on it.",
+  TimeSlotPicker: "Bookable times as glass pills in a grid: the red selection flows across and down to the time you tap, and taken times shake.",
   TokenField: "A tag and recipient field where each entry buds out of the glass input as a chip, with checks, suggestions and backspace to remove.",
 
   // Lists
@@ -97,6 +104,7 @@ export const summaries: Record<string, string> = {
   // Navigation
   FloatingDock: "A floating glass dock where each item is its own bubble; drag across it to lift each item and read its name, release to switch.",
   IndexScrubber: "An A to Z index on a glass rail that jumps through a long list as you drag, with a letter bubble that follows the finger.",
+  PageDots: "A page control whose red capsule pours from dot to dot, with tap and scrub to jump and an autoplay timer that fills the capsule.",
   ScrollIsland: "A floating glass island that names the section in view, rings in how much is read and opens into a contents panel on tap.",
   StepTrail: "A glass progress trail for checkout and setup flows, the red current step stretching to the next as you move on.",
   StretchHeader: "A hero header that stretches on overscroll, shrinks its title toward the navigation bar and pins a row of glass stat pills.",

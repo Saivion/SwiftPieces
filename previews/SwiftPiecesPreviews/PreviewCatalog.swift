@@ -25,6 +25,8 @@ enum PreviewCatalog {
         "PictureHeadline",
         // crafted interactions, 2026-10-12
         "ScrollIsland", "StepTrail", "WaveformScrub", "VoiceRecorder", "NowPlaying", "WalletStack", "NoticeStack", "RangeLens",
+        // pickers and controls, 2026-10-27
+        "LiquidSwitch", "PageDots", "ChoiceGroup", "SwatchPicker", "TimeSlotPicker", "LevelPicker", "DateStrip", "InterestChips",
     ]
 
     @MainActor @ViewBuilder
@@ -196,6 +198,22 @@ enum PreviewCatalog {
             Stage { NoticeStackScene() }
         case "RangeLens":
             Stage { RangeLensScene() }
+        case "LiquidSwitch":
+            Stage { LiquidSwitchScene() }
+        case "PageDots":
+            Stage { PageDotsScene() }
+        case "ChoiceGroup":
+            Stage { ChoiceGroupScene() }
+        case "SwatchPicker":
+            Stage { SwatchPickerScene() }
+        case "TimeSlotPicker":
+            Stage { TimeSlotPickerScene() }
+        case "LevelPicker":
+            Stage { LevelPickerScene() }
+        case "DateStrip":
+            Stage { DateStripScene() }
+        case "InterestChips":
+            Stage { InterestChipsScene() }
         default:
             Text("Unknown piece: \(name)")
         }
@@ -4021,5 +4039,216 @@ private enum RangeLensSceneData {
         let end = max(days.count - 1 - back, 0)
         let start = max(end - length + 1, 0)
         return days[start].date...days[end].date
+    }
+}
+
+// MARK: - pickers and controls, 2026-10-27
+
+/// A house-palette color that follows the interface style.
+private func pickerSceneColor(light: UInt32, dark: UInt32) -> Color {
+    Color(UIColor { @Sendable traits in
+        let hex = traits.userInterfaceStyle == .dark ? dark : light
+        return UIColor(red: CGFloat(hex >> 16 & 0xFF) / 255, green: CGFloat(hex >> 8 & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
+    })
+}
+
+/// Settings rows whose switches flip in turn.
+private struct LiquidSwitchScene: View {
+    @State private var wifi = true
+    @State private var dark = false
+    @State private var sounds = false
+
+    var body: some View {
+        VStack(spacing: 18) {
+            LiquidSwitch("Wi-Fi", isOn: $wifi)
+            LiquidSwitch("Dark mode", isOn: $dark, symbol: "moon.fill")
+            LiquidSwitch("Sounds", isOn: $sounds)
+        }
+        .frame(maxWidth: 300)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(pickerSceneColor(light: 0xF3F2EE, dark: 0x121212))
+        .task {
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(1.1))
+                dark.toggle()
+                try? await Task.sleep(for: .seconds(0.9))
+                sounds.toggle()
+                try? await Task.sleep(for: .seconds(0.9))
+                wifi.toggle()
+            }
+        }
+    }
+}
+
+/// Dots under a pager stepping forward and back, and a glass row on autoplay.
+private struct PageDotsScene: View {
+    @State private var page = 0
+    @State private var featured = 0
+
+    var body: some View {
+        VStack(spacing: 30) {
+            PageDots(count: 5, page: $page)
+            PageDots(count: 4, page: $featured, autoplay: .seconds(2), glass: true)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(pickerSceneColor(light: 0xF3F2EE, dark: 0x121212))
+        .task {
+            let steps = [1, 2, 3, 1, 0]
+            while !Task.isCancelled {
+                for step in steps {
+                    try? await Task.sleep(for: .seconds(0.9))
+                    page = step
+                }
+            }
+        }
+    }
+}
+
+/// A delivery choice with the drop flowing between rings, and extras checked in turn.
+private struct ChoiceGroupScene: View {
+    @State private var speed = "Standard"
+    @State private var extras: Set<String> = ["Gift wrap"]
+
+    var body: some View {
+        VStack(spacing: 22) {
+            ChoiceGroup("Delivery", options: ["Standard", "Express", "Same day"], selection: $speed, label: { $0 }) { option in
+                ["Standard": "Free", "Express": "$6", "Same day": "$12"][option]
+            }
+            ChoiceGroup(options: ["Gift wrap", "Leave at door"], selection: $extras, label: { $0 })
+        }
+        .frame(maxWidth: 340)
+        .padding(.horizontal, 24)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(pickerSceneColor(light: 0xF3F2EE, dark: 0x121212))
+        .task {
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(1))
+                speed = "Same day"
+                try? await Task.sleep(for: .seconds(1))
+                extras.insert("Leave at door")
+                try? await Task.sleep(for: .seconds(1))
+                speed = "Express"
+                try? await Task.sleep(for: .seconds(1))
+                speed = "Standard"
+                extras = ["Gift wrap"]
+            }
+        }
+    }
+}
+
+/// The ring flowing along the house swatches.
+private struct SwatchPickerScene: View {
+    @State private var color = SwatchPicker.house[1]
+
+    var body: some View {
+        SwatchPicker(selection: $color)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(pickerSceneColor(light: 0xF3F2EE, dark: 0x121212))
+            .task {
+                let steps = [4, 2, 0, 5, 1]
+                while !Task.isCancelled {
+                    for step in steps {
+                        try? await Task.sleep(for: .seconds(0.9))
+                        color = SwatchPicker.house[step]
+                    }
+                }
+            }
+    }
+}
+
+/// An afternoon of slots, the selection moving along and across rows.
+private struct TimeSlotPickerScene: View {
+    @State private var time: Date?
+    private let slots: [TimeSlotPicker.Slot] = {
+        let day = Calendar.current.startOfDay(for: .now)
+        let hours: [Double] = [9, 9.5, 10, 10.5, 11, 11.5, 13, 13.5, 14]
+        return hours.enumerated().map { TimeSlotPicker.Slot(day.addingTimeInterval($1 * 3600), isAvailable: ![2, 6].contains($0)) }
+    }()
+
+    var body: some View {
+        TimeSlotPicker(slots: slots, selection: $time)
+            .frame(maxWidth: 340)
+            .padding(.horizontal, 24)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(pickerSceneColor(light: 0xF3F2EE, dark: 0x121212))
+            .task {
+                let steps = [0, 1, 4, 8, 3]
+                while !Task.isCancelled {
+                    time = nil
+                    for step in steps {
+                        try? await Task.sleep(for: .seconds(0.9))
+                        time = slots[step].start
+                    }
+                    try? await Task.sleep(for: .seconds(0.6))
+                }
+            }
+    }
+}
+
+/// A fan speed stepping up and down its stops.
+private struct LevelPickerScene: View {
+    @State private var speed = "Low"
+
+    var body: some View {
+        LevelPicker(["Off", "Low", "Medium", "High"], selection: $speed)
+            .frame(maxWidth: 320)
+            .padding(.horizontal, 24)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(pickerSceneColor(light: 0xF3F2EE, dark: 0x121212))
+            .task {
+                let steps = ["High", "Medium", "Off", "Low"]
+                while !Task.isCancelled {
+                    for step in steps {
+                        try? await Task.sleep(for: .seconds(1))
+                        speed = step
+                    }
+                }
+            }
+    }
+}
+
+/// Days picked within a week, then a day in the next week, where the pill buds in place.
+private struct DateStripScene: View {
+    @State private var day = Calendar.current.startOfDay(for: .now)
+
+    var body: some View {
+        DateStrip(selection: $day, in: Calendar.current.startOfDay(for: .now)...)
+            .frame(maxWidth: 380)
+            .padding(.horizontal, 24)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(pickerSceneColor(light: 0xF3F2EE, dark: 0x121212))
+            .task {
+                let today = Calendar.current.startOfDay(for: .now)
+                while !Task.isCancelled {
+                    for offset in [2, 4, 8, 0] {
+                        try? await Task.sleep(for: .seconds(1.1))
+                        day = Calendar.current.date(byAdding: .day, value: offset, to: today) ?? today
+                    }
+                }
+            }
+    }
+}
+
+/// Topics picked up to the limit.
+private struct InterestChipsScene: View {
+    @State private var topics: Set<String> = ["Design"]
+    private let options = ["Design", "Running", "Cooking", "Travel", "Film", "Music", "Coffee", "Books"]
+
+    var body: some View {
+        InterestChips("Pick up to 3", options: options, selection: $topics, limit: 3)
+            .frame(maxWidth: 340)
+            .padding(.horizontal, 24)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(pickerSceneColor(light: 0xF3F2EE, dark: 0x121212))
+            .task {
+                while !Task.isCancelled {
+                    for topic in ["Travel", "Music"] {
+                        try? await Task.sleep(for: .seconds(0.9))
+                        topics.insert(topic)
+                    }
+                    try? await Task.sleep(for: .seconds(1.4))
+                    topics = ["Design"]
+                }
+            }
     }
 }

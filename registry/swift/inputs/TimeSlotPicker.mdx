@@ -1,0 +1,9 @@
+## Notes
+
+- Build `slots` from your availability. Each `Slot` is a start time and whether it is open; times are formatted in the user's locale and 12 or 24 hour clock.
+- Open times sit on liquid glass pills in a grid of `columns` (three by default, two at accessibility text sizes). The red selection flows to the time you tap, along a row or across rows: the edges facing the new slot lead on a tight spring and the far edges follow on a looser one, so it stretches toward the pick and gathers in. The label under it turns to ink.
+- The first pick grows the selection in place on its slot. Slot frames are measured, so it lines up at any text size.
+- Taken times are outlined and struck through. Tapping one shakes it with a firm haptic instead of selecting it, and VoiceOver reads it as Unavailable.
+- One selection haptic fires per pick. Setting `selection` to `nil` from outside fades the selection away. `.disabled(true)` dims the grid.
+- Under Reduce Motion the selection slides whole on one short spring and grows in with a fade. Reduce Transparency draws the pills as solid shapes.
+- Pairs with Date Strip above it for a booking step.

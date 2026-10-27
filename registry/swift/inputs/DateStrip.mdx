@@ -1,0 +1,10 @@
+## Notes
+
+- A week of days in a row, built from the environment's calendar, so the first weekday, the weekday names and the month follow the user's locale. Pass bounds like `DatePicker`: `today...` for bookings or a closed range for a window. Days outside dim and cannot be picked.
+- The selected day is a red pill. Within a week it flows to the day you tap: the edge facing the new day leads on a tight spring and the far edge follows on a looser one, so it stretches across and gathers in.
+- Picking a day in another week buds the pill in place on the new day, from a small dot of red to the full pill. It never travels in from a day that is off screen, so it can't streak across the strip.
+- Swipe to page by week. The next week slides in under the finger and a long or quick swipe turns it, with a light haptic. At the first or last week in bounds the swipe meets a soft edge instead. The pill rides along with its own week.
+- The header names the month and the selected date. Today keeps a dot.
+- One selection haptic fires per pick. VoiceOver reads each day by its full date, marks today and the selection, and a three-finger swipe pages the weeks. The layout mirrors in right-to-left languages. `.disabled(true)` dims the strip.
+- Under Reduce Motion the pill slides whole within a week and fades into a new one.
+- Pairs with Time Slot Picker under it for a booking step.

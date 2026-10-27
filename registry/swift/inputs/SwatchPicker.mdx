@@ -1,0 +1,8 @@
+## Notes
+
+- Each swatch is a named color, so VoiceOver reads the name ("Sky, selected") rather than a color value. `SwatchPicker.house` is the SwiftPieces red and five pastels; pass your own `[Swatch]` for a tag or theme palette.
+- The selection is a ring around the swatch. On a new pick the edge facing the new swatch leads on a tight spring and the far edge follows on a looser one, so the ring stretches into a capsule across the swatches between and gathers in around the new one.
+- A check pops into the picked swatch in ink or white, whichever reads on that color in the current appearance.
+- Swatches are 34pt by default, and the gap around each counts as part of it, so the tap target reaches 44pt. A row wider than its space scrolls sideways.
+- One selection haptic fires per pick. Setting `selection` from outside moves the ring the same way a tap does. `.disabled(true)` dims the row.
+- Under Reduce Motion the ring slides whole on one short spring and the check eases in without overshoot.

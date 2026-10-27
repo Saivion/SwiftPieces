@@ -1,0 +1,8 @@
+## Notes
+
+- One piece for radio buttons and checkboxes. Bind `selection` to a single value for a single choice, or to a `Set` for a multiple choice. Rows sit on one liquid glass card with hairline dividers.
+- In a single choice the selection is one red drop that flows from ring to ring. The edge facing the new row leads on a tight spring and the far edge follows on a looser one, so the drop stretches down or up the card and gathers into the new ring. Rows are measured, so the drop lines up with rows of any height, including wrapped titles.
+- In a multiple choice each box floods red and draws its check in ink with a small pop.
+- Each row takes a title and an optional `detail` on the trailing side, such as a price. The whole row is the tap target and shades while pressed.
+- One selection haptic fires for every change. VoiceOver reads the title as the group's label and each row as a button, selected for a radio and Checked or Unchecked for a box. `.disabled(true)` dims the card.
+- Under Reduce Motion the drop slides on one short spring without the stretch, and the check fades instead of popping. Reduce Transparency draws the card as a solid shape.

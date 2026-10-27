@@ -1,0 +1,8 @@
+## Notes
+
+- For a handful of named levels, such as fan speed, quality or text size. Pass any `Hashable` options with a `label`, or strings with the convenience initializer.
+- A red capsule sits on a liquid glass track over detent dots. Tap a stop and the capsule flows there: the end facing the new stop leads on a tight spring and the far end follows on a looser one, so it stretches across the stops between and gathers in.
+- Drag the capsule and it follows the finger directly, with a soft edge past either end. `selection` updates at each stop it crosses, with a selection tick, so what it controls follows live. On release it lands where the flick was heading, carrying the finger's speed.
+- Stop names sit under the track with the chosen one in full ink. Turn them off with `showsLabels: false` and mark the ends with `minimumImage` and `maximumImage` instead.
+- VoiceOver reads it as one adjustable element with the level's name as its value: swipe up or down to change it. The track mirrors in right-to-left languages. `.disabled(true)` dims it.
+- Under Reduce Motion the capsule slides whole on one short spring with no overshoot. Reduce Transparency draws the track as a solid shape.
