@@ -722,6 +722,88 @@
   },
   {
     "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "LevelPicker",
+    "slug": "level-picker",
+    "type": "registry:component",
+    "title": "Level Picker",
+    "description": "A slider with a few named stops, for speed, quality, intensity, text size or any setting with a handful of levels. A red capsule sits on a liquid glass track over detent dots: tap a stop and it flows there like liquid, its leading edge first, or drag it and it follows the finger with a tick at every stop it crosses, then lands where the flick was heading. The stop names sit under the track with the chosen one in full ink, and optional symbols mark the low and high ends.",
+    "category": "controls",
+    "license": "MIT+Commons-Clause",
+    "version": "1.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "slider",
+      "stepper",
+      "levels",
+      "settings",
+      "drag",
+      "haptics"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/controls/LevelPicker.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Controls/LevelPicker.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/controls/level-picker",
+    "added": "2026-10-27",
+    "isNew": true,
+    "liquidGlass": true,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "LiquidSwitch",
+    "slug": "liquid-switch",
+    "type": "registry:component",
+    "title": "Liquid Switch",
+    "description": "A toggle on a liquid glass track whose thumb moves like liquid: its leading edge reaches the far end first and the trailing edge follows, so it stretches across and gathers in, while the red floods the track out of it. Drag the thumb and it follows the finger with rubber-band give at the ends, then lands where the flick was heading; tap the switch or its title to flip it. An optional SF Symbol fades into the thumb as it turns on.",
+    "category": "controls",
+    "license": "MIT+Commons-Clause",
+    "version": "1.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "toggle",
+      "switch",
+      "settings",
+      "glass",
+      "drag",
+      "haptics"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/controls/LiquidSwitch.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Controls/LiquidSwitch.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/controls/liquid-switch",
+    "added": "2026-10-27",
+    "isNew": true,
+    "liquidGlass": true,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
     "name": "TimerDial",
     "slug": "timer-dial",
     "type": "registry:component",
@@ -1513,6 +1595,47 @@
   },
   {
     "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "ChoiceGroup",
+    "slug": "choice-group",
+    "type": "registry:component",
+    "title": "Choice Group",
+    "description": "Radio and checkbox lists in one piece, as rows on a liquid glass card. In a single choice the selection is one red drop that flows from ring to ring: it stretches toward the row you tap, its leading edge first, and gathers into the ring. In a multiple choice each box floods red and draws its check in ink with a small pop. Each row takes a title and an optional detail on the trailing side, the whole row is the tap target, and VoiceOver reads it as a selected or unselected button.",
+    "category": "inputs",
+    "license": "MIT+Commons-Clause",
+    "version": "1.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "radio",
+      "checkbox",
+      "picker",
+      "form",
+      "selection",
+      "haptics"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/inputs/ChoiceGroup.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Inputs/ChoiceGroup.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/inputs/choice-group",
+    "added": "2026-10-27",
+    "isNew": true,
+    "liquidGlass": true,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
     "name": "DateRangePicker",
     "slug": "date-range-picker",
     "type": "registry:component",
@@ -1550,6 +1673,47 @@
     "added": "2026-09-23",
     "isNew": false,
     "liquidGlass": true,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "DateStrip",
+    "slug": "date-strip",
+    "type": "registry:component",
+    "title": "Date Strip",
+    "description": "A week of dates in a row, built from the user's calendar, locale and first weekday. The red pill flows to the day you tap like liquid, its leading edge reaching the new day first and the trailing edge following, and when you pick a day in another week it buds in place instead of streaking across. Swipe to page by week with a soft edge at the bounds; today keeps a dot and days out of range dim. Sits well above Time Slot Picker.",
+    "category": "inputs",
+    "license": "MIT+Commons-Clause",
+    "version": "1.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "date",
+      "calendar",
+      "week",
+      "picker",
+      "booking",
+      "haptics"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/inputs/DateStrip.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Inputs/DateStrip.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/inputs/date-strip",
+    "added": "2026-10-27",
+    "isNew": true,
+    "liquidGlass": false,
     "metal": false
   },
   {
@@ -1669,6 +1833,47 @@
     "docs": "https://swiftpieces.com/docs/components/inputs/form-field",
     "added": "2026-09-23",
     "isNew": false,
+    "liquidGlass": true,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "InterestChips",
+    "slug": "interest-chips",
+    "type": "registry:component",
+    "title": "Interest Chips",
+    "description": "Wrapping chips on liquid glass for picking several things at once: interests, dietary needs, topics, tags. A picked chip floods red from its leading edge as a check grows in beside its label. With a limit, a counter keeps score, the rest dim once it is reached, and tapping one shakes it with a firm tick instead of picking it. Chips wrap to the width and grow with Dynamic Type, and VoiceOver reads each as a selected or unselected button.",
+    "category": "inputs",
+    "license": "MIT+Commons-Clause",
+    "version": "1.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "chips",
+      "tags",
+      "multi-select",
+      "onboarding",
+      "filter",
+      "haptics"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/inputs/InterestChips.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Inputs/InterestChips.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/inputs/interest-chips",
+    "added": "2026-10-27",
+    "isNew": true,
     "liquidGlass": true,
     "metal": false
   },
@@ -1880,6 +2085,88 @@
     "docs": "https://swiftpieces.com/docs/components/inputs/signature-pad",
     "added": "2026-09-29",
     "isNew": false,
+    "liquidGlass": true,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "SwatchPicker",
+    "slug": "swatch-picker",
+    "type": "registry:component",
+    "title": "Swatch Picker",
+    "description": "A row of color swatches for tags, lists, calendars and themes. The selection ring flows to the swatch you tap like liquid, its leading edge reaching the new swatch first and the trailing edge following, and a check pops into the picked swatch in ink or white, whichever reads on it. Each swatch is a named color, so VoiceOver reads its name; the defaults are the SwiftPieces house blocks. A row wider than the screen scrolls.",
+    "category": "inputs",
+    "license": "MIT+Commons-Clause",
+    "version": "1.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "color",
+      "picker",
+      "swatch",
+      "tags",
+      "selection",
+      "haptics"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/inputs/SwatchPicker.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Inputs/SwatchPicker.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/inputs/swatch-picker",
+    "added": "2026-10-27",
+    "isNew": true,
+    "liquidGlass": false,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "TimeSlotPicker",
+    "slug": "time-slot-picker",
+    "type": "registry:component",
+    "title": "Time Slot Picker",
+    "description": "Bookable times as a grid of liquid glass pills, formatted in the user's locale and clock. The red selection flows to the time you tap like liquid, along a row or across rows: the edges facing the new slot lead and the far edges follow, so it stretches toward the pick and gathers in, while the label under it turns to ink. Taken times are outlined and struck through, and a tap on one shakes it with a firm tick instead of selecting it. For appointments, tables, classes and deliveries.",
+    "category": "inputs",
+    "license": "MIT+Commons-Clause",
+    "version": "1.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "time",
+      "booking",
+      "schedule",
+      "picker",
+      "grid",
+      "haptics"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/inputs/TimeSlotPicker.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Inputs/TimeSlotPicker.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/inputs/time-slot-picker",
+    "added": "2026-10-27",
+    "isNew": true,
     "liquidGlass": true,
     "metal": false
   },
@@ -2680,6 +2967,46 @@
     "docs": "https://swiftpieces.com/docs/components/navigation/index-scrubber",
     "added": "2026-09-29",
     "isNew": false,
+    "liquidGlass": true,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "PageDots",
+    "slug": "page-dots",
+    "type": "registry:component",
+    "title": "Page Dots",
+    "description": "A page control where the current page is a red capsule that flows into the next dot: the new dot stretches open first and the old one gathers in a beat later, so the red pours from one to the other. Tap a dot to jump, or scrub along the row with a tick for every page you cross. Autoplay fills the capsule as a timer and turns the page when it is full, pausing while a finger is down. Optionally on a liquid glass capsule, for dots over photos.",
+    "category": "navigation",
+    "license": "MIT+Commons-Clause",
+    "version": "1.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "pagination",
+      "page-control",
+      "carousel",
+      "autoplay",
+      "haptics"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/navigation/PageDots.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Navigation/PageDots.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/navigation/page-dots",
+    "added": "2026-10-27",
+    "isNew": true,
     "liquidGlass": true,
     "metal": false
   },

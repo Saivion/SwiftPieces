@@ -81,6 +81,14 @@ const map: Record<string, ComponentType> = {
   WalletStack: dynamic(() => import("./wallet-stack").then((m) => m.WalletStackPreview)),
   NoticeStack: dynamic(() => import("./notice-stack").then((m) => m.NoticeStackPreview)),
   RangeLens: dynamic(() => import("./range-lens").then((m) => m.RangeLensPreview)),
+  LiquidSwitch: dynamic(() => import("./pickers").then((m) => m.LiquidSwitchPreview)),
+  PageDots: dynamic(() => import("./pickers").then((m) => m.PageDotsPreview)),
+  ChoiceGroup: dynamic(() => import("./pickers").then((m) => m.ChoiceGroupPreview)),
+  SwatchPicker: dynamic(() => import("./pickers").then((m) => m.SwatchPickerPreview)),
+  TimeSlotPicker: dynamic(() => import("./pickers").then((m) => m.TimeSlotPickerPreview)),
+  LevelPicker: dynamic(() => import("./pickers").then((m) => m.LevelPickerPreview)),
+  DateStrip: dynamic(() => import("./pickers").then((m) => m.DateStripPreview)),
+  InterestChips: dynamic(() => import("./pickers").then((m) => m.InterestChipsPreview)),
 };
 
 /** One Picture Headline sticker on its own (the landing's floating mascot), from the preview's own chunk. */

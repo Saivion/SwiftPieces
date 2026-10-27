@@ -1,0 +1,9 @@
+## Notes
+
+- Bind `page` to the same index as your `TabView` or paging `ScrollView`. The dots follow it, and a tap or a scrub writes it back.
+- The current page is a red capsule. On a change the new dot stretches open on a tight spring and the old one closes on a looser one a beat later, so the red pours from one to the other instead of jumping.
+- Tap a dot to jump to it, or drag along the row to scrub through the pages with a selection tick for each one you cross. The whole row is a 44pt touch target.
+- `autoplay` turns the page after the given time and wraps from the last page to the first. The capsule fills from its leading end as a timer, restarts when the page changes, and pauses while a finger is on the dots.
+- `glass: true` sets the dots on a liquid glass capsule, for dots over photos or busy content.
+- VoiceOver reads the row as one adjustable element, "Page 2 of 5": swipe up or down to change the page. `.disabled(true)` dims the dots and ignores touches.
+- Under Reduce Motion the capsule swaps on one short spring without the pour. The autoplay timer still fills, since it carries meaning. Reduce Transparency draws the glass capsule as a solid shape.

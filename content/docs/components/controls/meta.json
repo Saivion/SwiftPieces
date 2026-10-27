@@ -7,6 +7,8 @@
     "elastic-button",
     "fan-stack",
     "hold-to-confirm",
+    "level-picker",
+    "liquid-switch",
     "timer-dial"
   ]
 }

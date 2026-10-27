@@ -5,6 +5,7 @@
   "pages": [
     "floating-dock",
     "index-scrubber",
+    "page-dots",
     "scroll-island",
     "step-trail",
     "stretch-header",

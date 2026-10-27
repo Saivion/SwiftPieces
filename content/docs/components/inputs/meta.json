@@ -5,15 +5,20 @@
   "pages": [
     "address-field",
     "amount-field",
+    "choice-group",
     "date-range-picker",
+    "date-strip",
     "expanding-track",
     "filter-rail",
     "form-field",
+    "interest-chips",
     "location-picker",
     "range-slider",
     "scrub-stepper",
     "secure-entry",
     "signature-pad",
+    "swatch-picker",
+    "time-slot-picker",
     "token-field"
   ]
 }

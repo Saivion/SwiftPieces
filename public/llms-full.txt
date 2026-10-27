@@ -1,6 +1,6 @@
 # SwiftPieces: full text
 
-> 77 free SwiftUI components for iOS, one Swift file each, MIT + Commons Clause. Index: https://swiftpieces.com/llms.txt. Source for any piece: https://swiftpieces.com/r/<Name>.json or its docs page.
+> 85 free SwiftUI components for iOS, one Swift file each, MIT + Commons Clause. Index: https://swiftpieces.com/llms.txt. Source for any piece: https://swiftpieces.com/r/<Name>.json or its docs page.
 
 # Components
 
@@ -583,6 +583,46 @@ Hold to confirm, in liquid glass. The tint sweeps through the glass from the lea
 - `committedTitle`: Text the label morphs to once the hold completes, such as "Deleted". `nil` lets the label go and leaves the check to speak.
 - `style`: Label, fill, ink and committed colors plus height. `.standard` is the house palette with a signal fill.
 - `action`: Called once when the hold completes. VoiceOver's activate action calls it directly.
+
+## Level Picker (`LevelPicker`)
+
+URL: https://swiftpieces.com/docs/components/controls/level-picker
+Category: Controls. iOS 17.0+. Liquid Glass on iOS 26 with a Material fallback.
+Files: LevelPicker.swift
+Install: npx swiftpieces add LevelPicker
+
+A slider with a few named stops, for speed, quality, intensity, text size or any setting with a handful of levels. A red capsule sits on a liquid glass track over detent dots: tap a stop and it flows there like liquid, its leading edge first, or drag it and it follows the finger with a tick at every stop it crosses, then lands where the flick was heading. The stop names sit under the track with the chosen one in full ink, and optional symbols mark the low and high ends.
+
+Colors and metrics for `LevelPicker`. `.standard` is the house palette: the brand red on neutral glass.
+
+### Notes
+
+- For a handful of named levels, such as fan speed, quality or text size. Pass any `Hashable` options with a `label`, or strings with the convenience initializer.
+- A red capsule sits on a liquid glass track over detent dots. Tap a stop and the capsule flows there: the end facing the new stop leads on a tight spring and the far end follows on a looser one, so it stretches across the stops between and gathers in.
+- Drag the capsule and it follows the finger directly, with a soft edge past either end. `selection` updates at each stop it crosses, with a selection tick, so what it controls follows live. On release it lands where the flick was heading, carrying the finger's speed.
+- Stop names sit under the track with the chosen one in full ink. Turn them off with `showsLabels: false` and mark the ends with `minimumImage` and `maximumImage` instead.
+- VoiceOver reads it as one adjustable element with the level's name as its value: swipe up or down to change it. The track mirrors in right-to-left languages. `.disabled(true)` dims it.
+- Under Reduce Motion the capsule slides whole on one short spring with no overshoot. Reduce Transparency draws the track as a solid shape.
+
+## Liquid Switch (`LiquidSwitch`)
+
+URL: https://swiftpieces.com/docs/components/controls/liquid-switch
+Category: Controls. iOS 17.0+. Liquid Glass on iOS 26 with a Material fallback.
+Files: LiquidSwitch.swift
+Install: npx swiftpieces add LiquidSwitch
+
+A toggle on a liquid glass track whose thumb moves like liquid: its leading edge reaches the far end first and the trailing edge follows, so it stretches across and gathers in, while the red floods the track out of it. Drag the thumb and it follows the finger with rubber-band give at the ends, then lands where the flick was heading; tap the switch or its title to flip it. An optional SF Symbol fades into the thumb as it turns on.
+
+Colors and type for `LiquidSwitch`. `.standard` is the house palette: the brand red on neutral glass.
+
+### Notes
+
+- Use it like `Toggle`. With a title, the whole row toggles on tap, the way a settings row does. Without one, give the switch an `accessibilityLabel`.
+- The thumb has two edges, each on its own spring. The edge facing the move leads on a tight spring and the far edge follows on a looser one, so the thumb stretches across the track and gathers in. The red fill floods out of the thumb as it crosses, so the on state never just appears.
+- Under a finger the thumb swells toward the middle. A drag follows the finger with a soft edge at either end and flips at the midpoint, and the release carries the finger's speed into the landing. A touch the system takes over, such as a scroll, puts the thumb back.
+- Setting `isOn` from outside moves the thumb the same way a tap does. `symbol` fades an SF Symbol into the thumb as it turns on.
+- One light impact haptic fires for each flip. VoiceOver reads the switch as a toggle with its title and an On or Off value, and a double-tap flips it. `.disabled(true)` dims it.
+- Under Reduce Motion both edges share one short spring, so the thumb slides whole with no stretch. Reduce Transparency draws the track as a solid shape.
 
 ## Timer Dial (`TimerDial`)
 
@@ -1247,6 +1287,26 @@ Currency amount entry with live locale formatting, a `Decimal` value and a limit
 - `isFocused`: Optional binding to read or drive keyboard focus, for example to raise the keyboard on appear.
 - `style`: Colors and metrics. Defaults to the SwiftPieces house palette, adapting to light and dark.
 
+## Choice Group (`ChoiceGroup`)
+
+URL: https://swiftpieces.com/docs/components/inputs/choice-group
+Category: Inputs. iOS 17.0+. Liquid Glass on iOS 26 with a Material fallback.
+Files: ChoiceGroup.swift
+Install: npx swiftpieces add ChoiceGroup
+
+Radio and checkbox lists in one piece, as rows on a liquid glass card. In a single choice the selection is one red drop that flows from ring to ring: it stretches toward the row you tap, its leading edge first, and gathers into the ring. In a multiple choice each box floods red and draws its check in ink with a small pop. Each row takes a title and an optional detail on the trailing side, the whole row is the tap target, and VoiceOver reads it as a selected or unselected button.
+
+Colors and type for `ChoiceGroup`. `.standard` is the house palette: the brand red on a neutral glass card.
+
+### Notes
+
+- One piece for radio buttons and checkboxes. Bind `selection` to a single value for a single choice, or to a `Set` for a multiple choice. Rows sit on one liquid glass card with hairline dividers.
+- In a single choice the selection is one red drop that flows from ring to ring. The edge facing the new row leads on a tight spring and the far edge follows on a looser one, so the drop stretches down or up the card and gathers into the new ring. Rows are measured, so the drop lines up with rows of any height, including wrapped titles.
+- In a multiple choice each box floods red and draws its check in ink with a small pop.
+- Each row takes a title and an optional `detail` on the trailing side, such as a price. The whole row is the tap target and shades while pressed.
+- One selection haptic fires for every change. VoiceOver reads the title as the group's label and each row as a button, selected for a radio and Checked or Unchecked for a box. `.disabled(true)` dims the card.
+- Under Reduce Motion the drop slides on one short spring without the stretch, and the check fades instead of popping. Reduce Transparency draws the card as a solid shape.
+
 ## Date Range Picker (`DateRangePicker`)
 
 URL: https://swiftpieces.com/docs/components/inputs/date-range-picker
@@ -1285,6 +1345,28 @@ Day-granular start/end range picker with a paged month grid. The selection is al
 - `counting`: `.days` counts both ends (Mar 4 to Mar 9 is 6 days, and a single day is allowed). `.nights` counts nights (5 nights, and the end must be after the start).
 - `showsSummary`: Show the header line with the formatted range and its length chip.
 - `style`: Colors. Defaults to the SwiftPieces house palette (red glass start and end bubbles with dark ink, joined by a neutral glass band), adapting to light and dark.
+
+## Date Strip (`DateStrip`)
+
+URL: https://swiftpieces.com/docs/components/inputs/date-strip
+Category: Inputs. iOS 17.0+.
+Files: DateStrip.swift
+Install: npx swiftpieces add DateStrip
+
+A week of dates in a row, built from the user's calendar, locale and first weekday. The red pill flows to the day you tap like liquid, its leading edge reaching the new day first and the trailing edge following, and when you pick a day in another week it buds in place instead of streaking across. Swipe to page by week with a soft edge at the bounds; today keeps a dot and days out of range dim. Sits well above Time Slot Picker.
+
+Colors and metrics for `DateStrip`. `.standard` is the house palette: the brand red with ink on it.
+
+### Notes
+
+- A week of days in a row, built from the environment's calendar, so the first weekday, the weekday names and the month follow the user's locale. Pass bounds like `DatePicker`: `today...` for bookings or a closed range for a window. Days outside dim and cannot be picked.
+- The selected day is a red pill. Within a week it flows to the day you tap: the edge facing the new day leads on a tight spring and the far edge follows on a looser one, so it stretches across and gathers in.
+- Picking a day in another week buds the pill in place on the new day, from a small dot of red to the full pill. It never travels in from a day that is off screen, so it can't streak across the strip.
+- Swipe to page by week. The next week slides in under the finger and a long or quick swipe turns it, with a light haptic. At the first or last week in bounds the swipe meets a soft edge instead. The pill rides along with its own week.
+- The header names the month and the selected date. Today keeps a dot.
+- One selection haptic fires per pick. VoiceOver reads each day by its full date, marks today and the selection, and a three-finger swipe pages the weeks. The layout mirrors in right-to-left languages. `.disabled(true)` dims the strip.
+- Under Reduce Motion the pill slides whole within a week and fades into a new one.
+- Pairs with Time Slot Picker under it for a booking step.
 
 ## Expanding Track (`ExpandingTrack`)
 
@@ -1404,6 +1486,26 @@ Text field with a floating label, help and error text, a character limit and a c
 - `submitLabel`: The Return key label, e.g. `.next` or `.done`.
 - `onSubmit`: Called when Return is pressed in a one-line field. Move focus to the next field here.
 - `style`: Colors and field metrics. Defaults to the SwiftPieces house palette, adapting to light and dark.
+
+## Interest Chips (`InterestChips`)
+
+URL: https://swiftpieces.com/docs/components/inputs/interest-chips
+Category: Inputs. iOS 17.0+. Liquid Glass on iOS 26 with a Material fallback.
+Files: InterestChips.swift
+Install: npx swiftpieces add InterestChips
+
+Wrapping chips on liquid glass for picking several things at once: interests, dietary needs, topics, tags. A picked chip floods red from its leading edge as a check grows in beside its label. With a limit, a counter keeps score, the rest dim once it is reached, and tapping one shakes it with a firm tick instead of picking it. Chips wrap to the width and grow with Dynamic Type, and VoiceOver reads each as a selected or unselected button.
+
+Colors and metrics for `InterestChips`. `.standard` is the house palette: the brand red on neutral glass.
+
+### Notes
+
+- For picking several things at once, such as interests in onboarding, dietary needs or topics. Pass strings, or any `Hashable` options with a `label`. Chips wrap to the width and grow with Dynamic Type.
+- Each chip sits on liquid glass. A picked chip floods red from its leading edge as a check grows in beside its label, on the morph spring. Tapping it again lets it go.
+- `limit` caps the picks. A counter keeps score in the header, the unpicked chips dim once it is reached, and tapping one of them shakes it with a firm haptic instead of picking it. Deselect one to free a place.
+- The gap around each chip counts as part of it, so taps between chips still land.
+- One selection haptic fires per change. VoiceOver reads the title as the group's label and each chip as a button, selected when picked, and dimmed chips as Limit reached. `.disabled(true)` dims the chips.
+- Under Reduce Motion the flood and check settle with no overshoot. Reduce Transparency draws the chips as solid shapes.
 
 ## Location Picker (`LocationPicker`)
 
@@ -1599,6 +1701,47 @@ Signature capture that feels like ink, bound to a `SignaturePad.Signature` value
 - `prompt`: The hint under the baseline, shown until the first stroke. Defaults to "Sign here".
 - `allowsTyping`: Offers Type instead, which sets the typed name in a script face on the same baseline. This is the accessible path for people who cannot draw a signature (VoiceOver, motor impairments), so turn it off only when your flow offers another way to sign.
 - `style`: Colors, ink weight, corner radius and pad height. Defaults to the SwiftPieces house palette, adapting to light and dark.
+
+## Swatch Picker (`SwatchPicker`)
+
+URL: https://swiftpieces.com/docs/components/inputs/swatch-picker
+Category: Inputs. iOS 17.0+.
+Files: SwatchPicker.swift
+Install: npx swiftpieces add SwatchPicker
+
+A row of color swatches for tags, lists, calendars and themes. The selection ring flows to the swatch you tap like liquid, its leading edge reaching the new swatch first and the trailing edge following, and a check pops into the picked swatch in ink or white, whichever reads on it. Each swatch is a named color, so VoiceOver reads its name; the defaults are the SwiftPieces house blocks. A row wider than the screen scrolls.
+
+Colors for `SwatchPicker`. `.standard` is the house palette.
+
+### Notes
+
+- Each swatch is a named color, so VoiceOver reads the name ("Sky, selected") rather than a color value. `SwatchPicker.house` is the SwiftPieces red and five pastels; pass your own `[Swatch]` for a tag or theme palette.
+- The selection is a ring around the swatch. On a new pick the edge facing the new swatch leads on a tight spring and the far edge follows on a looser one, so the ring stretches into a capsule across the swatches between and gathers in around the new one.
+- A check pops into the picked swatch in ink or white, whichever reads on that color in the current appearance.
+- Swatches are 34pt by default, and the gap around each counts as part of it, so the tap target reaches 44pt. A row wider than its space scrolls sideways.
+- One selection haptic fires per pick. Setting `selection` from outside moves the ring the same way a tap does. `.disabled(true)` dims the row.
+- Under Reduce Motion the ring slides whole on one short spring and the check eases in without overshoot.
+
+## Time Slot Picker (`TimeSlotPicker`)
+
+URL: https://swiftpieces.com/docs/components/inputs/time-slot-picker
+Category: Inputs. iOS 17.0+. Liquid Glass on iOS 26 with a Material fallback.
+Files: TimeSlotPicker.swift
+Install: npx swiftpieces add TimeSlotPicker
+
+Bookable times as a grid of liquid glass pills, formatted in the user's locale and clock. The red selection flows to the time you tap like liquid, along a row or across rows: the edges facing the new slot lead and the far edges follow, so it stretches toward the pick and gathers in, while the label under it turns to ink. Taken times are outlined and struck through, and a tap on one shakes it with a firm tick instead of selecting it. For appointments, tables, classes and deliveries.
+
+Colors and metrics for `TimeSlotPicker`. `.standard` is the house palette: the brand red on neutral glass.
+
+### Notes
+
+- Build `slots` from your availability. Each `Slot` is a start time and whether it is open; times are formatted in the user's locale and 12 or 24 hour clock.
+- Open times sit on liquid glass pills in a grid of `columns` (three by default, two at accessibility text sizes). The red selection flows to the time you tap, along a row or across rows: the edges facing the new slot lead on a tight spring and the far edges follow on a looser one, so it stretches toward the pick and gathers in. The label under it turns to ink.
+- The first pick grows the selection in place on its slot. Slot frames are measured, so it lines up at any text size.
+- Taken times are outlined and struck through. Tapping one shakes it with a firm haptic instead of selecting it, and VoiceOver reads it as Unavailable.
+- One selection haptic fires per pick. Setting `selection` to `nil` from outside fades the selection away. `.disabled(true)` dims the grid.
+- Under Reduce Motion the selection slides whole on one short spring and grows in with a fade. Reduce Transparency draws the pills as solid shapes.
+- Pairs with Date Strip above it for a booking step.
 
 ## Token Field (`TokenField`)
 
@@ -2332,6 +2475,27 @@ A section index rail for long sectioned lists (contacts, glossaries, countries, 
 - `missing`: What happens to index entries that have no section: `.dimmed` keeps them in place in a quieter color (the finger lands on the nearest section after them), `.hidden` leaves them out.
 - `style`: Colors for the letters, the letter bubble and its ink. Defaults to the SwiftPieces house palette, adapting to light and dark.
 - `onSelect`: Called with the section title to jump to: once on touch down, then each time the finger reaches a new section, and on VoiceOver or keyboard moves. Scroll without animation here, the way the system index does.
+
+## Page Dots (`PageDots`)
+
+URL: https://swiftpieces.com/docs/components/navigation/page-dots
+Category: Navigation. iOS 17.0+. Liquid Glass on iOS 26 with a Material fallback.
+Files: PageDots.swift
+Install: npx swiftpieces add PageDots
+
+A page control where the current page is a red capsule that flows into the next dot: the new dot stretches open first and the old one gathers in a beat later, so the red pours from one to the other. Tap a dot to jump, or scrub along the row with a tick for every page you cross. Autoplay fills the capsule as a timer and turns the page when it is full, pausing while a finger is down. Optionally on a liquid glass capsule, for dots over photos.
+
+Colors and size for `PageDots`. `.standard` is the house palette: a red current page among quiet dots.
+
+### Notes
+
+- Bind `page` to the same index as your `TabView` or paging `ScrollView`. The dots follow it, and a tap or a scrub writes it back.
+- The current page is a red capsule. On a change the new dot stretches open on a tight spring and the old one closes on a looser one a beat later, so the red pours from one to the other instead of jumping.
+- Tap a dot to jump to it, or drag along the row to scrub through the pages with a selection tick for each one you cross. The whole row is a 44pt touch target.
+- `autoplay` turns the page after the given time and wraps from the last page to the first. The capsule fills from its leading end as a timer, restarts when the page changes, and pauses while a finger is on the dots.
+- `glass: true` sets the dots on a liquid glass capsule, for dots over photos or busy content.
+- VoiceOver reads the row as one adjustable element, "Page 2 of 5": swipe up or down to change the page. `.disabled(true)` dims the dots and ignores touches.
+- Under Reduce Motion the capsule swaps on one short spring without the pour. The autoplay timer still fills, since it carries meaning. Reduce Transparency draws the glass capsule as a solid shape.
 
 ## Scroll Island (`ScrollIsland`)
 

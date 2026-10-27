@@ -1,0 +1,543 @@
+---
+title: "Page Dots"
+description: "A page control whose red capsule pours from dot to dot, with tap and scrub to jump and an autoplay timer that fills the capsule."
+piece: "PageDots"
+category: "navigation"
+minIOSVersion: "17.0"
+version: "1.0.0"
+tags: ["pagination","page-control","carousel","autoplay","haptics"]
+registryDependencies: []
+---
+
+{/* GENERATED FILE. Edit registry/swift/navigation/PageDots.swift or PageDots.mdx instead. */}
+
+<Showcase name="PageDots">
+
+<Tabs items={["PageDots.swift"]}>
+<Tab value="PageDots.swift">
+
+```swift title="PageDots.swift"
+// Copyright (c) 2026 Saivion Hayes
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, and distribute the Software as part of
+// an application, website, or product, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// Commons Clause Restriction
+//
+// You may use this Software, including for any commercial purpose, so long as
+// you do not sell, sublicense, or redistribute the components themselves, whether
+// alone, in a bundle, or as a ported version.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
+import SwiftUI
+
+/// Colors and size for `PageDots`. `.standard` is the house palette: a red current page among quiet dots.
+public struct PageDotsStyle: Sendable {
+    /// The current page's capsule.
+    public var current: Color
+    /// The other dots.
+    public var dot: Color
+    /// The unfilled part of the current capsule while autoplay runs.
+    public var timerTrack: Color
+    /// The diameter of a dot. The current page is `currentWidth` wide.
+    public var dotSize: CGFloat
+    /// The width of the current page's capsule.
+    public var currentWidth: CGFloat
+    /// The gap between dots.
+    public var spacing: CGFloat
+
+    public init(
+        current: Color = PageDotsStyle.adaptive(light: 0xFF0000, dark: 0xFF0000),
+        dot: Color = PageDotsStyle.adaptive(light: 0xC9C7C1, dark: 0x4A4A48),
+        timerTrack: Color = PageDotsStyle.adaptive(light: 0xF2B8B0, dark: 0x6B2A26),
+        dotSize: CGFloat = 8,
+        currentWidth: CGFloat = 24,
+        spacing: CGFloat = 8
+    ) {
+        self.current = current
+        self.dot = dot
+        self.timerTrack = timerTrack
+        self.dotSize = dotSize
+        self.currentWidth = max(currentWidth, dotSize)
+        self.spacing = spacing
+    }
+
+    public static let standard = PageDotsStyle()
+
+    /// A color that follows the appearance, from two 0xRRGGBB values.
+    public static func adaptive(light: UInt32, dark: UInt32) -> Color {
+        Color(UIColor { @Sendable traits in
+            let hex = traits.userInterfaceStyle == .dark ? dark : light
+            return UIColor(red: CGFloat(hex >> 16 & 0xFF) / 255, green: CGFloat(hex >> 8 & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
+        })
+    }
+}
+
+/// A page indicator whose current page is a capsule that flows from dot to dot. Bind it to the same page index as
+/// your `TabView` or paging `ScrollView`.
+///
+/// - Parameters:
+///   - count: The number of pages. One page or none draws nothing.
+///   - page: The current page, from 0. A tap or a scrub writes it; set it yourself as your pager moves.
+///   - autoplay: Turns the page after this long, filling the current capsule as a timer, and wraps from the last page to the first. `nil` (the default) never turns it. Paused while a finger is on the dots.
+///   - glass: Sets the dots on a liquid glass capsule, for dots over photos or busy content.
+///   - style: Colors and sizes. Defaults to the SwiftPieces house palette, adapting to light and dark.
+public struct PageDots: View {
+    public typealias Style = PageDotsStyle
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.isEnabled) private var isEnabled
+    @Binding private var page: Int
+    /// The page the new capsule opens on, changed on the tight spring, and the page the old one closes on, changed on
+    /// the responsive one: a dot is a capsule while either names it, so the new one opens before the old one closes.
+    @State private var leading: Int
+    @State private var trailing: Int
+    /// How full the autoplay timer is, 0 to 1.
+    @State private var timer: CGFloat = 0
+    @State private var scrubbing = false
+    @State private var ticks = 0
+
+    private let count: Int
+    private let autoplay: Duration?
+    private let glass: Bool
+    private let style: Style
+
+    public init(count: Int, page: Binding<Int>, autoplay: Duration? = nil, glass: Bool = false, style: Style = .standard) {
+        self.count = count
+        self._page = page
+        self.autoplay = autoplay
+        self.glass = glass
+        self.style = style
+        let start = min(max(page.wrappedValue, 0), max(count - 1, 0))
+        self._leading = State(initialValue: start)
+        self._trailing = State(initialValue: start)
+    }
+
+    public var body: some View {
+        if count > 1 {
+            dots
+                .padding(.horizontal, glass ? 14 : 0)
+                .padding(.vertical, glass ? 12 : 0)
+                .background {
+                    if glass { PieceLiquidGroup { Color.clear.pieceLiquid(.capsule, interactive: false) } }
+                }
+                .frame(minHeight: 44)
+                .contentShape(.rect)
+                .gesture(scrub, including: isEnabled ? .all : .none)
+                .opacity(isEnabled ? 1 : 0.45)
+                .sensoryFeedback(.selection, trigger: ticks)
+                .onChange(of: page) { _, new in move(to: clamp(new)) }
+                .task(id: autoplayKey) { await runAutoplay() }
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel("Page")
+                .accessibilityValue("\(leading + 1) of \(count)")
+                .accessibilityAdjustableAction { direction in
+                    switch direction {
+                    case .increment: select(min(leading + 1, count - 1), tick: false)
+                    case .decrement: select(max(leading - 1, 0), tick: false)
+                    @unknown default: break
+                    }
+                }
+        }
+    }
+
+    private var dots: some View {
+        HStack(spacing: style.spacing) {
+            ForEach(0..<count, id: \.self) { index in
+                let open = index == leading || index == trailing
+                Capsule()
+                    .fill(open ? (autoplay == nil ? style.current : style.timerTrack) : style.dot)
+                    .overlay(alignment: .leading) {
+                        // The timer fills the current capsule from its leading end.
+                        if autoplay != nil, index == leading {
+                            GeometryReader { proxy in
+                                Capsule()
+                                    .fill(style.current)
+                                    .frame(width: max(proxy.size.width * timer, proxy.size.height))
+                            }
+                        }
+                    }
+                    .clipShape(.capsule)
+                    .frame(width: open ? style.currentWidth : style.dotSize, height: style.dotSize)
+            }
+        }
+    }
+
+    // MARK: Interaction
+
+    /// A tap lands on the dot under it; a drag along the row scrubs through the pages with a tick for each.
+    private var scrub: some Gesture {
+        DragGesture(minimumDistance: 0)
+            .onChanged { value in
+                if !scrubbing { scrubbing = true }
+                guard abs(value.translation.width) > 6 else { return }
+                select(index(at: value.location.x), tick: true)
+            }
+            .onEnded { value in
+                scrubbing = false
+                if abs(value.translation.width) <= 6 { select(index(at: value.location.x), tick: true) }
+            }
+    }
+
+    /// The page whose dot is nearest `x`, with the capsule's extra width counted where it is now.
+    private func index(at x: CGFloat) -> Int {
+        let inset = glass ? 14 : CGFloat(0)
+        var edge = inset
+        for i in 0..<count {
+            let width = i == leading ? style.currentWidth : style.dotSize
+            if x < edge + width + style.spacing / 2 { return i }
+            edge += width + style.spacing
+        }
+        return count - 1
+    }
+
+    private func select(_ index: Int, tick: Bool) {
+        guard index != leading else { return }
+        if tick { ticks += 1 }
+        page = index
+        move(to: index)
+    }
+
+    /// The new dot opens on the tight spring, the old one closes on the responsive one, so the red pours across.
+    /// Under Reduce Motion both change on one short spring, so the capsule swaps without the stretch.
+    private func move(to index: Int) {
+        guard index != leading || index != trailing else { return }
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        quietly { timer = 0 }
+        if reduceMotion {
+            withAnimation(motion.snap) {
+                leading = index
+                trailing = index
+            }
+            return
+        }
+        withAnimation(.spring(PieceMotion.tight)) { leading = index }
+        withAnimation(.spring(PieceMotion.responsive)) { trailing = index }
+    }
+
+    // MARK: Autoplay
+
+    /// Restarts the timer whenever the page, the interval or a touch changes.
+    private var autoplayKey: [Int] { [leading, scrubbing ? 1 : 0, autoplay == nil ? 0 : 1] }
+
+    private func runAutoplay() async {
+        guard let autoplay, !scrubbing else { return }
+        let seconds = Double(autoplay.components.seconds) + Double(autoplay.components.attoseconds) / 1e18
+        guard seconds > 0 else { return }
+        quietly { timer = 0 }
+        withAnimation(.linear(duration: seconds)) { timer = 1 }
+        try? await Task.sleep(for: autoplay)
+        guard !Task.isCancelled else { return }
+        page = (leading + 1) % count
+    }
+
+    private func clamp(_ index: Int) -> Int { min(max(index, 0), count - 1) }
+
+    private func quietly(_ change: () -> Void) {
+        var transaction = Transaction()
+        transaction.disablesAnimations = true
+        withTransaction(transaction, change)
+    }
+}
+
+// MARK: - Example
+
+/// Pages of colour blocks with the dots under them, and the same dots on glass with autoplay.
+private struct PageDotsExample: View {
+    @State private var page = 0
+    @State private var featured = 0
+    private let blocks: [UInt32] = [0x9CC2FF, 0xFFD976, 0xA9DCB7, 0xCDB8FF, 0xE9D5B3]
+
+    var body: some View {
+        VStack(spacing: 28) {
+            TabView(selection: $page) {
+                ForEach(blocks.indices, id: \.self) { index in
+                    RoundedRectangle(cornerRadius: 28, style: .continuous)
+                        .fill(PageDotsStyle.adaptive(light: blocks[index], dark: blocks[index]))
+                        .padding(.horizontal, 24)
+                        .tag(index)
+                }
+            }
+            .tabViewStyle(.page(indexDisplayMode: .never))
+            .frame(height: 220)
+            PageDots(count: blocks.count, page: $page)
+            PageDots(count: 4, page: $featured, autoplay: .seconds(3), glass: true)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(PageDotsStyle.adaptive(light: 0xF3F2EE, dark: 0x121212))
+        .animation(.spring(duration: 0.4, bounce: 0.1), value: page)
+    }
+}
+
+#Preview("Light") {
+    PageDotsExample()
+}
+
+#Preview("Dark") {
+    PageDotsExample()
+        .preferredColorScheme(.dark)
+}
+
+// MARK: - Piece motion
+//
+// The SwiftPieces motion language: shared spring tokens and gesture physics, with the same values in every
+// piece. Each piece carries a copy of only the parts it uses, so this file stands alone. Generated from
+// registry/foundation/PieceMotion.swift in the SwiftPieces repo; edit it there, not here.
+// swiftpieces-motion: 1.1.0 (core)
+
+/// The SwiftPieces motion language: five spring tiers, and a named role for every moment a piece moves,
+/// each with its Reduce Motion substitute.
+///
+/// Build one from the environment, `PieceMotion(reduceMotion: reduceMotion)`, and pick the role that names
+/// what just happened. Never animate the tracking of a finger: set gesture state directly in `onChanged`, so the
+/// surface stays under the finger, and spring only the release.
+private struct PieceMotion {
+    var reduceMotion = false
+
+    // Tiers. Overshoot and settle times are measured from rest with SwiftUI's Spring.
+    /// No overshoot, 90% in about 90ms. A press arriving under the finger.
+    static var tight: Spring { Spring(duration: 0.14, bounce: 0) }
+    /// About 2.8% overshoot, 90% in about 140ms. Snapping to a detent, page or segment.
+    static var responsive: Spring { Spring(duration: 0.32, bounce: 0.25) }
+    /// About 8.4% overshoot. Visible give: a release, a return from past an edge, a drag settling home.
+    static var elastic: Spring { Spring(duration: 0.42, bounce: 0.38) }
+    /// About 15% overshoot. A resolved action landing. At most once per interaction.
+    static var expressive: Spring { Spring(duration: 0.48, bounce: 0.48) }
+    /// About 1.5% overshoot, unhurried. Opening large surfaces and ambient change.
+    static var calm: Spring { Spring(duration: 0.5, bounce: 0.2) }
+
+    /// Reduce Motion: settles become this short spring with no overshoot.
+    private static var still: Animation { .spring(duration: 0.25, bounce: 0) }
+
+    // Roles.
+    /// Touch-down. Starts on the same frame and never bounces under the finger.
+    var press: Animation { .spring(Self.tight) }
+    /// The finger lifts off a pressed surface, which springs back through rest.
+    var release: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A dragged thing comes to rest. With a gesture's velocity, use `settle(velocity:from:to:)` instead.
+    var settle: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// Lands on a detent, page or segment.
+    var snap: Animation { reduceMotion ? Self.still : .spring(Self.responsive) }
+    /// A number, a chart value or anything else people read moves to its new value. Never overshoots, so it
+    /// never shows a value that isn't true.
+    var value: Animation { reduceMotion ? Self.still : .spring(duration: 0.35, bounce: 0) }
+    /// Comes back from past a limit: a pull beyond the edge, a value pushed against its bound.
+    var rebound: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A shape or container changes size, corner radius or form, with a little give at the end.
+    var morph: Animation { reduceMotion ? Self.still : .spring(duration: 0.4, bounce: 0.2) }
+    /// Something appears, opens or expands. Opening is a little slower than closing.
+    var reveal: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.calm) }
+    /// Something leaves, closes or collapses. Quick and firm, out of the way.
+    var dismiss: Animation { reduceMotion ? .easeIn(duration: 0.18) : .spring(duration: 0.3, bounce: 0.08) }
+    /// A resolved action lands: a check, a sent state, a reaction.
+    var success: Animation { reduceMotion ? .easeOut(duration: 0.24) : .spring(Self.expressive) }
+    /// A refused action. Firm, no wobble; `pieceShake` adds the movement.
+    var error: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.responsive) }
+    /// Slow ambient change. Loops themselves stop under Reduce Motion: check `allowsAmbient`.
+    var ambient: Animation { reduceMotion ? .easeInOut(duration: 0.3) : .spring(Self.calm) }
+
+    /// Loops, drifts, idle breathing and parallax run only when this is true.
+    var allowsAmbient: Bool { !reduceMotion }
+
+    /// A moving transition, or a plain fade under Reduce Motion.
+    func transition(_ transition: AnyTransition) -> AnyTransition {
+        reduceMotion ? .opacity : transition
+    }
+
+    /// For content replaced inside a container that stays put (a label, a glyph, a count): the old content
+    /// blurs out as the new one sharpens in. A fade under Reduce Motion.
+    @MainActor var swap: AnyTransition {
+        reduceMotion ? .opacity : AnyTransition(.blurReplace)
+    }
+}
+
+// swiftpieces-motion: end
+
+// MARK: - Piece liquid
+//
+// The SwiftPieces liquid glass language: glass shapes that merge through a neck, bubbles that bud out of
+// and melt back into each other, and the frosted fallback before iOS 26. Each piece carries a copy of only
+// the parts it uses, so this file stands alone. Generated from registry/foundation/PieceLiquid.swift in the
+// SwiftPieces repo; edit it there, not here. The rules are in LIQUID_GLASS.md.
+// swiftpieces-liquid: 1.8.0 (liquid)
+
+/// The liquid glass language: one merge distance, two rest gaps, and the springs a bubble leaves and comes home on.
+///
+/// Glass shapes inside one `PieceLiquidGroup` melt into each other through a neck when they come within `merge`
+/// points. Parts of one control rest `joined`, inside that distance, so the neck holds; separate actions rest
+/// `apart`, outside it, so they only goo while one buds out of, or melts back into, another.
+private enum PieceLiquid {
+    /// Glass shapes closer than this share a neck.
+    static let merge: CGFloat = 20
+    /// The gap between parts of one control (a stepper's buttons, a progress pill and its stop): the neck holds,
+    /// short and smooth, about two thirds of the shapes' height at its waist. Joined parts read best at one height.
+    static let joined: CGFloat = 4
+    /// The gap between separate actions (menu items, confirm and cancel, chips): they rest as their own bubbles.
+    static let apart: CGFloat = 26
+    /// How far a bubble shrinks while it is home inside its parent.
+    static let homeScale: CGFloat = 0.72
+
+    /// A bubble leaving its parent: slow enough that the neck's stretch and snap read.
+    static func split(reduceMotion: Bool) -> Animation {
+        reduceMotion ? .easeOut(duration: 0.2) : .spring(duration: 0.62, bounce: 0.22)
+    }
+
+    /// A bubble going home. No bounce: a bounce would carry it out through the far side of its parent.
+    static func home(reduceMotion: Bool) -> Animation {
+        reduceMotion ? .easeIn(duration: 0.18) : .spring(duration: 0.5, bounce: 0)
+    }
+}
+
+/// A group of glass shapes that merge into one liquid surface. On iOS 26 it is a `GlassEffectContainer`; before
+/// that, and under Reduce Transparency, the shapes draw on their own and simply don't merge. `lift` adds the soft
+/// shadow liquid glass floats on in light mode.
+private struct PieceLiquidGroup<Content: View>: View {
+    var spacing: CGFloat = PieceLiquid.merge
+    var lift = true
+    @ViewBuilder var content: Content
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        container
+            .shadow(color: .black.opacity(lift && colorScheme == .light ? 0.07 : 0), radius: 18, y: 8)
+    }
+
+    @ViewBuilder private var container: some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26, *), !reduceTransparency {
+            GlassEffectContainer(spacing: spacing) { content }
+        } else {
+            content
+        }
+        #else
+        content
+        #endif
+    }
+}
+
+/// One liquid glass shape: Liquid Glass on iOS 26, carrying `tint` as a solid colour and swelling under a press when
+/// `interactive`; a frosted Material with a light rim and a soft shadow before that; a solid fill under Reduce
+/// Transparency.
+///
+/// The tint is painted inside clear glass rather than tinting the glass. Tinted glass in a group bleeds its colour
+/// through every neck as a smear, so a red button would glow into the white pill it is joined to; painted inside,
+/// the colour stays crisp to the shape's edge, the necks between shapes are clear glass, and a tint change animates
+/// like any colour (tinted glass snaps).
+private struct PieceLiquidSurface<S: Shape>: ViewModifier {
+    var shape: S
+    var tint: Color?
+    var interactive: Bool
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.pieceLiquidScale) private var scale
+
+    func body(content: Content) -> some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26, *), !reduceTransparency {
+            // Scaled as two parts, content and outline, about the same centre. A scaleEffect on a glass view inside a
+            // GlassEffectContainer shrinks the glass but leaves what it carries full size, pinned to its corner.
+            content
+                .background { shape.fill(tint ?? .clear) }
+                .scaleEffect(scale)
+                .glassEffect(glass, in: shape.scale(scale))
+        } else {
+            fallback(content).scaleEffect(scale)
+        }
+        #else
+        fallback(content).scaleEffect(scale)
+        #endif
+    }
+
+    #if compiler(>=6.2)
+    @available(iOS 26, *)
+    private var glass: Glass {
+        interactive ? Glass.regular.interactive() : .regular
+    }
+    #endif
+
+    private func fallback(_ content: Content) -> some View {
+        let dark = colorScheme == .dark
+        return content
+            .background {
+                if reduceTransparency {
+                    shape.fill(tint ?? (dark ? Color(white: 0.17) : Color(white: 0.97)))
+                } else {
+                    ZStack {
+                        shape.fill(.regularMaterial)
+                        if let tint { shape.fill(tint.opacity(0.88)) }
+                    }
+                }
+            }
+            .overlay { shape.stroke(Color.white.opacity(dark ? 0.14 : 0.7), lineWidth: 0.5) }
+            .shadow(color: .black.opacity(dark ? 0.32 : 0.08), radius: 10, y: 5)
+    }
+}
+
+private struct PieceLiquidScaleKey: EnvironmentKey {
+    static let defaultValue: CGFloat = 1
+}
+
+private extension EnvironmentValues {
+    /// How much the liquid shapes below are scaled, about their own centres. Nested scales multiply.
+    var pieceLiquidScale: CGFloat {
+        get { self[PieceLiquidScaleKey.self] }
+        set { self[PieceLiquidScaleKey.self] = newValue }
+    }
+}
+
+private extension View {
+    /// Draws this view on a liquid glass `shape`. Put it inside a `PieceLiquidGroup` so it can merge with its neighbours.
+    func pieceLiquid<S: Shape>(_ shape: S, tint: Color? = nil, interactive: Bool = true) -> some View {
+        modifier(PieceLiquidSurface(shape: shape, tint: tint, interactive: interactive))
+    }
+
+    /// Scales the liquid glass shapes in this view, content and outline together, about their own centres. Use it
+    /// instead of `scaleEffect` on a glass view (a press, a lift, a swell): inside a group a plain `scaleEffect` shrinks
+    /// the glass but leaves its content full size and off centre. Animates like any other value.
+    func pieceLiquidScale(_ scale: CGFloat) -> some View {
+        transformEnvironment(\.pieceLiquidScale) { $0 *= scale }
+    }
+}
+
+// swiftpieces-liquid: end
+```
+
+</Tab>
+</Tabs>
+
+</Showcase>
+
+<PieceFacts name="PageDots" />
+
+Colors and size for `PageDots`. `.standard` is the house palette: a red current page among quiet dots.
+
+## Notes
+
+- Bind `page` to the same index as your `TabView` or paging `ScrollView`. The dots follow it, and a tap or a scrub writes it back.
+- The current page is a red capsule. On a change the new dot stretches open on a tight spring and the old one closes on a looser one a beat later, so the red pours from one to the other instead of jumping.
+- Tap a dot to jump to it, or drag along the row to scrub through the pages with a selection tick for each one you cross. The whole row is a 44pt touch target.
+- `autoplay` turns the page after the given time and wraps from the last page to the first. The capsule fills from its leading end as a timer, restarts when the page changes, and pauses while a finger is on the dots.
+- `glass: true` sets the dots on a liquid glass capsule, for dots over photos or busy content.
+- VoiceOver reads the row as one adjustable element, "Page 2 of 5": swipe up or down to change the page. `.disabled(true)` dims the dots and ignores touches.
+- Under Reduce Motion the capsule swaps on one short spring without the pour. The autoplay timer still fills, since it carries meaning. Reduce Transparency draws the glass capsule as a solid shape.
+
+## Usage
+
+```swift
+PageDotsExample()
+```
+

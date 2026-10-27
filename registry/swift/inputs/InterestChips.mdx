@@ -1,0 +1,8 @@
+## Notes
+
+- For picking several things at once, such as interests in onboarding, dietary needs or topics. Pass strings, or any `Hashable` options with a `label`. Chips wrap to the width and grow with Dynamic Type.
+- Each chip sits on liquid glass. A picked chip floods red from its leading edge as a check grows in beside its label, on the morph spring. Tapping it again lets it go.
+- `limit` caps the picks. A counter keeps score in the header, the unpicked chips dim once it is reached, and tapping one of them shakes it with a firm haptic instead of picking it. Deselect one to free a place.
+- The gap around each chip counts as part of it, so taps between chips still land.
+- One selection haptic fires per change. VoiceOver reads the title as the group's label and each chip as a button, selected when picked, and dimmed chips as Limit reached. `.disabled(true)` dims the chips.
+- Under Reduce Motion the flood and check settle with no overshoot. Reduce Transparency draws the chips as solid shapes.

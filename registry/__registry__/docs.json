@@ -4719,6 +4719,110 @@
     }
   },
   {
+    "url": "/docs/components/controls/level-picker",
+    "title": "Level Picker",
+    "description": "A stepped slider for a few named levels: the red thumb rides a glass track, ticks at each stop and settles where a flick would land.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Components",
+      "Categories · 14",
+      "Controls"
+    ],
+    "structuredData": {
+      "contents": [
+        {
+          "content": "Colors and metrics for `LevelPicker`. `.standard` is the house palette: the brand red on neutral glass."
+        },
+        {
+          "heading": "notes",
+          "content": "For a handful of named levels, such as fan speed, quality or text size. Pass any `Hashable` options with a `label`, or strings with the convenience initializer."
+        },
+        {
+          "heading": "notes",
+          "content": "A red capsule sits on a liquid glass track over detent dots. Tap a stop and the capsule flows there: the end facing the new stop leads on a tight spring and the far end follows on a looser one, so it stretches across the stops between and gathers in."
+        },
+        {
+          "heading": "notes",
+          "content": "Drag the capsule and it follows the finger directly, with a soft edge past either end. `selection` updates at each stop it crosses, with a selection tick, so what it controls follows live. On release it lands where the flick was heading, carrying the finger's speed."
+        },
+        {
+          "heading": "notes",
+          "content": "Stop names sit under the track with the chosen one in full ink. Turn them off with `showsLabels: false` and mark the ends with `minimumImage` and `maximumImage` instead."
+        },
+        {
+          "heading": "notes",
+          "content": "VoiceOver reads it as one adjustable element with the level's name as its value: swipe up or down to change it. The track mirrors in right-to-left languages. `.disabled(true)` dims it."
+        },
+        {
+          "heading": "notes",
+          "content": "Under Reduce Motion the capsule slides whole on one short spring with no overshoot. Reduce Transparency draws the track as a solid shape."
+        }
+      ],
+      "headings": [
+        {
+          "id": "notes",
+          "content": "Notes"
+        },
+        {
+          "id": "usage",
+          "content": "Usage"
+        }
+      ]
+    }
+  },
+  {
+    "url": "/docs/components/controls/liquid-switch",
+    "title": "Liquid Switch",
+    "description": "A toggle whose red fill pours across a glass track as the thumb crosses, swelling under the finger, with a drag that follows and flips.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Components",
+      "Categories · 14",
+      "Controls"
+    ],
+    "structuredData": {
+      "contents": [
+        {
+          "content": "Colors and type for `LiquidSwitch`. `.standard` is the house palette: the brand red on neutral glass."
+        },
+        {
+          "heading": "notes",
+          "content": "Use it like `Toggle`. With a title, the whole row toggles on tap, the way a settings row does. Without one, give the switch an `accessibilityLabel`."
+        },
+        {
+          "heading": "notes",
+          "content": "The thumb has two edges, each on its own spring. The edge facing the move leads on a tight spring and the far edge follows on a looser one, so the thumb stretches across the track and gathers in. The red fill floods out of the thumb as it crosses, so the on state never just appears."
+        },
+        {
+          "heading": "notes",
+          "content": "Under a finger the thumb swells toward the middle. A drag follows the finger with a soft edge at either end and flips at the midpoint, and the release carries the finger's speed into the landing. A touch the system takes over, such as a scroll, puts the thumb back."
+        },
+        {
+          "heading": "notes",
+          "content": "Setting `isOn` from outside moves the thumb the same way a tap does. `symbol` fades an SF Symbol into the thumb as it turns on."
+        },
+        {
+          "heading": "notes",
+          "content": "One light impact haptic fires for each flip. VoiceOver reads the switch as a toggle with its title and an On or Off value, and a double-tap flips it. `.disabled(true)` dims it."
+        },
+        {
+          "heading": "notes",
+          "content": "Under Reduce Motion both edges share one short spring, so the thumb slides whole with no stretch. Reduce Transparency draws the track as a solid shape."
+        }
+      ],
+      "headings": [
+        {
+          "id": "notes",
+          "content": "Notes"
+        },
+        {
+          "id": "usage",
+          "content": "Usage"
+        }
+      ]
+    }
+  },
+  {
     "url": "/docs/components/controls/timer-dial",
     "title": "Timer Dial",
     "description": "A countdown ring you set by dragging a glass knob around it, with a tick per step, a warning zone and start, pause and reset bubbles.",
@@ -7339,6 +7443,58 @@
     }
   },
   {
+    "url": "/docs/components/inputs/choice-group",
+    "title": "Choice Group",
+    "description": "Radio and checkbox rows on a glass card: one red drop flows from ring to ring, and checked boxes flood red with a popping check.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Components",
+      "Categories · 14",
+      "Inputs"
+    ],
+    "structuredData": {
+      "contents": [
+        {
+          "content": "Colors and type for `ChoiceGroup`. `.standard` is the house palette: the brand red on a neutral glass card."
+        },
+        {
+          "heading": "notes",
+          "content": "One piece for radio buttons and checkboxes. Bind `selection` to a single value for a single choice, or to a `Set` for a multiple choice. Rows sit on one liquid glass card with hairline dividers."
+        },
+        {
+          "heading": "notes",
+          "content": "In a single choice the selection is one red drop that flows from ring to ring. The edge facing the new row leads on a tight spring and the far edge follows on a looser one, so the drop stretches down or up the card and gathers into the new ring. Rows are measured, so the drop lines up with rows of any height, including wrapped titles."
+        },
+        {
+          "heading": "notes",
+          "content": "In a multiple choice each box floods red and draws its check in ink with a small pop."
+        },
+        {
+          "heading": "notes",
+          "content": "Each row takes a title and an optional `detail` on the trailing side, such as a price. The whole row is the tap target and shades while pressed."
+        },
+        {
+          "heading": "notes",
+          "content": "One selection haptic fires for every change. VoiceOver reads the title as the group's label and each row as a button, selected for a radio and Checked or Unchecked for a box. `.disabled(true)` dims the card."
+        },
+        {
+          "heading": "notes",
+          "content": "Under Reduce Motion the drop slides on one short spring without the stretch, and the check fades instead of popping. Reduce Transparency draws the card as a solid shape."
+        }
+      ],
+      "headings": [
+        {
+          "id": "notes",
+          "content": "Notes"
+        },
+        {
+          "id": "usage",
+          "content": "Usage"
+        }
+      ]
+    }
+  },
+  {
     "url": "/docs/components/inputs/date-range-picker",
     "title": "Date Range Picker",
     "description": "A start-to-end date range picker on a paged month grid, the range pouring between two glass bubbles like liquid.",
@@ -7490,6 +7646,66 @@
         {
           "id": "parameters",
           "content": "Parameters"
+        }
+      ]
+    }
+  },
+  {
+    "url": "/docs/components/inputs/date-strip",
+    "title": "Date Strip",
+    "description": "A week of dates in a row from the user's calendar: the red pill flows to the day you tap, and swiping pages by week.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Components",
+      "Categories · 14",
+      "Inputs"
+    ],
+    "structuredData": {
+      "contents": [
+        {
+          "content": "Colors and metrics for `DateStrip`. `.standard` is the house palette: the brand red with ink on it."
+        },
+        {
+          "heading": "notes",
+          "content": "A week of days in a row, built from the environment's calendar, so the first weekday, the weekday names and the month follow the user's locale. Pass bounds like `DatePicker`: `today...` for bookings or a closed range for a window. Days outside dim and cannot be picked."
+        },
+        {
+          "heading": "notes",
+          "content": "The selected day is a red pill. Within a week it flows to the day you tap: the edge facing the new day leads on a tight spring and the far edge follows on a looser one, so it stretches across and gathers in."
+        },
+        {
+          "heading": "notes",
+          "content": "Picking a day in another week buds the pill in place on the new day, from a small dot of red to the full pill. It never travels in from a day that is off screen, so it can't streak across the strip."
+        },
+        {
+          "heading": "notes",
+          "content": "Swipe to page by week. The next week slides in under the finger and a long or quick swipe turns it, with a light haptic. At the first or last week in bounds the swipe meets a soft edge instead. The pill rides along with its own week."
+        },
+        {
+          "heading": "notes",
+          "content": "The header names the month and the selected date. Today keeps a dot."
+        },
+        {
+          "heading": "notes",
+          "content": "One selection haptic fires per pick. VoiceOver reads each day by its full date, marks today and the selection, and a three-finger swipe pages the weeks. The layout mirrors in right-to-left languages. `.disabled(true)` dims the strip."
+        },
+        {
+          "heading": "notes",
+          "content": "Under Reduce Motion the pill slides whole within a week and fades into a new one."
+        },
+        {
+          "heading": "notes",
+          "content": "Pairs with Time Slot Picker under it for a booking step."
+        }
+      ],
+      "headings": [
+        {
+          "id": "notes",
+          "content": "Notes"
+        },
+        {
+          "id": "usage",
+          "content": "Usage"
         }
       ]
     }
@@ -7998,6 +8214,58 @@
         {
           "id": "parameters",
           "content": "Parameters"
+        }
+      ]
+    }
+  },
+  {
+    "url": "/docs/components/inputs/interest-chips",
+    "title": "Interest Chips",
+    "description": "Wrapping glass chips for picking several things: each floods red as its check grows in, and a limit dims the rest and shakes refusals.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Components",
+      "Categories · 14",
+      "Inputs"
+    ],
+    "structuredData": {
+      "contents": [
+        {
+          "content": "Colors and metrics for `InterestChips`. `.standard` is the house palette: the brand red on neutral glass."
+        },
+        {
+          "heading": "notes",
+          "content": "For picking several things at once, such as interests in onboarding, dietary needs or topics. Pass strings, or any `Hashable` options with a `label`. Chips wrap to the width and grow with Dynamic Type."
+        },
+        {
+          "heading": "notes",
+          "content": "Each chip sits on liquid glass. A picked chip floods red from its leading edge as a check grows in beside its label, on the morph spring. Tapping it again lets it go."
+        },
+        {
+          "heading": "notes",
+          "content": "`limit` caps the picks. A counter keeps score in the header, the unpicked chips dim once it is reached, and tapping one of them shakes it with a firm haptic instead of picking it. Deselect one to free a place."
+        },
+        {
+          "heading": "notes",
+          "content": "The gap around each chip counts as part of it, so taps between chips still land."
+        },
+        {
+          "heading": "notes",
+          "content": "One selection haptic fires per change. VoiceOver reads the title as the group's label and each chip as a button, selected when picked, and dimmed chips as Limit reached. `.disabled(true)` dims the chips."
+        },
+        {
+          "heading": "notes",
+          "content": "Under Reduce Motion the flood and check settle with no overshoot. Reduce Transparency draws the chips as solid shapes."
+        }
+      ],
+      "headings": [
+        {
+          "id": "notes",
+          "content": "Notes"
+        },
+        {
+          "id": "usage",
+          "content": "Usage"
         }
       ]
     }
@@ -8770,6 +9038,114 @@
         {
           "id": "parameters",
           "content": "Parameters"
+        }
+      ]
+    }
+  },
+  {
+    "url": "/docs/components/inputs/swatch-picker",
+    "title": "Swatch Picker",
+    "description": "A row of named color swatches whose selection ring flows to the one you tap, with a check in whichever ink reads on it.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Components",
+      "Categories · 14",
+      "Inputs"
+    ],
+    "structuredData": {
+      "contents": [
+        {
+          "content": "Colors for `SwatchPicker`. `.standard` is the house palette."
+        },
+        {
+          "heading": "notes",
+          "content": "Each swatch is a named color, so VoiceOver reads the name (\"Sky, selected\") rather than a color value. `SwatchPicker.house` is the SwiftPieces red and five pastels; pass your own `[Swatch]` for a tag or theme palette."
+        },
+        {
+          "heading": "notes",
+          "content": "The selection is a ring around the swatch. On a new pick the edge facing the new swatch leads on a tight spring and the far edge follows on a looser one, so the ring stretches into a capsule across the swatches between and gathers in around the new one."
+        },
+        {
+          "heading": "notes",
+          "content": "A check pops into the picked swatch in ink or white, whichever reads on that color in the current appearance."
+        },
+        {
+          "heading": "notes",
+          "content": "Swatches are 34pt by default, and the gap around each counts as part of it, so the tap target reaches 44pt. A row wider than its space scrolls sideways."
+        },
+        {
+          "heading": "notes",
+          "content": "One selection haptic fires per pick. Setting `selection` from outside moves the ring the same way a tap does. `.disabled(true)` dims the row."
+        },
+        {
+          "heading": "notes",
+          "content": "Under Reduce Motion the ring slides whole on one short spring and the check eases in without overshoot."
+        }
+      ],
+      "headings": [
+        {
+          "id": "notes",
+          "content": "Notes"
+        },
+        {
+          "id": "usage",
+          "content": "Usage"
+        }
+      ]
+    }
+  },
+  {
+    "url": "/docs/components/inputs/time-slot-picker",
+    "title": "Time Slot Picker",
+    "description": "Bookable times as glass pills in a grid: the red selection flows across and down to the time you tap, and taken times shake.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Components",
+      "Categories · 14",
+      "Inputs"
+    ],
+    "structuredData": {
+      "contents": [
+        {
+          "content": "Colors and metrics for `TimeSlotPicker`. `.standard` is the house palette: the brand red on neutral glass."
+        },
+        {
+          "heading": "notes",
+          "content": "Build `slots` from your availability. Each `Slot` is a start time and whether it is open; times are formatted in the user's locale and 12 or 24 hour clock."
+        },
+        {
+          "heading": "notes",
+          "content": "Open times sit on liquid glass pills in a grid of `columns` (three by default, two at accessibility text sizes). The red selection flows to the time you tap, along a row or across rows: the edges facing the new slot lead on a tight spring and the far edges follow on a looser one, so it stretches toward the pick and gathers in. The label under it turns to ink."
+        },
+        {
+          "heading": "notes",
+          "content": "The first pick grows the selection in place on its slot. Slot frames are measured, so it lines up at any text size."
+        },
+        {
+          "heading": "notes",
+          "content": "Taken times are outlined and struck through. Tapping one shakes it with a firm haptic instead of selecting it, and VoiceOver reads it as Unavailable."
+        },
+        {
+          "heading": "notes",
+          "content": "One selection haptic fires per pick. Setting `selection` to `nil` from outside fades the selection away. `.disabled(true)` dims the grid."
+        },
+        {
+          "heading": "notes",
+          "content": "Under Reduce Motion the selection slides whole on one short spring and grows in with a fade. Reduce Transparency draws the pills as solid shapes."
+        },
+        {
+          "heading": "notes",
+          "content": "Pairs with Date Strip above it for a booking step."
+        }
+      ],
+      "headings": [
+        {
+          "id": "notes",
+          "content": "Notes"
+        },
+        {
+          "id": "usage",
+          "content": "Usage"
         }
       ]
     }
@@ -11738,6 +12114,62 @@
         {
           "id": "parameters",
           "content": "Parameters"
+        }
+      ]
+    }
+  },
+  {
+    "url": "/docs/components/navigation/page-dots",
+    "title": "Page Dots",
+    "description": "A page control whose red capsule pours from dot to dot, with tap and scrub to jump and an autoplay timer that fills the capsule.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Components",
+      "Categories · 14",
+      "Navigation"
+    ],
+    "structuredData": {
+      "contents": [
+        {
+          "content": "Colors and size for `PageDots`. `.standard` is the house palette: a red current page among quiet dots."
+        },
+        {
+          "heading": "notes",
+          "content": "Bind `page` to the same index as your `TabView` or paging `ScrollView`. The dots follow it, and a tap or a scrub writes it back."
+        },
+        {
+          "heading": "notes",
+          "content": "The current page is a red capsule. On a change the new dot stretches open on a tight spring and the old one closes on a looser one a beat later, so the red pours from one to the other instead of jumping."
+        },
+        {
+          "heading": "notes",
+          "content": "Tap a dot to jump to it, or drag along the row to scrub through the pages with a selection tick for each one you cross. The whole row is a 44pt touch target."
+        },
+        {
+          "heading": "notes",
+          "content": "`autoplay` turns the page after the given time and wraps from the last page to the first. The capsule fills from its leading end as a timer, restarts when the page changes, and pauses while a finger is on the dots."
+        },
+        {
+          "heading": "notes",
+          "content": "`glass: true` sets the dots on a liquid glass capsule, for dots over photos or busy content."
+        },
+        {
+          "heading": "notes",
+          "content": "VoiceOver reads the row as one adjustable element, \"Page 2 of 5\": swipe up or down to change the page. `.disabled(true)` dims the dots and ignores touches."
+        },
+        {
+          "heading": "notes",
+          "content": "Under Reduce Motion the capsule swaps on one short spring without the pour. The autoplay timer still fills, since it carries meaning. Reduce Transparency draws the glass capsule as a solid shape."
+        }
+      ],
+      "headings": [
+        {
+          "id": "notes",
+          "content": "Notes"
+        },
+        {
+          "id": "usage",
+          "content": "Usage"
         }
       ]
     }
