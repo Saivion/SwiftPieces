@@ -39,16 +39,21 @@
 /* A clear stage drops the ground each preview paints for itself (palette.ts `ground.bg`, set inline
    as #121212 by every preview's Stage wrapper), so the piece sits straight on the dashed frame. */
 .stage-clear [style*="background: var(--pv-bg"] { background: transparent !important; }
-/* The Pro badge (components/ui/pro-badge.tsx), the same in Pro's globals.css and like the Playground's
-   Pro tag: a 1px ring fading from the palette's blue to its orange, a faint wash of the same two, and
-   the word in a blend of the blue with the ink, so it reads in light and dark alike. */
+/* The Pro badge (components/ui/pro-badge.tsx), copied from Pro's globals.css so both sites wear one badge:
+   a white pill (white in both themes) with soft pearl clouds in the pricing card's ember tones inside,
+   a hairline rim and a bright top lip, ink type. */
 .pro-badge {
-  --pb-a: var(--pro-c3); --pb-b: var(--pro-c2);
-  border: 1px solid transparent;
-  color: color-mix(in srgb, var(--pb-a) 30%, var(--foreground));
+  --pb-a: #ffb3c4; --pb-b: #ffc7a8; --pb-c: #ff9a76; --pb-d: #ffd9c9;
+  --pb-base: #ffffff; --pb-glow: 90%; --pb-rim: rgb(0 0 0 / 0.14); --pb-ink: #111111; --pb-lip: rgb(255 255 255 / 0.95);
+  border: 1px solid var(--pb-rim);
+  color: var(--pb-ink);
   background:
-    linear-gradient(100deg, color-mix(in srgb, var(--pb-a) 7%, var(--background)), color-mix(in srgb, var(--pb-b) 7%, var(--background))) padding-box,
-    linear-gradient(100deg, color-mix(in srgb, var(--pb-a) 45%, transparent), color-mix(in srgb, var(--pb-b) 45%, transparent)) border-box;
+    radial-gradient(60% 110% at 12% 35%, color-mix(in srgb, var(--pb-a) var(--pb-glow), transparent), transparent 72%),
+    radial-gradient(55% 120% at 48% 105%, color-mix(in srgb, var(--pb-b) var(--pb-glow), transparent), transparent 72%),
+    radial-gradient(55% 110% at 88% 30%, color-mix(in srgb, var(--pb-c) var(--pb-glow), transparent), transparent 72%),
+    radial-gradient(40% 90% at 66% 10%, color-mix(in srgb, var(--pb-d) var(--pb-glow), transparent), transparent 72%),
+    var(--pb-base);
+  box-shadow: inset 0 1px 0 var(--pb-lip), 0 1px 2px rgb(0 0 0 / 0.08);
 }
 
 /* A text link's underline (.u-link, brand theme.css) draws when anywhere on its link is hovered,

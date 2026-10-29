@@ -17,34 +17,34 @@ import type { Promo } from "@/lib/promo";
 
 type NavLink = { label: string; href: string; badge?: string };
 type MenuItem = NavLink & { desc: string; icon: Parameters<typeof SectionIcon>[0]["kind"]; /** The icon's colour, when it isn't the text's. */ tone?: string };
-type Menu = { label: string; href: string; items: MenuItem[]; /** Paths that light the menu up besides its items' own. */ also?: string[] };
+type MenuGroup = { label: string; items: MenuItem[] };
+type Menu = {
+  label: string; href: string; items: MenuItem[];
+  /** Headed columns, side by side in the panel and stacked on the phone sheet; `items` is all of them. */
+  groups?: MenuGroup[];
+  /** Paths that light the menu up besides its items' own. */ also?: string[];
+};
 
 /**
- * The bar is split by what you came to do. Library is what you take and install (free pieces and blocks,
- * and Pro's screens, flows and templates); Create is the tools you use in the browser, where new features land;
- * Resources is how to learn it and who backs it. Pro stays a direct link. At most five items a menu.
+ * The bar is split by what you came to do, the same as Pro's. Explore is one menu in two columns: the
+ * Library, what you take and install (free pieces, and Pro's screens, patterns, flows and templates),
+ * beside Create, the tools you use in the browser, where new features land. Resources is how to learn
+ * it and who backs it. Pro stays a direct link. At most five items a column.
  */
+const library: MenuItem[] = [
+  { label: "Components", href: "/components", desc: "Single-file SwiftUI pieces with live previews", icon: "components" },
+  { label: "Screens", href: pro.screens, desc: "Finished screens, themed by one design system", icon: "screens", badge: "Pro" },
+  { label: "Patterns", href: "/patterns", desc: "Whole sections of a screen, ready to drop in", icon: "blocks", badge: "Pro" },
+  { label: "Flows", href: pro.flows, desc: "Whole journeys, from first run to settings", icon: "flows", badge: "Pro" },
+  { label: "Templates", href: pro.templates, desc: "Complete apps as Xcode projects", icon: "templates", badge: "Pro" },
+];
+const create: MenuItem[] = [
+  { label: "Apps", href: "/apps", desc: "Remix real app screens in the Playground", icon: "playground", badge: "Beta" },
+  { label: "Styles", href: "/styles", desc: "Make one theme for every screen and app", icon: "style" },
+];
+
 const menus: Menu[] = [
-  {
-    label: "Library",
-    href: "/components",
-    items: [
-      { label: "Components", href: "/components", desc: "Single-file SwiftUI pieces with live previews", icon: "components" },
-      { label: "Screens", href: pro.screens, desc: "Finished screens, themed by one design system", icon: "screens", badge: "Pro" },
-      { label: "Patterns", href: "/patterns", desc: "Whole sections of a screen, ready to drop in", icon: "blocks", badge: "Pro" },
-      { label: "Flows", href: pro.flows, desc: "Whole journeys, from first run to settings", icon: "flows", badge: "Pro" },
-      { label: "Templates", href: pro.templates, desc: "Complete apps as Xcode projects", icon: "templates", badge: "Pro" },
-    ],
-  },
-  {
-    label: "Create",
-    href: "/apps",
-    also: ["/playground"],
-    items: [
-      { label: "Apps", href: "/apps", desc: "Remix real app screens in the Playground", icon: "playground", badge: "Beta" },
-      { label: "Styles", href: "/styles", desc: "Make one theme for every screen and app", icon: "style" },
-    ],
-  },
+  { label: "Explore", href: "/components", also: ["/playground"], items: [...library, ...create], groups: [{ label: "Library", items: library }, { label: "Create", items: create }] },
   {
     label: "Resources",
     href: "/docs/introduction",
@@ -65,6 +65,19 @@ const links: NavLink[] = [{ label: "Pro", href: "/pro" }];
 function Badge({ label }: { label?: string }) {
   if (!label) return null;
   return label === "Pro" ? <ProBadge size="sm" /> : <NewBadge>{label}</NewBadge>;
+}
+
+/** One row of a menu panel: its icon tile, label with any badge, and line. */
+function MenuRow({ item: l, active, onPick }: { item: MenuItem; active: boolean; onPick: () => void }) {
+  return (
+    <Link href={l.href} onClick={onPick} className={cn("group/item flex items-center gap-3 rounded-[16px] p-2.5 transition-colors hover:bg-surface", active && "bg-surface")}>
+      <span className="flex size-[34px] shrink-0 items-center justify-center rounded-[10px] bg-surface text-muted transition-colors group-hover/item:bg-surface-2 group-hover/item:text-foreground"><SectionIcon kind={l.icon} tone={l.tone} /></span>
+      <span className="flex min-w-0 flex-1 flex-col">
+        <span className="flex items-center gap-2 text-[14px] font-medium text-foreground">{l.label}<Badge label={l.badge} /></span>
+        <span className="mt-0.5 text-[12.5px] text-muted">{l.desc}</span>
+      </span>
+    </Link>
+  );
 }
 
 /**
@@ -103,7 +116,8 @@ export function Navbar({ star, starMobile, docked = false, fresh = 0, promo }: {
 
   const isActive = (href: string) => (href === "/" ? pathname === "/" : !href.startsWith("http") && pathname.startsWith(href));
   // Components carries a New badge while a wave of pieces is fresh (the docs sidebar shows the count).
-  const sections = menus.map((m) => ({ ...m, items: m.items.map((l) => (l.href === "/components" && fresh > 0 ? { ...l, badge: "New" } : l)) }));
+  const withFresh = (l: MenuItem) => (l.href === "/components" && fresh > 0 ? { ...l, badge: "New" } : l);
+  const sections = menus.map((m) => ({ ...m, items: m.items.map(withFresh), groups: m.groups?.map((g) => ({ ...g, items: g.items.map(withFresh) })) }));
   const menuActive = (m: Menu) => m.items.some((l) => isActive(l.href)) || (m.also ?? []).some((p) => pathname.startsWith(p));
   const pick = (label: string) => {
     setHeld(label);
@@ -143,18 +157,22 @@ export function Navbar({ star, starMobile, docked = false, fresh = 0, promo }: {
                       {m.label}
                       <svg aria-hidden viewBox="0 0 16 16" className={cn("size-3.5 transition-transform duration-300", !isHeld && "group-hover:rotate-180 group-focus-within:rotate-180")} fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M4.5 6.5l3.5 3.5 3.5-3.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
                     </Link>
-                    <div className={cn("absolute top-full left-1/2 -translate-x-1/2 pt-2 transition-all duration-300 ease-[var(--ease-out)]", isHeld ? "pointer-events-none invisible translate-y-1 opacity-0" : "invisible translate-y-1 opacity-0 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100")}>
-                      <div className="w-[372px] rounded-[22px] border border-[var(--line-strong)] bg-surface-3 p-1.5 shadow-[var(--shadow-float)]">
-                        {m.items.map((l) => (
-                          <Link key={l.href} href={l.href} onClick={() => pick(m.label)} className={cn("group/item flex items-center gap-3 rounded-[16px] p-2.5 transition-colors hover:bg-surface", isActive(l.href) && "bg-surface")}>
-                            <span className="flex size-[34px] shrink-0 items-center justify-center rounded-[10px] bg-surface text-muted transition-colors group-hover/item:bg-surface-2 group-hover/item:text-foreground"><SectionIcon kind={l.icon} tone={l.tone} /></span>
-                            <span className="flex min-w-0 flex-1 flex-col">
-                              <span className="flex items-center gap-2 text-[14px] font-medium text-foreground">{l.label}<Badge label={l.badge} /></span>
-                              <span className="mt-0.5 text-[12.5px] text-muted">{l.desc}</span>
-                            </span>
-                          </Link>
-                        ))}
-                      </div>
+                    <div className={cn("absolute top-full pt-2 transition-all duration-300 ease-[var(--ease-out)]", m.groups ? "left-0" : "left-1/2 -translate-x-1/2", isHeld ? "pointer-events-none invisible translate-y-1 opacity-0" : "invisible translate-y-1 opacity-0 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100")}>
+                      {/* A grouped menu sets its groups side by side, each under its name, as Pro's does. */}
+                      {m.groups ? (
+                        <div className="flex w-max gap-1.5 rounded-[22px] border border-[var(--line-strong)] bg-surface-3 p-1.5 shadow-[var(--shadow-float)]">
+                          {m.groups.map((g, gi) => (
+                            <div key={g.label} className={cn("relative flex w-[340px] flex-col", gi > 0 && "pl-1.5 before:absolute before:top-12 before:bottom-12 before:left-0 before:w-px before:bg-line")}>
+                              <p className="px-2.5 pt-2 pb-1 text-[12px] font-medium text-subtle">{g.label}</p>
+                              {g.items.map((l) => <MenuRow key={l.href} item={l} active={isActive(l.href)} onPick={() => pick(m.label)} />)}
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="w-[372px] rounded-[22px] border border-[var(--line-strong)] bg-surface-3 p-1.5 shadow-[var(--shadow-float)]">
+                          {m.items.map((l) => <MenuRow key={l.href} item={l} active={isActive(l.href)} onPick={() => pick(m.label)} />)}
+                        </div>
+                      )}
                     </div>
                   </li>
                 );
@@ -202,7 +220,7 @@ export function Navbar({ star, starMobile, docked = false, fresh = 0, promo }: {
         <Container className="flex h-full flex-col gap-8 overflow-y-auto overscroll-contain py-6">
           {/* The phone sheet has no hover, so each menu is a headed group of its items. */}
           <div className="flex flex-col gap-6">
-            {sections.map((m, gi) => (
+            {sections.flatMap((m) => m.groups ?? [{ label: m.label, items: m.items }]).map((m, gi) => (
               <div key={m.label}>
                 <p className="mb-1 text-[13px] font-medium text-subtle">{m.label}</p>
                 <ul className="flex flex-col">
