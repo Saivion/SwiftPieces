@@ -605,6 +605,10 @@ html.light [data-tone="black"] { --background: #f5f5f3; --surface: #efefec; --su
   -webkit-backdrop-filter: blur(14px) saturate(140%);
   backdrop-filter: blur(14px) saturate(140%);
 }
+/* EmberStage (components/visual/ember-stage.tsx), the Pro pricing card's ground: the Signature field
+   drawn about two and a half times as tall and flipped, so only its deep half (wine to red to orange) shows. */
+.ember-stage { position: absolute; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
+.ember-stage > div { position: absolute; inset: 0 0 auto; height: 240%; transform: scaleY(-1); }
 /* The Playground's docked panels are the same trays. */
 .spp[data-layout="docked"] :is(.spp-left, .spp-dockbar, .spp-rail) {
   background-color: color-mix(in srgb, var(--surface) 94%, transparent) !important;
