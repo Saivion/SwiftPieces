@@ -36,7 +36,7 @@ export default async function ChangelogEntryPage({ params }: Props) {
   const { seed, newer, older } = changelogPlace(entry.slug);
   return (
     <DocsPage
-      tableOfContent={{ enabled: true, component: <DocsAsideColumn><DocsAside /></DocsAsideColumn> }}
+      tableOfContent={{ enabled: true, component: <DocsAsideColumn><DocsAside seed={`changelog/${entry.slug}`} /></DocsAsideColumn> }}
       footer={{ items: { previous: neighbour(newer, "Newer update"), next: neighbour(older, "Older update") } }}
     >
       <JsonLd data={{ "@context": "https://schema.org", "@graph": [breadcrumbJsonLd([["SwiftPieces", "/"], ["Changelog", changelogPath()], [entry.title, changelogPath(entry.slug)]])] }} />

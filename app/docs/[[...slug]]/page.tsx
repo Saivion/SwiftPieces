@@ -46,7 +46,7 @@ export default async function Page(props: Props) {
   const fresh = item?.isNew || block?.isNew || proBlock?.isNew;
   // A block page ends with its neighbours: the same category first, then the rest.
   const related = block || proBlock ? blockCards().filter((c) => c.name !== (block ?? proBlock)!.name).sort((a, b) => Number(b.category === (block ?? proBlock)!.category) - Number(a.category === (block ?? proBlock)!.category)) : [];
-  const aside = <DocsAside />;
+  const aside = <DocsAside seed={params.slug?.join("/") ?? "index"} />;
 
   return (
     <DocsPage
