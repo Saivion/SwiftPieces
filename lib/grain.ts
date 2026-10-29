@@ -58,6 +58,8 @@ export type GrainSpec = {
   lines: boolean;
   /** A CSS colour for the canvas until it paints: the palette's middle tone. */
   fallback: string;
+  /** A CSS gradient through the palette's base, light on top and deep below: close to the painted stage, so the swap reads as grain arriving, not a flash. */
+  fallbackGradient: string;
   /** Seeds the field nudges, the light's tilt, the motif's placement and the grain. */
   seed: number;
 };
@@ -90,7 +92,8 @@ function rng(seed: number) {
 export function grainSpec(seed: string, kind: GrainKind = "brand", lines = true): GrainSpec {
   const base = PALETTES[kind].base;
   const mid = base[Math.floor(base.length / 2)];
-  return { kind, lines, fallback: mid ? mid[1] : "#888", seed: hash(`${kind}:${seed}`) };
+  const fallbackGradient = `linear-gradient(180deg, ${base.map(([at, c]) => `${c} ${Math.round(at * 100)}%`).join(", ")})`;
+  return { kind, lines, fallback: mid ? mid[1] : "#888", fallbackGradient, seed: hash(`${kind}:${seed}`) };
 }
 
 /* ---------- colour (mixed in linear light: smooth, and it never leaves the gamut) ---------- */

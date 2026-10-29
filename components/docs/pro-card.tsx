@@ -24,7 +24,7 @@ export function ProCard({
           Signature grain, seeded per page so no two panels match; the name is fixed white in both
           themes, and the mark sits on a small white tile so its red blocks hold on the red ground. */}
       <div className="relative isolate flex h-24 items-center justify-center overflow-hidden rounded-[16px]">
-        <GrainStage seed={`pro-card-${seed}`} className="-z-10" />
+        <GrainStage seed={`pro-card-${seed}`} eager className="-z-10" />
         <span className="inline-flex items-center gap-2.5 whitespace-nowrap text-[#fff] [text-shadow:0_1px_8px_rgb(0_0_0/0.25)]">
           <span className="grid size-[30px] place-items-center rounded-[9px] bg-[#fff] shadow-[0_2px_10px_-2px_rgb(0_0_0/0.35)]">
             {/* eslint-disable-next-line @next/next/no-img-element -- a 96px brand mark shown at 20px, like the brand LogoMark */}

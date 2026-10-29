@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 import { type GrainKind, grainSpec, paintGrain } from "@/lib/grain";
 import { cn } from "@/lib/cn";
 
@@ -28,27 +28,36 @@ function enqueue(job: () => void): () => void {
   };
 }
 
+/** Layout effects only in the browser: the server render keeps the CSS fallback either way. */
+const useStageEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
+
 /**
  * The ground every preview stands on: soft colour fields under a fine grain, with a white line motif.
  * `kind` sets the palette and motif, so every screen card reads as a screen and every flow as a flow;
  * the seed moves the fields and places the motif, so each stage is its own. Ported from
  * SwiftPiecesPro (components/previews/grain-stage.tsx).
+ *
+ * `eager` is for a single small stage that is on screen from the start (the docs rail's Pro card):
+ * it paints before the browser draws the frame, skipping the queue and the viewport wait, so it never
+ * shows its fallback after a client navigation.
  */
 export function GrainStage({
   seed,
   kind = "brand",
   lines = true,
+  eager = false,
   className,
 }: {
   seed: string;
   kind?: GrainKind;
   lines?: boolean;
+  eager?: boolean;
   className?: string;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const spec = grainSpec(seed, kind, lines);
 
-  useEffect(() => {
+  useStageEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const parent = canvas.parentElement;
@@ -73,6 +82,13 @@ export function GrainStage({
       if (near && !cancel) cancel = enqueue(draw);
     };
 
+    if (eager) {
+      draw();
+      const ro = new ResizeObserver(draw);
+      ro.observe(parent);
+      return () => ro.disconnect();
+    }
+
     const ro = new ResizeObserver(request);
     ro.observe(parent);
     // The same reach as a phone's preview (PhoneFrame), so a stage is painted before it scrolls in.
@@ -86,14 +102,14 @@ export function GrainStage({
       io.disconnect();
       cancel?.();
     };
-  }, [seed, kind, lines]);
+  }, [seed, kind, lines, eager]);
 
   return (
     <canvas
       ref={canvasRef}
       aria-hidden
       className={cn("pointer-events-none absolute inset-0 size-full", className)}
-      style={{ background: spec.fallback }}
+      style={{ background: `${spec.fallbackGradient}, ${spec.fallback}` }}
     />
   );
 }
