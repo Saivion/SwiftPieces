@@ -18,7 +18,7 @@ export const metadata = pageMetadata({ title: "Changelog", description, path: ch
 export default async function ChangelogPage() {
   const [latest, ...earlier] = changelog;
   return (
-    <DocsPage full tableOfContent={{ enabled: true, component: <DocsAsideColumn><DocsAside /></DocsAsideColumn> }}>
+    <DocsPage full tableOfContent={{ enabled: true, component: <DocsAsideColumn><DocsAside seed="changelog" /></DocsAsideColumn> }}>
       <JsonLd data={{ "@context": "https://schema.org", "@graph": [breadcrumbJsonLd([["SwiftPieces", "/"], ["Changelog", changelogPath()]])] }} />
       <DocsTitle>Changelog</DocsTitle>
       <DocsDescription>Every piece, fix and API change in the free library, newest first.</DocsDescription>
