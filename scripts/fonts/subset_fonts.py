@@ -22,7 +22,9 @@ Everything it needs is in scripts/fonts/fonts.json. For every face it:
 4. keeps only the OpenType features browsers turn on by default for English text plus the ones the site's CSS
    turns on (`features`), and drops hinting (Google already served these unhinted; `gasp` stays);
 5. splits the result into a core (the `core` set: ASCII and the punctuation most pages use) and an extended
-   file holding the rest, each with a unicode-range listing exactly the characters it contains;
+   file holding the rest, each with a unicode-range listing exactly the characters it contains. A browser
+   shapes each file's run separately, so a word split across the two loses the kerning at the seam: any
+   character that appears inside a word of the content and kerns there moves into the core instead;
 6. checks the files: cmap, outlines and advances against the source at every declared weight, kerning and
    ligatures through HarfBuzz, names, hinting; then writes the woff2 files, the CSS and the preload manifest.
 
@@ -333,6 +335,30 @@ def shape_check(ref_data: bytes, files: dict[str, bytes], parts: dict[str, set[i
     return inside, sorted(crossing)
 
 
+def crossing_words(ref_data: bytes, files: dict[str, bytes], parts: dict[str, set[int]], weights: list[int],
+                   variable: bool, pins: dict, corpus: set[str], tol: int) -> set[str]:
+    """Corpus words whose shaping changes because they run from the core into the extended file. A browser
+    shapes each file's run on its own, so a kern or ligature across the seam is lost and the rest of the
+    line shifts (seen as "Inés Marlow" in the pixel diff)."""
+    owner = {cp: part for part, cps in parts.items() for cp in cps}
+    mixed = [w for w in corpus if len({owner[ord(c)] for c in w}) > 1]
+    found: set[str] = set()
+    for wt in weights:
+        loc = {"wght": wt} if variable else {}
+        ref = Shaper(ref_data, {**pins, **loc})
+        cuts = {k: Shaper(v, loc) for k, v in files.items()}
+        for w in mixed:
+            runs, cur = [], None
+            for ch in w:
+                if owner[ord(ch)] != cur:
+                    cur = owner[ord(ch)]
+                    runs.append([cur, ""])
+                runs[-1][1] += ch
+            if not same([g for p, t in runs for g in cuts[p].run(t)], ref.run(w), tol):
+                found.add(w)
+    return found
+
+
 # ── Main ─────────────────────────────────────────────────────────────────────────────────────────
 
 def main() -> None:
@@ -378,6 +404,32 @@ def main() -> None:
             keep = cmap & coverage & wanted
             parts = {"core": keep & core_set, "ext": keep - core_set}
             features = default_features(limited, fam.get("features", []))
+            pins = face.get("pin", {})
+            corpus = words(texts, keep)
+            # Pinning an axis (as Google does with opsz) or narrowing one rescales the variation deltas, which
+            # the font stores as integers: allow that rounding (one unit on an outline point or advance, two on
+            # an advance plus a kern) and nothing more.
+            limited_axes = bool(pins) or "fvar" in src and any(
+                (a.minValue, a.maxValue) != tuple(face.get("axes", {}).get(a.axisTag, (a.minValue, a.maxValue)))
+                for a in src["fvar"].axes if a.axisTag not in pins)
+            tol = 2 if limited_axes else 0
+            # A character that sits inside a word next to core characters and kerns (or ligates) with them
+            # moves into the core, so no word in the content is split across the two files.
+            moved: set[int] = set()
+            try:
+                while parts["ext"]:
+                    trial = {k: cut(limited, v, features, [], None) for k, v in parts.items() if v}
+                    seam = crossing_words(src_data, trial, {k: parts[k] for k in trial}, face["weights"],
+                                          "fvar" in limited, pins, corpus, tol)
+                    add = {ord(c) for w in seam for c in w} & parts["ext"]
+                    if not add:
+                        break
+                    parts = {"core": parts["core"] | add, "ext": parts["ext"] - add}
+                    moved |= add
+            except ImportError:
+                print("  (uharfbuzz not installed: could not check words that cross into the extended file)")
+            if moved:
+                report.append(f"  {slug}: moved into the core so words keep their kerning: {''.join(chr(c) for c in sorted(moved))}")
             files: dict[str, bytes] = {}
             for part, cps in parts.items():
                 if not cps:
@@ -407,14 +459,6 @@ def main() -> None:
                 if part == "core" and fam.get("preload"):
                     preloads.append(cfg["urlPrefix"] + name)
             # Checks against the source at every weight the CSS declares.
-            pins = face.get("pin", {})
-            corpus = words(texts, keep)
-            # Narrowing an axis rescales the variation deltas, which the font stores as integers: allow that
-            # rounding (one unit on an outline point or advance, two on an advance plus a kern) and nothing more.
-            limited_axes = "fvar" in src and any(
-                (a.minValue, a.maxValue) != tuple(face.get("axes", {}).get(a.axisTag, (a.minValue, a.maxValue)))
-                for a in src["fvar"].axes if a.axisTag not in pins)
-            tol = 2 if limited_axes else 0
             for w in face["weights"]:
                 loc = {"wght": w} if "fvar" in limited else {}
                 for part, data in files.items():
@@ -428,8 +472,8 @@ def main() -> None:
                     break
                 if inside:
                     problems.append(f"{slug} @{w}: {inside} shaping differences inside one file")
-                if crossing and w == face["weights"][0]:
-                    report.append(f"    note: {len(crossing)} source words lose a kern/ligature where they cross core→extended: {crossing[:8]}")
+                if crossing:
+                    problems.append(f"{slug} @{w}: words still lose a kern or ligature across core/extended: {crossing[:8]}")
         # Same order next/font used: per weight, the extended face before the core face.
         for w, part, style, name, ur in sorted(face_rules, key=lambda r: (r[2], r[0], r[1] != "ext")):
             rules.append(f'@font-face {{ font-family: "{family}"; font-style: {style}; font-weight: {w}; font-display: swap; '
