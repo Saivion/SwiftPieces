@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Container } from "@/components/ui/container";
 import { SectionLabel } from "@/components/ui/section-label";
 import { LinkCells } from "@/components/sections/link-cells";
@@ -53,8 +54,8 @@ export default function ComponentsPage() {
           <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,420px)] lg:items-end lg:gap-16">
             <Reveal>
               <SectionLabel className="mb-5">{`${items.length} free pieces`}</SectionLabel>
-              <h1 className={pageTitle}>The Library</h1>
-              <p className={cn("mt-5 max-w-[560px]", pageLede)}>Free, single-file SwiftUI components for iOS with live previews. Filter by category, open a piece for its parameters, source and install commands.</p>
+              <h1 className={pageTitle}>Free SwiftUI components</h1>
+              <p className={cn("mt-5 max-w-[560px]", pageLede)}>SwiftPieces is a free SwiftUI component library: {items.length} pieces, one Swift file each, with a live preview. Copy a file or run npx swiftpieces add. <Link href="/docs/choosing" className="text-foreground underline decoration-[var(--line-strong)] underline-offset-4">How to choose a library</Link>.</p>
             </Reveal>
             <Reveal delay={0.1}>
               <LinkCells

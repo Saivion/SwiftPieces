@@ -60,7 +60,7 @@ export default function PatternsPage() {
               <SectionLabel className="mb-5">{free ? `${free + paid} patterns · ${free} free` : `${paid} patterns · in Pro`}</SectionLabel>
               <h1 className={pageTitle}>Patterns</h1>
               <p className={cn("mt-5 max-w-[560px]", pageLede)}>
-                Whole sections of an iOS screen. The fields, buttons and charts are already laid out, wired together and given their states: drop a pattern into any app and connect it with a closure or two.
+                Patterns are whole sections of an iOS screen, and they come with SwiftPieces Pro, a separate paid product. The free library is the components. A pattern installs as Swift you own once a Pro license is signed in.
               </p>
             </Reveal>
             <Reveal delay={0.1}>

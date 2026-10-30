@@ -2,6 +2,7 @@
   "title": "SwiftPieces",
   "pages": [
     "introduction",
+    "choosing",
     "installation",
     "cli",
     "mcp",

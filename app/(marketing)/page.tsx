@@ -9,8 +9,10 @@ import { WantMore } from "@/components/sections/want-more";
 import { Questions } from "@/components/sections/questions";
 import { band } from "@/components/sections/feature-row";
 import { JsonLd } from "@/components/seo/json-ld";
-import { faqJsonLd, ORG_ID, pageMetadata, WEBSITE_ID } from "@/lib/seo";
-import { site } from "@/lib/site";
+import Link from "next/link";
+import { pageMetadata } from "@/lib/seo";
+import { homeStructuredData } from "@/lib/structured-data";
+import { libraryLead, site } from "@/lib/site";
 import { homeFaqs } from "@/lib/faqs";
 import { proCatalog } from "@/lib/pro-catalog";
 import { getRegistryIndex } from "@/lib/registry";
@@ -20,33 +22,8 @@ export const metadata = pageMetadata({ title: site.title, description: site.desc
 const count = getRegistryIndex().length;
 const questions = homeFaqs(count, proCatalog);
 
-/**
- * Who publishes the site, what the library is and the questions the page answers, for search
- * results and AI answers. Only facts the page shows: the name, the logo, the GitHub and X profiles
- * in the footer, the library's license and baseline, and the questions below. No ratings: the
- * site has none to report.
- */
-const structuredData = {
-  "@context": "https://schema.org",
-  "@graph": [
-    { "@type": "WebSite", "@id": WEBSITE_ID, name: site.name, alternateName: "SwiftPieces", url: site.url, description: site.description, publisher: { "@id": ORG_ID } },
-    { "@type": "Organization", "@id": ORG_ID, name: site.name, alternateName: "SwiftPieces", url: site.url, logo: `${site.url}/logo.png`, sameAs: [site.github, site.twitter] },
-    {
-      "@type": "SoftwareSourceCode",
-      "@id": `${site.url}/#library`,
-      name: `${site.name} free SwiftUI component library`,
-      description: `${count} free SwiftUI components for iOS: one self-contained Swift file each, Apple frameworks only, installed by copy-paste, the swiftpieces CLI or an MCP server.`,
-      url: `${site.url}/components`,
-      codeRepository: site.github,
-      programmingLanguage: { "@type": "ComputerLanguage", name: "Swift" },
-      runtimePlatform: "iOS 17+",
-      license: `${site.url}/license`,
-      isAccessibleForFree: true,
-      publisher: { "@id": ORG_ID },
-    },
-    faqJsonLd(questions),
-  ],
-};
+/** Who publishes the site, the free library (price 0, no rating), and the questions on the page. */
+const structuredData = homeStructuredData(count, questions, libraryLead);
 
 /**
  * The hero shows the visit count, which only a render inside the Worker can produce: pages are
@@ -77,7 +54,11 @@ export default async function HomePage() {
       <Features />
       <LibraryIntro />
       <WantMore />
-      <Questions items={questions} spacing={band} />
+      <Questions
+        items={questions}
+        spacing={band}
+        body={<>The short answers are below. <Link href="/docs/choosing" className="text-foreground underline decoration-[var(--line-strong)] underline-offset-4">Choosing a SwiftUI library</Link> covers copy-paste, the commercial license, Liquid Glass, MCP, and Free vs Pro.</>}
+      />
       <GetStarted />
     </>
   );

@@ -8,7 +8,7 @@ import { FooterWordmark } from "@/components/layout/footer-wordmark";
 const columns: { title: string; links: { label: string; href: string }[] }[] = [
   { title: "Free", links: [{ label: "Components", href: "/components" }, { label: "Styles", href: "/styles" }, { label: "Animations", href: "/components/animations" }, { label: "Liquid Glass", href: "/components/glass" }, { label: "Buttons", href: "/components/controls" }, { label: "Cards", href: "/components/cards" }, { label: "Inputs and forms", href: "/components/inputs" }, { label: "AI chat", href: "/components/ai" }] },
   { title: "Pro", links: [{ label: "Screens", href: pro.screens }, { label: "Patterns", href: "/patterns" }, { label: "Flows", href: pro.flows }, { label: "Templates", href: pro.templates }, { label: "MCP and Agents", href: pro.mcpDocs }, { label: "Pricing", href: pro.pricing }, { label: "Account", href: pro.account }] },
-  { title: "Docs", links: [{ label: "Introduction", href: "/docs/introduction" }, { label: "Installation", href: "/docs/installation" }, { label: "CLI", href: "/docs/cli" }, { label: "MCP & agents", href: "/docs/mcp" }, { label: "Registry", href: "/r/index.json" }, { label: "llms.txt", href: "/llms.txt" }] },
+  { title: "Docs", links: [{ label: "Introduction", href: "/docs/introduction" }, { label: "Choosing a library", href: "/docs/choosing" }, { label: "Installation", href: "/docs/installation" }, { label: "CLI", href: "/docs/cli" }, { label: "MCP & agents", href: "/docs/mcp" }, { label: "Registry", href: "/r/index.json" }, { label: "llms.txt", href: "/llms.txt" }] },
   { title: "Guides", links: [{ label: "SwiftUI Animations", href: "/docs/guides/swiftui-animations" }, { label: "SwiftUI Buttons", href: "/docs/guides/swiftui-buttons" }, { label: "SwiftUI Cards", href: "/docs/guides/swiftui-cards" }, { label: "SwiftUI Haptics", href: "/docs/guides/swiftui-haptics" }, { label: "Loading States", href: "/docs/guides/swiftui-loading-states" }, { label: "Liquid Glass", href: "/docs/liquid-glass" }] },
   { title: "Resources", links: [{ label: "About", href: "/about" }, { label: "Showcase", href: "/showcase" }, { label: "Changelog", href: "/docs/changelog" }, { label: "Sponsors", href: "/sponsors" }, { label: "GitHub", href: site.github }] },
   { title: "Legal", links: [{ label: "License", href: "/license" }, { label: "Privacy", href: "/privacy" }, { label: "Terms", href: "/terms" }] },
@@ -21,7 +21,7 @@ export function Footer() {
         <div className="grid grid-cols-2 gap-x-6 gap-y-10 border-t border-line pt-16 sm:grid-cols-3 sm:pt-[72px] lg:grid-cols-[1.5fr_repeat(6,1fr)] lg:gap-8">
           <div className="col-span-2 max-w-xs sm:col-span-3 lg:col-span-1">
             <Logo />
-            <p className="mt-4 max-w-[240px] text-[14px] leading-[22px] text-muted">A collection of beautifully animated SwiftUI components. Yours to use, always free.</p>
+            <p className="mt-4 max-w-[240px] text-[14px] leading-[22px] text-muted">A free SwiftUI component library. Copy a Swift file into your app and ship it.</p>
             <div className="mt-[22px] flex items-center gap-2">
               {[
                 { href: site.github, label: "GitHub", d: "M8 .2a8 8 0 0 0-2.5 15.6c.4 0 .5-.2.5-.4v-1.5c-2.2.5-2.7-1-2.7-1-.4-.9-.9-1.2-.9-1.2-.7-.5.1-.5.1-.5.8.1 1.2.8 1.2.8.7 1.3 1.9.9 2.4.7.1-.5.3-.9.5-1.1-1.8-.2-3.7-.9-3.7-4a3 3 0 0 1 .8-2.1c-.1-.2-.4-1 .1-2.1 0 0 .7-.2 2.2.8a7.6 7.6 0 0 1 4 0c1.5-1 2.2-.8 2.2-.8.4 1.1.2 1.9.1 2.1a3 3 0 0 1 .8 2.1c0 3.1-1.9 3.8-3.7 4 .3.3.6.8.6 1.5v2.3c0 .2.1.5.6.4A8 8 0 0 0 8 .2Z" },

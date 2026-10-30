@@ -1,6 +1,6 @@
 # swiftpieces
 
-Add [SwiftPieces](https://swiftpieces.com) to your Xcode project: animated SwiftUI components, Liquid Glass effects and Metal shaders, as plain Swift source you own.
+The CLI for [SwiftPieces](https://swiftpieces.com), a free SwiftUI component library. It copies Swift source into your Xcode project. There is no Swift package to depend on. Liquid Glass components target iOS 26 and fall back to Material. Cursor and Claude Code can install the same files through the [MCP server](https://swiftpieces.com/docs/mcp).
 
 ```bash
 npx swiftpieces add AssistantOrb SwipeDeck

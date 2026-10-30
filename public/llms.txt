@@ -5,6 +5,7 @@
 Key facts:
 
 - License: MIT + Commons Clause. Free for personal and commercial apps, including client work. Source-available rather than OSI open source: the pieces themselves may not be sold or redistributed.
+- Choosing a library (copy-paste vs a Swift package, commercial use, Liquid Glass, MCP, free vs Pro): https://swiftpieces.com/docs/choosing
 - No dependencies and no Swift package: the CLI copies source files into a SwiftPieces folder in the app, and they become the developer's own code.
 - iOS 17 baseline. Liquid Glass pieces gate glass with `#available(iOS 26, *)` and fall back to Material.
 - One motion language across every piece: five spring tiers with named roles, gesture releases that keep the finger's velocity, rubber-band limits and a Reduce Motion substitute for every movement (https://swiftpieces.com/docs/guides/swiftui-motion).
@@ -16,6 +17,7 @@ Rules for Liquid Glass: gate with `#available(iOS 26, *)` and a Material fallbac
 ## Docs
 
 - [Introduction](https://swiftpieces.com/docs/introduction)
+- [Choosing a SwiftUI component library](https://swiftpieces.com/docs/choosing)
 - [Installation](https://swiftpieces.com/docs/installation)
 - [CLI](https://swiftpieces.com/docs/cli)
 - [MCP and agents](https://swiftpieces.com/docs/mcp)
@@ -110,7 +112,7 @@ Whole sections of an iOS screen: chats, composers, nav and tab bars, lists, sett
 
 ## SwiftPieces Pro
 
-A separate paid library for building whole apps: 54 screens, 48 flows, 12 app templates and a 31-item Build Kit (production-ready SwiftUI screens, flows that string them into whole journeys from first run to settings, complete Xcode projects, and agent skills that build the rest in the same design) at https://pro.swiftpieces.com/library, plus Pro remixing in the Playground at https://swiftpieces.com/apps (all 34 apps, remix any app with AI, keep up to 100 remixes). One plan with lifetime access; plan and pricing: https://pro.swiftpieces.com/pro. Pro MCP endpoint: https://pro.swiftpieces.com/api/mcp (license key required): search_library, get_item, list_kit, get_kit_item, apply_design_skill, apply_recipe.
+SwiftPieces Pro is a separate paid library, and it is closed source. It is for building whole apps: 54 screens, 48 flows, 12 app templates and a 31-item Build Kit (production-ready SwiftUI screens, flows that string them into whole journeys from first run to settings, complete Xcode projects, and agent skills that build the rest in the same design) at https://pro.swiftpieces.com/library, plus Pro remixing in the Playground at https://swiftpieces.com/apps (all 34 apps, remix any app with AI, keep up to 100 remixes). One plan with lifetime access; plan and pricing: https://pro.swiftpieces.com/pro. Pro MCP endpoint: https://pro.swiftpieces.com/api/mcp (license key required): search_library, get_item, list_kit, get_kit_item, apply_design_skill, apply_recipe.
 
 ## AI (https://swiftpieces.com/components/ai)
 
