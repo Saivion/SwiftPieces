@@ -122,3 +122,8 @@ yarn-debug.log*
 yarn-error.log*
 .DS_Store
 Thumbs.db
+
+# ─── Font subsetting (scripts/fonts/subset_fonts.py) ─────────
+scripts/fonts/.cache
+scripts/fonts/__pycache__
+.venv-fonts
