@@ -235,7 +235,9 @@ def cut(src: TTFont, unicodes: set[int], features: list[str], reserved: list[str
     buf = io.BytesIO()
     src.save(buf)
     buf.seek(0)
-    font = TTFont(buf, recalcTimestamp=False)
+    # recalcBBoxes=False: recompiling the glyphs with fresh bounding boxes moved some outlines of pinned faces
+    # by a unit when drawn at a variable weight (Newsreader's $ and 7), so keep the instancer's glyphs as they are.
+    font = TTFont(buf, recalcTimestamp=False, recalcBBoxes=False)
     opts = subset.Options()
     opts.layout_features = features
     opts.layout_scripts = ["*"]
