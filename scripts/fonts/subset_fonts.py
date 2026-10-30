@@ -15,7 +15,8 @@ Everything it needs is in scripts/fonts/fonts.json. For every face it:
 2. keeps each variable axis at its `axes` range and pins the axes Google pinned (opsz). The ranges are the
    source's full ranges on purpose: narrowing one (say Figtree's wght to the 400-800 the site declares)
    saves about 2% but rescales the variation deltas, which are stored as integers, so outlines and advances
-   move by up to 2 font units and antialiasing changed on every page in the pixel diff;
+   move by up to 2 font units and antialiasing changed on every page in the pixel diff. Pins go through
+   HarfBuzz's instancer, the tool Google Fonts uses, so a pinned file matches what Google served exactly;
 3. keeps ASCII, Latin-1, Latin Extended-A and every other character found in the scanned source folders, but
    never a character the font did not already draw on the site (`coverage`, the codepoints the old
    next/font/google files held inside their unicode-range);
@@ -146,21 +147,47 @@ def load(data: bytes) -> TTFont:
     return font
 
 
-def instance(font: TTFont, face: dict) -> TTFont:
-    """Limit each axis to the configured range; pin the axes Google pins. Every axis must be configured."""
+def instance(data: bytes, face: dict) -> TTFont:
+    """Limit each axis to the configured range; pin the axes Google pins. Every axis must be configured.
+
+    Pins go through HarfBuzz's instancer with IUP delta optimization, the way Google Fonts makes its pinned
+    files: the result matches the outlines next/font/google served exactly, where fontTools' instancer
+    rounds the remaining deltas differently and moved some points by a fraction of a unit."""
+    font = load(data)
     if "fvar" not in font:
         return font
+    pins = face.get("pin", {})
     limits = {}
     for axis in font["fvar"].axes:
         tag = axis.axisTag
-        if tag in face.get("pin", {}):
-            limits[tag] = face["pin"][tag]
-        elif tag in face.get("axes", {}):
-            lo, hi = face["axes"][tag]
-            limits[tag] = lo if lo == hi else (lo, hi)
-        else:
+        if tag in pins:
+            continue
+        if tag not in face.get("axes", {}):
             fail(f"{face['slug']}: axis {tag} has no range or pin in fonts.json")
-    return instantiateVariableFont(font, limits, inplace=False, updateFontNames=False)
+        lo, hi = face["axes"][tag]
+        if (lo, hi) != (axis.minValue, axis.maxValue):
+            limits[tag] = lo if lo == hi else (lo, hi)
+    if pins:
+        try:
+            import uharfbuzz as hb
+        except ImportError:
+            fail(f"{face['slug']}: pinning {', '.join(pins)} needs uharfbuzz (pip install -r scripts/fonts/requirements.txt)")
+        hb_face = hb.Face(data)
+        inp = hb.SubsetInput()
+        for kind in ("UNICODE", "LAYOUT_FEATURE_TAG", "LAYOUT_SCRIPT_TAG", "NAME_ID", "NAME_LANG_ID"):
+            keep_all = inp.sets(getattr(hb.SubsetInputSets, kind))
+            keep_all.clear()  # some start with HarfBuzz's defaults; empty and inverted means everything
+            keep_all.invert()
+        inp.sets(hb.SubsetInputSets.DROP_TABLE_TAG).clear()
+        inp.sets(hb.SubsetInputSets.GLYPH_INDEX).add_range(0, hb_face.glyph_count - 1)
+        for flag in ("OPTIMIZE_IUP_DELTAS", "RETAIN_GIDS", "NOTDEF_OUTLINE", "GLYPH_NAMES", "NAME_LEGACY",
+                     "NO_PRUNE_UNICODE_RANGES", "PASSTHROUGH_UNRECOGNIZED"):
+            inp.flags |= getattr(hb.SubsetFlags, flag)
+        for tag, value in pins.items():
+            if not inp.pin_axis_location(hb_face, tag, value):
+                fail(f"{face['slug']}: could not pin {tag} at {value}")
+        font = load(hb.subset(hb_face, inp).blob.data)
+    return instantiateVariableFont(font, limits, inplace=False, updateFontNames=False) if limits else font
 
 
 def at(font: TTFont, location: dict) -> TTFont:
@@ -168,7 +195,9 @@ def at(font: TTFont, location: dict) -> TTFont:
     if "fvar" not in font:
         return font
     tags = {a.axisTag for a in font["fvar"].axes}
-    return instantiateVariableFont(font, {k: v for k, v in location.items() if k in tags}, inplace=False)
+    limits = {k: v for k, v in location.items() if k in tags}
+    # An empty location is not a no-op for the instancer (it re-encodes the deltas), so skip it.
+    return instantiateVariableFont(font, limits, inplace=False) if limits else font
 
 
 def default_features(font: TTFont, extra: list[str]) -> list[str]:
@@ -398,7 +427,7 @@ def main() -> None:
                 fail(f"{slug}: OFL Reserved Font Names {reserved}; set internalName so the cut font is renamed")
             src_data = fetch(commit, face["source"], face["sha256"])
             src = load(src_data)
-            limited = instance(src, face)
+            limited = instance(src_data, face)
             coverage = parse_ranges(face["coverage"])
             cmap = set(limited.getBestCmap())
             keep = cmap & coverage & wanted
@@ -407,7 +436,7 @@ def main() -> None:
             pins = face.get("pin", {})
             corpus = words(texts, keep)
             # Pinning an axis (as Google does with opsz) or narrowing one rescales the variation deltas, which
-            # the font stores as integers: allow that rounding (one unit on an outline point or advance, two on
+            # the font stores as integers, and the checks compare against fontTools' own instance: allow that rounding (one unit on an outline point or advance, two on
             # an advance plus a kern) and nothing more.
             limited_axes = bool(pins) or "fvar" in src and any(
                 (a.minValue, a.maxValue) != tuple(face.get("axes", {}).get(a.axisTag, (a.minValue, a.maxValue)))
@@ -462,8 +491,10 @@ def main() -> None:
             for w in face["weights"]:
                 loc = {"wght": w} if "fvar" in limited else {}
                 for part, data in files.items():
-                    pt, adv = check_outlines(at(src, pins), TTFont(io.BytesIO(data)), parts[part], loc)
-                    if pt > tol or adv > tol:
+                    # A pinned face is checked against the pinned instance: fontTools' instancer rounds the
+                    # pin differently (up to 7 units on DM Sans at 300) from HarfBuzz and Google.
+                    pt, adv = check_outlines(limited if pins else src, TTFont(io.BytesIO(data)), parts[part], loc)
+                    if max(pt, adv) > (0 if pins else tol):
                         problems.append(f"{slug}-{part} @{w}: outlines differ from the source by {pt} units, advances by {adv}")
                 try:
                     inside, crossing = shape_check(src_data, files, {k: parts[k] for k in files}, loc, pins, features, corpus, tol)
