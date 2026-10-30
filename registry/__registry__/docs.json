@@ -1,15 +1,124 @@
 [
   {
-    "url": "/docs/cli",
-    "title": "CLI",
-    "description": "npx swiftpieces init, add, list, login and whoami. One CLI, two registries.",
+    "url": "/docs/choosing",
+    "title": "Choosing a SwiftUI component library",
+    "description": "SwiftPieces is a free SwiftUI component library you copy into your app. This page covers install, the commercial license, Liquid Glass, MCP, and Free vs Pro.",
     "breadcrumbs": [
       "SwiftPieces"
     ],
     "structuredData": {
       "contents": [
         {
-          "content": "The CLI is distributed through npm so no extra toolchain is required. It contains no premium source; it is a fetcher that talks to the free registry on swiftpieces.com and, with a license key, the Pro registry on pro.swiftpieces.com."
+          "content": "SwiftPieces is a free SwiftUI component library for iOS. You add a component by copying one Swift file into your app, or by running `npx swiftpieces add`. Settle the questions below before you pick a library."
+        },
+        {
+          "heading": "is-swiftpieces-the-shadcn-for-swiftui",
+          "content": "SwiftPieces uses the same distribution idea as shadcn/ui: you copy the source into your project and own it, instead of depending on a package. It is SwiftUI for iOS, installed with npx swiftpieces add or by pasting a Swift file. shadcn/ui is React."
+        },
+        {
+          "heading": "is-swiftpieces-a-swift-package",
+          "content": "No. SwiftPieces copies Swift source into your Xcode project. Paste the file from a component page, or run npx swiftpieces add Name from the folder that holds your .xcodeproj. There is no package dependency to add or update."
+        },
+        {
+          "heading": "can-i-use-swiftpieces-in-a-commercial-app",
+          "content": "Yes. Free components are MIT + Commons Clause. You can use, copy, modify and ship them in any personal or commercial app, including client work. You may not sell, sublicense or redistribute the components themselves."
+        },
+        {
+          "heading": "can-i-use-swiftpieces-in-a-commercial-app",
+          "content": "The legal text is the license."
+        },
+        {
+          "heading": "does-swiftpieces-support-ios-26-liquid-glass",
+          "content": "Yes. The library builds for iOS 17. Liquid Glass components call the real iOS 26 APIs only when the system is iOS 26 or newer, and fall back to Material on earlier systems. The rules are in the Liquid Glass guide."
+        },
+        {
+          "heading": "does-swiftpieces-support-ios-26-liquid-glass",
+          "content": "Read the Liquid Glass guide and browse the Liquid Glass components."
+        },
+        {
+          "heading": "can-cursor-or-claude-code-install-swiftpieces",
+          "content": "Yes. The free MCP server at https\\://swiftpieces.com/api/mcp needs no account. Claude Code, Cursor and other MCP clients can search the library and install a component. SwiftPieces Pro uses a separate server and a license key."
+        },
+        {
+          "heading": "can-cursor-or-claude-code-install-swiftpieces",
+          "content": "Setup is in MCP and agents. `llms.txt` at the site root lists every free component."
+        },
+        {
+          "heading": "what-is-the-difference-between-swiftpieces-and-swiftpieces-pro",
+          "content": "SwiftPieces on swiftpieces.com is the free component library: single Swift files under MIT + Commons Clause. SwiftPieces Pro is a separate paid product at pro.swiftpieces.com with screens, flows, app templates and agent skills. Pro is closed source. Pricing is on the Pro site."
+        },
+        {
+          "heading": "what-is-the-difference-between-swiftpieces-and-swiftpieces-pro",
+          "content": "The free components stay on the library. Pro's plan and price are on pro.swiftpieces.com."
+        },
+        {
+          "heading": "should-i-use-a-swiftui-library-or-a-uikit-library",
+          "content": "For a new SwiftUI app, use SwiftUI components so the code matches the rest of the app. SwiftPieces is SwiftUI on Apple frameworks only. A UIKit library wraps UIKit views, which you then bridge. Pick SwiftUI unless the screen must stay in UIKit."
+        },
+        {
+          "heading": "where-to-go-next",
+          "content": "Install a component: paste a file, or use the CLI."
+        },
+        {
+          "heading": "where-to-go-next",
+          "content": "CLI: `npx swiftpieces add`."
+        },
+        {
+          "heading": "where-to-go-next",
+          "content": "All free components."
+        },
+        {
+          "heading": "where-to-go-next",
+          "content": "Patterns: whole sections of a screen. Those come with SwiftPieces Pro."
+        }
+      ],
+      "headings": [
+        {
+          "id": "is-swiftpieces-the-shadcn-for-swiftui",
+          "content": "Is SwiftPieces the shadcn for SwiftUI?"
+        },
+        {
+          "id": "is-swiftpieces-a-swift-package",
+          "content": "Is SwiftPieces a Swift package?"
+        },
+        {
+          "id": "can-i-use-swiftpieces-in-a-commercial-app",
+          "content": "Can I use SwiftPieces in a commercial app?"
+        },
+        {
+          "id": "does-swiftpieces-support-ios-26-liquid-glass",
+          "content": "Does SwiftPieces support iOS 26 Liquid Glass?"
+        },
+        {
+          "id": "can-cursor-or-claude-code-install-swiftpieces",
+          "content": "Can Cursor or Claude Code install SwiftPieces?"
+        },
+        {
+          "id": "what-is-the-difference-between-swiftpieces-and-swiftpieces-pro",
+          "content": "What is the difference between SwiftPieces and SwiftPieces Pro?"
+        },
+        {
+          "id": "should-i-use-a-swiftui-library-or-a-uikit-library",
+          "content": "Should I use a SwiftUI library or a UIKit library?"
+        },
+        {
+          "id": "where-to-go-next",
+          "content": "Where to go next"
+        }
+      ]
+    }
+  },
+  {
+    "url": "/docs/cli",
+    "title": "CLI",
+    "description": "The swiftpieces CLI copies free SwiftUI components into your Xcode project. npx swiftpieces add Name. There is no Swift package.",
+    "breadcrumbs": [
+      "SwiftPieces"
+    ],
+    "structuredData": {
+      "contents": [
+        {
+          "content": "The swiftpieces CLI copies SwiftUI components into your Xcode project. Run `npx swiftpieces add GlassSurface` from the folder that contains your `.xcodeproj`. It writes files you own. It is distributed through npm so no extra toolchain is required, and it contains no premium source. Free components come from swiftpieces.com. A license key also reaches the Pro registry on pro.swiftpieces.com."
         },
         {
           "heading": "resolution-order",
@@ -67,12 +176,15 @@
   {
     "url": "/docs/installation",
     "title": "Installation",
-    "description": "Copy-paste, the swiftpieces CLI, or Swift Package Manager for shared shader libraries.",
+    "description": "Install SwiftPieces by copying a Swift file or running npx swiftpieces add. There is no Swift package to depend on.",
     "breadcrumbs": [
       "SwiftPieces"
     ],
     "structuredData": {
       "contents": [
+        {
+          "content": "SwiftPieces installs by copying Swift source into your Xcode project. Paste a file from the component's page, or run `npx swiftpieces add Name` from the folder that holds your `.xcodeproj`. The files are yours. There is no Swift package to add and no dependency to update."
+        },
         {
           "heading": "copy-and-paste",
           "content": "Open the piece you want."
@@ -173,14 +285,17 @@
   {
     "url": "/docs/introduction",
     "title": "Introduction",
-    "description": "SwiftPieces is the central place for animated SwiftUI pieces. Copy one file, run one command, or let your agent install it.",
+    "description": "SwiftPieces is a free SwiftUI component library for iOS. Copy one Swift file, run npx swiftpieces add, or let your agent install it.",
     "breadcrumbs": [
       "SwiftPieces"
     ],
     "structuredData": {
       "contents": [
         {
-          "content": "SwiftPieces is a free library (MIT + Commons Clause) of animated SwiftUI components built around iOS 26 Liquid Glass and Metal shaders, and a curated taste of what SwiftPieces Pro offers in full: production-ready SwiftUI screens, patterns, whole flows and complete app templates. Read why SwiftPieces exists and how it is funded."
+          "content": "SwiftPieces is a free SwiftUI component library for iOS. Each component is one Swift file you copy into your app, with motion, haptics and accessibility already done, under MIT + Commons Clause. SwiftPieces Pro is a separate paid, closed-source library of screens, flows and app templates at pro.swiftpieces.com."
+        },
+        {
+          "content": "Read why SwiftPieces exists and how it is funded, or how to choose a SwiftUI library (copy-paste, the commercial license, Liquid Glass, MCP, and Free vs Pro)."
         },
         {
           "heading": "what-earns-a-place",
@@ -254,12 +369,15 @@
   {
     "url": "/docs/liquid-glass",
     "title": "SwiftUI Liquid Glass guide (iOS 26)",
-    "description": "How to use Liquid Glass in SwiftUI with glassEffect, GlassEffectContainer and glassEffectID, and how to fall back to Material below iOS 26.",
+    "description": "Yes. SwiftPieces includes iOS 26 Liquid Glass components, and each one still builds on iOS 17 by falling back to Material.",
     "breadcrumbs": [
       "SwiftPieces"
     ],
     "structuredData": {
       "contents": [
+        {
+          "content": "Yes. SwiftPieces includes Liquid Glass components for iOS 26, and every one still builds on iOS 17 by falling back to Material."
+        },
         {
           "content": "Liquid Glass shipped with iOS 26. The APIs are small, but the failure modes are not: glass sampling glass, missing fallbacks, invented modifiers from tutorials. Every glass piece here follows the same rules."
         },
@@ -395,14 +513,14 @@
   {
     "url": "/docs/mcp",
     "title": "MCP and Agents",
-    "description": "Connect Claude Code, Cursor or any MCP client to the free library, so your agent installs the real piece instead of inventing a lookalike.",
+    "description": "Point Claude Code, Cursor, or any MCP client at the free SwiftPieces server. No account. The agent installs the real component.",
     "breadcrumbs": [
       "SwiftPieces"
     ],
     "structuredData": {
       "contents": [
         {
-          "content": "The SwiftPieces MCP server is public and needs no account. Your agent can search the free library, read a piece's source and install it into your project."
+          "content": "Yes. Point Claude Code, Cursor, or any MCP client at the free SwiftPieces server and ask it to add a component. The server is public and needs no account. Your agent can search the free library, read a component's source, and install it into your project. SwiftPieces Pro uses a separate server and a license key."
         },
         {
           "content": "**URL:** `https://swiftpieces.com/api/mcp`"

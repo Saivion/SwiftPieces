@@ -4,13 +4,19 @@ export const site = {
   /** The home page title: the name, then the plain category, inside ~55 characters. */
   title: "SwiftPieces: Free SwiftUI Component Library for iOS",
   description:
-    "A free SwiftUI component library for iOS. Production-ready pieces with motion, haptics and accessibility, added with one CLI command or your AI agent.",
+    "SwiftPieces is a free SwiftUI component library for iOS. Copy one Swift file into your app, or add it with the CLI or your AI agent.",
+  /** The sentence under the home h1, and the SoftwareApplication description. Keep them the same. */
+  libraryLead:
+    "SwiftPieces is a free SwiftUI component library for iOS. Each piece is one Swift file you copy into your app, or add with npx swiftpieces add, with the motion, haptics and accessibility already done.",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://swiftpieces.com",
   proUrl: process.env.NEXT_PUBLIC_PRO_URL ?? "https://pro.swiftpieces.com",
   mediaUrl: process.env.NEXT_PUBLIC_MEDIA_URL ?? "https://media.swiftpieces.com",
   github: "https://github.com/Saivion/SwiftPieces",
   twitter: "https://x.com/saivion",
 } as const;
+
+/** The sentence under the home h1. Structured data uses this same string. */
+export const libraryLead = site.libraryLead;
 
 /** Pro destinations, kept in one place so every CTA resolves the same way. */
 export const pro = {

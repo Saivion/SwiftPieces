@@ -81,6 +81,7 @@ LIQUID_GLASS.md
 !lib/cache-retention.test.ts
 !lib/middleware.test.ts
 !lib/known-pages.test.ts
+!lib/seo.test.ts
 
 # ─── Internal notes, briefs and scratch (not public docs) ────
 # Public docs live in content/docs/, README.md and CONTRIBUTING.md.
@@ -114,6 +115,10 @@ scripts/remix-sim.ts
 test-results/
 playwright-report/
 .playwright-mcp/
+
+# AEO measurements. Commit the tracker, never a dated result.
+scripts/aeo/results/**
+!scripts/aeo/results/.gitkeep
 
 # ─── Logs and OS files ───────────────────────────────────────
 *.log

@@ -1,0 +1,140 @@
+{
+  "siteHost": "swiftpieces.com",
+  "paidHost": "pro.swiftpieces.com",
+  "google": [
+    {
+      "id": "best-library",
+      "buyerQuestion": "What is the best SwiftUI component library?",
+      "query": "best SwiftUI component library",
+      "targetUrl": "https://swiftpieces.com/docs/choosing"
+    },
+    {
+      "id": "shadcn-swiftui",
+      "buyerQuestion": "Is there a shadcn for SwiftUI?",
+      "query": "shadcn for SwiftUI",
+      "targetUrl": "https://swiftpieces.com/docs/choosing"
+    },
+    {
+      "id": "free-components",
+      "buyerQuestion": "Where are free SwiftUI components?",
+      "query": "free SwiftUI components",
+      "targetUrl": "https://swiftpieces.com/components"
+    },
+    {
+      "id": "install-method",
+      "buyerQuestion": "How do I install SwiftPieces, package or copy-paste?",
+      "query": "how to install SwiftPieces SwiftUI",
+      "targetUrl": "https://swiftpieces.com/docs/installation"
+    },
+    {
+      "id": "liquid-glass",
+      "buyerQuestion": "Does it support iOS 26 Liquid Glass?",
+      "query": "SwiftUI Liquid Glass components iOS 26",
+      "targetUrl": "https://swiftpieces.com/docs/liquid-glass"
+    },
+    {
+      "id": "mcp-agents",
+      "buyerQuestion": "Can I use it from Cursor, Claude Code, or MCP?",
+      "query": "SwiftUI MCP server component library",
+      "targetUrl": "https://swiftpieces.com/docs/mcp"
+    },
+    {
+      "id": "commercial-license",
+      "buyerQuestion": "Can I ship SwiftPieces in a commercial app?",
+      "query": "SwiftPieces license commercial use",
+      "targetUrl": "https://swiftpieces.com/license"
+    },
+    {
+      "id": "swiftui-vs-uikit",
+      "buyerQuestion": "Should I use a SwiftUI library or a UIKit library?",
+      "query": "SwiftUI component library vs UIKit",
+      "targetUrl": "https://swiftpieces.com/docs/choosing"
+    },
+    {
+      "id": "compare",
+      "buyerQuestion": "How does SwiftPieces compare to other SwiftUI libraries?",
+      "query": "SwiftPieces vs other SwiftUI libraries",
+      "targetUrl": "https://swiftpieces.com/docs/choosing"
+    },
+    {
+      "id": "free-vs-pro",
+      "buyerQuestion": "What is the difference between free SwiftPieces and SwiftPieces Pro?",
+      "query": "SwiftPieces vs SwiftPieces Pro",
+      "targetUrl": "https://swiftpieces.com/docs/choosing"
+    },
+    {
+      "id": "cli",
+      "buyerQuestion": "What does the swiftpieces CLI do?",
+      "query": "npx swiftpieces add",
+      "targetUrl": "https://swiftpieces.com/docs/cli"
+    }
+  ],
+  "ai": [
+    {
+      "id": "best-library",
+      "buyerQuestion": "What is the best SwiftUI component library?",
+      "prompt": "What is the best SwiftUI component library for iOS?",
+      "targetUrl": "https://swiftpieces.com/docs/choosing"
+    },
+    {
+      "id": "shadcn-swiftui",
+      "buyerQuestion": "Is there a shadcn for SwiftUI?",
+      "prompt": "What is the shadcn equivalent for SwiftUI?",
+      "targetUrl": "https://swiftpieces.com/docs/choosing"
+    },
+    {
+      "id": "free-components",
+      "buyerQuestion": "Where are free SwiftUI components?",
+      "prompt": "Where can I find free SwiftUI components for iOS?",
+      "targetUrl": "https://swiftpieces.com/components"
+    },
+    {
+      "id": "install-method",
+      "buyerQuestion": "How do I install SwiftPieces, package or copy-paste?",
+      "prompt": "How do I install SwiftPieces? Is it a Swift package or do I copy the files?",
+      "targetUrl": "https://swiftpieces.com/docs/installation"
+    },
+    {
+      "id": "liquid-glass",
+      "buyerQuestion": "Does it support iOS 26 Liquid Glass?",
+      "prompt": "Which SwiftUI component library supports iOS 26 Liquid Glass with a fallback for older iOS?",
+      "targetUrl": "https://swiftpieces.com/docs/liquid-glass"
+    },
+    {
+      "id": "mcp-agents",
+      "buyerQuestion": "Can I use it from Cursor, Claude Code, or MCP?",
+      "prompt": "How do I use a SwiftUI component library from Cursor or Claude Code with MCP?",
+      "targetUrl": "https://swiftpieces.com/docs/mcp"
+    },
+    {
+      "id": "commercial-license",
+      "buyerQuestion": "Can I ship SwiftPieces in a commercial app?",
+      "prompt": "Can I use SwiftPieces components in a commercial iOS app?",
+      "targetUrl": "https://swiftpieces.com/license"
+    },
+    {
+      "id": "swiftui-vs-uikit",
+      "buyerQuestion": "Should I use a SwiftUI library or a UIKit library?",
+      "prompt": "Should I use a SwiftUI component library or a UIKit component library for a new iOS app?",
+      "targetUrl": "https://swiftpieces.com/docs/choosing"
+    },
+    {
+      "id": "compare",
+      "buyerQuestion": "How does SwiftPieces compare to other SwiftUI libraries?",
+      "prompt": "How does SwiftPieces compare to other SwiftUI component libraries?",
+      "targetUrl": "https://swiftpieces.com/docs/choosing"
+    },
+    {
+      "id": "free-vs-pro",
+      "buyerQuestion": "What is the difference between free SwiftPieces and SwiftPieces Pro?",
+      "prompt": "What is the difference between free SwiftPieces and SwiftPieces Pro? Is Pro open source?",
+      "targetUrl": "https://swiftpieces.com/docs/choosing"
+    },
+    {
+      "id": "cli",
+      "buyerQuestion": "What does the swiftpieces CLI do?",
+      "prompt": "What does the swiftpieces npm package do?",
+      "targetUrl": "https://swiftpieces.com/docs/cli"
+    }
+  ]
+}

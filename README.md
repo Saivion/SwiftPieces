@@ -20,7 +20,9 @@
 
 <br />
 
-SwiftPieces is a library of designed SwiftUI interactions: swipe decks, glass menus, floating docks, scrubbable charts. Not primitives, and not a dependency. Each piece is a single `.swift` file with a `#Preview`, built on Apple frameworks only, that you copy into your project and own outright. Motion, haptics and states are already done.
+SwiftPieces is a free SwiftUI component library for iOS. Each piece is a single `.swift` file with a `#Preview`, built on Apple frameworks only, that you copy into your project and own outright. Add one with `npx swiftpieces add`, or paste the file. There is no Swift package to depend on. Motion, haptics and states are already done. The license is [MIT + Commons Clause](https://swiftpieces.com/license), so you can ship the pieces in commercial apps, including client work.
+
+[Choosing a SwiftUI library](https://swiftpieces.com/docs/choosing) covers copy-paste, Liquid Glass on iOS 26, MCP for Cursor and Claude Code, and how the free library relates to [SwiftPieces Pro](https://pro.swiftpieces.com). Pro is a separate paid product and it is closed source.
 
 ## Quick start
 

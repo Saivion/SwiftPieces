@@ -45,7 +45,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           // Follows the system until the visitor picks light or dark in the footer; the choice is remembered.
           theme={{ enabled: true, defaultTheme: "system", enableSystem: true, disableTransitionOnChange: true }}
           // Shown before anyone types: the places people search for most.
-          search={{ links: [["Introduction", "/docs/introduction"], ["Installation", "/docs/installation"], ["All Components", "/docs/components"], ["Playground", "/apps"], ["Styles", "/styles"], ["Liquid Glass guide", "/docs/liquid-glass"], ["MCP Server", "/docs/mcp"], ["SwiftPieces Pro", "/pro"]] }}
+          search={{ links: [["Introduction", "/docs/introduction"], ["Choosing a library", "/docs/choosing"], ["Installation", "/docs/installation"], ["All Components", "/docs/components"], ["Playground", "/apps"], ["Styles", "/styles"], ["Liquid Glass guide", "/docs/liquid-glass"], ["MCP Server", "/docs/mcp"], ["SwiftPieces Pro", "/pro"]] }}
         >
           {children}
         </RootProvider>
