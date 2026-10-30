@@ -27,7 +27,10 @@
     "builder:test": "npm test --workspace packages/builder",
     "cli:build": "npm run build --workspace packages/cli",
     "audit:public": "bash scripts/audit-public.sh",
-    "test": "node scripts/run-tests.mjs"
+    "test": "node scripts/run-tests.mjs",
+    "aeo:track": "node scripts/aeo/track.mjs",
+    "aeo:checklist": "node scripts/aeo/track.mjs --manual",
+    "aeo:lastmod": "tsx scripts/aeo/write-lastmod.ts"
   },
   "workspaces": [
     "packages/*"

@@ -87,9 +87,10 @@ function flatSidebar(tree: PageTree.Root): PageTree.Root {
   const piece = (n: PageTree.Item) => tiered(fresh.has(n.url) ? withEnd(n, <NewBadge />) : n, "free");
 
   const out: PageTree.Node[] = [heading("Get Started")];
-  for (const url of ["/docs/introduction", "/docs/installation", "/docs/cli", "/docs/mcp"]) {
+  for (const url of ["/docs/introduction", "/docs/choosing", "/docs/installation", "/docs/cli", "/docs/mcp"]) {
     const p = page(url);
-    if (p) out.push(p);
+    // The page title is written for search. The sidebar row is the short name.
+    if (p) out.push(url === "/docs/choosing" ? { ...p, name: "Choosing" } : p);
   }
   // The changelog is its own route (app/docs/changelog), not an MDX page, so its row is added by hand.
   out.push({ type: "page", name: "Changelog", url: changelogPath() });

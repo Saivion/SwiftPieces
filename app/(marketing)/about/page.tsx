@@ -16,8 +16,8 @@ export const metadata = pageMetadata({
  */
 export default function AboutPage() {
   return (
-    <ProsePage label="About" title="The central place for Swift pieces." lead="SwiftPieces exists because iOS developers rebuild the same effects every year, and the good ones never end up in one place.">
-      <p>SwiftPieces is a free SwiftUI component library for iOS: designed, animated components such as a swipeable card stack, Liquid Glass menus, a floating tab bar and interactive charts, each one a single Swift file. Browse them <Link href="/components">all at once</Link> or by collection, from <Link href="/components/animations">animations</Link> to <Link href="/components/controls">buttons</Link> and <Link href="/components/inputs">form inputs</Link>.</p>
+    <ProsePage label="About" title="A free SwiftUI component library." lead="Copy one Swift file into your iOS app, or add it with the CLI or an MCP client. The license allows commercial apps. SwiftPieces Pro is a separate paid, closed-source product.">
+      <p>The pieces are designed SwiftUI interactions: a swipeable card stack, Liquid Glass menus, a floating tab bar, interactive charts, form inputs and AI chat, each one a single Swift file. Browse them <Link href="/components">all at once</Link> or by collection, from <Link href="/components/animations">animations</Link> to <Link href="/components/controls">buttons</Link> and <Link href="/components/inputs">form inputs</Link>. <Link href="/docs/choosing">Choosing a SwiftUI library</Link> compares copy-paste, a Swift package, and Pro.</p>
       <p>The library is built around three ideas: native, not a port; Liquid Glass first; and agent-native delivery. Every piece is idiomatic SwiftUI you own, verified against the SDK, and installable by you or by your coding agent.</p>
 
       <h2>What earns a place</h2>

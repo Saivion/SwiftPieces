@@ -8,7 +8,7 @@ export const metadata = pageMetadata({
 });
 export default function LicensePage() {
   return (
-    <ProsePage label="Legal" title="License." lead="Free pieces are MIT + Commons Clause. Pro is a single-developer commercial license. Both in plain English.">
+    <ProsePage label="Legal" title="License." lead="Yes. You can ship free SwiftPieces components in commercial apps, including client work, under MIT + Commons Clause. You may not resell the components themselves. SwiftPieces Pro is a separate per-developer license.">
       <h2>Free pieces</h2>
       <p>Every free piece is free for personal and commercial use as part of an application, website or product. Copy them, modify them, ship them in any number of products, including client work.</p>
       <p>You may not sell, sublicense, or redistribute the pieces themselves, whether alone, in a bundle, or as a ported version. That is the only restriction.</p>

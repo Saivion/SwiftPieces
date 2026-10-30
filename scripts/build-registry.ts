@@ -471,7 +471,7 @@ function writeDocs(items: RegistryItem[]) {
       writeFileSync(join(dir, `${item.slug}.mdx`), `---\n${fm}\n---\n\n{/* GENERATED FILE. Edit registry/swift/${item.category}/${item.name}.swift or ${item.name}.mdx instead. */}\n\n<Showcase name="${item.name}"${tone}>\n\n<Tabs items={[${tabNames}]}>\n${sourceTabs}\n</Tabs>\n\n</Showcase>\n\n<PieceFacts name="${item.name}" />\n\n${docs.summary}\n\n${prose}\n\n${usage}\n${paramsTable}`);
     }
   }
-  writeFileSync(join(DOCS_DIR, "meta.json"), JSON.stringify({ title: "SwiftPieces", pages: ["introduction", "installation", "cli", "mcp", "liquid-glass", "guides", "components", "patterns"] }, null, 2));
+  writeFileSync(join(DOCS_DIR, "meta.json"), JSON.stringify({ title: "SwiftPieces", pages: ["introduction", "choosing", "installation", "cli", "mcp", "liquid-glass", "guides", "components", "patterns"] }, null, 2));
 }
 
 /**
@@ -631,6 +631,20 @@ function readGuides(): { title: string; description: string; url: string; body: 
     });
 }
 
+/** Hand-written docs an assistant should read before the component catalog. */
+const REFERENCE_DOCS = ["introduction", "choosing", "installation", "cli", "mcp", "liquid-glass"] as const;
+
+function readReferenceDocs(): { title: string; description: string; url: string; body: string }[] {
+  return REFERENCE_DOCS.flatMap((slug) => {
+    const file = join(DOCS_DIR, `${slug}.mdx`);
+    if (!existsSync(file)) return [];
+    const raw = readFileSync(file, "utf8");
+    const m = raw.match(/^---\n([\s\S]*?)\n---\n?/);
+    const fm = (m ? parseYaml(m[1]) : {}) as { title?: string; description?: string };
+    return [{ title: fm.title ?? slug, description: fm.description ?? "", url: `${SITE_URL}/docs/${slug}`, body: (m ? raw.slice(m[0].length) : raw).trim() }];
+  });
+}
+
 function writeLlms(items: RegistryItem[], blocks: BlockItem[]) {
   const byCat = new Map<string, RegistryItem[]>();
   for (const i of items) byCat.set(i.category, [...(byCat.get(i.category) ?? []), i]);
@@ -644,6 +658,7 @@ function writeLlms(items: RegistryItem[], blocks: BlockItem[]) {
     "Key facts:",
     "",
     "- License: MIT + Commons Clause. Free for personal and commercial apps, including client work. Source-available rather than OSI open source: the pieces themselves may not be sold or redistributed.",
+    `- Choosing a library (copy-paste vs a Swift package, commercial use, Liquid Glass, MCP, free vs Pro): ${SITE_URL}/docs/choosing`,
     "- No dependencies and no Swift package: the CLI copies source files into a SwiftPieces folder in the app, and they become the developer's own code.",
     "- iOS 17 baseline. Liquid Glass pieces gate glass with `#available(iOS 26, *)` and fall back to Material.",
     `- One motion language across every piece: five spring tiers with named roles, gesture releases that keep the finger's velocity, rubber-band limits and a Reduce Motion substitute for every movement (${SITE_URL}/docs/guides/swiftui-motion).`,
@@ -655,6 +670,7 @@ function writeLlms(items: RegistryItem[], blocks: BlockItem[]) {
     "## Docs",
     "",
     `- [Introduction](${SITE_URL}/docs/introduction)`,
+    `- [Choosing a SwiftUI component library](${SITE_URL}/docs/choosing)`,
     `- [Installation](${SITE_URL}/docs/installation)`,
     `- [CLI](${SITE_URL}/docs/cli)`,
     `- [MCP and agents](${SITE_URL}/docs/mcp)`,
@@ -690,7 +706,7 @@ function writeLlms(items: RegistryItem[], blocks: BlockItem[]) {
     "",
     "## SwiftPieces Pro",
     "",
-    `A separate paid library for building whole apps: ${proCountsLabel} (production-ready SwiftUI screens, flows that string them into whole journeys from first run to settings, complete Xcode projects, and agent skills that build the rest in the same design) at ${PRO_URL}/library, plus Pro remixing in the Playground at ${SITE_URL}/apps (all ${proCatalog.remixing.apps} apps, remix any app with AI, keep up to ${proCatalog.remixing.saves} remixes). One plan with lifetime access; plan and pricing: ${PRO_URL}/pro. Pro MCP endpoint: ${PRO_URL}/api/mcp (license key required): search_library, get_item, list_kit, get_kit_item, apply_design_skill, apply_recipe.`,
+    `SwiftPieces Pro is a separate paid library, and it is closed source. It is for building whole apps: ${proCountsLabel} (production-ready SwiftUI screens, flows that string them into whole journeys from first run to settings, complete Xcode projects, and agent skills that build the rest in the same design) at ${PRO_URL}/library, plus Pro remixing in the Playground at ${SITE_URL}/apps (all ${proCatalog.remixing.apps} apps, remix any app with AI, keep up to ${proCatalog.remixing.saves} remixes). One plan with lifetime access; plan and pricing: ${PRO_URL}/pro. Pro MCP endpoint: ${PRO_URL}/api/mcp (license key required): search_library, get_item, list_kit, get_kit_item, apply_design_skill, apply_recipe.`,
     "",
   );
   for (const [cat, list] of byCat) {
@@ -718,9 +734,13 @@ function writeLlmsFull(items: RegistryItem[], guides: ReturnType<typeof readGuid
     "",
     `> ${items.length} free SwiftUI components for iOS, one Swift file each, MIT + Commons Clause. Index: ${SITE_URL}/llms.txt. Source for any piece: ${SITE_URL}/r/<Name>.json or its docs page.`,
     "",
-    "# Components",
+    "# Reference",
     "",
   ];
+  for (const page of readReferenceDocs()) {
+    out.push(`## ${page.title}`, "", `URL: ${page.url}`, "", page.description, "", page.body.replace(/^(#{2,5}) /gm, "#$1 "), "");
+  }
+  out.push("# Components", "");
   for (const item of items) {
     const docs = extractDocs(item.files[0].content ?? "");
     const sidecar = join(SWIFT_DIR, item.category, `${item.name}.mdx`);
