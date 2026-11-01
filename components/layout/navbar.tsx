@@ -147,7 +147,7 @@ export function Navbar({ star, starMobile, docked = false, fresh = 0, promo }: {
         >
           <Logo className="flex shrink-0 items-center" />
             {/* The links sit in one pill group on the tray colour; scrolled, the capsule around the bar takes over and the group's own fill goes. */}
-            <ul className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-0.5 rounded-full border border-line bg-surface p-1 transition-colors duration-500 group-data-[condensed=true]/nav:border-transparent group-data-[condensed=true]/nav:bg-transparent lg:flex">
+            <ul className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-0.5 rounded-[18px] border border-line bg-surface p-1 transition-colors duration-500 group-data-[condensed=true]/nav:border-transparent group-data-[condensed=true]/nav:bg-transparent lg:flex">
               {sections.map((m) => {
                 const active = menuActive(m);
                 const isHeld = held === m.label;

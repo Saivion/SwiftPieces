@@ -131,7 +131,7 @@ html.spb-app, html.spb-app body { overflow: hidden; overscroll-behavior: none; }
 .spp-select:focus { outline: none; border-color: var(--foreground); }
 .spp-select option, .spp-select optgroup { background: var(--background); color: var(--foreground); }
 .spp-select-sm { height: 28px; width: auto; max-width: 220px; font-size: 12px; }
-.spp-switch { position: relative; width: 36px; height: 20px; flex: none; padding: 0; border: 0; border-radius: 999px; background: var(--spp-fill-3); transition: background-color .2s; }
+.spp-switch { position: relative; width: 36px; height: 20px; flex: none; padding: 0; border: 0; border-radius: 8px; background: var(--spp-fill-3); transition: background-color .2s; }
 .spp-switch > span { position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgb(0 0 0 / .35); transition: transform .25s var(--ease-spring, var(--spp-ease)); }
 .spp-switch[aria-checked="true"] { background: var(--foreground); }
 .spp-switch[aria-checked="true"] > span { transform: translateX(16px); background: var(--background); }
@@ -255,7 +255,7 @@ html.light .spp-device { box-shadow: inset 0 0 0 1.5px #2b2b2e, inset 0 0 0 5px 
 .spp-step-line { width: 100%; height: 1px; background: var(--spp-line-strong); }
 .spp-step[data-state="done"] .spp-step-line, .spp-step[data-state="current"] .spp-step-line { background: var(--foreground); }
 .spp-step-how { font-size: 9.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--spp-subtle); }
-.spp-step-dot { display: flex; align-items: center; gap: 7px; height: 30px; padding: 0 10px 0 5px; border: 0; border-radius: 999px; background: color-mix(in srgb, var(--background) 70%, transparent); box-shadow: inset 0 0 0 1px var(--spp-line-strong); color: var(--text-muted); font-size: 12px; font-weight: 500; white-space: nowrap; transition: color .15s, background-color .2s, box-shadow .2s; }
+.spp-step-dot { display: flex; align-items: center; gap: 7px; height: 30px; padding: 0 10px 0 5px; border: 0; border-radius: 13px; background: color-mix(in srgb, var(--background) 70%, transparent); box-shadow: inset 0 0 0 1px var(--spp-line-strong); color: var(--text-muted); font-size: 12px; font-weight: 500; white-space: nowrap; transition: color .15s, background-color .2s, box-shadow .2s; }
 .spp-step-dot:hover { color: var(--foreground); }
 .spp-step-n { display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: var(--spp-fill-2); font-size: 10.5px; font-weight: 700; font-variant-numeric: tabular-nums; }
 .spp-step[data-state="done"] .spp-step-dot { color: var(--foreground); }
