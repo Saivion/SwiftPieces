@@ -59,7 +59,7 @@ const menus: Menu[] = [
   },
 ];
 
-const links: NavLink[] = [{ label: "Pro", href: "/pro" }];
+const links: NavLink[] = [{ label: "Games", href: pro.games, badge: "New" }, { label: "Pro", href: "/pro" }];
 
 /** A menu item's badge: Pro items wear the Pro tag (the Playground's, beside a Pro app), the rest New or Beta. */
 function Badge({ label }: { label?: string }) {

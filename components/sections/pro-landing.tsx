@@ -7,11 +7,10 @@ import { ProBadge } from "@/components/ui/pro-badge";
 import { pageLede } from "@/components/ui/section-header";
 import { RowLink, SectionHead, Tags, Glyph, band, cardTitle, heroTitle, sectionTitle, sectionBody } from "@/components/sections/feature-row";
 import { CountUp } from "@/components/ui/stat";
-import { GrainStage } from "@/components/visual/grain-stage";
 import { Reveal, RevealGroup, RevealItem } from "@/components/effects/reveal";
 import { cn } from "@/lib/cn";
 import { pro } from "@/lib/site";
-import { namesWithMore, proCatalog, proCountsLabel, remixingPoint } from "@/lib/pro-catalog";
+import { namesWithMore, proCatalog, proCountsLabel, proPlans, remixingPoint } from "@/lib/pro-catalog";
 import { getRegistryIndex } from "@/lib/registry";
 
 // Marketing copy only. Counts and names come from lib/pro-catalog.ts, the one hand-maintained copy of Pro's catalog.
@@ -186,10 +185,8 @@ export function WhatYouGet() {
           {items.map((s) => (
             <RevealItem key={s.label}>
               <a href={buy} className="group flex h-full flex-col rounded-[26px] bg-surface p-1.5 transition-colors duration-200 hover:bg-surface-3">
-                {/* Free shows Pro's work on the signature grain, seeded per card, on the inset panel, its wine core under the count.
-                    The count is white on it in both themes, as on the covers, so it is a fixed colour. */}
-                <div className="relative isolate flex h-[168px] flex-col justify-end overflow-hidden rounded-[20px] p-5 text-[#fff]">
-                  <GrainStage seed={`pro-page-${s.label}`} core={[0.5, 0.95, 0.9, 0.85]} className="-z-10 transition-transform duration-700 ease-out group-hover:scale-[1.03]" />
+                {/* The count on a paper panel, as Pro's library cards stand on paper (2026-10-28). */}
+                <div className="relative isolate flex h-[168px] flex-col justify-end overflow-hidden rounded-[20px] bg-surface-2 p-5 text-foreground">
                   <CountUp value={s.value} className="text-[56px] leading-[0.9] font-normal tracking-[-0.045em] tabular-nums" />
                 </div>
                 <div className="px-3.5 pt-5 pb-4">
@@ -257,9 +254,9 @@ export function Compare() {
 
 export function TryFirst() {
   const cards = [
-    { eyebrow: "Pro screen", cat: "Finance", title: "Wallet", body: "Cards and passes you tap forward, fan out and reorder.", kind: "screen" as Kind, more: "More screens", href: pro.screens, seed: "try-wallet" },
-    { eyebrow: "Pro flow", cat: "Travel", title: "Book A Stay", body: "Wayfare's booking journey, from a trip pick to a swipe to pay.", kind: "flow" as Kind, more: "More flows", href: `${pro.flows}/wayfare-book-a-stay`, seed: "try-book-a-stay" },
-    { eyebrow: "Pro template", cat: "AI", title: "AI Assistant", body: "Nimbus, a complete Xcode app with chat, voice mode and widgets.", kind: "template" as Kind, more: "More templates", href: pro.templates, seed: "try-assistant" },
+    { eyebrow: "Pro screen", cat: "Finance", title: "Wallet", body: "Cards and passes you tap forward, fan out and reorder.", kind: "screen" as Kind, more: "More screens", href: pro.screens },
+    { eyebrow: "Pro flow", cat: "Travel", title: "Book A Stay", body: "Wayfare's booking journey, from a trip pick to a swipe to pay.", kind: "flow" as Kind, more: "More flows", href: `${pro.flows}/wayfare-book-a-stay` },
+    { eyebrow: "Pro template", cat: "AI", title: "AI Assistant", body: "Nimbus, a complete Xcode app with chat, voice mode and widgets.", kind: "template" as Kind, more: "More templates", href: pro.templates },
   ];
   return (
     <section className={band}>
@@ -271,11 +268,10 @@ export function TryFirst() {
         <RevealGroup className="grid gap-3 lg:grid-cols-3" stagger={0.1}>
           {cards.map((c, i) => (
             <RevealItem key={c.title} className="h-full">
-              {/* Graphite's library card: the signature grain ground as Pro's library cards on a panel inset in
-                  a tray, the device rising out of its bottom edge, the words under it. */}
+              {/* Pro's library card: a paper panel inset in a tray, the device rising out of its bottom edge,
+                  the words under it. */}
               <div className="group flex h-full flex-col rounded-[26px] bg-surface p-1.5">
-                <a href={c.href} className="relative isolate block h-[260px] overflow-hidden rounded-[20px]" aria-label={`${c.title} in SwiftPieces Pro`}>
-                  <GrainStage seed={c.seed} className="-z-10 transition-transform duration-700 ease-out group-hover:scale-[1.03]" />
+                <a href={c.href} className="relative isolate block h-[260px] overflow-hidden rounded-[20px] bg-surface-2" aria-label={`${c.title} in SwiftPieces Pro`}>
                   {c.kind === "flow" ? (
                     <div className="absolute inset-x-0 top-10 origin-top scale-[1.35] transition-transform duration-500 ease-out group-hover:-translate-y-1">
                       <FlowMock i={i + 2} />
@@ -334,7 +330,7 @@ export const proFaqs = [
   { q: "Does Pro change anything about the free library?", a: "No. The free pieces stay MIT + Commons Clause and maintained on GitHub. Pro is the complete library that builds on them, and it is what pays for the free work." },
   { q: "How does installation work?", a: "Screens install the same way as the free pieces: the CLI or the MCP server writes Swift files into your project, or you copy them by hand. Templates are complete Xcode projects you download from their page, with a guide from download to a running, renamed app. Nothing is linked at runtime." },
   { q: "Can I ship Pro pieces in client and App Store apps?", a: "Yes. A per-developer license covers unlimited personal and commercial apps, including client work. Reselling or redistributing the pieces as a competing library, or sharing your key, is what it excludes." },
-  { q: "Is there a subscription or are there tiers?", a: "Neither. SwiftPieces Pro is one plan with lifetime access to everything, including every piece added later. Files already in your projects are yours regardless. The plan and pricing are on pro.swiftpieces.com." },
+  { q: "Is there a subscription or are there tiers?", a: `No subscription. There are two products, each one payment with lifetime access to everything added later: SwiftPieces Pro for apps ($${proPlans.pro}) and SwiftPieces Games for games ($${proPlans.games}). Both together are $${proPlans.everything}, and an owner of one adds the other for $${proPlans.upgrade}. Files already in your projects are yours regardless.` },
   { q: "Does it work with my coding agent?", a: "Yes. Connect Claude Code, Cursor or Xcode to the Pro MCP server with your license key, and your agent searches the library and installs the real screen instead of inventing a lookalike." },
   { q: "What are the requirements?", a: "An iOS 17 deployment target as the floor, with Xcode 16 for pieces and screens and Xcode 26 to open the app templates. Liquid Glass pieces use the real material on iOS 26 and fall back gracefully below it. Apple frameworks only, nothing third-party." },
 ];

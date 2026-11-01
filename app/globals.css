@@ -582,6 +582,17 @@ html.light [data-tone="black"] { --background: #f5f5f3; --surface: #efefec; --su
    drawn about two and a half times as tall and flipped, so only its deep half (wine to red to orange) shows. */
 .ember-stage { position: absolute; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
 .ember-stage > div { position: absolute; inset: 0 0 auto; height: 240%; transform: scaleY(-1); }
+/* The middle plan, Pro and Games (components/sections/plans.tsx), as on Pro: white in light, its
+   neighbours' panel colour in dark, under an ember cover that runs from the card's top edge past the
+   name and fades out over the price. */
+.plan-ink { background: var(--surface-2); overflow: hidden; }
+html.light .plan-ink { background: #ffffff; box-shadow: 0 30px 70px -34px rgb(60 20 80 / 0.28); }
+.plan-cover {
+  position: absolute; z-index: -1; pointer-events: none; overflow: hidden;
+  inset: -2rem -1.75rem -6rem; mask-image: linear-gradient(to bottom, #000 0%, #000 50%, transparent 100%);
+}
+@media (min-width: 64rem) { .plan-cover { top: -2.75rem; } }
+.plan-cover .ember-stage > div { height: 190%; }
 /* The Playground's docked panels are the same trays. */
 .spp[data-layout="docked"] :is(.spp-left, .spp-dockbar, .spp-rail) {
   background-color: color-mix(in srgb, var(--surface) 94%, transparent) !important;

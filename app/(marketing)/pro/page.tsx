@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
-import { ProHero, ProGallery, WhatYouGet, Compare, TryFirst, ProCTA, proFaqs } from "@/components/sections/pro-landing";
+import { ProHero, ProGallery, WhatYouGet, Compare, TryFirst, proFaqs } from "@/components/sections/pro-landing";
+import { Plans } from "@/components/sections/plans";
+import { GamesTeaser } from "@/components/sections/games-teaser";
 import { Questions } from "@/components/sections/questions";
 import { band } from "@/components/sections/feature-row";
 import { pro } from "@/lib/site";
@@ -21,8 +23,9 @@ export default function ProPage() {
       <WhatYouGet />
       <Compare />
       <TryFirst />
+      <GamesTeaser />
+      <Plans />
       <Questions items={proFaqs} spacing={band} body="Licensing, updates and how Pro fits with Free." />
-      <ProCTA />
     </div>
   );
 }

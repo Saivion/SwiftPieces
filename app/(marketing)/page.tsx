@@ -6,6 +6,7 @@ import { SponsorStrip } from "@/components/sections/sponsors";
 import { getSponsorsFrom } from "@/lib/sponsors";
 import { LibraryIntro } from "@/components/sections/library-intro";
 import { WantMore } from "@/components/sections/want-more";
+import { GamesTeaser } from "@/components/sections/games-teaser";
 import { Questions } from "@/components/sections/questions";
 import { band } from "@/components/sections/feature-row";
 import { JsonLd } from "@/components/seo/json-ld";
@@ -77,6 +78,7 @@ export default async function HomePage() {
       <Features />
       <LibraryIntro />
       <WantMore />
+      <GamesTeaser />
       <Questions items={questions} spacing={band} />
       <GetStarted />
     </>
