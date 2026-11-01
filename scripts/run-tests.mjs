@@ -4,7 +4,7 @@ import { readdirSync, statSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import { join } from "node:path";
 
-const roots = ["packages/cli/test", "packages/builder/test", "lib"];
+const roots = ["packages/cli/test", "packages/builder/test", "lib", "scripts/aeo"];
 const files = [];
 
 function walk(dir) {

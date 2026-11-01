@@ -1,0 +1,83 @@
+{
+  "$comment": "Input for subset_fonts.py. coverage = the codepoints each font drew on the site under next/font/google (cmap of the served files inside their unicode-range), so a cut never draws a character in the web font that used to come from the fallback. fallback = next/font's generated metric-matched fallback face, copied verbatim.",
+  "googleFontsCommit": "6157dfaa640ca5738b4d1a7070fe389c3036d7fc",
+  "scan": {
+    "dirs": [
+      "app",
+      "components",
+      "content",
+      "lib",
+      "registry",
+      "packages/brand/src",
+      "packages/builder/src"
+    ],
+    "extensions": [
+      ".ts",
+      ".tsx",
+      ".mdx",
+      ".md",
+      ".json",
+      ".css",
+      ".mjs"
+    ],
+    "skipDirs": [
+      "node_modules",
+      "__registry__"
+    ]
+  },
+  "alwaysKeep": "U+20-7E,U+A0-FF,U+100-17F",
+  "core": "U+20-7E,U+A0,U+A9,U+B7,U+2013-2014,U+2018-2019,U+201C-201D,U+2026",
+  "outDir": "public/fonts",
+  "urlPrefix": "/fonts/",
+  "manifest": "lib/fonts.generated.ts",
+  "css": {
+    "app/fonts.css": {
+      "vars": {
+        ":root": {
+          "--font-figtree": "Figtree"
+        }
+      }
+    }
+  },
+  "families": [
+    {
+      "family": "Figtree",
+      "css": "app/fonts.css",
+      "preload": true,
+      "features": [
+        "tnum"
+      ],
+      "fallback": {
+        "family": "Figtree Fallback",
+        "local": "Arial",
+        "ascent": "94.32%",
+        "descent": "24.82%",
+        "lineGap": "0.0%",
+        "sizeAdjust": "100.72%"
+      },
+      "faces": [
+        {
+          "slug": "figtree",
+          "style": "normal",
+          "source": "ofl/figtree/Figtree[wght].ttf",
+          "license": "ofl/figtree/OFL.txt",
+          "sha256": "26ad3db9b31ff7dde67a91ff515d022d2f495cd506590699cf264f0bfe6fb714",
+          "weights": [
+            400,
+            500,
+            600,
+            700,
+            800
+          ],
+          "axes": {
+            "wght": [
+              300,
+              900
+            ]
+          },
+          "coverage": "U+D,U+20-7E,U+A0-AC,U+AE-113,U+116-127,U+12A-12B,U+12E-137,U+139-13E,U+141-148,U+14A-14D,U+150-161,U+164-165,U+16A-17E,U+1CD-1CE,U+218-21B,U+237,U+2C6-2C7,U+2DA,U+2DC-2DD,U+304,U+308,U+1E80-1E85,U+1E9E,U+1EF2-1EF3,U+2013-2014,U+2018-201A,U+201C-201E,U+2020,U+2022,U+2026,U+2039-203A,U+2044,U+20AC,U+20B9,U+2122,U+2191,U+2193,U+2212,U+2215"
+        }
+      ]
+    }
+  ]
+}
