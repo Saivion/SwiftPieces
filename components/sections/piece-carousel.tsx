@@ -107,7 +107,7 @@ export function PieceCarousel() {
                 aria-selected={active}
                 onClick={() => show(k)}
                 className={cn(
-                  "group/tab relative isolate flex h-6 flex-1 items-center justify-center text-[12.5px] font-medium whitespace-nowrap transition-colors duration-300 sm:h-[34px] sm:overflow-hidden sm:rounded-[14px] sm:px-3.5",
+                  "group/tab relative isolate flex h-6 flex-1 items-center justify-center text-[12.5px] font-medium whitespace-nowrap transition-colors duration-300 sm:h-[34px] sm:overflow-hidden sm:rounded-[14px] sm:[clip-path:inset(0_round_14px)] sm:px-3.5",
                   active ? "text-foreground sm:bg-white/[0.06]" : "text-muted hover:text-foreground sm:hover:bg-white/[0.04]",
                 )}
               >
