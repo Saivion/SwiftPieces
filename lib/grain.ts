@@ -55,6 +55,22 @@ const PALETTES: Record<GrainKind, { base: readonly Stop[]; blobs: readonly Blob[
   },
 };
 
+/**
+ * Where the ember's wine core sits, per surface (2026-11-01, Saivion picked the "rising core"): low and
+ * centred, so the ember rises from under the card's words and pink shows along the top and far edges.
+ * Used by EmberStage (components/visual/ember-stage.tsx) and the pricing card's still (SwiftPiecesPro scripts/plan-cover.ts).
+ */
+export const EMBER_CORES = {
+  /** A plan card's cover: the core under the line, above the price where the cover fades out. */
+  copy: [0.5, 0.56, 0.95, 0.72],
+  /** The account bundle's left column: the core rising from behind the price. */
+  column: [0.5, 0.85, 0.95, 0.8],
+  /** A centred panel (the closing call to action): the core rising from the bottom edge. */
+  centre: [0.5, 1, 0.75, 1.15],
+} as const satisfies Record<string, Core>;
+
+export type EmberCore = keyof typeof EMBER_CORES;
+
 export const GRAIN_KINDS = Object.keys(PALETTES) as GrainKind[];
 
 export type GrainSpec = {

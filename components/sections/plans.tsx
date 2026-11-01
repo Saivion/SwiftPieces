@@ -1,11 +1,12 @@
 import { Container } from "@/components/ui/container";
 import { Reveal } from "@/components/effects/reveal";
-import { Arrow } from "@/components/ui/button";
+import { Arrow, Button } from "@/components/ui/button";
 import { NewBadge } from "@/components/ui/new-badge";
 import { EmberStage } from "@/components/visual/ember-stage";
+import { PLAN_COVER } from "@/lib/plan-cover";
 import { SectionHead, Glyph } from "@/components/sections/feature-row";
-import { proCatalog, proGames, proGamesList, proPlans } from "@/lib/pro-catalog";
-import { pro, site } from "@/lib/site";
+import { proCatalog, proGames, proGamesPricingList, proPlans } from "@/lib/pro-catalog";
+import { pro } from "@/lib/site";
 import { cn } from "@/lib/cn";
 
 function Check() {
@@ -46,7 +47,7 @@ function plans(): Plan[] {
       name: "SwiftPieces Games",
       line: "Complete iOS games in SwiftUI and Metal, and the engine they run on.",
       price: proPlans.games,
-      items: [`${proGames.list.length} complete games: ${proGamesList}`, `The engine: ${proGames.systems} modules and the shader pack`, "Game Center, StoreKit 2 and saves, wired", "Game Build Kit skills for your agent", "Every game added later"],
+      items: [`${proGames.list.length} complete games: ${proGamesPricingList}`, `The engine: ${proGames.systems} modules and the shader pack`, "Game Center, StoreKit 2 and saves, wired", "Game Build Kit skills for your agent", "Every game added later"],
       cta: "Get SwiftPieces Games",
       href: pro.gamesPricing,
       isNew: true,
@@ -72,7 +73,8 @@ export function Plans({ className }: { className?: string }) {
           {plans().map((p) => (
             <div key={p.id} className={cn("panel isolate flex flex-col px-7 pt-8 pb-7", p.featured && "plan-ink relative lg:-my-3 lg:py-11")}>
               <div className={cn(p.featured && "relative text-[#fff]")}>
-                {p.featured ? <div aria-hidden className="plan-cover"><EmberStage seed="free-plans-everything" /></div> : null}
+                {/* Pro's cover exactly: one fixed seed, shipped as a still so it is whole on the first frame (lib/plan-cover.ts). */}
+                {p.featured ? <div aria-hidden className="plan-cover"><EmberStage seed={PLAN_COVER.seed} core={PLAN_COVER.core} still={PLAN_COVER.still} /></div> : null}
                 <p className={cn("text-[12.5px]", p.featured ? "font-medium text-[rgb(255_255_255/0.85)]" : "text-subtle")}>{p.eyebrow}</p>
                 <p className="mt-2.5 flex items-center gap-2.5 text-[22px] leading-tight font-medium tracking-[-0.02em]">{p.name}{p.isNew ? <NewBadge /> : null}</p>
                 <p className={cn("mt-1.5 min-h-[44px] text-[14px] leading-[22px]", p.featured ? "text-[rgb(255_255_255/0.85)]" : "text-muted")}>{p.line}</p>
@@ -86,18 +88,14 @@ export function Plans({ className }: { className?: string }) {
                 {p.items.map((v) => <li key={v} className="flex gap-2.5 text-[14px] leading-5"><Check /><span>{v}</span></li>)}
               </ul>
               <div className="mt-8 lg:mt-auto lg:pt-8">
-                <a href={p.href} className={cn("group inline-flex h-[46px] w-full items-center justify-center gap-2 rounded-full px-5 text-[15px] font-semibold transition-colors", p.featured ? "bg-foreground text-background hover:bg-foreground/90" : "bg-surface text-foreground hover:bg-surface-3")}>
-                  {p.cta} <Arrow />
-                </a>
+                <Button href={p.href} size="md" className="w-full">{p.cta} <Arrow /></Button>
               </div>
             </div>
           ))}
         </Reveal>
+        {/* The founding offer, as on Pro (PlansNote). The $129 upgrade is already in the heading above. */}
         <div className="mx-auto mt-6 flex max-w-[760px] flex-col items-center gap-2 text-center text-[14px] text-muted">
-          <p>Already own one? Add the other for ${proPlans.upgrade} on pro.swiftpieces.com. No subscription, and all purchases are final.</p>
-          <p>
-            Checkout and your account live on <a href={site.proUrl} className="text-foreground underline decoration-[var(--line-strong)] underline-offset-4 hover:decoration-current">pro.swiftpieces.com</a>.
-          </p>
+          <p><strong className="font-semibold text-foreground">For Pro owners:</strong> if you had Pro before Games launched, Games is half the add-on price, ${proPlans.founding}. It is applied at checkout.</p>
         </div>
       </Container>
     </section>

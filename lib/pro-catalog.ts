@@ -96,6 +96,10 @@ export const proGames = {
 /** "Drift, Lumen, Twine, Orbit and Wordly". */
 export const proGamesList = namesWithMore(proGames.list.map((g) => g.title));
 
+/** The games in Pro's catalog order, as its pricing card lists them: "Lumen, Drift, Twine, Orbit and Wordly". */
+const PRO_ORDER = ["lumen", "drift", "twine", "orbit", "wordly"];
+export const proGamesPricingList = namesWithMore([...proGames.list].sort((a, b) => PRO_ORDER.indexOf(a.id) - PRO_ORDER.indexOf(b.id)).map((g) => g.title));
+
 /**
  * The three plans, as Pro's pricing shows them (SwiftPiecesPro lib/product.ts, components/blocks/plans.tsx).
  * Checkout happens on Pro: each plan's button opens Pro's pricing for that plan.
@@ -106,4 +110,6 @@ export const proPlans = {
   everything: 329,
   /** An owner of one product adds the other for this. */
   upgrade: 129,
+  /** The founding offer: a Pro owner from before Games launched adds Games for this (Pro lib/product.ts `founding`). */
+  founding: 65,
 } as const;
