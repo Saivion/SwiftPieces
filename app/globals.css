@@ -882,6 +882,16 @@ html.light .pv-glass-pass { filter: var(--pv-goo-light) var(--pv-goo-lift); }
   mask-image: radial-gradient(ellipse 46% 64% at 50% 50%, transparent 30%, #000 52%, transparent 100%);
 }
 
+/* White type on the Signature grain (the Pro offer's main card, components/sections/pro-landing.tsx), as on
+   Pro's closing card: the tokens are rebound, so text-muted, the hairlines and the ink button turn over
+   to the colour field. Keep in step with Pro's globals.css. */
+.grain-ink {
+  --foreground: #ffffff; --background: #141414;
+  --text-muted: rgb(255 255 255 / 0.8); --text-subtle: rgb(255 255 255 / 0.62);
+  --line: rgb(255 255 255 / 0.22); --line-strong: rgb(255 255 255 / 0.32);
+  color: var(--foreground); background: transparent; overflow: hidden;
+}
+
 /* The brand aura (the landing's closing card, components/sections/get-started.tsx, and the Pro offer's
    main card, components/sections/pro-landing.tsx): four soft blooms in the Signature ramp (pink,
    orange, red, pink; 2026-11-01), rising from below the bottom edge and drifting slowly. Gradients,

@@ -362,9 +362,10 @@ export function ProCTA({ className }: { className?: string }) {
     <section id="pro" className={cn("relative pt-12 pb-24 sm:pt-[68px] sm:pb-[136px]", className)}>
       <Container>
         <Reveal className="tray grid gap-2 lg:grid-cols-[5fr_7fr]">
-          <div className="panel isolate flex flex-col p-7 md:p-10">
-            {/* The brand aura rising behind the action (.aura, app/globals.css). */}
-            <div aria-hidden className="aura"><i /><i /><i /><i /></div>
+          <div className="panel grain-ink relative isolate flex flex-col p-7 md:p-10">
+            {/* The Signature grain, its wine core rising from low in the panel, as on Pro's closing card; white
+                type on top (.grain-ink, app/globals.css). */}
+            <GrainStage seed="pro-offer" core={[0.45, 0.72, 0.95, 0.8]} className="-z-10" />
             <Tags tags={[{ label: "One purchase", icon: <Glyph.tag /> }]} className="mb-5" />
             <h2 className={cn("max-w-md", sectionTitle)}>One Payment. Lifetime Access.</h2>
             <p className={cn("mt-4 max-w-md", sectionBody)}>The complete library as Swift you keep, with Pro remixing in the Playground.</p>
