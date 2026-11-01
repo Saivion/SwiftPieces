@@ -6,6 +6,7 @@ import { Step, Steps } from "fumadocs-ui/components/steps";
 import { Showcase } from "@/components/docs/showcase";
 import { PieceFacts } from "@/components/docs/piece-facts";
 import { BlockFacts, ProBlockFacts } from "@/components/blocks/block-facts";
+import { CompactCode } from "@/components/docs/compact-code";
 
 export function getMDXComponents(components?: MDXComponents) {
   return {
@@ -20,6 +21,8 @@ export function getMDXComponents(components?: MDXComponents) {
     PieceFacts,
     BlockFacts,
     ProBlockFacts,
+    // A highlighted code block's contents, compacted at compile time (lib/compact-code.ts).
+    CompactCode,
     ...components,
   } satisfies MDXComponents;
 }

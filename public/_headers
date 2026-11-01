@@ -18,3 +18,9 @@
 # bytes, so a file never changes in place, the same as next/font's files under /_next/static/media.
 /fonts/*
   Cache-Control: public, max-age=31536000, immutable
+
+# The announcement bar's pre-paint script (components/announce/promo-boot.tsx). It blocks the navbar,
+# so it is cached for an hour instead of revalidated on every page; it reads everything that changes
+# per offer from its tag's data attributes, so the file itself rarely changes.
+/promo-boot.js
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
