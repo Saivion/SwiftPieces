@@ -55,7 +55,17 @@ export function SectionCopy({ tags, title, body, action, className, bodyClassNam
  * A section's head row: tags, heading and sentence on the left, the section's one link on the right,
  * bottom-aligned. Stacks on phones.
  */
-export function SectionHead({ tags, title, body, action, id, className }: { tags?: Tag[]; title: ReactNode; body?: ReactNode; action?: { label: string; href: string }; id?: string; className?: string }) {
+export function SectionHead({ tags, title, body, action, id, centered, className }: { tags?: Tag[]; title: ReactNode; body?: ReactNode; action?: { label: string; href: string }; id?: string; centered?: boolean; className?: string }) {
+  if (centered) {
+    // Centred, as Pro's pricing head: tags, title and body on the page's axis, no side action.
+    return (
+      <Reveal className={cn("mx-auto mb-10 flex max-w-[640px] flex-col items-center text-center", className)}>
+        {tags ? <Tags tags={tags} className="mb-5 justify-center" /> : null}
+        <h2 id={id} className={sectionTitle}>{title}</h2>
+        {body ? <p className={cn("mt-4 max-w-[540px]", sectionBody)}>{body}</p> : null}
+      </Reveal>
+    );
+  }
   return (
     <Reveal className={cn("mb-9 flex flex-col gap-6 md:flex-row md:items-end md:justify-between md:gap-12", className)}>
       <div className="max-w-[640px]">
