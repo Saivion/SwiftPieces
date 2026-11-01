@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { promoKey, type Promo } from "@/lib/promo";
+import { GrainStage } from "@/components/visual/grain-stage";
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
@@ -52,10 +53,9 @@ export function PromoBar({ promo, hidden = false }: { promo: Promo; hidden?: boo
   return (
     <div className="promo-slot" data-hidden={hidden || undefined} inert={hidden}>
       <div className="promo-bar" role="region" aria-label="Announcement">
-        <div aria-hidden className="promo-aura">
-          <i /><i /><i /><i />
+        <div aria-hidden className="promo-ember">
+          <GrainStage seed="promo-bar" kind="brand" core={[0.5, 1.6, 0.42, 2.2]} />
         </div>
-        <div aria-hidden className="promo-glass" />
 
         <a href={promo.cta.href} className="promo-line group">
           <span className="promo-message">
