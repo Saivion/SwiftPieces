@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useLayoutEffect, useRef } from "react";
-import { type GrainKind, grainSpec, paintGrain } from "@/lib/grain";
+import { type Core, type GrainKind, grainSpec, paintGrain } from "@/lib/grain";
 import { cn } from "@/lib/cn";
 
 /**
@@ -46,23 +46,26 @@ export function GrainStage({
   kind = "brand",
   lines = true,
   eager = false,
+  core,
   className,
 }: {
   seed: string;
   kind?: GrainKind;
   lines?: boolean;
   eager?: boolean;
+  /** Where a radial palette's core sits (Signature's): under the surface's words. */
+  core?: Core;
   className?: string;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const spec = grainSpec(seed, kind, lines);
+  const spec = grainSpec(seed, kind, lines, core);
 
   useStageEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const parent = canvas.parentElement;
     if (!parent) return;
-    const recipe = grainSpec(seed, kind, lines);
+    const recipe = grainSpec(seed, kind, lines, core);
     let near = false;
     let cancel: (() => void) | null = null;
     let painted = "";
@@ -102,7 +105,8 @@ export function GrainStage({
       io.disconnect();
       cancel?.();
     };
-  }, [seed, kind, lines, eager]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- the core is a literal per surface; its values are the dependency
+  }, [seed, kind, lines, eager, core?.join()]);
 
   return (
     <canvas

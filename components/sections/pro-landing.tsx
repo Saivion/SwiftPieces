@@ -186,10 +186,10 @@ export function WhatYouGet() {
           {items.map((s) => (
             <RevealItem key={s.label}>
               <a href={buy} className="group flex h-full flex-col rounded-[26px] bg-surface p-1.5 transition-colors duration-200 hover:bg-surface-3">
-                {/* Free shows Pro's work on the signature grain, seeded per card, on the inset panel.
+                {/* Free shows Pro's work on the signature grain, seeded per card, on the inset panel, its wine core under the count.
                     The count is white on it in both themes, as on the covers, so it is a fixed colour. */}
                 <div className="relative isolate flex h-[168px] flex-col justify-end overflow-hidden rounded-[20px] p-5 text-[#fff]">
-                  <GrainStage seed={`pro-page-${s.label}`} className="-z-10 transition-transform duration-700 ease-out group-hover:scale-[1.03]" />
+                  <GrainStage seed={`pro-page-${s.label}`} core={[0.5, 0.95, 0.9, 0.85]} className="-z-10 transition-transform duration-700 ease-out group-hover:scale-[1.03]" />
                   <CountUp value={s.value} className="text-[56px] leading-[0.9] font-normal tracking-[-0.045em] tabular-nums" />
                 </div>
                 <div className="px-3.5 pt-5 pb-4">
