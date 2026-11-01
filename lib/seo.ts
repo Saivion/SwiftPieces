@@ -82,6 +82,8 @@ export function pageMetadata({
 /** Stable ids, so every page's graph points at the same publisher and site nodes. */
 export const ORG_ID = `${site.url}/#organization`;
 export const WEBSITE_ID = `${site.url}/#website`;
+/** The free library as one free product. The home page defines it; piece pages point at it. */
+export const SOFTWARE_ID = `${site.url}/#software`;
 
 /** A BreadcrumbList from [name, path] pairs, home first. */
 export function breadcrumbJsonLd(trail: [name: string, path: string][]) {
