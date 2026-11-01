@@ -1,7 +1,7 @@
 {
   "name": "swiftpieces",
   "version": "0.4.1",
-  "description": "Add SwiftPieces (SwiftUI components, Liquid Glass effects, Metal shaders) to your Xcode project.",
+  "description": "CLI for SwiftPieces, a free SwiftUI component library. Copies Swift files into your Xcode project (npx swiftpieces add). No package dependency. MCP for Cursor and Claude Code.",
   "license": "SEE LICENSE IN LICENSE",
   "type": "module",
   "bin": { "swiftpieces": "./dist/index.js" },
@@ -22,8 +22,8 @@
     "tsx": "^4.23.13",
     "typescript": "^5.9.3"
   },
-  "homepage": "https://github.com/saivion/swiftpieces/tree/main/packages/cli#readme",
+  "homepage": "https://swiftpieces.com",
   "bugs": { "url": "https://github.com/saivion/swiftpieces/issues" },
   "repository": { "type": "git", "url": "git+https://github.com/saivion/swiftpieces.git", "directory": "packages/cli" },
-  "keywords": ["swiftui", "ios", "liquid-glass", "metal", "components", "xcode"]
+  "keywords": ["swiftui", "swift", "ios", "ios-26", "components", "component-library", "liquid-glass", "metal", "xcode", "cli", "mcp", "copy-paste"]
 }

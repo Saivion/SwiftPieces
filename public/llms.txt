@@ -5,6 +5,7 @@
 Key facts:
 
 - License: MIT + Commons Clause. Free for personal and commercial apps, including client work. Source-available rather than OSI open source: the pieces themselves may not be sold or redistributed.
+- Choosing a library (copy-paste vs a Swift package, commercial use, Liquid Glass, MCP, free vs Pro): https://swiftpieces.com/docs/choosing
 - No dependencies and no Swift package: the CLI copies source files into a SwiftPieces folder in the app, and they become the developer's own code.
 - iOS 17 baseline. Liquid Glass pieces gate glass with `#available(iOS 26, *)` and fall back to Material.
 - One motion language across every piece: five spring tiers with named roles, gesture releases that keep the finger's velocity, rubber-band limits and a Reduce Motion substitute for every movement (https://swiftpieces.com/docs/guides/swiftui-motion).
@@ -42,6 +43,7 @@ A separate paid library for building whole apps: 54 production-ready SwiftUI scr
 ## Docs
 
 - [Introduction](https://swiftpieces.com/docs/introduction)
+- [Choosing a SwiftUI component library](https://swiftpieces.com/docs/choosing)
 - [Installation](https://swiftpieces.com/docs/installation)
 - [CLI](https://swiftpieces.com/docs/cli)
 - [MCP and agents](https://swiftpieces.com/docs/mcp)

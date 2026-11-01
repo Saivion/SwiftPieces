@@ -10,7 +10,7 @@ import { GamesTeaser } from "@/components/sections/games-teaser";
 import { Questions } from "@/components/sections/questions";
 import { band } from "@/components/sections/feature-row";
 import { JsonLd } from "@/components/seo/json-ld";
-import { faqJsonLd, ORG_ID, pageMetadata, WEBSITE_ID } from "@/lib/seo";
+import { faqJsonLd, ORG_ID, pageMetadata, SOFTWARE_ID, WEBSITE_ID } from "@/lib/seo";
 import { site } from "@/lib/site";
 import { homeFaqs } from "@/lib/faqs";
 import { proCatalog } from "@/lib/pro-catalog";
@@ -32,6 +32,21 @@ const structuredData = {
   "@graph": [
     { "@type": "WebSite", "@id": WEBSITE_ID, name: site.name, alternateName: "SwiftPieces", url: site.url, description: site.description, publisher: { "@id": ORG_ID } },
     { "@type": "Organization", "@id": ORG_ID, name: site.name, alternateName: "SwiftPieces", url: site.url, logo: `${site.url}/logo.png`, sameAs: [site.github, site.twitter] },
+    // The free library as a product: price 0, no rating (the site has none to report).
+    {
+      "@type": "SoftwareApplication",
+      "@id": SOFTWARE_ID,
+      name: site.name,
+      applicationCategory: "DeveloperApplication",
+      operatingSystem: "iOS 17 or later",
+      description: site.description,
+      url: site.url,
+      installUrl: `${site.url}/docs/installation`,
+      isAccessibleForFree: true,
+      offers: { "@type": "Offer", url: site.url, price: "0", priceCurrency: "USD", availability: "https://schema.org/InStock" },
+      license: `${site.url}/license`,
+      publisher: { "@id": ORG_ID },
+    },
     {
       "@type": "SoftwareSourceCode",
       "@id": `${site.url}/#library`,
@@ -43,6 +58,7 @@ const structuredData = {
       runtimePlatform: "iOS 17+",
       license: `${site.url}/license`,
       isAccessibleForFree: true,
+      targetProduct: { "@id": SOFTWARE_ID },
       publisher: { "@id": ORG_ID },
     },
     faqJsonLd(questions),

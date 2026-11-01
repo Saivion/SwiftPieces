@@ -15,7 +15,8 @@ import { ProCardGrid } from "@/components/docs/pro-cards";
 import { DocsAside, DocsAsideColumn } from "@/components/docs/docs-aside";
 import { PieceRelated } from "@/components/docs/piece-related";
 import { JsonLd } from "@/components/seo/json-ld";
-import { breadcrumbJsonLd, ORG_ID, pageMetadata, WEBSITE_ID } from "@/lib/seo";
+import { choosingFaqs } from "@/lib/choosing";
+import { breadcrumbJsonLd, faqJsonLd, ORG_ID, pageMetadata, SOFTWARE_ID, WEBSITE_ID } from "@/lib/seo";
 import { pieceDescription, piecePhrase, pieceTitle } from "@/lib/piece-seo";
 import { categoryHubPath, getHub } from "@/lib/hubs";
 import { categories } from "@/lib/categories";
@@ -176,6 +177,7 @@ function structuredData(path: string, title: string, description: string | undef
           license: `${site.url}/license`,
           isAccessibleForFree: true,
           isPartOf: { "@id": WEBSITE_ID },
+          targetProduct: { "@id": SOFTWARE_ID },
           publisher: { "@id": ORG_ID },
         },
         breadcrumbJsonLd(trail),
@@ -190,6 +192,7 @@ function structuredData(path: string, title: string, description: string | undef
     "@graph": [
       { "@type": "TechArticle", "@id": `${url}#article`, headline: title, ...(description ? { description } : {}), url, inLanguage: "en", isPartOf: { "@id": WEBSITE_ID }, author: { "@id": ORG_ID }, publisher: { "@id": ORG_ID } },
       breadcrumbJsonLd(trail),
+      ...(slugs.join("/") === "choosing" ? [faqJsonLd(choosingFaqs)] : []),
     ],
   };
 }

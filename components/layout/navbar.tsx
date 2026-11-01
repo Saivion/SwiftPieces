@@ -51,6 +51,7 @@ const menus: Menu[] = [
     also: ["/docs"],
     items: [
       { label: "Docs", href: "/docs/introduction", desc: "Install, the CLI and every piece's API", icon: "docs" },
+      { label: "Choosing a library", href: "/docs/choosing", desc: "Copy-paste, license, Liquid Glass, and Pro", icon: "guides" },
       { label: "Guides", href: "/docs/guides", desc: "SwiftUI techniques, step by step", icon: "guides" },
       { label: "MCP and Agents", href: "/docs/mcp", desc: "Let your coding agent add pieces", icon: "mcp" },
       { label: "Changelog", href: "/docs/changelog", desc: "Every new piece and fix", icon: "changelog" },
