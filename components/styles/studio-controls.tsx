@@ -107,8 +107,8 @@ export function ColorStrip({ setting, swatches, custom, onCustom }: { setting?: 
             onClick={s.pick}
             className={cn(
               "relative min-w-0 flex-1 transition-[transform,box-shadow] duration-200 ease-[var(--ease-out)] focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent aria-checked:z-10 aria-checked:scale-y-[1.22] aria-checked:scale-x-[1.35] aria-checked:rounded-full aria-checked:shadow-[0_0_0_2px_var(--surface-2),0_0_0_3.5px_var(--foreground)]",
-              i === 0 && "rounded-l-full",
-              i === swatches.length - 1 && "rounded-r-full",
+              i === 0 && "rounded-l-[15px]",
+              i === swatches.length - 1 && "rounded-r-[15px]",
             )}
             style={{ background: s.color }}
           />

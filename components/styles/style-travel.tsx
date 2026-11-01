@@ -221,7 +221,7 @@ function CopyArea({ text, label, children }: { text: string; label: string; chil
       <span
         aria-live="polite"
         className={cn(
-          "pointer-events-none absolute -top-3 left-1/2 inline-flex -translate-x-1/2 items-center gap-1 rounded-full bg-foreground px-2.5 py-1 text-[11px] font-medium text-background shadow-lg transition-all duration-200",
+          "pointer-events-none absolute -top-3 left-1/2 inline-flex -translate-x-1/2 items-center gap-1 rounded-[8px] bg-foreground px-2.5 py-1 text-[11px] font-medium text-background shadow-lg transition-all duration-200",
           done ? "translate-y-0 opacity-100" : "translate-y-1 opacity-0",
         )}
       >

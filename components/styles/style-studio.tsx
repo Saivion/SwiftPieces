@@ -87,7 +87,7 @@ export default function StyleStudio({ tiles, screens, apps, onReady }: StyleStud
         panel={<StudioPanel studio={studio} apps={apps} preferred={preferred} onNotice={notify} onSpot={setSpot} />}
       />
       <div aria-live="polite" className="pointer-events-none fixed inset-x-0 bottom-6 z-[60] flex justify-center px-4">
-        {notice ? <p className="sp-enter rounded-full bg-foreground px-4 py-2 text-[13px] font-medium text-background shadow-[var(--shadow-float)]">{notice}</p> : null}
+        {notice ? <p className="sp-enter rounded-[15px] bg-foreground px-4 py-2 text-[13px] font-medium text-background shadow-[var(--shadow-float)]">{notice}</p> : null}
       </div>
     </>
   );

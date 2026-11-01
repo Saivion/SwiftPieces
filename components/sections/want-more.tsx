@@ -103,7 +103,7 @@ function ProTile({ card, copy }: { card: Card; copy: boolean }) {
         className="size-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
       />
       <span className="absolute top-3 left-3 inline-flex h-5 items-center rounded-full bg-[#000]/55 px-2 text-[10.5px] leading-none font-semibold text-[#fff] backdrop-blur-sm">Pro</span>
-      <span className="absolute inset-x-3 bottom-3 flex items-center justify-between gap-2 rounded-full bg-[#000]/55 px-3 py-1.5 text-[11.5px] text-[#fff] opacity-0 backdrop-blur-md transition-opacity duration-300 group-hover:opacity-100">
+      <span className="absolute inset-x-3 bottom-3 flex items-center justify-between gap-2 rounded-[12px] bg-[#000]/55 px-3 py-1.5 text-[11.5px] text-[#fff] opacity-0 backdrop-blur-md transition-opacity duration-300 group-hover:opacity-100">
         <span className="truncate font-medium">{card.title}</span>
         <span className="shrink-0 text-[#fff]/60">{card.type === "flow" ? `Flow · ${card.category}` : card.type === "template" ? "Template" : card.category}</span>
       </span>
