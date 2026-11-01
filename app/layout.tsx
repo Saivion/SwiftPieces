@@ -1,12 +1,16 @@
+import "./fonts.css";
 import "./globals.css";
 import { MotionGate } from "@/components/motion-gate";
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
-import { Figtree } from "next/font/google";
+import { preload } from "react-dom";
 import { RootProvider } from "fumadocs-ui/provider/next";
 import { site } from "@/lib/site";
+import { fontPreloads } from "@/lib/fonts.generated";
 
-const figtree = Figtree({ subsets: ["latin"], weight: ["400", "500", "600", "700", "800"], variable: "--font-figtree", display: "swap" });
+// Figtree is self-hosted from public/fonts, cut down by scripts/fonts/subset_fonts.py (rerun it when content
+// needs a new character, weight or OpenType feature). app/fonts.css holds the @font-face rules, the same
+// metric-matched fallback next/font generated, and --font-figtree; only the small core file is preloaded.
 
 const ICON_VERSION = 4;
 
@@ -36,8 +40,9 @@ export const viewport: Viewport = {
 // Free carries no auth. A signed-in user reaching pro.swiftpieces.com is already
 // authenticated because Clerk's session cookie lives on the shared root domain (Rev 3 §6).
 export default function RootLayout({ children }: { children: ReactNode }) {
+  for (const href of fontPreloads) preload(href, { as: "font", type: "font/woff2", crossOrigin: "" });
   return (
-    <html lang="en" className={figtree.variable} suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <body className="flex min-h-screen flex-col antialiased">
         {/* The first screen's endless loops hold still until the visitor first interacts (components/motion-gate.tsx). */}
         <MotionGate />

@@ -13,3 +13,8 @@
 
 /_next/image/*
   Cache-Control: public, max-age=31536000, immutable
+
+# Self-hosted web fonts (scripts/fonts/subset_fonts.py writes them): every filename carries a hash of its
+# bytes, so a file never changes in place, the same as next/font's files under /_next/static/media.
+/fonts/*
+  Cache-Control: public, max-age=31536000, immutable
