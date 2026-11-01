@@ -7,8 +7,10 @@
 // prefetch files. For each code block this:
 // 1. swaps the themes' colour pairs for one-letter classes that set the same variables (app/globals.css),
 // 2. drops the span around tokens in the default colour, which every line already inherits from <pre>,
-// 3. hands the code to React as one HTML string, so the RSC payload holds a string per block instead of
-//    an element per token.
+// 3. hands the code to <CompactCode> (components/docs/compact-code.tsx) as one JSON string, a client
+//    component that builds the spans in the browser, so the RSC payload holds a string per block
+//    instead of an element per token. No raw HTML is involved: React creates every element and
+//    escapes every piece of text, the same as for any other JSX.
 // Anything it doesn't recognise (a font style, another theme's colours, an unexpected node) stays as
 // shiki wrote it, so the worst case is a block that isn't compacted, never one that looks different.
 
@@ -57,9 +59,10 @@ function compactBlock(pre: Element): void {
   const code = pre.children[index];
   // Shiki's <code> carries no attributes; one with any is not the shape this was written for.
   if (!isElement(code) || Object.keys(code.properties ?? {}).length > 0) return;
-  const html = toHtml(compactTokens(code.children));
-  if (html === null) return;
-  pre.children[index] = { type: "mdxJsxFlowElement", name: "code", attributes: [innerHtml(html)], children: [] } as Node;
+  const tree = toTree(compactTokens(code.children));
+  if (tree === null) return;
+  const attributes = [{ type: "mdxJsxAttribute", name: "tree", value: JSON.stringify(tree) }];
+  pre.children[index] = { type: "mdxJsxFlowElement", name: "CompactCode", attributes, children: [] } as Node;
 }
 
 /** The token spans under `nodes` with colour classes, default-colour spans unwrapped and neighbours merged. */
@@ -125,69 +128,65 @@ function isTokenSpan(node: Node): node is Element {
   return keys.length === 1 && keys[0] === "class" && Object.values(TOKEN_CLASSES).includes(String(node.properties?.class));
 }
 
-/** Shiki's output (spans and text) as HTML, or null when it holds anything this doesn't serialise. */
-export function toHtml(nodes: Node[]): string | null {
-  let html = "";
+/**
+ * A compact code tree: text as a string, an element as `[tag, props, ...children]` with props already
+ * in React's shape (`className`, a `style` object), or 0 when it has none. components/docs/compact-code.tsx
+ * turns it back into elements.
+ */
+export type CompactNode = string | [string, CompactProps | 0, ...CompactNode[]];
+export type CompactProps = { className?: string; style?: Record<string, string> } & { [data: `data-${string}`]: string };
+
+/** Shiki's output (spans and text) as a compact tree, or null when it holds anything this doesn't carry over. */
+export function toTree(nodes: Node[]): CompactNode[] | null {
+  const out: CompactNode[] = [];
   for (const node of nodes) {
     if (isText(node)) {
-      html += node.value.replace(/&/g, "&amp;").replace(/</g, "&lt;");
-    } else if (isElement(node) && /^[a-z][a-z0-9]*$/.test(node.tagName)) {
-      const attributes = toAttributes(node.properties ?? {});
-      const inner = toHtml(node.children);
-      if (attributes === null || inner === null) return null;
-      html += `<${node.tagName}${attributes}>${inner}</${node.tagName}>`;
+      out.push(node.value);
+    } else if (isElement(node) && node.tagName === "span") {
+      const props = toProps(node.properties ?? {});
+      const children = toTree(node.children);
+      if (props === null || children === null) return null;
+      out.push([node.tagName, Object.keys(props).length > 0 ? props : 0, ...children]);
     } else {
       return null;
     }
   }
-  return html;
+  return out;
 }
 
-/** Attributes as HTML. Plain values go unquoted (`class=line`), which saves bytes in every copy of the page. */
-function toAttributes(properties: Properties): string | null {
-  let html = "";
+/**
+ * A span's attributes as React props. Shiki only writes class, style and data-* on its spans; anything
+ * else would need a mapping this doesn't do, so it leaves the block as it was.
+ */
+function toProps(properties: Properties): CompactProps | null {
+  const props: CompactProps = {};
   for (const [key, raw] of Object.entries(properties)) {
     if (raw === undefined || raw === null || raw === false) continue;
-    const name = key === "className" ? "class" : key;
-    // Shiki writes attribute names as HTML has them (class, style, data-*). A React-style name would
-    // need mapping this doesn't do, so it leaves the block as it was.
-    if (!/^[a-z][a-z0-9-]*$/.test(name)) return null;
-    if (raw === true) {
-      html += ` ${name}`;
-      continue;
-    }
     if (typeof raw !== "string" && typeof raw !== "number" && !Array.isArray(raw)) return null;
     const value = Array.isArray(raw) ? raw.join(" ") : String(raw);
-    html += /^[\w-]+$/.test(value) ? ` ${name}=${value}` : ` ${name}="${value.replace(/&/g, "&amp;").replace(/"/g, "&quot;")}"`;
+    if (key === "class" || key === "className") props.className = value;
+    else if (key === "style") {
+      const style = toStyle(value);
+      if (style === null) return null;
+      props.style = style;
+    } else if (/^data-[a-z0-9-]+$/.test(key)) props[key as `data-${string}`] = value;
+    else return null;
   }
-  return html;
+  return props;
 }
 
-/** `dangerouslySetInnerHTML={{ __html: html }}` as an MDX JSX attribute, with the estree MDX compiles from. */
-function innerHtml(html: string) {
-  const expression = {
-    type: "ObjectExpression",
-    properties: [
-      {
-        type: "Property",
-        kind: "init",
-        method: false,
-        shorthand: false,
-        computed: false,
-        key: { type: "Identifier", name: "__html" },
-        value: { type: "Literal", value: html },
-      },
-    ],
-  };
-  return {
-    type: "mdxJsxAttribute",
-    name: "dangerouslySetInnerHTML",
-    value: {
-      type: "mdxJsxAttributeValueExpression",
-      value: `{ __html: ${JSON.stringify(html)} }`,
-      data: { estree: { type: "Program", sourceType: "module", comments: [], body: [{ type: "ExpressionStatement", expression }] } },
-    },
-  };
+/** An inline style as a React style object: custom properties as written, the rest in camelCase. */
+function toStyle(style: string): Record<string, string> | null {
+  const out: Record<string, string> = {};
+  for (const declaration of style.split(";")) {
+    if (!declaration.trim()) continue;
+    const colon = declaration.indexOf(":");
+    if (colon < 1) return null;
+    const name = declaration.slice(0, colon).trim();
+    const value = declaration.slice(colon + 1).trim();
+    out[name.startsWith("--") ? name : name.replace(/-([a-z])/g, (_, c: string) => c.toUpperCase())] = value;
+  }
+  return out;
 }
 
 function isElement(node: Node | undefined): node is Element {
