@@ -81,6 +81,8 @@ LIQUID_GLASS.md
 !lib/cache-retention.test.ts
 !lib/middleware.test.ts
 !lib/known-pages.test.ts
+!lib/content-date.test.ts
+!scripts/aeo/track.test.ts
 
 # ─── Internal notes, briefs and scratch (not public docs) ────
 # Public docs live in content/docs/, README.md and CONTRIBUTING.md.
@@ -127,3 +129,6 @@ Thumbs.db
 scripts/fonts/.cache
 scripts/fonts/__pycache__
 .venv-fonts
+
+# ─── AEO prompt runs (scripts/aeo/track.ts) write dated results here ─
+/scripts/aeo/out/

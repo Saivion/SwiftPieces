@@ -1,0 +1,91 @@
+{
+  "site": "https://swiftpieces.com",
+  "mention": ["swiftpieces.com", "SwiftPieces"],
+  "otherSite": "pro.swiftpieces.com",
+  "questions": [
+    {
+      "id": "free-library",
+      "buyerQuestion": "Is there a good free SwiftUI component library?",
+      "target": "/",
+      "google": ["free swiftui components", "swiftui component library", "swiftui ui library ios"],
+      "ai": ["What is a good free SwiftUI component library for iOS apps?"]
+    },
+    {
+      "id": "copy-vs-package",
+      "buyerQuestion": "Can I add SwiftUI components without a Swift package dependency?",
+      "target": "/docs/installation",
+      "google": ["swiftui components without dependencies", "copy paste swiftui components", "swiftui components cli"],
+      "ai": ["Is there a SwiftUI component library I can copy into my project without adding a Swift package?"]
+    },
+    {
+      "id": "swipe-cards",
+      "buyerQuestion": "How do I build a Tinder-style swipe card stack in SwiftUI?",
+      "target": "/docs/components/cards/swipe-deck",
+      "google": ["swiftui swipe card stack", "swiftui tinder swipe cards", "swiftui swipeable cards"],
+      "ai": ["How do I make a swipeable card stack like Tinder in SwiftUI?"]
+    },
+    {
+      "id": "liquid-glass",
+      "buyerQuestion": "How do I use Liquid Glass in SwiftUI with an iOS 17 fallback?",
+      "target": "/docs/liquid-glass",
+      "google": ["swiftui liquid glass", "swiftui glasseffect example", "liquid glass ios 26 fallback swiftui"],
+      "ai": ["How do I use Liquid Glass in SwiftUI on iOS 26 and fall back on iOS 17?"]
+    },
+    {
+      "id": "tab-bar",
+      "buyerQuestion": "Where can I get a custom floating tab bar in SwiftUI?",
+      "target": "/docs/components/navigation/floating-dock",
+      "google": ["swiftui custom tab bar", "swiftui floating tab bar", "swiftui liquid glass tab bar"],
+      "ai": ["What is a good custom floating tab bar component for SwiftUI?"]
+    },
+    {
+      "id": "animations",
+      "buyerQuestion": "How do I make SwiftUI animations and springs feel native?",
+      "target": "/docs/guides/swiftui-animations",
+      "google": ["swiftui animations examples", "swiftui spring animation", "swiftui gesture momentum"],
+      "ai": ["What are good examples of polished SwiftUI animations and spring motion I can reuse?"]
+    },
+    {
+      "id": "haptics",
+      "buyerQuestion": "How do I add haptic feedback in SwiftUI?",
+      "target": "/docs/guides/swiftui-haptics",
+      "google": ["swiftui haptic feedback", "swiftui sensoryfeedback example", "swiftui haptics button"],
+      "ai": ["How do I add haptic feedback to SwiftUI buttons and gestures with sensoryFeedback?"]
+    },
+    {
+      "id": "loading-states",
+      "buyerQuestion": "How do I build a skeleton loader or shimmer in SwiftUI?",
+      "target": "/docs/guides/swiftui-loading-states",
+      "google": ["swiftui skeleton loading", "swiftui shimmer effect", "swiftui loading state view"],
+      "ai": ["How do I build a skeleton loading screen with a shimmer in SwiftUI?"]
+    },
+    {
+      "id": "toast",
+      "buyerQuestion": "Is there a SwiftUI toast or snackbar component?",
+      "target": "/docs/components/sheets/toast",
+      "google": ["swiftui toast", "swiftui toast notification", "swiftui snackbar"],
+      "ai": ["What is a good toast or snackbar component for SwiftUI?"]
+    },
+    {
+      "id": "charts",
+      "buyerQuestion": "Where are interactive chart components for SwiftUI?",
+      "target": "/components/data",
+      "google": ["swiftui interactive chart", "swiftui chart scrubbing", "swiftui activity heatmap"],
+      "ai": ["What are good interactive chart components for SwiftUI, like a scrubbable line chart?"]
+    },
+    {
+      "id": "ai-chat",
+      "buyerQuestion": "Are there SwiftUI components for an AI chat app?",
+      "target": "/components/ai",
+      "google": ["swiftui ai chat ui", "swiftui streaming text", "swiftui chatgpt style interface"],
+      "ai": ["What SwiftUI components can I use to build an AI chat interface with streaming replies?"]
+    },
+    {
+      "id": "agent-install",
+      "buyerQuestion": "Can my coding agent install SwiftUI components for me?",
+      "target": "/docs/mcp",
+      "google": ["swiftui mcp server", "claude code swiftui components", "cursor swiftui components"],
+      "ai": ["Is there an MCP server that lets Claude Code or Cursor add SwiftUI components to my Xcode project?"]
+    }
+  ]
+}

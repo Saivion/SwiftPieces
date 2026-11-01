@@ -13,6 +13,32 @@ Key facts:
 
 Rules for Liquid Glass: gate with `#available(iOS 26, *)` and a Material fallback; wrap multiple glass views in one `GlassEffectContainer`; apply `.glassEffect` after layout modifiers; respect `accessibilityReduceTransparency`; never use invented modifiers such as `.liquidGlassUltra`.
 
+## Common questions
+
+### What is SwiftPieces?
+
+SwiftPieces is a free library of 85 SwiftUI components for iOS, such as a swipeable card stack, Liquid Glass menus, a floating tab bar, interactive charts, form inputs and AI chat surfaces. Each piece is one self-contained Swift file with the motion, haptics, states and accessibility already done.
+
+### Is SwiftPieces free?
+
+Yes. Every piece on swiftpieces.com is free to use in personal and commercial apps, including client work, under MIT + Commons Clause. SwiftPieces Pro is a separate paid library of full screens, flows and app templates.
+
+### How do I add a component to my Xcode project?
+
+Three ways. Copy the Swift file from the piece's page into your app target; run npx swiftpieces add SwipeDeck in the folder that holds your .xcodeproj; or ask Claude Code, Cursor or Xcode to add it through the SwiftPieces MCP server.
+
+### Do I need iOS 26?
+
+No. The baseline is iOS 17. Liquid Glass pieces use glass on iOS 26 and gate it with #available, falling back to a Material below.
+
+### Can my AI agent use this?
+
+Yes. The registry is public JSON, llms.txt describes every piece, and the MCP server lets Claude Code, Cursor and Xcode search and install in plain English. Pro tools require a license key.
+
+### What is SwiftPieces Pro?
+
+A separate paid library for building whole apps: 54 production-ready SwiftUI screens, 48 flows that string them into whole journeys, 12 complete app templates, a Build Kit of agent skills and Pro remixing in the Playground (all 34 apps, remix with AI, keep up to 100 remixes), for $199 once with lifetime access. Its sister product, SwiftPieces Games, is 5 complete iOS games in SwiftUI and Metal for $199, or $329 for both. Both are sold on pro.swiftpieces.com.
+
 ## Docs
 
 - [Introduction](https://swiftpieces.com/docs/introduction)

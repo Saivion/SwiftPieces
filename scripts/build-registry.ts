@@ -35,6 +35,7 @@ import { categories } from "../lib/categories";
 import { blockCategories, blockCategoryIds, blockPath, blockSlug, patternSlug, proBlocks, proBlockUrl, type BlockCategory } from "../lib/blocks";
 import { exploreProPages, proCatalog, proCountsLabel } from "../lib/pro-catalog";
 import { hubs, hubItems, hubPath } from "../lib/hubs";
+import { homeFaqs } from "../lib/faqs";
 import { changelog, changelogPath } from "../lib/changelog";
 import { motionDrift } from "./sync-motion";
 import type { KnownPages } from "../lib/known-pages";
@@ -652,6 +653,10 @@ function writeLlms(items: RegistryItem[], blocks: BlockItem[]) {
     "",
     "Rules for Liquid Glass: gate with `#available(iOS 26, *)` and a Material fallback; wrap multiple glass views in one `GlassEffectContainer`; apply `.glassEffect` after layout modifiers; respect `accessibilityReduceTransparency`; never use invented modifiers such as `.liquidGlassUltra`.",
     "",
+    // The home page's questions, word for word, so an assistant quotes what a visitor reads.
+    "## Common questions",
+    "",
+    ...homeFaqs(items.length, proCatalog).flatMap((f) => [`### ${f.q}`, "", f.a, ""]),
     "## Docs",
     "",
     `- [Introduction](${SITE_URL}/docs/introduction)`,
