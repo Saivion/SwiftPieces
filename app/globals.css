@@ -989,3 +989,5 @@ html.light .aura { --aura-o: 0.34; }
 .rounded-full.h-\[48px\]:not(.w-\[48px\]):not(.size-\[48px\]):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(48px * var(--pill-k)); }
 .rounded-full.h-\[52px\]:not(.w-\[52px\]):not(.size-\[52px\]):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(52px * var(--pill-k)); }
 .rounded-full.h-\[56px\]:not(.w-\[56px\]):not(.size-\[56px\]):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(56px * var(--pill-k)); }
+/* Inline code chips take the fluid corner too, sized from their own line (≈1.75em tall). */
+:not(pre) > code { border-radius: calc(1.75em * var(--pill-k)); }

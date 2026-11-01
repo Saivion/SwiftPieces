@@ -151,7 +151,7 @@ html.spb-app, html.spb-app body { overflow: hidden; overscroll-behavior: none; }
 .spp-field.is-locked > :not(label) { opacity: .45; pointer-events: none; }
 .spp-field.is-locked { cursor: pointer; }
 .spp-fields { display: flex; flex-direction: column; gap: 14px; }
-kbd { font-size: 10.5px; padding: 1px 5px; border-radius: 3px; box-shadow: inset 0 0 0 1px var(--spp-line-strong); color: var(--text-muted); }
+kbd { font-size: 10.5px; padding: 1px 5px; border-radius: 7px; box-shadow: inset 0 0 0 1px var(--spp-line-strong); color: var(--text-muted); }
 
 /* ---------------------------------------------------------------- Top bar */
 .spp-top { grid-column: 1 / -1; grid-row: 1; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 0 12px 0 10px; border-bottom: 1px solid var(--spp-line); }
