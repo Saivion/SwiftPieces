@@ -1,7 +1,6 @@
-import type { CSSProperties } from "react";
 import { Container } from "@/components/ui/container";
 import { Reveal } from "@/components/effects/reveal";
-import { Button, Arrow } from "@/components/ui/button";
+import { Arrow } from "@/components/ui/button";
 import { NewBadge } from "@/components/ui/new-badge";
 import { band, sectionBody, sectionTitle } from "@/components/sections/feature-row";
 import { proGames, proGamesList } from "@/lib/pro-catalog";
@@ -60,47 +59,5 @@ export function GamesTeaser() {
         </a>
       </Reveal>
     </Container>
-  );
-}
-
-/** Places for the five phones in the fan, as on Pro's /games hero: one on phones, three from sm, all five from xl. */
-const FAN: { y: number; rot: number; show: string }[] = [
-  { y: 110, rot: -7, show: "hidden xl:block" },
-  { y: 40, rot: -3.5, show: "hidden sm:block" },
-  { y: 0, rot: 0, show: "" },
-  { y: 40, rot: 3.5, show: "hidden sm:block" },
-  { y: 110, rot: 7, show: "hidden xl:block" },
-];
-
-/**
- * The louder option: Pro's /games hero in small, as a band of its own. The line centred, the two
- * actions, and all five games fanned underneath on the plain page, fading out at the foot.
- */
-export function GamesFan() {
-  return (
-    <section className={cn("relative overflow-x-clip", band)}>
-      <Container className="text-center">
-        <Reveal>
-          <div className="flex justify-center"><Kicker /></div>
-          <h2 className={cn(sectionTitle, "mx-auto mt-5 max-w-[760px]")}>
-            Ship a real <span className="text-accent">game</span> in Swift.
-          </h2>
-          <p className={cn(sectionBody, "mx-auto mt-4 max-w-[560px]")}>
-            {proGames.list.length} complete iOS games in SwiftUI and Metal, with real levels, Game Center, a StoreKit 2 shop and the engine they run on.
-          </p>
-          <div className="mt-7 flex flex-wrap items-center justify-center gap-2.5">
-            <Button href={pro.games}>See the games <Arrow /></Button>
-            <a href={pro.gamesPricing} className="group inline-flex h-[46px] items-center gap-2 px-2 text-[15px] font-semibold text-foreground">From ${proGames.price} <Arrow /></a>
-          </div>
-        </Reveal>
-      </Container>
-      <div className="relative mt-12 flex h-[360px] items-start justify-center gap-5 overflow-y-clip px-4 [mask-image:linear-gradient(to_bottom,black_55%,transparent)] sm:h-[420px] lg:gap-7">
-        {proGames.list.map((g, i) => (
-          <a key={g.id} href={`${pro.games}/${g.id}`} aria-label={g.title} className={cn("w-[190px] shrink-0 transition-transform duration-500 hover:-translate-y-1.5 sm:w-[200px] lg:w-[210px]", FAN[i].show)} style={{ transform: `translateY(${FAN[i].y}px) rotate(${FAN[i].rot}deg)` } as CSSProperties}>
-            <GamePhone id={g.id} title={g.title} />
-          </a>
-        ))}
-      </div>
-    </section>
   );
 }
