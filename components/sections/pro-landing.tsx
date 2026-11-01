@@ -7,6 +7,7 @@ import { ProBadge } from "@/components/ui/pro-badge";
 import { pageLede } from "@/components/ui/section-header";
 import { RowLink, SectionHead, Tags, Glyph, band, cardTitle, heroTitle, sectionTitle, sectionBody } from "@/components/sections/feature-row";
 import { CountUp } from "@/components/ui/stat";
+import { GrainStage } from "@/components/visual/grain-stage";
 import { Reveal, RevealGroup, RevealItem } from "@/components/effects/reveal";
 import { cn } from "@/lib/cn";
 import { pro } from "@/lib/site";
@@ -185,8 +186,10 @@ export function WhatYouGet() {
           {items.map((s) => (
             <RevealItem key={s.label}>
               <a href={buy} className="group flex h-full flex-col rounded-[26px] bg-surface p-1.5 transition-colors duration-200 hover:bg-surface-3">
-                {/* The count on a paper panel, as Pro's library cards stand on paper (2026-10-28). */}
-                <div className="relative isolate flex h-[168px] flex-col justify-end overflow-hidden rounded-[20px] bg-surface-2 p-5 text-foreground">
+                {/* Free shows Pro's work on the signature grain, seeded per card, on the inset panel, its wine core under the count.
+                    The count is white on it in both themes, as on the covers, so it is a fixed colour. */}
+                <div className="relative isolate flex h-[168px] flex-col justify-end overflow-hidden rounded-[20px] p-5 text-[#fff]">
+                  <GrainStage seed={`pro-page-${s.label}`} core={[0.5, 0.95, 0.9, 0.85]} className="-z-10 transition-transform duration-700 ease-out group-hover:scale-[1.03]" />
                   <CountUp value={s.value} className="text-[56px] leading-[0.9] font-normal tracking-[-0.045em] tabular-nums" />
                 </div>
                 <div className="px-3.5 pt-5 pb-4">
@@ -254,9 +257,9 @@ export function Compare() {
 
 export function TryFirst() {
   const cards = [
-    { eyebrow: "Pro screen", cat: "Finance", title: "Wallet", body: "Cards and passes you tap forward, fan out and reorder.", kind: "screen" as Kind, more: "More screens", href: pro.screens },
-    { eyebrow: "Pro flow", cat: "Travel", title: "Book A Stay", body: "Wayfare's booking journey, from a trip pick to a swipe to pay.", kind: "flow" as Kind, more: "More flows", href: `${pro.flows}/wayfare-book-a-stay` },
-    { eyebrow: "Pro template", cat: "AI", title: "AI Assistant", body: "Nimbus, a complete Xcode app with chat, voice mode and widgets.", kind: "template" as Kind, more: "More templates", href: pro.templates },
+    { eyebrow: "Pro screen", cat: "Finance", title: "Wallet", body: "Cards and passes you tap forward, fan out and reorder.", kind: "screen" as Kind, more: "More screens", href: pro.screens, seed: "try-wallet" },
+    { eyebrow: "Pro flow", cat: "Travel", title: "Book A Stay", body: "Wayfare's booking journey, from a trip pick to a swipe to pay.", kind: "flow" as Kind, more: "More flows", href: `${pro.flows}/wayfare-book-a-stay`, seed: "try-book-a-stay" },
+    { eyebrow: "Pro template", cat: "AI", title: "AI Assistant", body: "Nimbus, a complete Xcode app with chat, voice mode and widgets.", kind: "template" as Kind, more: "More templates", href: pro.templates, seed: "try-assistant" },
   ];
   return (
     <section className={band}>
@@ -268,10 +271,11 @@ export function TryFirst() {
         <RevealGroup className="grid gap-3 lg:grid-cols-3" stagger={0.1}>
           {cards.map((c, i) => (
             <RevealItem key={c.title} className="h-full">
-              {/* Pro's library card: a paper panel inset in a tray, the device rising out of its bottom edge,
-                  the words under it. */}
+              {/* Graphite's library card: the signature grain ground as Pro's library cards on a panel inset in
+                  a tray, the device rising out of its bottom edge, the words under it. */}
               <div className="group flex h-full flex-col rounded-[26px] bg-surface p-1.5">
-                <a href={c.href} className="relative isolate block h-[260px] overflow-hidden rounded-[20px] bg-surface-2" aria-label={`${c.title} in SwiftPieces Pro`}>
+                <a href={c.href} className="relative isolate block h-[260px] overflow-hidden rounded-[20px]" aria-label={`${c.title} in SwiftPieces Pro`}>
+                  <GrainStage seed={c.seed} className="-z-10 transition-transform duration-700 ease-out group-hover:scale-[1.03]" />
                   {c.kind === "flow" ? (
                     <div className="absolute inset-x-0 top-10 origin-top scale-[1.35] transition-transform duration-500 ease-out group-hover:-translate-y-1">
                       <FlowMock i={i + 2} />
