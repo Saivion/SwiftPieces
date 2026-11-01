@@ -16,7 +16,7 @@ export function WhatsNewButton() {
   return (
     <Link
       href={changelogPath()}
-      className="group flex items-center gap-3 rounded-full bg-surface-2 py-2 pr-4 pl-2 shadow-[0_1px_2px_rgb(0_0_0/0.06)] outline-1 -outline-offset-1 outline-transparent transition-[outline-color] duration-300 hover:outline-[var(--card-border-hover)]"
+      className="group flex items-center gap-3 rounded-[20px] bg-surface-2 py-2 pr-4 pl-2 shadow-[0_1px_2px_rgb(0_0_0/0.06)] outline-1 -outline-offset-1 outline-transparent transition-[outline-color] duration-300 hover:outline-[var(--card-border-hover)]"
     >
       <span className="changelog-tint grid size-8 shrink-0 place-items-center rounded-full" style={tintStyle(latest.tint)}>
         <Sketch kind={latest.visual} seed={1} icon className="size-[22px] text-[#141414]" />

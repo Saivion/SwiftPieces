@@ -47,7 +47,7 @@ export function Showcase({
   return (
     <section id="preview" className="not-prose mb-10 scroll-mt-28" aria-label={`${name} preview and code`}>
       <div className="flex items-center justify-between gap-4">
-        <div role="tablist" aria-label="View" className="flex gap-0.5 rounded-full bg-surface p-[3px]">
+        <div role="tablist" aria-label="View" className="flex gap-0.5 rounded-[16px] bg-surface p-[3px]">
           <TabButton active={tab === "preview"} onClick={() => setTab("preview")} icon={<EyeIcon />}>Preview</TabButton>
           <TabButton active={tab === "code"} onClick={() => setTab("code")} icon={<CodeIcon />}>Code</TabButton>
         </div>

@@ -183,7 +183,7 @@ export function StudioCanvas({ theme, drawn, leaving, root, scheme, onScheme, on
         </div>
       )}
       {screensOnly ? (
-        <div role="status" className={`sp-enter absolute bottom-[26px] left-1/2 z-20 flex -translate-x-1/2 items-center gap-2 rounded-full py-1 pr-1 pl-3.5 text-[12.5px] whitespace-nowrap text-muted ${floating}`}>
+        <div role="status" className={`sp-enter absolute bottom-[26px] left-1/2 z-20 flex -translate-x-1/2 items-center gap-2 rounded-[15px] py-1 pr-1 pl-3.5 text-[12.5px] whitespace-nowrap text-muted ${floating}`}>
           <span>
             <span className="text-foreground">{screensOnly}</span> shows on whole screens
           </span>
@@ -477,7 +477,7 @@ function FloatingBar({ view, onView, scheme, onScheme, pinned }: { view: CanvasV
     // Centred on the whole studio, not just the canvas: on wide screens it moves right by half the
     // settings panel plus the gap (studio-frame.tsx: 300px, 340px at xl, gap-3).
     <div className="absolute -bottom-[29px] left-1/2 z-20 flex -translate-x-1/2 items-center gap-1.5 lg:left-[calc(50%+156px)] xl:left-[calc(50%+176px)]">
-      <div role="tablist" aria-label="Canvas" className={`flex rounded-full p-1 ${floating}`}>
+      <div role="tablist" aria-label="Canvas" className={`flex rounded-[17px] p-1 ${floating}`}>
         {(
           [
             ["components", "grid", "Components"],

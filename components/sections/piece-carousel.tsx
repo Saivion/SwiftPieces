@@ -94,8 +94,8 @@ export function PieceCarousel() {
           the piece's beat, so the tab itself is the progress bar. On phones the names do not fit, so it
           is a stories-style row of hairline segments: pieces already shown stay lit, the current one
           fills, the rest wait dim. Names stay for screen readers, and the install line names the piece. */}
-      <div className="mt-2 overflow-x-auto px-1 [scrollbar-width:none] sm:rounded-full sm:px-0 sm:[mask-image:linear-gradient(to_right,black_calc(100%-48px),transparent)] [&::-webkit-scrollbar]:hidden">
-        <div role="tablist" aria-label="Pieces" className="flex w-full gap-1.5 sm:w-max sm:min-w-full sm:gap-1 sm:rounded-full sm:bg-surface-2 sm:p-1">
+      <div className="mt-2 overflow-x-auto px-1 [scrollbar-width:none] sm:rounded-[18px] sm:px-0 sm:[mask-image:linear-gradient(to_right,black_calc(100%-48px),transparent)] [&::-webkit-scrollbar]:hidden">
+        <div role="tablist" aria-label="Pieces" className="flex w-full gap-1.5 sm:w-max sm:min-w-full sm:gap-1 sm:rounded-[18px] sm:bg-surface-2 sm:p-1">
           {SLIDES.map((s, k) => {
             const active = k === i;
             const fill = reduced ? undefined : { animation: `piece-progress ${s.ms}ms linear both` };
@@ -107,7 +107,7 @@ export function PieceCarousel() {
                 aria-selected={active}
                 onClick={() => show(k)}
                 className={cn(
-                  "group/tab relative isolate flex h-6 flex-1 items-center justify-center text-[12.5px] font-medium whitespace-nowrap transition-colors duration-300 sm:h-[34px] sm:overflow-hidden sm:rounded-full sm:px-3.5",
+                  "group/tab relative isolate flex h-6 flex-1 items-center justify-center text-[12.5px] font-medium whitespace-nowrap transition-colors duration-300 sm:h-[34px] sm:overflow-hidden sm:rounded-[14px] sm:px-3.5",
                   active ? "text-foreground sm:bg-white/[0.06]" : "text-muted hover:text-foreground sm:hover:bg-white/[0.04]",
                 )}
               >

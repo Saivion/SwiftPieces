@@ -107,7 +107,7 @@
 
 /* Docs sidebar: the site radius (4px) on rows, hover and selection; the switcher card and its popover keep 10px like the filter box.
    Fumadocs top-aligns the icon in switcher options (md:mb-auto); center it instead. */
-#nd-docs-layout aside :is(a, button).rounded-lg { border-radius: 9999px; }
+#nd-docs-layout aside :is(a, button).rounded-lg { border-radius: calc(34px * var(--pill-k)); }
 #nd-docs-layout aside button[aria-haspopup="dialog"].rounded-lg { border-radius: 16px; }
 [data-radix-popper-content-wrapper] .rounded-xl { border-radius: 22px; }
 [data-radix-popper-content-wrapper] a.rounded-lg { border-radius: 16px; }
@@ -349,7 +349,7 @@ html.promo-off .promo-slot { display: none; }
 /* The pill, after the reference: white (or graphite) glass with a faint pastel glow inside, a hairline rim. */
 .promo-cta {
   flex: none; display: inline-flex; align-items: center; gap: 5px;
-  height: 28px; padding: 0 12px 0 14px; border-radius: 999px;
+  height: 28px; padding: 0 12px 0 14px; border-radius: calc(28px * var(--pill-k));
   border: 1px solid var(--pill-rim);
   color: var(--pill-ink); font-size: 13px; font-weight: 500;
   background:
@@ -587,7 +587,7 @@ html.light [data-tone="black"] { --background: #f5f5f3; --surface: #efefec; --su
   position: relative;
   min-height: 34px;
   padding-block: 0;
-  border-radius: 9999px;
+  border-radius: calc(34px * var(--pill-k));
   font-size: 13px;
   color: var(--text-muted);
   transition: background-color .15s, color .15s;
@@ -752,7 +752,7 @@ html.light .changelog-tint { background: linear-gradient(135deg, color-mix(in sr
 .spa-lock { flex: none; display: grid; place-items: center; width: 18px; color: var(--spp-subtle, var(--text-muted)); }
 
 /* The open app, centered above its screens (the Playground's stageBadge). */
-.spa-badge { display: inline-flex; align-items: center; gap: 8px; max-width: 100%; height: 34px; padding: 0 12px 0 6px; border-radius: 9999px;
+.spa-badge { display: inline-flex; align-items: center; gap: 8px; max-width: 100%; height: 34px; padding: 0 12px 0 6px; border-radius: calc(34px * var(--pill-k));
   background: color-mix(in srgb, var(--background) 82%, transparent); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: inset 0 0 0 1px var(--spp-line); }
 .spa-badge-icon { flex: none; width: 22px; height: 22px; border-radius: 9999px; }
 .spa-badge-name { flex: none; font-size: 12.5px; font-weight: 600; color: var(--foreground); white-space: nowrap; }
@@ -944,3 +944,48 @@ html.light .aura { --aura-o: 0.34; }
 @media (prefers-reduced-motion: reduce) {
   .announce-backdrop, .announce-card, .announce-tile, .announce-out .announce-backdrop, .announce-out .announce-card { animation: none; }
 }
+
+/* Fluid pill corners (Saivion, 2026-11-01): controls, chips and badges round to 42% of their height instead of a full pill,
+   the same as pro.swiftpieces.com. CSS can't read an element's own height, so each height class used with rounded-full gets
+   its own corner; pills sized by padding carry an explicit rounded-[Npx]. True circles (w = h, size-*, aspect-square) and
+   anything inside a phone or preview stage (.stage-dark, the 9:19.5 screen) stay round. */
+:root { --pill-k: 0.42; }
+.rounded-full.h-4:not(.w-4):not(.size-4):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(var(--spacing) * 4 * var(--pill-k)); }
+.rounded-full.h-4\.5:not(.w-4\.5):not(.size-4\.5):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(var(--spacing) * 4.5 * var(--pill-k)); }
+.rounded-full.h-5:not(.w-5):not(.size-5):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(var(--spacing) * 5 * var(--pill-k)); }
+.rounded-full.h-5\.5:not(.w-5\.5):not(.size-5\.5):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(var(--spacing) * 5.5 * var(--pill-k)); }
+.rounded-full.h-6:not(.w-6):not(.size-6):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(var(--spacing) * 6 * var(--pill-k)); }
+.rounded-full.h-6\.5:not(.w-6\.5):not(.size-6\.5):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(var(--spacing) * 6.5 * var(--pill-k)); }
+.rounded-full.h-7:not(.w-7):not(.size-7):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(var(--spacing) * 7 * var(--pill-k)); }
+.rounded-full.h-7\.5:not(.w-7\.5):not(.size-7\.5):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(var(--spacing) * 7.5 * var(--pill-k)); }
+.rounded-full.h-8:not(.w-8):not(.size-8):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(var(--spacing) * 8 * var(--pill-k)); }
+.rounded-full.h-8\.5:not(.w-8\.5):not(.size-8\.5):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(var(--spacing) * 8.5 * var(--pill-k)); }
+.rounded-full.h-9:not(.w-9):not(.size-9):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(var(--spacing) * 9 * var(--pill-k)); }
+.rounded-full.h-9\.5:not(.w-9\.5):not(.size-9\.5):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(var(--spacing) * 9.5 * var(--pill-k)); }
+.rounded-full.h-10:not(.w-10):not(.size-10):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(var(--spacing) * 10 * var(--pill-k)); }
+.rounded-full.h-10\.5:not(.w-10\.5):not(.size-10\.5):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(var(--spacing) * 10.5 * var(--pill-k)); }
+.rounded-full.h-11:not(.w-11):not(.size-11):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(var(--spacing) * 11 * var(--pill-k)); }
+.rounded-full.h-11\.5:not(.w-11\.5):not(.size-11\.5):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(var(--spacing) * 11.5 * var(--pill-k)); }
+.rounded-full.h-12:not(.w-12):not(.size-12):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(var(--spacing) * 12 * var(--pill-k)); }
+.rounded-full.h-13:not(.w-13):not(.size-13):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(var(--spacing) * 13 * var(--pill-k)); }
+.rounded-full.h-14:not(.w-14):not(.size-14):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(var(--spacing) * 14 * var(--pill-k)); }
+.rounded-full.h-16:not(.w-16):not(.size-16):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(var(--spacing) * 16 * var(--pill-k)); }
+.rounded-full.h-\[16px\]:not(.w-\[16px\]):not(.size-\[16px\]):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(16px * var(--pill-k)); }
+.rounded-full.h-\[18px\]:not(.w-\[18px\]):not(.size-\[18px\]):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(18px * var(--pill-k)); }
+.rounded-full.h-\[20px\]:not(.w-\[20px\]):not(.size-\[20px\]):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(20px * var(--pill-k)); }
+.rounded-full.h-\[22px\]:not(.w-\[22px\]):not(.size-\[22px\]):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(22px * var(--pill-k)); }
+.rounded-full.h-\[24px\]:not(.w-\[24px\]):not(.size-\[24px\]):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(24px * var(--pill-k)); }
+.rounded-full.h-\[26px\]:not(.w-\[26px\]):not(.size-\[26px\]):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(26px * var(--pill-k)); }
+.rounded-full.h-\[28px\]:not(.w-\[28px\]):not(.size-\[28px\]):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(28px * var(--pill-k)); }
+.rounded-full.h-\[30px\]:not(.w-\[30px\]):not(.size-\[30px\]):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(30px * var(--pill-k)); }
+.rounded-full.h-\[32px\]:not(.w-\[32px\]):not(.size-\[32px\]):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(32px * var(--pill-k)); }
+.rounded-full.h-\[34px\]:not(.w-\[34px\]):not(.size-\[34px\]):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(34px * var(--pill-k)); }
+.rounded-full.h-\[36px\]:not(.w-\[36px\]):not(.size-\[36px\]):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(36px * var(--pill-k)); }
+.rounded-full.h-\[38px\]:not(.w-\[38px\]):not(.size-\[38px\]):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(38px * var(--pill-k)); }
+.rounded-full.h-\[40px\]:not(.w-\[40px\]):not(.size-\[40px\]):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(40px * var(--pill-k)); }
+.rounded-full.h-\[42px\]:not(.w-\[42px\]):not(.size-\[42px\]):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(42px * var(--pill-k)); }
+.rounded-full.h-\[44px\]:not(.w-\[44px\]):not(.size-\[44px\]):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(44px * var(--pill-k)); }
+.rounded-full.h-\[46px\]:not(.w-\[46px\]):not(.size-\[46px\]):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(46px * var(--pill-k)); }
+.rounded-full.h-\[48px\]:not(.w-\[48px\]):not(.size-\[48px\]):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(48px * var(--pill-k)); }
+.rounded-full.h-\[52px\]:not(.w-\[52px\]):not(.size-\[52px\]):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(52px * var(--pill-k)); }
+.rounded-full.h-\[56px\]:not(.w-\[56px\]):not(.size-\[56px\]):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(56px * var(--pill-k)); }

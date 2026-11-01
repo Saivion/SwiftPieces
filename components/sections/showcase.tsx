@@ -160,7 +160,7 @@ export function FilterPill({ children, scroll }: { children: ReactNode; scroll?:
     <div
       ref={ref}
       className={cn(
-        "flex items-center gap-0.5 rounded-full border border-[var(--line)] bg-surface p-1",
+        "flex items-center gap-0.5 rounded-[17px] border border-[var(--line)] bg-surface p-1",
         scroll ? "min-w-0 overflow-x-auto [scrollbar-width:none]" : "shrink-0",
         more && "[mask-image:linear-gradient(to_right,black_calc(100%-40px),transparent)]",
       )}

@@ -110,7 +110,7 @@ function FlowMock({ i }: { i: number }) {
       {[1, Math.max(2, 4 + (i % 3)), 9 + (i % 4)].map((n, k) => (
         <div key={k} className="flex flex-col items-center gap-1.5" style={{ transform: `translateY(${k * -6}px)` }}>
           <div className="origin-top scale-[0.82]"><Mock kind={k === 1 ? "screen" : "flow"} i={i + k} /></div>
-          <span className="-mt-6 rounded-full bg-foreground/[.12] px-1.5 text-[9.5px] font-semibold tabular-nums text-muted">{String(n).padStart(2, "0")}</span>
+          <span className="-mt-6 rounded-[6px] bg-foreground/[.12] px-1.5 text-[9.5px] font-semibold tabular-nums text-muted">{String(n).padStart(2, "0")}</span>
         </div>
       ))}
     </div>
