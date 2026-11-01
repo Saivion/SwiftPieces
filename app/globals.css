@@ -592,7 +592,6 @@ html.light .plan-ink { background: #ffffff; box-shadow: 0 30px 70px -34px rgb(60
   inset: -2rem -1.75rem -6rem; mask-image: linear-gradient(to bottom, #000 0%, #000 50%, transparent 100%);
 }
 @media (min-width: 64rem) { .plan-cover { top: -2.75rem; } }
-.plan-cover .ember-stage > div { height: 190%; }
 /* The Playground's docked panels are the same trays. */
 .spp[data-layout="docked"] :is(.spp-left, .spp-dockbar, .spp-rail) {
   background-color: color-mix(in srgb, var(--surface) 94%, transparent) !important;
