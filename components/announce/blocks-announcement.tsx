@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button, Arrow, buttonClass } from "@/components/ui/button";
 import { LogoMark } from "@/components/ui/logo";
-import { NewBadge } from "@/components/ui/new-badge";
 import { cn } from "@/lib/cn";
 
 /** Bump the date when a new announcement replaces this one, so everyone sees the next one once. */
@@ -116,7 +115,6 @@ export function BlocksAnnouncement({ blocks, count }: { blocks: AnnouncedBlock[]
             <p className="flex items-center gap-2 text-[14px] font-medium text-foreground">
               <LogoMark className="size-5" />
               Patterns
-              <NewBadge />
             </p>
             <h2 id="announce-title" className="mt-4 text-[26px] leading-[1.1] font-normal tracking-[-0.03em] text-balance sm:text-[30px]">Whole sections, ready to drop in.</h2>
             <p className="mt-3 text-[15px] leading-[25px] text-pretty text-muted">

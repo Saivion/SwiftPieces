@@ -389,7 +389,7 @@
     "type": "screen",
     "category": "Health",
     "summary": "A training home where the week is drawn as its sessions and the day's session as its rhythm of work and rest.",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "interval-timer",
@@ -397,7 +397,7 @@
     "type": "screen",
     "category": "Health",
     "summary": "Intervals you build on steppers and run full screen in the color of each phase, with the whole workout as a strip you move through.",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "training-progress",
@@ -405,7 +405,7 @@
     "type": "screen",
     "category": "Health",
     "summary": "Training progress as a load curve you scrub, personal bests with their climb, and where your work went.",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "lesson-path",
@@ -413,7 +413,7 @@
     "type": "screen",
     "category": "Education",
     "summary": "A course as a winding path of lessons you press, with units as colored banners, a coach beside you and your streak on top.",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "sentence-builder",
@@ -421,7 +421,7 @@
     "type": "screen",
     "category": "Education",
     "summary": "A lesson exercise in chunky word tiles you press into place, with a talking coach, instant feedback and a confetti finish.",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "passport-stamps",
@@ -429,7 +429,7 @@
     "type": "screen",
     "category": "Education",
     "summary": "Progress as passport stamps you collect, with your streak, your totals and today's new stamp pressed in.",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "pulse-first-run",
@@ -438,7 +438,7 @@
     "category": "Pulse",
     "kind": "Onboarding",
     "summary": "From the welcome through your goals, days and week to an account, Pulse Plus and Today.",
-    "isNew": true,
+    "isNew": false,
     "steps": 14,
     "screens": 9
   },
@@ -449,7 +449,7 @@
     "category": "Pulse",
     "kind": "Core Journey",
     "summary": "Start Thursday's Engine Intervals, run it set by set, rate it and watch it land in Progress.",
-    "isNew": true,
+    "isNew": false,
     "steps": 10,
     "screens": 4
   },
@@ -460,7 +460,7 @@
     "category": "Pulse",
     "kind": "Core Journey",
     "summary": "Edit the Custom format on Timer, keep it with Pulse Plus and run it full screen.",
-    "isNew": true,
+    "isNew": false,
     "steps": 7,
     "screens": 3
   },
@@ -471,7 +471,7 @@
     "category": "Pulse",
     "kind": "Profile And Settings",
     "summary": "From your streak and settings through training days, goals, tones, the theme and Plus to signing out.",
-    "isNew": true,
+    "isNew": false,
     "steps": 10,
     "screens": 6
   },
@@ -482,7 +482,7 @@
     "category": "Parla",
     "kind": "Onboarding",
     "summary": "Pip asks for your language, your reason, your level and a daily goal, offers a reminder and an account, then Parla Plus, and lands you on the path.",
-    "isNew": true,
+    "isNew": false,
     "steps": 14,
     "screens": 9
   },
@@ -493,7 +493,7 @@
     "category": "Parla",
     "kind": "Core Journey",
     "summary": "From the path into Asking directions: a hint, a right answer and a correction, the confetti finish, the streak moment and, two stops on, a new passport stamp.",
-    "isNew": true,
+    "isNew": false,
     "steps": 12,
     "screens": 5
   },
@@ -504,7 +504,7 @@
     "category": "Parla",
     "kind": "Core Journey",
     "summary": "Practice the words that are due in a review round, then meet the free plan's one round a day.",
-    "isNew": true,
+    "isNew": false,
     "steps": 7,
     "screens": 4
   },
@@ -515,7 +515,7 @@
     "category": "Parla",
     "kind": "Profile And Settings",
     "summary": "From Passport's gear to Settings: the daily goal, the theme and the presets Plus unlocks, Parla Plus and signing out.",
-    "isNew": true,
+    "isNew": false,
     "steps": 9,
     "screens": 6
   },
@@ -1045,7 +1045,7 @@
     "type": "template",
     "category": "Health",
     "summary": "Pulse, a training app with rhythm: a complete Xcode project with a weekly plan, full-screen interval sessions, progress, widgets and three brand presets.",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "language-app",
@@ -1053,6 +1053,6 @@
     "type": "template",
     "category": "Education",
     "summary": "Parla, a language course you play: a complete Xcode project with a lesson path, chunky word exercises, a talking coach, passport stamps, streaks, widgets and three brand presets.",
-    "isNew": true
+    "isNew": false
   }
 ]

@@ -353,11 +353,9 @@ function buildBlocks(pieces: RegistryItem[]): BlockItem[] {
   for (const p of proBlocks) {
     if (names.has(p.name) || pieceNames.has(p.name)) throw new Error(`Pro block ${p.name} shares a name with a free piece or block`);
   }
-  // New follows the pieces' rule across free and Pro blocks together: the latest wave, while it is recent.
-  const latest = [...out.map((b) => b.added ?? ""), ...proBlocks.map((p) => p.added)].reduce((max, d) => (d > max ? d : max), "");
-  for (const b of out) b.isNew = Boolean(b.added) && b.added === latest && isRecent(latest);
-  // Pro blocks carry the badge by the same reckoning, computed here once so server and client agree.
-  writeFileSync(join(OUT_DIR, "pro-blocks.json"), JSON.stringify(proBlocks.map((p) => ({ ...p, slug: patternSlug(p), isNew: p.added === latest && isRecent(latest) })), null, 2));
+  // Patterns no longer wear New (2026-11-02): New is kept for Games and the newest free pieces.
+  for (const b of out) b.isNew = false;
+  writeFileSync(join(OUT_DIR, "pro-blocks.json"), JSON.stringify(proBlocks.map((p) => ({ ...p, slug: patternSlug(p), isNew: false })), null, 2));
   return out;
 }
 
