@@ -66,7 +66,7 @@ export default function PatternsPage() {
             <Reveal delay={0.1}>
               <LinkCells
                 links={[
-                  { title: "Browse in the docs", body: "What is inside every pattern and how to install it.", href: "/docs/patterns", badge: "New" },
+                  { title: "Browse in the docs", body: "What is inside every pattern and how to install it.", href: "/docs/patterns" },
                   { title: "Patterns in SwiftPieces Pro", body: "Live previews in every Pro style, with the SwiftUI source.", href: pro.patterns },
                 ]}
               />
