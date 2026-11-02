@@ -47,7 +47,7 @@ function plans(): Plan[] {
       name: "SwiftPieces Games",
       line: "Complete iOS games in SwiftUI and Metal, and the engine they run on.",
       price: proPlans.games,
-      items: [`${proGames.list.length} complete games: ${proGamesPricingList}`, `The engine: ${proGames.systems} modules and the shader pack`, "Game Center, StoreKit 2 and saves, wired", "Game Build Kit skills for your agent", "Every game added later"],
+      items: [`${proGames.list.length} complete games: ${proGamesPricingList}`, `The engine: ${proGames.systems} modules and the shader pack`, "Game Center, StoreKit 2 and saves, wired", "Every game added later"],
       cta: "Get SwiftPieces Games",
       href: pro.gamesPricing,
       isNew: true,
