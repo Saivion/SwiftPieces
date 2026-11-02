@@ -187,5 +187,6 @@ export const Glyph = {
   flow: () => <G><circle cx="6" cy="6" r="2.5" /><circle cx="18" cy="18" r="2.5" /><path d="M8.5 6H15a3 3 0 0 1 3 3v6.5" /></G>,
   palette: () => <G><circle cx="12" cy="12" r="9" /><circle cx="8" cy="10" r="1.2" fill="currentColor" /><circle cx="12" cy="7.5" r="1.2" fill="currentColor" /><circle cx="16" cy="10" r="1.2" fill="currentColor" /></G>,
   spark: () => <G fill><path d="M12 2c.4 4.8 2.2 7.6 8 10-5.8 2.4-7.6 5.2-8 10-.4-4.8-2.2-7.6-8-10 5.8-2.4 7.6-5.2 8-10Z" /></G>,
+  gamepad: () => <G><rect x="2.5" y="7" width="19" height="11" rx="4.5" /><path d="M7.5 10.5v4M5.5 12.5h4" /><circle cx="15.5" cy="11.5" r="1" fill="currentColor" stroke="none" /><circle cx="17.5" cy="14" r="1" fill="currentColor" stroke="none" /></G>,
   gift: () => <G><rect x="3" y="8" width="18" height="4" rx="1" /><path d="M5 12v8h14v-8M12 8v12M12 8c-1.5-3-5-3-5-1s3 1 5 1c2 0 5 1 5-1s-3.5-2-5 1Z" /></G>,
 };
