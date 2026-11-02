@@ -3,6 +3,7 @@ import { Button, Arrow } from "@/components/ui/button";
 import { Panel, PanelBody, PanelMedia } from "@/components/ui/panel";
 import { NewBadge } from "@/components/ui/new-badge";
 import { pro, site } from "@/lib/site";
+import { proGames } from "@/lib/pro-catalog";
 import { cn } from "@/lib/cn";
 
 export type ProCardType = "screen" | "flow" | "template";
@@ -98,5 +99,56 @@ function FlowSize({ screens, steps }: { screens: number; steps: number }) {
         <span><span className="font-semibold text-foreground">{steps}</span> Steps</span>
       </span>
     </p>
+  );
+}
+
+/**
+ * Explore Pro's Games page: SwiftPieces Games' five games as cards, sold on Pro. Each card is one phone with the
+ * game mid-play rising out of a paper stage (Pro's own simulator stills, public/pro-games/<id>.webp), and opens
+ * that game's page on pro.swiftpieces.com. Games launched together, so every card wears New.
+ */
+export function GameCardGrid() {
+  return (
+    <div className="not-prose mb-10">
+      <p className="text-[13px] font-medium text-subtle">{proGames.list.length} games in SwiftPieces Games</p>
+      <div className="mt-5 flex flex-wrap items-center gap-3">
+        <Button href={pro.games} size="sm">Browse on Pro <External /></Button>
+        <Button href={pro.gamesPricing} size="sm" variant="secondary">What's inside <Arrow className="size-3.5" /></Button>
+      </div>
+      <div className="mt-10 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        {proGames.list.map((game, i) => (
+          <a key={game.id} href={`${pro.games}/${game.id}`} className="group block h-full">
+            <Panel hover className="h-full">
+              <PanelMedia className="aspect-square">
+                <div className="absolute top-8 left-1/2 w-[46%] -translate-x-1/2 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:-translate-y-2">
+                  <div className="rounded-[30px] bg-[#0b0b0b] p-[4px] shadow-[0_30px_60px_-30px_rgb(0_0_0/0.45)] ring-1 ring-[#000]/10">
+                    {/* eslint-disable-next-line @next/next/no-img-element -- static simulator stills, already 720px webp */}
+                    <img
+                      src={`/pro-games/${game.id}.webp`}
+                      alt={`${game.title} being played, from SwiftPieces Games`}
+                      loading={i < 3 ? "eager" : "lazy"}
+                      decoding="async"
+                      className="block aspect-[720/1565] w-full rounded-[26px] object-cover"
+                    />
+                  </div>
+                </div>
+                <span className="absolute top-3 left-3 inline-flex h-5 items-center rounded-full bg-[#000]/55 px-2 text-[10.5px] leading-none font-semibold text-[#fff] backdrop-blur-sm">Games</span>
+              </PanelMedia>
+              <PanelBody>
+                <p className="text-[12.5px] font-medium text-subtle">Game · {game.genre}</p>
+                <div className="mt-2 flex items-center justify-between gap-3">
+                  <span className="flex min-w-0 items-center gap-2.5">
+                    <p className="p-item min-w-0 truncate">{game.title}</p>
+                    <NewBadge />
+                  </span>
+                  <External className="shrink-0 text-subtle transition-colors duration-300 group-hover:text-foreground" />
+                </div>
+                <p className="p-body mt-2 line-clamp-2 text-[13px]">{game.line}</p>
+              </PanelBody>
+            </Panel>
+          </a>
+        ))}
+      </div>
+    </div>
   );
 }

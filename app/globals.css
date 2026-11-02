@@ -28,7 +28,7 @@
   --footer-slot: #181818;    /* the footer wordmark's SWIFT: the same faint fill */
   --footer-dash: transparent; /* ...with no outline */
   --beta: #2eb4ff;           /* Beta badge: bright cyan-blue, text in full, fill at low opacity */
-  --new: #ff6a45;            /* New badge: the ember accent, its label on the same colour at 15% */
+  --new: #ff005c;            /* New badge: hot pink, its label on the same colour at 15% */
 }
 
 
@@ -39,16 +39,21 @@
 /* A clear stage drops the ground each preview paints for itself (palette.ts `ground.bg`, set inline
    as #121212 by every preview's Stage wrapper), so the piece sits straight on the dashed frame. */
 .stage-clear [style*="background: var(--pv-bg"] { background: transparent !important; }
-/* The Pro badge (components/ui/pro-badge.tsx), the same in Pro's globals.css and like the Playground's
-   Pro tag: a 1px ring fading from the palette's blue to its orange, a faint wash of the same two, and
-   the word in a blend of the blue with the ink, so it reads in light and dark alike. */
+/* The Pro badge (components/ui/pro-badge.tsx), kept identical to Pro's globals.css so both sites wear one
+   badge (2026-11-01, Saivion picked the "pearl in the ramp"): a white pearl pill holding the Signature
+   grain's colours as clouds, pink at both ends, orange, a faint red heart, with wine type. White in both themes. */
 .pro-badge {
-  --pb-a: var(--pro-c3); --pb-b: var(--pro-c2);
-  border: 1px solid transparent;
-  color: color-mix(in srgb, var(--pb-a) 30%, var(--foreground));
+  --pb-pink: #ffc1d6; --pb-orange: #ff8a5c; --pb-red: #f2361c; --pb-wine: #4a0a08;
+  border: 1px solid rgb(74 10 8 / 0.16);
+  color: var(--pb-wine);
   background:
-    linear-gradient(100deg, color-mix(in srgb, var(--pb-a) 7%, var(--background)), color-mix(in srgb, var(--pb-b) 7%, var(--background))) padding-box,
-    linear-gradient(100deg, color-mix(in srgb, var(--pb-a) 45%, transparent), color-mix(in srgb, var(--pb-b) 45%, transparent)) border-box;
+    radial-gradient(48% 110% at 4% 50%, var(--pb-pink) 0%, transparent 78%),
+    radial-gradient(48% 110% at 96% 50%, var(--pb-pink) 0%, transparent 78%),
+    radial-gradient(50% 120% at 30% 105%, color-mix(in srgb, var(--pb-orange) 75%, transparent), transparent 72%),
+    radial-gradient(42% 110% at 72% 0%, color-mix(in srgb, var(--pb-orange) 60%, transparent), transparent 72%),
+    radial-gradient(28% 70% at 52% 60%, color-mix(in srgb, var(--pb-red) 32%, transparent), transparent 80%),
+    #ffffff;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.95), 0 1px 2px rgb(0 0 0 / 0.08);
 }
 
 /* A text link's underline (.u-link, brand theme.css) draws when anywhere on its link is hovered,
@@ -102,7 +107,7 @@
 
 /* Docs sidebar: the site radius (4px) on rows, hover and selection; the switcher card and its popover keep 10px like the filter box.
    Fumadocs top-aligns the icon in switcher options (md:mb-auto); center it instead. */
-#nd-docs-layout aside :is(a, button).rounded-lg { border-radius: 9999px; }
+#nd-docs-layout aside :is(a, button).rounded-lg { border-radius: calc(34px * var(--pill-k)); }
 #nd-docs-layout aside button[aria-haspopup="dialog"].rounded-lg { border-radius: 16px; }
 [data-radix-popper-content-wrapper] .rounded-xl { border-radius: 22px; }
 [data-radix-popper-content-wrapper] a.rounded-lg { border-radius: 16px; }
@@ -274,9 +279,9 @@
 @media (prefers-reduced-motion: reduce) { .nav-glass { transition: none !important; } }
 
 /* Announcement bar (components/announce/promo-bar.tsx), over the navbar on the marketing pages.
-   Pearl glass: a few soft pastel clouds drift slowly under a clear, blurred pane, so the bar reads as
-   one sheet of glass with a faint iridescence rather than a coloured band. The pill is the same glass,
-   brighter, with its own pastel glow and a hairline rim. --promo-h is the bar's height while it shows,
+   Ember strip (2026-11-01, Saivion's pick): a thin band of the rising-core Signature grain, pink at the
+   ends through orange and red to a wine core under the message, with white type. The pill is the Pro
+   badge's pearl. --promo-h is the bar's height while it shows,
    0 once closed, so the navbar spacer can add it. */
 :root { --promo-h: 0px; }
 :root:has(.promo-slot) { --promo-h: 40px; }
@@ -293,42 +298,15 @@ html.promo-off .promo-slot { display: none; }
 .promo-slot[data-hidden] { height: 0; opacity: 0; }
 
 .promo-bar {
-  /* The Pro badge's ember pearls (blush, peach, ember), so the bar and its pill match the badge. */
-  --pearl-a: #ffb3c4; --pearl-b: #ffc7a8; --pearl-c: #ff9a76; --pearl-d: #ffd9c9;
-  --promo-tint: color-mix(in srgb, var(--background) 30%, transparent);
-  --promo-aura-opacity: .22;
-  /* The pill is the Pro badge: white with ember pearls and ink, in both themes. */
-  --pill-base: #ffffff; --pill-glow: 90%; --pill-rim: rgb(0 0 0 / 0.14); --pill-ink: #111111; --pill-lip: rgb(255 255 255 / 0.95);
+  /* White type on the ember, in both themes; the close button and the separator follow. */
+  --foreground: #ffffff; --text-muted: rgb(255 255 255 / 0.88);
   position: relative; isolation: isolate; overflow: hidden;
-  height: 40px; border-bottom: 1px solid var(--line);
+  height: 40px; color: var(--foreground);
   display: flex; align-items: center; justify-content: center;
+  text-shadow: 0 1px 6px rgb(74 10 8 / 0.35);
 }
-.light .promo-bar {
-  --promo-tint: color-mix(in srgb, #ffffff 40%, transparent);
-  --promo-aura-opacity: .85;
-}
-
-.promo-aura { position: absolute; inset: -40px -10%; z-index: -2; opacity: var(--promo-aura-opacity); filter: blur(22px); }
-.promo-aura i {
-  position: absolute; top: 50%; width: 30%; height: 110px; margin-top: -55px; border-radius: 50%;
-  background: var(--c); animation: promo-drift var(--t) ease-in-out infinite alternate; animation-delay: var(--d);
-}
-.promo-aura i:nth-child(1) { --c: var(--pearl-a); --t: 22s; --d: -3s; left: 2%; }
-.promo-aura i:nth-child(2) { --c: var(--pearl-b); --t: 27s; --d: -11s; left: 26%; }
-.promo-aura i:nth-child(3) { --c: var(--pearl-c); --t: 19s; --d: -6s; left: 50%; }
-.promo-aura i:nth-child(4) { --c: var(--pearl-d); --t: 31s; --d: -15s; left: 72%; }
-@keyframes promo-drift {
-  0%   { translate: -8vw 4px; scale: 1 .9; }
-  50%  { translate: 4vw -6px; scale: 1.15 1.05; }
-  100% { translate: 10vw 2px; scale: .92 1; }
-}
-
-.promo-glass {
-  position: absolute; inset: 0; z-index: -1;
-  background: var(--promo-tint);
-  -webkit-backdrop-filter: blur(16px) saturate(140%);
-  backdrop-filter: blur(16px) saturate(140%);
-}
+/* The grain (GrainStage, kind brand), its core held low and wide so the band reads as one ember. */
+.promo-ember { position: absolute; inset: 0; z-index: -1; pointer-events: none; }
 
 .promo-line {
   display: flex; align-items: center; gap: 14px; min-width: 0; max-width: 100%;
@@ -344,19 +322,21 @@ html.promo-off .promo-slot { display: none; }
 /* The pill, after the reference: white (or graphite) glass with a faint pastel glow inside, a hairline rim. */
 .promo-cta {
   flex: none; display: inline-flex; align-items: center; gap: 5px;
-  height: 28px; padding: 0 12px 0 14px; border-radius: 999px;
-  border: 1px solid var(--pill-rim);
-  color: var(--pill-ink); font-size: 13px; font-weight: 500;
+  height: 28px; padding: 0 12px 0 14px; border-radius: calc(28px * var(--pill-k));
+  border: 1px solid rgb(74 10 8 / 0.16);
+  color: #4a0a08; font-size: 13px; font-weight: 500; text-shadow: none;
+  /* The Pro badge's pearl (.pro-badge): pink ends, orange, a faint red heart, wine type. */
   background:
-    radial-gradient(55% 90% at 18% 30%, color-mix(in srgb, var(--pearl-a) var(--pill-glow), transparent), transparent 70%),
-    radial-gradient(50% 90% at 50% 100%, color-mix(in srgb, var(--pearl-b) var(--pill-glow), transparent), transparent 70%),
-    radial-gradient(50% 80% at 85% 25%, color-mix(in srgb, var(--pearl-d) var(--pill-glow), transparent), transparent 70%),
-    radial-gradient(40% 70% at 70% 80%, color-mix(in srgb, var(--pearl-c) var(--pill-glow), transparent), transparent 70%),
-    var(--pill-base);
-  box-shadow: inset 0 1px 0 var(--pill-lip), 0 1px 2px rgb(0 0 0 / 0.06);
+    radial-gradient(48% 110% at 4% 50%, #ffc1d6 0%, transparent 78%),
+    radial-gradient(48% 110% at 96% 50%, #ffc1d6 0%, transparent 78%),
+    radial-gradient(50% 120% at 30% 105%, rgb(255 138 92 / 0.75), transparent 72%),
+    radial-gradient(42% 110% at 72% 0%, rgb(255 138 92 / 0.6), transparent 72%),
+    radial-gradient(28% 70% at 52% 60%, rgb(242 54 28 / 0.32), transparent 80%),
+    #ffffff;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.95), 0 1px 2px rgb(74 10 8 / 0.2);
   transition: box-shadow .3s var(--ease-out), border-color .3s var(--ease-out);
 }
-.promo-line:hover .promo-cta { border-color: rgb(0 0 0 / 0.3); box-shadow: inset 0 1px 0 var(--pill-lip), 0 2px 8px rgb(0 0 0 / 0.08); }
+.promo-line:hover .promo-cta { border-color: rgb(74 10 8 / 0.32); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.95), 0 2px 8px rgb(74 10 8 / 0.25); }
 .promo-line:focus-visible { outline: none; }
 .promo-line:focus-visible .promo-cta { box-shadow: 0 0 0 2px var(--background), 0 0 0 4px var(--foreground); }
 .promo-close {
@@ -365,7 +345,7 @@ html.promo-off .promo-slot { display: none; }
   color: color-mix(in srgb, var(--foreground) 50%, transparent);
   transition: color .2s, background-color .2s;
 }
-.promo-close:hover { color: var(--foreground); background: color-mix(in srgb, var(--foreground) 8%, transparent); }
+.promo-close:hover { color: var(--foreground); background: rgb(255 255 255 / 0.14); }
 
 @media (max-width: 639px) {
   .promo-line { gap: 10px; padding-left: 12px; padding-right: 38px; font-size: 13px; }
@@ -376,9 +356,7 @@ html.promo-off .promo-slot { display: none; }
 @media (min-width: 640px) and (max-width: 899px) { .promo-emphasis { display: none; } }
 
 /* The clouds wait for the motion gate like the other first-screen loops; Reduce Motion stills them. */
-html:not([data-motion]) .promo-aura i { animation-play-state: paused; }
 @media (prefers-reduced-motion: reduce) {
-  .promo-aura i { animation: none; }
   .promo-slot { transition: none; }
 }
 
@@ -505,7 +483,7 @@ html.light {
   --footer-slot: #efefec;
   --footer-dash: transparent;
   --beta: #0084d1;
-  --new: #d8261b;            /* deeper ember, so the label holds up on a light ground */
+  --new: #ff005c;            /* same pink in light mode */
   --raised: #ffffff;
   --gold-panel: #ffffff;
   --tag-ink: #3d3d3d;
@@ -582,7 +560,7 @@ html.light [data-tone="black"] { --background: #f5f5f3; --surface: #efefec; --su
   position: relative;
   min-height: 34px;
   padding-block: 0;
-  border-radius: 9999px;
+  border-radius: calc(34px * var(--pill-k));
   font-size: 13px;
   color: var(--text-muted);
   transition: background-color .15s, color .15s;
@@ -600,6 +578,18 @@ html.light [data-tone="black"] { --background: #f5f5f3; --surface: #efefec; --su
   -webkit-backdrop-filter: blur(14px) saturate(140%);
   backdrop-filter: blur(14px) saturate(140%);
 }
+/* EmberStage (components/visual/ember-stage.tsx), as on Pro: the radial Signature field, pink edge to wine core, filling its parent. */
+.ember-stage { position: absolute; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
+/* The middle plan, Pro and Games (components/sections/plans.tsx), as on Pro: white in light, its
+   neighbours' panel colour in dark, under an ember cover that runs from the card's top edge past the
+   name and fades out over the price. */
+.plan-ink { background: var(--surface-2); overflow: hidden; }
+html.light .plan-ink { background: #ffffff; box-shadow: 0 30px 70px -34px rgb(60 20 80 / 0.28); }
+.plan-cover {
+  position: absolute; z-index: -1; pointer-events: none; overflow: hidden;
+  inset: -2rem -1.75rem -6rem; mask-image: linear-gradient(to bottom, #000 0%, #000 50%, transparent 100%);
+}
+@media (min-width: 64rem) { .plan-cover { top: -2.75rem; } }
 /* The Playground's docked panels are the same trays. */
 .spp[data-layout="docked"] :is(.spp-left, .spp-dockbar, .spp-rail) {
   background-color: color-mix(in srgb, var(--surface) 94%, transparent) !important;
@@ -747,7 +737,7 @@ html.light .changelog-tint { background: linear-gradient(135deg, color-mix(in sr
 .spa-lock { flex: none; display: grid; place-items: center; width: 18px; color: var(--spp-subtle, var(--text-muted)); }
 
 /* The open app, centered above its screens (the Playground's stageBadge). */
-.spa-badge { display: inline-flex; align-items: center; gap: 8px; max-width: 100%; height: 34px; padding: 0 12px 0 6px; border-radius: 9999px;
+.spa-badge { display: inline-flex; align-items: center; gap: 8px; max-width: 100%; height: 34px; padding: 0 12px 0 6px; border-radius: calc(34px * var(--pill-k));
   background: color-mix(in srgb, var(--background) 82%, transparent); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: inset 0 0 0 1px var(--spp-line); }
 .spa-badge-icon { flex: none; width: 22px; height: 22px; border-radius: 9999px; }
 .spa-badge-name { flex: none; font-size: 12.5px; font-weight: 600; color: var(--foreground); white-space: nowrap; }
@@ -873,9 +863,19 @@ html.light .pv-glass-pass { filter: var(--pv-goo-light) var(--pv-goo-lift); }
   mask-image: radial-gradient(ellipse 46% 64% at 50% 50%, transparent 30%, #000 52%, transparent 100%);
 }
 
+/* White type on the Signature grain (the Pro offer's main card, components/sections/pro-landing.tsx), as on
+   Pro's closing card: the tokens are rebound, so text-muted, the hairlines and the ink button turn over
+   to the colour field. Keep in step with Pro's globals.css. */
+.grain-ink {
+  --foreground: #ffffff; --background: #141414;
+  --text-muted: rgb(255 255 255 / 0.8); --text-subtle: rgb(255 255 255 / 0.62);
+  --line: rgb(255 255 255 / 0.22); --line-strong: rgb(255 255 255 / 0.32);
+  color: var(--foreground); background: transparent; overflow: hidden;
+}
+
 /* The brand aura (the landing's closing card, components/sections/get-started.tsx, and the Pro offer's
-   main card, components/sections/pro-landing.tsx): four soft blooms in the ribbon colours only (orange,
-   red, pink, blue, as hero-lines.tsx), rising from below the bottom edge and drifting slowly. Gradients,
+   main card, components/sections/pro-landing.tsx): four soft blooms in the Signature ramp (pink,
+   orange, red, pink; 2026-11-01), rising from below the bottom edge and drifting slowly. Gradients,
    not blur filters, and only transforms animate, so it stays on the compositor. It sits under its
    card's content (z-index -1), so the card isolates a stacking context; the mask keeps the top clean.
    Keep in step with Pro's globals.css. */
@@ -892,10 +892,10 @@ html.light .aura { --aura-o: 0.34; }
   translate: 0 42%; opacity: var(--aura-o); will-change: transform;
   animation: aura-drift var(--aura-d, 22s) ease-in-out infinite alternate;
 }
-.aura > i:nth-child(1) { left: -2%; background: radial-gradient(closest-side, #ff7a3c, transparent); --aura-d: 19s; }
-.aura > i:nth-child(2) { left: 22%; translate: 0 50%; background: radial-gradient(closest-side, #ff0000, transparent); --aura-d: 23s; animation-delay: -7s; }
-.aura > i:nth-child(3) { left: 44%; background: radial-gradient(closest-side, #ff8fb8, transparent); --aura-d: 21s; animation-delay: -13s; }
-.aura > i:nth-child(4) { left: 66%; translate: 0 46%; background: radial-gradient(closest-side, #4d8dff, transparent); --aura-d: 26s; animation-delay: -4s; }
+.aura > i:nth-child(1) { left: -2%; background: radial-gradient(closest-side, #ffc1d6, transparent); --aura-d: 19s; }
+.aura > i:nth-child(2) { left: 22%; translate: 0 50%; background: radial-gradient(closest-side, #ff8a5c, transparent); --aura-d: 23s; animation-delay: -7s; }
+.aura > i:nth-child(3) { left: 44%; background: radial-gradient(closest-side, #f2361c, transparent); --aura-d: 21s; animation-delay: -13s; }
+.aura > i:nth-child(4) { left: 66%; translate: 0 46%; background: radial-gradient(closest-side, #ffc1d6, transparent); --aura-d: 26s; animation-delay: -4s; }
 @keyframes aura-drift {
   0% { transform: translate3d(-8%, 6%, 0) scale(1); }
   50% { transform: translate3d(6%, -8%, 0) scale(1.14); }
@@ -939,3 +939,50 @@ html.light .aura { --aura-o: 0.34; }
 @media (prefers-reduced-motion: reduce) {
   .announce-backdrop, .announce-card, .announce-tile, .announce-out .announce-backdrop, .announce-out .announce-card { animation: none; }
 }
+
+/* Fluid pill corners (Saivion, 2026-11-01): controls, chips and badges round to 42% of their height instead of a full pill,
+   the same as pro.swiftpieces.com. CSS can't read an element's own height, so each height class used with rounded-full gets
+   its own corner; pills sized by padding carry an explicit rounded-[Npx]. True circles (w = h, size-*, aspect-square) and
+   anything inside a phone or preview stage (.stage-dark, the 9:19.5 screen) stay round. */
+:root { --pill-k: 0.42; }
+.rounded-full.h-4:not(.w-4):not(.size-4):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(var(--spacing) * 4 * var(--pill-k)); }
+.rounded-full.h-4\.5:not(.w-4\.5):not(.size-4\.5):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(var(--spacing) * 4.5 * var(--pill-k)); }
+.rounded-full.h-5:not(.w-5):not(.size-5):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(var(--spacing) * 5 * var(--pill-k)); }
+.rounded-full.h-5\.5:not(.w-5\.5):not(.size-5\.5):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(var(--spacing) * 5.5 * var(--pill-k)); }
+.rounded-full.h-6:not(.w-6):not(.size-6):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(var(--spacing) * 6 * var(--pill-k)); }
+.rounded-full.h-6\.5:not(.w-6\.5):not(.size-6\.5):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(var(--spacing) * 6.5 * var(--pill-k)); }
+.rounded-full.h-7:not(.w-7):not(.size-7):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(var(--spacing) * 7 * var(--pill-k)); }
+.rounded-full.h-7\.5:not(.w-7\.5):not(.size-7\.5):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(var(--spacing) * 7.5 * var(--pill-k)); }
+.rounded-full.h-8:not(.w-8):not(.size-8):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(var(--spacing) * 8 * var(--pill-k)); }
+.rounded-full.h-8\.5:not(.w-8\.5):not(.size-8\.5):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(var(--spacing) * 8.5 * var(--pill-k)); }
+.rounded-full.h-9:not(.w-9):not(.size-9):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(var(--spacing) * 9 * var(--pill-k)); }
+.rounded-full.h-9\.5:not(.w-9\.5):not(.size-9\.5):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(var(--spacing) * 9.5 * var(--pill-k)); }
+.rounded-full.h-10:not(.w-10):not(.size-10):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(var(--spacing) * 10 * var(--pill-k)); }
+.rounded-full.h-10\.5:not(.w-10\.5):not(.size-10\.5):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(var(--spacing) * 10.5 * var(--pill-k)); }
+.rounded-full.h-11:not(.w-11):not(.size-11):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(var(--spacing) * 11 * var(--pill-k)); }
+.rounded-full.h-11\.5:not(.w-11\.5):not(.size-11\.5):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(var(--spacing) * 11.5 * var(--pill-k)); }
+.rounded-full.h-12:not(.w-12):not(.size-12):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(var(--spacing) * 12 * var(--pill-k)); }
+.rounded-full.h-13:not(.w-13):not(.size-13):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(var(--spacing) * 13 * var(--pill-k)); }
+.rounded-full.h-14:not(.w-14):not(.size-14):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(var(--spacing) * 14 * var(--pill-k)); }
+.rounded-full.h-16:not(.w-16):not(.size-16):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(var(--spacing) * 16 * var(--pill-k)); }
+.rounded-full.h-\[16px\]:not(.w-\[16px\]):not(.size-\[16px\]):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(16px * var(--pill-k)); }
+.rounded-full.h-\[18px\]:not(.w-\[18px\]):not(.size-\[18px\]):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(18px * var(--pill-k)); }
+.rounded-full.h-\[20px\]:not(.w-\[20px\]):not(.size-\[20px\]):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(20px * var(--pill-k)); }
+.rounded-full.h-\[22px\]:not(.w-\[22px\]):not(.size-\[22px\]):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(22px * var(--pill-k)); }
+.rounded-full.h-\[24px\]:not(.w-\[24px\]):not(.size-\[24px\]):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(24px * var(--pill-k)); }
+.rounded-full.h-\[26px\]:not(.w-\[26px\]):not(.size-\[26px\]):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(26px * var(--pill-k)); }
+.rounded-full.h-\[28px\]:not(.w-\[28px\]):not(.size-\[28px\]):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(28px * var(--pill-k)); }
+.rounded-full.h-\[30px\]:not(.w-\[30px\]):not(.size-\[30px\]):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(30px * var(--pill-k)); }
+.rounded-full.h-\[32px\]:not(.w-\[32px\]):not(.size-\[32px\]):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(32px * var(--pill-k)); }
+.rounded-full.h-\[34px\]:not(.w-\[34px\]):not(.size-\[34px\]):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(34px * var(--pill-k)); }
+.rounded-full.h-\[36px\]:not(.w-\[36px\]):not(.size-\[36px\]):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(36px * var(--pill-k)); }
+.rounded-full.h-\[38px\]:not(.w-\[38px\]):not(.size-\[38px\]):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(38px * var(--pill-k)); }
+.rounded-full.h-\[40px\]:not(.w-\[40px\]):not(.size-\[40px\]):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(40px * var(--pill-k)); }
+.rounded-full.h-\[42px\]:not(.w-\[42px\]):not(.size-\[42px\]):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(42px * var(--pill-k)); }
+.rounded-full.h-\[44px\]:not(.w-\[44px\]):not(.size-\[44px\]):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(44px * var(--pill-k)); }
+.rounded-full.h-\[46px\]:not(.w-\[46px\]):not(.size-\[46px\]):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(46px * var(--pill-k)); }
+.rounded-full.h-\[48px\]:not(.w-\[48px\]):not(.size-\[48px\]):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(48px * var(--pill-k)); }
+.rounded-full.h-\[52px\]:not(.w-\[52px\]):not(.size-\[52px\]):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(52px * var(--pill-k)); }
+.rounded-full.h-\[56px\]:not(.w-\[56px\]):not(.size-\[56px\]):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(56px * var(--pill-k)); }
+/* Inline code chips take the fluid corner too, sized from their own line (≈1.75em tall). */
+:not(pre) > code { border-radius: calc(1.75em * var(--pill-k)); }

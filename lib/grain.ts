@@ -12,12 +12,15 @@ export type GrainKind = "screen" | "flow" | "template" | "kit" | "block" | "bran
 
 type Stop = readonly [at: number, color: string];
 type Blob = readonly [x: number, y: number, radius: number, color: string];
+/** A radial field's core: its centre and its x and y reach, as fractions of the stage. */
+export type Core = readonly [x: number, y: number, rx: number, ry: number];
 
 /**
  * Palettes built from the brand's red, orange, pink and blue, each kept to neighbouring hues:
  * a vertical base, then soft fields laid over it.
  */
-const PALETTES: Record<GrainKind, { base: readonly Stop[]; blobs: readonly Blob[] }> = {
+/** `core` makes a palette radial: the base runs from its first stop at the edge to its last at the core. */
+const PALETTES: Record<GrainKind, { base: readonly Stop[]; blobs: readonly Blob[]; core?: Core }> = {
   // Screens, "Ember": blush to the brand red to wine.
   screen: {
     base: [[0, "#fff1ef"], [0.34, "#ffbdb5"], [0.58, "#ff5148"], [0.8, "#c8101e"], [1, "#2c0308"]],
@@ -43,12 +46,30 @@ const PALETTES: Record<GrainKind, { base: readonly Stop[]; blobs: readonly Blob[
     base: [[0, "#effbf6"], [0.34, "#b6ecda"], [0.58, "#2fc4a0"], [0.8, "#0b7a74"], [1, "#03222a"]],
     blobs: [[0.84, 0.1, 0.4, "#e3fbf1"], [0.14, 0.42, 0.3, "#8fe3c8"], [0.84, 0.66, 0.3, "#16a39a"], [0.3, 0.98, 0.42, "#021a22"], [0.54, 0.5, 0.22, "#7fe0d2"]],
   },
-  // Everything else, "Signature": the whole brand sweep, honeydew and blue haze over pink, orange, red.
+  // Everything else, "Signature" (2026-11-01, Saivion picked the "rising core", as on Pro): a radial
+  // ember, pink at the outer edge, then orange and red, to a wine core rising from low in the stage.
   brand: {
-    base: [[0, "#fdeef3"], [0.32, "#ffc1d6"], [0.56, "#ff8a5c"], [0.8, "#f2361c"], [1, "#4a0a08"]],
-    blobs: [[0.14, 0.1, 0.4, "#cfdcff"], [0.86, 0.3, 0.34, "#ff8fb8"], [0.2, 0.62, 0.32, "#ff7a3c"], [0.8, 0.82, 0.34, "#ff2a12"], [0.46, 1.02, 0.4, "#3a0606"]],
+    base: [[0, "#ffc1d6"], [0.26, "#ff8a5c"], [0.5, "#f2361c"], [0.8, "#4a0a08"], [1, "#4a0a08"]],
+    blobs: [],
+    core: [0.5, 0.9, 0.8, 1],
   },
 };
+
+/**
+ * Where the ember's wine core sits, per surface (2026-11-01, Saivion picked the "rising core"): low and
+ * centred, so the ember rises from under the card's words and pink shows along the top and far edges.
+ * Used by EmberStage (components/visual/ember-stage.tsx) and the pricing card's still (SwiftPiecesPro scripts/plan-cover.ts).
+ */
+export const EMBER_CORES = {
+  /** A plan card's cover: the core under the line, above the price where the cover fades out. */
+  copy: [0.5, 0.56, 0.95, 0.72],
+  /** The account bundle's left column: the core rising from behind the price. */
+  column: [0.5, 0.85, 0.95, 0.8],
+  /** A centred panel (the closing call to action): the core rising from the bottom edge. */
+  centre: [0.5, 1, 0.75, 1.15],
+} as const satisfies Record<string, Core>;
+
+export type EmberCore = keyof typeof EMBER_CORES;
 
 export const GRAIN_KINDS = Object.keys(PALETTES) as GrainKind[];
 
@@ -58,8 +79,12 @@ export type GrainSpec = {
   lines: boolean;
   /** A CSS colour for the canvas until it paints: the palette's middle tone. */
   fallback: string;
+  /** A CSS gradient through the palette's base, light on top and deep below: close to the painted stage, so the swap reads as grain arriving, not a flash. */
+  fallbackGradient: string;
   /** Seeds the field nudges, the light's tilt, the motif's placement and the grain. */
   seed: number;
+  /** Moves a radial palette's core (Signature's), e.g. under a card's words. */
+  core?: Core;
 };
 
 function hash(s: string) {
@@ -87,10 +112,14 @@ function rng(seed: number) {
 }
 
 /** Stable recipe for a seed on a kind of stage. */
-export function grainSpec(seed: string, kind: GrainKind = "brand", lines = true): GrainSpec {
-  const base = PALETTES[kind].base;
+export function grainSpec(seed: string, kind: GrainKind = "brand", lines = true, core?: Core): GrainSpec {
+  const { base, core: own } = PALETTES[kind];
   const mid = base[Math.floor(base.length / 2)];
-  return { kind, lines, fallback: mid ? mid[1] : "#888", seed: hash(`${kind}:${seed}`) };
+  const radial = core ?? own;
+  const fallbackGradient = radial
+    ? `radial-gradient(${Math.round(radial[2] * 100)}% ${Math.round(radial[3] * 100)}% at ${Math.round(radial[0] * 100)}% ${Math.round(radial[1] * 100)}%, ${[...base].reverse().map(([at, c]) => `${c} ${Math.round((1 - at) * 100)}%`).join(", ")})`
+    : `linear-gradient(180deg, ${base.map(([at, c]) => `${c} ${Math.round(at * 100)}%`).join(", ")})`;
+  return { kind, lines, fallback: mid ? mid[1] : "#888", fallbackGradient, seed: hash(`${kind}:${seed}`), ...(core ? { core } : {}) };
 }
 
 /* ---------- colour (mixed in linear light: smooth, and it never leaves the gamut) ---------- */
@@ -150,7 +179,10 @@ export function paintGrain(canvas: HTMLCanvasElement, width: number, height: num
   const f = labs(spec.kind);
   // The seed's own take on the palette: the composition maybe mirrored, every field nudged and
   // resized, the light tilted a little off vertical, the warp phased.
-  const mirror = r() < 0.5;
+  const radial = spec.core ?? PALETTES[spec.kind].core;
+  // A radial field keeps its core where the surface put it (only nudged a little), so it never mirrors.
+  const mirror = !radial && r() < 0.5;
+  const core = radial ? ([radial[0] + (r() - 0.5) * 0.08, radial[1] + (r() - 0.5) * 0.06, radial[2], radial[3]] as const) : null;
   const blobs = f.blobs.map(([x, y, rad, c]) => [(mirror ? 1 - x : x) + (r() - 0.5) * 0.24, y + (r() - 0.5) * 0.12, rad * (0.85 + r() * 0.3), c] as const);
   const tilt = (r() - 0.5) * 0.4;
   const cos = Math.cos(tilt);
@@ -180,8 +212,13 @@ export function paintGrain(canvas: HTMLCanvasElement, width: number, height: num
       // A gentle warp, so no field reads as a circle.
       const wx = nx + 0.035 * Math.sin(ny * 5.1 + phase);
       const wy = ny + 0.03 * Math.sin(nx * 4.3 + phase * 0.7) + 0.02 * Math.sin((nx + ny) * 7 + phase);
-      // Light falls along the tilted vertical.
-      const v = 0.5 + (wy - 0.5) * cos + (wx - 0.5) * sin;
+      // Light falls along the tilted vertical, or, for a radial palette, deepens toward the core.
+      let v: number;
+      if (core) {
+        const cx = (wx - core[0]) / core[2];
+        const cy = (wy - core[1]) / core[3];
+        v = 1 - Math.min(1, Math.sqrt(cx * cx + cy * cy));
+      } else v = 0.5 + (wy - 0.5) * cos + (wx - 0.5) * sin;
       let k = 0;
       while (k < base.length - 2 && v > (base[k + 1]?.[0] ?? 1)) k++;
       const a = base[k];

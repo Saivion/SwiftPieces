@@ -27,7 +27,8 @@
     "builder:test": "npm test --workspace packages/builder",
     "cli:build": "npm run build --workspace packages/cli",
     "audit:public": "bash scripts/audit-public.sh",
-    "test": "node scripts/run-tests.mjs"
+    "test": "node scripts/run-tests.mjs",
+    "aeo:track": "tsx scripts/aeo/track.ts"
   },
   "workspaces": [
     "packages/*"

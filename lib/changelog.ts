@@ -7,6 +7,47 @@ import type { ChangelogEntry } from "@/components/changelog/changelog-grid";
  */
 export const changelog: ChangelogEntry[] = [
   {
+    slug: "games",
+    date: "Nov 2, 2026",
+    title: "Meet SwiftPieces Games",
+    summary: "SwiftPieces Pro now has a sister product: five complete iOS games in SwiftUI and Metal, with full source and the engine they run on. The free site introduces them, and shows Pro's plans and prices for the first time.",
+    points: [
+      "Drift, Lumen, Twine, Orbit and Wordly: a snow rally, a light puzzle, a two-kite arcade, an idle voyage and a daily word game, each a finished game to rename and ship. Games sits in the navbar with a New badge.",
+      "The home page has a Games tray with a still of each game. The docs list Games under Explore Pro, and /pro compares Free, Pro and Games side by side.",
+      "/pro now shows Pro's three plans and their prices: Pro $199, Games $199, or both for $329, and the other for $129 if you own one. Checkout happens on pro.swiftpieces.com.",
+      "New badges are kept for Games and the newest free pieces, so they point at what really is new.",
+    ],
+    visual: "phones",
+    tint: "red",
+  },
+  {
+    slug: "new-look",
+    date: "Nov 1, 2026",
+    title: "One look with Pro",
+    summary: "The free site and Pro now look like one product: a single Signature grain, paper grounds, fluid corners and the same Explore menu.",
+    points: [
+      "The red Signature grain is now one rising-core ember, pink at the edge to wine at the core, on the offer, the closing cards, the Want more stills and the announcement bar, with the pearl Pro badge in the same tones.",
+      "Buttons, pills, badges, chips, inline code and keyboard keys get a fluid corner at about 42% of their height.",
+      "The navbar opens on Explore, with the Library (Components, Screens, Patterns, Flows and Templates) and Create (Apps and Styles) side by side. Patterns stills and Pro questions now stand on paper.",
+      "A new docs page, Choosing a SwiftUI component library, covers installing, the commercial license, Liquid Glass, MCP, and Free vs Pro. The FAQ also answers developer questions for search and AI assistants.",
+      "Fonts are self-hosted, with a small core that loads first, so pages render sooner.",
+    ],
+    visual: "palette",
+    tint: "orange",
+  },
+  {
+    slug: "pickers-and-controls",
+    date: "Oct 27, 2026",
+    title: "Eight pickers and controls",
+    summary: "Eight free pieces for choosing things: a switch, page dots, choice groups, swatches, time slots, levels, a date strip and interest chips.",
+    points: [
+      "Liquid Switch, Page Dots, Choice Group, Swatch Picker, Time Slot Picker, Level Picker, Date Strip and Interest Chips, each with notes, a preview and a live web preview.",
+      "Date Strip buds its pill in place when your pick lands in another week, instead of streaking across from the old one.",
+    ],
+    visual: "slider",
+    tint: "blue",
+  },
+  {
     slug: "patterns",
     date: "Oct 24, 2026",
     title: "Blocks are now Patterns",

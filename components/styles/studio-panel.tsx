@@ -109,7 +109,7 @@ function Head({ studio }: { studio: Studio }) {
         <button type="button" onClick={() => studio.shuffle()} title="A new style (S)" className="btn-solid ai-host flex h-9 flex-1 items-center justify-center gap-2 rounded-full text-[13.5px] font-semibold">
           <UI name="shuffle" size={14} />
           Shuffle
-          <kbd className="rounded-full bg-background/20 px-1.5 py-px text-[10.5px] font-semibold">S</kbd>
+          <kbd className="rounded-[7px] bg-background/20 px-1.5 py-px text-[10.5px] font-semibold">S</kbd>
         </button>
         <div className="w-[122px] flex-none">
           <SelectRow label="Mood" value={studio.pick} options={[["any", "Any"], ...moods.map((m) => [m.id, m.name] as const)]} onChange={studio.setPick} />

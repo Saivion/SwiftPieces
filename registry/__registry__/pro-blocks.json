@@ -116,7 +116,7 @@
     ],
     "added": "2026-10-23",
     "slug": "chat-thread",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "chat-welcome",
@@ -133,7 +133,7 @@
     ],
     "added": "2026-10-23",
     "slug": "chat-welcome",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "chat-history",
@@ -150,7 +150,7 @@
     ],
     "added": "2026-10-23",
     "slug": "chat-history",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "chat-attachments",
@@ -167,7 +167,7 @@
     ],
     "added": "2026-10-23",
     "slug": "chat-attachments",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "composer-attachments",
@@ -184,7 +184,7 @@
     ],
     "added": "2026-10-23",
     "slug": "composer-attachments",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "composer-dictation",
@@ -201,7 +201,7 @@
     ],
     "added": "2026-10-23",
     "slug": "composer-dictation",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "composer-mentions",
@@ -218,7 +218,7 @@
     ],
     "added": "2026-10-23",
     "slug": "composer-mentions",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "composer-modes",
@@ -235,7 +235,7 @@
     ],
     "added": "2026-10-23",
     "slug": "composer-modes",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "agent-plan",
@@ -252,7 +252,7 @@
     ],
     "added": "2026-10-23",
     "slug": "agent-plan",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "tool-calls",
@@ -269,7 +269,7 @@
     ],
     "added": "2026-10-23",
     "slug": "tool-calls",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "agent-approval",
@@ -286,7 +286,7 @@
     ],
     "added": "2026-10-23",
     "slug": "agent-approval",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "agent-run",
@@ -303,7 +303,7 @@
     ],
     "added": "2026-10-23",
     "slug": "agent-run",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "greeting-header",
@@ -320,7 +320,7 @@
     ],
     "added": "2026-10-23",
     "slug": "greeting-header",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "scope-header",
@@ -337,7 +337,7 @@
     ],
     "added": "2026-10-23",
     "slug": "scope-header",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "location-header",
@@ -354,7 +354,7 @@
     ],
     "added": "2026-10-23",
     "slug": "location-header",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "selection-toolbar",
@@ -371,7 +371,7 @@
     ],
     "added": "2026-10-23",
     "slug": "selection-toolbar",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "action-tab-bar",
@@ -388,7 +388,7 @@
     ],
     "added": "2026-10-23",
     "slug": "action-tab-bar",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "accessory-tab-bar",
@@ -405,7 +405,7 @@
     ],
     "added": "2026-10-23",
     "slug": "accessory-tab-bar",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "top-tabs",
@@ -422,7 +422,7 @@
     ],
     "added": "2026-10-23",
     "slug": "top-tabs",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "search-tab-bar",
@@ -439,7 +439,7 @@
     ],
     "added": "2026-10-23",
     "slug": "search-tab-bar",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "notification-inbox",
@@ -456,7 +456,7 @@
     ],
     "added": "2026-10-23",
     "slug": "notification-inbox",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "search-panel",
@@ -473,7 +473,7 @@
     ],
     "added": "2026-10-23",
     "slug": "search-panel",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "activity-timeline",
@@ -490,7 +490,7 @@
     ],
     "added": "2026-10-23",
     "slug": "activity-timeline",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "file-list",
@@ -507,7 +507,7 @@
     ],
     "added": "2026-10-23",
     "slug": "file-list",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "notification-settings",
@@ -524,7 +524,7 @@
     ],
     "added": "2026-10-23",
     "slug": "notification-settings",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "privacy-settings",
@@ -541,7 +541,7 @@
     ],
     "added": "2026-10-23",
     "slug": "privacy-settings",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "help-support",
@@ -558,7 +558,7 @@
     ],
     "added": "2026-10-23",
     "slug": "help-support",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "storage-settings",
@@ -575,7 +575,7 @@
     ],
     "added": "2026-10-23",
     "slug": "storage-settings",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "profile-form",
@@ -592,7 +592,7 @@
     ],
     "added": "2026-10-23",
     "slug": "profile-form",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "address-form",
@@ -609,7 +609,7 @@
     ],
     "added": "2026-10-23",
     "slug": "address-form",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "feedback-form",
@@ -626,7 +626,7 @@
     ],
     "added": "2026-10-23",
     "slug": "feedback-form",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "step-form",
@@ -643,7 +643,7 @@
     ],
     "added": "2026-10-23",
     "slug": "step-form",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "share-sheet",
@@ -660,7 +660,7 @@
     ],
     "added": "2026-10-23",
     "slug": "share-sheet",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "permission-primer",
@@ -677,7 +677,7 @@
     ],
     "added": "2026-10-23",
     "slug": "permission-primer",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "whats-new",
@@ -694,7 +694,7 @@
     ],
     "added": "2026-10-23",
     "slug": "whats-new",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "schedule-sheet",
@@ -711,7 +711,7 @@
     ],
     "added": "2026-10-23",
     "slug": "schedule-sheet",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "magic-link",
@@ -728,7 +728,7 @@
     ],
     "added": "2026-10-23",
     "slug": "magic-link",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "reset-password",
@@ -745,7 +745,7 @@
     ],
     "added": "2026-10-23",
     "slug": "reset-password",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "profile-setup",
@@ -762,7 +762,7 @@
     ],
     "added": "2026-10-23",
     "slug": "profile-setup",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "interests-picker",
@@ -779,6 +779,6 @@
     ],
     "added": "2026-10-23",
     "slug": "interests-picker",
-    "isNew": true
+    "isNew": false
   }
 ]

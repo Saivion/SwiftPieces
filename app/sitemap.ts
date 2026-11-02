@@ -7,6 +7,7 @@ import { hubs, hubPath } from "@/lib/hubs";
 import { appPath, apps } from "@/lib/apps";
 import { playgroundPath } from "@/lib/playground";
 import { changelog, changelogPath } from "@/lib/changelog";
+import { contentDate, mustContentDate } from "@/lib/content-date";
 
 // Every indexable marketing page plus every docs page, including one page per piece, so search
 // engines find all of them without crawling the sidebar. Only self-canonical, indexable URLs belong
@@ -15,19 +16,29 @@ import { changelog, changelogPath } from "@/lib/changelog";
 // (/components/cards) are the pages meant to rank for broad queries, so they sit just under home.
 const pages = ["", "/components", "/patterns", "/apps", "/styles", "/sponsors", "/about", "/license"];
 
+/**
+ * lastmod for every page that has no date of its own: the last day the site's copy changed. Bump it
+ * by hand when page copy changes. Never `new Date()`: a lastmod that moves on every build is ignored.
+ */
+const CONTENT_UPDATED = mustContentDate("2026-11-01");
+
+/** A changelog update keeps the day it shipped. */
+function shipped(date?: string): Date {
+  return (date ? contentDate(date) : null) ?? CONTENT_UPDATED;
+}
+
 export default function sitemap(): MetadataRoute.Sitemap {
-  const now = new Date();
   return [
-    ...pages.map((p) => ({ url: `${site.url}${p}`, lastModified: now, priority: p === "" ? 1 : p === "/components" ? 0.9 : p === "/patterns" ? 0.85 : p === "/apps" || p === "/styles" ? 0.8 : 0.5 })),
-    ...hubs.map((h) => ({ url: `${site.url}${hubPath(h.slug)}`, lastModified: now, priority: 0.8 })),
+    ...pages.map((p) => ({ url: `${site.url}${p}`, lastModified: CONTENT_UPDATED, priority: p === "" ? 1 : p === "/components" ? 0.9 : p === "/patterns" ? 0.85 : p === "/apps" || p === "/styles" ? 0.8 : 0.5 })),
+    ...hubs.map((h) => ({ url: `${site.url}${hubPath(h.slug)}`, lastModified: CONTENT_UPDATED, priority: 0.8 })),
     // The app library: each app, and its recreation open in the Playground.
     ...apps.flatMap((a) => [
-      { url: `${site.url}${appPath(a)}`, lastModified: now, priority: 0.7 },
-      { url: `${site.url}${playgroundPath(a)}`, lastModified: now, priority: 0.75 },
+      { url: `${site.url}${appPath(a)}`, lastModified: CONTENT_UPDATED, priority: 0.7 },
+      { url: `${site.url}${playgroundPath(a)}`, lastModified: CONTENT_UPDATED, priority: 0.75 },
     ]),
     // The changelog (inside the docs, but not an MDX page) and one page per update.
-    { url: `${site.url}${changelogPath()}`, lastModified: now, priority: 0.5 },
-    ...changelog.map((e) => ({ url: `${site.url}${changelogPath(e.slug)}`, lastModified: now, priority: 0.4 })),
-    ...docs.map((page) => ({ url: `${site.url}${page.url}`, lastModified: now, priority: page.url.startsWith("/docs/guides") ? 0.8 : 0.6 })),
+    { url: `${site.url}${changelogPath()}`, lastModified: shipped(changelog[0]?.date), priority: 0.5 },
+    ...changelog.map((e) => ({ url: `${site.url}${changelogPath(e.slug)}`, lastModified: shipped(e.date), priority: 0.4 })),
+    ...docs.map((page) => ({ url: `${site.url}${page.url}`, lastModified: CONTENT_UPDATED, priority: page.url.startsWith("/docs/guides") ? 0.8 : 0.6 })),
   ];
 }

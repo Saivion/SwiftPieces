@@ -29,4 +29,7 @@ export const pro = {
   mcpDocs: `${site.proUrl}/docs/mcp`,
   account: `${site.proUrl}/account`,
   mcp: `${site.proUrl}/api/mcp`,
+  /** SwiftPieces Games, sold on Pro: its landing and its plans. */
+  games: `${site.proUrl}/games`,
+  gamesPricing: `${site.proUrl}/games#pricing`,
 } as const;

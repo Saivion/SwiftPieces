@@ -11,7 +11,7 @@ import { GrainStage } from "@/components/visual/grain-stage";
 import { Reveal, RevealGroup, RevealItem } from "@/components/effects/reveal";
 import { cn } from "@/lib/cn";
 import { pro } from "@/lib/site";
-import { namesWithMore, proCatalog, proCountsLabel, remixingPoint } from "@/lib/pro-catalog";
+import { namesWithMore, proCatalog, proCountsLabel, proGames, proGamesPricingList, proPlans, remixingPoint } from "@/lib/pro-catalog";
 import { getRegistryIndex } from "@/lib/registry";
 
 // Marketing copy only. Counts and names come from lib/pro-catalog.ts, the one hand-maintained copy of Pro's catalog.
@@ -110,7 +110,7 @@ function FlowMock({ i }: { i: number }) {
       {[1, Math.max(2, 4 + (i % 3)), 9 + (i % 4)].map((n, k) => (
         <div key={k} className="flex flex-col items-center gap-1.5" style={{ transform: `translateY(${k * -6}px)` }}>
           <div className="origin-top scale-[0.82]"><Mock kind={k === 1 ? "screen" : "flow"} i={i + k} /></div>
-          <span className="-mt-6 rounded-full bg-foreground/[.12] px-1.5 text-[9.5px] font-semibold tabular-nums text-muted">{String(n).padStart(2, "0")}</span>
+          <span className="-mt-6 rounded-[6px] bg-foreground/[.12] px-1.5 text-[9.5px] font-semibold tabular-nums text-muted">{String(n).padStart(2, "0")}</span>
         </div>
       ))}
     </div>
@@ -186,10 +186,10 @@ export function WhatYouGet() {
           {items.map((s) => (
             <RevealItem key={s.label}>
               <a href={buy} className="group flex h-full flex-col rounded-[26px] bg-surface p-1.5 transition-colors duration-200 hover:bg-surface-3">
-                {/* Free shows Pro's work on the signature grain, seeded per card, on the inset panel.
+                {/* Free shows Pro's work on the signature grain, seeded per card, on the inset panel, its wine core under the count.
                     The count is white on it in both themes, as on the covers, so it is a fixed colour. */}
                 <div className="relative isolate flex h-[168px] flex-col justify-end overflow-hidden rounded-[20px] p-5 text-[#fff]">
-                  <GrainStage seed={`pro-page-${s.label}`} className="-z-10 transition-transform duration-700 ease-out group-hover:scale-[1.03]" />
+                  <GrainStage seed={`pro-page-${s.label}`} core={[0.5, 0.95, 0.9, 0.85]} className="-z-10 transition-transform duration-700 ease-out group-hover:scale-[1.03]" />
                   <CountUp value={s.value} className="text-[56px] leading-[0.9] font-normal tracking-[-0.045em] tabular-nums" />
                 </div>
                 <div className="px-3.5 pt-5 pb-4">
@@ -212,25 +212,26 @@ function Check({ strong }: { strong?: boolean }) {
 }
 
 /**
- * Quiet comparison card: tag, statement title, short body, points, one action. Both sit in one tray:
- * Free on the tray itself, Pro lifted onto a panel with the Pro badge, so the step up reads at a
- * glance. On wide screens both cards share one set of rows (CSS subgrid), so tag, title, body, points
- * and action line up across the pair whatever each holds; the header row is a fixed height so the
- * badge cannot push its card down.
+ * Quiet comparison card: tag, statement title, short body, points, one action. All three sit in one
+ * tray: Free on the tray itself, Pro and Games each lifted onto a panel with its badge, so the step up
+ * reads at a glance. On wide screens the cards share one set of rows (CSS subgrid), so tag, title,
+ * body, points and action line up across the row whatever each holds; the header row is a fixed
+ * height so the badge cannot push its card down.
  */
-function PlanCard({ tag, title, body, points, cta, pro: isPro }: { tag: string; title: string; body: string; points: string[]; cta: string; pro?: boolean }) {
+function PlanCard({ tag, title, body, points, cta, href = buy, badge }: { tag: string; title: string; body: string; points: string[]; cta: string; href?: string; badge?: string }) {
+  const paid = Boolean(badge);
   return (
-    <div className={cn("relative flex flex-col rounded-[23px] p-7 md:p-9 lg:row-span-5 lg:grid lg:grid-rows-subgrid lg:gap-y-0", isPro && "bg-surface-2")}>
+    <div className={cn("relative flex flex-col rounded-[23px] p-7 md:p-9 lg:row-span-5 lg:grid lg:grid-rows-subgrid lg:gap-y-0", paid && "bg-surface-2")}>
       <div className="flex h-[26px] items-center justify-between">
-        <span className={cn("text-[13px] font-medium", isPro ? "text-foreground" : "text-subtle")}>{tag}</span>
-        {isPro ? <ProBadge /> : null}
+        <span className={cn("text-[13px] font-medium", paid ? "text-foreground" : "text-subtle")}>{tag}</span>
+        {badge ? <ProBadge label={badge} /> : null}
       </div>
       <h3 className={cn("mt-6", cardTitle)}>{title}</h3>
       <p className="mt-3 max-w-md text-[15px] leading-[25px] text-pretty text-muted">{body}</p>
       <ul className="mt-7 flex flex-col gap-3 border-t border-[var(--line)] pt-6">
-        {points.map((pt) => <li key={pt} className={cn("flex gap-2.5 text-[14px] leading-snug", isPro ? "text-foreground" : "text-muted")}><Check strong={isPro} />{pt}</li>)}
+        {points.map((pt) => <li key={pt} className={cn("flex gap-2.5 text-[14px] leading-snug", paid ? "text-foreground" : "text-muted")}><Check strong={paid} />{pt}</li>)}
       </ul>
-      <a href={buy} className={cn("group mt-auto inline-flex items-center gap-2 justify-self-start pt-8 text-[14.5px] font-semibold", isPro ? "text-foreground" : "text-muted transition-colors hover:text-foreground")}>{cta}<Arrow /></a>
+      <a href={href} className={cn("group mt-auto inline-flex items-center gap-2 justify-self-start pt-8 text-[14.5px] font-semibold", paid ? "text-foreground" : "text-muted transition-colors hover:text-foreground")}>{cta}<Arrow /></a>
     </div>
   );
 }
@@ -240,13 +241,14 @@ export function Compare() {
     <section className={band}>
       <Container>
         <SectionHead
-          tags={[{ label: "Free", icon: <Glyph.gift /> }, { label: "Pro", icon: <Glyph.split /> }]}
+          tags={[{ label: "Free", icon: <Glyph.gift /> }, { label: "Pro", icon: <Glyph.split /> }, { label: "Games", icon: <Glyph.gamepad /> }]}
           title="Free to start, Pro to finish"
-          body="Both are plain SwiftUI in your project, so you can mix them freely."
+          body="All three are plain SwiftUI in your project, so you can mix them freely."
         />
-        <Reveal className="tray grid gap-2 lg:grid-cols-2 lg:gap-y-0">
+        <Reveal className="tray grid gap-2 lg:grid-cols-3 lg:gap-y-0">
           <PlanCard tag="Free library" title="A curated taste." body={`${freeCount} animated pieces, free to ship.`} points={["MIT + Commons Clause, forever", "Single-file pieces, and blocks built from them", "Install by CLI, MCP or copy-paste"]} cta="See what Pro adds" />
-          <PlanCard tag="SwiftPieces Pro" title="The complete library." body="Screens, flows and full app templates, plus a Build Kit for your agent." points={[proCountsLabel, remixingPoint, "Full SwiftUI source that lives in your project", "Lifetime access, everything added later included"]} cta="Get SwiftPieces Pro" pro />
+          <PlanCard tag="SwiftPieces Pro" title="The complete library." body="Screens, flows and full app templates, plus a Build Kit for your agent." points={[proCountsLabel, remixingPoint, "Full SwiftUI source that lives in your project", "Lifetime access, everything added later included"]} cta="Get SwiftPieces Pro" badge="Pro" />
+          <PlanCard tag="SwiftPieces Games" title="Complete games." body="Finished iOS games in SwiftUI and Metal, and the engine they run on." points={[`${proGames.list.length} games: ${proGamesPricingList}`, "Real levels, Game Center and a StoreKit shop", "Full Xcode projects you rename and ship", "Lifetime access, every new game included"]} cta="Get SwiftPieces Games" href={pro.gamesPricing} badge="Games" />
         </Reveal>
       </Container>
     </section>
@@ -334,7 +336,7 @@ export const proFaqs = [
   { q: "Does Pro change anything about the free library?", a: "No. The free pieces stay MIT + Commons Clause and maintained on GitHub. Pro is the complete library that builds on them, and it is what pays for the free work." },
   { q: "How does installation work?", a: "Screens install the same way as the free pieces: the CLI or the MCP server writes Swift files into your project, or you copy them by hand. Templates are complete Xcode projects you download from their page, with a guide from download to a running, renamed app. Nothing is linked at runtime." },
   { q: "Can I ship Pro pieces in client and App Store apps?", a: "Yes. A per-developer license covers unlimited personal and commercial apps, including client work. Reselling or redistributing the pieces as a competing library, or sharing your key, is what it excludes." },
-  { q: "Is there a subscription or are there tiers?", a: "Neither. SwiftPieces Pro is one plan with lifetime access to everything, including every piece added later. Files already in your projects are yours regardless. The plan and pricing are on pro.swiftpieces.com." },
+  { q: "Is there a subscription or are there tiers?", a: `No subscription. There are two products, each one payment with lifetime access to everything added later: SwiftPieces Pro for apps ($${proPlans.pro}) and SwiftPieces Games for games ($${proPlans.games}). Both together are $${proPlans.everything}, and an owner of one adds the other for $${proPlans.upgrade}. Files already in your projects are yours regardless.` },
   { q: "Does it work with my coding agent?", a: "Yes. Connect Claude Code, Cursor or Xcode to the Pro MCP server with your license key, and your agent searches the library and installs the real screen instead of inventing a lookalike." },
   { q: "What are the requirements?", a: "An iOS 17 deployment target as the floor, with Xcode 16 for pieces and screens and Xcode 26 to open the app templates. Liquid Glass pieces use the real material on iOS 26 and fall back gracefully below it. Apple frameworks only, nothing third-party." },
 ];
@@ -362,9 +364,10 @@ export function ProCTA({ className }: { className?: string }) {
     <section id="pro" className={cn("relative pt-12 pb-24 sm:pt-[68px] sm:pb-[136px]", className)}>
       <Container>
         <Reveal className="tray grid gap-2 lg:grid-cols-[5fr_7fr]">
-          <div className="panel isolate flex flex-col p-7 md:p-10">
-            {/* The brand aura rising behind the action (.aura, app/globals.css). */}
-            <div aria-hidden className="aura"><i /><i /><i /><i /></div>
+          <div className="panel grain-ink relative isolate flex flex-col p-7 md:p-10">
+            {/* The Signature grain, its wine core rising from low in the panel, as on Pro's closing card; white
+                type on top (.grain-ink, app/globals.css). */}
+            <GrainStage seed="pro-offer" core={[0.45, 0.72, 0.95, 0.8]} className="-z-10" />
             <Tags tags={[{ label: "One purchase", icon: <Glyph.tag /> }]} className="mb-5" />
             <h2 className={cn("max-w-md", sectionTitle)}>One Payment. Lifetime Access.</h2>
             <p className={cn("mt-4 max-w-md", sectionBody)}>The complete library as Swift you keep, with Pro remixing in the Playground.</p>

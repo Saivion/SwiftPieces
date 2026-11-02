@@ -153,7 +153,7 @@ function SwiftDialog({ ref, theme, onNotice }: { ref: React.Ref<HTMLDialogElemen
         </form>
       </div>
       <div className="flex flex-wrap items-center gap-2 px-6 pt-5">
-        <div role="tablist" aria-label="File" className="flex rounded-full bg-surface p-[3px]">
+        <div role="tablist" aria-label="File" className="flex rounded-[14px] bg-surface p-[3px]">
           {(
             [
               ["theme", "Theme.swift"],

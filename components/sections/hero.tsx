@@ -14,6 +14,7 @@ import { PreviewFrame } from "@/components/previews/frame";
 import { PiecePreview } from "@/components/previews";
 import { getRegistryIndex } from "@/lib/registry";
 import { cn } from "@/lib/cn";
+import { pro } from "@/lib/site";
 
 /**
  * The row under the copy, left to right, with the newest piece in the middle. `y` and `rot` are each
@@ -40,8 +41,9 @@ export function Hero() {
           the hero's top edge. */}
       <HeroLines />
       <Container className="relative z-10 text-center">
-        {/* The eyebrow (and its live view count) is off for now: something new goes here soon.
+        {/* The eyebrow introduces SwiftPieces Games on Pro. The live view count eyebrow stays off:
         <Reveal priority><Eyebrow>New components every week<LiveViews /></Eyebrow></Reveal> */}
+        <Reveal priority><GamesAnnouncement /></Reveal>
         <AnimatedText as="h1" text="Build apps worthy of an App Store feature." accent="feature" className="mx-auto mt-[28px] max-w-[980px] text-[44px] leading-none font-normal tracking-[-0.04em] text-balance sm:text-[62px] lg:text-[80px] lg:tracking-[-0.05em]" />
         <Reveal priority delay={0.35}><p className="mx-auto mt-6 max-w-[560px] text-[16.5px] leading-[27px] text-balance text-muted sm:text-[18px] sm:leading-[30px]">Free SwiftUI components with the motion, haptics and accessibility the best apps get right. Install with one command and make them yours.</p></Reveal>
         <Reveal priority delay={0.45} className="mt-9 flex flex-wrap items-center justify-center gap-2.5">
@@ -73,5 +75,16 @@ export function Hero() {
         })}
       </HeroRow>
     </section>
+  );
+}
+
+/** The hero's eyebrow for the Games launch on Pro: the New badge, the line and an arrow that nudges. */
+function GamesAnnouncement() {
+  return (
+    <a href={pro.games} className="group inline-flex h-[34px] items-center gap-2.5 rounded-full border border-line bg-surface pr-3 pl-1.5 text-[13px] font-medium text-foreground transition-colors hover:border-line-strong">
+      <NewBadge className="h-[22px] px-2.5" />
+      Introducing SwiftPieces Games
+      <Arrow className="size-3.5 text-muted" />
+    </a>
   );
 }

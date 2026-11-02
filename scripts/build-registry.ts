@@ -35,6 +35,7 @@ import { categories } from "../lib/categories";
 import { blockCategories, blockCategoryIds, blockPath, blockSlug, patternSlug, proBlocks, proBlockUrl, type BlockCategory } from "../lib/blocks";
 import { exploreProPages, proCatalog, proCountsLabel } from "../lib/pro-catalog";
 import { hubs, hubItems, hubPath } from "../lib/hubs";
+import { homeFaqs } from "../lib/faqs";
 import { changelog, changelogPath } from "../lib/changelog";
 import { motionDrift } from "./sync-motion";
 import type { KnownPages } from "../lib/known-pages";
@@ -352,11 +353,9 @@ function buildBlocks(pieces: RegistryItem[]): BlockItem[] {
   for (const p of proBlocks) {
     if (names.has(p.name) || pieceNames.has(p.name)) throw new Error(`Pro block ${p.name} shares a name with a free piece or block`);
   }
-  // New follows the pieces' rule across free and Pro blocks together: the latest wave, while it is recent.
-  const latest = [...out.map((b) => b.added ?? ""), ...proBlocks.map((p) => p.added)].reduce((max, d) => (d > max ? d : max), "");
-  for (const b of out) b.isNew = Boolean(b.added) && b.added === latest && isRecent(latest);
-  // Pro blocks carry the badge by the same reckoning, computed here once so server and client agree.
-  writeFileSync(join(OUT_DIR, "pro-blocks.json"), JSON.stringify(proBlocks.map((p) => ({ ...p, slug: patternSlug(p), isNew: p.added === latest && isRecent(latest) })), null, 2));
+  // Patterns no longer wear New (2026-11-02): New is kept for Games and the newest free pieces.
+  for (const b of out) b.isNew = false;
+  writeFileSync(join(OUT_DIR, "pro-blocks.json"), JSON.stringify(proBlocks.map((p) => ({ ...p, slug: patternSlug(p), isNew: false })), null, 2));
   return out;
 }
 
@@ -438,11 +437,13 @@ function writeDocs(items: RegistryItem[]) {
 
   const cats = (Object.keys(categories) as Category[]).filter((c) => items.some((i) => i.category === c));
   writeFileSync(join(root, "index.mdx"), `---\ntitle: "All SwiftUI components"\ndescription: "Every free SwiftPieces component for iOS with a live preview. Filter by category, then open a piece for its source and install command."\nindex: true\n---\n\n{/* GENERATED FILE. Edit scripts/build-registry.ts. */}\n`);
-  // Explore Pro: Pro's screens, flows and templates as cards that open on pro.swiftpieces.com. The cards
+  // Explore Pro: Pro's screens, flows, templates and games as cards that open on pro.swiftpieces.com. The cards
   // come from lib/pro-cards.json and public/pro-cards/, refreshed by scripts/pro-cards/capture.ts.
   writeFileSync(join(root, "screens.mdx"), `---\ntitle: "Screens"\ndescription: "Production-ready SwiftUI screens from SwiftPieces Pro. Each one is a complete, themed screen you drop into your app and wire to your data."\npro: "screen"\n---\n\n{/* GENERATED FILE. Edit scripts/build-registry.ts. */}\n`);
   writeFileSync(join(root, "flows.mdx"), `---\ntitle: "Flows"\ndescription: "Whole journeys through SwiftPieces Pro's app templates, screen by screen: first run and sign in, the core of each app, then settings."\npro: "flow"\n---\n\n{/* GENERATED FILE. Edit scripts/build-registry.ts. */}\n`);
   writeFileSync(join(root, "templates.mdx"), `---\ntitle: "Templates"\ndescription: "Complete Xcode app templates from SwiftPieces Pro, wired end to end. Open the project, swap the brand and the copy, ship."\npro: "template"\n---\n\n{/* GENERATED FILE. Edit scripts/build-registry.ts. */}\n`);
+  // Games: SwiftPieces Games' five games (lib/pro-catalog.ts proGames), each opening its page on pro.swiftpieces.com.
+  writeFileSync(join(root, "games.mdx"), `---\ntitle: "Games"\ndescription: "Complete iOS games from SwiftPieces Games, in SwiftUI and Metal. Real levels, Game Center and a StoreKit shop, with the full Xcode project."\npro: "game"\n---\n\n{/* GENERATED FILE. Edit scripts/build-registry.ts. */}\n`);
   writeFileSync(join(root, "meta.json"), JSON.stringify({
     title: "Components",
     root: true,
@@ -471,7 +472,7 @@ function writeDocs(items: RegistryItem[]) {
       writeFileSync(join(dir, `${item.slug}.mdx`), `---\n${fm}\n---\n\n{/* GENERATED FILE. Edit registry/swift/${item.category}/${item.name}.swift or ${item.name}.mdx instead. */}\n\n<Showcase name="${item.name}"${tone}>\n\n<Tabs items={[${tabNames}]}>\n${sourceTabs}\n</Tabs>\n\n</Showcase>\n\n<PieceFacts name="${item.name}" />\n\n${docs.summary}\n\n${prose}\n\n${usage}\n${paramsTable}`);
     }
   }
-  writeFileSync(join(DOCS_DIR, "meta.json"), JSON.stringify({ title: "SwiftPieces", pages: ["introduction", "installation", "cli", "mcp", "liquid-glass", "guides", "components", "patterns"] }, null, 2));
+  writeFileSync(join(DOCS_DIR, "meta.json"), JSON.stringify({ title: "SwiftPieces", pages: ["introduction", "choosing", "installation", "cli", "mcp", "liquid-glass", "guides", "components", "patterns"] }, null, 2));
 }
 
 /**
@@ -617,6 +618,20 @@ function breadcrumbs(tree: Root, url: string): string[] | undefined {
 }
 
 /** Frontmatter and body of each guide, in the sidebar's order, for llms.txt and llms-full.txt. */
+/** Hand-written docs an assistant should read before the component catalog. */
+const REFERENCE_DOCS = ["introduction", "choosing", "installation", "cli", "mcp", "liquid-glass"] as const;
+
+function readReferenceDocs(): { title: string; description: string; url: string; body: string }[] {
+  return REFERENCE_DOCS.flatMap((slug) => {
+    const file = join(DOCS_DIR, `${slug}.mdx`);
+    if (!existsSync(file)) return [];
+    const raw = readFileSync(file, "utf8");
+    const m = raw.match(/^---\n([\s\S]*?)\n---\n?/);
+    const fm = (m ? parseYaml(m[1]) : {}) as { title?: string; description?: string };
+    return [{ title: fm.title ?? slug, description: fm.description ?? "", url: `${SITE_URL}/docs/${slug}`, body: (m ? raw.slice(m[0].length) : raw).trim() }];
+  });
+}
+
 function readGuides(): { title: string; description: string; url: string; body: string }[] {
   const dir = join(DOCS_DIR, "guides");
   if (!existsSync(dir)) return [];
@@ -644,6 +659,7 @@ function writeLlms(items: RegistryItem[], blocks: BlockItem[]) {
     "Key facts:",
     "",
     "- License: MIT + Commons Clause. Free for personal and commercial apps, including client work. Source-available rather than OSI open source: the pieces themselves may not be sold or redistributed.",
+    `- Choosing a library (copy-paste vs a Swift package, commercial use, Liquid Glass, MCP, free vs Pro): ${SITE_URL}/docs/choosing`,
     "- No dependencies and no Swift package: the CLI copies source files into a SwiftPieces folder in the app, and they become the developer's own code.",
     "- iOS 17 baseline. Liquid Glass pieces gate glass with `#available(iOS 26, *)` and fall back to Material.",
     `- One motion language across every piece: five spring tiers with named roles, gesture releases that keep the finger's velocity, rubber-band limits and a Reduce Motion substitute for every movement (${SITE_URL}/docs/guides/swiftui-motion).`,
@@ -652,9 +668,14 @@ function writeLlms(items: RegistryItem[], blocks: BlockItem[]) {
     "",
     "Rules for Liquid Glass: gate with `#available(iOS 26, *)` and a Material fallback; wrap multiple glass views in one `GlassEffectContainer`; apply `.glassEffect` after layout modifiers; respect `accessibilityReduceTransparency`; never use invented modifiers such as `.liquidGlassUltra`.",
     "",
+    // The home page's questions, word for word, so an assistant quotes what a visitor reads.
+    "## Common questions",
+    "",
+    ...homeFaqs(items.length, proCatalog).flatMap((f) => [`### ${f.q}`, "", f.a, ""]),
     "## Docs",
     "",
     `- [Introduction](${SITE_URL}/docs/introduction)`,
+    `- [Choosing a SwiftUI component library](${SITE_URL}/docs/choosing)`,
     `- [Installation](${SITE_URL}/docs/installation)`,
     `- [CLI](${SITE_URL}/docs/cli)`,
     `- [MCP and agents](${SITE_URL}/docs/mcp)`,
@@ -718,9 +739,13 @@ function writeLlmsFull(items: RegistryItem[], guides: ReturnType<typeof readGuid
     "",
     `> ${items.length} free SwiftUI components for iOS, one Swift file each, MIT + Commons Clause. Index: ${SITE_URL}/llms.txt. Source for any piece: ${SITE_URL}/r/<Name>.json or its docs page.`,
     "",
-    "# Components",
+    "# Reference",
     "",
   ];
+  for (const page of readReferenceDocs()) {
+    out.push(`## ${page.title}`, "", `URL: ${page.url}`, "", page.description, "", page.body.replace(/^(#{2,5}) /gm, "#$1 "), "");
+  }
+  out.push("# Components", "");
   for (const item of items) {
     const docs = extractDocs(item.files[0].content ?? "");
     const sidecar = join(SWIFT_DIR, item.category, `${item.name}.mdx`);

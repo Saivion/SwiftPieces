@@ -6,10 +6,11 @@ import { ProCard } from "@/components/docs/pro-card";
  * bottom of the column (mt-auto), in the same glass as the sidebar and navbar. Sponsors live on
  * /sponsors and in the footer, not here.
  */
-export function DocsAside() {
+/** `seed` is the page, so each page's Pro panel stands on its own grain. */
+export function DocsAside({ seed }: { seed?: string }) {
   return (
     <div className="mt-auto flex flex-col gap-3 pt-8 pb-3">
-      <ProCard />
+      <ProCard seed={seed} />
     </div>
   );
 }

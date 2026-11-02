@@ -58,11 +58,11 @@ export function AppDetail({ app: a }: { app: LibraryEntry }) {
                     <Link href={runPath(a, screen.shot)} className="group relative block rounded-[14px]" aria-label={`Remix ${screen.title} in SwiftUI${locked ? " (Pro)" : ""}`}>
                       {img}
                       <span className="pointer-events-none absolute inset-0 rounded-[14px] bg-black/0 transition-colors group-hover:bg-black/35" />
-                      <span className="pointer-events-none absolute bottom-3 left-3 inline-flex items-center gap-1.5 rounded-full bg-black/70 px-2.5 py-1 text-[11px] font-medium text-white backdrop-blur-md">
+                      <span className="pointer-events-none absolute bottom-3 left-3 inline-flex items-center gap-1.5 rounded-[10px] bg-black/70 px-2.5 py-1 text-[11px] font-medium text-white backdrop-blur-md">
                         {locked ? <ProSwap pro={<span className="size-1.5 rounded-full bg-accent" />}><LockGlyph className="size-2.5" /></ProSwap> : <span className="size-1.5 rounded-full bg-accent" />} {locked ? "Remix · Pro" : "Remix"}
                       </span>
                       <span className="pointer-events-none absolute inset-0 grid place-items-center opacity-0 transition-opacity group-hover:opacity-100">
-                        <span className="inline-flex items-center gap-2 rounded-full bg-white px-3.5 py-2 text-[12px] font-semibold text-black">
+                        <span className="inline-flex items-center gap-2 rounded-[14px] bg-white px-3.5 py-2 text-[12px] font-semibold text-black">
                           {locked ? <ProSwap pro={<><RemixGlyph /> Remix in SwiftUI</>}><LockGlyph /> Remix with Pro</ProSwap> : <><PlayGlyph /> Remix in SwiftUI</>}
                         </span>
                       </span>

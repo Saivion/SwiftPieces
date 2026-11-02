@@ -32,5 +32,5 @@ export function CodeBlock({ code, title, className }: { code: string; title?: st
 }
 
 export function Kbd({ children }: { children: string }) {
-  return <kbd className="rounded-full bg-surface-3 px-2 py-0.5 font-sans text-[10.5px] font-medium text-muted">{children}</kbd>;
+  return <kbd className="rounded-[8px] bg-surface-3 px-2 py-0.5 font-sans text-[10.5px] font-medium text-muted">{children}</kbd>;
 }

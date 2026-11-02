@@ -320,6 +320,9 @@ const KEY = 48, EDGE = 6, ICON = 19, ROOM = 56, NAME_H = 30, BADGE_H = 18;
 /** How far the item under the finger rises, and how much it swells. */
 const RISE = 5, SWELL = 1.14;
 const keyX = (i: number) => EDGE + i * (KEY + liquid.apart) + KEY / 2;
+/** The smallest point the dock draws at, in px, and the scroll edge the content fades out under. */
+const DOCK_MIN = 0.9;
+const DOCK_FADE = "linear-gradient(to bottom, #000 52%, transparent 80%)";
 
 /**
  * A count that rolls to its new value on the value spring, never past it: up for a rise, down for a drop. It rolls only
@@ -422,72 +425,78 @@ export function FloatingDockPreview() {
   const reach = KEY / 2 + liquid.joined + BADGE_H / 2;
   return (
     <Stage>
-      {/* Plain placeholder content, only so the dock has something to float over */}
-      <div className="absolute inset-x-0 top-0 flex flex-col" style={{ padding: `${pt(22)} ${pt(22)}`, gap: pt(12) }}>
+      {/* Plain placeholder content, only so the dock has something to float over. It softens out under the dock, like
+          the scroll edge under a tab bar, so the glass reads over it and no row ends in a hard crop at the stage edge. */}
+      <div className="absolute inset-x-0 top-0 flex flex-col" style={{ padding: `${pt(22)} ${pt(22)}`, gap: pt(12), maskImage: DOCK_FADE, WebkitMaskImage: DOCK_FADE }}>
         {[0, 1, 2, 3].map((i) => <Placeholder key={i} height={62} />)}
       </div>
-      {/* The names, laid out once off stage to be measured in points. */}
-      <div ref={measure} aria-hidden className="pointer-events-none absolute left-0 top-0 flex" style={{ visibility: "hidden", width: pt(100) }}>
-        <span />
-        {DOCK.map(([title]) => <span key={title} className="whitespace-nowrap" style={{ position: "absolute", fontSize: pt(12), fontWeight: 600 }}>{title}</span>)}
-      </div>
-      {/* Tucks away quick and firm, comes back a little slower. */}
-      <div ref={wrap} data-motion className="absolute inset-x-0 flex justify-center" style={{ bottom: pt(16), transform: `translateY(${tucked ? pt(110) : 0})`, opacity: tucked ? 0 : 1, transition: t(["transform", "opacity"], tucked ? "dismiss" : "reveal") }}>
-        {/* The house merge distance: a badge joins its item through a full neck, and the items, 26 pt apart, stay clear
-            of each other. */}
-        <LiquidGroup unit={unit} axis="both">
-          <div className="relative flex items-end" style={{ padding: pt(EDGE), paddingTop: pt(ROOM + EDGE), gap: pt(liquid.apart) }}>
-            {/* One name bubble, under the items so it melts in behind an icon: it buds out of the item under the finger
-                to rest a liquid neck above it, glides with the finger while its name morphs, and on release narrows to a
-                drop and melts back into the item it named. */}
-            <span data-motion className="pointer-events-none absolute left-0" style={{ top: pt(ROOM + EDGE - liquid.joined), transform: `translateX(${pt(keyX(scrub.at))})`, transition: scrub.glide && !still ? t("transform", follow("snap", 1)) : "none" }}>
-              <span className="absolute bottom-0 left-0" style={{ transform: "translateX(-50%)" }}>
-                <Liquid bud={nameBud} className="flex items-center justify-center overflow-hidden whitespace-nowrap" style={{
-                  height: pt(NAME_H), width: pt(nameOut || still ? nameW : NAME_H), color: ground.text, fontSize: pt(12), fontWeight: 600,
-                  // Out, it opens to fit its name; home, it narrows to a round drop the item can hold.
-                  transition: t("width", nameOut ? (scrub.glide ? follow("snap", 1) : liquid.split) : liquid.home),
-                }}>
-                  <BudContent out={nameOut}><MorphText text={DOCK[scrub.at][0]} /></BudContent>
-                </Liquid>
-              </span>
-            </span>
-            {DOCK.map(([title, d], i) => {
-              const on = i === sel;
-              const badgeOut = i === 2 && badge > 0 && nameOver !== 2;
-              const tinted = badgeOut && !on;
-              return (
-                <span key={title} data-motion className="relative block" style={{ width: pt(KEY), height: pt(KEY), ...key(hover === i) }}>
-                  <span className="absolute inset-0 block" style={sink(pressed === i)}>
-                    {i === 2 ? (
-                      // Under the bubble, so it melts home behind the icon.
-                      <span className="absolute left-1/2 top-1/2 block" style={{ width: 0, height: 0, transform: `translate(${pt(reach * 0.5)}, ${pt(-reach * 0.866)})` }}>
-                        <span className="absolute block" style={{ left: pt(-BADGE_H / 2), top: pt(-BADGE_H / 2) }}>
-                          <Liquid tint={tinted ? signal.fill : undefined} bud={{ out: badgeOut, home: [-reach * 0.5, reach * 0.866] }} className="grid place-items-center overflow-hidden" style={{
-                            minWidth: pt(BADGE_H), height: pt(BADGE_H), paddingInline: pt(5), color: tinted ? ink : ground.text, fontSize: pt(10.5), fontWeight: 600, fontVariantNumeric: "tabular-nums",
-                            // Its tint drains on the way home, on the bubble's own spring, so it never sits red over the icon.
-                            transition: t(["background-color", "color"], badgeOut ? "snap" : liquid.home),
-                          }}>
-                            <BudContent out={badgeOut}><Count n={badge} live={badgeOut} /></BudContent>
-                          </Liquid>
-                        </span>
-                      </span>
-                    ) : null}
-                    <Liquid tint={on ? signal.fill : undefined} className="absolute inset-0 grid place-items-center" style={{ color: on ? ink : ground.muted, transition: t(["background-color", "color"], "snap") }}>
-                      <span ref={(el) => { icons.current[i] = el; }} className="relative grid place-items-center" style={{ width: pt(ICON + 2), height: pt(ICON + 2) }}>
-                        {/* The symbol swaps with a blur: outline away, filled in, as the tint lands. */}
-                        {[false, true].map((filled) => (
-                          <span key={String(filled)} data-motion className="absolute inset-0 grid place-items-center" style={{ opacity: filled === on ? 1 : 0, filter: filled === on || still ? "none" : `blur(${pt(1.5)})`, transform: `scale(${filled === on || still ? 1 : 0.8})`, transition: t(["opacity", "filter", "transform"], "snap") }}>
-                            <Glyph d={d} size={ICON} fill={filled && i !== 1} stroke={filled ? 1.7 : 1.9} />
-                          </span>
-                        ))}
-                      </span>
-                    </Liquid>
-                  </span>
+      {/* The dock never draws smaller than DOCK_MIN px a point: on a phone-width stage a quarter of a cqw is under a
+          pixel, which shrinks the names and the badge count past reading. Its own container is widened to match, so
+          every point inside it keeps measuring in its cqw. */}
+      <div className="pointer-events-none absolute bottom-0 left-1/2 h-full -translate-x-1/2 [container-type:inline-size]" style={{ width: `max(100cqw, ${(DOCK_MIN * 100) / P}px)` }}>
+        {/* The names, laid out once off stage to be measured in points. */}
+        <div ref={measure} aria-hidden className="pointer-events-none absolute left-0 top-0 flex" style={{ visibility: "hidden", width: pt(100) }}>
+          <span />
+          {DOCK.map(([title]) => <span key={title} className="whitespace-nowrap" style={{ position: "absolute", fontSize: pt(12), fontWeight: 600 }}>{title}</span>)}
+        </div>
+        {/* Tucks away quick and firm, comes back a little slower. */}
+        <div ref={wrap} data-motion className="absolute inset-x-0 flex justify-center" style={{ bottom: pt(16), transform: `translateY(${tucked ? pt(110) : 0})`, opacity: tucked ? 0 : 1, transition: t(["transform", "opacity"], tucked ? "dismiss" : "reveal") }}>
+          {/* The house merge distance: a badge joins its item through a full neck, and the items, 26 pt apart, stay clear
+              of each other. */}
+          <LiquidGroup unit={unit} axis="both">
+            <div className="relative flex items-end" style={{ padding: pt(EDGE), paddingTop: pt(ROOM + EDGE), gap: pt(liquid.apart) }}>
+              {/* One name bubble, under the items so it melts in behind an icon: it buds out of the item under the finger
+                  to rest a liquid neck above it, glides with the finger while its name morphs, and on release narrows to a
+                  drop and melts back into the item it named. */}
+              <span data-motion className="pointer-events-none absolute left-0" style={{ top: pt(ROOM + EDGE - liquid.joined), transform: `translateX(${pt(keyX(scrub.at))})`, transition: scrub.glide && !still ? t("transform", follow("snap", 1)) : "none" }}>
+                <span className="absolute bottom-0 left-0" style={{ transform: "translateX(-50%)" }}>
+                  <Liquid bud={nameBud} className="flex items-center justify-center overflow-hidden whitespace-nowrap" style={{
+                    height: pt(NAME_H), width: pt(nameOut || still ? nameW : NAME_H), color: ground.text, fontSize: pt(12), fontWeight: 600, lineHeight: 1,
+                    // Out, it opens to fit its name; home, it narrows to a round drop the item can hold.
+                    transition: t("width", nameOut ? (scrub.glide ? follow("snap", 1) : liquid.split) : liquid.home),
+                  }}>
+                    <BudContent out={nameOut}><MorphText text={DOCK[scrub.at][0]} /></BudContent>
+                  </Liquid>
                 </span>
-              );
-            })}
-          </div>
-        </LiquidGroup>
+              </span>
+              {DOCK.map(([title, d], i) => {
+                const on = i === sel;
+                const badgeOut = i === 2 && badge > 0 && nameOver !== 2;
+                const tinted = badgeOut && !on;
+                return (
+                  <span key={title} data-motion className="relative block" style={{ width: pt(KEY), height: pt(KEY), ...key(hover === i) }}>
+                    <span className="absolute inset-0 block" style={sink(pressed === i)}>
+                      {i === 2 ? (
+                        // Under the bubble, so it melts home behind the icon.
+                        <span className="absolute left-1/2 top-1/2 block" style={{ width: 0, height: 0, transform: `translate(${pt(reach * 0.5)}, ${pt(-reach * 0.866)})` }}>
+                          <span className="absolute block" style={{ left: pt(-BADGE_H / 2), top: pt(-BADGE_H / 2) }}>
+                            <Liquid tint={tinted ? signal.fill : undefined} bud={{ out: badgeOut, home: [-reach * 0.5, reach * 0.866] }} className="grid place-items-center overflow-hidden" style={{
+                              minWidth: pt(BADGE_H), height: pt(BADGE_H), paddingInline: pt(5), color: tinted ? ink : ground.text, fontSize: pt(10.5), fontWeight: 600, fontVariantNumeric: "tabular-nums", lineHeight: 1,
+                              // Its tint drains on the way home, on the bubble's own spring, so it never sits red over the icon.
+                              transition: t(["background-color", "color"], badgeOut ? "snap" : liquid.home),
+                            }}>
+                              <BudContent out={badgeOut}><Count n={badge} live={badgeOut} /></BudContent>
+                            </Liquid>
+                          </span>
+                        </span>
+                      ) : null}
+                      <Liquid tint={on ? signal.fill : undefined} className="absolute inset-0 grid place-items-center" style={{ color: on ? ink : ground.muted, transition: t(["background-color", "color"], "snap") }}>
+                        <span ref={(el) => { icons.current[i] = el; }} className="relative grid place-items-center" style={{ width: pt(ICON + 2), height: pt(ICON + 2) }}>
+                          {/* The symbol swaps with a blur: outline away, filled in, as the tint lands. */}
+                          {[false, true].map((filled) => (
+                            <span key={String(filled)} data-motion className="absolute inset-0 grid place-items-center" style={{ opacity: filled === on ? 1 : 0, filter: filled === on || still ? "none" : `blur(${pt(1.5)})`, transform: `scale(${filled === on || still ? 1 : 0.8})`, transition: t(["opacity", "filter", "transform"], "snap") }}>
+                              <Glyph d={d} size={ICON} fill={filled && i !== 1} stroke={filled ? 1.7 : 1.9} />
+                            </span>
+                          ))}
+                        </span>
+                      </Liquid>
+                    </span>
+                  </span>
+                );
+              })}
+            </div>
+          </LiquidGroup>
+        </div>
       </div>
     </Stage>
   );

@@ -2,7 +2,7 @@
 // registry (Rev 3 §3.2), so this is the one hand-maintained copy: when Pro's library changes,
 // update these numbers and names here and every page follows.
 // Source of truth: SwiftPiecesPro `typeCounts()` (registry/__registry__/public.json) and `kitCounts()` (lib/kit.ts).
-// No price lives here on purpose: pricing is shown only on pro.swiftpieces.com, so every Free CTA sends people there.
+// Prices here mirror Pro's pricing (proPlans, 2026-11-01: Saivion wants Free to match Pro end to end); checkout itself always happens on pro.swiftpieces.com.
 
 export const proCatalog = {
   screens: 54,
@@ -49,7 +49,7 @@ export function namesWithMore(names: readonly string[], take = names.length): st
 }
 
 /** The Explore Pro docs pages (/docs/components/<page>), in sidebar order: docs pages, not registry categories. */
-export const exploreProPages = ["screens", "flows", "templates"] as const;
+export const exploreProPages = ["screens", "flows", "templates", "games"] as const;
 
 /** "54 screens, 48 flows, 12 app templates and a 31-item Build Kit". */
 export const proCountsLabel = `${proCatalog.screens} screens, ${proCatalog.flows.total} flows, ${proCatalog.templates} app templates and a ${proCatalog.buildKit.total}-item Build Kit`;
@@ -75,3 +75,41 @@ export const templateShowcase: Record<string, { id: string; app: string; kind: s
 export const remixingLine = `Remix all ${proCatalog.remixing.apps} apps in the Playground, keep up to ${proCatalog.remixing.saves} remixes and remix any app with AI`;
 /** The same, short, for checklists. */
 export const remixingPoint = `Pro remixing: all ${proCatalog.remixing.apps} apps, AI and ${proCatalog.remixing.saves} saved remixes`;
+
+/**
+ * SwiftPieces Games, Pro's second product: complete iOS games in SwiftUI and Metal, sold on
+ * pro.swiftpieces.com. Hand-kept like proCatalog (source: SwiftPiecesPro lib/games, lib/product.ts).
+ * Games are sold as finished base templates, so nothing here says "coming" or "in development".
+ */
+export const proGames = {
+  price: 199,
+  systems: 10,
+  list: [
+    { id: "drift", title: "Drift", genre: "Arcade", line: "A top-down snow rally at blue hour." },
+    { id: "lumen", title: "Lumen", genre: "Puzzle", line: "A light-routing puzzle in soft matte ceramic." },
+    { id: "twine", title: "Twine", genre: "Arcade", line: "One thumb flies two kites through washi paper." },
+    { id: "orbit", title: "Orbit", genre: "Idle", line: "A calm idle voyage printed like a travel poster." },
+    { id: "wordly", title: "Wordly", genre: "Word", line: "A daily word game set in glazed tiles." },
+  ],
+} as const;
+
+/** "Drift, Lumen, Twine, Orbit and Wordly". */
+export const proGamesList = namesWithMore(proGames.list.map((g) => g.title));
+
+/** The games in Pro's catalog order, as its pricing card lists them: "Lumen, Drift, Twine, Orbit and Wordly". */
+const PRO_ORDER = ["lumen", "drift", "twine", "orbit", "wordly"];
+export const proGamesPricingList = namesWithMore([...proGames.list].sort((a, b) => PRO_ORDER.indexOf(a.id) - PRO_ORDER.indexOf(b.id)).map((g) => g.title));
+
+/**
+ * The three plans, as Pro's pricing shows them (SwiftPiecesPro lib/product.ts, components/blocks/plans.tsx).
+ * Checkout happens on Pro: each plan's button opens Pro's pricing for that plan.
+ */
+export const proPlans = {
+  pro: 199,
+  games: 199,
+  everything: 329,
+  /** An owner of one product adds the other for this. */
+  upgrade: 129,
+  /** The founding offer: a Pro owner from before Games launched adds Games for this (Pro lib/product.ts `founding`). */
+  founding: 65,
+} as const;

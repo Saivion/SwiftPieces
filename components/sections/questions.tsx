@@ -10,13 +10,13 @@ import { cn } from "@/lib/cn";
  * page's 1:2 grid. Native <details>, so it is server-rendered, works without JavaScript and is
  * searchable with find-in-page; the open animation is CSS (see `.qa` in globals.css).
  */
-export function Questions({ items = faqs, title = "Questions", body, spacing = "mt-24 sm:mt-32" }: { items?: readonly { q: string; a: string }[]; title?: string; body?: ReactNode; spacing?: string } = {}) {
+export function Questions({ items = faqs, title = "Questions", body, spacing = "mt-24 sm:mt-32", stacked = false }: { items?: readonly { q: string; a: string }[]; title?: string; body?: ReactNode; spacing?: string; /** Heading above, the questions as wide as the pricing cards (the Pro page, as on Pro's own). */ stacked?: boolean } = {}) {
   return (
     <Container className={spacing}>
-      <section className="grid gap-8 lg:grid-cols-[1fr_2fr] lg:gap-16">
-        <Reveal as="div" className={stickyColumn}>
+      <section className={stacked ? "grid gap-8" : "grid gap-8 lg:grid-cols-[1fr_2fr] lg:gap-16"}>
+        <Reveal as="div" className={stacked ? undefined : stickyColumn}>
           <h2 className={sectionTitle}>{title}</h2>
-          <p className={cn("mt-4 max-w-xs", sectionBody)}>{body ?? "The short ones are here. The rest are in the docs."}</p>
+          <p className={cn("mt-4", stacked ? "max-w-xl" : "max-w-xs", sectionBody)}>{body ?? "The short ones are here. The rest are in the docs."}</p>
           {body ? null : <RowLink href="/docs/introduction" className="mt-6">Read the docs</RowLink>}
         </Reveal>
         <Reveal as="div" className="border-t border-[var(--line)]">
