@@ -663,6 +663,20 @@
     }
   },
   {
+    "url": "/docs/components/games",
+    "title": "Games",
+    "description": "Complete iOS games from SwiftPieces Games, in SwiftUI and Metal. Real levels, Game Center and a StoreKit shop, with the full Xcode project.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Components",
+      "Explore Pro"
+    ],
+    "structuredData": {
+      "contents": [],
+      "headings": []
+    }
+  },
+  {
     "url": "/docs/components",
     "title": "All SwiftUI components",
     "description": "Every free SwiftPieces component for iOS with a live preview. Filter by category, then open a piece for its source and install command.",

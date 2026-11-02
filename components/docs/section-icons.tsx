@@ -14,6 +14,8 @@ const grid16: Record<string, { motion?: string; parts: ReactNode }> = {
   // Two screens and the step between them; the path redraws when its row is pointed at. Same as Pro's.
   flows: { parts: <><rect x="1.5" y="3" width="4.5" height="10" rx="1" /><rect x="10" y="3" width="4.5" height="10" rx="1" /><path className="ai-redraw" pathLength={1} d="M6.5 8h3M8.2 6.6 9.6 8l-1.4 1.4" strokeLinecap="round" /></> },
   templates: { parts: <><rect className="ai-drop" x="2.5" y="3.5" width="11" height="2" /><rect x="2.5" y="7.5" width="11" height="5" /></> },
+  // A gamepad whose two buttons pop when its row is pointed at: SwiftPieces Games, drawn like Pro's Games tile.
+  games: { parts: <><path d="M5 4.5h6a3.5 3.5 0 0 1 3.5 3.5v1a3.5 3.5 0 0 1-3.5 3.5H5A3.5 3.5 0 0 1 1.5 9V8A3.5 3.5 0 0 1 5 4.5z" /><path d="M5 7v3M3.5 8.5h3" strokeLinecap="round" /><circle className="ai-pop" cx="10.4" cy="9.4" r="0.75" fill="currentColor" stroke="none" /><circle className="ai-pop" style={i(1)} cx="12" cy="7.6" r="0.75" fill="currentColor" stroke="none" /></> },
   agent: { parts: <path className="ai-twinkle" d="M8 2l1.2 3.3L12.5 6.5 9.2 7.8 8 11 6.8 7.8 3.5 6.5l3.3-1.2z" /> },
   free: { parts: <><path d="M8 2.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11z" /><path className="ai-spin" style={{ "--ai-turn": "180deg" } as CSSProperties} d="M5.5 8h5" /></> },
   collections: { parts: <>{["M3 5.5h10", "M3 8h10", "M3 10.5h6", "M5.5 3v10"].map((d, n) => <path key={d} className="ai-redraw" style={i(n)} pathLength={1} d={d} />)}</> },
