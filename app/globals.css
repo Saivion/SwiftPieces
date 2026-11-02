@@ -28,7 +28,7 @@
   --footer-slot: #181818;    /* the footer wordmark's SWIFT: the same faint fill */
   --footer-dash: transparent; /* ...with no outline */
   --beta: #2eb4ff;           /* Beta badge: bright cyan-blue, text in full, fill at low opacity */
-  --new: #ff6a45;            /* New badge: the ember accent, its label on the same colour at 15% */
+  --new: #ff005c;            /* New badge: hot pink, its label on the same colour at 15% */
 }
 
 
@@ -483,7 +483,7 @@ html.light {
   --footer-slot: #efefec;
   --footer-dash: transparent;
   --beta: #0084d1;
-  --new: #d8261b;            /* deeper ember, so the label holds up on a light ground */
+  --new: #ff005c;            /* same pink in light mode */
   --raised: #ffffff;
   --gold-panel: #ffffff;
   --tag-ink: #3d3d3d;
