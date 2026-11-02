@@ -16,12 +16,14 @@ import { SidebarPreview, type SidebarPreviewEntry } from "@/components/docs/side
 import { categoryTitle } from "@/lib/categories";
 import { proCards, type ProCardType } from "@/components/docs/pro-cards";
 import { changelogPath } from "@/lib/changelog";
+import { proGames } from "@/lib/pro-catalog";
 
 /** Explore Pro rows: the section's icon and a quiet count of what Pro holds. */
-const exploreRows: Record<string, { kind: "screens" | "flows" | "templates"; type: ProCardType }> = {
+const exploreRows: Record<string, { kind: "screens" | "flows" | "templates" | "games"; type: ProCardType | "game" }> = {
   "/docs/components/screens": { kind: "screens", type: "screen" },
   "/docs/components/flows": { kind: "flows", type: "flow" },
   "/docs/components/templates": { kind: "templates", type: "template" },
+  "/docs/components/games": { kind: "games", type: "game" },
 };
 
 
@@ -120,7 +122,8 @@ function flatSidebar(tree: PageTree.Root): PageTree.Root {
       out.push(heading("Explore Pro", undefined, "pro"));
       for (const n of explore) {
         const row = exploreRows[n.url];
-        const cards = proCards(row.type);
+        // Games launched as a whole (2026-10-30), so every game counts as new, as Pro's docs badge the whole group.
+        const cards = row.type === "game" ? proGames.list.map(() => ({ isNew: true })) : proCards(row.type);
         const fresh = cards.filter((c) => c.isNew).length;
         out.push({ ...tiered(withEnd(n, fresh ? <NewBadge>{`${fresh} New`}</NewBadge> : <span className="text-[11px] tabular-nums text-subtle">{cards.length}</span>), "pro"), icon: <SectionIcon kind={row.kind} tone="text-current" /> });
       }

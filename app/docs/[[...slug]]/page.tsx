@@ -11,7 +11,7 @@ import { BlockGrid } from "@/components/blocks/block-grid";
 import { blockCards } from "@/lib/block-cards";
 import { blockCategories } from "@/lib/blocks";
 import { ShowcaseGrid } from "@/components/sections/showcase";
-import { ProCardGrid } from "@/components/docs/pro-cards";
+import { GameCardGrid, ProCardGrid } from "@/components/docs/pro-cards";
 import { DocsAside, DocsAsideColumn } from "@/components/docs/docs-aside";
 import { PieceRelated } from "@/components/docs/piece-related";
 import { JsonLd } from "@/components/seo/json-ld";
@@ -66,7 +66,7 @@ export default async function Page(props: Props) {
       {/* The page body opens on Preview and Code, with the install line right under them (components/docs/showcase.tsx), then the facts. */}
       {isIndex ? <div className="not-prose mb-10"><ShowcaseGrid items={getRegistryIndex()} /></div> : null}
       {isBlocksIndex ? <div className="not-prose mb-10"><BlockGrid cards={blockCards()} narrow /></div> : null}
-      {proType ? <ProCardGrid type={proType} /> : null}
+      {proType === "game" ? <GameCardGrid /> : proType ? <ProCardGrid type={proType} /> : null}
       <DocsBody>
         <MDX components={getMDXComponents({ a: createRelativeLink(source, page) })} />
         {item ? <PieceInstall item={item} /> : null}

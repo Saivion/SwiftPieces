@@ -49,7 +49,7 @@ export function namesWithMore(names: readonly string[], take = names.length): st
 }
 
 /** The Explore Pro docs pages (/docs/components/<page>), in sidebar order: docs pages, not registry categories. */
-export const exploreProPages = ["screens", "flows", "templates"] as const;
+export const exploreProPages = ["screens", "flows", "templates", "games"] as const;
 
 /** "54 screens, 48 flows, 12 app templates and a 31-item Build Kit". */
 export const proCountsLabel = `${proCatalog.screens} screens, ${proCatalog.flows.total} flows, ${proCatalog.templates} app templates and a ${proCatalog.buildKit.total}-item Build Kit`;
