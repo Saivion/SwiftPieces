@@ -7,6 +7,20 @@ import type { ChangelogEntry } from "@/components/changelog/changelog-grid";
  */
 export const changelog: ChangelogEntry[] = [
   {
+    slug: "five-new-games",
+    date: "Nov 8, 2026",
+    title: "Five new games",
+    summary: "SwiftPieces Games grows to ten: Cairn, Pane, Parlour, Thrum and Ripple join the launch five, each a finished iOS game in SwiftUI and Metal with its full Xcode project.",
+    points: [
+      "Cairn stacks river stones in real 3D physics on a misty loch. Pane is two-player strategy in a stained-glass window, online with Game Center or pass and play.",
+      "Parlour is card patience on a linen table in window light. Thrum is a rhythm game on five strings of light. Ripple is a wave puzzle where rings on a night pond carry gold leaves into the moon.",
+      "The navbar's Games menu lists all ten, newest first, and the docs' Games page under Explore Pro shows each one mid-play with a New badge on the new five.",
+      "Their stills and loops were reshot to show each game at its best moment. Games owners get all five at no extra cost, as with every game added later.",
+    ],
+    visual: "phones",
+    tint: "red",
+  },
+  {
     slug: "eleven-everyday-pieces",
     date: "Nov 8, 2026",
     title: "Eleven everyday pieces",
