@@ -56,6 +56,21 @@
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.95), 0 1px 2px rgb(0 0 0 / 0.08);
 }
 
+/* The Games badge (2026-11-08, Saivion picked Iris "Pink tip"): the Pro badge's pearl in Games' own colours,
+   a lilac left end, violet clouds and a #ff005c glow at the right end, like light catching one side, with deep
+   violet type. Shape, rim and gloss are the Pro badge's; only the colours change. ProBadge tone="games" on both sites. */
+.pro-badge.games-badge {
+  --gb-lilac: #e0d4ff; --gb-violet: #9d7bff; --gb-pink: #ff005c; --gb-ink: #2a0d52;
+  border-color: rgb(42 13 82 / 0.16);
+  color: var(--gb-ink);
+  background:
+    radial-gradient(48% 110% at 4% 50%, var(--gb-lilac) 0%, transparent 78%),
+    radial-gradient(48% 110% at 98% 50%, color-mix(in srgb, var(--gb-pink) 55%, transparent) 0%, transparent 70%),
+    radial-gradient(50% 120% at 30% 105%, color-mix(in srgb, var(--gb-violet) 75%, transparent), transparent 72%),
+    radial-gradient(42% 110% at 64% 0%, color-mix(in srgb, var(--gb-violet) 55%, transparent), transparent 72%),
+    #ffffff;
+}
+
 /* A text link's underline (.u-link, brand theme.css) draws when anywhere on its link is hovered,
    so the arrow and any badge beside the words count too. */
 .group:hover > .u-link::after, .group:focus-visible > .u-link::after { transform: scaleX(1); transform-origin: left; }
