@@ -91,22 +91,11 @@ public struct PathBar<Node: Hashable, SegmentLabel: View>: View {
 
     public var body: some View {
         let motion = PieceMotion(reduceMotion: reduceMotion)
-        HStack(spacing: 2) {
-            ForEach(Array(shown.enumerated()), id: \.offset) { position, level in
-                if position > 0 {
-                    Image(systemName: "chevron.forward")
-                        .font(.caption2.weight(.semibold))
-                        .foregroundStyle(style.separator)
-                        .accessibilityHidden(true)
-                }
-                if let level {
-                    segment(level)
-                        .id(trail[level])
-                        .transition(motion.transition(.asymmetric(insertion: .offset(y: 18).combined(with: .opacity), removal: .opacity)))
-                } else {
-                    fold
-                }
-            }
+        // Every folder keeps its whole name while the bar fits; only when it
+        // can't do earlier folders shorten, and the current one never does.
+        ViewThatFits(in: .horizontal) {
+            row(whole: true, motion: motion)
+            row(whole: false, motion: motion)
         }
         .padding(4)
         .background(alignment: .topLeading) {
@@ -130,7 +119,27 @@ public struct PathBar<Node: Hashable, SegmentLabel: View>: View {
 
     // MARK: Segments
 
-    @ViewBuilder private func segment(_ level: Int) -> some View {
+    private func row(whole: Bool, motion: PieceMotion) -> some View {
+        HStack(spacing: 2) {
+            ForEach(Array(shown.enumerated()), id: \.offset) { position, level in
+                if position > 0 {
+                    Image(systemName: "chevron.forward")
+                        .font(.caption2.weight(.semibold))
+                        .foregroundStyle(style.separator)
+                        .accessibilityHidden(true)
+                }
+                if let level {
+                    segment(level, whole: whole)
+                        .id(trail[level])
+                        .transition(motion.transition(.asymmetric(insertion: .offset(y: 18).combined(with: .opacity), removal: .opacity)))
+                } else {
+                    fold
+                }
+            }
+        }
+    }
+
+    @ViewBuilder private func segment(_ level: Int, whole: Bool) -> some View {
         let node = trail[level]
         let current = level == trail.count - 1
         let siblings = level > 0 ? children(trail[level - 1]) : []
@@ -139,8 +148,7 @@ public struct PathBar<Node: Hashable, SegmentLabel: View>: View {
             .font(.subheadline)
             .lineLimit(1)
             .truncationMode(.middle)
-            // The current folder keeps its full name; earlier ones give way first.
-            .fixedSize(horizontal: current, vertical: false)
+            .fixedSize(horizontal: whole || current, vertical: false)
             .foregroundStyle(current ? style.onAccent : style.label)
             .padding(.horizontal, 12)
             .frame(minHeight: 40)
@@ -162,13 +170,13 @@ public struct PathBar<Node: Hashable, SegmentLabel: View>: View {
             }
             .menuStyle(.button)
             .buttonStyle(PiecePressStyle(depth: 1.5))
-            .fixedSize(horizontal: current, vertical: false)
+            .fixedSize(horizontal: whole || current, vertical: false)
             .accessibilityAddTraits(current ? [.isSelected] : [])
             .accessibilityHint(current ? "Current. Hold for other folders here" : "Goes back here. Hold for other folders here")
         } else {
             Button { go(to: level) } label: { content }
                 .buttonStyle(PiecePressStyle(depth: 1.5))
-                .fixedSize(horizontal: current, vertical: false)
+                .fixedSize(horizontal: whole || current, vertical: false)
                 .accessibilityAddTraits(current ? [.isSelected] : [])
                 .accessibilityHint(current ? "Current" : "Goes back here")
         }
