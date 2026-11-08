@@ -130,7 +130,7 @@ public struct PathBar<Node: Hashable, SegmentLabel: View>: View {
             ForEach(Array(shown.enumerated()), id: \.offset) { position, level in
                 if position > 0 {
                     Image(systemName: "chevron.forward")
-                        .font(.caption2.weight(.bold))
+                        .font(.caption2.weight(.semibold))
                         .foregroundStyle(style.separator)
                         .accessibilityHidden(true)
                 }
@@ -174,6 +174,8 @@ public struct PathBar<Node: Hashable, SegmentLabel: View>: View {
             .font(.subheadline)
             .lineLimit(1)
             .truncationMode(.middle)
+            // The current folder keeps its full name; earlier ones give way first.
+            .fixedSize(horizontal: current, vertical: false)
             .foregroundStyle(current ? style.onAccent : style.label)
             .padding(.horizontal, 12)
             .frame(minHeight: 40)
@@ -195,11 +197,13 @@ public struct PathBar<Node: Hashable, SegmentLabel: View>: View {
             }
             .menuStyle(.button)
             .buttonStyle(PiecePressStyle(depth: 1.5))
+            .fixedSize(horizontal: current, vertical: false)
             .accessibilityAddTraits(current ? [.isSelected] : [])
             .accessibilityHint(current ? "Current. Hold for other folders here" : "Goes back here. Hold for other folders here")
         } else {
             Button { go(to: level) } label: { content }
                 .buttonStyle(PiecePressStyle(depth: 1.5))
+                .fixedSize(horizontal: current, vertical: false)
                 .accessibilityAddTraits(current ? [.isSelected] : [])
                 .accessibilityHint(current ? "Current" : "Goes back here")
         }
@@ -214,7 +218,7 @@ public struct PathBar<Node: Hashable, SegmentLabel: View>: View {
             }
         } label: {
             Image(systemName: "ellipsis")
-                .font(.subheadline.weight(.bold))
+                .font(.subheadline.weight(.semibold))
                 .foregroundStyle(style.label)
                 .frame(width: 40, height: 40)
                 .contentShape(.capsule)

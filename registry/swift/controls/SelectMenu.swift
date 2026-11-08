@@ -145,7 +145,7 @@ public struct SelectMenu<Option: Hashable>: View {
                     .transition(motion.swap)
                 Spacer(minLength: 0)
                 Image(systemName: "chevron.down")
-                    .font(.footnote.weight(.bold))
+                    .font(.footnote.weight(.semibold))
                     .foregroundStyle(style.secondaryLabel)
                     .rotationEffect(.degrees(isOpen ? 180 : 0))
             }
@@ -169,7 +169,7 @@ public struct SelectMenu<Option: Hashable>: View {
                     .lineLimit(1)
                 Spacer(minLength: 0)
                 Image(systemName: "checkmark")
-                    .font(.footnote.weight(.bold))
+                    .font(.footnote.weight(.semibold))
                     .opacity(chosen ? 1 : 0)
                     .scaleEffect(chosen ? 1 : 0.4)
                     .animation(motion.success, value: chosen)

@@ -169,7 +169,7 @@ private struct RelativeTimeExample: View {
             ForEach(rows, id: \.0) { row in
                 HStack(spacing: 12) {
                     Image(systemName: row.1)
-                        .font(.footnote.weight(.bold))
+                        .font(.footnote.weight(.semibold))
                         .foregroundStyle(Color(red: 0.078, green: 0.078, blue: 0.078))
                         .frame(width: 32, height: 32)
                         .background(Color(red: 0.612, green: 0.761, blue: 1), in: .circle)
