@@ -44,6 +44,8 @@ Or open the file on [swiftpieces.com/components](https://swiftpieces.com/compone
 
 **Guides:** [SwiftUI animations](https://swiftpieces.com/docs/guides/swiftui-animations) · [SwiftUI buttons](https://swiftpieces.com/docs/guides/swiftui-buttons) · [SwiftUI cards](https://swiftpieces.com/docs/guides/swiftui-cards) · [SwiftUI haptics](https://swiftpieces.com/docs/guides/swiftui-haptics) · [Loading states](https://swiftpieces.com/docs/guides/swiftui-loading-states) · [Liquid Glass](https://swiftpieces.com/docs/liquid-glass)
 
+**Agent skill:** [App Design](skills/swiftpieces-tool-app-design/SKILL.md) is a free skill for Claude Code, Cursor or Codex that makes any SwiftUI app better, with or without SwiftPieces: study real apps first, pick the right navigation, keep motion native, and record the whole flow in the simulator before calling a screen done. Copy the folder into your agent's skills folder, or run `npx swiftpieces add tool-app-design`.
+
 ## What you get
 
 - **iOS 17 baseline.** Liquid Glass effects are gated behind `#available(iOS 26, *)` with a Material fallback, so a piece never fails to build on an older SDK.
