@@ -20,7 +20,7 @@ const pages = ["", "/components", "/patterns", "/apps", "/styles", "/sponsors", 
  * lastmod for every page that has no date of its own: the last day the site's copy changed. Bump it
  * by hand when page copy changes. Never `new Date()`: a lastmod that moves on every build is ignored.
  */
-const CONTENT_UPDATED = mustContentDate("2026-11-01");
+const CONTENT_UPDATED = mustContentDate("2026-11-08");
 
 /** A changelog update keeps the day it shipped. */
 function shipped(date?: string): Date {
