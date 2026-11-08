@@ -85,7 +85,7 @@ export function Showcase({
       </div>
 
       {/* How to install it, right under what it is. A Pro block's source comes only with a Pro license. */}
-      <div className="mt-4 max-w-xl">
+      <div className="mt-4">
         <Command text={cliCommand({ name })} />
         {pro ? <p className="mt-2 text-[12px] text-subtle">Needs a SwiftPieces Pro license: <code className="font-mono">npx swiftpieces login</code> first.</p> : null}
       </div>
