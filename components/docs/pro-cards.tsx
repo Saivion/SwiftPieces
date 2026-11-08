@@ -4,6 +4,7 @@ import { Panel, PanelBody, PanelMedia } from "@/components/ui/panel";
 import { NewBadge } from "@/components/ui/new-badge";
 import { pro, site } from "@/lib/site";
 import { proGames, proGamesNav } from "@/lib/pro-catalog";
+import { ProBadge } from "@/components/ui/pro-badge";
 import { cn } from "@/lib/cn";
 
 export type ProCardType = "screen" | "flow" | "template";
@@ -132,7 +133,7 @@ export function GameCardGrid() {
                     />
                   </div>
                 </div>
-                <span className="absolute top-3 left-3 inline-flex h-5 items-center rounded-full bg-[#000]/55 px-2 text-[10.5px] leading-none font-semibold text-[#fff] backdrop-blur-sm">Games</span>
+                <ProBadge tone="games" label="Games" size="sm" className="absolute top-3 left-3" />
               </PanelMedia>
               <PanelBody>
                 <p className="text-[12.5px] font-medium text-subtle">Game · {game.genre}</p>

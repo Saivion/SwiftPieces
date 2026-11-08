@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { NewBadge } from "@/components/ui/new-badge";
+import { ProBadge } from "@/components/ui/pro-badge";
 import { notFound, redirect } from "next/navigation";
 import { DocsBody, DocsDescription, DocsPage, DocsTitle } from "fumadocs-ui/layouts/docs/page";
 import { createRelativeLink } from "fumadocs-ui/mdx";
@@ -58,9 +59,11 @@ export default async function Page(props: Props) {
       tableOfContent={hasToc ? { footer: aside } : { enabled: true, component: <DocsAsideColumn>{aside}</DocsAsideColumn> }}
     >
       <JsonLd data={structuredData(page.url, page.data.title, page.data.description, page.slugs, item, block)} />
-      <DocsTitle className={fresh ? "flex items-center gap-3" : undefined}>
+      <DocsTitle className={fresh || proType === "game" ? "flex items-center gap-3" : undefined}>
         {page.data.title}
         {fresh ? <NewBadge /> : null}
+        {/* The Games page under Explore Pro wears the Games badge, as Pro's game guides do. */}
+        {proType === "game" ? <ProBadge tone="games" label="Games" className="tracking-normal" /> : null}
       </DocsTitle>
       <DocsDescription>{page.data.description}</DocsDescription>
       {/* The page body opens on Preview and Code, with the install line right under them (components/docs/showcase.tsx), then the facts. */}
