@@ -12,20 +12,22 @@ import { fontPreloads } from "@/lib/fonts.generated";
 // needs a new character, weight or OpenType feature). app/fonts.css holds the @font-face rules, the same
 // metric-matched fallback next/font generated, and --font-figtree; only the small core file is preloaded.
 
-const ICON_VERSION = 4;
+const ICON_VERSION = 5;
 
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
   title: { default: site.title, template: `%s — ${site.name}` },
   description: site.description,
-  // Every icon comes from public/ (favicon.ico and logo.png, the official marks). Bump ICON_VERSION
-  // when either file changes: browsers cache tab icons hard, and a new URL forces them to refetch.
+  // Every icon comes from public/ (favicon.ico and logo.png, the official marks, with the site's 30% corner
+  // baked in). apple-touch-icon.png stays square because iOS applies its own mask, and pre-rounded corners
+  // would show black. Bump ICON_VERSION when any of them changes: browsers cache tab icons hard, and a new
+  // URL forces them to refetch.
   icons: {
     icon: [
       { url: `/favicon.ico?v=${ICON_VERSION}`, sizes: "16x16 32x32 48x48" },
       { url: `/logo.png?v=${ICON_VERSION}`, type: "image/png", sizes: "1024x1024" },
     ],
-    apple: [{ url: `/logo.png?v=${ICON_VERSION}`, sizes: "1024x1024" }],
+    apple: [{ url: `/apple-touch-icon.png?v=${ICON_VERSION}`, sizes: "180x180" }],
   },
   openGraph: { siteName: site.name, type: "website" },
   twitter: { card: "summary_large_image" },
