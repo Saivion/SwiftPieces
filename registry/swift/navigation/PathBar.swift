@@ -143,8 +143,9 @@ public struct PathBar<Node: Hashable, SegmentLabel: View>: View {
             .padding(.horizontal, 12)
             .frame(minHeight: 40)
             .contentShape(.capsule)
-            .onGeometryChange(for: CGRect.self) { $0.frame(in: .named(space)) } action: { frame in
-                frames[level] = frame
+            // The closures capture only plain values, never this generic view.
+            .onGeometryChange(for: CGRect.self) { [space] in $0.frame(in: .named(space)) } action: { [frames = $frames] frame in
+                frames.wrappedValue[level] = frame
             }
         if siblings.count > 1 {
             Menu {

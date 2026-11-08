@@ -27,6 +27,9 @@ enum PreviewCatalog {
         "ScrollIsland", "StepTrail", "WaveformScrub", "VoiceRecorder", "NowPlaying", "WalletStack", "NoticeStack", "RangeLens",
         // pickers and controls, 2026-10-27
         "LiquidSwitch", "PageDots", "ChoiceGroup", "SwatchPicker", "TimeSlotPicker", "LevelPicker", "DateStrip", "InterestChips",
+        // everyday pieces, 2026-11-08
+        "SelectMenu", "ZoomDial", "ReorderList", "SizePicker", "UnitToggle", "ViewToggle", "PathBar", "QRCode",
+        "ReadAlongText", "RelativeTime", "TranslateToggle",
     ]
 
     @MainActor @ViewBuilder
@@ -214,6 +217,28 @@ enum PreviewCatalog {
             Stage { DateStripScene() }
         case "InterestChips":
             Stage { InterestChipsScene() }
+        case "SelectMenu":
+            Stage { SelectMenuScene() }
+        case "ZoomDial":
+            Stage { ZoomDialScene() }
+        case "ReorderList":
+            Stage { ReorderListScene() }
+        case "SizePicker":
+            Stage { SizePickerScene() }
+        case "UnitToggle":
+            Stage { UnitToggleScene() }
+        case "ViewToggle":
+            Stage { ViewToggleScene() }
+        case "PathBar":
+            Stage { PathBarScene() }
+        case "QRCode":
+            Stage { QRCodeScene() }
+        case "ReadAlongText":
+            Stage { ReadAlongTextScene() }
+        case "RelativeTime":
+            Stage { RelativeTimeScene() }
+        case "TranslateToggle":
+            Stage { TranslateToggleScene() }
         default:
             Text("Unknown piece: \(name)")
         }
@@ -4250,5 +4275,271 @@ private struct InterestChipsScene: View {
                     topics = ["Design"]
                 }
             }
+    }
+}
+
+// MARK: - everyday pieces, 2026-11-08
+
+/// The ground every 2026-11-08 scene stands on.
+private extension View {
+    func everydayScene(width: CGFloat? = nil) -> some View {
+        self
+            .frame(maxWidth: width)
+            .padding(.horizontal, 24)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(pickerSceneColor(light: 0xF3F2EE, dark: 0x121212))
+    }
+}
+
+private enum EverydaySort: String, CaseIterable {
+    case newest = "Newest first"
+    case oldest = "Oldest first"
+    case priceUp = "Price, low to high"
+    case priceDown = "Price, high to low"
+}
+
+/// The menu opening, the red flowing to a new sort, and closing with it.
+private struct SelectMenuScene: View {
+    @State private var sort = EverydaySort.newest
+
+    var body: some View {
+        VStack {
+            SelectMenu("Sort by", selection: $sort, options: EverydaySort.allCases) { $0.rawValue }
+            Spacer().frame(height: 190)
+        }
+        .everydayScene(width: 260)
+    }
+}
+
+/// Stops tapped in turn, then the dial held open.
+private struct ZoomDialScene: View {
+    @State private var zoom = 1.0
+
+    var body: some View {
+        ZoomDial(value: $zoom)
+            .everydayScene()
+            .task {
+                while !Task.isCancelled {
+                    for value in [2.0, 0.5, 1.0, 3.0, 1.0] {
+                        try? await Task.sleep(for: .seconds(1))
+                        withAnimation(.spring(duration: 0.35, bounce: 0)) { zoom = value }
+                    }
+                }
+            }
+    }
+}
+
+private struct EverydayList: Identifiable {
+    var id: String { name }
+    var name: String
+    var color: Color
+    var count: Int
+}
+
+/// Four lists; rows step aside as the order changes.
+private struct ReorderListScene: View {
+    @State private var lists = [
+        EverydayList(name: "Inbox", color: Color(red: 0.612, green: 0.761, blue: 1), count: 12),
+        EverydayList(name: "Today", color: Color(red: 1, green: 0.851, blue: 0.463), count: 5),
+        EverydayList(name: "Upcoming", color: Color(red: 0.663, green: 0.863, blue: 0.718), count: 8),
+        EverydayList(name: "Someday", color: Color(red: 0.804, green: 0.722, blue: 1), count: 21),
+    ]
+
+    var body: some View {
+        ReorderList($lists) { list in
+            HStack(spacing: 12) {
+                Circle().fill(list.color).frame(width: 12, height: 12)
+                Text(list.name)
+                Spacer()
+                Text("\(list.count)").foregroundStyle(.secondary).monospacedDigit()
+            }
+        }
+        .everydayScene(width: 300)
+        .task {
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(1.4))
+                withAnimation(.spring(duration: 0.32, bounce: 0.25)) { lists.move(fromOffsets: [0], toOffset: 3) }
+                try? await Task.sleep(for: .seconds(1.4))
+                withAnimation(.spring(duration: 0.32, bounce: 0.25)) { lists.move(fromOffsets: [2], toOffset: 0) }
+            }
+        }
+    }
+}
+
+/// The pill flowing along the sizes, past two sold out ones.
+private struct SizePickerScene: View {
+    @State private var size = "M"
+
+    var body: some View {
+        SizePicker(selection: $size, sizes: ["XS", "S", "M", "L", "XL", "XXL"], unavailable: ["XS", "XXL"]) { size in
+            size == "L" ? "Only 2 left" : nil
+        }
+        .everydayScene(width: 320)
+        .task {
+            while !Task.isCancelled {
+                for next in ["L", "XL", "S", "M"] {
+                    try? await Task.sleep(for: .seconds(1))
+                    size = next
+                }
+            }
+        }
+    }
+}
+
+/// A weight converting between kilograms and pounds.
+private struct UnitToggleScene: View {
+    @State private var weight = Measurement(value: 72.4, unit: UnitMass.kilograms)
+
+    var body: some View {
+        UnitToggle(value: $weight, units: [.kilograms, .pounds])
+            .everydayScene()
+            .task {
+                while !Task.isCancelled {
+                    try? await Task.sleep(for: .seconds(1.3))
+                    withAnimation(.spring(duration: 0.35, bounce: 0)) { weight = weight.converted(to: .pounds) }
+                    try? await Task.sleep(for: .seconds(1.3))
+                    withAnimation(.spring(duration: 0.35, bounce: 0)) { weight = weight.converted(to: .kilograms) }
+                }
+            }
+    }
+}
+
+/// The toggle switching layouts, the tiles morphing with it.
+private struct ViewToggleScene: View {
+    @State private var layout = ViewToggleLayout.list
+    @Namespace private var namespace
+    private let colors = [Color(red: 0.612, green: 0.761, blue: 1), Color(red: 1, green: 0.851, blue: 0.463), Color(red: 0.663, green: 0.863, blue: 0.718), Color(red: 0.804, green: 0.722, blue: 1)]
+
+    var body: some View {
+        VStack(spacing: 22) {
+            ViewToggle(layout: $layout)
+            Group {
+                if layout == .list {
+                    VStack(spacing: 10) {
+                        ForEach(colors.indices, id: \.self) { index in
+                            HStack(spacing: 12) {
+                                RoundedRectangle(cornerRadius: 10, style: .continuous).fill(colors[index])
+                                    .matchedGeometryEffect(id: index, in: namespace)
+                                    .frame(width: 40, height: 40)
+                                RoundedRectangle(cornerRadius: 4).fill(.secondary.opacity(0.3)).frame(width: 110, height: 8)
+                                Spacer()
+                            }
+                        }
+                    }
+                } else {
+                    LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)], spacing: 10) {
+                        ForEach(colors.indices, id: \.self) { index in
+                            RoundedRectangle(cornerRadius: 16, style: .continuous).fill(colors[index])
+                                .matchedGeometryEffect(id: index, in: namespace)
+                                .frame(height: 90)
+                        }
+                    }
+                }
+            }
+            .frame(width: 240, height: 200, alignment: .top)
+        }
+        .everydayScene()
+        .task {
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(1.4))
+                withAnimation(.spring(duration: 0.4, bounce: 0.2)) { layout = layout == .list ? .grid : .list }
+            }
+        }
+    }
+}
+
+private struct EverydayFolder: Hashable {
+    let name: String
+    static let tree: [String: [String]] = [
+        "Home": ["Projects", "Photos", "Notes"], "Projects": ["SwiftPieces", "Lumen", "Orbit"],
+        "SwiftPieces": ["Assets", "Docs", "Tests"], "Assets": ["Icons", "Stills"],
+    ]
+    var children: [EverydayFolder] { (Self.tree[name] ?? []).map(EverydayFolder.init) }
+}
+
+/// Drilling down four folders, folding the middle, then back home.
+private struct PathBarScene: View {
+    @State private var path: [EverydayFolder] = []
+
+    var body: some View {
+        PathBar(path: $path, root: EverydayFolder(name: "Home"), children: { $0.children }) { folder in
+            Label(folder.name, systemImage: folder.name == "Home" ? "house" : "folder")
+        }
+        .everydayScene()
+        .task {
+            while !Task.isCancelled {
+                for name in ["Projects", "SwiftPieces", "Assets", "Icons"] {
+                    try? await Task.sleep(for: .seconds(1))
+                    path.append(EverydayFolder(name: name))
+                }
+                try? await Task.sleep(for: .seconds(1.2))
+                path = Array(path.prefix(1))
+                try? await Task.sleep(for: .seconds(1))
+                path = []
+            }
+        }
+    }
+}
+
+/// The code rippling between a link, a Wi-Fi login and a contact.
+private struct QRCodeScene: View {
+    @State private var index = 0
+    private let payloads = ["https://swiftpieces.com", "WIFI:S:Studio;T:WPA;P:paper-lantern;;", "MECARD:N:Chen,Maya;EMAIL:maya@example.com;;"]
+
+    var body: some View {
+        QRCode(payloads[index], logo: Image(systemName: "swift"))
+            .frame(width: 220)
+            .everydayScene()
+            .task {
+                while !Task.isCancelled {
+                    try? await Task.sleep(for: .seconds(2.4))
+                    index = (index + 1) % payloads.count
+                }
+            }
+    }
+}
+
+/// A sentence read aloud, the pill gliding word to word.
+private struct ReadAlongTextScene: View {
+    private let words = ReadAlongText.Word.spread("The tide came in slowly, and the lights along the harbour came on one by one.", over: 8)
+    @State private var time: TimeInterval = -0.6
+
+    var body: some View {
+        ReadAlongText(words, time: time)
+            .everydayScene(width: 290)
+            .task {
+                while !Task.isCancelled {
+                    try? await Task.sleep(for: .milliseconds(50))
+                    time = time > 9 ? -0.6 : time + 0.05
+                }
+            }
+    }
+}
+
+/// Three timestamps, one revealing its exact time.
+private struct RelativeTimeScene: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            ForEach([("Message sent", 0.0), ("Draft edited", -70.0), ("Backup done", -26 * 3_600.0)], id: \.0) { row in
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(row.0).fontWeight(.semibold)
+                    RelativeTime(Date(timeIntervalSinceNow: row.1))
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(14)
+                .background(.background, in: .rect(cornerRadius: 20, style: .continuous))
+            }
+        }
+        .everydayScene(width: 280)
+    }
+}
+
+/// A review in Spanish with its Translate button.
+private struct TranslateToggleScene: View {
+    var body: some View {
+        TranslateToggle("La mejor paella del barrio. Volveremos pronto, sin duda.")
+            .padding(20)
+            .background(.background, in: .rect(cornerRadius: 26, style: .continuous))
+            .everydayScene(width: 320)
     }
 }
