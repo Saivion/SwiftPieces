@@ -16,13 +16,13 @@ import { hubs } from "@/lib/hubs";
 import { site } from "@/lib/site";
 import { apps } from "@/lib/apps";
 
-const count = getRegistryIndex().length;
-
 // The in-page filter pills are views of this one page, so they share its canonical URL; each
 // category also has its own page (/components/cards), linked from the directory below the grid.
+// No count in the title or description: it goes stale with every release, and what a searcher
+// wants to know is what the pieces are and how they install.
 export const metadata: Metadata = pageMetadata({
-  title: `${count} Free SwiftUI Components with Live Previews`,
-  description: `SwiftPieces' ${count} free SwiftUI components for iOS with live previews: buttons, cards, inputs, lists, navigation, sheets, charts, AI chat and Liquid Glass. One Swift file each.`,
+  title: "Free SwiftUI Components with Live Previews",
+  description: "SwiftPieces' free SwiftUI components for iOS, with live previews: buttons, inputs, sheets, charts, AI chat and Liquid Glass. One Swift file each, by CLI or MCP.",
   path: "/components",
 });
 
