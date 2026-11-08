@@ -36,7 +36,7 @@ export async function SponsorHero() {
           <Eyebrow>
             Sponsor
             <span aria-hidden className="h-3 w-px bg-[var(--line-strong)]" />
-            <span className="text-muted">Open-source SwiftUI</span>
+            <span className="text-muted">Free SwiftUI library</span>
           </Eyebrow>
         </Reveal>
         {/* Same title and subtitle styles as the homepage and /pro heroes. */}
@@ -272,7 +272,7 @@ export function SponsorWall({ sponsors }: { sponsors: Sponsor[] }) {
 
 export function SponsorUse() {
   const items = [
-    { title: "New free pieces", body: "More of the library stays free. Sponsorship decides how much of the roadmap ships as open source." },
+    { title: "New free pieces", body: "More of the library stays free. Sponsorship decides how much of the roadmap ships free." },
     { title: "Every iOS release", body: "Each piece is rechecked and fixed for new iOS and Xcode versions, including Liquid Glass on iOS 26 and later." },
     { title: "The tooling around it", body: "The docs, the CLI, the registry and the MCP server your agent installs from, kept free and online." },
   ];
