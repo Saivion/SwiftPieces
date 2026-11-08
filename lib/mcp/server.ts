@@ -1,12 +1,32 @@
 /**
  * Minimal MCP server over streamable HTTP (JSON-RPC 2.0, stateless).
- * Supports initialize, ping, tools/list, tools/call. No SDK: keeps the Worker small.
+ * Supports initialize, ping, tools/list, tools/call, prompts/list, prompts/get, resources/list and
+ * resources/read. No SDK: keeps the Worker small.
  */
 export type ToolDef = {
   name: string;
   description: string;
   inputSchema: Record<string, unknown>;
   handler: (args: Record<string, unknown>) => Promise<unknown> | unknown;
+};
+
+/** An MCP prompt. Clients such as Claude Code show these as slash commands. */
+export type PromptDef = {
+  name: string;
+  title?: string;
+  description: string;
+  arguments?: { name: string; description: string; required?: boolean }[];
+  handler: (args: Record<string, string>) => Promise<string> | string;
+};
+
+/** An MCP resource: a document the client can attach as context (a skill, a reference, a guide). */
+export type ResourceDef = {
+  uri: string;
+  name: string;
+  title?: string;
+  description: string;
+  mimeType: string;
+  read: () => Promise<string> | string;
 };
 
 const MAX_BATCH = 20;
@@ -39,8 +59,17 @@ async function readJsonCapped(req: Request): Promise<unknown> {
 
 type Rpc = { jsonrpc: "2.0"; id?: string | number | null; method: string; params?: Record<string, unknown> };
 
-export function createMcpHandler(opts: { name: string; version: string; tools: ToolDef[]; instructions?: string }) {
+export function createMcpHandler(opts: { name: string; version: string; tools: ToolDef[]; prompts?: PromptDef[]; resources?: ResourceDef[]; instructions?: string }) {
   const byName = new Map(opts.tools.map((t) => [t.name, t]));
+  const prompts = opts.prompts ?? [];
+  const promptByName = new Map(prompts.map((p) => [p.name, p]));
+  const resources = opts.resources ?? [];
+  const resourceByUri = new Map(resources.map((r) => [r.uri, r]));
+  const capabilities = {
+    tools: { listChanged: false },
+    ...(prompts.length ? { prompts: { listChanged: false } } : {}),
+    ...(resources.length ? { resources: { listChanged: false, subscribe: false } } : {}),
+  };
 
   async function handle(msg: Rpc) {
     // A batch entry or body that isn't a request object (null, a number, a string) is invalid, not a crash.
@@ -49,7 +78,7 @@ export function createMcpHandler(opts: { name: string; version: string; tools: T
     const err = (code: number, message: string) => ({ jsonrpc: "2.0" as const, id: msg.id ?? null, error: { code, message } });
     switch (msg.method) {
       case "initialize":
-        return ok({ protocolVersion: "2025-06-18", capabilities: { tools: { listChanged: false } }, serverInfo: { name: opts.name, version: opts.version }, instructions: opts.instructions });
+        return ok({ protocolVersion: "2025-06-18", capabilities, serverInfo: { name: opts.name, version: opts.version }, instructions: opts.instructions });
       case "notifications/initialized":
         return null;
       case "ping":
@@ -66,6 +95,33 @@ export function createMcpHandler(opts: { name: string; version: string; tools: T
           return ok({ content: [{ type: "text", text }], isError: false });
         } catch (e) {
           return ok({ content: [{ type: "text", text: e instanceof Error ? e.message : String(e) }], isError: true });
+        }
+      }
+      case "prompts/list":
+        return ok({ prompts: prompts.map(({ name, title, description, arguments: args }) => ({ name, title, description, arguments: args ?? [] })) });
+      case "prompts/get": {
+        const name = String(msg.params?.name ?? "");
+        const prompt = promptByName.get(name);
+        if (!prompt) return err(-32602, `Unknown prompt: ${name}`);
+        try {
+          const text = await prompt.handler((msg.params?.arguments as Record<string, string>) ?? {});
+          return ok({ description: prompt.description, messages: [{ role: "user", content: { type: "text", text } }] });
+        } catch (e) {
+          return err(-32603, e instanceof Error ? e.message : String(e));
+        }
+      }
+      case "resources/list":
+        return ok({ resources: resources.map(({ uri, name, title, description, mimeType }) => ({ uri, name, title, description, mimeType })) });
+      case "resources/templates/list":
+        return ok({ resourceTemplates: [] });
+      case "resources/read": {
+        const uri = String(msg.params?.uri ?? "");
+        const resource = resourceByUri.get(uri);
+        if (!resource) return err(-32002, `Resource not found: ${uri}`);
+        try {
+          return ok({ contents: [{ uri, mimeType: resource.mimeType, text: await resource.read() }] });
+        } catch (e) {
+          return err(-32603, e instanceof Error ? e.message : String(e));
         }
       }
       default:
