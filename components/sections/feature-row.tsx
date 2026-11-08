@@ -24,7 +24,7 @@ export const cardTitle = "text-[22px] leading-[1.15] font-normal tracking-[-0.02
 export const band = "py-12 sm:py-[68px]";
 /** The heading column of a 1:2 section: from lg up it stays in view while the longer column beside it scrolls. */
 export const stickyColumn = "lg:sticky lg:top-24 lg:self-start";
-export const heroTitle = "text-[44px] leading-none font-normal tracking-[-0.04em] text-balance sm:text-[60px] lg:text-[74px] lg:tracking-[-0.047em]";
+export const heroTitle = "text-[36px] leading-none font-normal tracking-[-0.04em] text-balance sm:text-[48px] lg:text-[58px] lg:tracking-[-0.045em]";
 
 /** Outlined pills naming what a section covers. The glyphs stay in the data but Graphite shows words only. */
 export function Tags({ tags, className }: { tags: Tag[]; className?: string }) {

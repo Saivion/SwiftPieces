@@ -44,7 +44,7 @@ export function Hero() {
         {/* The eyebrow introduces SwiftPieces Games on Pro. The live view count eyebrow stays off:
         <Reveal priority><Eyebrow>New components every week<LiveViews /></Eyebrow></Reveal> */}
         <Reveal priority><GamesAnnouncement /></Reveal>
-        <AnimatedText as="h1" text="Build apps worthy of an App Store feature." accent="feature" className="mx-auto mt-[28px] max-w-[980px] text-[44px] leading-none font-normal tracking-[-0.04em] text-balance sm:text-[62px] lg:text-[80px] lg:tracking-[-0.05em]" />
+        <AnimatedText as="h1" text="Build apps worthy of an App Store feature." accent="feature" className="mx-auto mt-[28px] max-w-[980px] text-[38px] leading-none font-normal tracking-[-0.04em] text-balance sm:text-[50px] lg:text-[62px] lg:tracking-[-0.048em]" />
         <Reveal priority delay={0.35}><p className="mx-auto mt-6 max-w-[560px] text-[16.5px] leading-[27px] text-balance text-muted sm:text-[18px] sm:leading-[30px]">Free SwiftUI components with the motion, haptics and accessibility the best apps get right. Install with one command and make them yours.</p></Reveal>
         <Reveal priority delay={0.45} className="mt-9 flex flex-wrap items-center justify-center gap-2.5">
           <Button href="/components">Explore the library <Arrow /></Button>
