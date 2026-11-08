@@ -1,0 +1,652 @@
+---
+title: "Path Bar"
+description: "A glass breadcrumb with icons, a flowing red pill on the current place, a … menu for deep paths and siblings on a long press."
+piece: "PathBar"
+category: "navigation"
+minIOSVersion: "17.0"
+version: "1.0.0"
+tags: ["breadcrumb","path","folders","navigation","menu","glass","haptics"]
+registryDependencies: []
+---
+
+{/* GENERATED FILE. Edit registry/swift/navigation/PathBar.swift or PathBar.mdx instead. */}
+
+<Showcase name="PathBar">
+
+<Tabs items={["PathBar.swift"]}>
+<Tab value="PathBar.swift">
+
+```swift title="PathBar.swift"
+// Copyright (c) 2026 Saivion Hayes
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, and distribute the Software as part of
+// an application, website, or product, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// Commons Clause Restriction
+//
+// You may use this Software, including for any commercial purpose, so long as
+// you do not sell, sublicense, or redistribute the components themselves, whether
+// alone, in a bundle, or as a ported version.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
+import SwiftUI
+
+/// Colors for `PathBar`. `.standard` is the house palette.
+public struct PathBarStyle: Sendable {
+    /// The pill under the current segment.
+    public var accent: Color
+    /// The current segment's label.
+    public var onAccent: Color
+    /// Earlier segments.
+    public var label: Color
+    /// The chevrons between segments.
+    public var separator: Color
+
+    public init(
+        accent: Color = Color(red: 1, green: 0, blue: 0),
+        onAccent: Color = PathBarStyle.adaptive(light: 0x141414, dark: 0x141414),
+        label: Color = PathBarStyle.adaptive(light: 0x5C5A56, dark: 0xA6A49F),
+        separator: Color = PathBarStyle.adaptive(light: 0x8B8984, dark: 0x6F6D69)
+    ) {
+        self.accent = accent
+        self.onAccent = onAccent
+        self.label = label
+        self.separator = separator
+    }
+
+    public static let standard = PathBarStyle()
+
+    /// A color that follows the appearance, from two 0xRRGGBB values.
+    public static func adaptive(light: UInt32, dark: UInt32) -> Color {
+        Color(UIColor { @Sendable traits in
+            let hex = traits.userInterfaceStyle == .dark ? dark : light
+            return UIColor(red: CGFloat(hex >> 16 & 0xFF) / 255, green: CGFloat(hex >> 8 & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
+        })
+    }
+}
+
+/// A glass breadcrumb over a tree: the root, then each node in `path`.
+///
+/// - Parameters:
+///   - path: The nodes below `root`, outermost first: the same array you drive a `NavigationStack` with. Tapping a
+///     segment trims it; picking a sibling replaces the tail.
+///   - root: The top of the tree, always the first segment.
+///   - visibleLevels: How many segments show before the middle folds into a … menu. At least 3.
+///   - style: Colors. Defaults to the house palette, adapting to light and dark.
+///   - children: A node's children, used for the siblings menu a held segment opens.
+///   - label: A node's label, usually `Label(name, systemImage:)`. Used in the bar and in the menus.
+public struct PathBar<Node: Hashable, SegmentLabel: View>: View {
+    public typealias Style = PathBarStyle
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Binding private var path: [Node]
+    /// Each shown segment's frame, by level, so the pill can find the current one.
+    @State private var frames: [Int: CGRect] = [:]
+    @State private var moves = 0
+
+    private let root: Node
+    private let visibleLevels: Int
+    private let style: Style
+    private let children: (Node) -> [Node]
+    private let label: (Node) -> SegmentLabel
+    private let space = "PathBar"
+
+    public init(path: Binding<[Node]>, root: Node, visibleLevels: Int = 3, style: Style = .standard, children: @escaping (Node) -> [Node], @ViewBuilder label: @escaping (Node) -> SegmentLabel) {
+        self._path = path
+        self.root = root
+        self.visibleLevels = max(visibleLevels, 3)
+        self.style = style
+        self.children = children
+        self.label = label
+    }
+
+    /// The whole trail: the root, then the path.
+    private var trail: [Node] { [root] + path }
+
+    /// What the bar shows: a level index into `trail`, or `nil` for the fold.
+    private var shown: [Int?] {
+        let count = trail.count
+        guard count > visibleLevels else { return Array(0..<count) }
+        let tail = visibleLevels - 2
+        return [0, nil] + Array((count - tail)..<count)
+    }
+
+    public var body: some View {
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        // Every folder keeps its whole name while the bar fits; only when it
+        // can't do earlier folders shorten, and the current one never does.
+        ViewThatFits(in: .horizontal) {
+            row(whole: true, motion: motion)
+            row(whole: false, motion: motion)
+        }
+        .padding(4)
+        .background(alignment: .topLeading) {
+            let pill = frames[trail.count - 1] ?? .zero
+            Capsule()
+                .fill(style.accent)
+                .frame(width: pill.width, height: pill.height)
+                .offset(x: pill.minX, y: pill.minY)
+                .opacity(pill == .zero ? 0 : 1)
+                .animation(motion.snap, value: pill)
+                .accessibilityHidden(true)
+        }
+        // A folder fading in never shows outside the bar while it grows.
+        .clipShape(.capsule)
+        .coordinateSpace(name: space)
+        .background { PieceLiquidGroup { Color.clear.pieceLiquid(.capsule, interactive: false) } }
+        .fontWeight(.semibold)
+        .animation(motion.snap, value: trail)
+        .sensoryFeedback(.selection, trigger: moves)
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("Path")
+    }
+
+    // MARK: Segments
+
+    private func row(whole: Bool, motion: PieceMotion) -> some View {
+        HStack(spacing: 2) {
+            ForEach(Array(shown.enumerated()), id: \.offset) { position, level in
+                if position > 0 {
+                    Image(systemName: "chevron.forward")
+                        .font(.caption2.weight(.semibold))
+                        .foregroundStyle(style.separator)
+                        .accessibilityHidden(true)
+                }
+                if let level {
+                    segment(level, whole: whole)
+                        .id(trail[level])
+                        .transition(motion.transition(.asymmetric(insertion: .offset(y: 18).combined(with: .opacity), removal: .opacity)))
+                } else {
+                    fold
+                }
+            }
+        }
+    }
+
+    @ViewBuilder private func segment(_ level: Int, whole: Bool) -> some View {
+        let node = trail[level]
+        let current = level == trail.count - 1
+        let siblings = level > 0 ? children(trail[level - 1]) : []
+        let content = label(node)
+            .labelStyle(PathBarLabelStyle())
+            .font(.subheadline)
+            .lineLimit(1)
+            .truncationMode(.middle)
+            .fixedSize(horizontal: whole || current, vertical: false)
+            .foregroundStyle(current ? style.onAccent : style.label)
+            // Only the current folder sits on the pill, so only it needs the room.
+            .padding(.horizontal, current ? 12 : 6)
+            .frame(minHeight: 40)
+            .contentShape(.capsule)
+            // The closures capture only plain values, never this generic view.
+            .onGeometryChange(for: CGRect.self) { [space] in $0.frame(in: .named(space)) } action: { [frames = $frames] frame in
+                frames.wrappedValue[level] = frame
+            }
+        if siblings.count > 1 {
+            Menu {
+                ForEach(siblings, id: \.self) { sibling in
+                    Button { jump(level: level, to: sibling) } label: { label(sibling) }
+                        .disabled(sibling == node)
+                }
+            } label: {
+                content
+            } primaryAction: {
+                go(to: level)
+            }
+            .menuStyle(.button)
+            .buttonStyle(PiecePressStyle(depth: 1.5))
+            .fixedSize(horizontal: whole || current, vertical: false)
+            .accessibilityAddTraits(current ? [.isSelected] : [])
+            .accessibilityHint(current ? "Current. Hold for other folders here" : "Goes back here. Hold for other folders here")
+        } else {
+            Button { go(to: level) } label: { content }
+                .buttonStyle(PiecePressStyle(depth: 1.5))
+                .fixedSize(horizontal: whole || current, vertical: false)
+                .accessibilityAddTraits(current ? [.isSelected] : [])
+                .accessibilityHint(current ? "Current" : "Goes back here")
+        }
+    }
+
+    /// The folded middle: a … that lists the hidden levels.
+    private var fold: some View {
+        let hidden = Array(1..<max(trail.count - (visibleLevels - 2), 1))
+        return Menu {
+            ForEach(hidden, id: \.self) { level in
+                Button { go(to: level) } label: { label(trail[level]) }
+            }
+        } label: {
+            Image(systemName: "ellipsis")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(style.label)
+                .frame(width: 40, height: 40)
+                .contentShape(.capsule)
+        }
+        .menuStyle(.button)
+        .buttonStyle(PiecePressStyle(depth: 1.5))
+        .accessibilityLabel("\(hidden.count) more")
+    }
+
+    // MARK: Moving
+
+    /// Back to `level`: the path keeps the nodes before it.
+    private func go(to level: Int) {
+        guard level < trail.count - 1 else { return }
+        moves += 1
+        withAnimation(PieceMotion(reduceMotion: reduceMotion).snap) { path = Array(path.prefix(level)) }
+    }
+
+    /// Sideways from `level` to one of its siblings.
+    private func jump(level: Int, to sibling: Node) {
+        guard level > 0 else { return }
+        moves += 1
+        withAnimation(PieceMotion(reduceMotion: reduceMotion).snap) { path = Array(path.prefix(level - 1)) + [sibling] }
+    }
+}
+
+/// Icon and title close together, the icon a touch smaller.
+private struct PathBarLabelStyle: LabelStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        HStack(spacing: 6) {
+            configuration.icon.imageScale(.small)
+            configuration.title
+        }
+    }
+}
+
+// MARK: - Example
+
+private struct PathBarExampleFolder: Hashable, CustomStringConvertible {
+    let name: String
+    var description: String { name }
+
+    static let tree: [String: [String]] = [
+        "Home": ["Projects", "Photos", "Notes"],
+        "Projects": ["SwiftPieces", "Lumen", "Orbit"],
+        "SwiftPieces": ["Assets", "Docs", "Tests"],
+        "Assets": ["Icons", "Stills"],
+        "Photos": ["2025", "2026"],
+    ]
+
+    var children: [PathBarExampleFolder] { (Self.tree[name] ?? []).map(PathBarExampleFolder.init) }
+    var icon: String { name == "Home" ? "house" : "folder" }
+}
+
+/// A file browser: the bar over the current folder's contents, which slide the way you move.
+private struct PathBarExample: View {
+    @State private var path: [PathBarExampleFolder] = []
+    @State private var forward = true
+    private let home = PathBarExampleFolder(name: "Home")
+
+    private var current: PathBarExampleFolder { path.last ?? home }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            PathBar(path: $path, root: home, children: { $0.children }) { folder in
+                Label(folder.name, systemImage: folder.icon)
+            }
+            VStack(spacing: 8) {
+                ForEach(current.children, id: \.self) { folder in
+                    Button {
+                        forward = true
+                        withAnimation(.snappy) { path.append(folder) }
+                    } label: {
+                        HStack {
+                            Label(folder.name, systemImage: "folder")
+                            Spacer()
+                            Image(systemName: "chevron.forward").foregroundStyle(.tertiary)
+                        }
+                        .padding(.horizontal, 14)
+                        .frame(height: 46)
+                        .background(.background, in: .rect(cornerRadius: 18))
+                    }
+                    .buttonStyle(.plain)
+                }
+                if current.children.isEmpty {
+                    Text("No folders inside").foregroundStyle(.secondary).frame(height: 46)
+                }
+            }
+            .id(current)
+            .transition(.push(from: forward ? .trailing : .leading))
+            Spacer()
+        }
+        .onChange(of: path.count) { old, new in forward = new > old }
+        .fontWeight(.semibold)
+        .frame(width: 330)
+        .padding(.top, 80)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(PathBarStyle.adaptive(light: 0xF3F2EE, dark: 0x121212))
+    }
+}
+
+#Preview("Light") {
+    PathBarExample()
+}
+
+#Preview("Dark") {
+    PathBarExample()
+        .preferredColorScheme(.dark)
+}
+
+// MARK: - Piece motion
+//
+// The SwiftPieces motion language: shared spring tokens and gesture physics, with the same values in every
+// piece. Each piece carries a copy of only the parts it uses, so this file stands alone. Generated from
+// registry/foundation/PieceMotion.swift in the SwiftPieces repo; edit it there, not here.
+// swiftpieces-motion: 1.1.0 (core, pressMath, press, pressStyle)
+
+/// The SwiftPieces motion language: five spring tiers, and a named role for every moment a piece moves,
+/// each with its Reduce Motion substitute.
+///
+/// Build one from the environment, `PieceMotion(reduceMotion: reduceMotion)`, and pick the role that names
+/// what just happened. Never animate the tracking of a finger: set gesture state directly in `onChanged`, so the
+/// surface stays under the finger, and spring only the release.
+private struct PieceMotion {
+    var reduceMotion = false
+
+    // Tiers. Overshoot and settle times are measured from rest with SwiftUI's Spring.
+    /// No overshoot, 90% in about 90ms. A press arriving under the finger.
+    static var tight: Spring { Spring(duration: 0.14, bounce: 0) }
+    /// About 2.8% overshoot, 90% in about 140ms. Snapping to a detent, page or segment.
+    static var responsive: Spring { Spring(duration: 0.32, bounce: 0.25) }
+    /// About 8.4% overshoot. Visible give: a release, a return from past an edge, a drag settling home.
+    static var elastic: Spring { Spring(duration: 0.42, bounce: 0.38) }
+    /// About 15% overshoot. A resolved action landing. At most once per interaction.
+    static var expressive: Spring { Spring(duration: 0.48, bounce: 0.48) }
+    /// About 1.5% overshoot, unhurried. Opening large surfaces and ambient change.
+    static var calm: Spring { Spring(duration: 0.5, bounce: 0.2) }
+
+    /// Reduce Motion: settles become this short spring with no overshoot.
+    private static var still: Animation { .spring(duration: 0.25, bounce: 0) }
+
+    // Roles.
+    /// Touch-down. Starts on the same frame and never bounces under the finger.
+    var press: Animation { .spring(Self.tight) }
+    /// The finger lifts off a pressed surface, which springs back through rest.
+    var release: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A dragged thing comes to rest. With a gesture's velocity, use `settle(velocity:from:to:)` instead.
+    var settle: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// Lands on a detent, page or segment.
+    var snap: Animation { reduceMotion ? Self.still : .spring(Self.responsive) }
+    /// A number, a chart value or anything else people read moves to its new value. Never overshoots, so it
+    /// never shows a value that isn't true.
+    var value: Animation { reduceMotion ? Self.still : .spring(duration: 0.35, bounce: 0) }
+    /// Comes back from past a limit: a pull beyond the edge, a value pushed against its bound.
+    var rebound: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A shape or container changes size, corner radius or form, with a little give at the end.
+    var morph: Animation { reduceMotion ? Self.still : .spring(duration: 0.4, bounce: 0.2) }
+    /// Something appears, opens or expands. Opening is a little slower than closing.
+    var reveal: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.calm) }
+    /// Something leaves, closes or collapses. Quick and firm, out of the way.
+    var dismiss: Animation { reduceMotion ? .easeIn(duration: 0.18) : .spring(duration: 0.3, bounce: 0.08) }
+    /// A resolved action lands: a check, a sent state, a reaction.
+    var success: Animation { reduceMotion ? .easeOut(duration: 0.24) : .spring(Self.expressive) }
+    /// A refused action. Firm, no wobble; `pieceShake` adds the movement.
+    var error: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.responsive) }
+    /// Slow ambient change. Loops themselves stop under Reduce Motion: check `allowsAmbient`.
+    var ambient: Animation { reduceMotion ? .easeInOut(duration: 0.3) : .spring(Self.calm) }
+
+    /// Loops, drifts, idle breathing and parallax run only when this is true.
+    var allowsAmbient: Bool { !reduceMotion }
+
+    /// A moving transition, or a plain fade under Reduce Motion.
+    func transition(_ transition: AnyTransition) -> AnyTransition {
+        reduceMotion ? .opacity : transition
+    }
+
+    /// For content replaced inside a container that stays put (a label, a glyph, a count): the old content
+    /// blurs out as the new one sharpens in. A fade under Reduce Motion.
+    @MainActor var swap: AnyTransition {
+        reduceMotion ? .opacity : AnyTransition(.blurReplace)
+    }
+}
+
+extension PieceMotion {
+    /// About `depth` points per edge, not a fixed percentage: an icon sinks to 0.92, a pill 0.95, a card 0.985.
+    nonisolated static func pressScale(for size: CGSize, depth: CGFloat = 2.5) -> CGFloat {
+        let side = (max(size.width, 1) * max(size.height, 1)).squareRoot()
+        return min(max(1 - depth * 2 / side, 0.92), 0.985)
+    }
+
+    /// An anchor partway from the center toward the touch, so the press leans into the finger without tipping.
+    nonisolated static func pressAnchor(touch: CGPoint?, in size: CGSize, lean: CGFloat = 0.6) -> UnitPoint {
+        guard let touch, size.width > 0, size.height > 0 else { return .center }
+        let x = min(max(touch.x / size.width, 0), 1)
+        let y = min(max(touch.y / size.height, 0), 1)
+        return UnitPoint(x: 0.5 + (x - 0.5) * lean, y: 0.5 + (y - 0.5) * lean)
+    }
+}
+
+/// Sinks on touch-down, leaning toward the touch if given, and springs back from the same lean. Under Reduce
+/// Motion it shades instead of moving (darker in light mode, lighter in dark), without turning transparent.
+private struct PiecePress: ViewModifier {
+    let pressed: Bool
+    var touch: CGPoint?
+    var depth: CGFloat = 2.5
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.colorScheme) private var colorScheme
+    @State private var size: CGSize = .zero
+    @State private var anchor: UnitPoint = .center
+
+    func body(content: Content) -> some View {
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        let scale = pressed && !reduceMotion ? PieceMotion.pressScale(for: size, depth: depth) : 1
+        content
+            .onGeometryChange(for: CGSize.self) { $0.size } action: { size = $0 }
+            .brightness(pressed && reduceMotion ? (colorScheme == .dark ? 0.1 : -0.08) : 0)
+            .scaleEffect(scale, anchor: anchor)
+            .animation(pressed ? motion.press : motion.release, value: pressed)
+            .onChange(of: pressed) { _, isPressed in
+                if isPressed { anchor = PieceMotion.pressAnchor(touch: touch, in: size) }
+            }
+            .onChange(of: touch) { _, touch in
+                if pressed, let touch { anchor = PieceMotion.pressAnchor(touch: touch, in: size) }
+            }
+    }
+}
+
+private extension View {
+    /// Sinks this view while `pressed`, leaning toward `touch` (in this view's coordinates) when given.
+    func piecePress(_ pressed: Bool, touch: CGPoint? = nil, depth: CGFloat = 2.5) -> some View {
+        modifier(PiecePress(pressed: pressed, touch: touch, depth: depth))
+    }
+}
+
+/// Only the press, centered: for chips, rows and tiles, and anything in scrolling content.
+private struct PiecePressStyle: ButtonStyle {
+    var depth: CGFloat = 2.5
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label.piecePress(configuration.isPressed, depth: depth)
+    }
+}
+
+// swiftpieces-motion: end
+
+// MARK: - Piece liquid
+//
+// The SwiftPieces liquid glass language: glass shapes that merge through a neck, bubbles that bud out of
+// and melt back into each other, and the frosted fallback before iOS 26. Each piece carries a copy of only
+// the parts it uses, so this file stands alone. Generated from registry/foundation/PieceLiquid.swift in the
+// SwiftPieces repo; edit it there, not here. The rules are in LIQUID_GLASS.md.
+// swiftpieces-liquid: 1.8.0 (liquid)
+
+/// The liquid glass language: one merge distance, two rest gaps, and the springs a bubble leaves and comes home on.
+///
+/// Glass shapes inside one `PieceLiquidGroup` melt into each other through a neck when they come within `merge`
+/// points. Parts of one control rest `joined`, inside that distance, so the neck holds; separate actions rest
+/// `apart`, outside it, so they only goo while one buds out of, or melts back into, another.
+private enum PieceLiquid {
+    /// Glass shapes closer than this share a neck.
+    static let merge: CGFloat = 20
+    /// The gap between parts of one control (a stepper's buttons, a progress pill and its stop): the neck holds,
+    /// short and smooth, about two thirds of the shapes' height at its waist. Joined parts read best at one height.
+    static let joined: CGFloat = 4
+    /// The gap between separate actions (menu items, confirm and cancel, chips): they rest as their own bubbles.
+    static let apart: CGFloat = 26
+    /// How far a bubble shrinks while it is home inside its parent.
+    static let homeScale: CGFloat = 0.72
+
+    /// A bubble leaving its parent: slow enough that the neck's stretch and snap read.
+    static func split(reduceMotion: Bool) -> Animation {
+        reduceMotion ? .easeOut(duration: 0.2) : .spring(duration: 0.62, bounce: 0.22)
+    }
+
+    /// A bubble going home. No bounce: a bounce would carry it out through the far side of its parent.
+    static func home(reduceMotion: Bool) -> Animation {
+        reduceMotion ? .easeIn(duration: 0.18) : .spring(duration: 0.5, bounce: 0)
+    }
+}
+
+/// A group of glass shapes that merge into one liquid surface. On iOS 26 it is a `GlassEffectContainer`; before
+/// that, and under Reduce Transparency, the shapes draw on their own and simply don't merge. `lift` adds the soft
+/// shadow liquid glass floats on in light mode.
+private struct PieceLiquidGroup<Content: View>: View {
+    var spacing: CGFloat = PieceLiquid.merge
+    var lift = true
+    @ViewBuilder var content: Content
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        container
+            .shadow(color: .black.opacity(lift && colorScheme == .light ? 0.07 : 0), radius: 18, y: 8)
+    }
+
+    @ViewBuilder private var container: some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26, *), !reduceTransparency {
+            GlassEffectContainer(spacing: spacing) { content }
+        } else {
+            content
+        }
+        #else
+        content
+        #endif
+    }
+}
+
+/// One liquid glass shape: Liquid Glass on iOS 26, carrying `tint` as a solid colour and swelling under a press when
+/// `interactive`; a frosted Material with a light rim and a soft shadow before that; a solid fill under Reduce
+/// Transparency.
+///
+/// The tint is painted inside clear glass rather than tinting the glass. Tinted glass in a group bleeds its colour
+/// through every neck as a smear, so a red button would glow into the white pill it is joined to; painted inside,
+/// the colour stays crisp to the shape's edge, the necks between shapes are clear glass, and a tint change animates
+/// like any colour (tinted glass snaps).
+private struct PieceLiquidSurface<S: Shape>: ViewModifier {
+    var shape: S
+    var tint: Color?
+    var interactive: Bool
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.pieceLiquidScale) private var scale
+
+    func body(content: Content) -> some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26, *), !reduceTransparency {
+            // Scaled as two parts, content and outline, about the same centre. A scaleEffect on a glass view inside a
+            // GlassEffectContainer shrinks the glass but leaves what it carries full size, pinned to its corner.
+            content
+                .background { shape.fill(tint ?? .clear) }
+                .scaleEffect(scale)
+                .glassEffect(glass, in: shape.scale(scale))
+        } else {
+            fallback(content).scaleEffect(scale)
+        }
+        #else
+        fallback(content).scaleEffect(scale)
+        #endif
+    }
+
+    #if compiler(>=6.2)
+    @available(iOS 26, *)
+    private var glass: Glass {
+        interactive ? Glass.regular.interactive() : .regular
+    }
+    #endif
+
+    private func fallback(_ content: Content) -> some View {
+        let dark = colorScheme == .dark
+        return content
+            .background {
+                if reduceTransparency {
+                    shape.fill(tint ?? (dark ? Color(white: 0.17) : Color(white: 0.97)))
+                } else {
+                    ZStack {
+                        shape.fill(.regularMaterial)
+                        if let tint { shape.fill(tint.opacity(0.88)) }
+                    }
+                }
+            }
+            .overlay { shape.stroke(Color.white.opacity(dark ? 0.14 : 0.7), lineWidth: 0.5) }
+            .shadow(color: .black.opacity(dark ? 0.32 : 0.08), radius: 10, y: 5)
+    }
+}
+
+private struct PieceLiquidScaleKey: EnvironmentKey {
+    static let defaultValue: CGFloat = 1
+}
+
+private extension EnvironmentValues {
+    /// How much the liquid shapes below are scaled, about their own centres. Nested scales multiply.
+    var pieceLiquidScale: CGFloat {
+        get { self[PieceLiquidScaleKey.self] }
+        set { self[PieceLiquidScaleKey.self] = newValue }
+    }
+}
+
+private extension View {
+    /// Draws this view on a liquid glass `shape`. Put it inside a `PieceLiquidGroup` so it can merge with its neighbours.
+    func pieceLiquid<S: Shape>(_ shape: S, tint: Color? = nil, interactive: Bool = true) -> some View {
+        modifier(PieceLiquidSurface(shape: shape, tint: tint, interactive: interactive))
+    }
+
+    /// Scales the liquid glass shapes in this view, content and outline together, about their own centres. Use it
+    /// instead of `scaleEffect` on a glass view (a press, a lift, a swell): inside a group a plain `scaleEffect` shrinks
+    /// the glass but leaves its content full size and off centre. Animates like any other value.
+    func pieceLiquidScale(_ scale: CGFloat) -> some View {
+        transformEnvironment(\.pieceLiquidScale) { $0 *= scale }
+    }
+}
+
+// swiftpieces-liquid: end
+```
+
+</Tab>
+</Tabs>
+
+</Showcase>
+
+<PieceFacts name="PathBar" />
+
+Colors for `PathBar`. `.standard` is the house palette.
+
+## Notes
+
+- Bind it to the same array of nodes you drive a `NavigationStack` with, give it the root, a `children` closure and a label for a node, usually `Label(name, systemImage:)`.
+- The current place sits on a red pill that flows as you move. A new level rises into the bar as you drill in. Tap an earlier segment to go back to it: the path is trimmed to that level.
+- Once the path is deeper than `visibleLevels` (3 by default), the middle folds into a … button that lists the hidden levels, so the bar never overflows.
+- Hold a segment to open its siblings, the other children of its parent, and pick one to jump sideways; the levels below it are dropped.
+- The chevrons follow the layout direction, so the bar flips for right-to-left languages.
+- VoiceOver reads it as a Path container of buttons, marks the current place, and hints that holding opens the other folders there.
+- Under Reduce Motion new segments fade in instead of rising.
+
+## Usage
+
+```swift
+PathBarExample()
+```
+

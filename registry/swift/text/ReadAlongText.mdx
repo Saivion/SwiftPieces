@@ -1,0 +1,9 @@
+## Notes
+
+- Give it the transcript as words with their start times and durations, from your speech or captions data, and your player's current time. `ReadAlongText.Word.spread(_:over:)` times plain text across a duration when you have no word timings.
+- The spoken word sits on an even red pill: the word's own box with the same padding on both sides, a little taller than its letters, so it never clips a letter or meets the next word. The pill glides from word to word and from line to line.
+- Words already read turn solid and words to come stay quiet, so the place in the text reads at a glance.
+- Pass `onSeek` and a tap on any word calls it with that word's start time; leave it out and the text is not tappable.
+- Words wrap like text and the pill, spacing and line gap scale with Dynamic Type.
+- VoiceOver reads the whole passage as one element.
+- Under Reduce Motion the pill moves without overshoot.

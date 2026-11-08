@@ -1,0 +1,9 @@
+## Notes
+
+- Sizes are strings, so clothing letters, shoe numbers, cup sizes or plan tiers all work. Mark sold out ones in `unavailable`.
+- The chosen size is a red pill that flows: the edge facing the new size leads on a tight spring and the far edge follows.
+- Sold out sizes are dimmed and struck through. Tapping one shakes the row with an error haptic and the note says it is sold out; the selection stays where it was.
+- The note under the row comes from your `note` closure for the chosen size, such as "Only 2 left", and falls back to "In stock". It blurs to each new line.
+- Cells are 44pt and scale with Dynamic Type. A row wider than its space scrolls sideways.
+- One selection haptic fires per pick. VoiceOver reads each size with its note, or "Sold out". `.disabled(true)` dims the row.
+- Under Reduce Motion the pill slides whole on one short spring.

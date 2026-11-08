@@ -1,0 +1,7 @@
+## Notes
+
+- Shows "just now" under a minute, then the locale's own wording from `RelativeDateTimeFormatter`, such as "1 min. ago", "3 hr. ago" or "Yesterday".
+- It sleeps until the wording would next change, the next whole minute, hour or day, and then rolls up to the new text. Nothing runs in between, so a long feed of them costs nothing.
+- Tap it to see the exact date and time in red, and tap again to go back. Turn this off with `tapToReveal: false`.
+- VoiceOver reads the full wording, such as "1 minute ago", and hints that a tap shows the exact time.
+- Under Reduce Motion the text changes with a fade instead of rolling.

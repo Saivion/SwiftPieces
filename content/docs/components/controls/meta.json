@@ -9,6 +9,8 @@
     "hold-to-confirm",
     "level-picker",
     "liquid-switch",
-    "timer-dial"
+    "select-menu",
+    "timer-dial",
+    "view-toggle"
   ]
 }

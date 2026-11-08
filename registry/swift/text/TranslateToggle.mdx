@@ -1,0 +1,8 @@
+## Notes
+
+- Uses Apple's on-device Translation framework, so there are no keys, no server and nothing leaves the device. The first translation into a language may ask the reader to download it.
+- The source language is detected with NaturalLanguage and shown above the text. The target is the reader's language unless you pass one.
+- Tap Translate and the words blur out one by one and the translation sharpens in the same way, while the language line rolls to say where it came from. The button turns red and reads Original; tap it to go back. The translation is kept, so switching again is instant.
+- The button hides when the text is already in the target language, and before iOS 18, where Translation is not available.
+- If a translation fails, such as an unsupported pair or a declined download, it stays on the original and the next tap tries again.
+- Under Reduce Motion the text cross-fades instead of blurring word by word.
