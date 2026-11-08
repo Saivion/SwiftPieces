@@ -99,7 +99,7 @@ export const proGames = {
     { id: "pane", title: "Pane", genre: "Multiplayer", line: "Two-player strategy in a stained-glass window.", isNew: true },
     { id: "parlour", title: "Parlour", genre: "Puzzle", line: "Card patience on a linen table in window light.", isNew: true },
     { id: "thrum", title: "Thrum", genre: "Arcade", line: "A rhythm game on five strings of light.", isNew: true },
-    { id: "ripple", title: "Ripple", genre: "Physics", line: "A wave puzzle on a still night pond.", isNew: true },
+    { id: "ripple", title: "Ripple", genre: "Physics", line: "A wave puzzle drawn in ink on washi.", isNew: true },
   ] as ProGame[],
 } as const;
 
