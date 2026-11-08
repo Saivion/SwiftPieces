@@ -1,0 +1,534 @@
+// swiftpieces:
+// title: Zoom Dial
+// description: "Preset stops in a glass capsule, like the camera's zoom buttons, with a red disc that flows between them. Tap a stop to jump to it. Press and hold and the capsule widens into a dial: slide for any value in between, with a tick at each tenth, then let go and it folds back with the exact value in the disc. For camera zoom, playback speed, map scale and anything with a few favourite values. VoiceOver adjusts it stop by stop."
+// category: media
+// minIOSVersion: "17.0"
+// version: "1.0.0"
+// added: "2026-11-08"
+// tags: [zoom, dial, camera, speed, stops, glass, haptics]
+
+import SwiftUI
+
+/// Colors for `ZoomDial`. `.standard` is the house palette.
+public struct ZoomDialStyle: Sendable {
+    /// The disc on the chosen stop, and the dial's needle.
+    public var accent: Color
+    /// The value on the disc.
+    public var onAccent: Color
+    /// The other stops' values.
+    public var label: Color
+    /// The dial's whole-number ticks and their labels.
+    public var majorTick: Color
+    /// The dial's tenth ticks.
+    public var minorTick: Color
+
+    public init(
+        accent: Color = Color(red: 1, green: 0, blue: 0),
+        onAccent: Color = ZoomDialStyle.adaptive(light: 0x141414, dark: 0x141414),
+        label: Color = ZoomDialStyle.adaptive(light: 0x141414, dark: 0xF4F3EF),
+        majorTick: Color = ZoomDialStyle.adaptive(light: 0x5C5A56, dark: 0xA6A49F),
+        minorTick: Color = ZoomDialStyle.adaptive(light: 0xC9C6BF, dark: 0x4A4A48)
+    ) {
+        self.accent = accent
+        self.onAccent = onAccent
+        self.label = label
+        self.majorTick = majorTick
+        self.minorTick = minorTick
+    }
+
+    public static let standard = ZoomDialStyle()
+
+    /// A color that follows the appearance, from two 0xRRGGBB values.
+    public static func adaptive(light: UInt32, dark: UInt32) -> Color {
+        Color(UIColor { @Sendable traits in
+            let hex = traits.userInterfaceStyle == .dark ? dark : light
+            return UIColor(red: CGFloat(hex >> 16 & 0xFF) / 255, green: CGFloat(hex >> 8 & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
+        })
+    }
+}
+
+/// Preset stops in a glass capsule that widens into a fine dial when held.
+///
+/// - Parameters:
+///   - value: The value. Tapping a stop sets it to that stop; the dial sets anything in `range`, in hundredths.
+///   - stops: The preset values, in order.
+///   - range: The dial's limits.
+///   - style: Colors. Defaults to the house palette, adapting to light and dark.
+public struct ZoomDial: View {
+    public typealias Style = ZoomDialStyle
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.isEnabled) private var isEnabled
+    @Binding private var value: Double
+    /// The disc's two edges, in stops from the leading end, each sprung on its own so the disc flows.
+    @State private var lower: CGFloat
+    @State private var upper: CGFloat
+    @State private var dialing = false
+    @State private var touching = false
+    @State private var dialStart: Double = 0
+    @State private var holding: Task<Void, Never>?
+    @State private var taps = 0
+
+    private let stops: [Double]
+    private let range: ClosedRange<Double>
+    private let style: Style
+    private let disc: CGFloat = 44
+    private let gap: CGFloat = 4
+    private let inset: CGFloat = 5
+    /// Points of travel per whole unit on the dial: a tick every tenth, 11pt apart.
+    private let unit: CGFloat = 110
+
+    public init(value: Binding<Double>, stops: [Double] = [0.5, 1, 2, 3], in range: ClosedRange<Double> = 0.5...10, style: Style = .standard) {
+        self._value = value
+        self.stops = stops.isEmpty ? [range.lowerBound] : stops
+        self.range = range
+        self.style = style
+        let index = CGFloat(ZoomDial.nearest(value.wrappedValue, in: stops.isEmpty ? [range.lowerBound] : stops))
+        self._lower = State(initialValue: index)
+        self._upper = State(initialValue: index + 1)
+    }
+
+    private var pitch: CGFloat { disc + gap }
+    private var stopsWidth: CGFloat { CGFloat(stops.count) * pitch - gap + inset * 2 }
+    private var dialWidth: CGFloat { max(stopsWidth * 1.45, 280) }
+    private var selectedIndex: Int { ZoomDial.nearest(value, in: stops) }
+
+    public var body: some View {
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        ZStack {
+            stopsRow
+                .opacity(dialing ? 0 : 1)
+            ruler
+                .opacity(dialing ? 1 : 0)
+        }
+        .frame(width: dialing ? dialWidth : stopsWidth, height: disc + inset * 2)
+        .clipShape(.capsule)
+        .background { PieceLiquidGroup { Color.clear.pieceLiquid(.capsule, interactive: false) } }
+        .contentShape(.capsule)
+        .gesture(gesture, including: isEnabled ? .all : .none)
+        .animation(motion.morph, value: dialing)
+        .fontWeight(.semibold)
+        .monospacedDigit()
+        .opacity(isEnabled ? 1 : 0.45)
+        .sensoryFeedback(.selection, trigger: taps)
+        .sensoryFeedback(.selection, trigger: dialing ? Int((value * 10).rounded()) : 0)
+        .sensoryFeedback(.impact(weight: .light), trigger: dialing)
+        .onChange(of: selectedIndex) { _, index in
+            if !dialing { flow(to: index) }
+        }
+        .accessibilityElement()
+        .accessibilityLabel("Zoom")
+        .accessibilityValue(ZoomDial.format(value) + "×")
+        .accessibilityAdjustableAction { direction in
+            let index = selectedIndex
+            switch direction {
+            case .increment: if index + 1 < stops.count { set(stops[index + 1]) }
+            case .decrement: if index > 0 { set(stops[index - 1]) }
+            @unknown default: break
+            }
+        }
+    }
+
+    // MARK: Stops
+
+    private var stopsRow: some View {
+        ZStack(alignment: .leading) {
+            discShape
+            HStack(spacing: gap) {
+                ForEach(stops.indices, id: \.self) { index in
+                    let chosen = index == selectedIndex
+                    Text(chosen ? ZoomDial.format(value) + "×" : ZoomDial.format(stops[index]))
+                        .font(chosen ? .subheadline : .footnote)
+                        .foregroundStyle(chosen ? style.onAccent : style.label)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.6)
+                        .contentTransition(.numericText(value: value))
+                        .frame(width: disc, height: disc)
+                }
+            }
+        }
+        .padding(inset)
+    }
+
+    private var discShape: some View {
+        ZoomDialEdge(value: lower) { lower in
+            ZoomDialEdge(value: upper) { upper in
+                Capsule()
+                    .fill(style.accent)
+                    .frame(width: max((upper - lower) * pitch - gap, disc * 0.6), height: disc)
+                    .offset(x: lower * pitch)
+            }
+        }
+        .accessibilityHidden(true)
+    }
+
+    // MARK: Dial
+
+    private var ruler: some View {
+        Canvas { context, size in
+            let center = size.width / 2
+            let tenths = Int((range.upperBound - range.lowerBound) * 10 + 0.5)
+            let start = range.lowerBound
+            for step in 0...max(tenths, 0) {
+                let v = start + Double(step) / 10
+                let x = center + CGFloat(v - value) * unit
+                guard x > -10, x < size.width + 10 else { continue }
+                let whole = abs(v - v.rounded()) < 0.001 || step == 0
+                let height: CGFloat = whole ? 20 : 12
+                let rect = CGRect(x: x - 1, y: whole ? 9 : 13, width: 2, height: height)
+                // Ticks fade toward the ends, so the dial reads as a wheel.
+                let fade = 1 - min(abs(x - center) / (size.width / 2), 1)
+                context.opacity = Double(0.15 + 0.85 * fade)
+                context.fill(Path(roundedRect: rect, cornerRadius: 1), with: .color(whole ? style.majorTick : style.minorTick))
+                if whole {
+                    context.draw(Text(ZoomDial.format(v) + "×").font(.caption2.weight(.semibold)).foregroundStyle(style.majorTick), at: CGPoint(x: x, y: size.height - 12))
+                }
+            }
+            context.opacity = 1
+            let needle = CGRect(x: center - 2.5, y: 6, width: 5, height: 28)
+            context.fill(Path(roundedRect: needle, cornerRadius: 2.5), with: .color(style.accent))
+        }
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
+    }
+
+    // MARK: Interaction
+
+    /// One touch does both: a short tap picks the stop under it, and a hold opens the dial, which then follows the
+    /// finger. Dragging left turns the value up, as the ruler slides under a fixed needle.
+    private var gesture: some Gesture {
+        DragGesture(minimumDistance: 0)
+            .onChanged { drag in
+                if !touching {
+                    touching = true
+                    holding = Task { @MainActor in
+                        try? await Task.sleep(for: .milliseconds(320))
+                        guard !Task.isCancelled, touching else { return }
+                        dialStart = value
+                        dialing = true
+                    }
+                }
+                if dialing {
+                    let raw = dialStart - Double(drag.translation.width / unit)
+                    value = (min(max(raw, range.lowerBound), range.upperBound) * 100).rounded() / 100
+                } else if abs(drag.translation.width) > 12 || abs(drag.translation.height) > 12 {
+                    holding?.cancel()
+                }
+            }
+            .onEnded { drag in
+                touching = false
+                holding?.cancel()
+                if dialing {
+                    dialing = false
+                    flow(to: selectedIndex)
+                } else if abs(drag.translation.width) <= 12, abs(drag.translation.height) <= 12 {
+                    let x = drag.startLocation.x - inset
+                    let index = min(max(Int(x / pitch), 0), stops.count - 1)
+                    set(stops[index])
+                }
+            }
+    }
+
+    private func set(_ new: Double) {
+        guard new != value else { return }
+        taps += 1
+        withAnimation(PieceMotion(reduceMotion: reduceMotion).value) { value = new }
+    }
+
+    /// The edge facing the new stop leads on the tight spring and the far edge follows on the responsive one, so
+    /// the disc reaches across and gathers in. Under Reduce Motion both share one short spring.
+    private func flow(to index: Int) {
+        let newLower = CGFloat(index), newUpper = newLower + 1
+        guard newLower != lower || newUpper != upper else { return }
+        guard !reduceMotion else {
+            withAnimation(PieceMotion(reduceMotion: true).snap) {
+                lower = newLower
+                upper = newUpper
+            }
+            return
+        }
+        let forward = newLower > lower
+        withAnimation(.spring(forward ? PieceMotion.tight : PieceMotion.responsive)) { upper = newUpper }
+        withAnimation(.spring(forward ? PieceMotion.responsive : PieceMotion.tight)) { lower = newLower }
+    }
+
+    /// The stop nearest `value`.
+    private static func nearest(_ value: Double, in stops: [Double]) -> Int {
+        var best = 0
+        for (index, stop) in stops.enumerated() where abs(stop - value) < abs(stops[best] - value) { best = index }
+        return best
+    }
+
+    /// One decimal at most, and no leading zero: ".5", "1", "1.6".
+    private static func format(_ value: Double) -> String {
+        let rounded = (value * 10).rounded() / 10
+        var text = rounded == rounded.rounded() ? String(Int(rounded)) : String(format: "%.1f", rounded)
+        if text.hasPrefix("0.") { text.removeFirst() }
+        return text
+    }
+}
+
+/// One edge of the disc, animated on its own: two nested give the two edges separate springs.
+private struct ZoomDialEdge<Content: View>: View, Animatable {
+    var value: CGFloat
+    @ViewBuilder let content: (CGFloat) -> Content
+
+    nonisolated var animatableData: CGFloat {
+        get { value }
+        set { value = newValue }
+    }
+
+    var body: some View { content(value) }
+}
+
+// MARK: - Example
+
+/// A camera's zoom, with the reading above it.
+private struct ZoomDialExample: View {
+    @State private var zoom = 1.0
+
+    var body: some View {
+        VStack(spacing: 22) {
+            Text("Zoom \(zoom, format: .number.precision(.fractionLength(0...1)))×")
+                .font(.headline)
+                .monospacedDigit()
+                .foregroundStyle(.secondary)
+            ZoomDial(value: $zoom)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(ZoomDialStyle.adaptive(light: 0xF3F2EE, dark: 0x121212))
+    }
+}
+
+#Preview("Light") {
+    ZoomDialExample()
+}
+
+#Preview("Dark") {
+    ZoomDialExample()
+        .preferredColorScheme(.dark)
+}
+
+// MARK: - Piece motion
+//
+// The SwiftPieces motion language: shared spring tokens and gesture physics, with the same values in every
+// piece. Each piece carries a copy of only the parts it uses, so this file stands alone. Generated from
+// registry/foundation/PieceMotion.swift in the SwiftPieces repo; edit it there, not here.
+// swiftpieces-motion: 1.1.0 (core)
+
+/// The SwiftPieces motion language: five spring tiers, and a named role for every moment a piece moves,
+/// each with its Reduce Motion substitute.
+///
+/// Build one from the environment, `PieceMotion(reduceMotion: reduceMotion)`, and pick the role that names
+/// what just happened. Never animate the tracking of a finger: set gesture state directly in `onChanged`, so the
+/// surface stays under the finger, and spring only the release.
+private struct PieceMotion {
+    var reduceMotion = false
+
+    // Tiers. Overshoot and settle times are measured from rest with SwiftUI's Spring.
+    /// No overshoot, 90% in about 90ms. A press arriving under the finger.
+    static var tight: Spring { Spring(duration: 0.14, bounce: 0) }
+    /// About 2.8% overshoot, 90% in about 140ms. Snapping to a detent, page or segment.
+    static var responsive: Spring { Spring(duration: 0.32, bounce: 0.25) }
+    /// About 8.4% overshoot. Visible give: a release, a return from past an edge, a drag settling home.
+    static var elastic: Spring { Spring(duration: 0.42, bounce: 0.38) }
+    /// About 15% overshoot. A resolved action landing. At most once per interaction.
+    static var expressive: Spring { Spring(duration: 0.48, bounce: 0.48) }
+    /// About 1.5% overshoot, unhurried. Opening large surfaces and ambient change.
+    static var calm: Spring { Spring(duration: 0.5, bounce: 0.2) }
+
+    /// Reduce Motion: settles become this short spring with no overshoot.
+    private static var still: Animation { .spring(duration: 0.25, bounce: 0) }
+
+    // Roles.
+    /// Touch-down. Starts on the same frame and never bounces under the finger.
+    var press: Animation { .spring(Self.tight) }
+    /// The finger lifts off a pressed surface, which springs back through rest.
+    var release: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A dragged thing comes to rest. With a gesture's velocity, use `settle(velocity:from:to:)` instead.
+    var settle: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// Lands on a detent, page or segment.
+    var snap: Animation { reduceMotion ? Self.still : .spring(Self.responsive) }
+    /// A number, a chart value or anything else people read moves to its new value. Never overshoots, so it
+    /// never shows a value that isn't true.
+    var value: Animation { reduceMotion ? Self.still : .spring(duration: 0.35, bounce: 0) }
+    /// Comes back from past a limit: a pull beyond the edge, a value pushed against its bound.
+    var rebound: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A shape or container changes size, corner radius or form, with a little give at the end.
+    var morph: Animation { reduceMotion ? Self.still : .spring(duration: 0.4, bounce: 0.2) }
+    /// Something appears, opens or expands. Opening is a little slower than closing.
+    var reveal: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.calm) }
+    /// Something leaves, closes or collapses. Quick and firm, out of the way.
+    var dismiss: Animation { reduceMotion ? .easeIn(duration: 0.18) : .spring(duration: 0.3, bounce: 0.08) }
+    /// A resolved action lands: a check, a sent state, a reaction.
+    var success: Animation { reduceMotion ? .easeOut(duration: 0.24) : .spring(Self.expressive) }
+    /// A refused action. Firm, no wobble; `pieceShake` adds the movement.
+    var error: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.responsive) }
+    /// Slow ambient change. Loops themselves stop under Reduce Motion: check `allowsAmbient`.
+    var ambient: Animation { reduceMotion ? .easeInOut(duration: 0.3) : .spring(Self.calm) }
+
+    /// Loops, drifts, idle breathing and parallax run only when this is true.
+    var allowsAmbient: Bool { !reduceMotion }
+
+    /// A moving transition, or a plain fade under Reduce Motion.
+    func transition(_ transition: AnyTransition) -> AnyTransition {
+        reduceMotion ? .opacity : transition
+    }
+
+    /// For content replaced inside a container that stays put (a label, a glyph, a count): the old content
+    /// blurs out as the new one sharpens in. A fade under Reduce Motion.
+    @MainActor var swap: AnyTransition {
+        reduceMotion ? .opacity : AnyTransition(.blurReplace)
+    }
+}
+
+// swiftpieces-motion: end
+
+// MARK: - Piece liquid
+//
+// The SwiftPieces liquid glass language: glass shapes that merge through a neck, bubbles that bud out of
+// and melt back into each other, and the frosted fallback before iOS 26. Each piece carries a copy of only
+// the parts it uses, so this file stands alone. Generated from registry/foundation/PieceLiquid.swift in the
+// SwiftPieces repo; edit it there, not here. The rules are in LIQUID_GLASS.md.
+// swiftpieces-liquid: 1.8.0 (liquid)
+
+/// The liquid glass language: one merge distance, two rest gaps, and the springs a bubble leaves and comes home on.
+///
+/// Glass shapes inside one `PieceLiquidGroup` melt into each other through a neck when they come within `merge`
+/// points. Parts of one control rest `joined`, inside that distance, so the neck holds; separate actions rest
+/// `apart`, outside it, so they only goo while one buds out of, or melts back into, another.
+private enum PieceLiquid {
+    /// Glass shapes closer than this share a neck.
+    static let merge: CGFloat = 20
+    /// The gap between parts of one control (a stepper's buttons, a progress pill and its stop): the neck holds,
+    /// short and smooth, about two thirds of the shapes' height at its waist. Joined parts read best at one height.
+    static let joined: CGFloat = 4
+    /// The gap between separate actions (menu items, confirm and cancel, chips): they rest as their own bubbles.
+    static let apart: CGFloat = 26
+    /// How far a bubble shrinks while it is home inside its parent.
+    static let homeScale: CGFloat = 0.72
+
+    /// A bubble leaving its parent: slow enough that the neck's stretch and snap read.
+    static func split(reduceMotion: Bool) -> Animation {
+        reduceMotion ? .easeOut(duration: 0.2) : .spring(duration: 0.62, bounce: 0.22)
+    }
+
+    /// A bubble going home. No bounce: a bounce would carry it out through the far side of its parent.
+    static func home(reduceMotion: Bool) -> Animation {
+        reduceMotion ? .easeIn(duration: 0.18) : .spring(duration: 0.5, bounce: 0)
+    }
+}
+
+/// A group of glass shapes that merge into one liquid surface. On iOS 26 it is a `GlassEffectContainer`; before
+/// that, and under Reduce Transparency, the shapes draw on their own and simply don't merge. `lift` adds the soft
+/// shadow liquid glass floats on in light mode.
+private struct PieceLiquidGroup<Content: View>: View {
+    var spacing: CGFloat = PieceLiquid.merge
+    var lift = true
+    @ViewBuilder var content: Content
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        container
+            .shadow(color: .black.opacity(lift && colorScheme == .light ? 0.07 : 0), radius: 18, y: 8)
+    }
+
+    @ViewBuilder private var container: some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26, *), !reduceTransparency {
+            GlassEffectContainer(spacing: spacing) { content }
+        } else {
+            content
+        }
+        #else
+        content
+        #endif
+    }
+}
+
+/// One liquid glass shape: Liquid Glass on iOS 26, carrying `tint` as a solid colour and swelling under a press when
+/// `interactive`; a frosted Material with a light rim and a soft shadow before that; a solid fill under Reduce
+/// Transparency.
+///
+/// The tint is painted inside clear glass rather than tinting the glass. Tinted glass in a group bleeds its colour
+/// through every neck as a smear, so a red button would glow into the white pill it is joined to; painted inside,
+/// the colour stays crisp to the shape's edge, the necks between shapes are clear glass, and a tint change animates
+/// like any colour (tinted glass snaps).
+private struct PieceLiquidSurface<S: Shape>: ViewModifier {
+    var shape: S
+    var tint: Color?
+    var interactive: Bool
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.pieceLiquidScale) private var scale
+
+    func body(content: Content) -> some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26, *), !reduceTransparency {
+            // Scaled as two parts, content and outline, about the same centre. A scaleEffect on a glass view inside a
+            // GlassEffectContainer shrinks the glass but leaves what it carries full size, pinned to its corner.
+            content
+                .background { shape.fill(tint ?? .clear) }
+                .scaleEffect(scale)
+                .glassEffect(glass, in: shape.scale(scale))
+        } else {
+            fallback(content).scaleEffect(scale)
+        }
+        #else
+        fallback(content).scaleEffect(scale)
+        #endif
+    }
+
+    #if compiler(>=6.2)
+    @available(iOS 26, *)
+    private var glass: Glass {
+        interactive ? Glass.regular.interactive() : .regular
+    }
+    #endif
+
+    private func fallback(_ content: Content) -> some View {
+        let dark = colorScheme == .dark
+        return content
+            .background {
+                if reduceTransparency {
+                    shape.fill(tint ?? (dark ? Color(white: 0.17) : Color(white: 0.97)))
+                } else {
+                    ZStack {
+                        shape.fill(.regularMaterial)
+                        if let tint { shape.fill(tint.opacity(0.88)) }
+                    }
+                }
+            }
+            .overlay { shape.stroke(Color.white.opacity(dark ? 0.14 : 0.7), lineWidth: 0.5) }
+            .shadow(color: .black.opacity(dark ? 0.32 : 0.08), radius: 10, y: 5)
+    }
+}
+
+private struct PieceLiquidScaleKey: EnvironmentKey {
+    static let defaultValue: CGFloat = 1
+}
+
+private extension EnvironmentValues {
+    /// How much the liquid shapes below are scaled, about their own centres. Nested scales multiply.
+    var pieceLiquidScale: CGFloat {
+        get { self[PieceLiquidScaleKey.self] }
+        set { self[PieceLiquidScaleKey.self] = newValue }
+    }
+}
+
+private extension View {
+    /// Draws this view on a liquid glass `shape`. Put it inside a `PieceLiquidGroup` so it can merge with its neighbours.
+    func pieceLiquid<S: Shape>(_ shape: S, tint: Color? = nil, interactive: Bool = true) -> some View {
+        modifier(PieceLiquidSurface(shape: shape, tint: tint, interactive: interactive))
+    }
+
+    /// Scales the liquid glass shapes in this view, content and outline together, about their own centres. Use it
+    /// instead of `scaleEffect` on a glass view (a press, a lift, a swell): inside a group a plain `scaleEffect` shrinks
+    /// the glass but leaves its content full size and off centre. Animates like any other value.
+    func pieceLiquidScale(_ scale: CGFloat) -> some View {
+        transformEnvironment(\.pieceLiquidScale) { $0 *= scale }
+    }
+}
+
+// swiftpieces-liquid: end
