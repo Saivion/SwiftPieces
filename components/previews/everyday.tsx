@@ -378,7 +378,8 @@ export function PathBarPreview() {
   const [pill, setPill] = useState<{ l: number; w: number } | null>(null);
   useLayoutEffect(() => {
     const el = bar.current?.querySelector<HTMLElement>("[data-cur]");
-    if (el) setPill({ l: el.offsetLeft, w: el.offsetWidth });
+    // The segment sits in its own wrapper beside its chevron, so add the wrapper's offset within the bar.
+    if (el) setPill({ l: el.offsetLeft + ((el.offsetParent as HTMLElement | null)?.offsetLeft ?? 0), w: el.offsetWidth });
   }, [step]);
   return (
     <Stage scale={1.35}>
@@ -474,7 +475,9 @@ export function ReadAlongTextPreview() {
     const el = box.current?.children[at + 1] as HTMLElement | undefined;
     if (!el || at < 0 || at >= RA_WORDS.length) return;
     const em = parseFloat(getComputedStyle(el).fontSize);
-    setPill({ l: el.offsetLeft - em * 0.16, t: el.offsetTop + em * 0.14, w: el.offsetWidth + em * 0.32, h: el.offsetHeight - em * 0.28 });
+    // Even room on both sides of the word, and a pill a little taller than its letters, centred on the line.
+    const pad = em * 0.18, h = em * 1.34;
+    setPill({ l: el.offsetLeft - pad, t: el.offsetTop + (el.offsetHeight - h) / 2, w: el.offsetWidth + pad * 2, h });
   }, [at]);
   const live = at >= 0 && at < RA_WORDS.length;
   const progress = Math.min(Math.max(at, 0) / RA_WORDS.length, 1);
@@ -483,7 +486,7 @@ export function ReadAlongTextPreview() {
       <div className="flex flex-col" style={{ width: u(280), gap: u(22) }}>
         <div ref={box} className="relative" style={{ fontSize: u(20), lineHeight: 1.6 }}>
           <span className="absolute" style={{
-            left: pill?.l ?? 0, top: pill?.t ?? 0, width: pill?.w ?? 0, height: pill?.h ?? 0, borderRadius: u(6.4), background: signal.fill,
+            left: pill?.l ?? 0, top: pill?.t ?? 0, width: pill?.w ?? 0, height: pill?.h ?? 0, borderRadius: u(7), background: signal.fill,
             opacity: live && pill ? 1 : 0, transition: [t(["left", "top", "width", "height"], "snap"), "opacity .2s"].join(", "),
           }} />
           {RA_WORDS.map((w, i) => (
