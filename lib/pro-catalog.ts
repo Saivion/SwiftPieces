@@ -5,12 +5,12 @@
 // Prices here mirror Pro's pricing (proPlans, 2026-11-01: Saivion wants Free to match Pro end to end); checkout itself always happens on pro.swiftpieces.com.
 
 export const proCatalog = {
-  screens: 54,
+  screens: 57,
   /** Pro's patterns (Pro typeCounts().block). Their names and summaries live in lib/blocks.ts proBlocks; keep the two in step. */
   blocks: 46,
-  templates: 12,
+  templates: 14,
   /** The Build Kit: skills a buyer's coding agent follows (Pro lib/kit.ts kitCounts()). */
-  buildKit: { total: 31, setup: 1, styles: 14, briefs: 9, recipes: 5, tools: 2 },
+  buildKit: { total: 34, setup: 1, styles: 16, briefs: 9, recipes: 5, tools: 3 },
   /**
    * What Pro adds in the Playground (this site's /apps and /playground): every app in the App
    * Library, five free and the rest Pro's (lib/apps, Pro lib/remixing.ts PLAYGROUND_APPS), and
@@ -18,13 +18,13 @@ export const proCatalog = {
    */
   remixing: { saves: 100, apps: 34, proApps: 29 },
   /** Flows: every template's journeys (Pro lib/flows.ts flowCount() and flowKindCounts()). */
-  flows: { total: 48, onboarding: 12, core: 24, account: 12 },
+  flows: { total: 57, onboarding: 14, core: 29, account: 14 },
   /** Brand presets across the templates and the families they come from (Pro lib/brand/presets.ts presetDefs). */
-  presets: { total: 36, families: 13 },
+  presets: { total: 42, families: 15 },
   /** A few screen names, in the order Pro features them. */
   screenExamples: ["Wallet", "Budget", "Dashboard", "Chat", "Voice Mode", "Paywall", "Now Playing"],
   /** Every template, short form. */
-  templateNames: ["subscription", "finance", "AI assistant", "productivity", "meditation", "travel", "sleep", "smart home", "weather", "meal planner", "fitness", "language learning"],
+  templateNames: ["subscription", "finance", "AI assistant", "productivity", "meditation", "travel", "sleep", "smart home", "weather", "meal planner", "fitness", "language learning", "journal", "reading tracker"],
   /** Each template's fictional app and what it is, as Pro's template pages name them. */
   templateApps: [
     { app: "Cadence", kind: "Subscription" },
@@ -39,6 +39,8 @@ export const proCatalog = {
     { app: "Sprig", kind: "Meal planner" },
     { app: "Pulse", kind: "Fitness" },
     { app: "Parla", kind: "Language learning" },
+    { app: "Folio", kind: "Journal" },
+    { app: "Dogear", kind: "Reading tracker" },
   ],
 } as const;
 
@@ -51,7 +53,7 @@ export function namesWithMore(names: readonly string[], take = names.length): st
 /** The Explore Pro docs pages (/docs/components/<page>), in sidebar order: docs pages, not registry categories. */
 export const exploreProPages = ["screens", "flows", "templates", "games"] as const;
 
-/** "54 screens, 48 flows, 12 app templates and a 31-item Build Kit". */
+/** "57 screens, 57 flows, 14 app templates and a 34-item Build Kit". */
 export const proCountsLabel = `${proCatalog.screens} screens, ${proCatalog.flows.total} flows, ${proCatalog.templates} app templates and a ${proCatalog.buildKit.total}-item Build Kit`;
 
 /** One line on the Build Kit for Free's Pro teasers. */
