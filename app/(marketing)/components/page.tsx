@@ -22,7 +22,7 @@ const count = getRegistryIndex().length;
 // category also has its own page (/components/cards), linked from the directory below the grid.
 export const metadata: Metadata = pageMetadata({
   title: `${count} Free SwiftUI Components with Live Previews`,
-  description: `${count} free SwiftUI components for iOS with live previews: buttons, cards, inputs, lists, navigation, sheets, charts, AI chat and Liquid Glass. One Swift file each.`,
+  description: `SwiftPieces' ${count} free SwiftUI components for iOS with live previews: buttons, cards, inputs, lists, navigation, sheets, charts, AI chat and Liquid Glass. One Swift file each.`,
   path: "/components",
 });
 

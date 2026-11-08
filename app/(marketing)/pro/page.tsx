@@ -10,7 +10,7 @@ import { proCountsLabel } from "@/lib/pro-catalog";
 // leads to pro.swiftpieces.com, where pricing and the plan live.
 export const metadata: Metadata = {
   title: "SwiftPieces Pro",
-  description: `${proCountsLabel} for SwiftUI, production-ready and delivered as source. See the plan and pricing on pro.swiftpieces.com.`,
+  description: `SwiftPieces Pro: ${proCountsLabel} for SwiftUI, production-ready and delivered as source. See the plan and pricing on pro.swiftpieces.com.`,
   alternates: { canonical: pro.pricing },
 };
 
