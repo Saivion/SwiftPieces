@@ -2,7 +2,8 @@ import { cn } from "../cn.js";
 
 /**
  * Brand mark from `/logo-mark.png`, a 96px copy of `/logo.png` (hosts must serve it from their
- * public root). The mark shows at 24px, so the 1024px original cost ~19 KB for nothing.
+ * public root). The mark shows at 24px, so the 1024px original cost ~19 KB for nothing. Both PNGs carry
+ * the site's 30% corner radius in their alpha, so every host gets the rounded tile without extra CSS.
  */
 export function LogoMark({ className }: { className?: string }) {
   return (
