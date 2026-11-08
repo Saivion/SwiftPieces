@@ -4,7 +4,7 @@ export const site = {
   /** The home page title: the name, then the plain category, inside ~55 characters. */
   title: "SwiftPieces: Free SwiftUI Component Library for iOS",
   description:
-    "A free SwiftUI component library for iOS. Production-ready pieces with motion, haptics and accessibility, added with one CLI command or your AI agent.",
+    "SwiftPieces is a free SwiftUI component library for iOS: production-ready pieces with motion, haptics and accessibility, added by CLI or your AI agent.",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://swiftpieces.com",
   proUrl: process.env.NEXT_PUBLIC_PRO_URL ?? "https://pro.swiftpieces.com",
   mediaUrl: process.env.NEXT_PUBLIC_MEDIA_URL ?? "https://media.swiftpieces.com",
