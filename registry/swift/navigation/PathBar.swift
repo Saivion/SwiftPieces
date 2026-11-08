@@ -108,6 +108,8 @@ public struct PathBar<Node: Hashable, SegmentLabel: View>: View {
                 .animation(motion.snap, value: pill)
                 .accessibilityHidden(true)
         }
+        // A folder fading in never shows outside the bar while it grows.
+        .clipShape(.capsule)
         .coordinateSpace(name: space)
         .background { PieceLiquidGroup { Color.clear.pieceLiquid(.capsule, interactive: false) } }
         .fontWeight(.semibold)
