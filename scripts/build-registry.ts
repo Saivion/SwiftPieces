@@ -10,6 +10,7 @@
  *   content/docs/<category>/<slug>.mdx generated docs pages
  *   content/docs/patterns/...          generated pattern pages: free blocks with source, Pro patterns as locked pages
  *   registry/__registry__/docs.json    every docs page's URL, title and search text (search, sitemap)
+ *   registry/__registry__/skills.json  the free agent skills in skills/, served by the MCP as prompts and resources
  *   public/llms.txt                    AI discoverability
  *   public/schema/registry-item.json   JSON schema for the registry protocol
  */
@@ -291,8 +292,40 @@ function build() {
   writeLlms(items, blocks);
   writeSchema();
   writeReadmeCount(items.length, Object.keys(categories).length);
+  writeSkills();
 
   console.log(`registry: ${items.length} free pieces, ${items.filter((i) => i.liquidGlass).length} Liquid Glass, ${items.filter((i) => i.metal).length} Metal; ${blocks.length} free blocks, ${proBlocks.length} Pro blocks listed`);
+}
+
+/**
+ * The free agent skills: skills/<name>/SKILL.md (Agent Skills frontmatter) plus references/*.md. The
+ * MCP serves each one as a prompt, a tool and resources, so a Worker with no file system can read them.
+ */
+function writeSkills() {
+  const dir = join(ROOT, "skills");
+  const skills = existsSync(dir)
+    ? readdirSync(dir, { withFileTypes: true }).filter((d) => d.isDirectory()).sort((a, b) => a.name.localeCompare(b.name)).map((d) => {
+        const raw = readFileSync(join(dir, d.name, "SKILL.md"), "utf8");
+        const fm = raw.match(/^---\n([\s\S]*?)\n---\n/);
+        if (!fm) throw new Error(`skills/${d.name}/SKILL.md has no frontmatter`);
+        const meta = z.object({ name: z.literal(d.name), description: z.string().min(1), metadata: z.object({ version: z.string() }).passthrough() }).passthrough().parse(parseYaml(fm[1]));
+        const body = raw.slice(fm[0].length).trim();
+        const title = body.match(/^# (.+)$/m)?.[1] ?? d.name;
+        const refDir = join(dir, d.name, "references");
+        const references = existsSync(refDir)
+          ? readdirSync(refDir).filter((f) => f.endsWith(".md")).sort().map((f) => {
+              const text = readFileSync(join(refDir, f), "utf8").trim();
+              return { id: basename(f, ".md"), title: text.match(/^# (.+)$/m)?.[1] ?? basename(f, ".md"), body: text };
+            })
+          : [];
+        // SKILL.md links its references by relative path; every one must exist, or the agent follows a dead link.
+        for (const [, ref] of body.matchAll(/\]\(references\/([\w-]+)\.md\)/g)) {
+          if (!references.some((r) => r.id === ref)) throw new Error(`skills/${d.name}/SKILL.md links references/${ref}.md, which does not exist`);
+        }
+        return { name: meta.name, title, description: meta.description, version: meta.metadata.version, body, references };
+      })
+    : [];
+  writeFileSync(join(OUT_DIR, "skills.json"), JSON.stringify(skills, null, 2));
 }
 
 /**
