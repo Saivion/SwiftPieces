@@ -7,7 +7,7 @@ import type { ChangelogEntry } from "@/components/changelog/changelog-grid";
  */
 export const changelog: ChangelogEntry[] = [
   {
-    slug: "everyday-pieces",
+    slug: "eleven-everyday-pieces",
     date: "Nov 8, 2026",
     title: "Eleven everyday pieces",
     summary: "Eleven free pieces you drop onto your own content: a select menu, a zoom dial, a reorder list, a size picker, a unit toggle, a view toggle, a path bar, QR codes, read-along text, relative times and a translate button.",
