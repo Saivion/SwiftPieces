@@ -5,8 +5,7 @@ import { GetStarted } from "@/components/sections/get-started";
 import { SponsorStrip } from "@/components/sections/sponsors";
 import { getSponsorsFrom } from "@/lib/sponsors";
 import { LibraryIntro } from "@/components/sections/library-intro";
-import { WantMore } from "@/components/sections/want-more";
-import { GamesTeaser } from "@/components/sections/games-teaser";
+import { MorePair } from "@/components/sections/more-pair";
 import { Questions } from "@/components/sections/questions";
 import { band } from "@/components/sections/feature-row";
 import { JsonLd } from "@/components/seo/json-ld";
@@ -93,8 +92,7 @@ export default async function HomePage() {
       <SponsorStrip sponsors={gold} />
       <Features />
       <LibraryIntro />
-      <WantMore />
-      <GamesTeaser />
+      <MorePair />
       <Questions items={questions} spacing={band} />
       <GetStarted />
     </>
