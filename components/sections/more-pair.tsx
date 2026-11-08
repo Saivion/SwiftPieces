@@ -44,7 +44,7 @@ export function MorePair() {
               <ProBadge tone="games" label="Games" /> SwiftPieces Games <NewBadge />
             </p>
             <h3 className={title}>
-              Building a game? <span className="text-muted">There are {games.length} of those too.</span>
+              Building a game? <span className="text-muted">Start from a finished one.</span>
             </h3>
             <p className={cn(sectionBody, "max-w-[42ch]")}>Complete iOS games in SwiftUI and Metal. Real levels, Game Center and a StoreKit shop, with the full source.</p>
             <div className="mt-1 flex flex-wrap items-center gap-2.5">
