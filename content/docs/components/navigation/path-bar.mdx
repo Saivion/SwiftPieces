@@ -185,7 +185,8 @@ public struct PathBar<Node: Hashable, SegmentLabel: View>: View {
             .truncationMode(.middle)
             .fixedSize(horizontal: whole || current, vertical: false)
             .foregroundStyle(current ? style.onAccent : style.label)
-            .padding(.horizontal, 12)
+            // Only the current folder sits on the pill, so only it needs the room.
+            .padding(.horizontal, current ? 12 : 6)
             .frame(minHeight: 40)
             .contentShape(.capsule)
             // The closures capture only plain values, never this generic view.
