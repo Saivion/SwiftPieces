@@ -224,7 +224,7 @@ function PlanCard({ tag, title, body, points, cta, href = buy, badge }: { tag: s
     <div className={cn("relative flex flex-col rounded-[23px] p-7 md:p-9 lg:row-span-5 lg:grid lg:grid-rows-subgrid lg:gap-y-0", paid && "bg-surface-2")}>
       <div className="flex h-[26px] items-center justify-between">
         <span className={cn("text-[13px] font-medium", paid ? "text-foreground" : "text-subtle")}>{tag}</span>
-        {badge ? <ProBadge label={badge} /> : null}
+        {badge ? <ProBadge label={badge} tone={badge === "Games" ? "games" : "pro"} /> : null}
       </div>
       <h3 className={cn("mt-6", cardTitle)}>{title}</h3>
       <p className="mt-3 max-w-md text-[15px] leading-[25px] text-pretty text-muted">{body}</p>
