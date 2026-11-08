@@ -757,7 +757,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/controls/level-picker",
     "added": "2026-10-27",
-    "isNew": true,
+    "isNew": false,
     "liquidGlass": true,
     "metal": false
   },
@@ -798,6 +798,48 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/controls/liquid-switch",
     "added": "2026-10-27",
+    "isNew": false,
+    "liquidGlass": true,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "SelectMenu",
+    "slug": "select-menu",
+    "type": "registry:component",
+    "title": "Select Menu",
+    "description": "A glass pill that shows the current choice and opens in place into its list of options. The red row flows to the option you tap, the check follows it, and the glass closes back into the pill with the new value. For sort orders, currencies, units and any short list of choices. Opening, flowing and closing each have their own spring, VoiceOver reads it as a pop-up button with its value, and under Reduce Motion it fades.",
+    "category": "controls",
+    "license": "MIT+Commons-Clause",
+    "version": "1.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "select",
+      "menu",
+      "picker",
+      "dropdown",
+      "sort",
+      "glass",
+      "haptics"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/controls/SelectMenu.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Controls/SelectMenu.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/controls/select-menu",
+    "added": "2026-11-08",
     "isNew": true,
     "liquidGlass": true,
     "metal": false
@@ -841,6 +883,48 @@
     "docs": "https://swiftpieces.com/docs/components/controls/timer-dial",
     "pro": "focus-timer",
     "isNew": false,
+    "liquidGlass": true,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "ViewToggle",
+    "slug": "view-toggle",
+    "type": "registry:component",
+    "title": "View Toggle",
+    "description": "A list and grid toggle in glass. The red pill flows to the layout you tap, and the change happens inside an animation, so items you mark with matchedGeometryEffect in a shared namespace morph between rows and tiles instead of cutting. For photo libraries, shops, files and any collection with two views. VoiceOver reads it as a picker with the current layout.",
+    "category": "controls",
+    "license": "MIT+Commons-Clause",
+    "version": "1.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "layout",
+      "list",
+      "grid",
+      "toggle",
+      "matched-geometry",
+      "glass",
+      "haptics"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/controls/ViewToggle.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Controls/ViewToggle.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/controls/view-toggle",
+    "added": "2026-11-08",
+    "isNew": true,
     "liquidGlass": true,
     "metal": false
   },
@@ -1630,7 +1714,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/inputs/choice-group",
     "added": "2026-10-27",
-    "isNew": true,
+    "isNew": false,
     "liquidGlass": true,
     "metal": false
   },
@@ -1712,7 +1796,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/inputs/date-strip",
     "added": "2026-10-27",
-    "isNew": true,
+    "isNew": false,
     "liquidGlass": false,
     "metal": false
   },
@@ -1873,7 +1957,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/inputs/interest-chips",
     "added": "2026-10-27",
-    "isNew": true,
+    "isNew": false,
     "liquidGlass": true,
     "metal": false
   },
@@ -2090,6 +2174,48 @@
   },
   {
     "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "SizePicker",
+    "slug": "size-picker",
+    "type": "registry:component",
+    "title": "Size Picker",
+    "description": "A glass row of sizes with a red pill that flows to the one you tap, its leading edge reaching the new size first. Sold out sizes are struck through and shake when tapped, and a short note under the row says what is left: in stock, only two left, or that a size is sold out. For clothes, shoes, cup sizes and plan tiers. VoiceOver reads each size with its note, and sold out sizes as dimmed.",
+    "category": "inputs",
+    "license": "MIT+Commons-Clause",
+    "version": "1.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "size",
+      "picker",
+      "shop",
+      "stock",
+      "selection",
+      "glass",
+      "haptics"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/inputs/SizePicker.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Inputs/SizePicker.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/inputs/size-picker",
+    "added": "2026-11-08",
+    "isNew": true,
+    "liquidGlass": true,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
     "name": "SwatchPicker",
     "slug": "swatch-picker",
     "type": "registry:component",
@@ -2125,7 +2251,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/inputs/swatch-picker",
     "added": "2026-10-27",
-    "isNew": true,
+    "isNew": false,
     "liquidGlass": false,
     "metal": false
   },
@@ -2166,7 +2292,7 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/inputs/time-slot-picker",
     "added": "2026-10-27",
-    "isNew": true,
+    "isNew": false,
     "liquidGlass": true,
     "metal": false
   },
@@ -2209,6 +2335,48 @@
     "docs": "https://swiftpieces.com/docs/components/inputs/token-field",
     "added": "2026-09-23",
     "isNew": false,
+    "liquidGlass": true,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "UnitToggle",
+    "slug": "unit-toggle",
+    "type": "registry:component",
+    "title": "Unit Toggle",
+    "description": "A value with a small glass unit toggle beside it. Tap the other unit and the red pill flows to it while the number rolls to the converted value. Built on Foundation's Measurement, so any pair of units works: kilograms and pounds, Celsius and Fahrenheit, kilometres and miles, cups and millilitres. The binding keeps the converted measurement, and VoiceOver reads the value with its full unit name.",
+    "category": "inputs",
+    "license": "MIT+Commons-Clause",
+    "version": "1.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "unit",
+      "measurement",
+      "conversion",
+      "toggle",
+      "health",
+      "weather",
+      "glass"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/inputs/UnitToggle.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Inputs/UnitToggle.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/inputs/unit-toggle",
+    "added": "2026-11-08",
+    "isNew": true,
     "liquidGlass": true,
     "metal": false
   },
@@ -2378,6 +2546,47 @@
     "docs": "https://swiftpieces.com/docs/components/lists/paged-list",
     "added": "2026-09-23",
     "isNew": false,
+    "liquidGlass": true,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "ReorderList",
+    "slug": "reorder-list",
+    "type": "registry:component",
+    "title": "Reorder List",
+    "description": "Rows you reorder by holding the grip and dragging. The row lifts in glass under your finger, its grip turns red, and the other rows part on a spring as it passes, with a tick at each new slot. Let go and it settles into place and writes the new order back to your array. For lists, playlists, priorities and home screen sections. VoiceOver gets Move up and Move down actions on every row.",
+    "category": "lists",
+    "license": "MIT+Commons-Clause",
+    "version": "1.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "reorder",
+      "drag",
+      "list",
+      "sort",
+      "glass",
+      "haptics"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/lists/ReorderList.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Lists/ReorderList.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/lists/reorder-list",
+    "added": "2026-11-08",
+    "isNew": true,
     "liquidGlass": true,
     "metal": false
   },
@@ -2720,6 +2929,48 @@
   },
   {
     "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "QRCode",
+    "slug": "qr-code",
+    "type": "registry:component",
+    "title": "QR Code",
+    "description": "Turns any string, link or Wi-Fi login into a styled QR code: round dots, soft corner eyes with red centres, and your icon in the middle, with error correction raised to the highest level so it still scans. When the content changes, the dots ripple out from the centre into the new code. It draws with Core Image's own encoder and Canvas, so it is crisp at any size, and it renders with ImageRenderer for sharing. For tickets, invites, pairing and sharing.",
+    "category": "media",
+    "license": "MIT+Commons-Clause",
+    "version": "1.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "qr",
+      "code",
+      "share",
+      "ticket",
+      "wifi",
+      "canvas",
+      "coreimage"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/media/QRCode.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Media/QRCode.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/media/qr-code",
+    "added": "2026-11-08",
+    "isNew": true,
+    "liquidGlass": false,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
     "name": "StoryStrip",
     "slug": "story-strip",
     "type": "registry:component",
@@ -2842,6 +3093,48 @@
     "docs": "https://swiftpieces.com/docs/components/media/waveform-scrub",
     "added": "2026-10-12",
     "isNew": false,
+    "liquidGlass": true,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "ZoomDial",
+    "slug": "zoom-dial",
+    "type": "registry:component",
+    "title": "Zoom Dial",
+    "description": "Preset stops in a glass capsule, like the camera's zoom buttons, with a red disc that flows between them. Tap a stop to jump to it. Press and hold and the capsule widens into a dial: slide for any value in between, with a tick at each tenth, then let go and it folds back with the exact value in the disc. For camera zoom, playback speed, map scale and anything with a few favourite values. VoiceOver adjusts it stop by stop.",
+    "category": "media",
+    "license": "MIT+Commons-Clause",
+    "version": "1.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "zoom",
+      "dial",
+      "camera",
+      "speed",
+      "stops",
+      "glass",
+      "haptics"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/media/ZoomDial.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Media/ZoomDial.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/media/zoom-dial",
+    "added": "2026-11-08",
+    "isNew": true,
     "liquidGlass": true,
     "metal": false
   },
@@ -3006,6 +3299,48 @@
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/navigation/page-dots",
     "added": "2026-10-27",
+    "isNew": false,
+    "liquidGlass": true,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "PathBar",
+    "slug": "path-bar",
+    "type": "registry:component",
+    "title": "Path Bar",
+    "description": "A glass breadcrumb for nested places: folders, categories, settings. Each segment has its icon and the current one sits on a red pill that flows as you move. Drilling in lifts the new name up into the bar; tapping an earlier segment goes back to it. Deep paths fold their middle into a … menu so the bar never overflows, and holding a segment opens its siblings, so you can jump sideways like the Finder's path bar. VoiceOver reads it as a breadcrumb, and it flips for right-to-left.",
+    "category": "navigation",
+    "license": "MIT+Commons-Clause",
+    "version": "1.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "breadcrumb",
+      "path",
+      "folders",
+      "navigation",
+      "menu",
+      "glass",
+      "haptics"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/navigation/PathBar.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Navigation/PathBar.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/navigation/path-bar",
+    "added": "2026-11-08",
     "isNew": true,
     "liquidGlass": true,
     "metal": false
@@ -3514,6 +3849,90 @@
   },
   {
     "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "ReadAlongText",
+    "slug": "read-along-text",
+    "type": "registry:component",
+    "title": "Read-Along Text",
+    "description": "Text that follows a recording word by word, like karaoke for audiobooks, podcasts and lessons. The word being spoken sits on an even red pill with the same room on both sides, sized to the word and centred on its line, so it never clips a letter or touches the next word. The pill glides to each new word, words already read turn solid and the rest stay quiet. Tap any word to seek there. Drive it with your player's time; it wraps like text and scales with Dynamic Type.",
+    "category": "text",
+    "license": "MIT+Commons-Clause",
+    "version": "1.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "karaoke",
+      "transcript",
+      "audio",
+      "podcast",
+      "highlight",
+      "reading",
+      "accessibility"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/text/ReadAlongText.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Text/ReadAlongText.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/text/read-along-text",
+    "added": "2026-11-08",
+    "isNew": true,
+    "liquidGlass": false,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "RelativeTime",
+    "slug": "relative-time",
+    "type": "registry:component",
+    "title": "Relative Time",
+    "description": "A timestamp that keeps itself current: just now, then 1 min ago, then Yesterday, rolling up to each new wording. It wakes only when the wording would change, so it costs nothing in between, even in a long feed. Tap it to see the exact date and time in red, and tap again to go back. It follows the locale through Foundation's RelativeDateTimeFormatter, and VoiceOver reads it in full, as in 1 minute ago. For feeds, messages, activity and comments.",
+    "category": "text",
+    "license": "MIT+Commons-Clause",
+    "version": "1.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "time",
+      "date",
+      "relative",
+      "timestamp",
+      "feed",
+      "locale",
+      "accessibility"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/text/RelativeTime.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Text/RelativeTime.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/text/relative-time",
+    "added": "2026-11-08",
+    "isNew": true,
+    "liquidGlass": false,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
     "name": "TextReveal",
     "slug": "text-reveal",
     "type": "registry:component",
@@ -3551,6 +3970,47 @@
     "pro": "onboarding-flow",
     "isNew": false,
     "liquidGlass": true,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "TranslateToggle",
+    "slug": "translate-toggle",
+    "type": "registry:component",
+    "title": "Translate Toggle",
+    "description": "Text that can show itself in the reader's language. Tap Translate and the words blur over one by one into the translation while the language label rolls to say where it came from; tap Original to go back. It uses Apple's on-device Translation framework, so it needs no keys and no server, and it detects the source language itself. The button hides when the text is already in the reader's language, and before iOS 18. For reviews, comments, menus and travel.",
+    "category": "text",
+    "license": "MIT+Commons-Clause",
+    "version": "1.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "translate",
+      "translation",
+      "language",
+      "locale",
+      "text",
+      "reviews"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/text/TranslateToggle.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Text/TranslateToggle.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/text/translate-toggle",
+    "added": "2026-11-08",
+    "isNew": true,
+    "liquidGlass": false,
     "metal": false
   }
 ]

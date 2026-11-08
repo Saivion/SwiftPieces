@@ -7,6 +7,20 @@ import type { ChangelogEntry } from "@/components/changelog/changelog-grid";
  */
 export const changelog: ChangelogEntry[] = [
   {
+    slug: "everyday-pieces",
+    date: "Nov 8, 2026",
+    title: "Eleven everyday pieces",
+    summary: "Eleven free pieces you drop onto your own content: a select menu, a zoom dial, a reorder list, a size picker, a unit toggle, a view toggle, a path bar, QR codes, read-along text, relative times and a translate button.",
+    points: [
+      "Select Menu, Zoom Dial, Reorder List, Size Picker, Unit Toggle, View Toggle and Path Bar: glass controls whose red selection flows to your pick, each with notes, a preview scene and a live web preview.",
+      "QR Code draws a styled code with round dots, soft eyes and your logo, and ripples into a new code when it changes. Read-Along Text follows a recording word by word on an even red pill.",
+      "Relative Time keeps a timestamp current and only wakes when its wording changes. Translate Toggle translates text on device with Apple's Translation framework, word by word.",
+      "New badges move to these eleven.",
+    ],
+    visual: "slider",
+    tint: "red",
+  },
+  {
     slug: "games",
     date: "Nov 2, 2026",
     title: "Meet SwiftPieces Games",

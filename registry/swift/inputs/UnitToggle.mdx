@@ -1,0 +1,8 @@
+## Notes
+
+- Built on Foundation's `Measurement`, so any `Dimension` works: mass, temperature, length, speed, volume, energy. Pass the units to switch between, usually two.
+- Tapping the other unit converts the bound measurement with `converted(to:)` and writes it back in the new unit, so your model always holds what is shown.
+- The red pill flows to the chosen unit and the number rolls to the converted value with a numeric content transition. Unit symbols come from `MeasurementFormatter`, so they follow the locale.
+- `fractionDigits` caps the decimals shown. Turn `showsValue` off to put the toggle beside your own text.
+- VoiceOver reads the value with its full unit name, such as "72.4 kilograms", and each unit by name.
+- Under Reduce Motion the pill slides whole and the number changes without rolling.

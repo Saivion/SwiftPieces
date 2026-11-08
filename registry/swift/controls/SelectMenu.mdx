@@ -1,0 +1,8 @@
+## Notes
+
+- Takes any `Hashable` options with a `label` closure for their text, so an enum of sort orders, currencies or units drops straight in.
+- The closed pill shows the current value. Tapping it opens the glass in place into the list, a little slower than it closes, and the chevron turns over.
+- The selected row is a red pill. A new pick flows the red to it and the check follows, then the glass closes a beat later so the move reads, and the new value blurs into the pill.
+- The pill keeps its own height in your layout and the list opens over the views below it. If a later sibling draws on top, give the menu a higher `zIndex`.
+- One selection haptic fires per pick. VoiceOver reads the title and current value on the pill, and marks the selected row. `.disabled(true)` dims it.
+- Under Reduce Motion the glass opens and closes with short fades and the red slides without overshoot.

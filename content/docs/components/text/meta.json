@@ -6,6 +6,9 @@
     "expandable-text",
     "glass-text",
     "picture-headline",
-    "text-reveal"
+    "read-along-text",
+    "relative-time",
+    "text-reveal",
+    "translate-toggle"
   ]
 }

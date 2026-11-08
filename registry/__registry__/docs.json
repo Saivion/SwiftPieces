@@ -4949,6 +4949,58 @@
     }
   },
   {
+    "url": "/docs/components/controls/select-menu",
+    "title": "Select Menu",
+    "description": "A glass pill showing the current choice that opens in place into its list, the red row flowing to your pick before it closes.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Components",
+      "Categories · 14",
+      "Controls"
+    ],
+    "structuredData": {
+      "contents": [
+        {
+          "content": "Colors for `SelectMenu`. `.standard` is the house palette."
+        },
+        {
+          "heading": "notes",
+          "content": "Takes any `Hashable` options with a `label` closure for their text, so an enum of sort orders, currencies or units drops straight in."
+        },
+        {
+          "heading": "notes",
+          "content": "The closed pill shows the current value. Tapping it opens the glass in place into the list, a little slower than it closes, and the chevron turns over."
+        },
+        {
+          "heading": "notes",
+          "content": "The selected row is a red pill. A new pick flows the red to it and the check follows, then the glass closes a beat later so the move reads, and the new value blurs into the pill."
+        },
+        {
+          "heading": "notes",
+          "content": "The pill keeps its own height in your layout and the list opens over the views below it. If a later sibling draws on top, give the menu a higher `zIndex`."
+        },
+        {
+          "heading": "notes",
+          "content": "One selection haptic fires per pick. VoiceOver reads the title and current value on the pill, and marks the selected row. `.disabled(true)` dims it."
+        },
+        {
+          "heading": "notes",
+          "content": "Under Reduce Motion the glass opens and closes with short fades and the red slides without overshoot."
+        }
+      ],
+      "headings": [
+        {
+          "id": "notes",
+          "content": "Notes"
+        },
+        {
+          "id": "usage",
+          "content": "Usage"
+        }
+      ]
+    }
+  },
+  {
     "url": "/docs/components/controls/timer-dial",
     "title": "Timer Dial",
     "description": "A countdown ring you set by dragging a glass knob around it, with a tick per step, a warning zone and start, pause and reset bubbles.",
@@ -5120,6 +5172,50 @@
         {
           "id": "parameters",
           "content": "Parameters"
+        }
+      ]
+    }
+  },
+  {
+    "url": "/docs/components/controls/view-toggle",
+    "title": "View Toggle",
+    "description": "A glass list and grid toggle whose red pill flows between them, switching inside an animation so matched items morph.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Components",
+      "Categories · 14",
+      "Controls"
+    ],
+    "structuredData": {
+      "contents": [
+        {
+          "content": "The two layouts `ViewToggle` switches between."
+        },
+        {
+          "heading": "notes",
+          "content": "A two-segment glass toggle for list and grid, with SF Symbols for each. The red pill flows between them."
+        },
+        {
+          "heading": "notes",
+          "content": "The toggle sets `layout` inside an animation, the morph spring unless you pass your own. Mark each item with `matchedGeometryEffect(id:in:)` in both layouts, using one `@Namespace`, and the items move from rows to tiles with the pill instead of cutting."
+        },
+        {
+          "heading": "notes",
+          "content": "One selection haptic fires per change. VoiceOver reads it as Layout with List and Grid buttons and marks the selected one."
+        },
+        {
+          "heading": "notes",
+          "content": "Under Reduce Motion the pill slides whole and the morph spring has no overshoot."
+        }
+      ],
+      "headings": [
+        {
+          "id": "notes",
+          "content": "Notes"
+        },
+        {
+          "id": "usage",
+          "content": "Usage"
         }
       ]
     }
@@ -9169,6 +9265,62 @@
     }
   },
   {
+    "url": "/docs/components/inputs/size-picker",
+    "title": "Size Picker",
+    "description": "A glass row of sizes with a red pill that flows to your pick, sold out sizes struck through and shaking, and a stock note under it.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Components",
+      "Categories · 14",
+      "Inputs"
+    ],
+    "structuredData": {
+      "contents": [
+        {
+          "content": "Colors for `SizePicker`. `.standard` is the house palette."
+        },
+        {
+          "heading": "notes",
+          "content": "Sizes are strings, so clothing letters, shoe numbers, cup sizes or plan tiers all work. Mark sold out ones in `unavailable`."
+        },
+        {
+          "heading": "notes",
+          "content": "The chosen size is a red pill that flows: the edge facing the new size leads on a tight spring and the far edge follows."
+        },
+        {
+          "heading": "notes",
+          "content": "Sold out sizes are dimmed and struck through. Tapping one shakes the row with an error haptic and the note says it is sold out; the selection stays where it was."
+        },
+        {
+          "heading": "notes",
+          "content": "The note under the row comes from your `note` closure for the chosen size, such as \"Only 2 left\", and falls back to \"In stock\". It blurs to each new line."
+        },
+        {
+          "heading": "notes",
+          "content": "Cells are 44pt and scale with Dynamic Type. A row wider than its space scrolls sideways."
+        },
+        {
+          "heading": "notes",
+          "content": "One selection haptic fires per pick. VoiceOver reads each size with its note, or \"Sold out\". `.disabled(true)` dims the row."
+        },
+        {
+          "heading": "notes",
+          "content": "Under Reduce Motion the pill slides whole on one short spring."
+        }
+      ],
+      "headings": [
+        {
+          "id": "notes",
+          "content": "Notes"
+        },
+        {
+          "id": "usage",
+          "content": "Usage"
+        }
+      ]
+    }
+  },
+  {
     "url": "/docs/components/inputs/swatch-picker",
     "title": "Swatch Picker",
     "description": "A row of named color swatches whose selection ring flows to the one you tap, with a check in whichever ink reads on it.",
@@ -9432,6 +9584,58 @@
         {
           "id": "parameters",
           "content": "Parameters"
+        }
+      ]
+    }
+  },
+  {
+    "url": "/docs/components/inputs/unit-toggle",
+    "title": "Unit Toggle",
+    "description": "A value with a glass unit toggle: the red pill flows to the unit you tap and the number rolls to the converted Measurement.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Components",
+      "Categories · 14",
+      "Inputs"
+    ],
+    "structuredData": {
+      "contents": [
+        {
+          "content": "Colors and type for `UnitToggle`. `.standard` is the house palette."
+        },
+        {
+          "heading": "notes",
+          "content": "Built on Foundation's `Measurement`, so any `Dimension` works: mass, temperature, length, speed, volume, energy. Pass the units to switch between, usually two."
+        },
+        {
+          "heading": "notes",
+          "content": "Tapping the other unit converts the bound measurement with `converted(to:)` and writes it back in the new unit, so your model always holds what is shown."
+        },
+        {
+          "heading": "notes",
+          "content": "The red pill flows to the chosen unit and the number rolls to the converted value with a numeric content transition. Unit symbols come from `MeasurementFormatter`, so they follow the locale."
+        },
+        {
+          "heading": "notes",
+          "content": "`fractionDigits` caps the decimals shown. Turn `showsValue` off to put the toggle beside your own text."
+        },
+        {
+          "heading": "notes",
+          "content": "VoiceOver reads the value with its full unit name, such as \"72.4 kilograms\", and each unit by name."
+        },
+        {
+          "heading": "notes",
+          "content": "Under Reduce Motion the pill slides whole and the number changes without rolling."
+        }
+      ],
+      "headings": [
+        {
+          "id": "notes",
+          "content": "Notes"
+        },
+        {
+          "id": "usage",
+          "content": "Usage"
         }
       ]
     }
@@ -10044,6 +10248,58 @@
         {
           "id": "parameters",
           "content": "Parameters"
+        }
+      ]
+    }
+  },
+  {
+    "url": "/docs/components/lists/reorder-list",
+    "title": "Reorder List",
+    "description": "Glass rows you reorder by holding the grip: the row lifts, its grip turns red and the others part, with a tick at each slot.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Components",
+      "Categories · 14",
+      "Lists"
+    ],
+    "structuredData": {
+      "contents": [
+        {
+          "content": "Colors and spacing for `ReorderList`. `.standard` is the house palette."
+        },
+        {
+          "heading": "notes",
+          "content": "Give it a binding to an array of `Identifiable` items and a row builder. A glass grip is added at the end of each row; the drop writes the new order back to the array."
+        },
+        {
+          "heading": "notes",
+          "content": "Hold the grip briefly and the row lifts: a slight scale, a deeper shadow and a red grip, with a medium haptic. It follows the finger exactly while the rows it passes spring aside, with a selection tick at each new slot."
+        },
+        {
+          "heading": "notes",
+          "content": "On release the move is written in the same frame the rows settle, so nothing jumps, and the dropped row springs the last few points into its slot with a success haptic."
+        },
+        {
+          "heading": "notes",
+          "content": "Rows are spaced by the height of the first row, so keep them one height. It is a plain stack, not a `List`, for the short lists people arrange by hand."
+        },
+        {
+          "heading": "notes",
+          "content": "VoiceOver gets Move up and Move down actions on every row, so it can be reordered without dragging."
+        },
+        {
+          "heading": "notes",
+          "content": "Under Reduce Motion the lift does not scale and the rows settle without overshoot."
+        }
+      ],
+      "headings": [
+        {
+          "id": "notes",
+          "content": "Notes"
+        },
+        {
+          "id": "usage",
+          "content": "Usage"
         }
       ]
     }
@@ -11297,6 +11553,62 @@
     }
   },
   {
+    "url": "/docs/components/media/qr-code",
+    "title": "QR Code",
+    "description": "A styled QR code with round dots, soft eyes with red centres and your logo, whose dots ripple out from the centre when it changes.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Components",
+      "Categories · 14",
+      "Media"
+    ],
+    "structuredData": {
+      "contents": [
+        {
+          "content": "Colors for `QRCode`. A code is always dark on light, so it scans in dark mode too: these don't follow the appearance."
+        },
+        {
+          "heading": "notes",
+          "content": "Encodes any string with Core Image's own QR generator at the highest error correction, H, so the logo in the middle and the rounded dots still scan. Use it for links, text, `WIFI:` logins and contact cards."
+        },
+        {
+          "heading": "notes",
+          "content": "Drawn in one `Canvas`: round dots, three finder eyes with soft corners and red centres, and an optional logo on a red tile in a cleared square at the centre. It fills the square it is given and stays crisp at any size."
+        },
+        {
+          "heading": "notes",
+          "content": "When the content changes, a ring spreads from the centre: dots the new code drops shrink away and dots it adds pop in."
+        },
+        {
+          "heading": "notes",
+          "content": "A code is always dark on a light card, in dark mode too, so it scans. Recolour the dots, eye centres, card and logo tile through `QRCode.Style`."
+        },
+        {
+          "heading": "notes",
+          "content": "To share it as an image, render it with `ImageRenderer(content: QRCode(text).frame(width: 600))`."
+        },
+        {
+          "heading": "notes",
+          "content": "VoiceOver reads it as an image, \"QR code\", with what it encodes as its value."
+        },
+        {
+          "heading": "notes",
+          "content": "Under Reduce Motion the new code appears at once."
+        }
+      ],
+      "headings": [
+        {
+          "id": "notes",
+          "content": "Notes"
+        },
+        {
+          "id": "usage",
+          "content": "Usage"
+        }
+      ]
+    }
+  },
+  {
     "url": "/docs/components/media/story-strip",
     "title": "Story Strip",
     "description": "A Stories-style segment strip with its own clock, hold to pause, and tap zones for back and forward.",
@@ -11825,6 +12137,58 @@
     }
   },
   {
+    "url": "/docs/components/media/zoom-dial",
+    "title": "Zoom Dial",
+    "description": "Preset stops in a glass capsule with a flowing red disc that widens into a fine dial when you hold it, like the camera zoom.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Components",
+      "Categories · 14",
+      "Media"
+    ],
+    "structuredData": {
+      "contents": [
+        {
+          "content": "Colors for `ZoomDial`. `.standard` is the house palette."
+        },
+        {
+          "heading": "notes",
+          "content": "Preset `stops` sit in a glass capsule with the chosen one on a red disc that flows: its leading edge reaches the new stop first and the far edge follows, so it stretches and gathers in."
+        },
+        {
+          "heading": "notes",
+          "content": "Press and hold for about a third of a second and the capsule widens into a dial: a ruler with a tick at each tenth and labels at each whole number, under a fixed red needle. Slide left to turn the value up. A selection haptic ticks at every tenth."
+        },
+        {
+          "heading": "notes",
+          "content": "Let go and the capsule folds back. The disc moves to the nearest stop and shows the exact value, such as 1.6×."
+        },
+        {
+          "heading": "notes",
+          "content": "One touch does both: a short tap picks the stop under it, a hold opens the dial. The value is clamped to `range` and kept to hundredths."
+        },
+        {
+          "heading": "notes",
+          "content": "VoiceOver reads it as one adjustable element, \"Zoom, 2×\"; swipe up or down to step through the stops."
+        },
+        {
+          "heading": "notes",
+          "content": "Under Reduce Motion the disc slides whole and the capsule changes width without overshoot."
+        }
+      ],
+      "headings": [
+        {
+          "id": "notes",
+          "content": "Notes"
+        },
+        {
+          "id": "usage",
+          "content": "Usage"
+        }
+      ]
+    }
+  },
+  {
     "url": "/docs/components/motion/drag-to-dismiss",
     "title": "Drag to Dismiss",
     "description": "A modifier that lets a photo, card or sheet follow the drag, then springs it back or tosses it away at the speed of the flick.",
@@ -12286,6 +12650,62 @@
         {
           "heading": "notes",
           "content": "Under Reduce Motion the capsule swaps on one short spring without the pour. The autoplay timer still fills, since it carries meaning. Reduce Transparency draws the glass capsule as a solid shape."
+        }
+      ],
+      "headings": [
+        {
+          "id": "notes",
+          "content": "Notes"
+        },
+        {
+          "id": "usage",
+          "content": "Usage"
+        }
+      ]
+    }
+  },
+  {
+    "url": "/docs/components/navigation/path-bar",
+    "title": "Path Bar",
+    "description": "A glass breadcrumb with icons, a flowing red pill on the current place, a … menu for deep paths and siblings on a long press.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Components",
+      "Categories · 14",
+      "Navigation"
+    ],
+    "structuredData": {
+      "contents": [
+        {
+          "content": "Colors for `PathBar`. `.standard` is the house palette."
+        },
+        {
+          "heading": "notes",
+          "content": "Bind it to the same array of nodes you drive a `NavigationStack` with, give it the root, a `children` closure and a label for a node, usually `Label(name, systemImage:)`."
+        },
+        {
+          "heading": "notes",
+          "content": "The current place sits on a red pill that flows as you move. A new level rises into the bar as you drill in. Tap an earlier segment to go back to it: the path is trimmed to that level."
+        },
+        {
+          "heading": "notes",
+          "content": "Once the path is deeper than `visibleLevels` (3 by default), the middle folds into a … button that lists the hidden levels, so the bar never overflows."
+        },
+        {
+          "heading": "notes",
+          "content": "Hold a segment to open its siblings, the other children of its parent, and pick one to jump sideways; the levels below it are dropped."
+        },
+        {
+          "heading": "notes",
+          "content": "The chevrons follow the layout direction, so the bar flips for right-to-left languages."
+        },
+        {
+          "heading": "notes",
+          "content": "VoiceOver reads it as a Path container of buttons, marks the current place, and hints that holding opens the other folders there."
+        },
+        {
+          "heading": "notes",
+          "content": "Under Reduce Motion new segments fade in instead of rising."
         }
       ],
       "headings": [
@@ -14093,6 +14513,110 @@
     }
   },
   {
+    "url": "/docs/components/text/read-along-text",
+    "title": "Read-Along Text",
+    "description": "Text that follows a recording word by word on an even red pill that glides along, read words turning solid; tap to seek.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Components",
+      "Categories · 14",
+      "Text"
+    ],
+    "structuredData": {
+      "contents": [
+        {
+          "content": "Colors and type for `ReadAlongText`. `.standard` is the house palette."
+        },
+        {
+          "heading": "notes",
+          "content": "Give it the transcript as words with their start times and durations, from your speech or captions data, and your player's current time. `ReadAlongText.Word.spread(_:over:)` times plain text across a duration when you have no word timings."
+        },
+        {
+          "heading": "notes",
+          "content": "The spoken word sits on an even red pill: the word's own box with the same padding on both sides, a little taller than its letters, so it never clips a letter or meets the next word. The pill glides from word to word and from line to line."
+        },
+        {
+          "heading": "notes",
+          "content": "Words already read turn solid and words to come stay quiet, so the place in the text reads at a glance."
+        },
+        {
+          "heading": "notes",
+          "content": "Pass `onSeek` and a tap on any word calls it with that word's start time; leave it out and the text is not tappable."
+        },
+        {
+          "heading": "notes",
+          "content": "Words wrap like text and the pill, spacing and line gap scale with Dynamic Type."
+        },
+        {
+          "heading": "notes",
+          "content": "VoiceOver reads the whole passage as one element."
+        },
+        {
+          "heading": "notes",
+          "content": "Under Reduce Motion the pill moves without overshoot."
+        }
+      ],
+      "headings": [
+        {
+          "id": "notes",
+          "content": "Notes"
+        },
+        {
+          "id": "usage",
+          "content": "Usage"
+        }
+      ]
+    }
+  },
+  {
+    "url": "/docs/components/text/relative-time",
+    "title": "Relative Time",
+    "description": "A timestamp that keeps itself current, rolling from just now to Yesterday only when its wording changes; tap for the exact time.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Components",
+      "Categories · 14",
+      "Text"
+    ],
+    "structuredData": {
+      "contents": [
+        {
+          "content": "Colors and type for `RelativeTime`. `.standard` is the house palette."
+        },
+        {
+          "heading": "notes",
+          "content": "Shows \"just now\" under a minute, then the locale's own wording from `RelativeDateTimeFormatter`, such as \"1 min. ago\", \"3 hr. ago\" or \"Yesterday\"."
+        },
+        {
+          "heading": "notes",
+          "content": "It sleeps until the wording would next change, the next whole minute, hour or day, and then rolls up to the new text. Nothing runs in between, so a long feed of them costs nothing."
+        },
+        {
+          "heading": "notes",
+          "content": "Tap it to see the exact date and time in red, and tap again to go back. Turn this off with `tapToReveal: false`."
+        },
+        {
+          "heading": "notes",
+          "content": "VoiceOver reads the full wording, such as \"1 minute ago\", and hints that a tap shows the exact time."
+        },
+        {
+          "heading": "notes",
+          "content": "Under Reduce Motion the text changes with a fade instead of rolling."
+        }
+      ],
+      "headings": [
+        {
+          "id": "notes",
+          "content": "Notes"
+        },
+        {
+          "id": "usage",
+          "content": "Usage"
+        }
+      ]
+    }
+  },
+  {
     "url": "/docs/components/text/text-reveal",
     "title": "Text Reveal",
     "description": "Reveals a headline by characters, words or lines, then grows a stroke of tinted glass behind the phrases that matter.",
@@ -14252,6 +14776,58 @@
         {
           "id": "parameters",
           "content": "Parameters"
+        }
+      ]
+    }
+  },
+  {
+    "url": "/docs/components/text/translate-toggle",
+    "title": "Translate Toggle",
+    "description": "Text with an on-device Translate button: the words blur over one by one into the reader's language as the label rolls.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Components",
+      "Categories · 14",
+      "Text"
+    ],
+    "structuredData": {
+      "contents": [
+        {
+          "content": "Colors and type for `TranslateToggle`. `.standard` is the house palette."
+        },
+        {
+          "heading": "notes",
+          "content": "Uses Apple's on-device Translation framework, so there are no keys, no server and nothing leaves the device. The first translation into a language may ask the reader to download it."
+        },
+        {
+          "heading": "notes",
+          "content": "The source language is detected with NaturalLanguage and shown above the text. The target is the reader's language unless you pass one."
+        },
+        {
+          "heading": "notes",
+          "content": "Tap Translate and the words blur out one by one and the translation sharpens in the same way, while the language line rolls to say where it came from. The button turns red and reads Original; tap it to go back. The translation is kept, so switching again is instant."
+        },
+        {
+          "heading": "notes",
+          "content": "The button hides when the text is already in the target language, and before iOS 18, where Translation is not available."
+        },
+        {
+          "heading": "notes",
+          "content": "If a translation fails, such as an unsupported pair or a declined download, it stays on the original and the next tap tries again."
+        },
+        {
+          "heading": "notes",
+          "content": "Under Reduce Motion the text cross-fades instead of blurring word by word."
+        }
+      ],
+      "headings": [
+        {
+          "id": "notes",
+          "content": "Notes"
+        },
+        {
+          "id": "usage",
+          "content": "Usage"
         }
       ]
     }
