@@ -551,21 +551,27 @@ export function TranslateTogglePreview() {
   const { step } = useLoop(TT_STEPS);
   const reduced = usePrefersReducedMotion();
   // Old words blur out one by one, then the new ones sharpen in.
+  // The run is keyed on the toggle alone: if it also re-ran when `words` swapped, its cleanup would cancel the
+  // sharpen-in timers and leave the card blank from the first toggle on.
   const [words, setWords] = useState<readonly string[]>(TT_ES);
   const [shown, setShown] = useState<[number, number]>([0, 99]);
+  const current = useRef<readonly string[]>(TT_ES);
   useEffect(() => {
+    const from = current.current;
     const target = step.on ? TT_EN : TT_ES;
-    if (words === target) return;
-    if (reduced) { setWords(target); return; }
+    if (from === target) return;
+    current.current = target;
+    if (reduced) { setWords(target); setShown([0, 99]); return; }
     const timers: ReturnType<typeof setTimeout>[] = [];
-    words.forEach((_, i) => timers.push(setTimeout(() => setShown([i + 1, 99]), i * 26)));
-    const swapAt = words.length * 26 + 220;
+    from.forEach((_, i) => timers.push(setTimeout(() => setShown([i + 1, 99]), i * 26)));
+    const swapAt = from.length * 26 + 220;
     timers.push(setTimeout(() => { setWords(target); setShown([0, 0]); }, swapAt));
     target.forEach((_, i) => timers.push(setTimeout(() => setShown([0, i + 1]), swapAt + 40 + i * 32)));
-    return () => timers.forEach(clearTimeout);
-  }, [step.on, words, reduced]);
+    // Settle on the whole target if this run is cut short, so the card is never left blank.
+    return () => { timers.forEach(clearTimeout); setWords(target); setShown([0, 99]); };
+  }, [step.on, reduced]);
   return (
-    <Stage scale={1.3}>
+    <Stage scale={1.5}>
       <div className="relative flex flex-col" style={{ width: u(290), padding: u(20), gap: u(14) }}>
         <GlassBack radius={26} />
         <span className="relative overflow-hidden" style={{ fontSize: u(13), color: ground.muted }}><Roll text={step.on ? "English · from Spanish" : "Spanish"} /></span>
