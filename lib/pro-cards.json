@@ -1,5 +1,29 @@
 [
   {
+    "id": "reading-now",
+    "title": "Now Reading",
+    "type": "screen",
+    "category": "Media",
+    "summary": "A reading home with the book in hand as a big cover, its progress and time left, the week's reading and the pile up next.",
+    "isNew": false
+  },
+  {
+    "id": "reading-session",
+    "title": "Reading Session",
+    "type": "screen",
+    "category": "Media",
+    "summary": "A timed reading session: a dial that fills toward your session length, a big clock, a page counter and pause, stop and snap.",
+    "isNew": false
+  },
+  {
+    "id": "reading-year",
+    "title": "Reading Year",
+    "type": "screen",
+    "category": "Media",
+    "summary": "The year's books against a goal: a ring with your pace, the year in figures, a shelf of spines by month and the passage of the month.",
+    "isNew": false
+  },
+  {
     "id": "wallet-stack",
     "title": "Wallet",
     "type": "screen",
@@ -432,28 +456,130 @@
     "isNew": false
   },
   {
-    "id": "reading-now",
-    "title": "Now Reading",
-    "type": "screen",
-    "category": "Media",
-    "summary": "A reading home with the book in hand as a big cover, its progress and time left, the week's reading and the pile up next.",
-    "isNew": false
+    "id": "atelier-first-run",
+    "title": "First Run",
+    "type": "flow",
+    "summary": "",
+    "isNew": false,
+    "steps": 10,
+    "screens": 6
   },
   {
-    "id": "reading-session",
-    "title": "Reading Session",
-    "type": "screen",
-    "category": "Media",
-    "summary": "A timed reading session: a dial that fills toward your session length, a big clock, a page counter and pause, stop and snap.",
-    "isNew": false
+    "id": "atelier-find-a-piece",
+    "title": "Find A Piece",
+    "type": "flow",
+    "summary": "",
+    "isNew": false,
+    "steps": 7,
+    "screens": 3
   },
   {
-    "id": "reading-year",
-    "title": "Reading Year",
-    "type": "screen",
-    "category": "Media",
-    "summary": "The year's books against a goal: a ring with your pace, the year in figures, a shelf of spines by month and the passage of the month.",
-    "isNew": false
+    "id": "atelier-browse-and-search",
+    "title": "Browse And Search",
+    "type": "flow",
+    "summary": "",
+    "isNew": false,
+    "steps": 6,
+    "screens": 3
+  },
+  {
+    "id": "atelier-check-out",
+    "title": "Check Out",
+    "type": "flow",
+    "summary": "",
+    "isNew": false,
+    "steps": 7,
+    "screens": 3
+  },
+  {
+    "id": "atelier-account-and-orders",
+    "title": "Account And Orders",
+    "type": "flow",
+    "summary": "",
+    "isNew": false,
+    "steps": 8,
+    "screens": 6
+  },
+  {
+    "id": "folio-first-run",
+    "title": "First Run",
+    "type": "flow",
+    "summary": "",
+    "isNew": false,
+    "steps": 13,
+    "screens": 7
+  },
+  {
+    "id": "folio-tonights-page",
+    "title": "Tonight's Page",
+    "type": "flow",
+    "summary": "",
+    "isNew": false,
+    "steps": 9,
+    "screens": 2
+  },
+  {
+    "id": "folio-moods-and-memories",
+    "title": "Moods And Memories",
+    "type": "flow",
+    "summary": "",
+    "isNew": false,
+    "steps": 8,
+    "screens": 4
+  },
+  {
+    "id": "folio-you-and-settings",
+    "title": "You And Settings",
+    "type": "flow",
+    "summary": "",
+    "isNew": false,
+    "steps": 14,
+    "screens": 6
+  },
+  {
+    "id": "dogear-first-run",
+    "title": "First Run",
+    "type": "flow",
+    "summary": "",
+    "isNew": false,
+    "steps": 8,
+    "screens": 7
+  },
+  {
+    "id": "dogear-read-a-session",
+    "title": "Read A Session",
+    "type": "flow",
+    "summary": "",
+    "isNew": false,
+    "steps": 6,
+    "screens": 3
+  },
+  {
+    "id": "dogear-keep-a-passage",
+    "title": "Keep A Passage",
+    "type": "flow",
+    "summary": "",
+    "isNew": false,
+    "steps": 6,
+    "screens": 5
+  },
+  {
+    "id": "dogear-year-and-shelf",
+    "title": "Your Year And Shelf",
+    "type": "flow",
+    "summary": "",
+    "isNew": false,
+    "steps": 5,
+    "screens": 3
+  },
+  {
+    "id": "dogear-settings-and-theme",
+    "title": "Settings And Theme",
+    "type": "flow",
+    "summary": "",
+    "isNew": false,
+    "steps": 6,
+    "screens": 4
   },
   {
     "id": "cadence-first-run",
@@ -471,7 +597,7 @@
     "summary": "",
     "isNew": false,
     "steps": 11,
-    "screens": 3
+    "screens": 4
   },
   {
     "id": "cadence-start-a-habit",
@@ -888,85 +1014,28 @@
     "screens": 6
   },
   {
-    "id": "folio-first-run",
-    "title": "First Run",
-    "type": "flow",
-    "summary": "",
-    "isNew": false,
-    "steps": 13,
-    "screens": 7
+    "id": "shop-app",
+    "title": "Shop App",
+    "type": "template",
+    "category": "Commerce",
+    "summary": "Atelier, a shop for a small homeware studio: a complete Xcode project with seasonal edits, filters, product pages, a bag that checks out with Apple Pay, order tracking, widgets and three brand presets.",
+    "isNew": false
   },
   {
-    "id": "folio-tonights-page",
-    "title": "Tonight's Page",
-    "type": "flow",
-    "summary": "",
-    "isNew": false,
-    "steps": 9,
-    "screens": 2
+    "id": "journal-app",
+    "title": "Journal App",
+    "type": "template",
+    "category": "Health",
+    "summary": "Folio, a private journal: a complete Xcode project with a nightly prompt, a one-tap mood check, entries with photo, place and weather, On this day, a year of moods, widgets and three brand presets.",
+    "isNew": false
   },
   {
-    "id": "folio-moods-and-memories",
-    "title": "Moods And Memories",
-    "type": "flow",
-    "summary": "",
-    "isNew": false,
-    "steps": 8,
-    "screens": 4
-  },
-  {
-    "id": "folio-you-and-settings",
-    "title": "You And Settings",
-    "type": "flow",
-    "summary": "",
-    "isNew": false,
-    "steps": 14,
-    "screens": 6
-  },
-  {
-    "id": "dogear-first-run",
-    "title": "First Run",
-    "type": "flow",
-    "summary": "",
-    "isNew": false,
-    "steps": 8,
-    "screens": 7
-  },
-  {
-    "id": "dogear-read-a-session",
-    "title": "Read A Session",
-    "type": "flow",
-    "summary": "",
-    "isNew": false,
-    "steps": 6,
-    "screens": 3
-  },
-  {
-    "id": "dogear-keep-a-passage",
-    "title": "Keep A Passage",
-    "type": "flow",
-    "summary": "",
-    "isNew": false,
-    "steps": 6,
-    "screens": 5
-  },
-  {
-    "id": "dogear-year-and-shelf",
-    "title": "Your Year And Shelf",
-    "type": "flow",
-    "summary": "",
-    "isNew": false,
-    "steps": 5,
-    "screens": 3
-  },
-  {
-    "id": "dogear-settings-and-theme",
-    "title": "Settings And Theme",
-    "type": "flow",
-    "summary": "",
-    "isNew": false,
-    "steps": 6,
-    "screens": 4
+    "id": "reading-app",
+    "title": "Reading App",
+    "type": "template",
+    "category": "Media",
+    "summary": "Dogear, a reading tracker: a complete Xcode project with the book in hand, timed reading sessions, passages kept from a photo of the page, the year's shelf against a goal, widgets and three brand presets.",
+    "isNew": false
   },
   {
     "id": "subscription-app",
@@ -1062,22 +1131,6 @@
     "type": "template",
     "category": "Education",
     "summary": "Parla, a language course you play: a complete Xcode project with a lesson path, chunky word exercises, a talking coach, passport stamps, streaks, widgets and three brand presets.",
-    "isNew": false
-  },
-  {
-    "id": "journal-app",
-    "title": "Journal App",
-    "type": "template",
-    "category": "Health",
-    "summary": "Folio, a private journal: a complete Xcode project with a nightly prompt, a one-tap mood check, entries with photo, place and weather, On this day, a year of moods, widgets and three brand presets.",
-    "isNew": false
-  },
-  {
-    "id": "reading-app",
-    "title": "Reading App",
-    "type": "template",
-    "category": "Media",
-    "summary": "Dogear, a reading tracker: a complete Xcode project with the book in hand, timed reading sessions, passages kept from a photo of the page, the year's shelf against a goal, widgets and three brand presets.",
     "isNew": false
   }
 ]

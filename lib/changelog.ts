@@ -9,10 +9,11 @@ export const changelog: ChangelogEntry[] = [
   {
     slug: "pro-riso-phosphor-templates",
     date: "Nov 8, 2026",
-    title: "Two new styles and two new Pro templates",
-    summary: "SwiftPieces Pro adds two styles, Riso and Phosphor, and two app templates built on them: Folio, a private journal, and Dogear, a reading tracker. Pro now has 14 app templates, 57 screens and 57 flows.",
+    title: "Two new styles and three new Pro templates",
+    summary: "SwiftPieces Pro adds two styles, Riso and Phosphor, and three app templates built on them: Atelier, a shop, Folio, a private journal, and Dogear, a reading tracker. Pro now has 15 app templates, 57 screens and 62 flows.",
     points: [
       "Riso is newsprint in two inks printed slightly off register, set in Bricolage Grotesque. Phosphor is a terminal glow: amber and green on black, scanlines and a dithered pixel sun, set in Chakra Petch. Both come with their own Build Kit style skills, so a coding agent builds new screens in either one.",
+      "Atelier is a shop for a small homeware studio: seasonal edits and shelves with a filter sheet, product pages with glazes and sizes and a buy bar that docks, a bag that checks out with Apple Pay, delivery speeds and a promo code, and orders followed from placed to delivered. It has Order and New edit widgets, in Riso, Phosphor and Press.",
       "Folio is a private journal: one prompt each evening on its own cover art, a one-tap mood check, entries with a photo, place and weather, On this day, and a year of moods at a glance. It also has a Face ID lock, Markdown export, and Tonight and Moods widgets, in Riso, Phosphor and Editorial.",
       "Dogear is a reading tracker. It shows the book in hand with the time left at your pace, times your reading sessions with a page counter, and keeps passages from a photo of the page, read on device. The year's books stand as a shelf of spines against your goal. It comes in Phosphor, Riso and Velvet, and adds three new screens: Now Reading, Reading Session and Reading Year.",
       "Each template is a complete Xcode project with onboarding, sign-in, a paywall, widgets and tests, plus four or five flows played screen by screen on pro.swiftpieces.com.",
