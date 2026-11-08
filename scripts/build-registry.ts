@@ -442,7 +442,7 @@ function writeDocs(items: RegistryItem[]) {
   writeFileSync(join(root, "screens.mdx"), `---\ntitle: "Screens"\ndescription: "Production-ready SwiftUI screens from SwiftPieces Pro. Each one is a complete, themed screen you drop into your app and wire to your data."\npro: "screen"\n---\n\n{/* GENERATED FILE. Edit scripts/build-registry.ts. */}\n`);
   writeFileSync(join(root, "flows.mdx"), `---\ntitle: "Flows"\ndescription: "Whole journeys through SwiftPieces Pro's app templates, screen by screen: first run and sign in, the core of each app, then settings."\npro: "flow"\n---\n\n{/* GENERATED FILE. Edit scripts/build-registry.ts. */}\n`);
   writeFileSync(join(root, "templates.mdx"), `---\ntitle: "Templates"\ndescription: "Complete Xcode app templates from SwiftPieces Pro, wired end to end. Open the project, swap the brand and the copy, ship."\npro: "template"\n---\n\n{/* GENERATED FILE. Edit scripts/build-registry.ts. */}\n`);
-  // Games: SwiftPieces Games' five games (lib/pro-catalog.ts proGames), each opening its page on pro.swiftpieces.com.
+  // Games: every game in SwiftPieces Games (lib/pro-catalog.ts proGames), each opening its page on pro.swiftpieces.com.
   writeFileSync(join(root, "games.mdx"), `---\ntitle: "Games"\ndescription: "Complete iOS games from SwiftPieces Games, in SwiftUI and Metal. Real levels, Game Center and a StoreKit shop, with the full Xcode project."\npro: "game"\n---\n\n{/* GENERATED FILE. Edit scripts/build-registry.ts. */}\n`);
   writeFileSync(join(root, "meta.json"), JSON.stringify({
     title: "Components",

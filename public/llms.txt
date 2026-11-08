@@ -38,7 +38,7 @@ Yes. The registry is public JSON, llms.txt describes every piece, and the MCP se
 
 ### What is SwiftPieces Pro?
 
-A separate paid library for building whole apps: 54 production-ready SwiftUI screens, 48 flows that string them into whole journeys, 12 complete app templates, a Build Kit of agent skills and Pro remixing in the Playground (all 34 apps, remix with AI, keep up to 100 remixes), for $199 once with lifetime access. Its sister product, SwiftPieces Games, is 5 complete iOS games in SwiftUI and Metal for $199, or $329 for both. Both are sold on pro.swiftpieces.com.
+A separate paid library for building whole apps: 54 production-ready SwiftUI screens, 48 flows that string them into whole journeys, 12 complete app templates, a Build Kit of agent skills and Pro remixing in the Playground (all 34 apps, remix with AI, keep up to 100 remixes), for $199 once with lifetime access. Its sister product, SwiftPieces Games, is 10 complete iOS games in SwiftUI and Metal for $199, or $329 for both. Both are sold on pro.swiftpieces.com.
 
 ## Docs
 

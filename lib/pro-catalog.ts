@@ -81,23 +81,40 @@ export const remixingPoint = `Pro remixing: all ${proCatalog.remixing.apps} apps
  * pro.swiftpieces.com. Hand-kept like proCatalog (source: SwiftPiecesPro lib/games, lib/product.ts).
  * Games are sold as finished base templates, so nothing here says "coming" or "in development".
  */
+/** One game in SwiftPieces Games. `isNew`: from the newest wave, which wears New, as on Pro (its registry `added` date). */
+export type ProGame = { id: string; title: string; genre: string; line: string; isNew?: boolean };
+
 export const proGames = {
   price: 199,
   systems: 10,
+  /** Skins on Pro's /games/skins: each game's look as a theme. */
+  skins: 4,
   list: [
     { id: "drift", title: "Drift", genre: "Arcade", line: "A top-down snow rally at blue hour." },
     { id: "lumen", title: "Lumen", genre: "Puzzle", line: "A light-routing puzzle in soft matte ceramic." },
     { id: "twine", title: "Twine", genre: "Arcade", line: "One thumb flies two kites through washi paper." },
     { id: "orbit", title: "Orbit", genre: "Idle", line: "A calm idle voyage printed like a travel poster." },
     { id: "wordly", title: "Wordly", genre: "Word", line: "A daily word game set in glazed tiles." },
-  ],
+    { id: "cairn", title: "Cairn", genre: "Physics", line: "River stones stacked in real 3D physics on a misty loch.", isNew: true },
+    { id: "pane", title: "Pane", genre: "Multiplayer", line: "Two-player strategy in a stained-glass window.", isNew: true },
+    { id: "parlour", title: "Parlour", genre: "Puzzle", line: "Card patience on a linen table in window light.", isNew: true },
+    { id: "thrum", title: "Thrum", genre: "Arcade", line: "A rhythm game on five strings of light.", isNew: true },
+    { id: "ripple", title: "Ripple", genre: "Physics", line: "A wave puzzle on a still night pond.", isNew: true },
+  ] as ProGame[],
 } as const;
 
-/** "Drift, Lumen, Twine, Orbit and Wordly". */
+/** "Drift, Lumen, Twine, Orbit, Wordly, Cairn, Pane, Parlour, Thrum and Ripple". */
 export const proGamesList = namesWithMore(proGames.list.map((g) => g.title));
 
-/** The games in Pro's catalog order, as its pricing card lists them: "Lumen, Drift, Twine, Orbit and Wordly". */
-const PRO_ORDER = ["lumen", "drift", "twine", "orbit", "wordly"];
+/** The games in Pro's catalog order (SwiftPiecesPro registry/games/index.ts), as its pricing card lists them. */
+const PRO_ORDER = ["lumen", "drift", "twine", "orbit", "wordly", "cairn", "pane", "parlour", "thrum", "ripple"];
+
+/**
+ * The games as Pro's navbar Games menu lists them (SwiftPiecesPro lib/games-nav.ts): the newest wave
+ * first, then Pro's catalog order. Each opens its page on pro.swiftpieces.com.
+ */
+export const proGamesNav = [...proGames.list].sort((a, b) => Number(Boolean(b.isNew)) - Number(Boolean(a.isNew)) || PRO_ORDER.indexOf(a.id) - PRO_ORDER.indexOf(b.id));
+
 export const proGamesPricingList = namesWithMore([...proGames.list].sort((a, b) => PRO_ORDER.indexOf(a.id) - PRO_ORDER.indexOf(b.id)).map((g) => g.title));
 
 /**
