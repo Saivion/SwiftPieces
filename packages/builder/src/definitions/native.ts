@@ -35,11 +35,11 @@ export const ARTS: Record<string, { label: string; stops: [string, string, strin
   ember: { label: "Ember", stops: ["#FF8650", "#FF7A3C", "#F06C2E"], solid: true },
   blush: { label: "Blush", stops: ["#FF9CC0", "#FF8FB8", "#F281AB"], solid: true },
   azure: { label: "Azure", stops: ["#5B97FF", "#4D8DFF", "#3F7FF2"], solid: true },
-  sky: { label: "Sky", stops: ["#A8CAFF", "#9CC2FF", "#8FB6F5"], solid: true },
-  butter: { label: "Butter", stops: ["#FFDF8A", "#FFD976", "#F5CD66"], solid: true },
-  sage: { label: "Sage", stops: ["#B5E2C1", "#A9DCB7", "#9BD1AA"], solid: true },
-  lilac: { label: "Lilac", stops: ["#D7C4FF", "#CDB8FF", "#BFA8F5"], solid: true },
-  sand: { label: "Sand", stops: ["#EEDDBF", "#E9D5B3", "#DEC8A3"], solid: true },
+  sky: { label: "Sky", stops: ["#A8CAFF", "#2E8BFF", "#8FB6F5"], solid: true },
+  butter: { label: "Butter", stops: ["#FFDF8A", "#FFC21A", "#F5CD66"], solid: true },
+  sage: { label: "Sage", stops: ["#B5E2C1", "#00C4A7", "#9BD1AA"], solid: true },
+  lilac: { label: "Lilac", stops: ["#D7C4FF", "#FF005C", "#BFA8F5"], solid: true },
+  sand: { label: "Sand", stops: ["#EEDDBF", "#FF8A1F", "#DEC8A3"], solid: true },
   ink: { label: "Ink", stops: ["#26262A", "#1C1C1F", "#141416"], solid: true },
 };
 const artOptions = opts(...Object.entries(ARTS).map(([id, a]): [string, string] => [id, a.label]));

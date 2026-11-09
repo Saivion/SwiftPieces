@@ -44,8 +44,8 @@ public struct FanStack: View {
         /// The name tag's text on its clear glass.
         public var tagInk: Color
 
-        public init(colors: [Color] = [0xFF0000, 0x9CC2FF, 0xFFD976, 0xA9DCB7, 0xCDB8FF, 0xE9D5B3].map(House.hex), ink: Color = House.hex(0x141414), ring: Color = House.adaptive(light: 0xFFFFFF, dark: 0x1C1C1C), overflowFill: Color = House.adaptive(light: 0xEAE8E2, dark: 0x262626), overflowInk: Color = House.adaptive(light: 0x141414, dark: 0xF4F3EF), caption: Color = House.adaptive(light: 0x5C5A56, dark: 0xA6A49F), tagFill: Color = House.adaptive(light: 0x141414, dark: 0xF4F3EF), tagInk: Color = House.adaptive(light: 0x141414, dark: 0xF4F3EF)) {
-            self.colors = colors.isEmpty ? [House.hex(0x9CC2FF)] : colors
+        public init(colors: [Color] = [0xFF0000, 0x2E8BFF, 0xFFC21A, 0x00C4A7, 0xFF005C, 0xFF8A1F].map(House.hex), ink: Color = House.hex(0x141414), ring: Color = House.adaptive(light: 0xFFFFFF, dark: 0x1C1C1C), overflowFill: Color = House.adaptive(light: 0xEAE8E2, dark: 0x262626), overflowInk: Color = House.adaptive(light: 0x141414, dark: 0xF4F3EF), caption: Color = House.adaptive(light: 0x5C5A56, dark: 0xA6A49F), tagFill: Color = House.adaptive(light: 0x141414, dark: 0xF4F3EF), tagInk: Color = House.adaptive(light: 0x141414, dark: 0xF4F3EF)) {
+            self.colors = colors.isEmpty ? [House.hex(0x2E8BFF)] : colors
             self.ink = ink
             self.ring = ring
             self.overflowFill = overflowFill

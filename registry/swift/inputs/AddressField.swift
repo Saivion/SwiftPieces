@@ -200,8 +200,8 @@ public struct AddressField: View {
             self.secondaryLabel = secondaryLabel ?? adaptive(light: 0x5C5A56, dark: 0xA6A49F)
             self.focusRing = focusRing ?? adaptive(light: 0xFF0000, dark: 0xFF0000)
             self.highlight = highlight ?? Color.primary.opacity(0.08)
-            self.success = success ?? adaptive(light: 0xA9DCB7, dark: 0xA9DCB7)
-            self.error = error ?? adaptive(light: 0xFFD976, dark: 0xFFD976)
+            self.success = success ?? adaptive(light: 0x00C4A7, dark: 0x00C4A7)
+            self.error = error ?? adaptive(light: 0xFFC21A, dark: 0xFFC21A)
             self.ink = ink ?? adaptive(light: 0x141414, dark: 0x141414)
             self.pin = pin ?? adaptive(light: 0xFF0000, dark: 0xFF0000)
             self.tiles = tiles ?? []

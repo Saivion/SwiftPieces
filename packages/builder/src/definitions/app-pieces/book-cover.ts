@@ -10,14 +10,14 @@ export type CoverStyle = { ground: string; ink: string; accent: string; serif: b
 const COVERS: CoverStyle[] = [
   { ground: "#FF0000", ink: "#FFFFFF", accent: "#141416", serif: false },
   { ground: "#1C1C1F", ink: "#FFFFFF", accent: "#FF0000", serif: false },
-  { ground: "#4D8DFF", ink: "#FFFFFF", accent: "#FFD976", serif: false },
-  { ground: "#FFD976", ink: "#141416", accent: "#FF0000", serif: false },
+  { ground: "#4D8DFF", ink: "#FFFFFF", accent: "#FFC21A", serif: false },
+  { ground: "#FFC21A", ink: "#141416", accent: "#FF0000", serif: false },
   { ground: "#FF7A3C", ink: "#141416", accent: "#FFFFFF", serif: false },
-  { ground: "#E9D5B3", ink: "#141416", accent: "#4D8DFF", serif: false },
+  { ground: "#FF8A1F", ink: "#141416", accent: "#4D8DFF", serif: false },
   { ground: "#FF8FB8", ink: "#141416", accent: "#141416", serif: false },
-  { ground: "#CDB8FF", ink: "#141416", accent: "#FF0000", serif: false },
-  { ground: "#A9DCB7", ink: "#141416", accent: "#141416", serif: false },
-  { ground: "#9CC2FF", ink: "#141416", accent: "#FF7A3C", serif: false },
+  { ground: "#FF005C", ink: "#141416", accent: "#FF0000", serif: false },
+  { ground: "#00C4A7", ink: "#141416", accent: "#141416", serif: false },
+  { ground: "#2E8BFF", ink: "#141416", accent: "#FF7A3C", serif: false },
 ];
 
 export function coverStyle(title: string, palette = -1): CoverStyle {

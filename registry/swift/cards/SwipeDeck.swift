@@ -55,8 +55,8 @@ public struct SwipeDeck<Item: Identifiable, Card: View>: View {
 
         public init(
             leading: Badge? = Badge(title: "Skip", symbol: "xmark", fill: Color(red: 1, green: 0, blue: 0)),
-            trailing: Badge? = Badge(title: "Keep", symbol: "heart.fill", fill: Color(red: 0.663, green: 0.863, blue: 0.718)),
-            top: Badge? = Badge(title: "Save", symbol: "bookmark.fill", fill: Color(red: 1, green: 0.851, blue: 0.463)),
+            trailing: Badge? = Badge(title: "Keep", symbol: "heart.fill", fill: Color(red: 0, green: 0.769, blue: 0.655)),
+            top: Badge? = Badge(title: "Save", symbol: "bookmark.fill", fill: Color(red: 1, green: 0.761, blue: 0.102)),
             cornerRadius: CGFloat = 34,
             shadowOpacity: Double = 0.12,
             emptyMessage: String? = "All caught up"
@@ -482,10 +482,10 @@ private struct SwipeDeckExample: View {
 
     private static let ink = Color(red: 0.078, green: 0.078, blue: 0.078)
     private static let tangerine = Color(red: 1, green: 0, blue: 0)
-    private static let sky = Color(red: 0.612, green: 0.761, blue: 1)
-    private static let butter = Color(red: 1, green: 0.851, blue: 0.463)
-    private static let sage = Color(red: 0.663, green: 0.863, blue: 0.718)
-    private static let lilac = Color(red: 0.804, green: 0.722, blue: 1)
+    private static let sky = Color(red: 0.18, green: 0.545, blue: 1)
+    private static let butter = Color(red: 1, green: 0.761, blue: 0.102)
+    private static let sage = Color(red: 0, green: 0.769, blue: 0.655)
+    private static let lilac = Color(red: 1, green: 0, blue: 0.361)
 
     var body: some View {
         SwipeDeck(items: $recipes, swipe: $command) { _, _ in } card: { recipe in

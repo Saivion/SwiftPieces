@@ -169,7 +169,7 @@ public struct SignaturePad: View {
             self.label = label ?? adaptive(light: 0x141414, dark: 0xF4F3EF)
             self.secondary = secondary ?? adaptive(light: 0x5C5A56, dark: 0xA6A49F)
             self.mark = mark ?? adaptive(light: 0xFF0000, dark: 0xFF0000)
-            self.signed = signed ?? adaptive(light: 0xA9DCB7, dark: 0xA9DCB7)
+            self.signed = signed ?? adaptive(light: 0x00C4A7, dark: 0x00C4A7)
             self.control = control ?? .clear
             self.lineWidth = max(lineWidth, 0.5)
             self.cornerRadius = cornerRadius

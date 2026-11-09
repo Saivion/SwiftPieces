@@ -23,7 +23,7 @@ export type CropShape =
   /** A stroked line: segments of [x, y] (straight) or six numbers (a cubic). */
   | { kind: "stroke"; color: string; width: number; from: [number, number]; to: number[][] };
 
-const SKY = "#9CC2FF", SUN = "#FFD976", PAPER = "#F4F3EF", LILAC = "#CDB8FF", SAGE = "#A9DCB7", SAND = "#E9D5B3", INK = "#141414", RED = "#FF0000";
+const SKY = "#2E8BFF", SUN = "#FFC21A", PAPER = "#F4F3EF", LILAC = "#FF005C", SAGE = "#00C4A7", SAND = "#FF8A1F", INK = "#141414", RED = "#FF0000";
 
 /** Sky, sun, clouds, layered hills, cypresses and a red tram under its wire: the photo the piece's own preview draws. */
 export const CROP_SCENE: CropShape[] = [

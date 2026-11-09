@@ -754,7 +754,7 @@ private struct FollowScrollExample: View {
                 .foregroundStyle(adaptive(light: 0x141414, dark: 0x141414))
                 .padding(.horizontal, 14)
                 .padding(.vertical, 10)
-                .background(message.isMine ? adaptive(light: 0xFF0000, dark: 0xFF0000) : adaptive(light: 0xE9D5B3, dark: 0xE9D5B3), in: .rect(cornerRadius: 18, style: .continuous))
+                .background(message.isMine ? adaptive(light: 0xFF0000, dark: 0xFF0000) : adaptive(light: 0xFF8A1F, dark: 0xFF8A1F), in: .rect(cornerRadius: 18, style: .continuous))
                 .frame(maxWidth: .infinity, alignment: message.isMine ? .trailing : .leading)
         }
         // The house type: one weight for every string. The piece sets it on its own pill; rows are yours.

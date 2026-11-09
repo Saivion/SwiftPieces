@@ -57,7 +57,7 @@ const C = {
   wallWarm: "#E8D7BB",
   wallWarmDeep: "#D9C4A2",
   frame: "#F7F3EA",
-  water: "#9CC2FF",
+  water: "#2E8BFF",
   glass: "#FFFFFF",
   root: "#E9D9B8",
   yellowLeaf: "#E8C35A",
@@ -574,7 +574,7 @@ export const FEELING_MARKS = ["burst", "sun", "drop", "clover"] as const;
 // ---------------------------------------------------------------- The set
 
 /** The house pastels the drawings sit on (the solid ARTS: sage, butter, sky, sand, lilac, blush). */
-const G = { sage: "#A9DCB7", butter: "#FFD976", sky: "#9CC2FF", sand: "#E9D5B3", lilac: "#CDB8FF", blush: "#FF8FB8" };
+const G = { sage: "#00C4A7", butter: "#FFC21A", sky: "#2E8BFF", sand: "#FF8A1F", lilac: "#FF005C", blush: "#FF8FB8" };
 const plant = (label: string, ground: string, layers: ArtLayer[]): ArtDef => ({ label, w: 100, h: 100, fit: "contain", anchor: "bottom", ground, layers });
 const sign = (label: string, ground: string, layers: ArtLayer[]): ArtDef => ({ label, w: 100, h: 100, fit: "contain", anchor: "center", ground, layers });
 const mark = (label: string, d: string): ArtDef => ({ label, w: 100, h: 100, fit: "contain", anchor: "center", layers: [{ d, fill: "currentColor" }] });
@@ -604,7 +604,7 @@ export const artwork = (id: unknown): ArtDef | undefined => own(ARTWORK, id);
 /** What an artwork sits on in a photo spot: its pastel, or the first colour of a scene. */
 export const artworkGround = (id: unknown): string => {
   const a = artwork(id);
-  return a?.ground ?? (a?.layers[0]?.fill && a.layers[0].fill !== "currentColor" ? a.layers[0].fill : "#A9DCB7");
+  return a?.ground ?? (a?.layers[0]?.fill && a.layers[0].fill !== "currentColor" ? a.layers[0].fill : "#00C4A7");
 };
 export const isArtwork = (id: unknown) => artwork(id) !== undefined;
 export const artworkIds = Object.keys(ARTWORK);

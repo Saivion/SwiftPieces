@@ -111,7 +111,7 @@ export function pinFill(st: MapStyle, initials: string, i: number): string {
 export const MAP_STYLES: Record<string, MapStyle> = {
   // The SwiftPieces look: graphite land (pale paper in light), the followed route in signal red,
   // the others a quiet grey; radar from the sweep, people's pins from the house blocks.
-  graphite: { label: "Graphite", ocean: ["#0A0A0C", "#070708"], land: "#1C1C20", tones: ["#19191D", "#222226", "#1F1F23"], route: "#FF0000", alt: "#8E8E93", space: null, grid: true, coast: true, radar: ["#4D8DFF", "#FF8FB8", "#FF7A3C"], pins: ["#9CC2FF", "#FFD976", "#A9DCB7", "#CDB8FF", "#E9D5B3"], pinInk: "#141414", light: { ocean: ["#E4E7EC", "#DDE1E7"], land: "#F7F6F2", tones: ["#EFEEE9", "#FBFAF7", "#ECEBE5"] } },
+  graphite: { label: "Graphite", ocean: ["#0A0A0C", "#070708"], land: "#1C1C20", tones: ["#19191D", "#222226", "#1F1F23"], route: "#FF0000", alt: "#8E8E93", space: null, grid: true, coast: true, radar: ["#4D8DFF", "#FF8FB8", "#FF7A3C"], pins: ["#2E8BFF", "#FFC21A", "#00C4A7", "#FF005C", "#FF8A1F"], pinInk: "#141414", light: { ocean: ["#E4E7EC", "#DDE1E7"], land: "#F7F6F2", tones: ["#EFEEE9", "#FBFAF7", "#ECEBE5"] } },
   globe: { label: "Night globe", ocean: ["#12365c", "#0a1f38"], land: "#3a5a34", tones: ["#2c4a2b", "#6b6a45", "#4d6b3c"], route: "#3d8bff", space: "#05070d" },
   atlas: { label: "Atlas", ocean: ["#5bb3ec", "#2f86d1"], land: "#8fca6c", tones: ["#79b85c", "#d8d98e", "#a9d67e"], route: "#2f7ff0", space: null },
   satellite: { label: "Satellite", ocean: ["#23455f", "#152f45"], land: "#56683a", tones: ["#3f5530", "#7d6c47", "#6a7b44"], route: "#3d8bff", space: null },
