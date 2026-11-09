@@ -37,7 +37,7 @@ export default function GlobalError({
     <html lang="en">
       <body className="flex min-h-screen flex-col justify-center antialiased">
         <main className="mx-auto w-full max-w-[var(--container)] px-5 py-24 sm:px-8 lg:px-12">
-          <h1 className="max-w-[760px] text-[44px] leading-none font-normal tracking-[-0.04em] text-balance sm:text-[60px] lg:text-[74px] lg:tracking-[-0.047em]">Something went wrong.</h1>
+          <h1 className="max-w-[760px] text-[36px] leading-none font-normal tracking-[-0.04em] text-balance sm:text-[48px] lg:text-[58px] lg:tracking-[-0.045em]">Something went wrong.</h1>
           <p className="mt-[26px] max-w-[480px] text-[16.5px] leading-[27px] text-pretty text-muted sm:text-[18px] sm:leading-[30px]">The page hit an error it could not recover from. Try again, or start over from the home page.</p>
           <div className="mt-[38px] flex flex-wrap items-center gap-2.5">
             <Button onClick={reset}>Try again</Button>
