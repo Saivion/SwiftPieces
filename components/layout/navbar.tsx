@@ -57,6 +57,7 @@ const gamesBrowse: MenuItem[] = [
   { label: "Overview", href: pro.games, desc: "Every game playing, and pricing", icon: "games" },
   { label: "All games", href: `${pro.games}/library`, desc: "Compare every game side by side", icon: "library", count: proGames.list.length },
   { label: "Skins", href: `${pro.games}/skins`, desc: "Each game's look as a theme", icon: "style", count: proGames.skins },
+  { label: "Playable Ads", href: `${pro.games}/ads`, desc: "An ad people can play, for every network", icon: "ads", badge: "New" },
 ];
 const freshGames = proGamesNav.filter((g) => g.isNew).length;
 
@@ -310,7 +311,7 @@ export function Navbar({ star, starMobile, docked = false, fresh = 0, promo }: {
                 {gamesBrowse.map((l) => (
                   <li key={l.href} className="hair-b">
                     <a href={l.href} onClick={() => setOpen(false)} className="flex items-center justify-between py-3 text-[15px]">
-                      <span>{l.label}</span>
+                      <span className="flex items-center gap-2">{l.label}<Badge label={l.badge} /></span>
                       {l.count != null ? <span className="text-[13px] tabular-nums text-subtle">{l.count}</span> : null}
                     </a>
                   </li>
