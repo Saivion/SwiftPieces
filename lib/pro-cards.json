@@ -1070,7 +1070,7 @@
     "type": "template",
     "category": "Health",
     "summary": "Folio, a private journal: a complete Xcode project with a nightly prompt, a one-tap mood check, entries with photo, place and weather, On this day, a year of moods, widgets and three brand presets.",
-    "isNew": false
+    "isNew": true
   },
   {
     "id": "reading-app",
@@ -1078,6 +1078,6 @@
     "type": "template",
     "category": "Media",
     "summary": "Dogear, a reading tracker: a complete Xcode project with the book in hand, timed reading sessions, passages kept from a photo of the page, the year's shelf against a goal, widgets and three brand presets.",
-    "isNew": false
+    "isNew": true
   }
 ]
