@@ -59,7 +59,7 @@ export default function ComponentsPage() {
             <Reveal delay={0.1}>
               <LinkCells
                 links={[
-                  { title: "Explore Pro and Games", body: "Screens, flows, app templates and finished games, ready to ship.", href: pro.home, tone: "ember", seed: "components-explore-pro" },
+                  { title: "Explore Pro and Games", body: "Screens, flows, templates, and ship-ready games.", href: pro.home, tone: "ember", seed: "components-explore-pro" },
                   { title: "Browse in the docs", body: "Parameters, source and install for every piece.", href: "/docs/components" },
                   { title: "Try out the new Playground", body: `New to SwiftUI? See them at work in ${apps.length} apps.`, href: "/apps", badge: "Beta" },
                 ]}
