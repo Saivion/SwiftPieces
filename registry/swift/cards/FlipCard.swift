@@ -389,8 +389,8 @@ private struct FlipCardExample: View {
     @State private var flipped = false
 
     private let ink = Color(red: 0.078, green: 0.078, blue: 0.078)
-    private let butter = Color(red: 1, green: 0.851, blue: 0.463)
-    private let sky = Color(red: 0.612, green: 0.761, blue: 1)
+    private let butter = Color(red: 1, green: 0.761, blue: 0.102)
+    private let sky = Color(red: 0.18, green: 0.545, blue: 1)
     private let ground = Color(flipLight: Color(red: 0.953, green: 0.949, blue: 0.933), dark: Color(red: 0.071, green: 0.071, blue: 0.071))
 
     var body: some View {

@@ -15,8 +15,8 @@ const b = (p: Props, k: string) => p[k] === true;
 /** Scene colours: the ground, the main shapes, their highlight, and the ink for labels. */
 export const BREATH_PALETTES: Record<string, { ground: string; ink: string; glow: string; label: string }> = {
   signal: { ground: "#1C1C1E", ink: "#FF0000", glow: "#FF8FB8", label: "#ffffff" },
-  ember: { ground: "#1C1C1E", ink: "#FF7A3C", glow: "#FFD976", label: "#ffffff" },
-  azure: { ground: "#1C1C1E", ink: "#4D8DFF", glow: "#9CC2FF", label: "#ffffff" },
+  ember: { ground: "#1C1C1E", ink: "#FF7A3C", glow: "#FFC21A", label: "#ffffff" },
+  azure: { ground: "#1C1C1E", ink: "#4D8DFF", glow: "#2E8BFF", label: "#ffffff" },
   blush: { ground: "#1C1C1E", ink: "#FF8FB8", glow: "#FFE3EE", label: "#ffffff" },
   night: { ground: "#1C1C1E", ink: "#F4F3EF", glow: "#6E6D6A", label: "#ffffff" },
   violet: { ground: "#2c209f", ink: "#6a60ef", glow: "#d3d0ff", label: "#ffffff" },
@@ -35,7 +35,7 @@ export const ADAPTIVE_PALETTES = new Set(["signal", "ember", "azure", "blush", "
 const LIGHT: Record<string, Partial<{ ground: string; ink: string; glow: string; label: string }>> = {
   signal: { glow: "#FF8FB8" },
   ember: { glow: "#FFB36B" },
-  azure: { glow: "#9CC2FF" },
+  azure: { glow: "#2E8BFF" },
   blush: { glow: "#FFC4DA" },
   night: { ink: "#1C1C1E", glow: "#8E8E93" },
 };

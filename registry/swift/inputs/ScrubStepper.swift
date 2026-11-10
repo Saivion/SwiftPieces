@@ -439,7 +439,7 @@ private struct ScrubStepperExample: View {
         VStack(spacing: 24) {
             ScrubStepper(value: $guests, in: 1...10)
                 .accessibilityLabel("Guests")
-            ScrubStepper(value: $chairs, in: 0...3, style: .init(block: adaptive(light: 0xA9DCB7, dark: 0xA9DCB7)))
+            ScrubStepper(value: $chairs, in: 0...3, style: .init(block: adaptive(light: 0x00C4A7, dark: 0x00C4A7)))
                 .accessibilityLabel("High chairs")
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)

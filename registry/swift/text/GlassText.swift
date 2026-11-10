@@ -245,10 +245,10 @@ private struct GlassTextBlocks: View {
 }
 
 private enum GlassTextPalette {
-    static let sky = Color(red: 0.612, green: 0.761, blue: 1)
+    static let sky = Color(red: 0.18, green: 0.545, blue: 1)
     static let tangerine = Color(red: 1, green: 0, blue: 0)
-    static let butter = Color(red: 1, green: 0.851, blue: 0.463)
-    static let lilac = Color(red: 0.804, green: 0.722, blue: 1)
+    static let butter = Color(red: 1, green: 0.761, blue: 0.102)
+    static let lilac = Color(red: 1, green: 0, blue: 0.361)
 }
 
 #Preview("Light") {

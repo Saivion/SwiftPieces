@@ -223,7 +223,7 @@ export const SUN_TONES = {
   street: ["#0B0B0D", "#CFCBC4", "#E3E0DA"], block: ["#161619", "#E4E1DA", "#F1EFEB"], roof: ["#2B2B31", "#FBFAF7", "#FFFFFF"], roofEdge: ["#35353C", "#D3CEC5", "#DDD9D1"],
   avenue: ["#222226", "#FFFFFF", "#FFFFFF"], park: ["#16211A", "#BFDDAE", "#DCEBD3"], tree: ["#213629", "#93C47F", "#B3D5A3"], water: ["#0D1A2E", "#A7D1F0", "#D3E3F4"],
   // The hills: land tinted from the valley up to the top, contour lines, woods, the road.
-  low: ["#0F1210", "#D3E4C4", "#EEF1E8"], high: ["#232A23", "#F2ECD8", "#FBF8EF"], contour: ["#E9D5B3", "#6F5E3E", "#8A7650"], wood: ["#1A2B1F", "#8DBE78", "#BCD8AE"],
+  low: ["#0F1210", "#D3E4C4", "#EEF1E8"], high: ["#232A23", "#F2ECD8", "#FBF8EF"], contour: ["#FF8A1F", "#6F5E3E", "#8A7650"], wood: ["#1A2B1F", "#8DBE78", "#BCD8AE"],
   casing: ["#050506", "#BDB6A8", "#D9D3C7"], road: ["#2C2C31", "#FFFFFF", "#FFFFFF"],
   // The sky scene.
   lakeTop: ["#15203A", "#5C788F", "#A9C3DE"], lakeBottom: ["#070708", "#26384D", "#7F9AB8"], farHills: ["#1E2230", "#8C99A8", "#B7C0CB"], nearHills: ["#151823", "#6F7E8E", "#97A5B4"], shore: ["#0B0C0E", "#29381F", "#3E4C3C"], trees: ["#050506", "#1F2E1A", "#26331F"],

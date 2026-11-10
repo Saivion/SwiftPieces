@@ -333,9 +333,9 @@ public struct PagedListStyle: Sendable {
         self.text = text ?? adaptive(light: 0x141414, dark: 0xF4F3EF)
         self.secondaryText = secondaryText ?? adaptive(light: 0x5C5A56, dark: 0xA6A49F)
         self.field = field ?? adaptive(light: 0xE9E7E1, dark: 0x262626)
-        self.error = error ?? adaptive(light: 0xFFD976, dark: 0xFFD976)
+        self.error = error ?? adaptive(light: 0xFFC21A, dark: 0xFFC21A)
         self.retry = retry ?? adaptive(light: 0xFF0000, dark: 0xFF0000)
-        self.end = end ?? adaptive(light: 0xA9DCB7, dark: 0xA9DCB7)
+        self.end = end ?? adaptive(light: 0x00C4A7, dark: 0x00C4A7)
         self.ink = ink ?? adaptive(light: 0x141414, dark: 0x141414)
         self.rowSpacing = rowSpacing
         self.contentPadding = contentPadding
@@ -840,7 +840,7 @@ private actor ReceiptsAPI {
     private var failedOnce = false
     private var firstPageRequests = 0
     private static let merchants = ["Juniper Coffee", "Riverside Books", "Northline Transit", "Maison Bakery", "Studio Nine", "Fieldhouse Gym", "Almanac Market", "Sprig Florist", "Harbor Hardware", "Drift Records"]
-    private static let blocks: [UInt32] = [0xFFD976, 0x9CC2FF, 0xA9DCB7, 0xCDB8FF, 0xE9D5B3, 0xFF0000]
+    private static let blocks: [UInt32] = [0xFFC21A, 0x2E8BFF, 0x00C4A7, 0xFF005C, 0xFF8A1F, 0xFF0000]
 
     func fetch(page: Int) async throws -> [Receipt] {
         try await Task.sleep(for: .milliseconds(page == 1 ? 1200 : 800))

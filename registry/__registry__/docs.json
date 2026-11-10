@@ -176,14 +176,14 @@
   {
     "url": "/docs/installation",
     "title": "Installation",
-    "description": "Install SwiftPieces by copying a Swift file or running npx swiftpieces add. There is no Swift package to depend on.",
+    "description": "Add free SwiftPieces components to an Xcode project by copying a Swift file, running npx swiftpieces add, or asking your coding agent over MCP. No Swift package.",
     "breadcrumbs": [
       "SwiftPieces"
     ],
     "structuredData": {
       "contents": [
         {
-          "content": "SwiftPieces installs by copying Swift source into your Xcode project. Paste a file from the component's page, or run `npx swiftpieces add Name` from the folder that holds your `.xcodeproj`. The files are yours. There is no Swift package to add and no dependency to update."
+          "content": "SwiftPieces installs by copying Swift source into your Xcode project. Paste a file from the component's page, run `npx swiftpieces add Name` from the folder that holds your `.xcodeproj`, or ask a coding agent such as Claude Code or Cursor to add it through the SwiftPieces MCP server. The files are yours. There is no Swift package to add and no dependency to update."
         },
         {
           "heading": "copy-and-paste",
@@ -224,6 +224,18 @@
         {
           "heading": "older-projects",
           "content": "If your project predates Xcode 16's synchronized folders, the CLI tells you so. Add the `SwiftPieces` folder to your target once (&#x2A;*File → Add Files…**), or convert your app's group with **File → Convert to Folder** so new files sync on their own."
+        },
+        {
+          "heading": "with-a-coding-agent",
+          "content": "The SwiftPieces MCP server is public and needs no account. In Claude Code, run this in your project folder:"
+        },
+        {
+          "heading": "with-a-coding-agent",
+          "content": "Then ask for a piece by name, for example:"
+        },
+        {
+          "heading": "with-a-coding-agent",
+          "content": "The agent searches the free library, reads the piece's real source and writes the same files the CLI would, instead of inventing a lookalike. Cursor and other clients take the same URL; the setup for each is on MCP and Agents."
         },
         {
           "heading": "requirements",
@@ -274,6 +286,10 @@
         {
           "id": "older-projects",
           "content": "Older projects"
+        },
+        {
+          "id": "with-a-coding-agent",
+          "content": "With a coding agent"
         },
         {
           "id": "requirements",
@@ -9397,7 +9413,7 @@
         },
         {
           "heading": "notes",
-          "content": "Each swatch is a named color, so VoiceOver reads the name (\"Sky, selected\") rather than a color value. `SwatchPicker.house` is the SwiftPieces red and five pastels; pass your own `[Swatch]` for a tag or theme palette."
+          "content": "Each swatch is a named color, so VoiceOver reads the name (\"Blue, selected\") rather than a color value. `SwatchPicker.house` is the SwiftPieces red and five vivid blocks; pass your own `[Swatch]` for a tag or theme palette."
         },
         {
           "heading": "notes",

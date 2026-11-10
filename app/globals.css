@@ -20,7 +20,7 @@
   /* Preview stage (components/previews/palette.ts `ground`): dark here, paper in light mode. */
   --pv-bg: #121212; --pv-surface: #1c1c1c; --pv-raised: #262626; --pv-line: rgba(255,255,255,0.08);
   --pv-text: #f4f3ef; --pv-muted: #a6a49f; --pv-subtle: #6f6d69;
-  --pv-field: #262626; --pv-control: #3a3a3a; --pv-trough: #2a2a2a; --pv-band: #4a4029;
+  --pv-field: #262626; --pv-control: #3a3a3a; --pv-trough: #2a2a2a; --pv-band: #4d3e14;
   --pv-shadow: 1;
   /* Liquid glass in the previews (components/previews/piece-liquid.tsx): a translucent body, so the stage shows through. */
   --pv-glass: rgba(38,38,41,0.62); --pv-glass-solid: #2a2a2d; --pv-glass-shade: rgba(0,0,0,0.24); --pv-glass-light: #3a3a3a; --pv-glass-rim: rgba(255,255,255,0.16); --pv-glass-lift: rgba(0,0,0,0.45); --pv-glass-edge: rgba(255,255,255,0.12);
@@ -248,11 +248,11 @@
 /* Landing agent demo (components/sections/agent-demo.tsx): ScrubChartPreview reads its colour scheme
    from these variables. Registering them (initial values = the house palette defaults the preview
    falls back to) lets a scheme change cross-fade instead of snapping. */
-@property --scrub-accent { syntax: "<color>"; inherits: true; initial-value: #ffd976; }
+@property --scrub-accent { syntax: "<color>"; inherits: true; initial-value: #ffc21a; }
 @property --scrub-line { syntax: "<color>"; inherits: true; initial-value: #f4f3ef; }
 @property --scrub-surface { syntax: "<color>"; inherits: true; initial-value: #1c1c1c; }
 @property --scrub-raised { syntax: "<color>"; inherits: true; initial-value: #262626; }
-@property --scrub-chip { syntax: "<color>"; inherits: true; initial-value: #a9dcb7; }
+@property --scrub-chip { syntax: "<color>"; inherits: true; initial-value: #00c4a7; }
 @property --scrub-down { syntax: "<color>"; inherits: true; initial-value: #ff0000; }
 .scrub-tint { transition: --scrub-accent 0.7s ease, --scrub-line 0.7s ease, --scrub-surface 0.7s ease, --scrub-raised 0.7s ease, --scrub-chip 0.7s ease, --scrub-down 0.7s ease; }
 @media (prefers-reduced-motion: reduce) { .scrub-tint { transition: none; } }
@@ -390,7 +390,7 @@ html.promo-off .promo-slot { display: none; }
   --color-white: #fff; --color-black: #000;
   --pv-bg: #121212; --pv-surface: #1c1c1c; --pv-raised: #262626; --pv-line: rgba(255,255,255,0.08);
   --pv-text: #f4f3ef; --pv-muted: #a6a49f; --pv-subtle: #6f6d69;
-  --pv-field: #262626; --pv-control: #3a3a3a; --pv-trough: #2a2a2a; --pv-band: #4a4029;
+  --pv-field: #262626; --pv-control: #3a3a3a; --pv-trough: #2a2a2a; --pv-band: #4d3e14;
   --pv-shadow: 1;
   /* Liquid glass in the previews (components/previews/piece-liquid.tsx): a translucent body, so the stage shows through. */
   --pv-glass: rgba(38,38,41,0.62); --pv-glass-solid: #2a2a2d; --pv-glass-shade: rgba(0,0,0,0.24); --pv-glass-light: #3a3a3a; --pv-glass-rim: rgba(255,255,255,0.16); --pv-glass-lift: rgba(0,0,0,0.45); --pv-glass-edge: rgba(255,255,255,0.12);
@@ -507,7 +507,7 @@ html.light {
   /* Preview stage: the Free "paper" palette (palette.ts `paper`), an off-white ground with dark ink. */
   --pv-bg: #f3f2ee; --pv-surface: #ffffff; --pv-raised: #ffffff; --pv-line: rgba(0,0,0,0.08);
   --pv-text: #141414; --pv-muted: #5c5a56; --pv-subtle: #8b8984;
-  --pv-field: #ebe9e3; --pv-control: #dcd9d1; --pv-trough: #e3e1db; --pv-band: #f7e7b4;
+  --pv-field: #ebe9e3; --pv-control: #dcd9d1; --pv-trough: #e3e1db; --pv-band: #ffedba;
   /* Card shadows on paper run at about a third of their dark strength, as the Swift pieces do (dark uses 3x). */
   --pv-shadow: 0.36;
   --pv-glass: rgba(255,255,255,0.55); --pv-glass-solid: #fdfdfb; --pv-glass-shade: rgba(0,0,0,0.10); --pv-glass-light: #ffffff; --pv-glass-rim: rgba(255,255,255,0.9); --pv-glass-lift: rgba(0,0,0,0.10); --pv-glass-edge: rgba(0,0,0,0.10);

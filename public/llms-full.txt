@@ -99,9 +99,9 @@ For a new SwiftUI app, use SwiftUI components so the code matches the rest of th
 
 URL: https://swiftpieces.com/docs/installation
 
-Install SwiftPieces by copying a Swift file or running npx swiftpieces add. There is no Swift package to depend on.
+Add free SwiftPieces components to an Xcode project by copying a Swift file, running npx swiftpieces add, or asking your coding agent over MCP. No Swift package.
 
-SwiftPieces installs by copying Swift source into your Xcode project. Paste a file from the component's page, or run `npx swiftpieces add Name` from the folder that holds your `.xcodeproj`. The files are yours. There is no Swift package to add and no dependency to update.
+SwiftPieces installs by copying Swift source into your Xcode project. Paste a file from the component's page, run `npx swiftpieces add Name` from the folder that holds your `.xcodeproj`, or ask a coding agent such as Claude Code or Cursor to add it through the SwiftPieces MCP server. The files are yours. There is no Swift package to add and no dependency to update.
 
 ### Copy and paste
 
@@ -132,6 +132,22 @@ You ran it outside your project, so the files went into `./SwiftPieces/` where y
 #### Older projects
 
 If your project predates Xcode 16's synchronized folders, the CLI tells you so. Add the `SwiftPieces` folder to your target once (**File → Add Files…**), or convert your app's group with **File → Convert to Folder** so new files sync on their own.
+
+### With a coding agent
+
+The SwiftPieces MCP server is public and needs no account. In Claude Code, run this in your project folder:
+
+```bash
+claude mcp add --transport http swiftpieces https://swiftpieces.com/api/mcp
+```
+
+Then ask for a piece by name, for example:
+
+```text
+Add the SwiftPieces "Assistant Orb" piece to my app
+```
+
+The agent searches the free library, reads the piece's real source and writes the same files the CLI would, instead of inventing a lookalike. Cursor and other clients take the same URL; the setup for each is on [MCP and Agents](/docs/mcp).
 
 ### Requirements
 
@@ -2096,7 +2112,7 @@ Colors for `SwatchPicker`. `.standard` is the house palette.
 
 ### Notes
 
-- Each swatch is a named color, so VoiceOver reads the name ("Sky, selected") rather than a color value. `SwatchPicker.house` is the SwiftPieces red and five pastels; pass your own `[Swatch]` for a tag or theme palette.
+- Each swatch is a named color, so VoiceOver reads the name ("Blue, selected") rather than a color value. `SwatchPicker.house` is the SwiftPieces red and five vivid blocks; pass your own `[Swatch]` for a tag or theme palette.
 - The selection is a ring around the swatch. On a new pick the edge facing the new swatch leads on a tight spring and the far edge follows on a looser one, so the ring stretches into a capsule across the swatches between and gathers in around the new one.
 - A check pops into the picked swatch in ink or white, whichever reads on that color in the current appearance.
 - Swatches are 34pt by default, and the gap around each counts as part of it, so the tap target reaches 44pt. A row wider than its space scrolls sideways.

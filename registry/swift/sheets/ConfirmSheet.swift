@@ -63,10 +63,10 @@ public struct ConfirmSheet: View {
             self.onLabel = onLabel ?? adaptive(light: 0xF4F3EF, dark: 0x141414)
             self.quiet = quiet ?? adaptive(light: 0xEEECE7, dark: 0x2A2A2A)
             self.ink = ink ?? adaptive(light: 0x141414, dark: 0x141414)
-            self.tile = tile ?? adaptive(light: 0x9CC2FF, dark: 0x9CC2FF)
+            self.tile = tile ?? adaptive(light: 0x2E8BFF, dark: 0x2E8BFF)
             self.destructiveTile = destructiveTile ?? adaptive(light: 0xFF0000, dark: 0xFF0000)
             self.destructive = destructive ?? adaptive(light: 0xFF0000, dark: 0xFF0000)
-            self.success = success ?? adaptive(light: 0xA9DCB7, dark: 0xA9DCB7)
+            self.success = success ?? adaptive(light: 0x00C4A7, dark: 0x00C4A7)
             self.cornerRadius = cornerRadius
         }
 

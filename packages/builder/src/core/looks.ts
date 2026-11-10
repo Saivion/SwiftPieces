@@ -26,8 +26,8 @@ export const looks: Look[] = [
   // The library's own look, from the Pro card: near-black ground, white ink, the signal red and the
   // red → orange → pink → blue sweep of the site's halftone. Every app library recreation uses it.
   { id: "pieces", name: "SwiftPieces", description: "Pro black with the signal sweep.", signature: "dark", font: "default", corners: "standard",
-    light: { accent: "#FF0000", bg: "#F3F2EE", surface: "#FFFFFF", text: "#141414", tiles: ["#FF0000", "#FF7A3C", "#FF8FB8", "#4D8DFF", "#9CC2FF", "#FFD976"] },
-    dark: { accent: "#FF0000", bg: "#070708", surface: "#141416", text: "#FFFFFF", tiles: ["#FF0000", "#FF7A3C", "#FF8FB8", "#4D8DFF", "#9CC2FF", "#FFD976"] } },
+    light: { accent: "#FF0000", bg: "#F3F2EE", surface: "#FFFFFF", text: "#141414", tiles: ["#FF0000", "#FF7A3C", "#FF8FB8", "#4D8DFF", "#2E8BFF", "#FFC21A"] },
+    dark: { accent: "#FF0000", bg: "#070708", surface: "#141416", text: "#FFFFFF", tiles: ["#FF0000", "#FF7A3C", "#FF8FB8", "#4D8DFF", "#2E8BFF", "#FFC21A"] } },
   { id: "studio", name: "Studio", description: "Charcoal and pastel blocks.", signature: "dark", font: "default", corners: "soft",
     light: { accent: "#161616", bg: "#efede7", surface: "#ffffff", text: "#161616", tiles: ["#ffab7e", "#92dca1", "#b9c9ff", "#ffd36e", "#d7b9ff", "#ff907c"] },
     dark: { accent: "#a8e6b4", bg: "#161616", surface: "#222222", text: "#f3f1ec", tiles: ["#ffb38a", "#a8e6b4", "#c8d5ff", "#ffdb8a", "#e0c8ff", "#ff9c8a"] } },

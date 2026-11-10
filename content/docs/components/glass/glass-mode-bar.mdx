@@ -322,7 +322,7 @@ private struct GlassModeBarExample: View {
             .accessibilityLabel("Recording, 7 seconds")
         case "photo":
             HStack(spacing: 6) {
-                ForEach([0x9CC2FF, 0xFFD976, 0xA9DCB7, 0xCDB8FF, 0xE9D5B3], id: \.self) { hex in
+                ForEach([0x2E8BFF, 0xFFC21A, 0x00C4A7, 0xFF005C, 0xFF8A1F], id: \.self) { hex in
                     RoundedRectangle(cornerRadius: 8, style: .continuous)
                         .fill(glassModeBarColor(light: UInt32(hex), dark: UInt32(hex)))
                         .frame(maxWidth: .infinity)

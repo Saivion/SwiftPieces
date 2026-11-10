@@ -19,8 +19,8 @@ export const NOW_PLAYING_DEFAULTS = { title: "Slow Mornings", artist: "Aster Val
 /** The sample covers as the piece's example draws them, in a 100 x 100 space: a butter sun over a sage hill on sky,
  *  and lilac with three hanging lanterns. The renderer draws the same shapes. */
 export const NOW_PLAYING_COVERS = {
-  sky: "#9CC2FF", butter: "#FFD976", sage: "#A9DCB7", sand: "#E9D5B3", lilac: "#CDB8FF", ink: "#141414",
-  lanterns: [[26, 50, 15, "#FFD976"], [56, 36, 12, "#E9D5B3"], [78, 60, 10, "#9CC2FF"]] as const,
+  sky: "#2E8BFF", butter: "#FFC21A", sage: "#00C4A7", sand: "#FF8A1F", lilac: "#FF005C", ink: "#141414",
+  lanterns: [[26, 50, 15, "#FFC21A"], [56, 36, 12, "#FF8A1F"], [78, 60, 10, "#2E8BFF"]] as const,
 };
 
 function artworkSwift(): string[] {
@@ -47,13 +47,13 @@ function artworkSwift(): string[] {
     `${i}${i}${i}${i}return path`,
     `${i}${i}${i}}`,
     `${i}${i}${i}if track % 2 == 0 {`,
-    `${i}${i}${i}${i}context.fill(Path(CGRect(origin: .zero, size: size)), with: .color(color(0x9CC2FF)))`,
-    `${i}${i}${i}${i}context.fill(Path(ellipseIn: CGRect(x: w * 0.52, y: h * 0.16, width: w * 0.3, height: w * 0.3)), with: .color(color(0xFFD976)))`,
-    `${i}${i}${i}${i}context.fill(land(0.7, CGPoint(x: 0.3, y: 0.48), CGPoint(x: 0.62, y: 0.5), 0.62), with: .color(color(0xA9DCB7)))`,
-    `${i}${i}${i}${i}context.fill(land(0.86, CGPoint(x: 0.36, y: 0.74), CGPoint(x: 0.7, y: 0.8), 0.84), with: .color(color(0xE9D5B3)))`,
+    `${i}${i}${i}${i}context.fill(Path(CGRect(origin: .zero, size: size)), with: .color(color(0x2E8BFF)))`,
+    `${i}${i}${i}${i}context.fill(Path(ellipseIn: CGRect(x: w * 0.52, y: h * 0.16, width: w * 0.3, height: w * 0.3)), with: .color(color(0xFFC21A)))`,
+    `${i}${i}${i}${i}context.fill(land(0.7, CGPoint(x: 0.3, y: 0.48), CGPoint(x: 0.62, y: 0.5), 0.62), with: .color(color(0x00C4A7)))`,
+    `${i}${i}${i}${i}context.fill(land(0.86, CGPoint(x: 0.36, y: 0.74), CGPoint(x: 0.7, y: 0.8), 0.84), with: .color(color(0xFF8A1F)))`,
     `${i}${i}${i}} else {`,
-    `${i}${i}${i}${i}context.fill(Path(CGRect(origin: .zero, size: size)), with: .color(color(0xCDB8FF)))`,
-    `${i}${i}${i}${i}for (x, y, r, hex) in [(0.26, 0.5, 0.15, 0xFFD976), (0.56, 0.36, 0.12, 0xE9D5B3), (0.78, 0.6, 0.1, 0x9CC2FF)] as [(CGFloat, CGFloat, CGFloat, UInt32)] {`,
+    `${i}${i}${i}${i}context.fill(Path(CGRect(origin: .zero, size: size)), with: .color(color(0xFF005C)))`,
+    `${i}${i}${i}${i}for (x, y, r, hex) in [(0.26, 0.5, 0.15, 0xFFC21A), (0.56, 0.36, 0.12, 0xFF8A1F), (0.78, 0.6, 0.1, 0x2E8BFF)] as [(CGFloat, CGFloat, CGFloat, UInt32)] {`,
     `${i}${i}${i}${i}${i}context.fill(Path(CGRect(x: w * x - 0.4, y: 0, width: 0.8, height: h * (y - r))), with: .color(color(0x141414)))`,
     `${i}${i}${i}${i}${i}context.fill(Path(ellipseIn: CGRect(x: w * (x - r), y: h * y - w * r, width: w * r * 2, height: w * r * 2)), with: .color(color(hex)))`,
     `${i}${i}${i}${i}}`,

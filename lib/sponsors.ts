@@ -2,7 +2,7 @@ import "server-only";
 import { site } from "@/lib/site";
 
 /**
- * Sponsorship for the open-source library. Pro is a product and is never sponsored; this is what
+ * Sponsorship for the free library (MIT + Commons Clause: source-available, not open source). Pro is a product and is never sponsored; this is what
  * funds the free pieces.
  *
  * Model (researched 2026-09-23 against Vue, Tailwind, Motion, MUI, Chakra, Mantine, Astro and

@@ -719,8 +719,8 @@ private struct SampleThumbnail: View {
         Color(red: Double((value >> 16) & 0xFF) / 255, green: Double((value >> 8) & 0xFF) / 255, blue: Double(value & 0xFF) / 255)
     }
 
-    private static let red = hex(0xFF0000), sky = hex(0x9CC2FF), butter = hex(0xFFD976), sage = hex(0xA9DCB7)
-    private static let lilac = hex(0xCDB8FF), sand = hex(0xE9D5B3), ink = hex(0x141414), dusk = hex(0x262626)
+    private static let red = hex(0xFF0000), sky = hex(0x2E8BFF), butter = hex(0xFFC21A), sage = hex(0x00C4A7)
+    private static let lilac = hex(0xFF005C), sand = hex(0xFF8A1F), ink = hex(0x141414), dusk = hex(0x262626)
     private static let night = hex(0x1C1C1C), star = hex(0xF4F3EF)
 
     var body: some View {

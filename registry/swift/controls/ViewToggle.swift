@@ -191,10 +191,10 @@ private struct ViewToggleExample: View {
     @Namespace private var namespace
 
     private let photos = [
-        ViewToggleExamplePhoto(id: 0, name: "Harbour", color: Color(red: 0.612, green: 0.761, blue: 1)),
-        ViewToggleExamplePhoto(id: 1, name: "Lemons", color: Color(red: 1, green: 0.851, blue: 0.463)),
-        ViewToggleExamplePhoto(id: 2, name: "Fern", color: Color(red: 0.663, green: 0.863, blue: 0.718)),
-        ViewToggleExamplePhoto(id: 3, name: "Dusk", color: Color(red: 0.804, green: 0.722, blue: 1)),
+        ViewToggleExamplePhoto(id: 0, name: "Harbour", color: Color(red: 0.18, green: 0.545, blue: 1)),
+        ViewToggleExamplePhoto(id: 1, name: "Lemons", color: Color(red: 1, green: 0.761, blue: 0.102)),
+        ViewToggleExamplePhoto(id: 2, name: "Fern", color: Color(red: 0, green: 0.769, blue: 0.655)),
+        ViewToggleExamplePhoto(id: 3, name: "Dusk", color: Color(red: 1, green: 0, blue: 0.361)),
     ]
 
     var body: some View {
