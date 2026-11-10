@@ -14,12 +14,12 @@ const s = (p: Props, k: string) => String(p[k] ?? "");
  *  colours from the sweep and the house blocks; signal red stays the accent). */
 export const MOMENT_KINDS: Record<string, { symbol: string; warm: boolean; dot: string }> = {
   dawn: { symbol: "sun.haze", warm: false, dot: "#4D8DFF" },
-  blue: { symbol: "sun.horizon", warm: false, dot: "#9CC2FF" },
+  blue: { symbol: "sun.horizon", warm: false, dot: "#2E8BFF" },
   sunrise: { symbol: "sunrise", warm: false, dot: "#FF8FB8" },
   golden: { symbol: "sun.max", warm: true, dot: "#FF7A3C" },
-  noon: { symbol: "sun.max.fill", warm: true, dot: "#FFD976" },
+  noon: { symbol: "sun.max.fill", warm: true, dot: "#FFC21A" },
   sunset: { symbol: "sunset", warm: false, dot: "#FF8FB8" },
-  dusk: { symbol: "moon.stars", warm: false, dot: "#CDB8FF" },
+  dusk: { symbol: "moon.stars", warm: false, dot: "#FF005C" },
 };
 /** Warm accents: the sweep, and the older system yellows. */
 export const MOMENT_WARM: Record<string, { hex: string; swift: string }> = {

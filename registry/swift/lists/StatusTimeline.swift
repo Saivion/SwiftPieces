@@ -471,9 +471,9 @@ public extension StatusTimeline {
         /// Glass tint of the live step's node, its breathing ring and its open panel.
         public var current: Color = Color(red: 1, green: 0, blue: 0)
         /// Glass tint of completed nodes.
-        public var complete: Color = Color(red: 0.663, green: 0.863, blue: 0.718)
+        public var complete: Color = Color(red: 0, green: 0.769, blue: 0.655)
         /// Glass tint of a failed step's node and its open panel.
-        public var failed: Color = Color(red: 1, green: 0.851, blue: 0.463)
+        public var failed: Color = Color(red: 1, green: 0.761, blue: 0.102)
         /// Dark ink used on every tint.
         public var ink: Color = Color(red: 0.078, green: 0.078, blue: 0.078)
         /// Titles and the filled connector.

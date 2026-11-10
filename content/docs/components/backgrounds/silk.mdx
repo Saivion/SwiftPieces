@@ -75,19 +75,19 @@ public struct Silk: View {
         // MARK: House styles
 
         /// Stone fabric with a white sheen in light; charcoal with a sand sheen in dark.
-        public static let standard = Style(tint: silkColor(light: 0xE7E4DC, dark: 0x1C1C1C), sheen: silkColor(light: 0xFFFFFF, dark: 0xE9D5B3), depth: 0.42, shine: 26)
+        public static let standard = Style(tint: silkColor(light: 0xE7E4DC, dark: 0x1C1C1C), sheen: silkColor(light: 0xFFFFFF, dark: 0xFF8A1F), depth: 0.42, shine: 26)
         /// Solid brand red block fabric, `#FF0000`, kept under its earlier name. Put `#141414` ink on it.
         public static let tangerine = Style.block(0xFF0000)
         /// Solid sky block fabric. Put `#141414` ink on it.
-        public static let sky = Style.block(0x9CC2FF)
+        public static let sky = Style.block(0x2E8BFF)
         /// Solid butter block fabric. Put `#141414` ink on it.
-        public static let butter = Style.block(0xFFD976)
+        public static let butter = Style.block(0xFFC21A)
         /// Solid sage block fabric. Put `#141414` ink on it.
-        public static let sage = Style.block(0xA9DCB7)
+        public static let sage = Style.block(0x00C4A7)
         /// Solid lilac block fabric. Put `#141414` ink on it.
-        public static let lilac = Style.block(0xCDB8FF)
+        public static let lilac = Style.block(0xFF005C)
         /// Solid sand block fabric. Put `#141414` ink on it.
-        public static let sand = Style.block(0xE9D5B3)
+        public static let sand = Style.block(0xFF8A1F)
 
         private static func block(_ hex: UInt32) -> Style {
             Style(tint: silkColor(hex), sheen: silkColor(0xFFFFFF), depth: 0.3, shine: 22)

@@ -137,7 +137,7 @@ private struct RelativeTimeExample: View {
                         .font(.footnote.weight(.semibold))
                         .foregroundStyle(Color(red: 0.078, green: 0.078, blue: 0.078))
                         .frame(width: 32, height: 32)
-                        .background(Color(red: 0.612, green: 0.761, blue: 1), in: .circle)
+                        .background(Color(red: 0.18, green: 0.545, blue: 1), in: .circle)
                     VStack(alignment: .leading, spacing: 2) {
                         Text(row.0).fontWeight(.semibold)
                         RelativeTime(row.2)

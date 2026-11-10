@@ -13,7 +13,7 @@ import { cn } from "@/lib/cn";
 import { getRegistryIndex, piecePath } from "@/lib/registry";
 import { breadcrumbJsonLd, pageMetadata, WEBSITE_ID } from "@/lib/seo";
 import { hubs } from "@/lib/hubs";
-import { site } from "@/lib/site";
+import { pro, site } from "@/lib/site";
 import { apps } from "@/lib/apps";
 
 // The in-page filter pills are views of this one page, so they share its canonical URL; each
@@ -59,6 +59,7 @@ export default function ComponentsPage() {
             <Reveal delay={0.1}>
               <LinkCells
                 links={[
+                  { title: "Explore Pro and Games", body: "Screens, flows, templates, and ship-ready games.", href: pro.home, tone: "ember", seed: "components-explore-pro" },
                   { title: "Browse in the docs", body: "Parameters, source and install for every piece.", href: "/docs/components" },
                   { title: "Try out the new Playground", body: `New to SwiftUI? See them at work in ${apps.length} apps.`, href: "/apps", badge: "Beta" },
                 ]}

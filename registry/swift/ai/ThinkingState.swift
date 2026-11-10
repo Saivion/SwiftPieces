@@ -170,7 +170,7 @@ public extension ThinkingState {
     /// Look of a `ThinkingState`. Start from `.standard` and change what you need.
     struct Style: Sendable {
         /// The three dots, in order, unless `tint` is passed.
-        public var dots: [Color] = [Color(red: 1, green: 0, blue: 0), Color(red: 0.612, green: 0.761, blue: 1), Color(red: 0.804, green: 0.722, blue: 1)]
+        public var dots: [Color] = [Color(red: 1, green: 0, blue: 0), Color(red: 0.18, green: 0.545, blue: 1), Color(red: 1, green: 0, blue: 0.361)]
         /// Placeholder bar fill.
         public var bar: Color = Style.adaptive(0xE4E2DC, 0x262626)
         /// The band that sweeps the bars.

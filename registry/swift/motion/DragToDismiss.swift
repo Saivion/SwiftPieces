@@ -461,7 +461,7 @@ private struct DragToDismissExample: View {
                     .font(.footnote.weight(.semibold))
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
-                    .background(dragColor(0x9CC2FF), in: .capsule)
+                    .background(dragColor(0x2E8BFF), in: .capsule)
             }
             Text("SFO\n\(Text("to LIS").foregroundStyle(ink.opacity(0.55)))")
                 .font(.system(size: 56, weight: .semibold))
@@ -491,7 +491,7 @@ private struct DragToDismissExample: View {
         .fontWeight(.semibold)
         .padding(24)
         .frame(width: 330)
-        .background(dragColor(0xFFD976), in: .rect(cornerRadius: 34, style: .continuous))
+        .background(dragColor(0xFFC21A), in: .rect(cornerRadius: 34, style: .continuous))
         .shadow(color: .black.opacity(0.28), radius: 30, y: 16)
         .accessibilityElement(children: .combine)
         .accessibilityLabel("Boarding pass, San Francisco to Lisbon, departs 7:45, gate B12, seat 14A")

@@ -315,8 +315,8 @@ private extension EnvironmentValues {
 
 private struct StretchHeaderExample: View {
     @State private var progress: CGFloat = 0
-    private let sage = StretchHeaderStyle.adaptive(0xA9DCB7, 0xA9DCB7)
-    private let butter = StretchHeaderStyle.adaptive(0xFFD976, 0xFFD976)
+    private let sage = StretchHeaderStyle.adaptive(0x00C4A7, 0x00C4A7)
+    private let butter = StretchHeaderStyle.adaptive(0xFFC21A, 0xFFC21A)
     private let placeholder = StretchHeaderStyle.adaptive(0xFFFFFF, 0x1C1C1C)
 
     var body: some View {

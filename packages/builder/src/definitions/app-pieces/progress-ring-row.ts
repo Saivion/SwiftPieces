@@ -11,7 +11,7 @@ import { construct, linkAction, rgb } from "./emit-link-action.js";
 
 /** SwiftPieces colours for the ring. When one is picked it takes over from `tint`. */
 export const RING_SWATCHES: Record<string, string> = {
-  signal: "#FF0000", ember: "#FF7A3C", blush: "#FF8FB8", azure: "#4D8DFF", sky: "#9CC2FF", butter: "#FFD976", sage: "#A9DCB7", lilac: "#CDB8FF",
+  signal: "#FF0000", ember: "#FF7A3C", blush: "#FF8FB8", azure: "#4D8DFF", sky: "#2E8BFF", butter: "#FFC21A", sage: "#00C4A7", lilac: "#FF005C",
 };
 
 const s = (p: Props, k: string) => String(p[k] ?? "");

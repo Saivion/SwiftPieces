@@ -75,7 +75,7 @@ public struct DateRangePicker: View {
             self.today = today ?? adaptive(light: 0xFF0000, dark: 0xFF0000)
             self.disabled = disabled ?? adaptive(light: 0xB3B0AA, dark: 0x5E5C58)
             self.control = control ?? .clear
-            self.error = error ?? adaptive(light: 0xFFD976, dark: 0xFFD976)
+            self.error = error ?? adaptive(light: 0xFFC21A, dark: 0xFFC21A)
             self.cornerRadius = max(cornerRadius, 0)
         }
 

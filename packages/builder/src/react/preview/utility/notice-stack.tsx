@@ -14,7 +14,7 @@ import { ACCENT, ACCENT_INK, b, cr, fillStyle, fw, houseVar, n, s, ts, useAxis, 
 import { BOUNCE, SPRING, useDrag, useLive, useRuntime, useTap } from "../runtime.js";
 
 /** The house blocks; neutral follows the appearance. The red tile is the house red, as `Tint.red` is in Swift. */
-const BLOCKS: Record<Exclude<NoticeTint, "neutral">, string> = { sky: "#9CC2FF", butter: "#FFD976", sage: "#A9DCB7", lilac: "#CDB8FF", sand: "#E9D5B3", red: "#FF0000" };
+const BLOCKS: Record<Exclude<NoticeTint, "neutral">, string> = { sky: "#2E8BFF", butter: "#FFC21A", sage: "#00C4A7", lilac: "#FF005C", sand: "#FF8A1F", red: "#FF0000" };
 const INK = "#141414";
 /** How much lower and narrower each peek is, the header row and its glass, as the Swift piece. */
 const PEEK = 10, ROW = 44, GLASS = 30, HOME_SCALE = 0.72;

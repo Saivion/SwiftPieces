@@ -4,6 +4,7 @@ import { loadFullBlock, loadFullRegistryItem } from "@/lib/registry-items";
 import { blockCategoryIds, proBlockUrl } from "@/lib/blocks";
 import { pro, site } from "@/lib/site";
 import { categoryIds } from "@/lib/categories";
+import { getSkill, referenceUri, skillText, skillUri } from "@/lib/skills";
 
 // Free MCP: public, no auth, free tools only (Rev 3 §9). Pro tools live on pro.swiftpieces.com/api/mcp.
 const glassGuide = `Liquid Glass rules for SwiftUI (iOS 26):
@@ -15,11 +16,48 @@ const glassGuide = `Liquid Glass rules for SwiftUI (iOS 26):
 6. Only real APIs: glassEffect(_:in:), Glass.regular/.clear/.identity, .tint(_:), .interactive(_:), GlassEffectContainer, glassEffectID, glassEffectUnion, .buttonStyle(.glass), .glassProminent. Never .liquidGlassUltra.
 Guide: ${site.url}/docs/liquid-glass`;
 
+const appDesign = getSkill("swiftpieces-tool-app-design");
+if (!appDesign) throw new Error("skills.json has no swiftpieces-tool-app-design. Run npm run registry:build.");
+const DESIGN_TOOL = "get_design_skill";
+
 export const POST = createMcpHandler({
   name: "swiftpieces",
-  version: "0.1.0",
-  instructions: `Search and install free SwiftPieces (MIT + Commons Clause): pieces, single designed interactions, and blocks, whole sections of a screen built from pieces (a block installs with the pieces it names in registryDependencies). For SwiftPieces Pro screens, blocks, flows and app templates use the Pro server at ${pro.mcp} with a license key.`,
+  version: "0.2.0",
+  instructions: `SwiftPieces: free SwiftUI pieces (single designed interactions) and blocks (whole sections of a screen built from pieces), plus App Design, a free design method for any SwiftUI app, with or without SwiftPieces.
+
+When asked to build, design or improve iPhone UI, work in this order:
+1. Method: load App Design first (the ${DESIGN_TOOL} tool, the app-design prompt, or the resource ${skillUri(appDesign)}) and follow it. Load a reference only when the skill points to it.
+2. Study: if a screen research server (Mobbin, Appllama) is connected, study real apps for the screen type before writing UI.
+3. Reuse: search_pieces and search_blocks for a piece that already does the job before writing your own; install_piece returns the files and their dependencies.
+4. Build and verify: compose the screen, then run the skill's pre-flight counts and simulator loop. A screen isn't done until it has been seen running, in light and dark mode.
+
+For SwiftPieces Pro screens, patterns, flows and app templates, and the Build Kit, use the Pro server at ${pro.mcp} with a license key.`,
+  prompts: [
+    {
+      name: "app-design",
+      title: "App Design",
+      description: appDesign.description,
+      arguments: [{ name: "task", description: "The screen, flow or app to build or improve", required: false }],
+      handler: ({ task }) => `${skillText(appDesign, DESIGN_TOOL)}\n\n---\n\nFollow the skill above${task ? ` for this task: ${task}` : " for my next request"}.`,
+    },
+  ],
+  resources: [
+    { uri: skillUri(appDesign), name: appDesign.name, title: `${appDesign.title} skill`, description: appDesign.description, mimeType: "text/markdown", read: () => skillText(appDesign, DESIGN_TOOL) },
+    ...appDesign.references.map((r) => ({ uri: referenceUri(appDesign, r), name: `${appDesign.name}/${r.id}`, title: `${appDesign.title}: ${r.title}`, description: `A reference for the ${appDesign.title} skill: ${r.title}.`, mimeType: "text/markdown", read: () => r.body })),
+    { uri: "swiftpieces://guides/liquid-glass", name: "liquid-glass", title: "Liquid Glass rules", description: "The rules for correct Liquid Glass adoption with verified iOS 26 API names.", mimeType: "text/markdown", read: () => glassGuide },
+  ],
   tools: [
+    {
+      name: DESIGN_TOOL,
+      description: `${appDesign.title}: the free SwiftPieces design method for any SwiftUI app. Load it before building, designing or polishing iPhone UI (screens, flows, onboarding, paywalls, navigation, motion), then follow it. Pass reference to read one of its references when the skill points to it.`,
+      inputSchema: { type: "object", properties: { reference: { type: "string", enum: appDesign.references.map((r) => r.id), description: "Omit for the skill itself" } } },
+      handler: ({ reference }) => {
+        if (!reference) return skillText(appDesign, DESIGN_TOOL);
+        const ref = appDesign.references.find((r) => r.id === reference);
+        if (!ref) throw new Error(`No reference "${reference}". Use one of: ${appDesign.references.map((r) => r.id).join(", ")}.`);
+        return ref.body;
+      },
+    },
     {
       name: "search_pieces",
       description: "Search the free SwiftPieces registry by keyword, optionally filtered by category or minimum iOS version.",

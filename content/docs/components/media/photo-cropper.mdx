@@ -2062,24 +2062,24 @@ private enum PhotoCropperSample {
                 return path
             }
             let ink: UInt32 = 0x141414, paper: UInt32 = 0xF4F3EF
-            fill(0x9CC2FF, UIBezierPath(rect: CGRect(x: 0, y: 0, width: 1600, height: 1200)))
-            fill(0xFFD976, oval(1215, 285, 105, 105))
+            fill(0x2E8BFF, UIBezierPath(rect: CGRect(x: 0, y: 0, width: 1600, height: 1200)))
+            fill(0xFFC21A, oval(1215, 285, 105, 105))
             for cloud in [box(262, 300, 268, 56, 28), oval(352, 300, 50, 50), oval(436, 286, 62, 62), box(930, 212, 176, 38, 19), oval(990, 212, 32, 32), oval(1046, 204, 40, 40)] {
                 fill(paper, cloud)
             }
-            fill(0xCDB8FF, land(CGPoint(x: 0, y: 690), [
+            fill(0xFF005C, land(CGPoint(x: 0, y: 690), [
                 (CGPoint(x: 180, y: 560), CGPoint(x: 380, y: 560), CGPoint(x: 560, y: 650)),
                 (CGPoint(x: 720, y: 730), CGPoint(x: 860, y: 560), CGPoint(x: 1060, y: 590)),
                 (CGPoint(x: 1260, y: 620), CGPoint(x: 1380, y: 540), CGPoint(x: 1600, y: 600)),
             ]))
-            fill(0xA9DCB7, land(CGPoint(x: 0, y: 840), [
+            fill(0x00C4A7, land(CGPoint(x: 0, y: 840), [
                 (CGPoint(x: 260, y: 720), CGPoint(x: 520, y: 760), CGPoint(x: 760, y: 820)),
                 (CGPoint(x: 1000, y: 880), CGPoint(x: 1260, y: 760), CGPoint(x: 1600, y: 790)),
             ]))
             for tree in [oval(196, 770, 16, 48), oval(236, 784, 12, 36), oval(1372, 752, 15, 46), oval(1408, 766, 11, 32)] {
                 fill(ink, tree)
             }
-            fill(0xE9D5B3, land(CGPoint(x: 0, y: 980), [
+            fill(0xFF8A1F, land(CGPoint(x: 0, y: 980), [
                 (CGPoint(x: 400, y: 900), CGPoint(x: 1000, y: 930), CGPoint(x: 1600, y: 960)),
             ]))
             fill(ink, UIBezierPath(rect: CGRect(x: 0, y: 1048, width: 1600, height: 7)))
@@ -2104,7 +2104,7 @@ private enum PhotoCropperSample {
             fill(paper, UIBezierPath(rect: CGRect(x: 560, y: 964, width: 440, height: 12)))
             fill(ink, oval(640, 1030, 24, 24))
             fill(ink, oval(920, 1030, 24, 24))
-            fill(0xFFD976, oval(986, 996, 9, 9))
+            fill(0xFFC21A, oval(986, 996, 9, 9))
         }
     }
 }

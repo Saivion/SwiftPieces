@@ -30,7 +30,7 @@ export function RemixHeadline({ className }: { className?: string }) {
   let i = 0;
   return (
     <div className={cn("@container w-full", className)}>
-      <h1 className="mx-auto max-w-[980px] text-[length:min(44px,100cqi/12.6)] leading-[1.45] font-normal tracking-[-0.04em] sm:text-[length:min(62px,100cqi/12.6)] lg:text-[length:min(80px,100cqi/12.6)] lg:tracking-[-0.05em]">
+      <h1 className="mx-auto max-w-[980px] text-[length:min(38px,100cqi/12.6)] leading-[1.45] font-normal tracking-[-0.04em] sm:text-[length:min(50px,100cqi/12.6)] lg:text-[length:min(62px,100cqi/12.6)] lg:tracking-[-0.048em]">
         {lines.map((line, l) => (
           <span key={l} className="block whitespace-nowrap">
             {line.map((t, k) => (

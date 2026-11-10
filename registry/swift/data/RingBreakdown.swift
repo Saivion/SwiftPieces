@@ -516,7 +516,7 @@ public struct RingBreakdownStyle: Sendable {
 
     /// The six house blocks with ink, on white or charcoal. Copy it and change one property to customize.
     public static let standard = RingBreakdownStyle(
-        blocks: [0xFF0000, 0x9CC2FF, 0xFFD976, 0xA9DCB7, 0xCDB8FF, 0xE9D5B3].map { adaptive($0, $0) },
+        blocks: [0xFF0000, 0x2E8BFF, 0xFFC21A, 0x00C4A7, 0xFF005C, 0xFF8A1F].map { adaptive($0, $0) },
         rest: adaptive(0xE9E7E1, 0x2E2E2E),
         ink: adaptive(0x141414, 0x141414),
         text: adaptive(0x141414, 0xF4F3EF),

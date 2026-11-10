@@ -56,11 +56,11 @@ public struct ElasticButton: ButtonStyle {
             public var color: Color {
                 switch self {
                 case .tangerine: HouseColor.hex(0xFF0000)
-                case .sky: HouseColor.hex(0x9CC2FF)
-                case .butter: HouseColor.hex(0xFFD976)
-                case .sage: HouseColor.hex(0xA9DCB7)
-                case .lilac: HouseColor.hex(0xCDB8FF)
-                case .sand: HouseColor.hex(0xE9D5B3)
+                case .sky: HouseColor.hex(0x2E8BFF)
+                case .butter: HouseColor.hex(0xFFC21A)
+                case .sage: HouseColor.hex(0x00C4A7)
+                case .lilac: HouseColor.hex(0xFF005C)
+                case .sand: HouseColor.hex(0xFF8A1F)
                 }
             }
         }

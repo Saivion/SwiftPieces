@@ -14,10 +14,10 @@ const n = (p: Props, k: string) => Number(p[k] ?? 0);
 /** Colours for things people usually log, by name; anything else takes the next of `CYCLE`. */
 // The SwiftPieces palette: the signal sweep plus the house blocks.
 const NAMED: Record<string, string> = {
-  water: "#4D8DFF", "green tea": "#A9DCB7", tea: "#FFD976", coffee: "#FF7A3C", juice: "#FFD976", soda: "#FF0000",
-  milk: "#F4F3EF", smoothie: "#FF8FB8", energy: "#9CC2FF", sparkling: "#9CC2FF", savings: "#A9DCB7", rent: "#CDB8FF",
+  water: "#4D8DFF", "green tea": "#00C4A7", tea: "#FFC21A", coffee: "#FF7A3C", juice: "#FFC21A", soda: "#FF0000",
+  milk: "#F4F3EF", smoothie: "#FF8FB8", energy: "#2E8BFF", sparkling: "#2E8BFF", savings: "#00C4A7", rent: "#FF005C",
 };
-const CYCLE = ["#4D8DFF", "#FF8FB8", "#FF7A3C", "#FFD976", "#FF0000", "#9CC2FF", "#A9DCB7", "#CDB8FF"];
+const CYCLE = ["#4D8DFF", "#FF8FB8", "#FF7A3C", "#FFC21A", "#FF0000", "#2E8BFF", "#00C4A7", "#FF005C"];
 
 /**
  * With a Style accent, the bands become a palette around it instead of the drink colours: the accent

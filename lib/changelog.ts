@@ -7,31 +7,21 @@ import type { ChangelogEntry } from "@/components/changelog/changelog-grid";
  */
 export const changelog: ChangelogEntry[] = [
   {
-    slug: "five-new-games",
+    slug: "games-pieces-and-styles",
     date: "Nov 8, 2026",
-    title: "Five new games",
-    summary: "SwiftPieces Games grows to ten: Cairn, Pane, Parlour, Thrum and Ripple join the launch five, each a finished iOS game in SwiftUI and Metal with its full Xcode project.",
+    title: "Five new games, eleven pieces and two new styles",
+    summary: "SwiftPieces Games grows to ten, the free library gains eleven everyday pieces and an App Design skill for your agent, and Pro adds the Riso and Phosphor styles with two new app templates, Folio and Dogear.",
     points: [
-      "Cairn stacks river stones in real 3D physics on a misty loch. Pane is two-player strategy in a stained-glass window, online with Game Center or pass and play.",
-      "Parlour is card patience on a linen table in window light. Thrum is a rhythm game on five strings of light. Ripple is a wave puzzle where rings on a night pond carry gold leaves into the moon.",
-      "The navbar's Games menu lists all ten, newest first, and the docs' Games page under Explore Pro shows each one mid-play with a New badge on the new five.",
-      "Their stills and loops were reshot to show each game at its best moment. Games owners get all five at no extra cost, as with every game added later.",
+      "Five new games: Cairn stacks river stones in real 3D physics on a misty loch, Pane is two-player strategy in a stained-glass window, Parlour is card patience on a linen table, Thrum is a rhythm game on five strings of light, and Ripple is a wave puzzle in ink on washi paper. Each is a finished iOS game in SwiftUI and Metal with its full Xcode project, and Games owners get all five at no extra cost.",
+      "The navbar's Games menu lists all ten, newest first, and every game's stills and loops were reshot at its best moment. The home page now pairs Games and Pro in one tray, each under its own badge, and Games wears its own Iris badge.",
+      "Eleven free pieces you drop onto your own content: Select Menu, Zoom Dial, Reorder List, Size Picker, Unit Toggle, View Toggle and Path Bar, glass controls whose red selection flows to your pick, each with notes, a preview scene and a live web preview.",
+      "QR Code draws a styled code with round dots, soft eyes and your logo. Read-Along Text follows a recording word by word on an even red pill. Relative Time keeps a timestamp current, and Translate Toggle translates text on device with Apple's Translation framework.",
+      "A free App Design skill teaches your coding agent how SwiftPieces builds an app: method, navigation, motion, native controls, performance and a simulator loop. The MCP serves it as the app-design prompt and as resources, so any agent connected to it can follow along.",
+      "Pro adds two styles: Riso, newsprint in two inks printed slightly off register in Bricolage Grotesque, and Phosphor, an amber and green terminal glow with scanlines in Chakra Petch. Both come with Build Kit style skills.",
+      "Two new Pro templates built on them: Folio, a private journal with an evening prompt, mood check and a year of moods, and Dogear, a reading tracker with timed sessions, saved passages and a shelf of the year's books. Pro now has 14 app templates, 57 screens and 57 flows, and Explore Pro shows them all.",
+      "New badges move to the five new games and the eleven new pieces.",
     ],
     visual: "phones",
-    tint: "red",
-  },
-  {
-    slug: "eleven-everyday-pieces",
-    date: "Nov 8, 2026",
-    title: "Eleven everyday pieces",
-    summary: "Eleven free pieces you drop onto your own content: a select menu, a zoom dial, a reorder list, a size picker, a unit toggle, a view toggle, a path bar, QR codes, read-along text, relative times and a translate button.",
-    points: [
-      "Select Menu, Zoom Dial, Reorder List, Size Picker, Unit Toggle, View Toggle and Path Bar: glass controls whose red selection flows to your pick, each with notes, a preview scene and a live web preview.",
-      "QR Code draws a styled code with round dots, soft eyes and your logo, and ripples into a new code when it changes. Read-Along Text follows a recording word by word on an even red pill.",
-      "Relative Time keeps a timestamp current and only wakes when its wording changes. Translate Toggle translates text on device with Apple's Translation framework, word by word.",
-      "New badges move to these eleven.",
-    ],
-    visual: "slider",
     tint: "red",
   },
   {

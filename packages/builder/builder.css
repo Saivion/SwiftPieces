@@ -572,7 +572,7 @@ button.spp-tree-row:hover { background: var(--spp-fill); }
 .spp-dock { position: absolute; z-index: 20; left: 0; right: 0; bottom: 0; height: 96px; padding-bottom: 30px; display: flex; align-items: flex-end; justify-content: center; pointer-events: none; }
 .spp-dock-inner { pointer-events: auto; display: flex; gap: 6px; padding: 8px; border-radius: var(--spb-pill, 999px); background: var(--h-surface, #1c1c1c); box-shadow: 0 10px 30px rgb(0 0 0 / .35), inset 0 0 0 .5px rgb(255 255 255 / .08); }
 .spp-dock-item { height: 48px; min-width: 48px; padding: 0; border: 0; border-radius: min(24px, var(--spb-pill, 999px)); display: flex; align-items: center; justify-content: center; gap: 6px; background: transparent; color: var(--h-muted, var(--ios-label2)); font-size: 15px; font-weight: 600; cursor: pointer; transition: padding .45s cubic-bezier(.34,1.56,.64,1), background-color .35s ease, color .25s; }
-.spp-dock-item[aria-selected="true"] { padding: 0 16px; background: var(--spb-accent, #ffd976); color: var(--spb-accent-ink, #141414); }
+.spp-dock-item[aria-selected="true"] { padding: 0 16px; background: var(--spb-accent, #ffc21a); color: var(--spb-accent-ink, #141414); }
 .spp-dock-item:active { transform: scale(.92); }
 .spp-dock-label { white-space: nowrap; animation: spp-dock-in .35s cubic-bezier(.22,1,.36,1) both; }
 @keyframes spp-dock-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }

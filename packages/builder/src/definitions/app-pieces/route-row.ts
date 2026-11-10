@@ -20,7 +20,7 @@ export const ROUTE_STATES: Record<string, { label: string; color: string }> = {
   scheduled: { label: "Scheduled", color: "secondary" },
 };
 /** Avatar fills from the house blocks (dark ink on each), picked by the initials so a person keeps their colour. */
-export const ROUTE_AVATARS = ["#9CC2FF", "#FFD976", "#A9DCB7", "#CDB8FF", "#E9D5B3"];
+export const ROUTE_AVATARS = ["#2E8BFF", "#FFC21A", "#00C4A7", "#FF005C", "#FF8A1F"];
 export const AVATAR_INK = "#141414";
 /** A stable pick from a person's initials (weighted by position, so RK and TN differ); the route map uses the same. */
 export const initialsHash = (initials: string) => [...initials].reduce((a, c, i) => a + c.charCodeAt(0) * (i + 1), 0);

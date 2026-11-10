@@ -187,7 +187,7 @@ export function glassButtonStyle(ctx: EmitContext, circle: boolean): string {
 /** Pastel house fills a card can take (the Studio family's blocks), with dark ink on top in both themes. */
 export const TONES: Record<string, { label: string; hex: string }> = {
   peach: { label: "Peach", hex: "#F3B994" }, sky: { label: "Sky", hex: "#AFCBF5" }, sage: { label: "Sage", hex: "#B5DCC0" },
-  lilac: { label: "Lilac", hex: "#D3C4F5" }, butter: { label: "Butter", hex: "#F7DB8C" }, sand: { label: "Sand", hex: "#E9D5B3" }, blush: { label: "Blush", hex: "#F6B8CE" },
+  lilac: { label: "Lilac", hex: "#D3C4F5" }, butter: { label: "Butter", hex: "#F7DB8C" }, sand: { label: "Sand", hex: "#FF8A1F" }, blush: { label: "Blush", hex: "#F6B8CE" },
 };
 
 /** The contour lines as a CSS background image, for the web preview. */

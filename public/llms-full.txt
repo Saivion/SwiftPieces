@@ -211,9 +211,9 @@ npx swiftpieces whoami               # check whether your key has Pro access
 
 URL: https://swiftpieces.com/docs/mcp
 
-Connect Claude Code, Cursor or any MCP client to the free library, so your agent installs the real piece instead of inventing a lookalike.
+Connect Claude Code, Cursor or any MCP client to the free library and the App Design skill, so your agent designs with a method and installs the real piece instead of inventing a lookalike.
 
-The SwiftPieces MCP server is public and needs no account. Your agent can search the free library, read a piece's source and install it into your project.
+The SwiftPieces MCP server is public and needs no account. Your agent can search the free library, read a piece's source and install it into your project. It also carries App Design, a free design method for any SwiftUI app, with or without SwiftPieces: study real apps first, reuse pieces instead of rebuilding them, pick the right navigation, keep motion native, and check every flow in the simulator before calling it done.
 
 **URL:** `https://swiftpieces.com/api/mcp`
 
@@ -249,10 +249,28 @@ Add the SwiftPieces "Assistant Orb" piece to my app
 
 Every piece page has this prompt ready to copy under **Install**.
 
+To design a whole screen or flow, start from the skill. In Claude Code, the server's prompts show up as slash commands:
+
+```text
+/mcp__swiftpieces__app-design onboarding with a paywall for my meditation app
+```
+
+In other clients, ask your agent to "use the SwiftPieces App Design skill". It loads the skill with `get_design_skill` and reads each reference only when the skill points to it.
+
+### Prompts and resources
+
+| Name | What it is |
+| --- | --- |
+| `app-design` prompt | The App Design skill, ready to follow for the task you give it. |
+| `swiftpieces://skills/swiftpieces-tool-app-design` | The skill as a resource you can attach as context. |
+| `swiftpieces://skills/swiftpieces-tool-app-design/references/<name>` | Its references: `native-controls`, `navigation`, `motion`, `performance` and `simulator-loop`. |
+| `swiftpieces://guides/liquid-glass` | The Liquid Glass rules below. |
+
 ### Tools
 
 | Tool | What it does |
 | --- | --- |
+| `get_design_skill` | The App Design skill, or one of its references. |
 | `search_pieces` | Search the free library by keyword, category or minimum iOS version. |
 | `search_blocks` | Search patterns (also called blocks), whole sections of a screen in SwiftPieces Pro, by keyword or category. |
 | `get_piece` | A piece's or a free block's full source, shaders and docs link. |
@@ -2094,7 +2112,7 @@ Colors for `SwatchPicker`. `.standard` is the house palette.
 
 ### Notes
 
-- Each swatch is a named color, so VoiceOver reads the name ("Sky, selected") rather than a color value. `SwatchPicker.house` is the SwiftPieces red and five pastels; pass your own `[Swatch]` for a tag or theme palette.
+- Each swatch is a named color, so VoiceOver reads the name ("Blue, selected") rather than a color value. `SwatchPicker.house` is the SwiftPieces red and five vivid blocks; pass your own `[Swatch]` for a tag or theme palette.
 - The selection is a ring around the swatch. On a new pick the edge facing the new swatch leads on a tight spring and the far edge follows on a looser one, so the ring stretches into a capsule across the swatches between and gathers in around the new one.
 - A check pops into the picked swatch in ink or white, whichever reads on that color in the current appearance.
 - Swatches are 34pt by default, and the gap around each counts as part of it, so the tap target reaches 44pt. A row wider than its space scrolls sideways.
