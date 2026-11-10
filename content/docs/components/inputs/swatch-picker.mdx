@@ -93,14 +93,14 @@ public struct SwatchPicker: View {
         }
     }
 
-    /// The SwiftPieces house blocks: the brand red and five pastels.
+    /// The SwiftPieces house blocks: the brand red and five vivid blocks.
     public static let house: [Swatch] = [
         Swatch("Red", Color(red: 1, green: 0, blue: 0)),
-        Swatch("Sky", Color(red: 0.612, green: 0.761, blue: 1)),
-        Swatch("Butter", Color(red: 1, green: 0.851, blue: 0.463)),
-        Swatch("Sage", Color(red: 0.663, green: 0.863, blue: 0.718)),
-        Swatch("Lilac", Color(red: 0.804, green: 0.722, blue: 1)),
-        Swatch("Sand", Color(red: 0.914, green: 0.835, blue: 0.702)),
+        Swatch("Blue", Color(red: 0.18, green: 0.545, blue: 1)),
+        Swatch("Yellow", Color(red: 1, green: 0.761, blue: 0.102)),
+        Swatch("Teal", Color(red: 0, green: 0.769, blue: 0.655)),
+        Swatch("Pink", Color(red: 1, green: 0, blue: 0.361)),
+        Swatch("Orange", Color(red: 1, green: 0.541, blue: 0.122)),
     ]
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -415,7 +415,7 @@ Colors for `SwatchPicker`. `.standard` is the house palette.
 
 ## Notes
 
-- Each swatch is a named color, so VoiceOver reads the name ("Sky, selected") rather than a color value. `SwatchPicker.house` is the SwiftPieces red and five pastels; pass your own `[Swatch]` for a tag or theme palette.
+- Each swatch is a named color, so VoiceOver reads the name ("Blue, selected") rather than a color value. `SwatchPicker.house` is the SwiftPieces red and five vivid blocks; pass your own `[Swatch]` for a tag or theme palette.
 - The selection is a ring around the swatch. On a new pick the edge facing the new swatch leads on a tight spring and the far edge follows on a looser one, so the ring stretches into a capsule across the swatches between and gathers in around the new one.
 - A check pops into the picked swatch in ink or white, whichever reads on that color in the current appearance.
 - Swatches are 34pt by default, and the gap around each counts as part of it, so the tap target reaches 44pt. A row wider than its space scrolls sideways.

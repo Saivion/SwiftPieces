@@ -40,7 +40,7 @@ export const PIN_COLORS = ["#FF2D55", "#FF9500", "#E0284A", "#AF52DE", "#FF2D55"
 /** Graphite in the light scheme: pale paper ground, sky water, sage park. */
 export const PLACE_GRAPHITE_LIGHT: PlaceColors = { land: "#F4F3EF", water: "#CFE0F7", park: "#DCEBD6", street: "#FFFFFF", label: "#8A8A8E", ring: "#3A3A3C" };
 /** Graphite pins: the stay (the first) in signal red, the other places on the house blocks with dark ink. */
-export const PIN_SWEEP = ["#FF0000", "#9CC2FF", "#FFD976", "#A9DCB7", "#CDB8FF", "#E9D5B3", "#FF8FB8", "#FF7A3C"];
+export const PIN_SWEEP = ["#FF0000", "#2E8BFF", "#FFC21A", "#00C4A7", "#FF005C", "#FF8A1F", "#FF8FB8", "#FF7A3C"];
 export const PIN_INK_DARK = "#141414";
 /** Graphite follows the colour scheme; day and night are fixed. */
 export const placeColors = (appearance: string, scheme: "dark" | "light" = "dark") =>
@@ -52,7 +52,7 @@ export const PIN_SYMBOLS = ["bag", "fork.knife", "building.columns", "cup.and.sa
  * Colours a pin can ask for by name: signal red, the sweep and the house blocks. The pale ones take
  * dark ink, signal and azure take white.
  */
-export const PIN_TINTS: Record<string, string> = { signal: "#FF0000", ember: "#FF7A3C", blush: "#FF8FB8", azure: "#4D8DFF", sky: "#9CC2FF", butter: "#FFD976", sage: "#A9DCB7", lilac: "#CDB8FF", sand: "#E9D5B3" };
+export const PIN_TINTS: Record<string, string> = { signal: "#FF0000", ember: "#FF7A3C", blush: "#FF8FB8", azure: "#4D8DFF", sky: "#2E8BFF", butter: "#FFC21A", sage: "#00C4A7", lilac: "#FF005C", sand: "#FF8A1F" };
 const WHITE_INK = new Set([PIN_TINTS.signal, PIN_TINTS.azure]);
 
 export type PlacePin = { name: string; x: number; y: number; color: string; ink: string; symbol: string; number: number };

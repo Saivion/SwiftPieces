@@ -63,7 +63,7 @@ public struct AmountField: View {
             self.amount = amount ?? adaptive(light: 0x141414, dark: 0xF4F3EF)
             self.secondaryLabel = secondaryLabel ?? adaptive(light: 0x5C5A56, dark: 0xA6A49F)
             self.caret = caret ?? adaptive(light: 0xFF0000, dark: 0xFF0000)
-            self.error = error ?? adaptive(light: 0xFFD976, dark: 0xFFD976)
+            self.error = error ?? adaptive(light: 0xFFC21A, dark: 0xFFC21A)
             self.ink = ink ?? adaptive(light: 0x141414, dark: 0x141414)
             self.height = max(height, 44)
             self.cornerRadius = cornerRadius

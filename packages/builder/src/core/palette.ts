@@ -210,7 +210,7 @@ export const isIcon = (id: unknown): id is string => typeof id === "string" && i
 export const house = {
   signal: "#FF0000",
   ink: "#141414",
-  blocks: { tangerine: "#FF0000", sky: "#9CC2FF", butter: "#FFD976", sage: "#A9DCB7", lilac: "#CDB8FF", sand: "#E9D5B3" } as Record<string, string>,
+  blocks: { tangerine: "#FF0000", sky: "#2E8BFF", butter: "#FFC21A", sage: "#00C4A7", lilac: "#FF005C", sand: "#FF8A1F" } as Record<string, string>,
   light: { text: "#141414", muted: "#5C5A56", ground: "#F3F2EE", surface: "#FFFFFF", raised: "#EAE8E2", field: "#E9E7E1", empty: "#E7E5DF" },
   dark: { text: "#F4F3EF", muted: "#A6A49F", ground: "#121212", surface: "#1C1C1C", raised: "#262626", field: "#262626", empty: "#2E2E2E" },
 };

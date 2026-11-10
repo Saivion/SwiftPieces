@@ -254,7 +254,7 @@ private func houseColor(_ hex: UInt32) -> Color {
 
 /// Badge discs, in house order. Split out of `Style.init` so that initializer type-checks.
 private func houseBlocks() -> [Color] {
-    [0x9CC2FF, 0xFFD976, 0xA9DCB7, 0xCDB8FF, 0xE9D5B3, 0xFF0000].map { hex in houseColor(hex) }
+    [0x2E8BFF, 0xFFC21A, 0x00C4A7, 0xFF005C, 0xFF8A1F, 0xFF0000].map { hex in houseColor(hex) }
 }
 
 /// A house-palette colour that follows the interface style.

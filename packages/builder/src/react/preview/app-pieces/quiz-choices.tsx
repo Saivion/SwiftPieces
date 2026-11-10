@@ -29,7 +29,7 @@ export const QuizChoices: Renderer = (r) => {
     if (!rt.act(s(p, "link"))) setPicked(null);
   };
   const idle = "var(--ios-fill)";
-  const fill = (i: number) => (picked === null ? idle : i === correct ? "rgba(169,220,183,.5)" : i === picked ? "rgba(255,0,0,.4)" : idle);
+  const fill = (i: number) => (picked === null ? idle : i === correct ? "rgba(0,196,167,.5)" : i === picked ? "rgba(255,0,0,.4)" : idle);
   const right = picked === correct;
   return (
     <div {...r.box} style={{ ...r.box.style, ...(axis === "v" ? { alignSelf: "stretch" } : { flex: "1 1 0", minWidth: 0 }), flex: "1 1 auto", display: "flex", flexDirection: "column", gap: 12, color: "var(--ios-label)" }}>
@@ -59,7 +59,7 @@ export const QuizChoices: Renderer = (r) => {
       {picked !== null && (
         <div key={String(right)} style={{ borderRadius: cr(24), background: "var(--ios-fill)", padding: 20, display: "flex", flexDirection: "column", gap: 8, animation: "spb-qc-rise .3s cubic-bezier(.23,1,.32,1)" }} className="spb-qc-panel">
           <span style={{ display: "flex", alignItems: "center", gap: 8, fontSize: ts(17), fontWeight: fw(600) }}>
-            <span style={{ color: right ? "#A9DCB7" : "#FF0000", display: "grid" }}><Glyph name={right ? "checkmark.circle.fill" : "xmark.circle.fill"} size={20} /></span>
+            <span style={{ color: right ? "#00C4A7" : "#FF0000", display: "grid" }}><Glyph name={right ? "checkmark.circle.fill" : "xmark.circle.fill"} size={20} /></span>
             {right ? "Correct" : "Not quite"}
           </span>
           <span style={{ fontSize: ts(15), fontWeight: fw(600) }}>{options[correct]}</span>

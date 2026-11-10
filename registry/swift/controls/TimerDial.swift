@@ -52,7 +52,7 @@ public struct TimerDial: View {
         /// reset sets the dial back to `seconds`. Off by default, so a dial with your own controls looks as it did.
         public var showsControls: Bool
 
-        public init(fill: Color = House.hex(0xFF0000), track: Color = House.adaptive(light: 0xEAE8E2, dark: 0x262626), warning: Color = House.hex(0xFF0000), finished: Color = House.hex(0xA9DCB7), knob: Color = House.adaptive(light: 0x141414, dark: 0xF4F3EF), text: Color = House.adaptive(light: 0x141414, dark: 0xF4F3EF), secondaryText: Color = House.adaptive(light: 0x5C5A56, dark: 0xA6A49F), showsTicks: Bool = true, digitSize: CGFloat = 52, showsControls: Bool = false) {
+        public init(fill: Color = House.hex(0xFF0000), track: Color = House.adaptive(light: 0xEAE8E2, dark: 0x262626), warning: Color = House.hex(0xFF0000), finished: Color = House.hex(0x00C4A7), knob: Color = House.adaptive(light: 0x141414, dark: 0xF4F3EF), text: Color = House.adaptive(light: 0x141414, dark: 0xF4F3EF), secondaryText: Color = House.adaptive(light: 0x5C5A56, dark: 0xA6A49F), showsTicks: Bool = true, digitSize: CGFloat = 52, showsControls: Bool = false) {
             self.fill = fill
             self.track = track
             self.warning = warning
@@ -68,7 +68,7 @@ public struct TimerDial: View {
         /// The Free house palette: signal ring and warning, sage finish.
         public static let standard = Style()
         /// The same dial with a sky ring, for secondary timers and progress.
-        public static let sky = Style(fill: House.hex(0x9CC2FF))
+        public static let sky = Style(fill: House.hex(0x2E8BFF))
 
         /// Builds house colors. Public so `Style` defaults can use it.
         public enum House {
@@ -598,7 +598,7 @@ private struct TimerDialExample: View {
         VStack(spacing: 28) {
             TimerDial(seconds: $seconds, isRunning: $running, step: 5, maxSeconds: 60, style: .init(showsControls: true))
                 .frame(width: 232)
-            TimerDial(progress: 0.72, lineWidth: 10, caption: "Uploaded", style: .init(fill: House.hex(0x9CC2FF), showsTicks: false, digitSize: 26))
+            TimerDial(progress: 0.72, lineWidth: 10, caption: "Uploaded", style: .init(fill: House.hex(0x2E8BFF), showsTicks: false, digitSize: 26))
                 .frame(width: 104)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)

@@ -588,8 +588,8 @@ private struct ExpandingTrackExample: View {
         VStack(alignment: .leading, spacing: 30) {
             ExpandingTrack(value: $volume, symbol: "speaker.wave.3.fill") { ($0 * 100).formatted(.number.precision(.fractionLength(0))) }
                 .accessibilityLabel("Volume")
-            ExpandingTrack(value: $warmth, in: 2700...6500, step: 100, symbol: "sun.max.fill", title: "Warmth", style: .init(fill: adaptive(light: 0xFFD976, dark: 0xFFD976))) { "\(Int($0))K" }
-            ExpandingTrack(range: $price, in: 0...200, step: 5, minimumDistance: 10, title: "Price per night", style: .init(fill: adaptive(light: 0xA9DCB7, dark: 0xA9DCB7))) { "$\(Int($0))" }
+            ExpandingTrack(value: $warmth, in: 2700...6500, step: 100, symbol: "sun.max.fill", title: "Warmth", style: .init(fill: adaptive(light: 0xFFC21A, dark: 0xFFC21A))) { "\(Int($0))K" }
+            ExpandingTrack(range: $price, in: 0...200, step: 5, minimumDistance: 10, title: "Price per night", style: .init(fill: adaptive(light: 0x00C4A7, dark: 0x00C4A7))) { "$\(Int($0))" }
         }
         .padding(.horizontal, 34)
         .frame(maxWidth: .infinity, maxHeight: .infinity)

@@ -9,7 +9,7 @@ import { data, items, numbers, swiftHex, swiftNums, swiftStrs, tintHex } from ".
 import { own } from "../../core/own.js";
 
 /** The house blocks by name (the data colours of the SwiftPieces look), on top of the shared tints. */
-const HOUSE: Record<string, string> = { sky: "#9CC2FF", butter: "#FFD976", sage: "#A9DCB7", lilac: "#CDB8FF", sand: "#E9D5B3" };
+const HOUSE: Record<string, string> = { sky: "#2E8BFF", butter: "#FFC21A", sage: "#00C4A7", lilac: "#FF005C", sand: "#FF8A1F" };
 /** A bar's colour: a house block, else a shared tint. */
 export const barHex = (id: string) => own(HOUSE, id) ?? tintHex(id, "azure");
 

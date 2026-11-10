@@ -65,11 +65,11 @@ export const signal = { fill: "#ff0000", on: "#141414" } as const;
  *  (owner, 2026-09-17): no second, dimmer orange anywhere. */
 export const blocks = {
   tangerine: "#ff0000",
-  sky: "#9cc2ff",
-  butter: "#ffd976",
-  sage: "#a9dcb7",
-  lilac: "#cdb8ff",
-  sand: "#e9d5b3",
+  sky: "#2e8bff",
+  butter: "#ffc21a",
+  sage: "#00c4a7",
+  lilac: "#ff005c",
+  sand: "#ff8a1f",
 } as const;
 export type BlockName = keyof typeof blocks;
 export const blockList: string[] = Object.values(blocks);

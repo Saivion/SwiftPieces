@@ -173,7 +173,7 @@ public struct AttachmentTray: View {
             self.badgeInk = badgeInk ?? adaptive(light: 0x141414, dark: 0xF4F3EF)
             self.signal = signal ?? adaptive(light: 0xFF0000, dark: 0xFF0000)
             self.signalInk = signalInk ?? adaptive(light: 0x141414, dark: 0x141414)
-            self.uploaded = uploaded ?? adaptive(light: 0xA9DCB7, dark: 0xA9DCB7)
+            self.uploaded = uploaded ?? adaptive(light: 0x00C4A7, dark: 0x00C4A7)
             self.cornerRadius = cornerRadius
             self.tileSize = max(tileSize, 56)
             self.spacing = spacing
@@ -1198,7 +1198,7 @@ private enum ExamplePhoto {
     }
 
     nonisolated static func data(_ index: Int) -> Data {
-        let palette: [(UInt32, UInt32, UInt32)] = [(0x9CC2FF, 0xFFD976, 0xA9DCB7), (0xE9D5B3, 0xFF0000, 0xCDB8FF), (0xA9DCB7, 0xF4F3EF, 0x9CC2FF)]
+        let palette: [(UInt32, UInt32, UInt32)] = [(0x2E8BFF, 0xFFC21A, 0x00C4A7), (0xFF8A1F, 0xFF0000, 0xFF005C), (0x00C4A7, 0xF4F3EF, 0x2E8BFF)]
         let (sky, sun, land) = palette[index % palette.count]
         let size = CGSize(width: 1200, height: 900)
         let format = UIGraphicsImageRendererFormat()

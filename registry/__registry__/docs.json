@@ -9397,7 +9397,7 @@
         },
         {
           "heading": "notes",
-          "content": "Each swatch is a named color, so VoiceOver reads the name (\"Sky, selected\") rather than a color value. `SwatchPicker.house` is the SwiftPieces red and five pastels; pass your own `[Swatch]` for a tag or theme palette."
+          "content": "Each swatch is a named color, so VoiceOver reads the name (\"Blue, selected\") rather than a color value. `SwatchPicker.house` is the SwiftPieces red and five vivid blocks; pass your own `[Swatch]` for a tag or theme palette."
         },
         {
           "heading": "notes",

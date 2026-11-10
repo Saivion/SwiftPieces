@@ -16,7 +16,7 @@ const ITEMS = "Distance | 4.2 km | ; Active time | 1h 12m | ; Climbed | 9 floors
 
 /** Pastel house fills for the contour style (the Studio family's topographic cards). */
 export const CONTOUR_FILLS: Record<string, string> = {
-  peach: "#F3B994", sky: "#AFCBF5", sage: "#B5DCC0", lilac: "#D3C4F5", butter: "#F7DB8C", sand: "#E9D5B3", blush: "#F6B8CE",
+  peach: "#F3B994", sky: "#AFCBF5", sage: "#B5DCC0", lilac: "#D3C4F5", butter: "#F7DB8C", sand: "#FF8A1F", blush: "#F6B8CE",
 };
 export const contourFill = (id: string) => CONTOUR_FILLS[id] ?? CONTOUR_FILLS.peach;
 

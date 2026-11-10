@@ -12,7 +12,7 @@ const n = (p: Props, k: string) => Number(p[k] ?? 0);
 const b = (p: Props, k: string) => p[k] === true;
 
 /** One colour per mood, lowest first, cool to warm: azure, sky, sand, blush, ember. */
-export const MOOD_COLORS = ["#4D8DFF", "#9CC2FF", "#E9D5B3", "#FF8FB8", "#FF7A3C"];
+export const MOOD_COLORS = ["#4D8DFF", "#2E8BFF", "#FF8A1F", "#FF8FB8", "#FF7A3C"];
 export const DEFAULT_MOODS = "Awful, Bad, Okay, Good, Great";
 /** The same moods a shade deeper, for lines and rings drawn on a light ground (the pale sky and sand would wash out). */
 export const MOOD_STROKES_LIGHT = ["#3F7FF2", "#5E95EC", "#BF9F6E", "#F0709F", "#F06C2E"];

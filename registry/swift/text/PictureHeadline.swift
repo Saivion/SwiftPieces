@@ -700,15 +700,15 @@ private struct SceneArt: View {
 
 /// House palette for the scenes (mirrors the web previews' blocks).
 private enum Art {
-    static let butter = Color(red: 1, green: 0.851, blue: 0.463)
-    static let sand = Color(red: 0.914, green: 0.835, blue: 0.702)
+    static let butter = Color(red: 1, green: 0.761, blue: 0.102)
+    static let sand = Color(red: 1, green: 0.541, blue: 0.122)
     static let red = Color(red: 1, green: 0.231, blue: 0.188)
-    static let sky = Color(red: 0.612, green: 0.761, blue: 1)
+    static let sky = Color(red: 0.18, green: 0.545, blue: 1)
     static let deepSky = Color(red: 0.31, green: 0.52, blue: 0.95)
     static let paleSage = Color(red: 0.86, green: 0.95, blue: 0.88)
-    static let sage = Color(red: 0.663, green: 0.863, blue: 0.718)
+    static let sage = Color(red: 0, green: 0.769, blue: 0.655)
     static let deepSage = Color(red: 0.36, green: 0.66, blue: 0.46)
-    static let lilac = Color(red: 0.804, green: 0.722, blue: 1)
+    static let lilac = Color(red: 1, green: 0, blue: 0.361)
     /// The moon's sky: a deep blue, so the frame reads on dark grounds as well as light.
     static let night = Color(red: 0.149, green: 0.184, blue: 0.369)
     static let ink = Color(red: 0.078, green: 0.078, blue: 0.078)

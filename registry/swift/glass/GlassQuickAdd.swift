@@ -58,7 +58,7 @@ public struct GlassQuickAddStyle: Sendable {
         self.secondary = secondary ?? glassQuickAddColor(light: 0x5C5A56, dark: 0xA6A49F)
         self.ink = ink ?? Color(red: 0x14 / 255, green: 0x14 / 255, blue: 0x14 / 255)
         self.action = action ?? Color(red: 1, green: 0, blue: 0)
-        self.success = success ?? Color(red: 0.663, green: 0.863, blue: 0.718)
+        self.success = success ?? Color(red: 0, green: 0.769, blue: 0.655)
     }
 
     public static let standard = GlassQuickAddStyle()
@@ -379,10 +379,10 @@ private struct GlassQuickAddExample: View {
     @State private var save = 0
 
     private let kinds: [GlassQuickAddKind] = [
-        .init(id: "note", systemImage: "note.text", title: "Note", prompt: "Write it down", tint: glassQuickAddColor(light: 0x9CC2FF, dark: 0x9CC2FF)),
-        .init(id: "task", systemImage: "checkmark", title: "Task", prompt: "What needs doing?", options: ["Today", "Tomorrow", "Flag"], tint: glassQuickAddColor(light: 0xFFD976, dark: 0xFFD976)),
-        .init(id: "link", systemImage: "link", title: "Link", prompt: "Paste a link", options: ["Read later"], tint: glassQuickAddColor(light: 0xCDB8FF, dark: 0xCDB8FF)),
-        .init(id: "reminder", systemImage: "bell", title: "Reminder", prompt: "Remind me to…", options: ["9:00", "13:00", "18:00"], tint: glassQuickAddColor(light: 0xA9DCB7, dark: 0xA9DCB7)),
+        .init(id: "note", systemImage: "note.text", title: "Note", prompt: "Write it down", tint: glassQuickAddColor(light: 0x2E8BFF, dark: 0x2E8BFF)),
+        .init(id: "task", systemImage: "checkmark", title: "Task", prompt: "What needs doing?", options: ["Today", "Tomorrow", "Flag"], tint: glassQuickAddColor(light: 0xFFC21A, dark: 0xFFC21A)),
+        .init(id: "link", systemImage: "link", title: "Link", prompt: "Paste a link", options: ["Read later"], tint: glassQuickAddColor(light: 0xFF005C, dark: 0xFF005C)),
+        .init(id: "reminder", systemImage: "bell", title: "Reminder", prompt: "Remind me to…", options: ["9:00", "13:00", "18:00"], tint: glassQuickAddColor(light: 0x00C4A7, dark: 0x00C4A7)),
     ]
 
     var body: some View {
