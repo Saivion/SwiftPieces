@@ -15,7 +15,6 @@ import { breadcrumbJsonLd, pageMetadata, WEBSITE_ID } from "@/lib/seo";
 import { hubs } from "@/lib/hubs";
 import { pro, site } from "@/lib/site";
 import { apps } from "@/lib/apps";
-import { proCatalog, proGames } from "@/lib/pro-catalog";
 
 const count = getRegistryIndex().length;
 
@@ -60,7 +59,7 @@ export default function ComponentsPage() {
             <Reveal delay={0.1}>
               <LinkCells
                 links={[
-                  { title: "Explore Pro and Games", body: `${proCatalog.templates} app templates, whole flows and ${proGames.list.length} finished games.`, href: pro.home, tone: "ember", seed: "components-explore-pro" },
+                  { title: "Explore Pro and Games", body: "Screens, flows, app templates and finished games, ready to ship.", href: pro.home, tone: "ember", seed: "components-explore-pro" },
                   { title: "Browse in the docs", body: "Parameters, source and install for every piece.", href: "/docs/components" },
                   { title: "Try out the new Playground", body: `New to SwiftUI? See them at work in ${apps.length} apps.`, href: "/apps", badge: "Beta" },
                 ]}
