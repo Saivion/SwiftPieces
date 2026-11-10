@@ -8,7 +8,7 @@ export const proCatalog = {
   screens: 57,
   /** Pro's patterns (Pro typeCounts().block). Their names and summaries live in lib/blocks.ts proBlocks; keep the two in step. */
   blocks: 46,
-  templates: 14,
+  templates: 15,
   /** The Build Kit: skills a buyer's coding agent follows (Pro lib/kit.ts kitCounts()). */
   buildKit: { total: 34, setup: 1, styles: 16, briefs: 9, recipes: 5, tools: 3 },
   /**
@@ -18,13 +18,13 @@ export const proCatalog = {
    */
   remixing: { saves: 100, apps: 34, proApps: 29 },
   /** Flows: every template's journeys (Pro lib/flows.ts flowCount() and flowKindCounts()). */
-  flows: { total: 57, onboarding: 14, core: 29, account: 14 },
+  flows: { total: 62, onboarding: 15, core: 32, account: 15 },
   /** Brand presets across the templates and the families they come from (Pro lib/brand/presets.ts presetDefs). */
-  presets: { total: 42, families: 15 },
+  presets: { total: 45, families: 15 },
   /** A few screen names, in the order Pro features them. */
   screenExamples: ["Wallet", "Budget", "Dashboard", "Chat", "Voice Mode", "Paywall", "Now Playing"],
   /** Every template, short form. */
-  templateNames: ["subscription", "finance", "AI assistant", "productivity", "meditation", "travel", "sleep", "smart home", "weather", "meal planner", "fitness", "language learning", "journal", "reading tracker"],
+  templateNames: ["subscription", "finance", "AI assistant", "productivity", "meditation", "travel", "sleep", "smart home", "weather", "meal planner", "fitness", "language learning", "shop", "journal", "reading tracker"],
   /** Each template's fictional app and what it is, as Pro's template pages name them. */
   templateApps: [
     { app: "Cadence", kind: "Subscription" },
@@ -39,6 +39,7 @@ export const proCatalog = {
     { app: "Sprig", kind: "Meal planner" },
     { app: "Pulse", kind: "Fitness" },
     { app: "Parla", kind: "Language learning" },
+    { app: "Atelier", kind: "Shop" },
     { app: "Folio", kind: "Journal" },
     { app: "Dogear", kind: "Reading tracker" },
   ],
@@ -53,7 +54,7 @@ export function namesWithMore(names: readonly string[], take = names.length): st
 /** The Explore Pro docs pages (/docs/components/<page>), in sidebar order: docs pages, not registry categories. */
 export const exploreProPages = ["screens", "flows", "templates", "games"] as const;
 
-/** "57 screens, 57 flows, 14 app templates and a 34-item Build Kit". */
+/** "57 screens, 62 flows, 15 app templates and a 34-item Build Kit". */
 export const proCountsLabel = `${proCatalog.screens} screens, ${proCatalog.flows.total} flows, ${proCatalog.templates} app templates and a ${proCatalog.buildKit.total}-item Build Kit`;
 
 /** One line on the Build Kit for Free's Pro teasers. */

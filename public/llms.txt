@@ -38,7 +38,7 @@ Yes. The registry is public JSON, llms.txt describes every piece, and the MCP se
 
 ### What is SwiftPieces Pro?
 
-A separate paid library for building whole apps: 57 production-ready SwiftUI screens, 57 flows that string them into whole journeys, 14 complete app templates, a Build Kit of agent skills and Pro remixing in the Playground (all 34 apps, remix with AI, keep up to 100 remixes), for $199 once with lifetime access. Its sister product, SwiftPieces Games, is 10 complete iOS games in SwiftUI and Metal for $199, or $329 for both. Both are sold on pro.swiftpieces.com.
+A separate paid library for building whole apps: 57 production-ready SwiftUI screens, 62 flows that string them into whole journeys, 15 complete app templates, a Build Kit of agent skills and Pro remixing in the Playground (all 34 apps, remix with AI, keep up to 100 remixes), for $199 once with lifetime access. Its sister product, SwiftPieces Games, is 10 complete iOS games in SwiftUI and Metal for $199, or $329 for both. Both are sold on pro.swiftpieces.com.
 
 ## Docs
 
@@ -138,7 +138,7 @@ Whole sections of an iOS screen: chats, composers, nav and tab bars, lists, sett
 
 ## SwiftPieces Pro
 
-A separate paid library for building whole apps: 57 screens, 57 flows, 14 app templates and a 34-item Build Kit (production-ready SwiftUI screens, flows that string them into whole journeys from first run to settings, complete Xcode projects, and agent skills that build the rest in the same design) at https://pro.swiftpieces.com/library, plus Pro remixing in the Playground at https://swiftpieces.com/apps (all 34 apps, remix any app with AI, keep up to 100 remixes). One plan with lifetime access; plan and pricing: https://pro.swiftpieces.com/pro. Pro MCP endpoint: https://pro.swiftpieces.com/api/mcp (license key required): search_library, get_item, list_kit, get_kit_item, apply_design_skill, apply_recipe.
+A separate paid library for building whole apps: 57 screens, 62 flows, 15 app templates and a 34-item Build Kit (production-ready SwiftUI screens, flows that string them into whole journeys from first run to settings, complete Xcode projects, and agent skills that build the rest in the same design) at https://pro.swiftpieces.com/library, plus Pro remixing in the Playground at https://swiftpieces.com/apps (all 34 apps, remix any app with AI, keep up to 100 remixes). One plan with lifetime access; plan and pricing: https://pro.swiftpieces.com/pro. Pro MCP endpoint: https://pro.swiftpieces.com/api/mcp (license key required): search_library, get_item, list_kit, get_kit_item, apply_design_skill, apply_recipe.
 
 ## AI (https://swiftpieces.com/components/ai)
 
