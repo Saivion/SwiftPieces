@@ -5,7 +5,7 @@ import { JsonLd } from "@/components/seo/json-ld";
 import { StyleStudioLoader } from "@/components/styles/style-studio-loader";
 import { StudioShell } from "@/components/styles/studio-shell";
 import { StyleTravel } from "@/components/styles/style-travel";
-import { STYLES_PATH, styleApps, styleScreens, styleTiles } from "@/lib/styles";
+import { STYLES_PATH, styleApps, styleScreens } from "@/lib/styles";
 import { breadcrumbJsonLd, pageMetadata, WEBSITE_ID } from "@/lib/seo";
 import { site } from "@/lib/site";
 
@@ -21,11 +21,10 @@ export const metadata: Metadata = pageMetadata({
  * Styles: the Playground's Style tab as a page of its own, the studio first and in full view. A
  * style made here (colour, light and dark, type, shape, buttons, spacing, motion) is the same style
  * the Playground wears, carried by the same code, drawn by the same renderers. Below it, only where
- * a style goes. Static: the tiles and the free apps' screens are built
+ * a style goes. Static: the free apps' screens are built
  * at build time; the studio itself runs in the browser.
  */
 export default async function StylesPage() {
-  const tiles = styleTiles();
   const screens = await styleScreens();
   const apps = styleApps();
   return (
@@ -41,7 +40,7 @@ export default async function StylesPage() {
       />
       <section id="studio" className="pt-3 pb-3">
         <Container>
-          <StyleStudioLoader tiles={tiles} screens={screens} apps={apps}>
+          <StyleStudioLoader screens={screens} apps={apps}>
             <StudioShell />
           </StyleStudioLoader>
         </Container>

@@ -80,11 +80,3 @@ export function canvasSurfaces(theme: Theme, scheme: Scheme): Surfaces {
   };
 }
 
-/**
- * The style as a tile draws it: its ground made the tile's colour and its cards the canvas's card
- * colour, in the mode it's shown in (cards then fill solid, so even flat ones are white, or black).
- * Everything else (accent, type, shape, motion) is the style's.
- */
-export function onTile(theme: Theme, surfaces: Surfaces, ground: string): Theme {
-  return { ...theme, custom: { mode: surfaces.scheme, ground, surface: surfaces.card } };
-}

@@ -2,7 +2,8 @@ import { STYLE_FIELDS, STYLE_OPTIONS, encodeStyle, looks, moods, themeFromLook, 
 import { StudioFrame, panelSurface } from "./studio-frame";
 import { cn } from "@/lib/cn";
 
-const TILES = ["hero", "type", "palette", "track", "pay", "chart", "goal", "days"];
+/** The bento canvas's cards (components/styles/bento), as quiet placeholders in the same grid. */
+const CARDS = ["player", "seg", "code", "week", "type", "heat", "toggle", "react", "chart", "chat", "tasks", "rings", "sliders", "timer", "units", "swatch", "status", "pricing", "pay"];
 
 const label = (key: StyleOptionKey) => STYLE_FIELDS.find((f) => f.key === key)?.label ?? key[0].toUpperCase() + key.slice(1);
 
@@ -24,10 +25,12 @@ export function StudioShell() {
     <StudioFrame
       busy
       canvas={
-        <div className="studio-grid size-full">
-          {TILES.map((id) => (
-            <div key={id} data-tile={id} className="min-h-0 animate-pulse rounded-[22px] bg-foreground/[.04]" />
-          ))}
+        <div className="bento-host size-full">
+          <div className="bento-grid size-full">
+            {CARDS.map((id) => (
+              <div key={id} data-card={id} className="min-h-0 animate-pulse rounded-[22px] bg-foreground/[.04]" />
+            ))}
+          </div>
         </div>
       }
       panel={
