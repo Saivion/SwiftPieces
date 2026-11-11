@@ -793,33 +793,48 @@ html.light .spl-phone { box-shadow: 0 0 0 1px rgb(0 0 0 / .1); }
    The settings panel, the canvas's floating bar and the tray the tiles sit in follow the site's theme
    (Graphite surfaces); only the tiles themselves take the style being made. */
 .studio-tray { --studio-tray: var(--surface); --studio-tray-solid: var(--surface); }
-/* The canvas's tiles (components/styles/studio-canvas.tsx), in named areas: from 768px three columns
-   of six rows, the hero three rows tall, the chart two columns by two rows, the week a wide strip,
-   so the seams stagger like a puzzle's and no two tiles share a shape and place. On a phone, a row
-   of full-height tiles to swipe through, the next one peeking (the two strips stay for wider screens). */
-.studio-grid { display: flex; gap: 12px; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; scrollbar-width: none; }
-.studio-grid::-webkit-scrollbar { display: none; }
-.studio-grid > [data-tile] { flex: 0 0 84%; scroll-snap-align: start; }
-.studio-grid > :is([data-tile="track"], [data-tile="days"]) { display: none; }
-@media (min-width: 768px) {
-  .studio-grid {
-    display: grid; overflow: visible;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    grid-template-rows: repeat(6, minmax(0, 1fr));
-    grid-template-areas: "hero type palette" "hero type palette" "hero track pay" "chart chart pay" "chart chart goal" "days days goal";
-  }
-  .studio-grid > :is([data-tile="track"], [data-tile="days"]) { display: block; }
+/* The Styles studio's bento canvas (components/styles/bento): nineteen live cards. --k scales the
+   cards' design pixels (a 1000 x 780 canvas) to the canvas. A phone shows seven of them in two
+   columns (a 400 x 640 canvas); from 768px all nineteen, in five columns of eight rows whose seams
+   stagger. */
+.bento-host { container-type: size; }
+.bento-grid {
+  --k: min(calc(100cqh / 640), calc(100cqw / 400)); --bento-r: 20px;
+  display: grid; gap: 8px;
+  grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(7, minmax(0, 1fr));
+  grid-template-areas: "chart chart" "chart chart" "rings toggle" "rings toggle" "react timer" "react timer" "seg pay";
 }
-.studio-grid > [data-tile="hero"] { grid-area: hero; }
-.studio-grid > [data-tile="type"] { grid-area: type; }
-.studio-grid > [data-tile="palette"] { grid-area: palette; }
-.studio-grid > [data-tile="track"] { grid-area: track; }
-.studio-grid > [data-tile="pay"] { grid-area: pay; }
-.studio-grid > [data-tile="chart"] { grid-area: chart; }
-.studio-grid > [data-tile="goal"] { grid-area: goal; }
-.studio-grid > [data-tile="days"] { grid-area: days; }
-/* A tile's components take the whole tile: the column fills it and its spacers share what's left. */
-.studio-fill .spb-screen-host > .spb-vflow { flex: 1 1 auto; }
+.bento-grid > [data-card] { display: none; }
+.bento-grid > :is([data-card="chart"], [data-card="rings"], [data-card="toggle"], [data-card="react"], [data-card="timer"], [data-card="seg"], [data-card="pay"]) { display: block; }
+@media (min-width: 768px) {
+  .bento-grid {
+    --k: min(calc(100cqh / 780), calc(100cqw / 1000)); --bento-r: 22px; gap: 10px;
+    grid-template-columns: 1.25fr 1fr 1.5fr 1fr 1.25fr; grid-template-rows: repeat(8, minmax(0, 1fr));
+    grid-template-areas:
+      "player type chart rings swatch" "player type chart rings swatch" "player heat chart sliders swatch" "seg heat chat sliders status"
+      "code toggle chat timer status" "code toggle tasks timer pricing" "week react tasks units pricing" "week react tasks units pay";
+  }
+  .bento-grid > [data-card] { display: block; }
+}
+.bento-grid > [data-card="player"] { grid-area: player; }
+.bento-grid > [data-card="seg"] { grid-area: seg; }
+.bento-grid > [data-card="code"] { grid-area: code; }
+.bento-grid > [data-card="week"] { grid-area: week; }
+.bento-grid > [data-card="type"] { grid-area: type; }
+.bento-grid > [data-card="heat"] { grid-area: heat; }
+.bento-grid > [data-card="toggle"] { grid-area: toggle; }
+.bento-grid > [data-card="react"] { grid-area: react; }
+.bento-grid > [data-card="chart"] { grid-area: chart; }
+.bento-grid > [data-card="chat"] { grid-area: chat; }
+.bento-grid > [data-card="tasks"] { grid-area: tasks; }
+.bento-grid > [data-card="rings"] { grid-area: rings; }
+.bento-grid > [data-card="sliders"] { grid-area: sliders; }
+.bento-grid > [data-card="timer"] { grid-area: timer; }
+.bento-grid > [data-card="units"] { grid-area: units; }
+.bento-grid > [data-card="swatch"] { grid-area: swatch; }
+.bento-grid > [data-card="status"] { grid-area: status; }
+.bento-grid > [data-card="pricing"] { grid-area: pricing; }
+.bento-grid > [data-card="pay"] { grid-area: pay; }
 
 /* The Pro offer's "Included" grid (ProCTA), the same as pro.swiftpieces.com's offer card: open cells
    divided by hairline seams (Graphite), never boxed. ::before draws a cell's right seam, ::after its
