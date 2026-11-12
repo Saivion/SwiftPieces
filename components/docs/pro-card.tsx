@@ -1,7 +1,6 @@
 import { Button, Arrow } from "@/components/ui/button";
 import { ProBadge } from "@/components/ui/pro-badge";
 import { EmberStage } from "@/components/visual/ember-stage";
-import { proCatalog } from "@/lib/pro-catalog";
 import { pro } from "@/lib/site";
 
 /**
@@ -12,10 +11,9 @@ import { pro } from "@/lib/site";
 export function ProCard({
   title = "Build the whole app with one library.",
   body = "Production-ready screens, whole flows, complete app templates, a Build Kit your agent follows and Pro remixing.",
-  meta = `${proCatalog.screens} screens · ${proCatalog.blocks} patterns · ${proCatalog.flows.total} flows · ${proCatalog.templates} templates · ${proCatalog.buildKit.total} Build Kit skills`,
   cta = { label: "Explore Pro", href: pro.home },
   seed = "docs",
-}: { title?: string; body?: string; meta?: string; cta?: { label: string; href: string }; seed?: string }) {
+}: { title?: string; body?: string; cta?: { label: string; href: string }; seed?: string }) {
   return (
     <div className="docs-glass overflow-hidden rounded-[22px] p-2">
       {/* SwiftPieces Pro's own lockup, as pro.swiftpieces.com's navbar draws it (Pro
@@ -37,8 +35,7 @@ export function ProCard({
       <div className="px-2 pt-3.5 pb-1.5">
         <p className="text-[14px] leading-snug font-medium tracking-[-0.01em] text-foreground">{title}</p>
         <p className="mt-1.5 text-[12.5px] leading-relaxed text-muted">{body}</p>
-        {meta ? <p className="mt-3 text-[11.5px] text-subtle">{meta}</p> : null}
-        <Button href={cta.href} size="sm" className="mt-3.5 w-full">{cta.label} <Arrow className="size-3.5" /></Button>
+        <Button href={cta.href} size="sm" className="mt-4 w-full">{cta.label} <Arrow className="size-3.5" /></Button>
       </div>
     </div>
   );
