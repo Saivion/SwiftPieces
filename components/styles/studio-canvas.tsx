@@ -213,12 +213,12 @@ function Screen({ screen: s, index, wave, leaving, theme, ground, ink, scheme }:
   );
 }
 
-/** Components or Screens, and light or dark: a raised bar (the site's menu surface) above the canvas. */
+/** Components or Screens, and light or dark: a raised bar (the site's menu surface) floating over the canvas's foot. */
 function FloatingBar({ view, onView, scheme, onScheme, pinned }: { view: CanvasView; onView: (v: CanvasView) => void; scheme: Scheme; onScheme: (s: Scheme) => void; pinned: boolean }) {
   const next: Scheme = scheme === "dark" ? "light" : "dark";
   return (
-    // In the room the frame leaves above the canvas (studio-frame.tsx), centred on it, covering nothing.
-    <div className="absolute -top-[50px] left-1/2 z-20 flex -translate-x-1/2 items-center gap-1.5 lg:-top-[46px]">
+    // Over the bento's bottom edge, centred on the canvas.
+    <div className="absolute bottom-3 left-1/2 z-20 flex -translate-x-1/2 items-center gap-1.5 lg:bottom-4">
       <div role="tablist" aria-label="Canvas" className={`flex rounded-[17px] p-1 ${floating}`}>
         {(
           [
