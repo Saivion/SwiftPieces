@@ -792,7 +792,7 @@ html.light .spl-phone { box-shadow: 0 0 0 1px rgb(0 0 0 / .1); }
 /* ---------- Styles studio (/styles) ----------
    The settings panel, the canvas's floating bar and the tray the tiles sit in follow the site's theme
    (Graphite surfaces); only the tiles themselves take the style being made. */
-.studio-tray { --studio-tray: var(--surface); --studio-tray-solid: var(--surface); }
+.studio-tray { --studio-tray: var(--surface); }
 /* The Styles studio's bento canvas (components/styles/bento): nineteen live cards. --k scales the
    cards' design pixels (a 1000 x 780 canvas) to the canvas. A phone shows seven of them in two
    columns (a 400 x 640 canvas); from 768px all nineteen, in five columns of eight rows whose seams

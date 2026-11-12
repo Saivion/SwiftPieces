@@ -213,14 +213,12 @@ function Screen({ screen: s, index, wave, leaving, theme, ground, ink, scheme }:
   );
 }
 
-/** Components or Screens, and light or dark: a raised bar (the site's menu surface) floating over the canvas's bottom edge. */
+/** Components or Screens, and light or dark: a raised bar (the site's menu surface) under the canvas. */
 function FloatingBar({ view, onView, scheme, onScheme, pinned }: { view: CanvasView; onView: (v: CanvasView) => void; scheme: Scheme; onScheme: (s: Scheme) => void; pinned: boolean }) {
   const next: Scheme = scheme === "dark" ? "light" : "dark";
   return (
-    // Docked on the frame's bottom edge, half over the tray's padding, so it covers almost nothing.
-    // Centred on the whole studio, not just the canvas: on wide screens it moves right by half the
-    // settings panel plus the gap (studio-frame.tsx: 300px, 340px at xl, gap-3).
-    <div className="absolute -bottom-[29px] left-1/2 z-20 flex -translate-x-1/2 items-center gap-1.5 lg:left-[calc(50%+156px)] xl:left-[calc(50%+176px)]">
+    // In the room the frame leaves under the canvas (studio-frame.tsx), centred on it, covering nothing.
+    <div className="absolute -bottom-[50px] left-1/2 z-20 flex -translate-x-1/2 items-center gap-1.5 lg:-bottom-[52px]">
       <div role="tablist" aria-label="Canvas" className={`flex rounded-[17px] p-1 ${floating}`}>
         {(
           [

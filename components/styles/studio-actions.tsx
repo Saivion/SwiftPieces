@@ -30,7 +30,7 @@ export function StudioActions({ studio, apps, preferred, onNotice }: { studio: S
   const ordered = useMemo(() => [...apps].sort((a, b) => Number(b.slug === preferred) - Number(a.slug === preferred)), [apps, preferred]);
   const { code } = studio;
   return (
-    <div className="flex-none border-t border-[var(--line)] p-3">
+    <div className="z-10 flex-none border-t border-[var(--line)] bg-surface-2 p-3 max-lg:sticky max-lg:bottom-0">
       {pasting ? (
         <form
           className="flex h-9 items-center gap-1 rounded-full bg-surface pr-1 pl-3.5"

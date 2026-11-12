@@ -18,7 +18,7 @@ export function StyleStudioLoader({ children, ...props }: Omit<StyleStudioProps,
   return (
     <>
       {ready ? null : children}
-      <div hidden={!ready}>
+      <div hidden={!ready} className="h-full">
         <StyleStudio {...props} onReady={onReady} />
       </div>
     </>
