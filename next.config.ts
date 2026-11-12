@@ -88,8 +88,8 @@ const config: NextConfig = {
       // The changelog moved inside the docs. The Sep 26 and Sep 29 updates became one entry.
       { source: "/changelog", destination: "/docs/changelog", permanent: true },
       { source: "/changelog/:slug(light-mode|everyday-utilities)", destination: "/docs/changelog/apps-and-playground", permanent: true },
-      // The three Nov 8 updates became one entry.
-      { source: "/docs/changelog/:slug(pro-riso-phosphor-templates|five-new-games|eleven-everyday-pieces)", destination: "/docs/changelog/games-pieces-and-styles", permanent: true },
+      // The three Nov 8 updates and the Nov 12 text pieces became one entry.
+      { source: "/docs/changelog/:slug(pro-riso-phosphor-templates|five-new-games|eleven-everyday-pieces|smart-text-match-highlight-text-diff)", destination: "/docs/changelog/games-pieces-and-styles", permanent: true },
       { source: "/changelog/:slug", destination: "/docs/changelog/:slug", permanent: true },
       // The free screens gallery became the app library.
       { source: "/screens", destination: "/apps", permanent: false },
