@@ -14,8 +14,6 @@ import { CharacterPad, Chip, ColorStrip, FontRow, GroupLabel, SelectRow, type Sw
 import { StudioActions, type StyleApp } from "./studio-actions";
 import { spotOf, type Spot } from "./follows";
 import type { Studio } from "./studio-state";
-import { panelSurface } from "./studio-frame";
-import { cn } from "@/lib/cn";
 
 /** A choice's word, as its menu shows it. */
 const optionLabel = (key: StyleOptionKey, value: string) => STYLE_OPTIONS[key].find((o) => o[0] === value)?.[1] ?? value;
@@ -45,7 +43,7 @@ export function StudioPanel({ studio, apps, preferred, onNotice, onSpot }: { stu
     keys.map((key) => <SelectRow key={key} setting={key} label={labelOf(key)} value={styleValue(t, key)} options={STYLE_OPTIONS[key]} onChange={(v) => edit(stylePatch(key, v))} />);
 
   return (
-    <div className={cn("flex min-h-0 flex-col lg:h-full lg:overflow-hidden", panelSurface)}>
+    <div className="flex min-h-0 flex-col lg:h-full lg:overflow-hidden">
       <Head studio={studio} />
       <div
         className="min-h-0 flex-1 px-4 pb-4 lg:overflow-y-auto lg:overscroll-contain lg:[scrollbar-width:thin]"
@@ -91,7 +89,7 @@ export function StudioPanel({ studio, apps, preferred, onNotice, onSpot }: { stu
 function Head({ studio }: { studio: Studio }) {
   const t = studio.theme;
   return (
-    <div className="flex-none px-4 pt-[18px] pb-4">
+    <div className="flex-none px-4 pt-2.5 pb-4">
       <div className="flex items-center gap-1">
         <h1 className="flex-1 pl-1 text-[24px] leading-none font-normal tracking-[-0.03em]">Styles</h1>
         <IconButton label="Previous style" onClick={studio.back} disabled={!studio.canBack}>

@@ -7,6 +7,8 @@ import { preload } from "react-dom";
 import { RootProvider } from "fumadocs-ui/provider/next";
 import { site } from "@/lib/site";
 import { fontPreloads } from "@/lib/fonts.generated";
+import { PromoBoot } from "@/components/announce/promo-boot";
+import { promo } from "@/lib/promo";
 
 // Figtree is self-hosted from public/fonts, cut down by scripts/fonts/subset_fonts.py (rerun it when content
 // needs a new character, weight or OpenType feature). app/fonts.css holds the @font-face rules, the same
@@ -46,6 +48,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <body className="flex min-h-screen flex-col antialiased">
+        {/* Here, not in the site's layout: the root layout is only ever drawn by the server, so this
+            blocking script never gets created on the client (where React warns and it wouldn't run),
+            as it did when a visitor came to the site's pages from the docs. */}
+        {promo && <PromoBoot id={promo.id} endsAt={promo.endsAt} />}
         {/* The first screen's endless loops hold still until the visitor first interacts (components/motion-gate.tsx). */}
         <MotionGate />
         <RootProvider

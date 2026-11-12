@@ -1,6 +1,5 @@
 import { STYLE_FIELDS, STYLE_OPTIONS, encodeStyle, looks, moods, themeFromLook, type StyleOptionKey } from "@swiftpieces/builder";
-import { StudioFrame, panelSurface } from "./studio-frame";
-import { cn } from "@/lib/cn";
+import { StudioFrame } from "./studio-frame";
 
 /** The bento canvas's cards (components/styles/bento), as quiet placeholders in the same grid. */
 const CARDS = ["player", "seg", "code", "week", "type", "heat", "toggle", "react", "chart", "chat", "tasks", "rings", "sliders", "timer", "units", "swatch", "status", "pricing", "pay"];
@@ -34,8 +33,8 @@ export function StudioShell() {
         </div>
       }
       panel={
-        <div className={cn("flex min-h-0 flex-col overflow-hidden max-lg:h-[640px] lg:h-full", panelSurface)}>
-          <div className="flex-none px-4 pt-[18px] pb-4">
+        <div className="flex min-h-0 flex-col overflow-hidden lg:h-full">
+          <div className="flex-none px-4 pt-2.5 pb-4">
             <h1 className="pl-1 text-[24px] leading-none font-normal tracking-[-0.03em]">Styles</h1>
             <p className="mt-1.5 pl-1 text-[13px] text-muted">One style for every screen: color, type, shape and motion.</p>
             <div className="btn-solid mt-3 flex h-9 items-center justify-center rounded-full text-[13.5px] font-semibold">Shuffle</div>
