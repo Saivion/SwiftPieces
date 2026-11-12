@@ -77,7 +77,7 @@ public struct HoldToConfirm: View {
         /// Shows three dots at 25, 50 and 75% that swell as the fill passes them.
         public var milestones: Bool
 
-        public init(track: Color = House.adaptive(light: 0xEAE8E2, dark: 0x262626), label: Color = House.adaptive(light: 0x141414, dark: 0xF4F3EF), fill: Color = House.hex(0xFF0000), ink: Color = House.hex(0x141414), committedFill: Color = House.hex(0xA9DCB7), height: CGFloat = 60, milestones: Bool = true) {
+        public init(track: Color = House.adaptive(light: 0xEAE8E2, dark: 0x262626), label: Color = House.adaptive(light: 0x141414, dark: 0xF4F3EF), fill: Color = House.hex(0xFF0000), ink: Color = House.hex(0x141414), committedFill: Color = House.hex(0x00C4A7), height: CGFloat = 60, milestones: Bool = true) {
             self.track = track
             self.label = label
             self.fill = fill
@@ -90,7 +90,7 @@ public struct HoldToConfirm: View {
         /// The Free house palette: clear glass, a signal fill, sage when confirmed.
         public static let standard = Style()
         /// A calmer confirm for non-destructive actions: the butter block sweeps instead of signal.
-        public static let butter = Style(fill: House.hex(0xFFD976))
+        public static let butter = Style(fill: House.hex(0xFFC21A))
 
         /// Builds house colors. Public so `Style` defaults can use it.
         public enum House {

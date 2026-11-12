@@ -41,7 +41,7 @@ public struct SwipeActionRow<Content: View>: View {
         ///   - tint: The bubble's glass tint. Light tints read best with the default dark ink.
         ///   - role: Pass `.destructive` for delete-style actions.
         ///   - handler: Runs when the bubble is tapped, the full swipe fires, or VoiceOver performs the action.
-        public init(_ title: String, systemImage: String, tint: Color = Color(red: 0.612, green: 0.761, blue: 1), role: ButtonRole? = nil, handler: @escaping () -> Void) {
+        public init(_ title: String, systemImage: String, tint: Color = Color(red: 0.18, green: 0.545, blue: 1), role: ButtonRole? = nil, handler: @escaping () -> Void) {
             self.title = title
             self.systemImage = systemImage
             self.tint = tint
@@ -532,9 +532,9 @@ public struct SwipeActionRowStyle: Sendable {
 private struct SwipeActionRowExample: View {
     @State private var open: AnyHashable? = nil
     @State private var messages: [(String, String, String, String, Color)] = [
-        ("MA", "Mara Lindqvist", "Final cut of the launch film", "9:41", Color(red: 0.914, green: 0.835, blue: 0.702)),
-        ("JO", "Jonas Okafor", "Studio booking for Thursday", "8:12", Color(red: 0.663, green: 0.863, blue: 0.718)),
-        ("PR", "Priya Raman", "Notes from the pricing review", "Mon", Color(red: 0.804, green: 0.722, blue: 1)),
+        ("MA", "Mara Lindqvist", "Final cut of the launch film", "9:41", Color(red: 1, green: 0.541, blue: 0.122)),
+        ("JO", "Jonas Okafor", "Studio booking for Thursday", "8:12", Color(red: 0, green: 0.769, blue: 0.655)),
+        ("PR", "Priya Raman", "Notes from the pricing review", "Mon", Color(red: 1, green: 0, blue: 0.361)),
     ]
 
     var body: some View {
@@ -542,12 +542,12 @@ private struct SwipeActionRowExample: View {
             ForEach(messages, id: \.1) { initials, name, subject, time, color in
                 SwipeActionRow(
                     id: name,
-                    leading: [.init("Read", systemImage: "envelope.open", tint: Color(red: 0.612, green: 0.761, blue: 1)) {}],
+                    leading: [.init("Read", systemImage: "envelope.open", tint: Color(red: 0.18, green: 0.545, blue: 1)) {}],
                     trailing: [
                         .init("Delete", systemImage: "trash", tint: Color(red: 1, green: 0, blue: 0), role: .destructive) {
                             withAnimation { messages.removeAll { $0.1 == name } }
                         },
-                        .init("Snooze", systemImage: "moon.zzz", tint: Color(red: 1, green: 0.851, blue: 0.463)) {},
+                        .init("Snooze", systemImage: "moon.zzz", tint: Color(red: 1, green: 0.761, blue: 0.102)) {},
                     ],
                     open: $open
                 ) {

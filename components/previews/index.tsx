@@ -89,6 +89,19 @@ const map: Record<string, ComponentType> = {
   LevelPicker: dynamic(() => import("./pickers").then((m) => m.LevelPickerPreview)),
   DateStrip: dynamic(() => import("./pickers").then((m) => m.DateStripPreview)),
   InterestChips: dynamic(() => import("./pickers").then((m) => m.InterestChipsPreview)),
+  SelectMenu: dynamic(() => import("./everyday").then((m) => m.SelectMenuPreview)),
+  ZoomDial: dynamic(() => import("./everyday").then((m) => m.ZoomDialPreview)),
+  ReorderList: dynamic(() => import("./everyday").then((m) => m.ReorderListPreview)),
+  SizePicker: dynamic(() => import("./everyday").then((m) => m.SizePickerPreview)),
+  UnitToggle: dynamic(() => import("./everyday").then((m) => m.UnitTogglePreview)),
+  ViewToggle: dynamic(() => import("./everyday").then((m) => m.ViewTogglePreview)),
+  QRCode: dynamic(() => import("./everyday").then((m) => m.QRCodePreview)),
+  ReadAlongText: dynamic(() => import("./everyday").then((m) => m.ReadAlongTextPreview)),
+  RelativeTime: dynamic(() => import("./everyday").then((m) => m.RelativeTimePreview)),
+  SmartText: dynamic(() => import("./everyday").then((m) => m.SmartTextPreview)),
+  MatchHighlight: dynamic(() => import("./everyday").then((m) => m.MatchHighlightPreview)),
+  TextDiff: dynamic(() => import("./everyday").then((m) => m.TextDiffPreview)),
+  TranslateToggle: dynamic(() => import("./everyday").then((m) => m.TranslateTogglePreview)),
 };
 
 /** One Picture Headline sticker on its own (the landing's floating mascot), from the preview's own chunk. */

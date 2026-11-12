@@ -5,7 +5,13 @@
   "pages": [
     "expandable-text",
     "glass-text",
+    "match-highlight",
     "picture-headline",
-    "text-reveal"
+    "read-along-text",
+    "relative-time",
+    "smart-text",
+    "text-diff",
+    "text-reveal",
+    "translate-toggle"
   ]
 }

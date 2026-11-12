@@ -1,0 +1,402 @@
+---
+title: "Read-Along Text"
+description: "Text that follows a recording word by word on an even red pill that glides along, read words turning solid; tap to seek."
+piece: "ReadAlongText"
+category: "text"
+minIOSVersion: "17.0"
+version: "1.0.0"
+tags: ["karaoke","transcript","audio","podcast","highlight","reading","accessibility"]
+registryDependencies: []
+---
+
+{/* GENERATED FILE. Edit registry/swift/text/ReadAlongText.swift or ReadAlongText.mdx instead. */}
+
+<Showcase name="ReadAlongText">
+
+<Tabs items={["ReadAlongText.swift"]}>
+<Tab value="ReadAlongText.swift">
+
+```swift title="ReadAlongText.swift"
+// Copyright (c) 2026 Saivion Hayes
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, and distribute the Software as part of
+// an application, website, or product, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// Commons Clause Restriction
+//
+// You may use this Software, including for any commercial purpose, so long as
+// you do not sell, sublicense, or redistribute the components themselves, whether
+// alone, in a bundle, or as a ported version.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
+import SwiftUI
+
+/// Colors and type for `ReadAlongText`. `.standard` is the house palette.
+public struct ReadAlongTextStyle: Sendable {
+    /// The pill under the spoken word.
+    public var accent: Color
+    /// The spoken word.
+    public var onAccent: Color
+    /// Words already read.
+    public var read: Color
+    /// Words still to come.
+    public var unread: Color
+    /// The words' font.
+    public var font: Font
+    /// The size the pill, word spacing and line gap are measured from, at the default Dynamic Type size. They
+    /// scale with Dynamic Type from here, so match it to `font`.
+    public var size: CGFloat
+
+    public init(
+        accent: Color = Color(red: 1, green: 0, blue: 0),
+        onAccent: Color = ReadAlongTextStyle.adaptive(light: 0x141414, dark: 0x141414),
+        read: Color = ReadAlongTextStyle.adaptive(light: 0x141414, dark: 0xF4F3EF),
+        unread: Color = ReadAlongTextStyle.adaptive(light: 0xA19E98, dark: 0x6F6D69),
+        font: Font = .title3,
+        size: CGFloat = 20
+    ) {
+        self.accent = accent
+        self.onAccent = onAccent
+        self.read = read
+        self.unread = unread
+        self.font = font
+        self.size = size
+    }
+
+    public static let standard = ReadAlongTextStyle()
+
+    /// A color that follows the appearance, from two 0xRRGGBB values.
+    public static func adaptive(light: UInt32, dark: UInt32) -> Color {
+        Color(UIColor { @Sendable traits in
+            let hex = traits.userInterfaceStyle == .dark ? dark : light
+            return UIColor(red: CGFloat(hex >> 16 & 0xFF) / 255, green: CGFloat(hex >> 8 & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
+        })
+    }
+}
+
+/// A transcript that highlights the word being spoken at `time`.
+///
+/// - Parameters:
+///   - words: The transcript, each word with when it is spoken. `ReadAlongText.Word.spread(_:over:)` times plain text
+///     evenly when you don't have word timings.
+///   - time: The player's current time, in seconds.
+///   - style: Colors and type. Defaults to the house palette, adapting to light and dark.
+///   - onSeek: Called with a word's start time when it is tapped. Leave it out and words aren't tappable.
+public struct ReadAlongText: View {
+    public typealias Style = ReadAlongTextStyle
+
+    /// One spoken word and when it is said.
+    public struct Word: Hashable, Sendable {
+        public var text: String
+        /// When the word starts, in seconds.
+        public var start: TimeInterval
+        /// How long it lasts, in seconds.
+        public var duration: TimeInterval
+
+        public init(_ text: String, at start: TimeInterval, duration: TimeInterval) {
+            self.text = text
+            self.start = start
+            self.duration = duration
+        }
+
+        /// Times `text` word by word across `duration` seconds from `start`, longer words taking a little longer.
+        public static func spread(_ text: String, over duration: TimeInterval, from start: TimeInterval = 0) -> [Word] {
+            let tokens = text.split(whereSeparator: \.isWhitespace).map(String.init)
+            let weights = tokens.map { 4 + Double($0.count) }
+            let total = max(weights.reduce(0, +), 1)
+            var at = start
+            return zip(tokens, weights).map { token, weight in
+                let length = duration * weight / total
+                defer { at += length }
+                return Word(token, at: at, duration: length)
+            }
+        }
+    }
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @ScaledMetric(relativeTo: .title3) private var scale: CGFloat = 1
+    @State private var frames: [Int: CGRect] = [:]
+
+    private let words: [Word]
+    private let time: TimeInterval
+    private let style: Style
+    private let onSeek: ((TimeInterval) -> Void)?
+    private let space = "ReadAlongText"
+
+    public init(_ words: [Word], time: TimeInterval, style: Style = .standard, onSeek: ((TimeInterval) -> Void)? = nil) {
+        self.words = words
+        self.time = time
+        self.style = style
+        self.onSeek = onSeek
+    }
+
+    private var em: CGFloat { style.size * scale }
+
+    /// The word being spoken, or `nil` before the first and after the last.
+    private var current: Int? {
+        guard let index = words.lastIndex(where: { $0.start <= time }) else { return nil }
+        return time < words[index].start + words[index].duration ? index : nil
+    }
+
+    /// Words before this one are read.
+    private var readUpTo: Int {
+        if let current { return current }
+        return words.lastIndex(where: { $0.start + $0.duration <= time }).map { $0 + 1 } ?? 0
+    }
+
+    public var body: some View {
+        let current = current, readUpTo = readUpTo
+        let pad = (em * 0.16).rounded()
+        ReadAlongFlow(gap: (em * 0.42).rounded(), lineGap: (em * 0.32).rounded()) {
+            ForEach(words.indices, id: \.self) { index in
+                Text(words[index].text)
+                    .font(style.font)
+                    .foregroundStyle(index == current ? style.onAccent : index < readUpTo ? style.read : style.unread)
+                    .animation(.easeOut(duration: 0.2), value: index == current)
+                    .animation(.easeOut(duration: 0.2), value: index < readUpTo)
+                    .onGeometryChange(for: CGRect.self) { $0.frame(in: .named(space)) } action: { frames[index] = $0 }
+                    .contentShape(Rectangle().inset(by: -pad))
+                    .onTapGesture { onSeek?(words[index].start) }
+                    .allowsHitTesting(onSeek != nil)
+            }
+        }
+        .background(alignment: .topLeading) { pill(current, pad: pad) }
+        .coordinateSpace(name: space)
+        .fontWeight(.semibold)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(words.map(\.text).joined(separator: " "))
+        .accessibilityAddTraits(.updatesFrequently)
+    }
+
+    /// An even pill: the word's own box with `pad` added on both sides, a little taller than its letters, so the
+    /// room around the word is the same everywhere and it never meets the next one.
+    private func pill(_ current: Int?, pad: CGFloat) -> some View {
+        let word = current.flatMap { frames[$0] } ?? .zero
+        let rect = word.insetBy(dx: -pad, dy: -em * 0.06)
+        return RoundedRectangle(cornerRadius: em * 0.32, style: .continuous)
+            .fill(style.accent)
+            .frame(width: max(rect.width, 0), height: max(rect.height, 0))
+            .offset(x: rect.minX, y: rect.minY)
+            .opacity(current == nil || word == .zero ? 0 : 1)
+            .animation(PieceMotion(reduceMotion: reduceMotion).snap, value: rect)
+            .animation(.easeOut(duration: 0.2), value: current == nil)
+            .allowsHitTesting(false)
+            .accessibilityHidden(true)
+    }
+}
+
+/// Wraps words into lines the way text wraps, with a fixed gap between words and between lines.
+private struct ReadAlongFlow: Layout {
+    var gap: CGFloat
+    var lineGap: CGFloat
+
+    private func lines(_ sizes: [CGSize], width: CGFloat) -> [[Int]] {
+        var lines: [[Int]] = [[]]
+        var x: CGFloat = 0
+        for (index, size) in sizes.enumerated() {
+            let needed = lines[lines.count - 1].isEmpty ? size.width : x + gap + size.width
+            if needed > width, !lines[lines.count - 1].isEmpty {
+                lines.append([index])
+                x = size.width
+            } else {
+                lines[lines.count - 1].append(index)
+                x = needed
+            }
+        }
+        return lines
+    }
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let sizes = subviews.map { $0.sizeThatFits(.unspecified) }
+        let width = proposal.width ?? .infinity
+        let lines = lines(sizes, width: width)
+        var height: CGFloat = 0, widest: CGFloat = 0
+        for line in lines where !line.isEmpty {
+            let lineWidth = line.map { sizes[$0].width }.reduce(0, +) + gap * CGFloat(line.count - 1)
+            widest = max(widest, lineWidth)
+            height += (line.map { sizes[$0].height }.max() ?? 0) + lineGap
+        }
+        return CGSize(width: proposal.width ?? widest, height: max(height - lineGap, 0))
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        let sizes = subviews.map { $0.sizeThatFits(.unspecified) }
+        var y = bounds.minY
+        for line in lines(sizes, width: bounds.width) where !line.isEmpty {
+            let height = line.map { sizes[$0].height }.max() ?? 0
+            var x = bounds.minX
+            for index in line {
+                subviews[index].place(at: CGPoint(x: x, y: y + height - sizes[index].height), proposal: .unspecified)
+                x += sizes[index].width + gap
+            }
+            y += height + lineGap
+        }
+    }
+}
+
+// MARK: - Example
+
+/// A short recording with a small player bar: play, the track and the time.
+private struct ReadAlongTextExample: View {
+    private let words = ReadAlongText.Word.spread("The tide came in slowly, and the lights along the harbour came on one by one.", over: 9)
+    @State private var time: TimeInterval = 0
+    @State private var playing = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 22) {
+            ReadAlongText(words, time: time) { time = $0 }
+            HStack(spacing: 12) {
+                Button {
+                    if time >= 9 { time = 0 }
+                    playing.toggle()
+                } label: {
+                    Image(systemName: playing ? "pause.fill" : "play.fill")
+                        .font(.title3)
+                        .frame(width: 46, height: 46)
+                        .background(.background, in: .circle)
+                }
+                .buttonStyle(.plain)
+                ProgressView(value: min(time / 9, 1))
+                    .tint(.primary)
+                Text(Duration.seconds(time).formatted(.time(pattern: .minuteSecond)))
+                    .font(.footnote)
+                    .monospacedDigit()
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .frame(width: 280)
+        .task(id: playing) {
+            while playing, !Task.isCancelled {
+                try? await Task.sleep(for: .milliseconds(50))
+                time += 0.05
+                if time >= 9.2 { playing = false }
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(ReadAlongTextStyle.adaptive(light: 0xF3F2EE, dark: 0x121212))
+    }
+}
+
+#Preview("Light") {
+    ReadAlongTextExample()
+}
+
+#Preview("Dark") {
+    ReadAlongTextExample()
+        .preferredColorScheme(.dark)
+}
+
+// MARK: - Piece motion
+//
+// The SwiftPieces motion language: shared spring tokens and gesture physics, with the same values in every
+// piece. Each piece carries a copy of only the parts it uses, so this file stands alone. Generated from
+// registry/foundation/PieceMotion.swift in the SwiftPieces repo; edit it there, not here.
+// swiftpieces-motion: 1.1.0 (core)
+
+/// The SwiftPieces motion language: five spring tiers, and a named role for every moment a piece moves,
+/// each with its Reduce Motion substitute.
+///
+/// Build one from the environment, `PieceMotion(reduceMotion: reduceMotion)`, and pick the role that names
+/// what just happened. Never animate the tracking of a finger: set gesture state directly in `onChanged`, so the
+/// surface stays under the finger, and spring only the release.
+private struct PieceMotion {
+    var reduceMotion = false
+
+    // Tiers. Overshoot and settle times are measured from rest with SwiftUI's Spring.
+    /// No overshoot, 90% in about 90ms. A press arriving under the finger.
+    static var tight: Spring { Spring(duration: 0.14, bounce: 0) }
+    /// About 2.8% overshoot, 90% in about 140ms. Snapping to a detent, page or segment.
+    static var responsive: Spring { Spring(duration: 0.32, bounce: 0.25) }
+    /// About 8.4% overshoot. Visible give: a release, a return from past an edge, a drag settling home.
+    static var elastic: Spring { Spring(duration: 0.42, bounce: 0.38) }
+    /// About 15% overshoot. A resolved action landing. At most once per interaction.
+    static var expressive: Spring { Spring(duration: 0.48, bounce: 0.48) }
+    /// About 1.5% overshoot, unhurried. Opening large surfaces and ambient change.
+    static var calm: Spring { Spring(duration: 0.5, bounce: 0.2) }
+
+    /// Reduce Motion: settles become this short spring with no overshoot.
+    private static var still: Animation { .spring(duration: 0.25, bounce: 0) }
+
+    // Roles.
+    /// Touch-down. Starts on the same frame and never bounces under the finger.
+    var press: Animation { .spring(Self.tight) }
+    /// The finger lifts off a pressed surface, which springs back through rest.
+    var release: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A dragged thing comes to rest. With a gesture's velocity, use `settle(velocity:from:to:)` instead.
+    var settle: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// Lands on a detent, page or segment.
+    var snap: Animation { reduceMotion ? Self.still : .spring(Self.responsive) }
+    /// A number, a chart value or anything else people read moves to its new value. Never overshoots, so it
+    /// never shows a value that isn't true.
+    var value: Animation { reduceMotion ? Self.still : .spring(duration: 0.35, bounce: 0) }
+    /// Comes back from past a limit: a pull beyond the edge, a value pushed against its bound.
+    var rebound: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A shape or container changes size, corner radius or form, with a little give at the end.
+    var morph: Animation { reduceMotion ? Self.still : .spring(duration: 0.4, bounce: 0.2) }
+    /// Something appears, opens or expands. Opening is a little slower than closing.
+    var reveal: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.calm) }
+    /// Something leaves, closes or collapses. Quick and firm, out of the way.
+    var dismiss: Animation { reduceMotion ? .easeIn(duration: 0.18) : .spring(duration: 0.3, bounce: 0.08) }
+    /// A resolved action lands: a check, a sent state, a reaction.
+    var success: Animation { reduceMotion ? .easeOut(duration: 0.24) : .spring(Self.expressive) }
+    /// A refused action. Firm, no wobble; `pieceShake` adds the movement.
+    var error: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.responsive) }
+    /// Slow ambient change. Loops themselves stop under Reduce Motion: check `allowsAmbient`.
+    var ambient: Animation { reduceMotion ? .easeInOut(duration: 0.3) : .spring(Self.calm) }
+
+    /// Loops, drifts, idle breathing and parallax run only when this is true.
+    var allowsAmbient: Bool { !reduceMotion }
+
+    /// A moving transition, or a plain fade under Reduce Motion.
+    func transition(_ transition: AnyTransition) -> AnyTransition {
+        reduceMotion ? .opacity : transition
+    }
+
+    /// For content replaced inside a container that stays put (a label, a glyph, a count): the old content
+    /// blurs out as the new one sharpens in. A fade under Reduce Motion.
+    @MainActor var swap: AnyTransition {
+        reduceMotion ? .opacity : AnyTransition(.blurReplace)
+    }
+}
+
+// swiftpieces-motion: end
+```
+
+</Tab>
+</Tabs>
+
+</Showcase>
+
+<PieceFacts name="ReadAlongText" />
+
+Colors and type for `ReadAlongText`. `.standard` is the house palette.
+
+## Notes
+
+- Give it the transcript as words with their start times and durations, from your speech or captions data, and your player's current time. `ReadAlongText.Word.spread(_:over:)` times plain text across a duration when you have no word timings.
+- The spoken word sits on an even red pill: the word's own box with the same padding on both sides, a little taller than its letters, so it never clips a letter or meets the next word. The pill glides from word to word and from line to line.
+- Words already read turn solid and words to come stay quiet, so the place in the text reads at a glance.
+- Pass `onSeek` and a tap on any word calls it with that word's start time; leave it out and the text is not tappable.
+- Words wrap like text and the pill, spacing and line gap scale with Dynamic Type.
+- VoiceOver reads the whole passage as one element.
+- Under Reduce Motion the pill moves without overshoot.
+
+## Usage
+
+```swift
+ReadAlongTextExample()
+```
+

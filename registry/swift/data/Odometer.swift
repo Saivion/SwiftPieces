@@ -440,7 +440,7 @@ public struct OdometerStyle: Sendable {
 
     /// Sage and red delta chips with ink, dimmed decimals, untinted digits. Copy it and change one property to customize.
     public static let standard = OdometerStyle(
-        up: adaptive(0xA9DCB7, 0xA9DCB7),
+        up: adaptive(0x00C4A7, 0x00C4A7),
         down: adaptive(0xFF0000, 0xFF0000),
         ink: adaptive(0x141414, 0x141414),
         muted: adaptive(0x8B8984, 0x6F6D69)

@@ -8,8 +8,10 @@
     "now-playing",
     "photo-cropper",
     "photo-viewer",
+    "qr-code",
     "story-strip",
     "voice-recorder",
-    "waveform-scrub"
+    "waveform-scrub",
+    "zoom-dial"
   ]
 }

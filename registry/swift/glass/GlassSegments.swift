@@ -469,11 +469,11 @@ private struct GlassSegmentsBackdrop: View {
         GeometryReader { proxy in
             let w = proxy.size.width, h = proxy.size.height
             ZStack {
-                Color(red: 0.804, green: 0.722, blue: 1)
-                Circle().fill(Color(red: 1, green: 0.851, blue: 0.463)).frame(width: w * 0.8).position(x: w * 0.82, y: h * 0.36)
-                RoundedRectangle(cornerRadius: 40, style: .continuous).fill(Color(red: 0.663, green: 0.863, blue: 0.718))
+                Color(red: 1, green: 0, blue: 0.361)
+                Circle().fill(Color(red: 1, green: 0.761, blue: 0.102)).frame(width: w * 0.8).position(x: w * 0.82, y: h * 0.36)
+                RoundedRectangle(cornerRadius: 40, style: .continuous).fill(Color(red: 0, green: 0.769, blue: 0.655))
                     .frame(width: w * 0.8, height: h * 0.34).rotationEffect(.degrees(-8)).position(x: w * 0.18, y: h * 0.66)
-                Capsule().fill(Color(red: 0.612, green: 0.761, blue: 1)).frame(width: w * 0.9, height: 64).position(x: w * 0.58, y: h * 0.56)
+                Capsule().fill(Color(red: 0.18, green: 0.545, blue: 1)).frame(width: w * 0.9, height: 64).position(x: w * 0.58, y: h * 0.56)
             }
         }
         .accessibilityHidden(true)

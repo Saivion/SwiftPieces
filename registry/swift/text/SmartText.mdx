@@ -1,0 +1,10 @@
+## Notes
+
+- Give it plain text and it finds links (including bare domains such as `lunchbox.co`), email addresses, @mentions, #tags, dates and times, phone numbers and postal addresses. Narrow it with `kinds`, such as `[.links, .mentions]`.
+- The text draws at once and the matches light up a moment later, once per string. Detection runs again only when the text changes, so it's cheap in a long list.
+- Links, dates, phone numbers and addresses are red with a red underline. Mentions and tags keep the text color with a red underline, so a busy comment doesn't turn red.
+- `onTap` gets every tap as a `SmartTextMatch` with its kind and the text as written. Return `true` when you handled it. Return `false` (or leave `onTap` out) and the piece does the default: links open, phone numbers call, dates open that day in Calendar and addresses open in Maps. Mentions and tags have no default, so route them yourself.
+- Dates are read relative to now in the reader's calendar and language, so "Friday at 7" gives next Friday at 7 PM.
+- An @ inside an email address or a # inside a link stays part of that link and isn't found again as a mention or a tag.
+- Each tap gives a selection tick. VoiceOver lists the matches as links in the rotor, and Dynamic Type scales the text.
+- Under Reduce Motion the matches appear without the fade.

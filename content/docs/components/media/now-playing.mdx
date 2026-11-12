@@ -198,7 +198,7 @@ public struct NowPlaying: View {
             self.track = track ?? nowPlayingAdaptive(light: 0x141414, dark: 0xF4F3EF, alpha: 0.14)
             self.thumb = thumb ?? nowPlayingAdaptive(light: 0xFFFFFF, dark: 0xF4F3EF)
             self.grabber = grabber ?? nowPlayingAdaptive(light: 0x8B8984, dark: 0x6F6D69)
-            self.placeholder = placeholder ?? nowPlayingAdaptive(light: 0xE9D5B3, dark: 0xE9D5B3)
+            self.placeholder = placeholder ?? nowPlayingAdaptive(light: 0xFF8A1F, dark: 0xFF8A1F)
         }
 
         public static let standard = Style()
@@ -1253,25 +1253,25 @@ private struct NowPlayingExampleArtwork: View {
                 Color(red: Double((hex >> 16) & 0xFF) / 255, green: Double((hex >> 8) & 0xFF) / 255, blue: Double(hex & 0xFF) / 255)
             }
             if track % 2 == 0 {
-                context.fill(Path(CGRect(origin: .zero, size: size)), with: .color(color(0x9CC2FF)))
-                context.fill(Path(ellipseIn: CGRect(x: w * 0.52, y: h * 0.16, width: w * 0.3, height: w * 0.3)), with: .color(color(0xFFD976)))
+                context.fill(Path(CGRect(origin: .zero, size: size)), with: .color(color(0x2E8BFF)))
+                context.fill(Path(ellipseIn: CGRect(x: w * 0.52, y: h * 0.16, width: w * 0.3, height: w * 0.3)), with: .color(color(0xFFC21A)))
                 var hill = Path()
                 hill.move(to: CGPoint(x: 0, y: h * 0.7))
                 hill.addCurve(to: CGPoint(x: w, y: h * 0.62), control1: CGPoint(x: w * 0.3, y: h * 0.48), control2: CGPoint(x: w * 0.62, y: h * 0.5))
                 hill.addLine(to: CGPoint(x: w, y: h))
                 hill.addLine(to: CGPoint(x: 0, y: h))
                 hill.closeSubpath()
-                context.fill(hill, with: .color(color(0xA9DCB7)))
+                context.fill(hill, with: .color(color(0x00C4A7)))
                 var near = Path()
                 near.move(to: CGPoint(x: 0, y: h * 0.86))
                 near.addCurve(to: CGPoint(x: w, y: h * 0.84), control1: CGPoint(x: w * 0.36, y: h * 0.74), control2: CGPoint(x: w * 0.7, y: h * 0.8))
                 near.addLine(to: CGPoint(x: w, y: h))
                 near.addLine(to: CGPoint(x: 0, y: h))
                 near.closeSubpath()
-                context.fill(near, with: .color(color(0xE9D5B3)))
+                context.fill(near, with: .color(color(0xFF8A1F)))
             } else {
-                context.fill(Path(CGRect(origin: .zero, size: size)), with: .color(color(0xCDB8FF)))
-                let lanterns: [(x: CGFloat, y: CGFloat, r: CGFloat, hex: UInt32)] = [(0.26, 0.5, 0.15, 0xFFD976), (0.56, 0.36, 0.12, 0xE9D5B3), (0.78, 0.6, 0.1, 0x9CC2FF)]
+                context.fill(Path(CGRect(origin: .zero, size: size)), with: .color(color(0xFF005C)))
+                let lanterns: [(x: CGFloat, y: CGFloat, r: CGFloat, hex: UInt32)] = [(0.26, 0.5, 0.15, 0xFFC21A), (0.56, 0.36, 0.12, 0xFF8A1F), (0.78, 0.6, 0.1, 0x2E8BFF)]
                 for lantern in lanterns {
                     var string = Path()
                     string.move(to: CGPoint(x: w * lantern.x, y: 0))

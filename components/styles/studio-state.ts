@@ -5,9 +5,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { decodeStyle, editTheme, encodeStyle, newSeed, shuffleTheme, themeFromLook, type Mood, type StyleSection, type Theme } from "@swiftpieces/builder";
 
-/** Dispatched on window with the style code whenever the studio's style changes. */
-export const STYLE_EVENT = "sp:style";
-
 /** This browser's last style, as its code. */
 const LAST_KEY = "sp:styles:last";
 
@@ -148,13 +145,6 @@ export function useStudio(first: Theme): Studio {
   // doesn't fill the browser's Back.
   const firstCode = useRef(code);
   const touched = useRef(false);
-  // Tell the rest of the page (the "everywhere" section) which style is showing, at once and on
-  // every change; the last one is kept on window for a listener that mounts later.
-  useEffect(() => {
-    (window as Window & { __spStyle?: string }).__spStyle = code;
-    window.dispatchEvent(new CustomEvent(STYLE_EVENT, { detail: code }));
-  }, [code]);
-
   useEffect(() => {
     if (code !== firstCode.current) touched.current = true;
     if (!touched.current && !new URLSearchParams(window.location.search).has("style")) return;

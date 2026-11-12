@@ -80,7 +80,7 @@ public struct LinkPreview: View {
             self.highlight = highlight ?? adaptive(light: 0xF8F7F3, dark: 0x3A3A3A)
             self.title = title ?? adaptive(light: 0x141414, dark: 0xF4F3EF)
             self.secondary = secondary ?? adaptive(light: 0x5C5A56, dark: 0xA6A49F)
-            self.tiles = (tiles?.isEmpty == false ? tiles : nil) ?? [0x9CC2FF, 0xFFD976, 0xA9DCB7, 0xCDB8FF, 0xE9D5B3].map { adaptive(light: $0, dark: $0) }
+            self.tiles = (tiles?.isEmpty == false ? tiles : nil) ?? [0x2E8BFF, 0xFFC21A, 0x00C4A7, 0xFF005C, 0xFF8A1F].map { adaptive(light: $0, dark: $0) }
             self.ink = ink ?? adaptive(light: 0x141414, dark: 0x141414)
             self.cornerRadius = max(cornerRadius, 0)
         }
@@ -798,7 +798,7 @@ private struct LinkPreviewExample: View {
 private enum LinkPreviewExampleArt {
     static let cover: Image? = {
         let art = Canvas { context, _ in
-            let butter = Color(red: 1, green: 0.851, blue: 0.463), lilac = Color(red: 0.804, green: 0.722, blue: 1)
+            let butter = Color(red: 1, green: 0.761, blue: 0.102), lilac = Color(red: 1, green: 0, blue: 0.361)
             let red = Color(red: 1, green: 0, blue: 0), ink = Color(red: 0.078, green: 0.078, blue: 0.078)
             func rect(_ x: CGFloat, _ y: CGFloat, _ w: CGFloat, _ h: CGFloat, _ r: CGFloat = 0) -> Path {
                 Path(roundedRect: CGRect(x: x, y: y, width: w, height: h), cornerRadius: r, style: .continuous)

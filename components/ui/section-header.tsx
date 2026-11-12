@@ -8,7 +8,7 @@ import { cn } from "@/lib/cn";
  * The title a page opens with (the Library, Blocks, a hub, the legal pages): one step under the
  * landing hero's 74px, the same regular weight and tight tracking.
  */
-export const pageTitle = "text-[40px] leading-[1.02] font-normal tracking-[-0.04em] text-balance sm:text-[52px] lg:text-[60px] lg:tracking-[-0.045em]";
+export const pageTitle = "text-[34px] leading-[1.04] font-normal tracking-[-0.04em] text-balance sm:text-[42px] lg:text-[48px] lg:tracking-[-0.042em]";
 /** The sentence under a page title: the hero's 18/30 muted lede. */
 export const pageLede = "text-[16.5px] leading-[27px] text-pretty text-muted sm:text-[18px] sm:leading-[30px]";
 

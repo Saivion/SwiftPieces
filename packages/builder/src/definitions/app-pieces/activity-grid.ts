@@ -13,7 +13,7 @@ const I = (d: number) => INDENT.repeat(d);
 
 export const GRID_TINTS: Record<string, string> = {
   // The SwiftPieces sweep and house blocks.
-  signal: "#FF0000", ember: "#FF7A3C", blush: "#FF8FB8", azure: "#4D8DFF", sage: "#A9DCB7", lilac: "#CDB8FF",
+  signal: "#FF0000", ember: "#FF7A3C", blush: "#FF8FB8", azure: "#4D8DFF", sage: "#00C4A7", lilac: "#FF005C",
   blue: "#2F6FEB", green: "#3FA45B", orange: "#F28A30", purple: "#8C5CF2", teal: "#2FA7A0",
 };
 export const WEEKDAY_LETTERS = ["M", "T", "W", "T", "F", "S", "S"];

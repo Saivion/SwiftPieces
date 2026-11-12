@@ -758,7 +758,7 @@ private struct RangeSliderExample: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 40) {
             RangeSlider(value: $price, in: 0...1000, step: 10, readout: .header, lowerLabel: "Minimum price", upperLabel: "Maximum price", format: .currency(code: "USD").precision(.fractionLength(0)))
-            RangeSlider(value: $age, in: 18...80, step: 1, minimumDistance: 5, lowerLabel: "Youngest age", upperLabel: "Oldest age", style: .init(fill: adaptive(light: 0xA9DCB7, dark: 0xA9DCB7))) { "\(Int($0))" }
+            RangeSlider(value: $age, in: 18...80, step: 1, minimumDistance: 5, lowerLabel: "Youngest age", upperLabel: "Oldest age", style: .init(fill: adaptive(light: 0x00C4A7, dark: 0x00C4A7))) { "\(Int($0))" }
         }
         .padding(.horizontal, 30)
         .frame(maxWidth: .infinity, maxHeight: .infinity)

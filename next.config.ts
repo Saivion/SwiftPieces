@@ -88,6 +88,8 @@ const config: NextConfig = {
       // The changelog moved inside the docs. The Sep 26 and Sep 29 updates became one entry.
       { source: "/changelog", destination: "/docs/changelog", permanent: true },
       { source: "/changelog/:slug(light-mode|everyday-utilities)", destination: "/docs/changelog/apps-and-playground", permanent: true },
+      // The three Nov 8 updates and the Nov 12 text pieces became one entry.
+      { source: "/docs/changelog/:slug(pro-riso-phosphor-templates|five-new-games|eleven-everyday-pieces|smart-text-match-highlight-text-diff)", destination: "/docs/changelog/games-pieces-and-styles", permanent: true },
       { source: "/changelog/:slug", destination: "/docs/changelog/:slug", permanent: true },
       // The free screens gallery became the app library.
       { source: "/screens", destination: "/apps", permanent: false },
@@ -105,6 +107,8 @@ const config: NextConfig = {
       { source: "/components", has: [{ type: "query", key: "category", value: "(?<category>[a-z]+)" }], destination: "/components/:category", permanent: true },
       // Code Block was retired on 2026-10-08; Source Stack took its place in the AI pieces.
       { source: "/docs/components/ai/code-block", destination: "/docs/components/ai/source-stack", permanent: true },
+      // Path Bar was replaced by the text pieces on 2026-11-12.
+      { source: "/docs/components/navigation/path-bar", destination: "/docs/components/text/smart-text", permanent: true },
       // The docs sidebar's category folders have no page of their own; their URL leads to the hub.
       { source: `/docs/components/:category(${CATEGORY_SLUGS})`, destination: "/components/:category", permanent: true },
       // Pattern categories are sidebar folders too, with no page of their own: their URL leads to the patterns.

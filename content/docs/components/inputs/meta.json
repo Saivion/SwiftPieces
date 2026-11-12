@@ -17,8 +17,10 @@
     "scrub-stepper",
     "secure-entry",
     "signature-pad",
+    "size-picker",
     "swatch-picker",
     "time-slot-picker",
-    "token-field"
+    "token-field",
+    "unit-toggle"
   ]
 }

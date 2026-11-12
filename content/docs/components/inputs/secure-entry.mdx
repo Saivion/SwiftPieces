@@ -91,9 +91,9 @@ public struct SecureEntry: View {
             self.button = button ?? .clear
             self.ink = ink ?? adaptive(light: 0x141414, dark: 0x141414)
             // Butter warns while the password is weak or fair; sage says it is good.
-            self.strength = (strength?.isEmpty == false ? strength : nil) ?? [0xFFD976, 0xFFD976, 0xA9DCB7, 0xA9DCB7].map { adaptive(light: $0, dark: $0) }
-            self.success = success ?? adaptive(light: 0xA9DCB7, dark: 0xA9DCB7)
-            self.error = error ?? adaptive(light: 0xFFD976, dark: 0xFFD976)
+            self.strength = (strength?.isEmpty == false ? strength : nil) ?? [0xFFC21A, 0xFFC21A, 0x00C4A7, 0x00C4A7].map { adaptive(light: $0, dark: $0) }
+            self.success = success ?? adaptive(light: 0x00C4A7, dark: 0x00C4A7)
+            self.error = error ?? adaptive(light: 0xFFC21A, dark: 0xFFC21A)
             self.height = max(height, 44)
             self.cornerRadius = cornerRadius
         }

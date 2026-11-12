@@ -356,18 +356,18 @@ private struct GlassSurfaceCover: View {
     var body: some View {
         let drift = CGFloat(sin(t * 0.45))
         ZStack {
-            Color(red: 0.804, green: 0.722, blue: 1).ignoresSafeArea()
+            Color(red: 1, green: 0, blue: 0.361).ignoresSafeArea()
             Circle()
-                .fill(Color(red: 1, green: 0.851, blue: 0.463))
+                .fill(Color(red: 1, green: 0.761, blue: 0.102))
                 .frame(width: 230)
                 .offset(x: 96 + drift * 34, y: -74 + CGFloat(cos(t * 0.3)) * 16)
             RoundedRectangle(cornerRadius: 34, style: .continuous)
-                .fill(Color(red: 0.663, green: 0.863, blue: 0.718))
+                .fill(Color(red: 0, green: 0.769, blue: 0.655))
                 .frame(width: 250, height: 170)
                 .rotationEffect(.degrees(-8))
                 .offset(x: -94 - drift * 26, y: 104)
             Capsule()
-                .fill(Color(red: 0.612, green: 0.761, blue: 1))
+                .fill(Color(red: 0.18, green: 0.545, blue: 1))
                 .frame(width: 300, height: 50)
                 .offset(x: 46 - drift * 44, y: 78)
         }

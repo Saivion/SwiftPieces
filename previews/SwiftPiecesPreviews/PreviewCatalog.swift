@@ -27,6 +27,11 @@ enum PreviewCatalog {
         "ScrollIsland", "StepTrail", "WaveformScrub", "VoiceRecorder", "NowPlaying", "WalletStack", "NoticeStack", "RangeLens",
         // pickers and controls, 2026-10-27
         "LiquidSwitch", "PageDots", "ChoiceGroup", "SwatchPicker", "TimeSlotPicker", "LevelPicker", "DateStrip", "InterestChips",
+        // everyday pieces, 2026-11-08
+        "SelectMenu", "ZoomDial", "ReorderList", "SizePicker", "UnitToggle", "ViewToggle", "QRCode",
+        "ReadAlongText", "RelativeTime", "TranslateToggle",
+        // replaced Path Bar, 2026-11-12
+        "SmartText", "MatchHighlight", "TextDiff",
     ]
 
     @MainActor @ViewBuilder
@@ -214,6 +219,32 @@ enum PreviewCatalog {
             Stage { DateStripScene() }
         case "InterestChips":
             Stage { InterestChipsScene() }
+        case "SelectMenu":
+            Stage { SelectMenuScene() }
+        case "ZoomDial":
+            Stage { ZoomDialScene() }
+        case "ReorderList":
+            Stage { ReorderListScene() }
+        case "SizePicker":
+            Stage { SizePickerScene() }
+        case "UnitToggle":
+            Stage { UnitToggleScene() }
+        case "ViewToggle":
+            Stage { ViewToggleScene() }
+        case "QRCode":
+            Stage { QRCodeScene() }
+        case "ReadAlongText":
+            Stage { ReadAlongTextScene() }
+        case "RelativeTime":
+            Stage { RelativeTimeScene() }
+        case "TranslateToggle":
+            Stage { TranslateToggleScene() }
+        case "SmartText":
+            Stage { SmartTextScene() }
+        case "MatchHighlight":
+            Stage { MatchHighlightScene() }
+        case "TextDiff":
+            Stage { TextDiffScene() }
         default:
             Text("Unknown piece: \(name)")
         }
@@ -318,10 +349,10 @@ private struct GlassTextBlocksTG: View {
 }
 
 private enum GlassTextPaletteTG {
-    static let sky = Color(red: 0.612, green: 0.761, blue: 1)
+    static let sky = Color(red: 0.18, green: 0.545, blue: 1)
     static let tangerine = Color(red: 1, green: 0, blue: 0)
-    static let butter = Color(red: 1, green: 0.851, blue: 0.463)
-    static let lilac = Color(red: 0.804, green: 0.722, blue: 1)
+    static let butter = Color(red: 1, green: 0.761, blue: 0.102)
+    static let lilac = Color(red: 1, green: 0, blue: 0.361)
 }
 
 // MARK: - glass-controls scenes
@@ -375,18 +406,18 @@ private struct GlassSurfaceCoverTG: View {
     var body: some View {
         let drift = CGFloat(sin(t * 0.45))
         ZStack {
-            Color(red: 0.804, green: 0.722, blue: 1).ignoresSafeArea()
+            Color(red: 1, green: 0, blue: 0.361).ignoresSafeArea()
             Circle()
-                .fill(Color(red: 1, green: 0.851, blue: 0.463))
+                .fill(Color(red: 1, green: 0.761, blue: 0.102))
                 .frame(width: 230)
                 .offset(x: 96 + drift * 34, y: -74 + CGFloat(cos(t * 0.3)) * 16)
             RoundedRectangle(cornerRadius: 34, style: .continuous)
-                .fill(Color(red: 0.663, green: 0.863, blue: 0.718))
+                .fill(Color(red: 0, green: 0.769, blue: 0.655))
                 .frame(width: 250, height: 170)
                 .rotationEffect(.degrees(-8))
                 .offset(x: -94 - drift * 26, y: 104)
             Capsule()
-                .fill(Color(red: 0.612, green: 0.761, blue: 1))
+                .fill(Color(red: 0.18, green: 0.545, blue: 1))
                 .frame(width: 300, height: 50)
                 .offset(x: 46 - drift * 44, y: 78)
         }
@@ -418,9 +449,9 @@ private struct GlassActionMenuLoop: View {
 }
 
 private enum GlassActionMenuPaletteTG {
-    static let butter = Color(red: 1, green: 0.851, blue: 0.463)
-    static let lilac = Color(red: 0.804, green: 0.722, blue: 1)
-    static let sky = Color(red: 0.612, green: 0.761, blue: 1)
+    static let butter = Color(red: 1, green: 0.761, blue: 0.102)
+    static let lilac = Color(red: 1, green: 0, blue: 0.361)
+    static let sky = Color(red: 0.18, green: 0.545, blue: 1)
     static let ground = Color(UIColor { $0.userInterfaceStyle == .dark
         ? UIColor(red: 0.071, green: 0.071, blue: 0.071, alpha: 1)
         : UIColor(red: 0.953, green: 0.949, blue: 0.933, alpha: 1) })
@@ -434,10 +465,10 @@ private struct GlassQuickAddLoop: View {
     @State private var save = 0
     private static func hex(_ v: UInt32) -> Color { Color(red: Double((v >> 16) & 0xFF) / 255, green: Double((v >> 8) & 0xFF) / 255, blue: Double(v & 0xFF) / 255) }
     private let kinds: [GlassQuickAddKind] = [
-        .init(id: "note", systemImage: "note.text", title: "Note", prompt: "Write it down", tint: hex(0x9CC2FF)),
-        .init(id: "task", systemImage: "checkmark", title: "Task", prompt: "What needs doing?", options: ["Today", "Tomorrow", "Flag"], tint: hex(0xFFD976)),
-        .init(id: "link", systemImage: "link", title: "Link", prompt: "Paste a link", options: ["Read later"], tint: hex(0xCDB8FF)),
-        .init(id: "reminder", systemImage: "bell", title: "Reminder", prompt: "Remind me to…", options: ["9:00", "13:00", "18:00"], tint: hex(0xA9DCB7)),
+        .init(id: "note", systemImage: "note.text", title: "Note", prompt: "Write it down", tint: hex(0x2E8BFF)),
+        .init(id: "task", systemImage: "checkmark", title: "Task", prompt: "What needs doing?", options: ["Today", "Tomorrow", "Flag"], tint: hex(0xFFC21A)),
+        .init(id: "link", systemImage: "link", title: "Link", prompt: "Paste a link", options: ["Read later"], tint: hex(0xFF005C)),
+        .init(id: "reminder", systemImage: "bell", title: "Reminder", prompt: "Remind me to…", options: ["9:00", "13:00", "18:00"], tint: hex(0x00C4A7)),
     ]
 
     var body: some View {
@@ -493,7 +524,7 @@ private struct GlassModeBarLoop: View {
                 }
             case "photo":
                 HStack(spacing: 6) {
-                    ForEach([Color(red: 0.612, green: 0.761, blue: 1), Color(red: 1, green: 0.851, blue: 0.463), Color(red: 0.663, green: 0.863, blue: 0.718), Color(red: 0.804, green: 0.722, blue: 1), Color(red: 0.914, green: 0.835, blue: 0.702)], id: \.self) { tint in
+                    ForEach([Color(red: 0.18, green: 0.545, blue: 1), Color(red: 1, green: 0.761, blue: 0.102), Color(red: 0, green: 0.769, blue: 0.655), Color(red: 1, green: 0, blue: 0.361), Color(red: 1, green: 0.541, blue: 0.122)], id: \.self) { tint in
                         RoundedRectangle(cornerRadius: 8, style: .continuous).fill(tint).frame(maxWidth: .infinity).frame(height: 38)
                     }
                 }
@@ -543,11 +574,11 @@ private struct GlassSegmentsLoop: View {
                 GeometryReader { proxy in
                     let w = proxy.size.width, h = proxy.size.height
                     ZStack {
-                        Color(red: 0.804, green: 0.722, blue: 1)
-                        Circle().fill(Color(red: 1, green: 0.851, blue: 0.463)).frame(width: w * 0.8).position(x: w * 0.82, y: h * 0.36)
-                        RoundedRectangle(cornerRadius: 40, style: .continuous).fill(Color(red: 0.663, green: 0.863, blue: 0.718))
+                        Color(red: 1, green: 0, blue: 0.361)
+                        Circle().fill(Color(red: 1, green: 0.761, blue: 0.102)).frame(width: w * 0.8).position(x: w * 0.82, y: h * 0.36)
+                        RoundedRectangle(cornerRadius: 40, style: .continuous).fill(Color(red: 0, green: 0.769, blue: 0.655))
                             .frame(width: w * 0.8, height: h * 0.34).rotationEffect(.degrees(-8)).position(x: w * 0.18, y: h * 0.66)
-                        Capsule().fill(Color(red: 0.612, green: 0.761, blue: 1)).frame(width: w * 0.9, height: 64).position(x: w * 0.58, y: h * 0.56)
+                        Capsule().fill(Color(red: 0.18, green: 0.545, blue: 1)).frame(width: w * 0.9, height: 64).position(x: w * 0.58, y: h * 0.56)
                     }
                 }
                 .ignoresSafeArea()
@@ -684,7 +715,7 @@ private struct TimerDialLoop: View {
             VStack(spacing: 22) {
                 TimerDial(seconds: $seconds, isRunning: $running, step: 5, maxSeconds: 60)
                     .frame(width: 232)
-                TimerDial(progress: running ? 0.72 : 0.36, lineWidth: 10, caption: "Uploaded", style: .init(fill: TimerDial.Style.House.hex(0x9CC2FF), showsTicks: false, digitSize: 26))
+                TimerDial(progress: running ? 0.72 : 0.36, lineWidth: 10, caption: "Uploaded", style: .init(fill: TimerDial.Style.House.hex(0x2E8BFF), showsTicks: false, digitSize: 26))
                     .frame(width: 104)
             }
         }
@@ -738,8 +769,8 @@ private struct ExpandingTrackLoop: View {
         InputsSheetsGround {
             VStack(alignment: .leading, spacing: 30) {
                 ExpandingTrack(value: $volume, symbol: "speaker.wave.3.fill", title: "Volume") { ($0 * 100).formatted(.number.precision(.fractionLength(0))) }
-                ExpandingTrack(value: $warmth, in: 2700...6500, step: 100, symbol: "sun.max.fill", title: "Warmth", style: .init(fill: inputsSheetsColor(0xFFD976, 0xFFD976))) { "\(Int($0))K" }
-                ExpandingTrack(range: $price, in: 0...200, step: 5, minimumDistance: 10, title: "Price per night", style: .init(fill: inputsSheetsColor(0x9CC2FF, 0x9CC2FF))) { "$\(Int($0))" }
+                ExpandingTrack(value: $warmth, in: 2700...6500, step: 100, symbol: "sun.max.fill", title: "Warmth", style: .init(fill: inputsSheetsColor(0xFFC21A, 0xFFC21A))) { "\(Int($0))K" }
+                ExpandingTrack(range: $price, in: 0...200, step: 5, minimumDistance: 10, title: "Price per night", style: .init(fill: inputsSheetsColor(0x2E8BFF, 0x2E8BFF))) { "$\(Int($0))" }
             }
         }
         .task {
@@ -760,7 +791,7 @@ private struct ScrubStepperLoop: View {
         InputsSheetsGround {
             VStack(spacing: 24) {
                 ScrubStepper(value: $guests, in: 1...10)
-                ScrubStepper(value: $chairs, in: 0...3, style: .init(block: inputsSheetsColor(0xA9DCB7, 0xA9DCB7)))
+                ScrubStepper(value: $chairs, in: 0...3, style: .init(block: inputsSheetsColor(0x00C4A7, 0x00C4A7)))
             }
         }
         .task {
@@ -846,11 +877,11 @@ private enum CardsMediaPalette {
     static let ink = Color(red: 0.078, green: 0.078, blue: 0.078)
     static let signal = Color(red: 1, green: 0, blue: 0)
     static let tangerine = Color(red: 1, green: 0, blue: 0)
-    static let sky = Color(red: 0.612, green: 0.761, blue: 1)
-    static let butter = Color(red: 1, green: 0.851, blue: 0.463)
-    static let sage = Color(red: 0.663, green: 0.863, blue: 0.718)
-    static let lilac = Color(red: 0.804, green: 0.722, blue: 1)
-    static let sand = Color(red: 0.914, green: 0.835, blue: 0.702)
+    static let sky = Color(red: 0.18, green: 0.545, blue: 1)
+    static let butter = Color(red: 1, green: 0.761, blue: 0.102)
+    static let sage = Color(red: 0, green: 0.769, blue: 0.655)
+    static let lilac = Color(red: 1, green: 0, blue: 0.361)
+    static let sand = Color(red: 1, green: 0.541, blue: 0.122)
     static let ground = Color(uiColor: UIColor { $0.userInterfaceStyle == .dark ? UIColor(red: 0.071, green: 0.071, blue: 0.071, alpha: 1) : UIColor(red: 0.953, green: 0.949, blue: 0.933, alpha: 1) })
     static let surface = Color(uiColor: UIColor { $0.userInterfaceStyle == .dark ? UIColor(red: 0.149, green: 0.149, blue: 0.149, alpha: 1) : .white })
 }
@@ -1223,11 +1254,11 @@ private enum LAPalette {
     static let ink = Color(red: 0.078, green: 0.078, blue: 0.078)
     static let signal = Color(red: 1, green: 0, blue: 0)
     static let tangerine = Color(red: 1, green: 0, blue: 0)
-    static let sky = Color(red: 0.612, green: 0.761, blue: 1)
-    static let butter = Color(red: 1, green: 0.851, blue: 0.463)
-    static let sage = Color(red: 0.663, green: 0.863, blue: 0.718)
-    static let lilac = Color(red: 0.804, green: 0.722, blue: 1)
-    static let sand = Color(red: 0.914, green: 0.835, blue: 0.702)
+    static let sky = Color(red: 0.18, green: 0.545, blue: 1)
+    static let butter = Color(red: 1, green: 0.761, blue: 0.102)
+    static let sage = Color(red: 0, green: 0.769, blue: 0.655)
+    static let lilac = Color(red: 1, green: 0, blue: 0.361)
+    static let sand = Color(red: 1, green: 0.541, blue: 0.122)
 }
 
 private struct LAStage<Content: View>: View {
@@ -1409,8 +1440,8 @@ private enum NDP {
     }
     static let ground = c(0xF3F2EE, 0x121212), surface = c(0xFFFFFF, 0x1C1C1C), raised = c(0xFFFFFF, 0x262626)
     static let muted = c(0x5C5A56, 0xA6A49F), ink = c(0x141414, 0x141414)
-    static let tangerine = c(0xFF0000, 0xFF0000), sky = c(0x9CC2FF, 0x9CC2FF), butter = c(0xFFD976, 0xFFD976)
-    static let sage = c(0xA9DCB7, 0xA9DCB7), lilac = c(0xCDB8FF, 0xCDB8FF), sand = c(0xE9D5B3, 0xE9D5B3), signal = c(0xFF0000, 0xFF0000)
+    static let tangerine = c(0xFF0000, 0xFF0000), sky = c(0x2E8BFF, 0x2E8BFF), butter = c(0xFFC21A, 0xFFC21A)
+    static let sage = c(0x00C4A7, 0x00C4A7), lilac = c(0xFF005C, 0xFF005C), sand = c(0xFF8A1F, 0xFF8A1F), signal = c(0xFF0000, 0xFF0000)
     static func meta(_ text: String) -> some View {
         Text(text.uppercased()).font(.system(size: 12, weight: .semibold)).tracking(1.2).foregroundStyle(muted)
     }
@@ -1846,7 +1877,7 @@ private struct DragToDismissScene: View {
                     .font(.footnote.weight(.semibold))
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
-                    .background(bmColor(0x9CC2FF), in: .capsule)
+                    .background(bmColor(0x2E8BFF), in: .capsule)
             }
             Text("SFO\n\(Text("to LIS").foregroundStyle(ink.opacity(0.55)))")
                 .font(.system(size: 56, weight: .semibold))
@@ -1875,7 +1906,7 @@ private struct DragToDismissScene: View {
         .foregroundStyle(ink)
         .padding(24)
         .frame(width: 330)
-        .background(bmColor(0xFFD976), in: .rect(cornerRadius: 34, style: .continuous))
+        .background(bmColor(0xFFC21A), in: .rect(cornerRadius: 34, style: .continuous))
         .shadow(color: .black.opacity(0.28), radius: 30, y: 16)
         .accessibilityElement(children: .combine)
         .accessibilityLabel("Boarding pass, San Francisco to Lisbon, departs 7:45, gate B12, seat 14A")
@@ -2208,7 +2239,7 @@ private struct RangeSliderScene: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 40) {
             RangeSlider(value: $price, in: 0...1000, step: 10, readout: .header, lowerLabel: "Minimum price", upperLabel: "Maximum price", format: .currency(code: "USD").precision(.fractionLength(0)))
-            RangeSlider(value: $age, in: 18...80, step: 1, minimumDistance: 5, lowerLabel: "Youngest age", upperLabel: "Oldest age", style: .init(fill: bmColor(light: 0xA9DCB7, dark: 0xA9DCB7))) { "\(Int($0))" }
+            RangeSlider(value: $age, in: 18...80, step: 1, minimumDistance: 5, lowerLabel: "Youngest age", upperLabel: "Oldest age", style: .init(fill: bmColor(light: 0x00C4A7, dark: 0x00C4A7))) { "\(Int($0))" }
         }
         .padding(.horizontal, 30)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -2441,7 +2472,7 @@ private struct PagedListScene: View {
 nonisolated private struct PagedListSceneItem: Identifiable, Sendable {
     let id: Int
     static let merchants = ["Juniper Coffee", "Riverside Books", "Northline Transit", "Maison Bakery", "Studio Nine", "Fieldhouse Gym", "Almanac Market", "Sprig Florist"]
-    static let tiles: [UInt32] = [0xFFD976, 0x9CC2FF, 0xA9DCB7, 0xCDB8FF, 0xE9D5B3, 0xFF0000]
+    static let tiles: [UInt32] = [0xFFC21A, 0x2E8BFF, 0x00C4A7, 0xFF005C, 0xFF8A1F, 0xFF0000]
     var merchant: String { Self.merchants[id % Self.merchants.count] }
     var amount: Double { Double((id * 37) % 90) + 4.5 }
 }
@@ -2605,8 +2636,8 @@ private struct DragSelectScenePrint: View {
     private static func hex(_ value: UInt32) -> Color {
         Color(red: Double((value >> 16) & 0xFF) / 255, green: Double((value >> 8) & 0xFF) / 255, blue: Double(value & 0xFF) / 255)
     }
-    private static let red = hex(0xFF0000), sky = hex(0x9CC2FF), butter = hex(0xFFD976), sage = hex(0xA9DCB7)
-    private static let lilac = hex(0xCDB8FF), sand = hex(0xE9D5B3), ink = hex(0x141414), dusk = hex(0x262626)
+    private static let red = hex(0xFF0000), sky = hex(0x2E8BFF), butter = hex(0xFFC21A), sage = hex(0x00C4A7)
+    private static let lilac = hex(0xFF005C), sand = hex(0xFF8A1F), ink = hex(0x141414), dusk = hex(0x262626)
 
     var body: some View {
         Canvas { context, size in
@@ -2706,7 +2737,7 @@ private struct AttachmentTrayScene: View {
 private enum ATScenePhoto {
     static let ground = Color(uiColor: UIColor { $0.userInterfaceStyle == .dark ? UIColor(red: 0.071, green: 0.071, blue: 0.071, alpha: 1) : UIColor(red: 0.953, green: 0.949, blue: 0.933, alpha: 1) })
     nonisolated static let scenes: [(UInt32, UInt32, UInt32)] = [
-        (0x9CC2FF, 0xFFD976, 0xA9DCB7), (0xE9D5B3, 0xFF0000, 0xCDB8FF), (0xA9DCB7, 0xF4F3EF, 0x9CC2FF), (0xCDB8FF, 0xFFD976, 0x9CC2FF), (0xFFD976, 0xF4F3EF, 0xE9D5B3),
+        (0x2E8BFF, 0xFFC21A, 0x00C4A7), (0xFF8A1F, 0xFF0000, 0xFF005C), (0x00C4A7, 0xF4F3EF, 0x2E8BFF), (0xFF005C, 0xFFC21A, 0x2E8BFF), (0xFFC21A, 0xF4F3EF, 0xFF8A1F),
     ]
 
     actor Flaky {
@@ -3084,7 +3115,7 @@ private struct LinkPreviewScene: View {
 private enum LinkPreviewSceneArt {
     static let cover: Image? = {
         let art = Canvas { context, _ in
-            let butter = Color(red: 1, green: 0.851, blue: 0.463), lilac = Color(red: 0.804, green: 0.722, blue: 1)
+            let butter = Color(red: 1, green: 0.761, blue: 0.102), lilac = Color(red: 1, green: 0, blue: 0.361)
             let red = Color(red: 1, green: 0, blue: 0), ink = Color(red: 0.078, green: 0.078, blue: 0.078)
             func rect(_ x: CGFloat, _ y: CGFloat, _ w: CGFloat, _ h: CGFloat, _ r: CGFloat = 0) -> Path {
                 Path(roundedRect: CGRect(x: x, y: y, width: w, height: h), cornerRadius: r, style: .continuous)
@@ -3193,24 +3224,24 @@ private enum PhotoCropperScenePhoto {
                 return path
             }
             let ink: UInt32 = 0x141414, paper: UInt32 = 0xF4F3EF
-            fill(0x9CC2FF, UIBezierPath(rect: CGRect(x: 0, y: 0, width: 1600, height: 1200)))
-            fill(0xFFD976, oval(1215, 285, 105, 105))
+            fill(0x2E8BFF, UIBezierPath(rect: CGRect(x: 0, y: 0, width: 1600, height: 1200)))
+            fill(0xFFC21A, oval(1215, 285, 105, 105))
             for cloud in [box(262, 300, 268, 56, 28), oval(352, 300, 50, 50), oval(436, 286, 62, 62), box(930, 212, 176, 38, 19), oval(990, 212, 32, 32), oval(1046, 204, 40, 40)] {
                 fill(paper, cloud)
             }
-            fill(0xCDB8FF, land(CGPoint(x: 0, y: 690), [
+            fill(0xFF005C, land(CGPoint(x: 0, y: 690), [
                 (CGPoint(x: 180, y: 560), CGPoint(x: 380, y: 560), CGPoint(x: 560, y: 650)),
                 (CGPoint(x: 720, y: 730), CGPoint(x: 860, y: 560), CGPoint(x: 1060, y: 590)),
                 (CGPoint(x: 1260, y: 620), CGPoint(x: 1380, y: 540), CGPoint(x: 1600, y: 600)),
             ]))
-            fill(0xA9DCB7, land(CGPoint(x: 0, y: 840), [
+            fill(0x00C4A7, land(CGPoint(x: 0, y: 840), [
                 (CGPoint(x: 260, y: 720), CGPoint(x: 520, y: 760), CGPoint(x: 760, y: 820)),
                 (CGPoint(x: 1000, y: 880), CGPoint(x: 1260, y: 760), CGPoint(x: 1600, y: 790)),
             ]))
             for tree in [oval(196, 770, 16, 48), oval(236, 784, 12, 36), oval(1372, 752, 15, 46), oval(1408, 766, 11, 32)] {
                 fill(ink, tree)
             }
-            fill(0xE9D5B3, land(CGPoint(x: 0, y: 980), [
+            fill(0xFF8A1F, land(CGPoint(x: 0, y: 980), [
                 (CGPoint(x: 400, y: 900), CGPoint(x: 1000, y: 930), CGPoint(x: 1600, y: 960)),
             ]))
             fill(ink, UIBezierPath(rect: CGRect(x: 0, y: 1048, width: 1600, height: 7)))
@@ -3235,7 +3266,7 @@ private enum PhotoCropperScenePhoto {
             fill(paper, UIBezierPath(rect: CGRect(x: 560, y: 964, width: 440, height: 12)))
             fill(ink, oval(640, 1030, 24, 24))
             fill(ink, oval(920, 1030, 24, 24))
-            fill(0xFFD976, oval(986, 996, 9, 9))
+            fill(0xFFC21A, oval(986, 996, 9, 9))
         }
     }
 }
@@ -3821,25 +3852,25 @@ private struct NowPlayingSceneArtwork: View {
                 Color(red: Double((hex >> 16) & 0xFF) / 255, green: Double((hex >> 8) & 0xFF) / 255, blue: Double(hex & 0xFF) / 255)
             }
             if track % 2 == 0 {
-                context.fill(Path(CGRect(origin: .zero, size: size)), with: .color(color(0x9CC2FF)))
-                context.fill(Path(ellipseIn: CGRect(x: w * 0.52, y: h * 0.16, width: w * 0.3, height: w * 0.3)), with: .color(color(0xFFD976)))
+                context.fill(Path(CGRect(origin: .zero, size: size)), with: .color(color(0x2E8BFF)))
+                context.fill(Path(ellipseIn: CGRect(x: w * 0.52, y: h * 0.16, width: w * 0.3, height: w * 0.3)), with: .color(color(0xFFC21A)))
                 var hill = Path()
                 hill.move(to: CGPoint(x: 0, y: h * 0.7))
                 hill.addCurve(to: CGPoint(x: w, y: h * 0.62), control1: CGPoint(x: w * 0.3, y: h * 0.48), control2: CGPoint(x: w * 0.62, y: h * 0.5))
                 hill.addLine(to: CGPoint(x: w, y: h))
                 hill.addLine(to: CGPoint(x: 0, y: h))
                 hill.closeSubpath()
-                context.fill(hill, with: .color(color(0xA9DCB7)))
+                context.fill(hill, with: .color(color(0x00C4A7)))
                 var near = Path()
                 near.move(to: CGPoint(x: 0, y: h * 0.86))
                 near.addCurve(to: CGPoint(x: w, y: h * 0.84), control1: CGPoint(x: w * 0.36, y: h * 0.74), control2: CGPoint(x: w * 0.7, y: h * 0.8))
                 near.addLine(to: CGPoint(x: w, y: h))
                 near.addLine(to: CGPoint(x: 0, y: h))
                 near.closeSubpath()
-                context.fill(near, with: .color(color(0xE9D5B3)))
+                context.fill(near, with: .color(color(0xFF8A1F)))
             } else {
-                context.fill(Path(CGRect(origin: .zero, size: size)), with: .color(color(0xCDB8FF)))
-                let lanterns: [(x: CGFloat, y: CGFloat, r: CGFloat, hex: UInt32)] = [(0.26, 0.5, 0.15, 0xFFD976), (0.56, 0.36, 0.12, 0xE9D5B3), (0.78, 0.6, 0.1, 0x9CC2FF)]
+                context.fill(Path(CGRect(origin: .zero, size: size)), with: .color(color(0xFF005C)))
+                let lanterns: [(x: CGFloat, y: CGFloat, r: CGFloat, hex: UInt32)] = [(0.26, 0.5, 0.15, 0xFFC21A), (0.56, 0.36, 0.12, 0xFF8A1F), (0.78, 0.6, 0.1, 0x2E8BFF)]
                 for lantern in lanterns {
                     var string = Path()
                     string.move(to: CGPoint(x: w * lantern.x, y: 0))
@@ -4248,6 +4279,310 @@ private struct InterestChipsScene: View {
                     }
                     try? await Task.sleep(for: .seconds(1.4))
                     topics = ["Design"]
+                }
+            }
+    }
+}
+
+// MARK: - everyday pieces, 2026-11-08
+
+/// The ground every 2026-11-08 scene stands on.
+private extension View {
+    func everydayScene(width: CGFloat? = nil) -> some View {
+        self
+            .frame(maxWidth: width)
+            .padding(.horizontal, 24)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(pickerSceneColor(light: 0xF3F2EE, dark: 0x121212))
+    }
+}
+
+private enum EverydaySort: String, CaseIterable {
+    case newest = "Newest first"
+    case oldest = "Oldest first"
+    case priceUp = "Price, low to high"
+    case priceDown = "Price, high to low"
+}
+
+/// The menu opening, the red flowing to a new sort, and closing with it.
+private struct SelectMenuScene: View {
+    @State private var sort = EverydaySort.newest
+
+    var body: some View {
+        VStack {
+            SelectMenu("Sort by", selection: $sort, options: EverydaySort.allCases) { $0.rawValue }
+            Spacer().frame(height: 190)
+        }
+        .everydayScene(width: 260)
+    }
+}
+
+/// Stops tapped in turn, then the dial held open.
+private struct ZoomDialScene: View {
+    @State private var zoom = 1.0
+
+    var body: some View {
+        ZoomDial(value: $zoom)
+            .everydayScene()
+            .task {
+                while !Task.isCancelled {
+                    for value in [2.0, 0.5, 1.0, 3.0, 1.0] {
+                        try? await Task.sleep(for: .seconds(1))
+                        withAnimation(.spring(duration: 0.35, bounce: 0)) { zoom = value }
+                    }
+                }
+            }
+    }
+}
+
+private struct EverydayList: Identifiable {
+    var id: String { name }
+    var name: String
+    var color: Color
+    var count: Int
+}
+
+/// Four lists; rows step aside as the order changes.
+private struct ReorderListScene: View {
+    @State private var lists = [
+        EverydayList(name: "Inbox", color: Color(red: 0.18, green: 0.545, blue: 1), count: 12),
+        EverydayList(name: "Today", color: Color(red: 1, green: 0.761, blue: 0.102), count: 5),
+        EverydayList(name: "Upcoming", color: Color(red: 0, green: 0.769, blue: 0.655), count: 8),
+        EverydayList(name: "Someday", color: Color(red: 1, green: 0, blue: 0.361), count: 21),
+    ]
+
+    var body: some View {
+        ReorderList($lists) { list in
+            HStack(spacing: 12) {
+                Circle().fill(list.color).frame(width: 12, height: 12)
+                Text(list.name)
+                Spacer()
+                Text("\(list.count)").foregroundStyle(.secondary).monospacedDigit()
+            }
+        }
+        .everydayScene(width: 300)
+        .task {
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(1.4))
+                withAnimation(.spring(duration: 0.32, bounce: 0.25)) { lists.move(fromOffsets: [0], toOffset: 3) }
+                try? await Task.sleep(for: .seconds(1.4))
+                withAnimation(.spring(duration: 0.32, bounce: 0.25)) { lists.move(fromOffsets: [2], toOffset: 0) }
+            }
+        }
+    }
+}
+
+/// The pill flowing along the sizes, past two sold out ones.
+private struct SizePickerScene: View {
+    @State private var size = "M"
+
+    var body: some View {
+        SizePicker(selection: $size, sizes: ["XS", "S", "M", "L", "XL", "XXL"], unavailable: ["XS", "XXL"]) { size in
+            size == "L" ? "Only 2 left" : nil
+        }
+        .everydayScene(width: 320)
+        .task {
+            while !Task.isCancelled {
+                for next in ["L", "XL", "S", "M"] {
+                    try? await Task.sleep(for: .seconds(1))
+                    size = next
+                }
+            }
+        }
+    }
+}
+
+/// A weight converting between kilograms and pounds.
+private struct UnitToggleScene: View {
+    @State private var weight = Measurement(value: 72.4, unit: UnitMass.kilograms)
+
+    var body: some View {
+        UnitToggle(value: $weight, units: [.kilograms, .pounds])
+            .everydayScene()
+            .task {
+                while !Task.isCancelled {
+                    try? await Task.sleep(for: .seconds(1.3))
+                    withAnimation(.spring(duration: 0.35, bounce: 0)) { weight = weight.converted(to: .pounds) }
+                    try? await Task.sleep(for: .seconds(1.3))
+                    withAnimation(.spring(duration: 0.35, bounce: 0)) { weight = weight.converted(to: .kilograms) }
+                }
+            }
+    }
+}
+
+/// The toggle switching layouts, the tiles morphing with it.
+private struct ViewToggleScene: View {
+    @State private var layout = ViewToggleLayout.list
+    @Namespace private var namespace
+    private let colors = [Color(red: 0.18, green: 0.545, blue: 1), Color(red: 1, green: 0.761, blue: 0.102), Color(red: 0, green: 0.769, blue: 0.655), Color(red: 1, green: 0, blue: 0.361)]
+
+    var body: some View {
+        VStack(spacing: 22) {
+            ViewToggle(layout: $layout)
+            Group {
+                if layout == .list {
+                    VStack(spacing: 10) {
+                        ForEach(colors.indices, id: \.self) { index in
+                            HStack(spacing: 12) {
+                                RoundedRectangle(cornerRadius: 10, style: .continuous).fill(colors[index])
+                                    .matchedGeometryEffect(id: index, in: namespace)
+                                    .frame(width: 40, height: 40)
+                                RoundedRectangle(cornerRadius: 4).fill(.secondary.opacity(0.3)).frame(width: 110, height: 8)
+                                Spacer()
+                            }
+                        }
+                    }
+                } else {
+                    LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)], spacing: 10) {
+                        ForEach(colors.indices, id: \.self) { index in
+                            RoundedRectangle(cornerRadius: 16, style: .continuous).fill(colors[index])
+                                .matchedGeometryEffect(id: index, in: namespace)
+                                .frame(height: 90)
+                        }
+                    }
+                }
+            }
+            .frame(width: 240, height: 200, alignment: .top)
+        }
+        .everydayScene()
+        .task {
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(1.4))
+                withAnimation(.spring(duration: 0.4, bounce: 0.2)) { layout = layout == .list ? .grid : .list }
+            }
+        }
+    }
+}
+
+/// The code rippling between a link, a Wi-Fi login and a contact.
+private struct QRCodeScene: View {
+    @State private var index = 0
+    private let payloads = ["https://swiftpieces.com", "WIFI:S:Studio;T:WPA;P:paper-lantern;;", "MECARD:N:Chen,Maya;EMAIL:maya@example.com;;"]
+
+    var body: some View {
+        QRCode(payloads[index], logo: Image(systemName: "swift"))
+            .frame(width: 220)
+            .everydayScene()
+            .task {
+                while !Task.isCancelled {
+                    try? await Task.sleep(for: .seconds(2.4))
+                    index = (index + 1) % payloads.count
+                }
+            }
+    }
+}
+
+/// A sentence read aloud, the pill gliding word to word.
+private struct ReadAlongTextScene: View {
+    private let words = ReadAlongText.Word.spread("The tide came in slowly, and the lights along the harbour came on one by one.", over: 8)
+    @State private var time: TimeInterval = -0.6
+
+    var body: some View {
+        ReadAlongText(words, time: time)
+            .everydayScene(width: 290)
+            .task {
+                while !Task.isCancelled {
+                    try? await Task.sleep(for: .milliseconds(50))
+                    time = time > 9 ? -0.6 : time + 0.05
+                }
+            }
+    }
+}
+
+/// Three timestamps, one revealing its exact time.
+private struct RelativeTimeScene: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            ForEach([("Message sent", 0.0), ("Draft edited", -70.0), ("Backup done", -26 * 3_600.0)], id: \.0) { row in
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(row.0).fontWeight(.semibold)
+                    RelativeTime(Date(timeIntervalSinceNow: row.1))
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(14)
+                .background(.background, in: .rect(cornerRadius: 20, style: .continuous))
+            }
+        }
+        .everydayScene(width: 280)
+    }
+}
+
+/// A review in Spanish with its Translate button.
+private struct TranslateToggleScene: View {
+    var body: some View {
+        TranslateToggle("La mejor paella del barrio. Volveremos pronto, sin duda.")
+            .padding(20)
+            .background(.background, in: .rect(cornerRadius: 26, style: .continuous))
+            .everydayScene(width: 320)
+    }
+}
+
+/// A message whose links, date, mention and tag light up.
+private struct SmartTextScene: View {
+    @State private var seed = 0
+
+    var body: some View {
+        SmartText("Dinner with @maya on Friday at 7, the menu is on lunchbox.co and the door code is 4471. #weekend")
+            .id(seed)
+            .padding(18)
+            .background(.background, in: .rect(cornerRadius: 24, style: .continuous))
+            .everydayScene(width: 300)
+            .task {
+                while !Task.isCancelled {
+                    try? await Task.sleep(for: .seconds(3))
+                    seed += 1
+                }
+            }
+    }
+}
+
+/// A recipe search typed letter by letter, the marks growing and rows that stop matching stepping back.
+private struct MatchHighlightScene: View {
+    @State private var query = ""
+    private let recipes = ["Pasta al limone", "Spicy pasta bake", "Passion fruit sorbet", "Pâté on toast"]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(query.isEmpty ? "Search recipes" : query)
+                .fontWeight(.semibold)
+                .foregroundStyle(query.isEmpty ? .secondary : .primary)
+                .padding(.horizontal, 16)
+                .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                .background(.background, in: .capsule)
+            ForEach(recipes, id: \.self) { recipe in
+                MatchHighlight(recipe, query: query)
+                    .padding(.horizontal, 8)
+                    .opacity(MatchHighlight.matches(recipe, query: query) ? 1 : 0.3)
+            }
+        }
+        .everydayScene(width: 280)
+        .task {
+            while !Task.isCancelled {
+                for q in ["", "p", "pa", "pas", "past", "", "pa", "pat", "pate"] {
+                    try? await Task.sleep(for: .seconds(q.count >= 3 ? 1.4 : 0.4))
+                    withAnimation { query = q }
+                }
+            }
+        }
+    }
+}
+
+/// An AI rewrite: the original, then the changes, then the clean text.
+private struct TextDiffScene: View {
+    @State private var mode: TextDiffMode = .original
+
+    var body: some View {
+        TextDiff(from: "Our team will try to reply as soon as possible, usually on weekends too.", to: "Our team will reply within a day, even on weekends.", mode: mode)
+            .padding(18)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(.background, in: .rect(cornerRadius: 24, style: .continuous))
+            .everydayScene(width: 300)
+            .task {
+                while !Task.isCancelled {
+                    for next in [TextDiffMode.original, .changes, .clean] {
+                        mode = next
+                        try? await Task.sleep(for: .seconds(next == .original ? 1.5 : 2.6))
+                    }
                 }
             }
     }

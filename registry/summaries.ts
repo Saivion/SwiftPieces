@@ -30,6 +30,8 @@ export const summaries: Record<string, string> = {
   WalletStack: "A wallet of passes stacked by their header strips: tap one to open its whole face and a real scannable code, then put it back.",
 
   // Buttons and controls
+  SelectMenu: "A glass pill showing the current choice that opens in place into its list, the red row flowing to your pick before it closes.",
+  ViewToggle: "A glass list and grid toggle whose red pill flows between them, switching inside an animation so matched items morph.",
   CommitButton: "An async action button in liquid glass that runs through loading, success and error, with a progress bubble budding out of its end.",
   ElasticButton: "A button style that squashes toward the touch, stretches with the drag, deepens on a hold and springs back with the give you put in.",
   FanStack: "Overlapping avatars in glass bubbles that fan apart on tap and scrub under the finger, a name tag budding out of the one you hold.",
@@ -61,6 +63,8 @@ export const summaries: Record<string, string> = {
   GlassSurface: "The SwiftPieces liquid glass as a modifier: any view on a glass shape, neighbours melted together, with fallbacks before iOS 26.",
 
   // Inputs and forms
+  SizePicker: "A glass row of sizes with a red pill that flows to your pick, sold out sizes struck through and shaking, and a stock note under it.",
+  UnitToggle: "A value with a glass unit toggle: the red pill flows to the unit you tap and the number rolls to the converted Measurement.",
   AddressField: "An address field whose suggestions pour out as a glass list and resolve into a structured address with street, city and coordinate.",
   AmountField: "A currency entry that formats live in the user's locale as each digit rolls in, pastes cleanly and refuses amounts over the limit.",
   ChoiceGroup: "Radio and checkbox rows on a glass card: one red drop flows from ring to ring, and checked boxes flood red with a popping check.",
@@ -80,6 +84,7 @@ export const summaries: Record<string, string> = {
   TokenField: "A tag and recipient field where each entry buds out of the glass input as a chip, with checks, suggestions and backspace to remove.",
 
   // Lists
+  ReorderList: "Glass rows you reorder by holding the grip: the row lifts, its grip turns red and the others part, with a tick at each slot.",
   DepthCarousel: "Paged cards that recede in depth as they leave the centre, over a glass page counter and a track you can scrub.",
   DragSelectGrid: "A photo and file grid where one drag selects a whole range like the system photo library, auto-scrolling at the edges with a tick per item.",
   FollowScroll: "A chat and feed container that stays pinned to the newest item, counting new ones into a glass pill once you scroll up to read.",
@@ -89,6 +94,8 @@ export const summaries: Record<string, string> = {
   TaskRow: "A task card whose glass check pops as it completes, with a priority chip, swipes to complete, snooze or delete, and drag to reorder.",
 
   // Media
+  QRCode: "A styled QR code with round dots, soft eyes with red centres and your logo, whose dots ripple out from the centre when it changes.",
+  ZoomDial: "Preset stops in a glass capsule with a flowing red disc that widens into a fine dial when you hold it, like the camera zoom.",
   AttachmentTray: "An attachment strip for composers: a glass add tile opens the photo picker and each pick lands as a tile with a live progress ring.",
   LinkPreview: "A rich card for any URL that holds its size while it loads, then settles the page's image and title under a glass host chip.",
   NowPlaying: "A mini player that grows into the full player in one liquid glass motion, with scrubbing, skips and a drag to fold it back.",
@@ -118,6 +125,12 @@ export const summaries: Record<string, string> = {
   Toast: "A single liquid glass toast with a tile tinted for its kind, a countdown ring that pauses on touch and an optional Undo.",
 
   // Text
+  ReadAlongText: "Text that follows a recording word by word on an even red pill that glides along, read words turning solid; tap to seek.",
+  SmartText: "Plain text that finds links, @mentions, #tags, dates and phone numbers, styles them in place and lets you decide what a tap does.",
+  MatchHighlight: "Search results that mark why they matched, on a red mark that grows as you type, ignoring case and accents.",
+  TextDiff: "Two versions of a text, word by word: removed words struck through in red, new ones underlined, with a clean view.",
+  RelativeTime: "A timestamp that keeps itself current, rolling from just now to Yesterday only when its wording changes; tap for the exact time.",
+  TranslateToggle: "Text with an on-device Translate button: the words blur over one by one into the reader's language as the label rolls.",
   ExpandableText: "A paragraph clamped to a line limit that shows a glass more pill only when it is cut, and grows to full height without reflow.",
   GlassText: "Liquid Glass drawn on the actual letter shapes of a string, with fallbacks before iOS 26 and under Reduce Transparency.",
   PictureHeadline: "A headline with living pictures stuck between its words like a collage, each opening into a tilted sticker as the words rise.",

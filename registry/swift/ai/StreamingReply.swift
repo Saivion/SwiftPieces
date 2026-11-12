@@ -652,7 +652,7 @@ public extension StreamingReply {
         /// any other colour tints it, with dark ink on top.
         public var code: Color = .clear
         /// The three thinking dots, in order.
-        public var dots: [Color] = [Color(red: 1, green: 0, blue: 0), Color(red: 0.612, green: 0.761, blue: 1), Color(red: 0.804, green: 0.722, blue: 1)]
+        public var dots: [Color] = [Color(red: 1, green: 0, blue: 0), Color(red: 0.18, green: 0.545, blue: 1), Color(red: 1, green: 0, blue: 0.361)]
         /// Retry's tint and the mark in the error phase.
         public var signal: Color = Color(red: 1, green: 0, blue: 0)
         /// Dark ink used on every tint.
@@ -673,7 +673,7 @@ public extension StreamingReply {
         /// Labels and glyphs on Copy and Regenerate.
         public var actionInk: Color = Style.adaptive(0x141414, 0xF4F3EF)
         /// Copy's tint once it has copied.
-        public var success: Color = Color(red: 0.663, green: 0.863, blue: 0.718)
+        public var success: Color = Color(red: 0, green: 0.769, blue: 0.655)
         /// Name shown in the header and read by VoiceOver.
         public var assistantName: String = "Assistant"
         /// Show the mark, name and phase label above assistant replies.

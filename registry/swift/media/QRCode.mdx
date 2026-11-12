@@ -1,0 +1,9 @@
+## Notes
+
+- Encodes any string with Core Image's own QR generator at the highest error correction, H, so the logo in the middle and the rounded dots still scan. Use it for links, text, `WIFI:` logins and contact cards.
+- Drawn in one `Canvas`: round dots, three finder eyes with soft corners and red centres, and an optional logo on a red tile in a cleared square at the centre. It fills the square it is given and stays crisp at any size.
+- When the content changes, a ring spreads from the centre: dots the new code drops shrink away and dots it adds pop in.
+- A code is always dark on a light card, in dark mode too, so it scans. Recolour the dots, eye centres, card and logo tile through `QRCode.Style`.
+- To share it as an image, render it with `ImageRenderer(content: QRCode(text).frame(width: 600))`.
+- VoiceOver reads it as an image, "QR code", with what it encodes as its value.
+- Under Reduce Motion the new code appears at once.

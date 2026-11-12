@@ -10,11 +10,11 @@ const n = (p: Props, k: string) => Number(p[k] ?? 0);
 
 /** The flat scenes the preview and the sample photos draw: sky, sun, land (house blocks and paper). */
 export const TRAY_SCENES: Array<[string, string, string]> = [
-  ["#9CC2FF", "#FFD976", "#A9DCB7"],
-  ["#E9D5B3", "#FF0000", "#CDB8FF"],
-  ["#A9DCB7", "#F4F3EF", "#9CC2FF"],
-  ["#CDB8FF", "#FFD976", "#9CC2FF"],
-  ["#FFD976", "#F4F3EF", "#E9D5B3"],
+  ["#2E8BFF", "#FFC21A", "#00C4A7"],
+  ["#FF8A1F", "#FF0000", "#FF005C"],
+  ["#00C4A7", "#F4F3EF", "#2E8BFF"],
+  ["#FF005C", "#FFC21A", "#2E8BFF"],
+  ["#FFC21A", "#F4F3EF", "#FF8A1F"],
 ];
 
 const hex = (h: string) => `0x${h.replace("#", "").toUpperCase()}`;

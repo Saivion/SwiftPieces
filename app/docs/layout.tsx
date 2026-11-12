@@ -122,8 +122,8 @@ function flatSidebar(tree: PageTree.Root): PageTree.Root {
       out.push(heading("Explore Pro", undefined, "pro"));
       for (const n of explore) {
         const row = exploreRows[n.url];
-        // Games launched as a whole (2026-10-30), so every game counts as new, as Pro's docs badge the whole group.
-        const cards = row.type === "game" ? proGames.list.map(() => ({ isNew: true })) : proCards(row.type);
+        // Games count New for their newest wave only (lib/pro-catalog.ts proGames), as Pro's registry marks them.
+        const cards = row.type === "game" ? proGames.list.map((g) => ({ isNew: Boolean(g.isNew) })) : proCards(row.type);
         const fresh = cards.filter((c) => c.isNew).length;
         out.push({ ...tiered(withEnd(n, fresh ? <NewBadge>{`${fresh} New`}</NewBadge> : <span className="text-[11px] tabular-nums text-subtle">{cards.length}</span>), "pro"), icon: <SectionIcon kind={row.kind} tone="text-current" /> });
       }

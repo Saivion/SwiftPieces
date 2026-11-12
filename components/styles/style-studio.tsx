@@ -8,15 +8,15 @@ import { loadFontsHref, useStyleFonts } from "@swiftpieces/builder/react";
 import type { StyleScreen } from "@/lib/styles";
 import type { Spot } from "./follows";
 import type { StyleApp } from "./studio-actions";
-import { StudioCanvas, useDrawn, type CanvasTiles, type CanvasView, type Scheme } from "./studio-canvas";
+import { StudioCanvas, useDrawn, type CanvasView, type Scheme } from "./studio-canvas";
 import { StudioFrame } from "./studio-frame";
 import { StudioPanel } from "./studio-panel";
 import { initialStyle, useStudio } from "./studio-state";
 import { canvasSurfaces } from "./surfaces";
 
-export type StyleStudioProps = { tiles: CanvasTiles; screens: StyleScreen[]; apps: StyleApp[]; onReady?: () => void };
+export type StyleStudioProps = { screens: StyleScreen[]; apps: StyleApp[]; onReady?: () => void };
 
-export default function StyleStudio({ tiles, screens, apps, onReady }: StyleStudioProps) {
+export default function StyleStudio({ screens, apps, onReady }: StyleStudioProps) {
   const [first] = useState(initialStyle);
   const studio = useStudio(first.theme);
   // The canvas starts in the site's own mode; a style fixed to one mode shows in that one.
@@ -83,7 +83,7 @@ export default function StyleStudio({ tiles, screens, apps, onReady }: StyleStud
     <>
       <StudioFrame
         surfaces={surfaces}
-        canvas={<StudioCanvas theme={theme} drawn={drawn} leaving={leaving} root={canvasRoot} scheme={scheme} onScheme={onScheme} onEdit={edit} view={view} onView={setView} spot={spot} tiles={tiles} screens={screens} />}
+        canvas={<StudioCanvas theme={theme} drawn={drawn} leaving={leaving} root={canvasRoot} scheme={scheme} onScheme={onScheme} onEdit={edit} view={view} onView={setView} spot={spot} screens={screens} />}
         panel={<StudioPanel studio={studio} apps={apps} preferred={preferred} onNotice={notify} onSpot={setSpot} />}
       />
       <div aria-live="polite" className="pointer-events-none fixed inset-x-0 bottom-6 z-[60] flex justify-center px-4">

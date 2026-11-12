@@ -1397,7 +1397,7 @@ const FloatingDock: Renderer = (r) => {
             className="spb-anim"
             style={{
               position: "relative", height: 48, minWidth: 48, borderRadius: cr(24), display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: on ? "0 16px" : 0,
-              background: on ? "#FFD976" : "transparent", color: on ? INK : houseVar("muted"), ...font("subheadline", 600), cursor: "pointer",
+              background: on ? "#FFC21A" : "transparent", color: on ? INK : houseVar("muted"), ...font("subheadline", 600), cursor: "pointer",
               transform: up ? `translateY(-5px) scale(${on ? 1 : 1.14})` : undefined,
               transition: `padding .45s ${SPRING}, background-color .35s ease, color .25s, transform .28s ${SPRING}`,
             }}

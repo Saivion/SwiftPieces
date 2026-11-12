@@ -20,7 +20,7 @@
   /* Preview stage (components/previews/palette.ts `ground`): dark here, paper in light mode. */
   --pv-bg: #121212; --pv-surface: #1c1c1c; --pv-raised: #262626; --pv-line: rgba(255,255,255,0.08);
   --pv-text: #f4f3ef; --pv-muted: #a6a49f; --pv-subtle: #6f6d69;
-  --pv-field: #262626; --pv-control: #3a3a3a; --pv-trough: #2a2a2a; --pv-band: #4a4029;
+  --pv-field: #262626; --pv-control: #3a3a3a; --pv-trough: #2a2a2a; --pv-band: #4d3e14;
   --pv-shadow: 1;
   /* Liquid glass in the previews (components/previews/piece-liquid.tsx): a translucent body, so the stage shows through. */
   --pv-glass: rgba(38,38,41,0.62); --pv-glass-solid: #2a2a2d; --pv-glass-shade: rgba(0,0,0,0.24); --pv-glass-light: #3a3a3a; --pv-glass-rim: rgba(255,255,255,0.16); --pv-glass-lift: rgba(0,0,0,0.45); --pv-glass-edge: rgba(255,255,255,0.12);
@@ -54,6 +54,21 @@
     radial-gradient(28% 70% at 52% 60%, color-mix(in srgb, var(--pb-red) 32%, transparent), transparent 80%),
     #ffffff;
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.95), 0 1px 2px rgb(0 0 0 / 0.08);
+}
+
+/* The Games badge (2026-11-08, Saivion picked Iris "Pink tip"): the Pro badge's pearl in Games' own colours,
+   a lilac left end, violet clouds and a #ff005c glow at the right end, like light catching one side, with deep
+   violet type. Shape, rim and gloss are the Pro badge's; only the colours change. ProBadge tone="games" on both sites. */
+.pro-badge.games-badge {
+  --gb-lilac: #e0d4ff; --gb-violet: #9d7bff; --gb-pink: #ff005c; --gb-ink: #2a0d52;
+  border-color: rgb(42 13 82 / 0.16);
+  color: var(--gb-ink);
+  background:
+    radial-gradient(48% 110% at 4% 50%, var(--gb-lilac) 0%, transparent 78%),
+    radial-gradient(48% 110% at 98% 50%, color-mix(in srgb, var(--gb-pink) 55%, transparent) 0%, transparent 70%),
+    radial-gradient(50% 120% at 30% 105%, color-mix(in srgb, var(--gb-violet) 75%, transparent), transparent 72%),
+    radial-gradient(42% 110% at 64% 0%, color-mix(in srgb, var(--gb-violet) 55%, transparent), transparent 72%),
+    #ffffff;
 }
 
 /* A text link's underline (.u-link, brand theme.css) draws when anywhere on its link is hovered,
@@ -233,11 +248,11 @@
 /* Landing agent demo (components/sections/agent-demo.tsx): ScrubChartPreview reads its colour scheme
    from these variables. Registering them (initial values = the house palette defaults the preview
    falls back to) lets a scheme change cross-fade instead of snapping. */
-@property --scrub-accent { syntax: "<color>"; inherits: true; initial-value: #ffd976; }
+@property --scrub-accent { syntax: "<color>"; inherits: true; initial-value: #ffc21a; }
 @property --scrub-line { syntax: "<color>"; inherits: true; initial-value: #f4f3ef; }
 @property --scrub-surface { syntax: "<color>"; inherits: true; initial-value: #1c1c1c; }
 @property --scrub-raised { syntax: "<color>"; inherits: true; initial-value: #262626; }
-@property --scrub-chip { syntax: "<color>"; inherits: true; initial-value: #a9dcb7; }
+@property --scrub-chip { syntax: "<color>"; inherits: true; initial-value: #00c4a7; }
 @property --scrub-down { syntax: "<color>"; inherits: true; initial-value: #ff0000; }
 .scrub-tint { transition: --scrub-accent 0.7s ease, --scrub-line 0.7s ease, --scrub-surface 0.7s ease, --scrub-raised 0.7s ease, --scrub-chip 0.7s ease, --scrub-down 0.7s ease; }
 @media (prefers-reduced-motion: reduce) { .scrub-tint { transition: none; } }
@@ -375,7 +390,7 @@ html.promo-off .promo-slot { display: none; }
   --color-white: #fff; --color-black: #000;
   --pv-bg: #121212; --pv-surface: #1c1c1c; --pv-raised: #262626; --pv-line: rgba(255,255,255,0.08);
   --pv-text: #f4f3ef; --pv-muted: #a6a49f; --pv-subtle: #6f6d69;
-  --pv-field: #262626; --pv-control: #3a3a3a; --pv-trough: #2a2a2a; --pv-band: #4a4029;
+  --pv-field: #262626; --pv-control: #3a3a3a; --pv-trough: #2a2a2a; --pv-band: #4d3e14;
   --pv-shadow: 1;
   /* Liquid glass in the previews (components/previews/piece-liquid.tsx): a translucent body, so the stage shows through. */
   --pv-glass: rgba(38,38,41,0.62); --pv-glass-solid: #2a2a2d; --pv-glass-shade: rgba(0,0,0,0.24); --pv-glass-light: #3a3a3a; --pv-glass-rim: rgba(255,255,255,0.16); --pv-glass-lift: rgba(0,0,0,0.45); --pv-glass-edge: rgba(255,255,255,0.12);
@@ -492,7 +507,7 @@ html.light {
   /* Preview stage: the Free "paper" palette (palette.ts `paper`), an off-white ground with dark ink. */
   --pv-bg: #f3f2ee; --pv-surface: #ffffff; --pv-raised: #ffffff; --pv-line: rgba(0,0,0,0.08);
   --pv-text: #141414; --pv-muted: #5c5a56; --pv-subtle: #8b8984;
-  --pv-field: #ebe9e3; --pv-control: #dcd9d1; --pv-trough: #e3e1db; --pv-band: #f7e7b4;
+  --pv-field: #ebe9e3; --pv-control: #dcd9d1; --pv-trough: #e3e1db; --pv-band: #ffedba;
   /* Card shadows on paper run at about a third of their dark strength, as the Swift pieces do (dark uses 3x). */
   --pv-shadow: 0.36;
   --pv-glass: rgba(255,255,255,0.55); --pv-glass-solid: #fdfdfb; --pv-glass-shade: rgba(0,0,0,0.10); --pv-glass-light: #ffffff; --pv-glass-rim: rgba(255,255,255,0.9); --pv-glass-lift: rgba(0,0,0,0.10); --pv-glass-edge: rgba(0,0,0,0.10);
@@ -777,34 +792,49 @@ html.light .spl-phone { box-shadow: 0 0 0 1px rgb(0 0 0 / .1); }
 /* ---------- Styles studio (/styles) ----------
    The settings panel, the canvas's floating bar and the tray the tiles sit in follow the site's theme
    (Graphite surfaces); only the tiles themselves take the style being made. */
-.studio-tray { --studio-tray: var(--surface); --studio-tray-solid: var(--surface); }
-/* The canvas's tiles (components/styles/studio-canvas.tsx), in named areas: from 768px three columns
-   of six rows, the hero three rows tall, the chart two columns by two rows, the week a wide strip,
-   so the seams stagger like a puzzle's and no two tiles share a shape and place. On a phone, a row
-   of full-height tiles to swipe through, the next one peeking (the two strips stay for wider screens). */
-.studio-grid { display: flex; gap: 12px; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; scrollbar-width: none; }
-.studio-grid::-webkit-scrollbar { display: none; }
-.studio-grid > [data-tile] { flex: 0 0 84%; scroll-snap-align: start; }
-.studio-grid > :is([data-tile="track"], [data-tile="days"]) { display: none; }
-@media (min-width: 768px) {
-  .studio-grid {
-    display: grid; overflow: visible;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    grid-template-rows: repeat(6, minmax(0, 1fr));
-    grid-template-areas: "hero type palette" "hero type palette" "hero track pay" "chart chart pay" "chart chart goal" "days days goal";
-  }
-  .studio-grid > :is([data-tile="track"], [data-tile="days"]) { display: block; }
+.studio-tray { --studio-tray: var(--surface); }
+/* The Styles studio's bento canvas (components/styles/bento): nineteen live cards. --k scales the
+   cards' design pixels (a 1000 x 780 canvas) to the canvas. A phone shows seven of them in two
+   columns (a 400 x 640 canvas); from 768px all nineteen, in five columns of eight rows whose seams
+   stagger. */
+.bento-host { container-type: size; }
+.bento-grid {
+  --k: min(calc(100cqh / 640), calc(100cqw / 400)); --bento-r: 20px;
+  display: grid; gap: 8px;
+  grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(7, minmax(0, 1fr));
+  grid-template-areas: "chart chart" "chart chart" "rings toggle" "rings toggle" "react timer" "react timer" "seg pay";
 }
-.studio-grid > [data-tile="hero"] { grid-area: hero; }
-.studio-grid > [data-tile="type"] { grid-area: type; }
-.studio-grid > [data-tile="palette"] { grid-area: palette; }
-.studio-grid > [data-tile="track"] { grid-area: track; }
-.studio-grid > [data-tile="pay"] { grid-area: pay; }
-.studio-grid > [data-tile="chart"] { grid-area: chart; }
-.studio-grid > [data-tile="goal"] { grid-area: goal; }
-.studio-grid > [data-tile="days"] { grid-area: days; }
-/* A tile's components take the whole tile: the column fills it and its spacers share what's left. */
-.studio-fill .spb-screen-host > .spb-vflow { flex: 1 1 auto; }
+.bento-grid > [data-card] { display: none; }
+.bento-grid > :is([data-card="chart"], [data-card="rings"], [data-card="toggle"], [data-card="react"], [data-card="timer"], [data-card="seg"], [data-card="pay"]) { display: block; }
+@media (min-width: 768px) {
+  .bento-grid {
+    --k: min(calc(100cqh / 780), calc(100cqw / 1000)); --bento-r: 22px; gap: 10px;
+    grid-template-columns: 1.25fr 1fr 1.5fr 1fr 1.25fr; grid-template-rows: repeat(8, minmax(0, 1fr));
+    grid-template-areas:
+      "player type chart rings swatch" "player type chart rings swatch" "player heat chart sliders swatch" "seg heat chat sliders status"
+      "code toggle chat timer status" "code toggle tasks timer pricing" "week react tasks units pricing" "week react tasks units pay";
+  }
+  .bento-grid > [data-card] { display: block; }
+}
+.bento-grid > [data-card="player"] { grid-area: player; }
+.bento-grid > [data-card="seg"] { grid-area: seg; }
+.bento-grid > [data-card="code"] { grid-area: code; }
+.bento-grid > [data-card="week"] { grid-area: week; }
+.bento-grid > [data-card="type"] { grid-area: type; }
+.bento-grid > [data-card="heat"] { grid-area: heat; }
+.bento-grid > [data-card="toggle"] { grid-area: toggle; }
+.bento-grid > [data-card="react"] { grid-area: react; }
+.bento-grid > [data-card="chart"] { grid-area: chart; }
+.bento-grid > [data-card="chat"] { grid-area: chat; }
+.bento-grid > [data-card="tasks"] { grid-area: tasks; }
+.bento-grid > [data-card="rings"] { grid-area: rings; }
+.bento-grid > [data-card="sliders"] { grid-area: sliders; }
+.bento-grid > [data-card="timer"] { grid-area: timer; }
+.bento-grid > [data-card="units"] { grid-area: units; }
+.bento-grid > [data-card="swatch"] { grid-area: swatch; }
+.bento-grid > [data-card="status"] { grid-area: status; }
+.bento-grid > [data-card="pricing"] { grid-area: pricing; }
+.bento-grid > [data-card="pay"] { grid-area: pay; }
 
 /* The Pro offer's "Included" grid (ProCTA), the same as pro.swiftpieces.com's offer card: open cells
    divided by hairline seams (Graphite), never boxed. ::before draws a cell's right seam, ::after its

@@ -1,6 +1,6 @@
 # SwiftPieces: full text
 
-> 85 free SwiftUI components for iOS, one Swift file each, MIT + Commons Clause. Index: https://swiftpieces.com/llms.txt. Source for any piece: https://swiftpieces.com/r/<Name>.json or its docs page.
+> 98 free SwiftUI components for iOS, one Swift file each, MIT + Commons Clause. Index: https://swiftpieces.com/llms.txt. Source for any piece: https://swiftpieces.com/r/<Name>.json or its docs page.
 
 # Reference
 
@@ -211,9 +211,9 @@ npx swiftpieces whoami               # check whether your key has Pro access
 
 URL: https://swiftpieces.com/docs/mcp
 
-Connect Claude Code, Cursor or any MCP client to the free library, so your agent installs the real piece instead of inventing a lookalike.
+Connect Claude Code, Cursor or any MCP client to the free library and the App Design skill, so your agent designs with a method and installs the real piece instead of inventing a lookalike.
 
-The SwiftPieces MCP server is public and needs no account. Your agent can search the free library, read a piece's source and install it into your project.
+The SwiftPieces MCP server is public and needs no account. Your agent can search the free library, read a piece's source and install it into your project. It also carries App Design, a free design method for any SwiftUI app, with or without SwiftPieces: study real apps first, reuse pieces instead of rebuilding them, pick the right navigation, keep motion native, and check every flow in the simulator before calling it done.
 
 **URL:** `https://swiftpieces.com/api/mcp`
 
@@ -249,10 +249,28 @@ Add the SwiftPieces "Assistant Orb" piece to my app
 
 Every piece page has this prompt ready to copy under **Install**.
 
+To design a whole screen or flow, start from the skill. In Claude Code, the server's prompts show up as slash commands:
+
+```text
+/mcp__swiftpieces__app-design onboarding with a paywall for my meditation app
+```
+
+In other clients, ask your agent to "use the SwiftPieces App Design skill". It loads the skill with `get_design_skill` and reads each reference only when the skill points to it.
+
+### Prompts and resources
+
+| Name | What it is |
+| --- | --- |
+| `app-design` prompt | The App Design skill, ready to follow for the task you give it. |
+| `swiftpieces://skills/swiftpieces-tool-app-design` | The skill as a resource you can attach as context. |
+| `swiftpieces://skills/swiftpieces-tool-app-design/references/<name>` | Its references: `native-controls`, `navigation`, `motion`, `performance` and `simulator-loop`. |
+| `swiftpieces://guides/liquid-glass` | The Liquid Glass rules below. |
+
 ### Tools
 
 | Tool | What it does |
 | --- | --- |
+| `get_design_skill` | The App Design skill, or one of its references. |
 | `search_pieces` | Search the free library by keyword, category or minimum iOS version. |
 | `search_blocks` | Search patterns (also called blocks), whole sections of a screen in SwiftPieces Pro, by keyword or category. |
 | `get_piece` | A piece's or a free block's full source, shaders and docs link. |
@@ -944,6 +962,26 @@ Colors and type for `LiquidSwitch`. `.standard` is the house palette: the brand 
 - One light impact haptic fires for each flip. VoiceOver reads the switch as a toggle with its title and an On or Off value, and a double-tap flips it. `.disabled(true)` dims it.
 - Under Reduce Motion both edges share one short spring, so the thumb slides whole with no stretch. Reduce Transparency draws the track as a solid shape.
 
+## Select Menu (`SelectMenu`)
+
+URL: https://swiftpieces.com/docs/components/controls/select-menu
+Category: Controls. iOS 17.0+. Liquid Glass on iOS 26 with a Material fallback.
+Files: SelectMenu.swift
+Install: npx swiftpieces add SelectMenu
+
+A glass pill that shows the current choice and opens in place into its list of options. The red row flows to the option you tap, the check follows it, and the glass closes back into the pill with the new value. For sort orders, currencies, units and any short list of choices. Opening, flowing and closing each have their own spring, VoiceOver reads it as a pop-up button with its value, and under Reduce Motion it fades.
+
+Colors for `SelectMenu`. `.standard` is the house palette.
+
+### Notes
+
+- Takes any `Hashable` options with a `label` closure for their text, so an enum of sort orders, currencies or units drops straight in.
+- The closed pill shows the current value. Tapping it opens the glass in place into the list, a little slower than it closes, and the chevron turns over.
+- The selected row is a red pill. A new pick flows the red to it and the check follows, then the glass closes a beat later so the move reads, and the new value blurs into the pill.
+- The pill keeps its own height in your layout and the list opens over the views below it. If a later sibling draws on top, give the menu a higher `zIndex`.
+- One selection haptic fires per pick. VoiceOver reads the title and current value on the pill, and marks the selected row. `.disabled(true)` dims it.
+- Under Reduce Motion the glass opens and closes with short fades and the red slides without overshoot.
+
 ## Timer Dial (`TimerDial`)
 
 URL: https://swiftpieces.com/docs/components/controls/timer-dial
@@ -983,6 +1021,24 @@ Settable countdown ring, or a determinate progress ring with the same look. The 
 - `style`: Ring, track, knob, tick, warning and finish colors plus the numeral size. `.standard` is the house palette with a tangerine ring.
 - `onFinish`: Called once when the ring reaches zero.
 - `progress`: Determinate mode: a 0–1 value with a percent readout and no clock.
+
+## View Toggle (`ViewToggle`)
+
+URL: https://swiftpieces.com/docs/components/controls/view-toggle
+Category: Controls. iOS 17.0+. Liquid Glass on iOS 26 with a Material fallback.
+Files: ViewToggle.swift
+Install: npx swiftpieces add ViewToggle
+
+A list and grid toggle in glass. The red pill flows to the layout you tap, and the change happens inside an animation, so items you mark with matchedGeometryEffect in a shared namespace morph between rows and tiles instead of cutting. For photo libraries, shops, files and any collection with two views. VoiceOver reads it as a picker with the current layout.
+
+The two layouts `ViewToggle` switches between.
+
+### Notes
+
+- A two-segment glass toggle for list and grid, with SF Symbols for each. The red pill flows between them.
+- The toggle sets `layout` inside an animation, the morph spring unless you pass your own. Mark each item with `matchedGeometryEffect(id:in:)` in both layouts, using one `@Namespace`, and the items move from rows to tiles with the pill instead of cutting.
+- One selection haptic fires per change. VoiceOver reads it as Layout with List and Grid buttons and marks the selected one.
+- Under Reduce Motion the pill slides whole and the morph spring has no overshoot.
 
 ## Activity Heatmap (`ActivityHeatmap`)
 
@@ -2022,6 +2078,27 @@ Signature capture that feels like ink, bound to a `SignaturePad.Signature` value
 - `allowsTyping`: Offers Type instead, which sets the typed name in a script face on the same baseline. This is the accessible path for people who cannot draw a signature (VoiceOver, motor impairments), so turn it off only when your flow offers another way to sign.
 - `style`: Colors, ink weight, corner radius and pad height. Defaults to the SwiftPieces house palette, adapting to light and dark.
 
+## Size Picker (`SizePicker`)
+
+URL: https://swiftpieces.com/docs/components/inputs/size-picker
+Category: Inputs. iOS 17.0+. Liquid Glass on iOS 26 with a Material fallback.
+Files: SizePicker.swift
+Install: npx swiftpieces add SizePicker
+
+A glass row of sizes with a red pill that flows to the one you tap, its leading edge reaching the new size first. Sold out sizes are struck through and shake when tapped, and a short note under the row says what is left: in stock, only two left, or that a size is sold out. For clothes, shoes, cup sizes and plan tiers. VoiceOver reads each size with its note, and sold out sizes as dimmed.
+
+Colors for `SizePicker`. `.standard` is the house palette.
+
+### Notes
+
+- Sizes are strings, so clothing letters, shoe numbers, cup sizes or plan tiers all work. Mark sold out ones in `unavailable`.
+- The chosen size is a red pill that flows: the edge facing the new size leads on a tight spring and the far edge follows.
+- Sold out sizes are dimmed and struck through. Tapping one shakes the row with an error haptic and the note says it is sold out; the selection stays where it was.
+- The note under the row comes from your `note` closure for the chosen size, such as "Only 2 left", and falls back to "In stock". It blurs to each new line.
+- Cells are 44pt and scale with Dynamic Type. A row wider than its space scrolls sideways.
+- One selection haptic fires per pick. VoiceOver reads each size with its note, or "Sold out". `.disabled(true)` dims the row.
+- Under Reduce Motion the pill slides whole on one short spring.
+
 ## Swatch Picker (`SwatchPicker`)
 
 URL: https://swiftpieces.com/docs/components/inputs/swatch-picker
@@ -2035,7 +2112,7 @@ Colors for `SwatchPicker`. `.standard` is the house palette.
 
 ### Notes
 
-- Each swatch is a named color, so VoiceOver reads the name ("Sky, selected") rather than a color value. `SwatchPicker.house` is the SwiftPieces red and five pastels; pass your own `[Swatch]` for a tag or theme palette.
+- Each swatch is a named color, so VoiceOver reads the name ("Blue, selected") rather than a color value. `SwatchPicker.house` is the SwiftPieces red and five vivid blocks; pass your own `[Swatch]` for a tag or theme palette.
 - The selection is a ring around the swatch. On a new pick the edge facing the new swatch leads on a tight spring and the far edge follows on a looser one, so the ring stretches into a capsule across the swatches between and gathers in around the new one.
 - A check pops into the picked swatch in ink or white, whichever reads on that color in the current appearance.
 - Swatches are 34pt by default, and the gap around each counts as part of it, so the tap target reaches 44pt. A row wider than its space scrolls sideways.
@@ -2101,6 +2178,26 @@ Wrapping liquid glass token entry bound to an array of strings: tags, skills, re
 - `separators`: Keys and characters that commit the typed text. `.standard` is return, comma and pasted line breaks. Full-width commas and semicolons count as their ASCII forms.
 - `style`: Colors and field metrics. Defaults to the SwiftPieces house palette, adapting to light and dark.
 - `validate`: Accepts or rejects a trimmed entry (for example an email check). A rejected entry stays in the input, the field shakes, the input takes the error tint and an error haptic plays.
+
+## Unit Toggle (`UnitToggle`)
+
+URL: https://swiftpieces.com/docs/components/inputs/unit-toggle
+Category: Inputs. iOS 17.0+. Liquid Glass on iOS 26 with a Material fallback.
+Files: UnitToggle.swift
+Install: npx swiftpieces add UnitToggle
+
+A value with a small glass unit toggle beside it. Tap the other unit and the red pill flows to it while the number rolls to the converted value. Built on Foundation's Measurement, so any pair of units works: kilograms and pounds, Celsius and Fahrenheit, kilometres and miles, cups and millilitres. The binding keeps the converted measurement, and VoiceOver reads the value with its full unit name.
+
+Colors and type for `UnitToggle`. `.standard` is the house palette.
+
+### Notes
+
+- Built on Foundation's `Measurement`, so any `Dimension` works: mass, temperature, length, speed, volume, energy. Pass the units to switch between, usually two.
+- Tapping the other unit converts the bound measurement with `converted(to:)` and writes it back in the new unit, so your model always holds what is shown.
+- The red pill flows to the chosen unit and the number rolls to the converted value with a numeric content transition. Unit symbols come from `MeasurementFormatter`, so they follow the locale.
+- `fractionDigits` caps the decimals shown. Turn `showsValue` off to put the toggle beside your own text.
+- VoiceOver reads the value with its full unit name, such as "72.4 kilograms", and each unit by name.
+- Under Reduce Motion the pill slides whole and the number changes without rolling.
 
 ## Depth Carousel (`DepthCarousel`)
 
@@ -2254,6 +2351,26 @@ An infinitely scrolling list driven by an async page loader, with every paginati
 - `style`: Colors and metrics for the built-in skeleton, status pill, empty and error views. Defaults to the house palette.
 - `row`: Builds the row for one item.
 - `empty`: A custom empty state, shown when the first page has no items (for example a `ContentUnavailableView`).
+
+## Reorder List (`ReorderList`)
+
+URL: https://swiftpieces.com/docs/components/lists/reorder-list
+Category: Lists. iOS 17.0+. Liquid Glass on iOS 26 with a Material fallback.
+Files: ReorderList.swift
+Install: npx swiftpieces add ReorderList
+
+Rows you reorder by holding the grip and dragging. The row lifts in glass under your finger, its grip turns red, and the other rows part on a spring as it passes, with a tick at each new slot. Let go and it settles into place and writes the new order back to your array. For lists, playlists, priorities and home screen sections. VoiceOver gets Move up and Move down actions on every row.
+
+Colors and spacing for `ReorderList`. `.standard` is the house palette.
+
+### Notes
+
+- Give it a binding to an array of `Identifiable` items and a row builder. A glass grip is added at the end of each row; the drop writes the new order back to the array.
+- Hold the grip briefly and the row lifts: a slight scale, a deeper shadow and a red grip, with a medium haptic. It follows the finger exactly while the rows it passes spring aside, with a selection tick at each new slot.
+- On release the move is written in the same frame the rows settle, so nothing jumps, and the dropped row springs the last few points into its slot with a success haptic.
+- Rows are spaced by the height of the first row, so keep them one height. It is a plain stack, not a `List`, for the short lists people arrange by hand.
+- VoiceOver gets Move up and Move down actions on every row, so it can be reordered without dragging.
+- Under Reduce Motion the lift does not scale and the rows settle without overshoot.
 
 ## Status Timeline (`StatusTimeline`)
 
@@ -2562,6 +2679,27 @@ Photos-style viewer: page horizontally at rest, zoom and pan a page, pinch past 
 - `onDismiss`: Called once a dismiss gesture or the close button has finished animating; end the presentation here.
 - `content`: The photo for an item, typically a resizable image with `.scaledToFit()`.
 
+## QR Code (`QRCode`)
+
+URL: https://swiftpieces.com/docs/components/media/qr-code
+Category: Media. iOS 17.0+.
+Files: QRCode.swift
+Install: npx swiftpieces add QRCode
+
+Turns any string, link or Wi-Fi login into a styled QR code: round dots, soft corner eyes with red centres, and your icon in the middle, with error correction raised to the highest level so it still scans. When the content changes, the dots ripple out from the centre into the new code. It draws with Core Image's own encoder and Canvas, so it is crisp at any size, and it renders with ImageRenderer for sharing. For tickets, invites, pairing and sharing.
+
+Colors for `QRCode`. A code is always dark on light, so it scans in dark mode too: these don't follow the appearance.
+
+### Notes
+
+- Encodes any string with Core Image's own QR generator at the highest error correction, H, so the logo in the middle and the rounded dots still scan. Use it for links, text, `WIFI:` logins and contact cards.
+- Drawn in one `Canvas`: round dots, three finder eyes with soft corners and red centres, and an optional logo on a red tile in a cleared square at the centre. It fills the square it is given and stays crisp at any size.
+- When the content changes, a ring spreads from the centre: dots the new code drops shrink away and dots it adds pop in.
+- A code is always dark on a light card, in dark mode too, so it scans. Recolour the dots, eye centres, card and logo tile through `QRCode.Style`.
+- To share it as an image, render it with `ImageRenderer(content: QRCode(text).frame(width: 600))`.
+- VoiceOver reads it as an image, "QR code", with what it encodes as its value.
+- Under Reduce Motion the new code appears at once.
+
 ## Story Strip (`StoryStrip`)
 
 URL: https://swiftpieces.com/docs/components/media/story-strip
@@ -2687,6 +2825,26 @@ A voice note player whose waveform is the scrubber, for voice messages, audio no
 - `style`: Colours, the control's height and the bars' width and spacing. Defaults to the SwiftPieces house palette, adapting to light and dark, with red for the play button.
 - `onPlayPause`: Called when play or pause is tapped (and on Space or a two-finger double tap in VoiceOver). Start or pause your player. When the note has finished (`time` at `duration`, not playing), the button shows replay and `onSeek(0)` is called first.
 - `onSeek`: Called once when a scrub or tap ends, for each VoiceOver or arrow key step of 5 seconds, and with 0 before a replay, with the time in seconds to move your player to.
+
+## Zoom Dial (`ZoomDial`)
+
+URL: https://swiftpieces.com/docs/components/media/zoom-dial
+Category: Media. iOS 17.0+. Liquid Glass on iOS 26 with a Material fallback.
+Files: ZoomDial.swift
+Install: npx swiftpieces add ZoomDial
+
+Preset stops in a glass capsule, like the camera's zoom buttons, with a red disc that flows between them. Tap a stop to jump to it. Press and hold and the capsule widens into a dial: slide for any value in between, with a tick at each tenth, then let go and it folds back with the exact value in the disc. For camera zoom, playback speed, map scale and anything with a few favourite values. VoiceOver adjusts it stop by stop.
+
+Colors for `ZoomDial`. `.standard` is the house palette.
+
+### Notes
+
+- Preset `stops` sit in a glass capsule with the chosen one on a red disc that flows: its leading edge reaches the new stop first and the far edge follows, so it stretches and gathers in.
+- Press and hold for about a third of a second and the capsule widens into a dial: a ruler with a tick at each tenth and labels at each whole number, under a fixed red needle. Slide left to turn the value up. A selection haptic ticks at every tenth.
+- Let go and the capsule folds back. The disc moves to the nearest stop and shows the exact value, such as 1.6×.
+- One touch does both: a short tap picks the stop under it, a hold opens the dial. The value is clamped to `range` and kept to hundredths.
+- VoiceOver reads it as one adjustable element, "Zoom, 2×"; swipe up or down to step through the stops.
+- Under Reduce Motion the disc slides whole and the capsule changes width without overshoot.
 
 ## Drag to Dismiss (`DragToDismiss`)
 
@@ -3221,6 +3379,26 @@ Liquid Glass applied to text outlines via Core Text glyph paths. The glyph path 
 - `scalesWithDynamicType`: Set false to pin the point size.
 - `style`: Line alignment and leading, fallback specular strength, depth shadow and the Reduce Transparency fill.
 
+## Match Highlight (`MatchHighlight`)
+
+URL: https://swiftpieces.com/docs/components/text/match-highlight
+Category: Text. iOS 17.0+.
+Files: MatchHighlight.swift
+Install: npx swiftpieces add MatchHighlight
+
+Search results that show why they matched. Give it a result and the query, and the matching part of each word sits on a red mark that grows as the person types. It ignores case and accents, so pate finds Pâté, and every word of the query is matched on its own, at the start of any word. A matching test filters your list with the same rules, so the marks and the results never disagree. VoiceOver reads the plain text. For search results, filters, pickers and command menus.
+
+Colors and type for `MatchHighlight`. `.standard` is the house palette.
+
+### Notes
+
+- Use it for each result in a search list: `MatchHighlight(recipe.title, query: search)`. The part of each word that matches sits on a red mark, with the text in dark ink on it.
+- Matching ignores case, accents and full-width forms, in the reader's locale: "pate" marks all four letters of "Pâté", and "CAFE" marks "café".
+- Each word of the query is matched on its own, at the start of any word, so "pasta spicy" marks both words of "Spicy pasta bake". Set `mode: .anywhere` to match inside words too, for codes, file names and IDs.
+- Filter your list with `MatchHighlight.matches(_:query:)`. It uses the same rules as the marks, so a row is shown exactly when every query word has a mark in it.
+- The marks grow and shrink with the value spring as the query changes, and an empty query marks nothing.
+- VoiceOver reads the plain text without the marks.
+
 ## Picture Headline (`PictureHeadline`)
 
 URL: https://swiftpieces.com/docs/components/text/picture-headline
@@ -3260,6 +3438,88 @@ A headline with pictures stuck between its words like stickers, revealed in read
 - `haptics`: A light tick as each picture lands and when one is lifted. On by default.
 - `style`: Picture size, corner rounding, tilt, rim, crop marks, lifting, drift and the opening spring.
 
+## Read-Along Text (`ReadAlongText`)
+
+URL: https://swiftpieces.com/docs/components/text/read-along-text
+Category: Text. iOS 17.0+.
+Files: ReadAlongText.swift
+Install: npx swiftpieces add ReadAlongText
+
+Text that follows a recording word by word, like karaoke for audiobooks, podcasts and lessons. The word being spoken sits on an even red pill with the same room on both sides, sized to the word and centred on its line, so it never clips a letter or touches the next word. The pill glides to each new word, words already read turn solid and the rest stay quiet. Tap any word to seek there. Drive it with your player's time; it wraps like text and scales with Dynamic Type.
+
+Colors and type for `ReadAlongText`. `.standard` is the house palette.
+
+### Notes
+
+- Give it the transcript as words with their start times and durations, from your speech or captions data, and your player's current time. `ReadAlongText.Word.spread(_:over:)` times plain text across a duration when you have no word timings.
+- The spoken word sits on an even red pill: the word's own box with the same padding on both sides, a little taller than its letters, so it never clips a letter or meets the next word. The pill glides from word to word and from line to line.
+- Words already read turn solid and words to come stay quiet, so the place in the text reads at a glance.
+- Pass `onSeek` and a tap on any word calls it with that word's start time; leave it out and the text is not tappable.
+- Words wrap like text and the pill, spacing and line gap scale with Dynamic Type.
+- VoiceOver reads the whole passage as one element.
+- Under Reduce Motion the pill moves without overshoot.
+
+## Relative Time (`RelativeTime`)
+
+URL: https://swiftpieces.com/docs/components/text/relative-time
+Category: Text. iOS 17.0+.
+Files: RelativeTime.swift
+Install: npx swiftpieces add RelativeTime
+
+A timestamp that keeps itself current: just now, then 1 min ago, then Yesterday, rolling up to each new wording. It wakes only when the wording would change, so it costs nothing in between, even in a long feed. Tap it to see the exact date and time in red, and tap again to go back. It follows the locale through Foundation's RelativeDateTimeFormatter, and VoiceOver reads it in full, as in 1 minute ago. For feeds, messages, activity and comments.
+
+Colors and type for `RelativeTime`. `.standard` is the house palette.
+
+### Notes
+
+- Shows "just now" under a minute, then the locale's own wording from `RelativeDateTimeFormatter`, such as "1 min. ago", "3 hr. ago" or "Yesterday".
+- It sleeps until the wording would next change, the next whole minute, hour or day, and then rolls up to the new text. Nothing runs in between, so a long feed of them costs nothing.
+- Tap it to see the exact date and time in red, and tap again to go back. Turn this off with `tapToReveal: false`.
+- VoiceOver reads the full wording, such as "1 minute ago", and hints that a tap shows the exact time.
+- Under Reduce Motion the text changes with a fade instead of rolling.
+
+## Smart Text (`SmartText`)
+
+URL: https://swiftpieces.com/docs/components/text/smart-text
+Category: Text. iOS 17.0+.
+Files: SmartText.swift
+Install: npx swiftpieces add SmartText
+
+Plain text that finds what's tappable in it: links, @mentions, #tags, dates, phone numbers and addresses. Each match is styled in place, in red with an underline, and lights up as it's found. You decide what a tap does; anything you leave to the piece opens the link, calls the number, shows the date in Calendar or the address in Maps. Detection runs once per string, follows the reader's locale for dates, and VoiceOver lists the matches as links. For comments, chat bubbles, bios, notes and descriptions.
+
+Colors and type for `SmartText`. `.standard` is the house palette.
+
+### Notes
+
+- Give it plain text and it finds links (including bare domains such as `lunchbox.co`), email addresses, @mentions, #tags, dates and times, phone numbers and postal addresses. Narrow it with `kinds`, such as `[.links, .mentions]`.
+- The text draws at once and the matches light up a moment later, once per string. Detection runs again only when the text changes, so it's cheap in a long list.
+- Links, dates, phone numbers and addresses are red with a red underline. Mentions and tags keep the text color with a red underline, so a busy comment doesn't turn red.
+- `onTap` gets every tap as a `SmartTextMatch` with its kind and the text as written. Return `true` when you handled it. Return `false` (or leave `onTap` out) and the piece does the default: links open, phone numbers call, dates open that day in Calendar and addresses open in Maps. Mentions and tags have no default, so route them yourself.
+- Dates are read relative to now in the reader's calendar and language, so "Friday at 7" gives next Friday at 7 PM.
+- An @ inside an email address or a # inside a link stays part of that link and isn't found again as a mention or a tag.
+- Each tap gives a selection tick. VoiceOver lists the matches as links in the rotor, and Dynamic Type scales the text.
+- Under Reduce Motion the matches appear without the fade.
+
+## Text Diff (`TextDiff`)
+
+URL: https://swiftpieces.com/docs/components/text/text-diff
+Category: Text. iOS 17.0+.
+Files: TextDiff.swift
+Install: npx swiftpieces add TextDiff
+
+Shows what changed between two versions of a text, word by word. Removed words are struck through in red and new words are underlined, and switching to Clean folds the removed words away so it reads as the final text. Original shows the text as it was. It counts the changes for a caption such as 3 changes, and VoiceOver reads each change as removed or added. For AI rewrites, edit history, suggestions and review screens.
+
+Colors and type for `TextDiff`. `.standard` is the house palette.
+
+### Notes
+
+- Give it two versions of a text: `TextDiff(from: draft, to: rewrite)`. It compares them word by word and keeps the spaces in place, so neighbouring words never run together.
+- In `.changes` mode, removed words are struck through in red and new words are underlined. A removal always comes before what replaced it, so "~~will try to~~ will" reads in order.
+- Bind `mode` to a picker or a button: `.clean` folds the removed words away and drops the underlines, so it reads as the final text, and `.original` shows the text as it was. Switching animates with the morph spring.
+- `TextDiff.changeCount(from:to:)` counts the changes for a caption such as "Edited by AI · 3 changes". A removal and the words that replaced it count as one change.
+- VoiceOver reads the text with each change in place, such as "Our team, removed: will try to, added: will, reply…". In the other modes it reads the plain text.
+- The diff runs when the view is made, which is instant for paragraphs. For whole documents, show one paragraph per `TextDiff`.
+
 ## Text Reveal (`TextReveal`)
 
 URL: https://swiftpieces.com/docs/components/text/text-reveal
@@ -3297,6 +3557,26 @@ Staggered text reveal that wraps correctly at any width and Dynamic Type size. T
 - `trigger`: Change this value to replay the reveal.
 - `highlights`: Phrases (one or more whole words, matched case-insensitively, ignoring punctuation) that get a glass highlight after they land. A highlighted phrase never breaks across rows. Ignored with `.lines`.
 - `style`: Highlight tint and ink, rise mask and blur radius. Defaults to the house palette.
+
+## Translate Toggle (`TranslateToggle`)
+
+URL: https://swiftpieces.com/docs/components/text/translate-toggle
+Category: Text. iOS 17.0+.
+Files: TranslateToggle.swift
+Install: npx swiftpieces add TranslateToggle
+
+Text that can show itself in the reader's language. Tap Translate and the words blur over one by one into the translation while the language label rolls to say where it came from; tap Original to go back. It uses Apple's on-device Translation framework, so it needs no keys and no server, and it detects the source language itself. The button hides when the text is already in the reader's language, and before iOS 18. For reviews, comments, menus and travel.
+
+Colors and type for `TranslateToggle`. `.standard` is the house palette.
+
+### Notes
+
+- Uses Apple's on-device Translation framework, so there are no keys, no server and nothing leaves the device. The first translation into a language may ask the reader to download it.
+- The source language is detected with NaturalLanguage and shown above the text. The target is the reader's language unless you pass one.
+- Tap Translate and the words blur out one by one and the translation sharpens in the same way, while the language line rolls to say where it came from. The button turns red and reads Original; tap it to go back. The translation is kept, so switching again is instant.
+- The button hides when the text is already in the target language, and before iOS 18, where Translation is not available.
+- If a translation fails, such as an unsupported pair or a declined download, it stays on the original and the next tap tries again.
+- Under Reduce Motion the text cross-fades instead of blurring word by word.
 
 # Guides
 

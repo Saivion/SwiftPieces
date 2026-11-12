@@ -90,6 +90,19 @@ export const searchPhrase: Record<string, string> = {
   GlassText: "Liquid Glass Text Effect",
   TextReveal: "Animated Text Reveal",
   PictureHeadline: "Headline with Inline Images",
+  SelectMenu: "Dropdown Select Menu",
+  ZoomDial: "Camera Zoom Dial",
+  ReorderList: "Drag to Reorder List",
+  SizePicker: "Size Picker for Shops",
+  UnitToggle: "Unit Conversion Toggle",
+  ViewToggle: "List and Grid View Toggle",
+  QRCode: "QR Code Generator",
+  ReadAlongText: "Read-Along Text Highlighting",
+  SmartText: "Smart Text Links and Mentions",
+  MatchHighlight: "Search Match Highlight",
+  TextDiff: "Text Diff Changes View",
+  RelativeTime: "Relative Time Ago Label",
+  TranslateToggle: "Translate Text Button",
 };
 
 /** Lowercases a phrase for use mid-sentence, keeping proper nouns and acronyms as written. */

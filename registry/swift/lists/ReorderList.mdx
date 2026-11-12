@@ -1,0 +1,8 @@
+## Notes
+
+- Give it a binding to an array of `Identifiable` items and a row builder. A glass grip is added at the end of each row; the drop writes the new order back to the array.
+- Hold the grip briefly and the row lifts: a slight scale, a deeper shadow and a red grip, with a medium haptic. It follows the finger exactly while the rows it passes spring aside, with a selection tick at each new slot.
+- On release the move is written in the same frame the rows settle, so nothing jumps, and the dropped row springs the last few points into its slot with a success haptic.
+- Rows are spaced by the height of the first row, so keep them one height. It is a plain stack, not a `List`, for the short lists people arrange by hand.
+- VoiceOver gets Move up and Move down actions on every row, so it can be reordered without dragging.
+- Under Reduce Motion the lift does not scale and the rows settle without overshoot.

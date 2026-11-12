@@ -3,7 +3,8 @@ import { Button, Arrow } from "@/components/ui/button";
 import { Panel, PanelBody, PanelMedia } from "@/components/ui/panel";
 import { NewBadge } from "@/components/ui/new-badge";
 import { pro, site } from "@/lib/site";
-import { proGames } from "@/lib/pro-catalog";
+import { proGames, proGamesNav } from "@/lib/pro-catalog";
+import { ProBadge } from "@/components/ui/pro-badge";
 import { cn } from "@/lib/cn";
 
 export type ProCardType = "screen" | "flow" | "template";
@@ -103,9 +104,9 @@ function FlowSize({ screens, steps }: { screens: number; steps: number }) {
 }
 
 /**
- * Explore Pro's Games page: SwiftPieces Games' five games as cards, sold on Pro. Each card is one phone with the
+ * Explore Pro's Games page: every game in SwiftPieces Games as a card, sold on Pro. Each card is one phone with the
  * game mid-play rising out of a paper stage (Pro's own simulator stills, public/pro-games/<id>.webp), and opens
- * that game's page on pro.swiftpieces.com. Games launched together, so every card wears New.
+ * that game's page on pro.swiftpieces.com. The newest wave comes first and wears New, as in the navbar's Games menu.
  */
 export function GameCardGrid() {
   return (
@@ -116,7 +117,7 @@ export function GameCardGrid() {
         <Button href={pro.gamesPricing} size="sm" variant="secondary">What's inside <Arrow className="size-3.5" /></Button>
       </div>
       <div className="mt-10 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        {proGames.list.map((game, i) => (
+        {proGamesNav.map((game, i) => (
           <a key={game.id} href={`${pro.games}/${game.id}`} className="group block h-full">
             <Panel hover className="h-full">
               <PanelMedia className="aspect-square">
@@ -132,14 +133,14 @@ export function GameCardGrid() {
                     />
                   </div>
                 </div>
-                <span className="absolute top-3 left-3 inline-flex h-5 items-center rounded-full bg-[#000]/55 px-2 text-[10.5px] leading-none font-semibold text-[#fff] backdrop-blur-sm">Games</span>
+                <ProBadge tone="games" label="Games" size="sm" className="absolute top-3 left-3" />
               </PanelMedia>
               <PanelBody>
                 <p className="text-[12.5px] font-medium text-subtle">Game · {game.genre}</p>
                 <div className="mt-2 flex items-center justify-between gap-3">
                   <span className="flex min-w-0 items-center gap-2.5">
                     <p className="p-item min-w-0 truncate">{game.title}</p>
-                    <NewBadge />
+                    {game.isNew ? <NewBadge /> : null}
                   </span>
                   <External className="shrink-0 text-subtle transition-colors duration-300 group-hover:text-foreground" />
                 </div>

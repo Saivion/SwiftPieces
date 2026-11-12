@@ -10,6 +10,7 @@
  *   content/docs/<category>/<slug>.mdx generated docs pages
  *   content/docs/patterns/...          generated pattern pages: free blocks with source, Pro patterns as locked pages
  *   registry/__registry__/docs.json    every docs page's URL, title and search text (search, sitemap)
+ *   registry/__registry__/skills.json  the free agent skills in skills/, served by the MCP as prompts and resources
  *   public/llms.txt                    AI discoverability
  *   public/schema/registry-item.json   JSON schema for the registry protocol
  */
@@ -291,8 +292,40 @@ function build() {
   writeLlms(items, blocks);
   writeSchema();
   writeReadmeCount(items.length, Object.keys(categories).length);
+  writeSkills();
 
   console.log(`registry: ${items.length} free pieces, ${items.filter((i) => i.liquidGlass).length} Liquid Glass, ${items.filter((i) => i.metal).length} Metal; ${blocks.length} free blocks, ${proBlocks.length} Pro blocks listed`);
+}
+
+/**
+ * The free agent skills: skills/<name>/SKILL.md (Agent Skills frontmatter) plus references/*.md. The
+ * MCP serves each one as a prompt, a tool and resources, so a Worker with no file system can read them.
+ */
+function writeSkills() {
+  const dir = join(ROOT, "skills");
+  const skills = existsSync(dir)
+    ? readdirSync(dir, { withFileTypes: true }).filter((d) => d.isDirectory()).sort((a, b) => a.name.localeCompare(b.name)).map((d) => {
+        const raw = readFileSync(join(dir, d.name, "SKILL.md"), "utf8");
+        const fm = raw.match(/^---\n([\s\S]*?)\n---\n/);
+        if (!fm) throw new Error(`skills/${d.name}/SKILL.md has no frontmatter`);
+        const meta = z.object({ name: z.literal(d.name), description: z.string().min(1), metadata: z.object({ version: z.string() }).passthrough() }).passthrough().parse(parseYaml(fm[1]));
+        const body = raw.slice(fm[0].length).trim();
+        const title = body.match(/^# (.+)$/m)?.[1] ?? d.name;
+        const refDir = join(dir, d.name, "references");
+        const references = existsSync(refDir)
+          ? readdirSync(refDir).filter((f) => f.endsWith(".md")).sort().map((f) => {
+              const text = readFileSync(join(refDir, f), "utf8").trim();
+              return { id: basename(f, ".md"), title: text.match(/^# (.+)$/m)?.[1] ?? basename(f, ".md"), body: text };
+            })
+          : [];
+        // SKILL.md links its references by relative path; every one must exist, or the agent follows a dead link.
+        for (const [, ref] of body.matchAll(/\]\(references\/([\w-]+)\.md\)/g)) {
+          if (!references.some((r) => r.id === ref)) throw new Error(`skills/${d.name}/SKILL.md links references/${ref}.md, which does not exist`);
+        }
+        return { name: meta.name, title, description: meta.description, version: meta.metadata.version, body, references };
+      })
+    : [];
+  writeFileSync(join(OUT_DIR, "skills.json"), JSON.stringify(skills, null, 2));
 }
 
 /**
@@ -442,7 +475,7 @@ function writeDocs(items: RegistryItem[]) {
   writeFileSync(join(root, "screens.mdx"), `---\ntitle: "Screens"\ndescription: "Production-ready SwiftUI screens from SwiftPieces Pro. Each one is a complete, themed screen you drop into your app and wire to your data."\npro: "screen"\n---\n\n{/* GENERATED FILE. Edit scripts/build-registry.ts. */}\n`);
   writeFileSync(join(root, "flows.mdx"), `---\ntitle: "Flows"\ndescription: "Whole journeys through SwiftPieces Pro's app templates, screen by screen: first run and sign in, the core of each app, then settings."\npro: "flow"\n---\n\n{/* GENERATED FILE. Edit scripts/build-registry.ts. */}\n`);
   writeFileSync(join(root, "templates.mdx"), `---\ntitle: "Templates"\ndescription: "Complete Xcode app templates from SwiftPieces Pro, wired end to end. Open the project, swap the brand and the copy, ship."\npro: "template"\n---\n\n{/* GENERATED FILE. Edit scripts/build-registry.ts. */}\n`);
-  // Games: SwiftPieces Games' five games (lib/pro-catalog.ts proGames), each opening its page on pro.swiftpieces.com.
+  // Games: every game in SwiftPieces Games (lib/pro-catalog.ts proGames), each opening its page on pro.swiftpieces.com.
   writeFileSync(join(root, "games.mdx"), `---\ntitle: "Games"\ndescription: "Complete iOS games from SwiftPieces Games, in SwiftUI and Metal. Real levels, Game Center and a StoreKit shop, with the full Xcode project."\npro: "game"\n---\n\n{/* GENERATED FILE. Edit scripts/build-registry.ts. */}\n`);
   writeFileSync(join(root, "meta.json"), JSON.stringify({
     title: "Components",

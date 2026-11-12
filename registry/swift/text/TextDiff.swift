@@ -1,0 +1,327 @@
+// swiftpieces:
+// title: Text Diff
+// description: "Shows what changed between two versions of a text, word by word. Removed words are struck through in red and new words are underlined, and switching to Clean folds the removed words away so it reads as the final text. Original shows the text as it was. It counts the changes for a caption such as 3 changes, and VoiceOver reads each change as removed or added. For AI rewrites, edit history, suggestions and review screens."
+// category: text
+// minIOSVersion: "17.0"
+// version: "1.0.0"
+// added: "2026-11-08"
+// tags: [text, diff, changes, ai, rewrite, review, accessibility]
+
+import SwiftUI
+
+/// Colors and type for `TextDiff`. `.standard` is the house palette.
+public struct TextDiffStyle: Sendable {
+    /// Words that are in both versions, and the new words.
+    public var text: Color
+    /// Removed words, struck through.
+    public var removed: Color
+    /// The underline under new words.
+    public var added: Color
+    /// The font.
+    public var font: Font
+
+    public init(
+        text: Color = TextDiffStyle.adaptive(light: 0x141414, dark: 0xF4F3EF),
+        removed: Color = TextDiffStyle.adaptive(light: 0xE00000, dark: 0xFF3B30),
+        added: Color = TextDiffStyle.adaptive(light: 0x141414, dark: 0xF4F3EF),
+        font: Font = .body
+    ) {
+        self.text = text
+        self.removed = removed
+        self.added = added
+        self.font = font
+    }
+
+    public static let standard = TextDiffStyle()
+
+    /// A color that follows the appearance, from two 0xRRGGBB values.
+    public static func adaptive(light: UInt32, dark: UInt32) -> Color {
+        Color(UIColor { @Sendable traits in
+            let hex = traits.userInterfaceStyle == .dark ? dark : light
+            return UIColor(red: CGFloat(hex >> 16 & 0xFF) / 255, green: CGFloat(hex >> 8 & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
+        })
+    }
+}
+
+/// What `TextDiff` shows.
+public enum TextDiffMode: String, CaseIterable, Sendable {
+    /// Both versions at once: removed words struck through, new words underlined.
+    case changes
+    /// The new version, reading cleanly.
+    case clean
+    /// The old version, as it was.
+    case original
+}
+
+/// Two versions of a text, with the words that changed between them marked.
+///
+/// - Parameters:
+///   - from: The earlier version.
+///   - to: The later version.
+///   - mode: What to show. Bind it to a picker or button; switching animates.
+///   - style: Colors and type. Defaults to the house palette, adapting to light and dark.
+public struct TextDiff: View {
+    public typealias Style = TextDiffStyle
+    public typealias Mode = TextDiffMode
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    private let runs: [Run]
+    private let mode: Mode
+    private let style: Style
+
+    public init(from old: String, to new: String, mode: Mode = .changes, style: Style = .standard) {
+        self.runs = Self.diff(from: old, to: new)
+        self.mode = mode
+        self.style = style
+    }
+
+    public var body: some View {
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        Text(attributed)
+            .font(style.font)
+            .fontWeight(.semibold)
+            .foregroundStyle(style.text)
+            .contentTransition(.interpolate)
+            .animation(motion.morph, value: mode)
+            .accessibilityElement()
+            .accessibilityLabel(spoken)
+    }
+
+    /// How many changes there are between two versions: each place where words were removed, added or replaced
+    /// counts once. For a caption such as "3 changes".
+    public static func changeCount(from old: String, to new: String) -> Int {
+        var count = 0
+        var inChange = false
+        for run in diff(from: old, to: new) {
+            let changed = run.kind != .same && !run.text.allSatisfy(\.isWhitespace)
+            if changed && !inChange { count += 1 }
+            if run.kind == .same && !run.text.allSatisfy(\.isWhitespace) { inChange = false } else if changed { inChange = true }
+        }
+        return count
+    }
+
+    // MARK: Drawing
+
+    private var attributed: AttributedString {
+        var out = AttributedString()
+        for run in runs {
+            switch (run.kind, mode) {
+            case (.removed, .clean), (.added, .original):
+                continue
+            case (.removed, .changes):
+                var piece = AttributedString(run.text)
+                piece.foregroundColor = style.removed
+                piece.strikethroughStyle = Text.LineStyle(pattern: .solid, color: style.removed)
+                out += piece
+            case (.added, .changes):
+                var piece = AttributedString(run.text)
+                // Underline the words, not the spaces around them.
+                if let first = run.text.firstIndex(where: { !$0.isWhitespace }), let last = run.text.lastIndex(where: { !$0.isWhitespace }) {
+                    let lead = AttributedString(String(run.text[..<first]))
+                    var words = AttributedString(String(run.text[first...last]))
+                    words.underlineStyle = Text.LineStyle(pattern: .solid, color: style.added)
+                    let trail = AttributedString(String(run.text[run.text.index(after: last)...]))
+                    piece = lead + words + trail
+                }
+                out += piece
+            default:
+                out += AttributedString(run.text)
+            }
+        }
+        return out
+    }
+
+    /// VoiceOver hears the changes in place: "Our team, removed: will try to, added: will, reply…".
+    private var spoken: String {
+        guard mode == .changes else {
+            return runs.filter { mode == .clean ? $0.kind != .removed : $0.kind != .added }.map(\.text).joined()
+        }
+        return runs.map { run in
+            let words = run.text.trimmingCharacters(in: .whitespaces)
+            switch run.kind {
+            case .same: return run.text
+            case .removed: return words.isEmpty ? "" : " removed: \(words), "
+            case .added: return words.isEmpty ? "" : " added: \(words), "
+            }
+        }.joined()
+    }
+
+    // MARK: Diffing
+
+    private enum Kind { case same, removed, added }
+    private struct Run { var kind: Kind; var text: String }
+
+    /// Words and the spaces between them, so a change never swallows its neighbours' spacing.
+    private static func tokens(_ text: String) -> [String] {
+        var out: [String] = []
+        var current = ""
+        var inSpace: Bool?
+        for ch in text {
+            let space = ch.isWhitespace
+            if inSpace != nil && inSpace != space { out.append(current); current = "" }
+            current.append(ch)
+            inSpace = space
+        }
+        if !current.isEmpty { out.append(current) }
+        return out
+    }
+
+    /// A word-level diff from the standard library's `difference(from:)`, walked in reading order: at each spot the
+    /// removed words come first, then the added ones. Neighbouring tokens of one kind join into one run, and a
+    /// space between two changes joins them, so "will try to" reads as one removal.
+    private static func diff(from old: String, to new: String) -> [Run] {
+        let a = tokens(old), b = tokens(new)
+        let difference = b.difference(from: a)
+        var removed = Set<Int>(), inserted = Set<Int>()
+        for change in difference {
+            switch change {
+            case .remove(let offset, _, _): removed.insert(offset)
+            case .insert(let offset, _, _): inserted.insert(offset)
+            }
+        }
+        var tokens: [Run] = []
+        var i = 0, j = 0
+        while i < a.count || j < b.count {
+            if i < a.count, removed.contains(i) { tokens.append(Run(kind: .removed, text: a[i])); i += 1 }
+            else if j < b.count, inserted.contains(j) { tokens.append(Run(kind: .added, text: b[j])); j += 1 }
+            else if i < a.count, j < b.count { tokens.append(Run(kind: .same, text: b[j])); i += 1; j += 1 }
+            else if i < a.count { tokens.append(Run(kind: .removed, text: a[i])); i += 1 }
+            else { tokens.append(Run(kind: .added, text: b[j])); j += 1 }
+        }
+        // A lone unchanged space between changes belongs to the change.
+        for k in tokens.indices where tokens[k].kind == .same && tokens[k].text.allSatisfy(\.isWhitespace) {
+            let before = k > 0 ? tokens[k - 1].kind : .same
+            let after = k + 1 < tokens.count ? tokens[k + 1].kind : .same
+            if before != .same && after != .same && before == after { tokens[k].kind = before }
+        }
+        var runs: [Run] = []
+        for token in tokens {
+            if let last = runs.last, last.kind == token.kind { runs[runs.count - 1].text += token.text } else { runs.append(token) }
+        }
+        // Keep removals ahead of additions at each spot after the merge, so struck words always come first.
+        var k = 0
+        while k + 1 < runs.count {
+            if runs[k].kind == .added, runs[k + 1].kind == .removed { runs.swapAt(k, k + 1); k = max(k - 1, 0) } else { k += 1 }
+        }
+        return runs
+    }
+}
+
+// MARK: - Example
+
+/// An AI rewrite of a support reply, with a picker between the changes, the clean text and the original.
+private struct TextDiffExample: View {
+    @State private var mode: TextDiffMode = .changes
+    private let draft = "Our team will try to reply as soon as possible, usually on weekends too."
+    private let rewrite = "Our team will reply within a day, even on weekends."
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            TextDiff(from: draft, to: rewrite, mode: mode)
+                .padding(18)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(.background, in: .rect(cornerRadius: 24, style: .continuous))
+            HStack {
+                Text("Edited by AI · \(TextDiff.changeCount(from: draft, to: rewrite)) changes")
+                    .font(.footnote)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Picker("Show", selection: $mode) {
+                    Text("Changes").tag(TextDiffMode.changes)
+                    Text("Clean").tag(TextDiffMode.clean)
+                }
+                .pickerStyle(.segmented)
+                .frame(width: 160)
+            }
+        }
+        .frame(width: 310)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(TextDiffStyle.adaptive(light: 0xF3F2EE, dark: 0x121212))
+    }
+}
+
+#Preview("Light") {
+    TextDiffExample()
+}
+
+#Preview("Dark") {
+    TextDiffExample()
+        .preferredColorScheme(.dark)
+}
+
+// MARK: - Piece motion
+//
+// The SwiftPieces motion language: shared spring tokens and gesture physics, with the same values in every
+// piece. Each piece carries a copy of only the parts it uses, so this file stands alone. Generated from
+// registry/foundation/PieceMotion.swift in the SwiftPieces repo; edit it there, not here.
+// swiftpieces-motion: 1.1.0 (core)
+
+/// The SwiftPieces motion language: five spring tiers, and a named role for every moment a piece moves,
+/// each with its Reduce Motion substitute.
+///
+/// Build one from the environment, `PieceMotion(reduceMotion: reduceMotion)`, and pick the role that names
+/// what just happened. Never animate the tracking of a finger: set gesture state directly in `onChanged`, so the
+/// surface stays under the finger, and spring only the release.
+private struct PieceMotion {
+    var reduceMotion = false
+
+    // Tiers. Overshoot and settle times are measured from rest with SwiftUI's Spring.
+    /// No overshoot, 90% in about 90ms. A press arriving under the finger.
+    static var tight: Spring { Spring(duration: 0.14, bounce: 0) }
+    /// About 2.8% overshoot, 90% in about 140ms. Snapping to a detent, page or segment.
+    static var responsive: Spring { Spring(duration: 0.32, bounce: 0.25) }
+    /// About 8.4% overshoot. Visible give: a release, a return from past an edge, a drag settling home.
+    static var elastic: Spring { Spring(duration: 0.42, bounce: 0.38) }
+    /// About 15% overshoot. A resolved action landing. At most once per interaction.
+    static var expressive: Spring { Spring(duration: 0.48, bounce: 0.48) }
+    /// About 1.5% overshoot, unhurried. Opening large surfaces and ambient change.
+    static var calm: Spring { Spring(duration: 0.5, bounce: 0.2) }
+
+    /// Reduce Motion: settles become this short spring with no overshoot.
+    private static var still: Animation { .spring(duration: 0.25, bounce: 0) }
+
+    // Roles.
+    /// Touch-down. Starts on the same frame and never bounces under the finger.
+    var press: Animation { .spring(Self.tight) }
+    /// The finger lifts off a pressed surface, which springs back through rest.
+    var release: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A dragged thing comes to rest. With a gesture's velocity, use `settle(velocity:from:to:)` instead.
+    var settle: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// Lands on a detent, page or segment.
+    var snap: Animation { reduceMotion ? Self.still : .spring(Self.responsive) }
+    /// A number, a chart value or anything else people read moves to its new value. Never overshoots, so it
+    /// never shows a value that isn't true.
+    var value: Animation { reduceMotion ? Self.still : .spring(duration: 0.35, bounce: 0) }
+    /// Comes back from past a limit: a pull beyond the edge, a value pushed against its bound.
+    var rebound: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A shape or container changes size, corner radius or form, with a little give at the end.
+    var morph: Animation { reduceMotion ? Self.still : .spring(duration: 0.4, bounce: 0.2) }
+    /// Something appears, opens or expands. Opening is a little slower than closing.
+    var reveal: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.calm) }
+    /// Something leaves, closes or collapses. Quick and firm, out of the way.
+    var dismiss: Animation { reduceMotion ? .easeIn(duration: 0.18) : .spring(duration: 0.3, bounce: 0.08) }
+    /// A resolved action lands: a check, a sent state, a reaction.
+    var success: Animation { reduceMotion ? .easeOut(duration: 0.24) : .spring(Self.expressive) }
+    /// A refused action. Firm, no wobble; `pieceShake` adds the movement.
+    var error: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.responsive) }
+    /// Slow ambient change. Loops themselves stop under Reduce Motion: check `allowsAmbient`.
+    var ambient: Animation { reduceMotion ? .easeInOut(duration: 0.3) : .spring(Self.calm) }
+
+    /// Loops, drifts, idle breathing and parallax run only when this is true.
+    var allowsAmbient: Bool { !reduceMotion }
+
+    /// A moving transition, or a plain fade under Reduce Motion.
+    func transition(_ transition: AnyTransition) -> AnyTransition {
+        reduceMotion ? .opacity : transition
+    }
+
+    /// For content replaced inside a container that stays put (a label, a glyph, a count): the old content
+    /// blurs out as the new one sharpens in. A fade under Reduce Motion.
+    @MainActor var swap: AnyTransition {
+        reduceMotion ? .opacity : AnyTransition(.blurReplace)
+    }
+}
+
+// swiftpieces-motion: end

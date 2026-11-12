@@ -7,25 +7,29 @@ import { preload } from "react-dom";
 import { RootProvider } from "fumadocs-ui/provider/next";
 import { site } from "@/lib/site";
 import { fontPreloads } from "@/lib/fonts.generated";
+import { PromoBoot } from "@/components/announce/promo-boot";
+import { promo } from "@/lib/promo";
 
 // Figtree is self-hosted from public/fonts, cut down by scripts/fonts/subset_fonts.py (rerun it when content
 // needs a new character, weight or OpenType feature). app/fonts.css holds the @font-face rules, the same
 // metric-matched fallback next/font generated, and --font-figtree; only the small core file is preloaded.
 
-const ICON_VERSION = 4;
+const ICON_VERSION = 5;
 
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
   title: { default: site.title, template: `%s — ${site.name}` },
   description: site.description,
-  // Every icon comes from public/ (favicon.ico and logo.png, the official marks). Bump ICON_VERSION
-  // when either file changes: browsers cache tab icons hard, and a new URL forces them to refetch.
+  // Every icon comes from public/ (favicon.ico and logo.png, the official marks, with the site's 30% corner
+  // baked in). apple-touch-icon.png stays square because iOS applies its own mask, and pre-rounded corners
+  // would show black. Bump ICON_VERSION when any of them changes: browsers cache tab icons hard, and a new
+  // URL forces them to refetch.
   icons: {
     icon: [
       { url: `/favicon.ico?v=${ICON_VERSION}`, sizes: "16x16 32x32 48x48" },
       { url: `/logo.png?v=${ICON_VERSION}`, type: "image/png", sizes: "1024x1024" },
     ],
-    apple: [{ url: `/logo.png?v=${ICON_VERSION}`, sizes: "1024x1024" }],
+    apple: [{ url: `/apple-touch-icon.png?v=${ICON_VERSION}`, sizes: "180x180" }],
   },
   openGraph: { siteName: site.name, type: "website" },
   twitter: { card: "summary_large_image" },
@@ -44,13 +48,17 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <body className="flex min-h-screen flex-col antialiased">
+        {/* Here, not in the site's layout: the root layout is only ever drawn by the server, so this
+            blocking script never gets created on the client (where React warns and it wouldn't run),
+            as it did when a visitor came to the site's pages from the docs. */}
+        {promo && <PromoBoot id={promo.id} endsAt={promo.endsAt} />}
         {/* The first screen's endless loops hold still until the visitor first interacts (components/motion-gate.tsx). */}
         <MotionGate />
         <RootProvider
           // Follows the system until the visitor picks light or dark in the footer; the choice is remembered.
           theme={{ enabled: true, defaultTheme: "system", enableSystem: true, disableTransitionOnChange: true }}
           // Shown before anyone types: the places people search for most.
-          search={{ links: [["Introduction", "/docs/introduction"], ["Choosing a library", "/docs/choosing"], ["Installation", "/docs/installation"], ["All Components", "/docs/components"], ["Playground", "/apps"], ["Styles", "/styles"], ["Liquid Glass guide", "/docs/liquid-glass"], ["MCP Server", "/docs/mcp"], ["SwiftPieces Pro", "/pro"]] }}
+          search={{ links: [["Introduction", "/docs/introduction"], ["Choosing a Library", "/docs/choosing"], ["Installation", "/docs/installation"], ["All Components", "/docs/components"], ["Playground", "/apps"], ["Styles", "/styles"], ["Liquid Glass guide", "/docs/liquid-glass"], ["MCP Server", "/docs/mcp"], ["SwiftPieces Pro", "/pro"]] }}
         >
           {children}
         </RootProvider>

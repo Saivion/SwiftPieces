@@ -1,0 +1,6 @@
+## Notes
+
+- A two-segment glass toggle for list and grid, with SF Symbols for each. The red pill flows between them.
+- The toggle sets `layout` inside an animation, the morph spring unless you pass your own. Mark each item with `matchedGeometryEffect(id:in:)` in both layouts, using one `@Namespace`, and the items move from rows to tiles with the pill instead of cutting.
+- One selection haptic fires per change. VoiceOver reads it as Layout with List and Grid buttons and marks the selected one.
+- Under Reduce Motion the pill slides whole and the morph spring has no overshoot.
