@@ -10,25 +10,25 @@ export const floating = "bg-surface-3 shadow-[var(--shadow-float)] ring-1 ring-[
 
 /**
  * The studio's frame, shared by the live studio and the server shell that stands in for it while
- * it loads, so nothing moves when it arrives. The whole window, laid out like an editor: from lg up,
- * the settings are a sidebar flush to the left edge (the mark and the way back to the site on top,
- * StudioBar), and the canvas fills everything to its right. Below lg it is still one window: the
- * canvas on top, the settings in a sheet under it that scrolls as one (title, Shuffle and every
- * setting), with the style's code and actions held at its foot. Live, the canvas's
- * ground takes the drawn style's surfaces (surfaces.ts): near-white when it shows light,
- * near-black when it shows dark, so the seams between tiles stay soft either way.
+ * it loads, so nothing moves when it arrives. The whole window, with no site navbar: from lg up the
+ * canvas fills the left and the settings panel is docked on the right, its top carrying the mark and
+ * the way back to the site (StudioBar), the same 12px around and between them. Below lg it is still
+ * one window: the canvas on top, the settings in a sheet under it that scrolls as one (title,
+ * Shuffle and every setting), with the style's code and actions held at its foot. Live, the ground
+ * takes the drawn style's surfaces (surfaces.ts): near-white when it shows light, near-black when it
+ * shows dark, so the seams between tiles stay soft either way.
  */
 export function StudioFrame({ canvas, panel, busy, surfaces }: { canvas: ReactNode; panel: ReactNode; busy?: boolean; surfaces?: Surfaces }) {
   const tone = surfaces ? ({ ["--studio-tray" as string]: surfaces.tray } as CSSProperties) : undefined;
   return (
     <div
       aria-busy={busy || undefined}
-      className="studio-tray grid size-full grid-cols-[minmax(0,1fr)] grid-rows-[minmax(0,54fr)_minmax(0,46fr)] bg-[var(--studio-tray)] transition-[background-color] duration-500 ease-[var(--ease-out)] lg:grid-cols-[340px_minmax(0,1fr)] lg:grid-rows-[minmax(0,1fr)] xl:grid-cols-[380px_minmax(0,1fr)] 2xl:grid-cols-[400px_minmax(0,1fr)]"
+      className="studio-tray grid size-full grid-cols-[minmax(0,1fr)] grid-rows-[minmax(0,54fr)_minmax(0,46fr)] bg-[var(--studio-tray)] transition-[background-color] duration-500 ease-[var(--ease-out)] lg:grid-cols-[minmax(0,1fr)_340px] lg:grid-rows-[minmax(0,1fr)] lg:gap-3 lg:p-3 xl:grid-cols-[minmax(0,1fr)_380px] 2xl:grid-cols-[minmax(0,1fr)_400px]"
       style={tone}
     >
       {/* The canvas, with room under it for its bar (Components or Screens, light or dark). */}
-      <div className="relative min-h-0 min-w-0 p-2 pb-[60px] lg:order-2 lg:p-3 lg:pb-[64px]">{canvas}</div>
-      <aside aria-label="Style settings" className="flex min-h-0 flex-col bg-surface-2 max-lg:overflow-y-auto max-lg:overscroll-contain max-lg:rounded-t-[22px] max-lg:ring-1 max-lg:ring-[var(--line)] lg:order-1 lg:border-r lg:border-[var(--line)]">
+      <div className="relative min-h-0 min-w-0 p-2 pb-[60px] lg:p-0 lg:pb-[52px]">{canvas}</div>
+      <aside aria-label="Style settings" className="flex min-h-0 flex-col bg-surface-2 ring-1 ring-[var(--line)] max-lg:overflow-y-auto max-lg:overscroll-contain max-lg:rounded-t-[22px] lg:rounded-[22px]">
         <StudioBar />
         <div className="min-h-0 flex-1 max-lg:flex-none">{panel}</div>
       </aside>

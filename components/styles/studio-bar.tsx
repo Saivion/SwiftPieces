@@ -3,7 +3,7 @@ import { Logo } from "@/components/ui/logo";
 import { ThemeButton } from "@/components/layout/theme-toggle";
 
 /**
- * The top of the studio's sidebar, standing in for the site's navbar on this full-window page: the
+ * The top of the studio's settings panel, standing in for the site's navbar on this full-window page: the
  * mark (home), the site's light or dark switch, and the way back out to the components.
  */
 export function StudioBar() {

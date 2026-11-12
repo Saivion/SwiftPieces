@@ -218,7 +218,7 @@ function FloatingBar({ view, onView, scheme, onScheme, pinned }: { view: CanvasV
   const next: Scheme = scheme === "dark" ? "light" : "dark";
   return (
     // In the room the frame leaves under the canvas (studio-frame.tsx), centred on it, covering nothing.
-    <div className="absolute -bottom-[50px] left-1/2 z-20 flex -translate-x-1/2 items-center gap-1.5 lg:-bottom-[52px]">
+    <div className="absolute -bottom-[50px] left-1/2 z-20 flex -translate-x-1/2 items-center gap-1.5 lg:-bottom-[46px]">
       <div role="tablist" aria-label="Canvas" className={`flex rounded-[17px] p-1 ${floating}`}>
         {(
           [
