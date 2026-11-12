@@ -1,9 +1,0 @@
-## Notes
-
-- Bind it to the same array of nodes you drive a `NavigationStack` with, give it the root, a `children` closure and a label for a node, usually `Label(name, systemImage:)`.
-- The current place sits on a red pill that flows as you move. A new level rises into the bar as you drill in. Tap an earlier segment to go back to it: the path is trimmed to that level.
-- Once the path is deeper than `visibleLevels` (3 by default), the middle folds into a … button that lists the hidden levels, so the bar never overflows.
-- Hold a segment to open its siblings, the other children of its parent, and pick one to jump sideways; the levels below it are dropped.
-- The chevrons follow the layout direction, so the bar flips for right-to-left languages.
-- VoiceOver reads it as a Path container of buttons, marks the current place, and hints that holding opens the other folders there.
-- Under Reduce Motion new segments fade in instead of rising.

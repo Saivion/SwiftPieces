@@ -7,6 +7,20 @@ import type { ChangelogEntry } from "@/components/changelog/changelog-grid";
  */
 export const changelog: ChangelogEntry[] = [
   {
+    slug: "smart-text-match-highlight-text-diff",
+    date: "Nov 12, 2026",
+    title: "Smart Text, Match Highlight and Text Diff",
+    summary: "Three free text pieces take Path Bar's place: text that makes its links, mentions and dates tappable, search results that mark why they matched, and a word-by-word view of what changed.",
+    points: [
+      "Smart Text finds links, @mentions, #tags, dates, phone numbers and addresses in plain text and lights them up in place. You choose what a tap does, and anything you leave to it opens the link, calls the number, or shows the date in Calendar or the address in Maps.",
+      "Match Highlight puts the matching part of each search result on a red mark that grows as you type. It ignores case and accents, and its matches test filters your list with the same rules.",
+      "Text Diff compares two versions of a text word by word, with removed words struck through in red and new words underlined, plus a Clean view and a change count. It's made for AI rewrites and edit history.",
+      "Path Bar is gone from the library, and its page now leads to Smart Text.",
+    ],
+    visual: "terminal",
+    tint: "red",
+  },
+  {
     slug: "games-pieces-and-styles",
     date: "Nov 8, 2026",
     title: "Five new games, eleven pieces and two new styles",
