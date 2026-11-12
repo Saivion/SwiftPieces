@@ -36,7 +36,7 @@ export default async function StylesPage() {
         }}
       />
       <StyleStudioLoader screens={screens} apps={apps}>
-        <StudioShell />
+        <StudioShell apps={apps} />
       </StyleStudioLoader>
     </>
   );
