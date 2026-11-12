@@ -3305,48 +3305,6 @@
   },
   {
     "$schema": "https://swiftpieces.com/schema/registry-item.json",
-    "name": "PathBar",
-    "slug": "path-bar",
-    "type": "registry:component",
-    "title": "Path Bar",
-    "description": "A glass breadcrumb for nested places: folders, categories, settings. Each segment has its icon and the current one sits on a red pill that flows as you move. Drilling in lifts the new name up into the bar; tapping an earlier segment goes back to it. Deep paths fold their middle into a … menu so the bar never overflows, and holding a segment opens its siblings, so you can jump sideways like the Finder's path bar. VoiceOver reads it as a breadcrumb, and it flips for right-to-left.",
-    "category": "navigation",
-    "license": "MIT+Commons-Clause",
-    "version": "1.0.0",
-    "minIOSVersion": "17.0",
-    "swiftToolsVersion": "6.1",
-    "tags": [
-      "breadcrumb",
-      "path",
-      "folders",
-      "navigation",
-      "menu",
-      "glass",
-      "haptics"
-    ],
-    "dependencies": [],
-    "registryDependencies": [],
-    "spmDependencies": [],
-    "requiredCapabilities": [],
-    "infoPlist": {},
-    "assets": [],
-    "shaders": [],
-    "files": [
-      {
-        "path": "registry/swift/navigation/PathBar.swift",
-        "type": "registry:component",
-        "target": "SwiftPieces/Navigation/PathBar.swift"
-      }
-    ],
-    "preview": {},
-    "docs": "https://swiftpieces.com/docs/components/navigation/path-bar",
-    "added": "2026-11-08",
-    "isNew": true,
-    "liquidGlass": true,
-    "metal": false
-  },
-  {
-    "$schema": "https://swiftpieces.com/schema/registry-item.json",
     "name": "ScrollIsland",
     "slug": "scroll-island",
     "type": "registry:component",
@@ -3805,6 +3763,48 @@
   },
   {
     "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "MatchHighlight",
+    "slug": "match-highlight",
+    "type": "registry:component",
+    "title": "Match Highlight",
+    "description": "Search results that show why they matched. Give it a result and the query, and the matching part of each word sits on a red mark that grows as the person types. It ignores case and accents, so pate finds Pâté, and every word of the query is matched on its own, at the start of any word. A matching test filters your list with the same rules, so the marks and the results never disagree. VoiceOver reads the plain text. For search results, filters, pickers and command menus.",
+    "category": "text",
+    "license": "MIT+Commons-Clause",
+    "version": "1.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "text",
+      "search",
+      "highlight",
+      "filter",
+      "query",
+      "locale",
+      "accessibility"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/text/MatchHighlight.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Text/MatchHighlight.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/text/match-highlight",
+    "added": "2026-11-08",
+    "isNew": true,
+    "liquidGlass": false,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
     "name": "PictureHeadline",
     "slug": "picture-headline",
     "type": "registry:component",
@@ -3926,6 +3926,90 @@
     ],
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/text/relative-time",
+    "added": "2026-11-08",
+    "isNew": true,
+    "liquidGlass": false,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "SmartText",
+    "slug": "smart-text",
+    "type": "registry:component",
+    "title": "Smart Text",
+    "description": "Plain text that finds what's tappable in it: links, @mentions, #tags, dates, phone numbers and addresses. Each match is styled in place, in red with an underline, and lights up as it's found. You decide what a tap does; anything you leave to the piece opens the link, calls the number, shows the date in Calendar or the address in Maps. Detection runs once per string, follows the reader's locale for dates, and VoiceOver lists the matches as links. For comments, chat bubbles, bios, notes and descriptions.",
+    "category": "text",
+    "license": "MIT+Commons-Clause",
+    "version": "1.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "text",
+      "links",
+      "mentions",
+      "hashtags",
+      "data-detector",
+      "chat",
+      "accessibility"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/text/SmartText.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Text/SmartText.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/text/smart-text",
+    "added": "2026-11-08",
+    "isNew": true,
+    "liquidGlass": false,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "TextDiff",
+    "slug": "text-diff",
+    "type": "registry:component",
+    "title": "Text Diff",
+    "description": "Shows what changed between two versions of a text, word by word. Removed words are struck through in red and new words are underlined, and switching to Clean folds the removed words away so it reads as the final text. Original shows the text as it was. It counts the changes for a caption such as 3 changes, and VoiceOver reads each change as removed or added. For AI rewrites, edit history, suggestions and review screens.",
+    "category": "text",
+    "license": "MIT+Commons-Clause",
+    "version": "1.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "text",
+      "diff",
+      "changes",
+      "ai",
+      "rewrite",
+      "review",
+      "accessibility"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/text/TextDiff.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Text/TextDiff.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/text/text-diff",
     "added": "2026-11-08",
     "isNew": true,
     "liquidGlass": false,

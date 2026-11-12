@@ -95,10 +95,12 @@ const map: Record<string, ComponentType> = {
   SizePicker: dynamic(() => import("./everyday").then((m) => m.SizePickerPreview)),
   UnitToggle: dynamic(() => import("./everyday").then((m) => m.UnitTogglePreview)),
   ViewToggle: dynamic(() => import("./everyday").then((m) => m.ViewTogglePreview)),
-  PathBar: dynamic(() => import("./everyday").then((m) => m.PathBarPreview)),
   QRCode: dynamic(() => import("./everyday").then((m) => m.QRCodePreview)),
   ReadAlongText: dynamic(() => import("./everyday").then((m) => m.ReadAlongTextPreview)),
   RelativeTime: dynamic(() => import("./everyday").then((m) => m.RelativeTimePreview)),
+  SmartText: dynamic(() => import("./everyday").then((m) => m.SmartTextPreview)),
+  MatchHighlight: dynamic(() => import("./everyday").then((m) => m.MatchHighlightPreview)),
+  TextDiff: dynamic(() => import("./everyday").then((m) => m.TextDiffPreview)),
   TranslateToggle: dynamic(() => import("./everyday").then((m) => m.TranslateTogglePreview)),
 };
 

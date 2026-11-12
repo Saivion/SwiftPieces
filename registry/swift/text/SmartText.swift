@@ -1,0 +1,337 @@
+// swiftpieces:
+// title: Smart Text
+// description: "Plain text that finds what's tappable in it: links, @mentions, #tags, dates, phone numbers and addresses. Each match is styled in place, in red with an underline, and lights up as it's found. You decide what a tap does; anything you leave to the piece opens the link, calls the number, shows the date in Calendar or the address in Maps. Detection runs once per string, follows the reader's locale for dates, and VoiceOver lists the matches as links. For comments, chat bubbles, bios, notes and descriptions."
+// category: text
+// minIOSVersion: "17.0"
+// version: "1.0.0"
+// added: "2026-11-08"
+// tags: [text, links, mentions, hashtags, data-detector, chat, accessibility]
+
+import SwiftUI
+
+/// Colors and type for `SmartText`. `.standard` is the house palette.
+public struct SmartTextStyle: Sendable {
+    /// The body text.
+    public var text: Color
+    /// Links, dates, phone numbers and addresses, and the underline under mentions and tags.
+    public var accent: Color
+    /// The font.
+    public var font: Font
+
+    public init(
+        text: Color = SmartTextStyle.adaptive(light: 0x141414, dark: 0xF4F3EF),
+        accent: Color = SmartTextStyle.adaptive(light: 0xE00000, dark: 0xFF3B30),
+        font: Font = .body
+    ) {
+        self.text = text
+        self.accent = accent
+        self.font = font
+    }
+
+    public static let standard = SmartTextStyle()
+
+    /// A color that follows the appearance, from two 0xRRGGBB values.
+    public static func adaptive(light: UInt32, dark: UInt32) -> Color {
+        Color(UIColor { @Sendable traits in
+            let hex = traits.userInterfaceStyle == .dark ? dark : light
+            return UIColor(red: CGFloat(hex >> 16 & 0xFF) / 255, green: CGFloat(hex >> 8 & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
+        })
+    }
+}
+
+/// The kinds of things `SmartText` looks for.
+public struct SmartTextKinds: OptionSet, Sendable {
+    public let rawValue: Int
+    public init(rawValue: Int) { self.rawValue = rawValue }
+
+    public static let links = SmartTextKinds(rawValue: 1 << 0)
+    public static let mentions = SmartTextKinds(rawValue: 1 << 1)
+    public static let hashtags = SmartTextKinds(rawValue: 1 << 2)
+    public static let dates = SmartTextKinds(rawValue: 1 << 3)
+    public static let phoneNumbers = SmartTextKinds(rawValue: 1 << 4)
+    public static let addresses = SmartTextKinds(rawValue: 1 << 5)
+    public static let all: SmartTextKinds = [.links, .mentions, .hashtags, .dates, .phoneNumbers, .addresses]
+}
+
+/// One tappable thing `SmartText` found, with the text it was found in.
+public struct SmartTextMatch: Hashable, Sendable {
+    public enum Kind: Hashable, Sendable {
+        /// A web or mail link. Bare domains such as `lunchbox.co` get `https://`.
+        case link(URL)
+        /// An @mention, without the @.
+        case mention(String)
+        /// A #tag, without the #.
+        case hashtag(String)
+        /// A date or time, resolved against now in the reader's calendar.
+        case date(Date)
+        /// A phone number as written.
+        case phone(String)
+        /// A postal address as written.
+        case address(String)
+    }
+
+    public let kind: Kind
+    /// The text as it appears, such as "@maya" or "Friday at 7".
+    public let text: String
+}
+
+/// Text that finds links, mentions, tags, dates, phone numbers and addresses in a string and makes them tappable.
+///
+/// - Parameters:
+///   - text: The plain text to show.
+///   - kinds: What to look for. Defaults to everything.
+///   - style: Colors and type. Defaults to the house palette, adapting to light and dark.
+///   - onTap: Called with each tapped match. Return `true` when you handled it; return `false` and the piece does
+///     the default: opens the link, calls the number, shows the date in Calendar or the address in Maps. Mentions
+///     and tags have no default.
+public struct SmartText: View {
+    public typealias Style = SmartTextStyle
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.openURL) private var openURL
+    @State private var found: [Found] = []
+    @State private var foundFor: String?
+
+    private let text: String
+    private let kinds: SmartTextKinds
+    private let style: Style
+    private let onTap: ((SmartTextMatch) -> Bool)?
+
+    public init(_ text: String, kinds: SmartTextKinds = .all, style: Style = .standard, onTap: ((SmartTextMatch) -> Bool)? = nil) {
+        self.text = text
+        self.kinds = kinds
+        self.style = style
+        self.onTap = onTap
+    }
+
+    public var body: some View {
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        Text(attributed)
+            .font(style.font)
+            .fontWeight(.semibold)
+            .foregroundStyle(style.text)
+            .tint(style.accent)
+            .environment(\.openURL, OpenURLAction { url in handle(url) })
+            .sensoryFeedback(.selection, trigger: tapCount)
+            .task(id: TaskKey(text: text, kinds: kinds.rawValue)) {
+                // Plain text draws first; the matches light up once they're found, once per string.
+                let next = SmartText.detect(in: text, kinds: kinds)
+                withAnimation(foundFor == nil ? motion.reveal : nil) { found = next }
+                foundFor = text
+            }
+    }
+
+    @State private var tapCount = 0
+
+    // MARK: Drawing
+
+    /// Each match becomes a link to `smarttext:<index>`, so a tap comes back through `openURL` to `handle`.
+    private var attributed: AttributedString {
+        var out = AttributedString(text)
+        guard foundFor == text else { return out }
+        for (index, match) in found.enumerated() {
+            guard let range = Range(NSRange(location: match.location, length: match.length), in: out) else { continue }
+            out[range].link = URL(string: "smarttext:\(index)")
+            switch match.match.kind {
+            case .mention, .hashtag:
+                // People and topics stay in the text color, underlined in red.
+                out[range].foregroundColor = style.text
+                out[range].underlineStyle = Text.LineStyle(pattern: .solid, color: style.accent)
+            default:
+                out[range].foregroundColor = style.accent
+                out[range].underlineStyle = Text.LineStyle(pattern: .solid, color: style.accent)
+            }
+        }
+        return out
+    }
+
+    private func handle(_ url: URL) -> OpenURLAction.Result {
+        guard url.scheme == "smarttext", let index = Int(url.absoluteString.dropFirst("smarttext:".count)), found.indices.contains(index) else {
+            return .systemAction
+        }
+        let match = found[index].match
+        tapCount += 1
+        if onTap?(match) == true { return .handled }
+        switch match.kind {
+        case .link(let link): openURL(link)
+        case .phone(let number):
+            let digits = number.filter { $0.isNumber || $0 == "+" }
+            if let tel = URL(string: "tel:\(digits)") { openURL(tel) }
+        case .date(let date):
+            // Calendar's own scheme opens the day; no calendar access is needed.
+            if let day = URL(string: "calshow:\(Int(date.timeIntervalSinceReferenceDate))") { openURL(day) }
+        case .address(let address):
+            var maps = URLComponents(string: "https://maps.apple.com/")
+            maps?.queryItems = [URLQueryItem(name: "q", value: address)]
+            if let link = maps?.url { openURL(link) }
+        case .mention, .hashtag: break
+        }
+        return .handled
+    }
+
+    // MARK: Detection
+
+    private struct TaskKey: Hashable { let text: String; let kinds: Int }
+
+    private struct Found {
+        let match: SmartTextMatch
+        let location: Int
+        let length: Int
+    }
+
+    /// Data detector matches first, then mentions and tags where nothing else was found, in reading order.
+    private static func detect(in text: String, kinds: SmartTextKinds) -> [Found] {
+        let whole = NSRange(text.startIndex..., in: text)
+        let ns = text as NSString
+        var found: [Found] = []
+
+        var types: NSTextCheckingResult.CheckingType = []
+        if kinds.contains(.links) { types.insert(.link) }
+        if kinds.contains(.dates) { types.insert(.date) }
+        if kinds.contains(.phoneNumbers) { types.insert(.phoneNumber) }
+        if kinds.contains(.addresses) { types.insert(.address) }
+        if !types.isEmpty, let detector = try? NSDataDetector(types: types.rawValue) {
+            for result in detector.matches(in: text, range: whole) {
+                let written = ns.substring(with: result.range)
+                let kind: SmartTextMatch.Kind?
+                switch result.resultType {
+                case .link: kind = result.url.map { .link($0) }
+                case .date: kind = result.date.map { .date($0) }
+                case .phoneNumber: kind = .phone(result.phoneNumber ?? written)
+                case .address: kind = .address(written)
+                default: kind = nil
+                }
+                if let kind { found.append(Found(match: SmartTextMatch(kind: kind, text: written), location: result.range.location, length: result.range.length)) }
+            }
+        }
+
+        func scan(_ pattern: String, _ make: (String) -> SmartTextMatch.Kind) {
+            guard let regex = try? NSRegularExpression(pattern: pattern) else { return }
+            for result in regex.matches(in: text, range: whole) {
+                let r = result.range
+                // An @ inside an email address or a # inside a link is already part of a match.
+                let overlaps = found.contains { NSIntersectionRange(NSRange(location: $0.location, length: $0.length), r).length > 0 }
+                if overlaps { continue }
+                let written = ns.substring(with: r)
+                found.append(Found(match: SmartTextMatch(kind: make(String(written.dropFirst())), text: written), location: r.location, length: r.length))
+            }
+        }
+        if kinds.contains(.mentions) { scan(#"(?<![\w@])@[A-Za-z0-9_](?:[A-Za-z0-9_.]{0,28}[A-Za-z0-9_])?"#) { .mention($0) } }
+        if kinds.contains(.hashtags) { scan(#"(?<![\w#&])#[\p{L}\p{N}_]*\p{L}[\p{L}\p{N}_]*"#) { .hashtag($0) } }
+
+        return found.sorted { $0.location < $1.location }
+    }
+}
+
+// MARK: - Example
+
+/// A message with a mention, a date, a link and a tag. Mentions are handled; everything else uses the defaults.
+private struct SmartTextExample: View {
+    @State private var opened = "Tap something in the message"
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            SmartText("Dinner with @maya on Friday at 7, the menu is on lunchbox.co and the door code is 4471. #weekend") { match in
+                switch match.kind {
+                case .mention(let name): opened = "Open profile: \(name)"; return true
+                case .hashtag(let tag): opened = "Show posts tagged \(tag)"; return true
+                default: return false
+                }
+            }
+            .padding(18)
+            .background(.background, in: .rect(cornerRadius: 24, style: .continuous))
+            Text(opened)
+                .font(.footnote)
+                .fontWeight(.semibold)
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 6)
+        }
+        .frame(width: 300)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(SmartTextStyle.adaptive(light: 0xF3F2EE, dark: 0x121212))
+    }
+}
+
+#Preview("Light") {
+    SmartTextExample()
+}
+
+#Preview("Dark") {
+    SmartTextExample()
+        .preferredColorScheme(.dark)
+}
+
+// MARK: - Piece motion
+//
+// The SwiftPieces motion language: shared spring tokens and gesture physics, with the same values in every
+// piece. Each piece carries a copy of only the parts it uses, so this file stands alone. Generated from
+// registry/foundation/PieceMotion.swift in the SwiftPieces repo; edit it there, not here.
+// swiftpieces-motion: 1.1.0 (core)
+
+/// The SwiftPieces motion language: five spring tiers, and a named role for every moment a piece moves,
+/// each with its Reduce Motion substitute.
+///
+/// Build one from the environment, `PieceMotion(reduceMotion: reduceMotion)`, and pick the role that names
+/// what just happened. Never animate the tracking of a finger: set gesture state directly in `onChanged`, so the
+/// surface stays under the finger, and spring only the release.
+private struct PieceMotion {
+    var reduceMotion = false
+
+    // Tiers. Overshoot and settle times are measured from rest with SwiftUI's Spring.
+    /// No overshoot, 90% in about 90ms. A press arriving under the finger.
+    static var tight: Spring { Spring(duration: 0.14, bounce: 0) }
+    /// About 2.8% overshoot, 90% in about 140ms. Snapping to a detent, page or segment.
+    static var responsive: Spring { Spring(duration: 0.32, bounce: 0.25) }
+    /// About 8.4% overshoot. Visible give: a release, a return from past an edge, a drag settling home.
+    static var elastic: Spring { Spring(duration: 0.42, bounce: 0.38) }
+    /// About 15% overshoot. A resolved action landing. At most once per interaction.
+    static var expressive: Spring { Spring(duration: 0.48, bounce: 0.48) }
+    /// About 1.5% overshoot, unhurried. Opening large surfaces and ambient change.
+    static var calm: Spring { Spring(duration: 0.5, bounce: 0.2) }
+
+    /// Reduce Motion: settles become this short spring with no overshoot.
+    private static var still: Animation { .spring(duration: 0.25, bounce: 0) }
+
+    // Roles.
+    /// Touch-down. Starts on the same frame and never bounces under the finger.
+    var press: Animation { .spring(Self.tight) }
+    /// The finger lifts off a pressed surface, which springs back through rest.
+    var release: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A dragged thing comes to rest. With a gesture's velocity, use `settle(velocity:from:to:)` instead.
+    var settle: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// Lands on a detent, page or segment.
+    var snap: Animation { reduceMotion ? Self.still : .spring(Self.responsive) }
+    /// A number, a chart value or anything else people read moves to its new value. Never overshoots, so it
+    /// never shows a value that isn't true.
+    var value: Animation { reduceMotion ? Self.still : .spring(duration: 0.35, bounce: 0) }
+    /// Comes back from past a limit: a pull beyond the edge, a value pushed against its bound.
+    var rebound: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A shape or container changes size, corner radius or form, with a little give at the end.
+    var morph: Animation { reduceMotion ? Self.still : .spring(duration: 0.4, bounce: 0.2) }
+    /// Something appears, opens or expands. Opening is a little slower than closing.
+    var reveal: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.calm) }
+    /// Something leaves, closes or collapses. Quick and firm, out of the way.
+    var dismiss: Animation { reduceMotion ? .easeIn(duration: 0.18) : .spring(duration: 0.3, bounce: 0.08) }
+    /// A resolved action lands: a check, a sent state, a reaction.
+    var success: Animation { reduceMotion ? .easeOut(duration: 0.24) : .spring(Self.expressive) }
+    /// A refused action. Firm, no wobble; `pieceShake` adds the movement.
+    var error: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.responsive) }
+    /// Slow ambient change. Loops themselves stop under Reduce Motion: check `allowsAmbient`.
+    var ambient: Animation { reduceMotion ? .easeInOut(duration: 0.3) : .spring(Self.calm) }
+
+    /// Loops, drifts, idle breathing and parallax run only when this is true.
+    var allowsAmbient: Bool { !reduceMotion }
+
+    /// A moving transition, or a plain fade under Reduce Motion.
+    func transition(_ transition: AnyTransition) -> AnyTransition {
+        reduceMotion ? .opacity : transition
+    }
+
+    /// For content replaced inside a container that stays put (a label, a glyph, a count): the old content
+    /// blurs out as the new one sharpens in. A fade under Reduce Motion.
+    @MainActor var swap: AnyTransition {
+        reduceMotion ? .opacity : AnyTransition(.blurReplace)
+    }
+}
+
+// swiftpieces-motion: end

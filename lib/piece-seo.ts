@@ -96,9 +96,11 @@ export const searchPhrase: Record<string, string> = {
   SizePicker: "Size Picker for Shops",
   UnitToggle: "Unit Conversion Toggle",
   ViewToggle: "List and Grid View Toggle",
-  PathBar: "Breadcrumb Path Bar",
   QRCode: "QR Code Generator",
   ReadAlongText: "Read-Along Text Highlighting",
+  SmartText: "Smart Text Links and Mentions",
+  MatchHighlight: "Search Match Highlight",
+  TextDiff: "Text Diff Changes View",
   RelativeTime: "Relative Time Ago Label",
   TranslateToggle: "Translate Text Button",
 };

@@ -12741,62 +12741,6 @@
     }
   },
   {
-    "url": "/docs/components/navigation/path-bar",
-    "title": "Path Bar",
-    "description": "A glass breadcrumb with icons, a flowing red pill on the current place, a … menu for deep paths and siblings on a long press.",
-    "breadcrumbs": [
-      "SwiftPieces",
-      "Components",
-      "Categories · 14",
-      "Navigation"
-    ],
-    "structuredData": {
-      "contents": [
-        {
-          "content": "Colors for `PathBar`. `.standard` is the house palette."
-        },
-        {
-          "heading": "notes",
-          "content": "Bind it to the same array of nodes you drive a `NavigationStack` with, give it the root, a `children` closure and a label for a node, usually `Label(name, systemImage:)`."
-        },
-        {
-          "heading": "notes",
-          "content": "The current place sits on a red pill that flows as you move. A new level rises into the bar as you drill in. Tap an earlier segment to go back to it: the path is trimmed to that level."
-        },
-        {
-          "heading": "notes",
-          "content": "Once the path is deeper than `visibleLevels` (3 by default), the middle folds into a … button that lists the hidden levels, so the bar never overflows."
-        },
-        {
-          "heading": "notes",
-          "content": "Hold a segment to open its siblings, the other children of its parent, and pick one to jump sideways; the levels below it are dropped."
-        },
-        {
-          "heading": "notes",
-          "content": "The chevrons follow the layout direction, so the bar flips for right-to-left languages."
-        },
-        {
-          "heading": "notes",
-          "content": "VoiceOver reads it as a Path container of buttons, marks the current place, and hints that holding opens the other folders there."
-        },
-        {
-          "heading": "notes",
-          "content": "Under Reduce Motion new segments fade in instead of rising."
-        }
-      ],
-      "headings": [
-        {
-          "id": "notes",
-          "content": "Notes"
-        },
-        {
-          "id": "usage",
-          "content": "Usage"
-        }
-      ]
-    }
-  },
-  {
     "url": "/docs/components/navigation/scroll-island",
     "title": "Scroll Island",
     "description": "A floating glass island that names the section in view, rings in how much is read and opens into a contents panel on tap.",
@@ -14429,6 +14373,58 @@
     }
   },
   {
+    "url": "/docs/components/text/match-highlight",
+    "title": "Match Highlight",
+    "description": "Search results that mark why they matched, on a red mark that grows as you type, ignoring case and accents.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Components",
+      "Categories · 14",
+      "Text"
+    ],
+    "structuredData": {
+      "contents": [
+        {
+          "content": "Colors and type for `MatchHighlight`. `.standard` is the house palette."
+        },
+        {
+          "heading": "notes",
+          "content": "Use it for each result in a search list: `MatchHighlight(recipe.title, query: search)`. The part of each word that matches sits on a red mark, with the text in dark ink on it."
+        },
+        {
+          "heading": "notes",
+          "content": "Matching ignores case, accents and full-width forms, in the reader's locale: \"pate\" marks all four letters of \"Pâté\", and \"CAFE\" marks \"café\"."
+        },
+        {
+          "heading": "notes",
+          "content": "Each word of the query is matched on its own, at the start of any word, so \"pasta spicy\" marks both words of \"Spicy pasta bake\". Set `mode: .anywhere` to match inside words too, for codes, file names and IDs."
+        },
+        {
+          "heading": "notes",
+          "content": "Filter your list with `MatchHighlight.matches(_:query:)`. It uses the same rules as the marks, so a row is shown exactly when every query word has a mark in it."
+        },
+        {
+          "heading": "notes",
+          "content": "The marks grow and shrink with the value spring as the query changes, and an empty query marks nothing."
+        },
+        {
+          "heading": "notes",
+          "content": "VoiceOver reads the plain text without the marks."
+        }
+      ],
+      "headings": [
+        {
+          "id": "notes",
+          "content": "Notes"
+        },
+        {
+          "id": "usage",
+          "content": "Usage"
+        }
+      ]
+    }
+  },
+  {
     "url": "/docs/components/text/picture-headline",
     "title": "Picture Headline",
     "description": "A headline with living pictures stuck between its words like a collage, each opening into a tilted sticker as the words rise.",
@@ -14678,6 +14674,118 @@
         {
           "heading": "notes",
           "content": "Under Reduce Motion the text changes with a fade instead of rolling."
+        }
+      ],
+      "headings": [
+        {
+          "id": "notes",
+          "content": "Notes"
+        },
+        {
+          "id": "usage",
+          "content": "Usage"
+        }
+      ]
+    }
+  },
+  {
+    "url": "/docs/components/text/smart-text",
+    "title": "Smart Text",
+    "description": "Plain text that finds links, @mentions, #tags, dates and phone numbers, styles them in place and lets you decide what a tap does.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Components",
+      "Categories · 14",
+      "Text"
+    ],
+    "structuredData": {
+      "contents": [
+        {
+          "content": "Colors and type for `SmartText`. `.standard` is the house palette."
+        },
+        {
+          "heading": "notes",
+          "content": "Give it plain text and it finds links (including bare domains such as `lunchbox.co`), email addresses, @mentions, #tags, dates and times, phone numbers and postal addresses. Narrow it with `kinds`, such as `[.links, .mentions]`."
+        },
+        {
+          "heading": "notes",
+          "content": "The text draws at once and the matches light up a moment later, once per string. Detection runs again only when the text changes, so it's cheap in a long list."
+        },
+        {
+          "heading": "notes",
+          "content": "Links, dates, phone numbers and addresses are red with a red underline. Mentions and tags keep the text color with a red underline, so a busy comment doesn't turn red."
+        },
+        {
+          "heading": "notes",
+          "content": "`onTap` gets every tap as a `SmartTextMatch` with its kind and the text as written. Return `true` when you handled it. Return `false` (or leave `onTap` out) and the piece does the default: links open, phone numbers call, dates open that day in Calendar and addresses open in Maps. Mentions and tags have no default, so route them yourself."
+        },
+        {
+          "heading": "notes",
+          "content": "Dates are read relative to now in the reader's calendar and language, so \"Friday at 7\" gives next Friday at 7 PM."
+        },
+        {
+          "heading": "notes",
+          "content": "An @ inside an email address or a # inside a link stays part of that link and isn't found again as a mention or a tag."
+        },
+        {
+          "heading": "notes",
+          "content": "Each tap gives a selection tick. VoiceOver lists the matches as links in the rotor, and Dynamic Type scales the text."
+        },
+        {
+          "heading": "notes",
+          "content": "Under Reduce Motion the matches appear without the fade."
+        }
+      ],
+      "headings": [
+        {
+          "id": "notes",
+          "content": "Notes"
+        },
+        {
+          "id": "usage",
+          "content": "Usage"
+        }
+      ]
+    }
+  },
+  {
+    "url": "/docs/components/text/text-diff",
+    "title": "Text Diff",
+    "description": "Two versions of a text, word by word: removed words struck through in red, new ones underlined, with a clean view.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Components",
+      "Categories · 14",
+      "Text"
+    ],
+    "structuredData": {
+      "contents": [
+        {
+          "content": "Colors and type for `TextDiff`. `.standard` is the house palette."
+        },
+        {
+          "heading": "notes",
+          "content": "Give it two versions of a text: `TextDiff(from: draft, to: rewrite)`. It compares them word by word and keeps the spaces in place, so neighbouring words never run together."
+        },
+        {
+          "heading": "notes",
+          "content": "In `.changes` mode, removed words are struck through in red and new words are underlined. A removal always comes before what replaced it, so \"~~will try to~~ will\" reads in order."
+        },
+        {
+          "heading": "notes",
+          "content": "Bind `mode` to a picker or a button: `.clean` folds the removed words away and drops the underlines, so it reads as the final text, and `.original` shows the text as it was. Switching animates with the morph spring."
+        },
+        {
+          "heading": "notes",
+          "content": "`TextDiff.changeCount(from:to:)` counts the changes for a caption such as \"Edited by AI · 3 changes\". A removal and the words that replaced it count as one change."
+        },
+        {
+          "heading": "notes",
+          "content": "VoiceOver reads the text with each change in place, such as \"Our team, removed: will try to, added: will, reply…\". In the other modes it reads the plain text."
+        },
+        {
+          "heading": "notes",
+          "content": "The diff runs when the view is made, which is instant for paragraphs. For whole documents, show one paragraph per `TextDiff`."
         }
       ],
       "headings": [

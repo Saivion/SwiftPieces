@@ -107,6 +107,8 @@ const config: NextConfig = {
       { source: "/components", has: [{ type: "query", key: "category", value: "(?<category>[a-z]+)" }], destination: "/components/:category", permanent: true },
       // Code Block was retired on 2026-10-08; Source Stack took its place in the AI pieces.
       { source: "/docs/components/ai/code-block", destination: "/docs/components/ai/source-stack", permanent: true },
+      // Path Bar was replaced by the text pieces on 2026-11-12.
+      { source: "/docs/components/navigation/path-bar", destination: "/docs/components/text/smart-text", permanent: true },
       // The docs sidebar's category folders have no page of their own; their URL leads to the hub.
       { source: `/docs/components/:category(${CATEGORY_SLUGS})`, destination: "/components/:category", permanent: true },
       // Pattern categories are sidebar folders too, with no page of their own: their URL leads to the patterns.

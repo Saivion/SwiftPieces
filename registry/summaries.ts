@@ -109,7 +109,6 @@ export const summaries: Record<string, string> = {
   DragToDismiss: "A modifier that lets a photo, card or sheet follow the drag, then springs it back or tosses it away at the speed of the flick.",
 
   // Navigation
-  PathBar: "A glass breadcrumb with icons, a flowing red pill on the current place, a … menu for deep paths and siblings on a long press.",
   FloatingDock: "A floating glass dock where each item is its own bubble; drag across it to lift each item and read its name, release to switch.",
   IndexScrubber: "An A to Z index on a glass rail that jumps through a long list as you drag, with a letter bubble that follows the finger.",
   PageDots: "A page control whose red capsule pours from dot to dot, with tap and scrub to jump and an autoplay timer that fills the capsule.",
@@ -127,6 +126,9 @@ export const summaries: Record<string, string> = {
 
   // Text
   ReadAlongText: "Text that follows a recording word by word on an even red pill that glides along, read words turning solid; tap to seek.",
+  SmartText: "Plain text that finds links, @mentions, #tags, dates and phone numbers, styles them in place and lets you decide what a tap does.",
+  MatchHighlight: "Search results that mark why they matched, on a red mark that grows as you type, ignoring case and accents.",
+  TextDiff: "Two versions of a text, word by word: removed words struck through in red, new ones underlined, with a clean view.",
   RelativeTime: "A timestamp that keeps itself current, rolling from just now to Yesterday only when its wording changes; tap for the exact time.",
   TranslateToggle: "Text with an on-device Translate button: the words blur over one by one into the reader's language as the label rolls.",
   ExpandableText: "A paragraph clamped to a line limit that shows a glass more pill only when it is cut, and grows to full height without reflow.",

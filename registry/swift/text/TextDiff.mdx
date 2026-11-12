@@ -1,0 +1,8 @@
+## Notes
+
+- Give it two versions of a text: `TextDiff(from: draft, to: rewrite)`. It compares them word by word and keeps the spaces in place, so neighbouring words never run together.
+- In `.changes` mode, removed words are struck through in red and new words are underlined. A removal always comes before what replaced it, so "~~will try to~~ will" reads in order.
+- Bind `mode` to a picker or a button: `.clean` folds the removed words away and drops the underlines, so it reads as the final text, and `.original` shows the text as it was. Switching animates with the morph spring.
+- `TextDiff.changeCount(from:to:)` counts the changes for a caption such as "Edited by AI · 3 changes". A removal and the words that replaced it count as one change.
+- VoiceOver reads the text with each change in place, such as "Our team, removed: will try to, added: will, reply…". In the other modes it reads the plain text.
+- The diff runs when the view is made, which is instant for paragraphs. For whole documents, show one paragraph per `TextDiff`.

@@ -6,8 +6,9 @@ import { shake, t, tiers, type Spring } from "./piece-motion";
 import { Liquid, LiquidGroup } from "./piece-liquid";
 
 /*
- * The 2026-11-08 everyday pieces: Select Menu, Zoom Dial, Reorder List, Size Picker, Unit Toggle, View Toggle, Path
- * Bar, QR Code, Read-Along Text, Relative Time and Translate Toggle, the component only. Sizes are authored in points
+ * The 2026-11-08 everyday pieces: Select Menu, Zoom Dial, Reorder List, Size Picker, Unit Toggle, View Toggle, QR
+ * Code, Read-Along Text, Relative Time and Translate Toggle, then Smart Text, Match Highlight and Text Diff (which
+ * replaced Path Bar), the component only. Sizes are authored in points
  * as the Swift pieces draw them, converted to `cqw` against the 560 px stage, and each stage is scaled as one picture.
  * Selections flow the way the Swift pieces' edges do: the edge facing the move on the tight spring, the far edge on
  * the responsive one.
@@ -361,48 +362,132 @@ export function ViewTogglePreview() {
   );
 }
 
-// MARK: - Path Bar
+// MARK: - Smart Text
 
-const HOME = "M4 11l8-7 8 7v9h-5v-6H9v6H4z", DIR = "M3 7h6l2 2h10v10H3z";
-const PV_STEPS = [
-  { ms: 1000, path: ["Home"] }, { ms: 1000, path: ["Home", "Projects"] }, { ms: 1000, path: ["Home", "Projects", "SwiftPieces"] },
-  { ms: 1000, path: ["Home", "Projects", "SwiftPieces", "Assets"] }, { ms: 1400, path: ["Home", "Projects", "SwiftPieces", "Assets", "Icons"] },
-  { ms: 1200, path: ["Home", "Projects", "SwiftPieces"] }, { ms: 1200, path: ["Home", "Photos"] }, { ms: 1200, path: ["Home"] },
-] as const;
+const ST_PARTS: readonly (readonly [string, "m" | "a" | null])[] = [
+  ["Dinner with ", null], ["@maya", "m"], [" ", null], ["Friday at 7", "a"], [", the menu is on ", null], ["lunchbox.co", "a"],
+  [" and the door code is ", null], ["4471", null], [". ", null], ["#weekend", "m"],
+];
+const ST_STEPS = [{ ms: 1100, lit: 0, tap: false }, { ms: 1900, lit: 4, tap: false }, { ms: 1900, lit: 4, tap: true }] as const;
 
-export function PathBarPreview() {
-  const { step } = useLoop(PV_STEPS);
-  const path = step.path;
-  const shown: (string | null)[] = path.length > 3 ? [path[0], null, path[path.length - 2], path[path.length - 1]] : [...path];
-  const bar = useRef<HTMLDivElement>(null);
-  const [pill, setPill] = useState<{ l: number; w: number } | null>(null);
-  useLayoutEffect(() => {
-    const el = bar.current?.querySelector<HTMLElement>("[data-cur]");
-    // The segment sits in its own wrapper beside its chevron, so add the wrapper's offset within the bar.
-    if (el) setPill({ l: el.offsetLeft + ((el.offsetParent as HTMLElement | null)?.offsetLeft ?? 0), w: el.offsetWidth });
-  }, [step]);
+export function SmartTextPreview() {
+  const { step } = useLoop(ST_STEPS);
+  let found = 0;
   return (
     <Stage scale={1.35}>
-      <div ref={bar} className="relative flex items-center" style={{ padding: u(4), gap: u(2), fontSize: u(14), whiteSpace: "nowrap" }}>
-        <GlassBack />
-        {pill ? <span className="absolute" style={{ top: u(4), height: u(40), left: pill.l, width: pill.w, borderRadius: 9999, background: signal.fill, transition: [t("left", "snap"), t("width", "morph")].join(", ") }} /> : null}
-        {shown.map((name, i) => (
-          <span key={`${i}-${name}`} className="relative flex items-center" style={{ gap: u(2) }}>
-            {i > 0 ? <Icon d="M9 6l6 6-6 6" size={10} style={{ color: SUBTLE }} /> : null}
-            {name === null ? (
-              <span className="grid place-items-center" style={{ width: u(40), height: u(40), color: ground.muted, fontSize: u(18), letterSpacing: ".04em" }}>…</span>
-            ) : (
-              <span data-cur={i === shown.length - 1 ? "" : undefined} className="flex items-center" style={{
-                gap: u(6), height: u(40), padding: `0 ${u(12)}`, color: i === shown.length - 1 ? ink : ground.muted, transition: "color .2s",
-                animation: i === shown.length - 1 ? "ev-lift 360ms cubic-bezier(.2,.9,.3,1.1)" : undefined,
-              }}>
-                <Icon d={name === "Home" ? HOME : DIR} size={14} />
-                {name}
+      <div className="relative" style={{ width: u(280), padding: u(18) }}>
+        <GlassBack radius={24} lift={false} />
+        <div className="relative" style={{ fontSize: u(17), lineHeight: 1.5 }}>
+          {ST_PARTS.map(([text, kind], i) => {
+            if (!kind) return <span key={i}>{text}</span>;
+            const on = found++ < step.lit;
+            return (
+              <span key={i} style={{
+                color: on && kind === "a" ? signal.fill : ground.text, textDecorationLine: "underline", textUnderlineOffset: u(3), textDecorationThickness: u(1.5),
+                textDecorationColor: on ? signal.fill : "transparent", transition: `color .4s ${found * 90}ms, text-decoration-color .4s ${found * 90}ms`,
+                background: step.tap && text === "Friday at 7" ? "color-mix(in srgb, currentColor 14%, transparent)" : "transparent", borderRadius: u(4),
+              }}>{text}</span>
+            );
+          })}
+        </div>
+        <div className="relative flex items-center" style={{ marginTop: u(14), gap: u(8), fontSize: u(12), color: ground.muted, height: u(16) }}>
+          <Roll text={step.tap ? "Opens Friday, Nov 13 in Calendar" : "Tap a link, date or mention"} />
+        </div>
+      </div>
+    </Stage>
+  );
+}
+
+// MARK: - Match Highlight
+
+const MH_TITLES = ["Pasta al limone", "Spicy pasta bake", "Passion fruit sorbet", "Pâté on toast"];
+const MH_STEPS = [
+  { ms: 900, q: "" }, { ms: 380, q: "p" }, { ms: 380, q: "pa" }, { ms: 1300, q: "pas" }, { ms: 1500, q: "past" },
+  { ms: 380, q: "" }, { ms: 380, q: "pa" }, { ms: 380, q: "pat" }, { ms: 1800, q: "pate" },
+] as const;
+const fold = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+
+export function MatchHighlightPreview() {
+  const { step } = useLoop(MH_STEPS);
+  const q = step.q;
+  return (
+    <Stage scale={1.35}>
+      <div className="flex flex-col" style={{ width: u(260), gap: u(10) }}>
+        <div className="relative flex items-center" style={{ height: u(44), padding: `0 ${u(16)}`, gap: u(10), fontSize: u(16) }}>
+          <GlassBack />
+          <Icon d="M10.5 17a6.5 6.5 0 1 0 0-13 6.5 6.5 0 0 0 0 13zM15.5 15.5L20 20" size={16} style={{ position: "relative", color: ground.muted }} />
+          <span className="relative" style={{ color: q ? ground.text : SUBTLE }}>{q || "Search recipes"}</span>
+          <span className="relative" style={{ width: u(2), height: u(18), marginLeft: u(-8), background: signal.fill, animation: "mh-blink 1s steps(1) infinite" }} />
+          <style>{"@keyframes mh-blink{50%{opacity:0}}"}</style>
+        </div>
+        <div className="flex flex-col" style={{ padding: `0 ${u(8)}`, gap: u(2) }}>
+          {MH_TITLES.map((title) => {
+            let hit = !q;
+            const words = title.split(" ").map((w, i) => {
+              const m = q && fold(w).startsWith(q);
+              if (m) hit = true;
+              return (
+                <span key={i}>
+                  {i ? " " : ""}
+                  {m ? <span style={{ background: signal.fill, color: ink, borderRadius: u(4), padding: `0 ${u(1.5)}`, margin: `0 ${u(-1.5)}` }}>{w.slice(0, q.length)}</span> : null}
+                  {m ? w.slice(q.length) : w}
+                </span>
+              );
+            });
+            return <div key={title} style={{ fontSize: u(16), padding: `${u(6)} 0`, opacity: hit ? 1 : 0.3, transition: "opacity .3s" }}>{words}</div>;
+          })}
+        </div>
+      </div>
+    </Stage>
+  );
+}
+
+// MARK: - Text Diff
+
+const TD_RUNS: readonly (readonly [string, "same" | "del" | "ins"])[] = [
+  ["Our team ", "same"], ["will try to", "del"], [" ", "same"], ["will", "ins"], [" reply ", "same"], ["as soon as possible", "del"], [" ", "same"],
+  ["within a day", "ins"], [", ", "same"], ["usually", "del"], [" ", "same"], ["even", "ins"], [" on weekends.", "same"],
+];
+const TD_STEPS = [{ ms: 1500, mode: "original" }, { ms: 2600, mode: "changes" }, { ms: 2400, mode: "clean" }] as const;
+
+export function TextDiffPreview() {
+  const { step } = useLoop(TD_STEPS);
+  const m = step.mode;
+  return (
+    <Stage scale={1.35}>
+      <div className="flex flex-col" style={{ width: u(280), gap: u(14) }}>
+        <div className="relative" style={{ padding: u(18) }}>
+          <GlassBack radius={24} lift={false} />
+          <div className="relative" style={{ fontSize: u(17), lineHeight: 1.55 }}>
+            {TD_RUNS.map(([text, kind], i) => {
+              // A run that this mode leaves out folds to nothing, and a lone space between two folded runs goes with them.
+              const gone = (kind === "del" && m === "clean") || (kind === "ins" && m === "original")
+                || (text === " " && ((m === "clean" && TD_RUNS[i - 1]?.[1] === "del") || (m === "original" && TD_RUNS[i + 1]?.[1] === "ins")));
+              // Unchanged text wraps like any text; only the changed runs fold, so no line starts with a stray space.
+              if (kind === "same") return <span key={i} style={{ display: gone ? "none" : undefined }}>{text}</span>;
+              return (
+                <span key={i} style={{
+                  display: "inline-block", whiteSpace: "nowrap", overflow: "hidden", verticalAlign: "bottom", maxWidth: gone ? 0 : u(240), opacity: gone ? 0 : 1,
+                  color: kind === "del" && m === "changes" ? signal.fill : ground.text,
+                  textDecorationLine: kind === "del" ? "line-through" : "underline", textDecorationThickness: u(1.5), textUnderlineOffset: u(3),
+                  textDecorationColor: m === "changes" ? (kind === "del" ? signal.fill : ground.text) : "transparent",
+                  transition: [t("max-width", "morph"), "opacity .3s", "color .3s", "text-decoration-color .3s"].join(", "),
+                }}>{text}</span>
+              );
+            })}
+          </div>
+        </div>
+        <div className="flex items-center justify-between" style={{ fontSize: u(12), color: ground.muted, padding: `0 ${u(4)}`, whiteSpace: "nowrap", gap: u(8) }}>
+          <span>Edited by AI · 3 changes</span>
+          <span className="relative flex" style={{ padding: u(3), gap: u(2) }}>
+            <GlassBack />
+            {(["changes", "clean"] as const).map((k) => (
+              <span key={k} className="relative" style={{ height: u(28), padding: `0 ${u(11)}`, display: "grid", placeItems: "center", borderRadius: 9999, background: (m === "original" ? "changes" : m) === k ? signal.fill : "transparent", color: (m === "original" ? "changes" : m) === k ? ink : ground.text, transition: "background-color .25s, color .25s" }}>
+                {k === "changes" ? "Changes" : "Clean"}
               </span>
-            )}
+            ))}
           </span>
-        ))}
-        <style>{`@keyframes ev-lift{from{transform:translateY(${u(16)});opacity:0}to{transform:none;opacity:1}}`}</style>
+        </div>
       </div>
     </Stage>
   );

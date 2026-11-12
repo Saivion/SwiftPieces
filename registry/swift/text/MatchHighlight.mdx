@@ -1,0 +1,8 @@
+## Notes
+
+- Use it for each result in a search list: `MatchHighlight(recipe.title, query: search)`. The part of each word that matches sits on a red mark, with the text in dark ink on it.
+- Matching ignores case, accents and full-width forms, in the reader's locale: "pate" marks all four letters of "Pâté", and "CAFE" marks "café".
+- Each word of the query is matched on its own, at the start of any word, so "pasta spicy" marks both words of "Spicy pasta bake". Set `mode: .anywhere` to match inside words too, for codes, file names and IDs.
+- Filter your list with `MatchHighlight.matches(_:query:)`. It uses the same rules as the marks, so a row is shown exactly when every query word has a mark in it.
+- The marks grow and shrink with the value spring as the query changes, and an empty query marks nothing.
+- VoiceOver reads the plain text without the marks.

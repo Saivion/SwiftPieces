@@ -28,8 +28,10 @@ enum PreviewCatalog {
         // pickers and controls, 2026-10-27
         "LiquidSwitch", "PageDots", "ChoiceGroup", "SwatchPicker", "TimeSlotPicker", "LevelPicker", "DateStrip", "InterestChips",
         // everyday pieces, 2026-11-08
-        "SelectMenu", "ZoomDial", "ReorderList", "SizePicker", "UnitToggle", "ViewToggle", "PathBar", "QRCode",
+        "SelectMenu", "ZoomDial", "ReorderList", "SizePicker", "UnitToggle", "ViewToggle", "QRCode",
         "ReadAlongText", "RelativeTime", "TranslateToggle",
+        // replaced Path Bar, 2026-11-12
+        "SmartText", "MatchHighlight", "TextDiff",
     ]
 
     @MainActor @ViewBuilder
@@ -229,8 +231,6 @@ enum PreviewCatalog {
             Stage { UnitToggleScene() }
         case "ViewToggle":
             Stage { ViewToggleScene() }
-        case "PathBar":
-            Stage { PathBarScene() }
         case "QRCode":
             Stage { QRCodeScene() }
         case "ReadAlongText":
@@ -239,6 +239,12 @@ enum PreviewCatalog {
             Stage { RelativeTimeScene() }
         case "TranslateToggle":
             Stage { TranslateToggleScene() }
+        case "SmartText":
+            Stage { SmartTextScene() }
+        case "MatchHighlight":
+            Stage { MatchHighlightScene() }
+        case "TextDiff":
+            Stage { TextDiffScene() }
         default:
             Text("Unknown piece: \(name)")
         }
@@ -4448,39 +4454,6 @@ private struct ViewToggleScene: View {
     }
 }
 
-private struct EverydayFolder: Hashable {
-    let name: String
-    static let tree: [String: [String]] = [
-        "Home": ["Projects", "Photos", "Notes"], "Projects": ["SwiftPieces", "Lumen", "Orbit"],
-        "SwiftPieces": ["Assets", "Docs", "Tests"], "Assets": ["Icons", "Stills"],
-    ]
-    var children: [EverydayFolder] { (Self.tree[name] ?? []).map(EverydayFolder.init) }
-}
-
-/// Drilling down four folders, folding the middle, then back home.
-private struct PathBarScene: View {
-    @State private var path: [EverydayFolder] = []
-
-    var body: some View {
-        PathBar(path: $path, root: EverydayFolder(name: "Home"), children: { $0.children }) { folder in
-            Label(folder.name, systemImage: folder.name == "Home" ? "house" : "folder")
-        }
-        .everydayScene()
-        .task {
-            while !Task.isCancelled {
-                for name in ["Projects", "SwiftPieces", "Assets", "Icons"] {
-                    try? await Task.sleep(for: .seconds(1))
-                    path.append(EverydayFolder(name: name))
-                }
-                try? await Task.sleep(for: .seconds(1.2))
-                path = Array(path.prefix(1))
-                try? await Task.sleep(for: .seconds(1))
-                path = []
-            }
-        }
-    }
-}
-
 /// The code rippling between a link, a Wi-Fi login and a contact.
 private struct QRCodeScene: View {
     @State private var index = 0
@@ -4541,5 +4514,76 @@ private struct TranslateToggleScene: View {
             .padding(20)
             .background(.background, in: .rect(cornerRadius: 26, style: .continuous))
             .everydayScene(width: 320)
+    }
+}
+
+/// A message whose links, date, mention and tag light up.
+private struct SmartTextScene: View {
+    @State private var seed = 0
+
+    var body: some View {
+        SmartText("Dinner with @maya on Friday at 7, the menu is on lunchbox.co and the door code is 4471. #weekend")
+            .id(seed)
+            .padding(18)
+            .background(.background, in: .rect(cornerRadius: 24, style: .continuous))
+            .everydayScene(width: 300)
+            .task {
+                while !Task.isCancelled {
+                    try? await Task.sleep(for: .seconds(3))
+                    seed += 1
+                }
+            }
+    }
+}
+
+/// A recipe search typed letter by letter, the marks growing and rows that stop matching stepping back.
+private struct MatchHighlightScene: View {
+    @State private var query = ""
+    private let recipes = ["Pasta al limone", "Spicy pasta bake", "Passion fruit sorbet", "Pâté on toast"]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(query.isEmpty ? "Search recipes" : query)
+                .fontWeight(.semibold)
+                .foregroundStyle(query.isEmpty ? .secondary : .primary)
+                .padding(.horizontal, 16)
+                .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                .background(.background, in: .capsule)
+            ForEach(recipes, id: \.self) { recipe in
+                MatchHighlight(recipe, query: query)
+                    .padding(.horizontal, 8)
+                    .opacity(MatchHighlight.matches(recipe, query: query) ? 1 : 0.3)
+            }
+        }
+        .everydayScene(width: 280)
+        .task {
+            while !Task.isCancelled {
+                for q in ["", "p", "pa", "pas", "past", "", "pa", "pat", "pate"] {
+                    try? await Task.sleep(for: .seconds(q.count >= 3 ? 1.4 : 0.4))
+                    withAnimation { query = q }
+                }
+            }
+        }
+    }
+}
+
+/// An AI rewrite: the original, then the changes, then the clean text.
+private struct TextDiffScene: View {
+    @State private var mode: TextDiffMode = .original
+
+    var body: some View {
+        TextDiff(from: "Our team will try to reply as soon as possible, usually on weekends too.", to: "Our team will reply within a day, even on weekends.", mode: mode)
+            .padding(18)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(.background, in: .rect(cornerRadius: 24, style: .continuous))
+            .everydayScene(width: 300)
+            .task {
+                while !Task.isCancelled {
+                    for next in [TextDiffMode.original, .changes, .clean] {
+                        mode = next
+                        try? await Task.sleep(for: .seconds(next == .original ? 1.5 : 2.6))
+                    }
+                }
+            }
     }
 }
