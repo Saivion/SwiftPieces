@@ -48,6 +48,8 @@ const library: MenuItem[] = [
 const create: MenuItem[] = [
   { label: "Apps", href: "/apps", desc: "Remix real app screens in the Playground", icon: "playground", badge: "Beta" },
   { label: "Styles", href: "/styles", desc: "Make one theme for every screen and app", icon: "style" },
+  // Saivion's own store: a one-off logo for the app you build here. Opens tinypersonas.com.
+  { label: "App icons", href: "https://tinypersonas.com", desc: "A one-off logo for your app, by TinyPersonas", icon: "appicon" },
 ];
 
 /**
