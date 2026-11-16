@@ -6,6 +6,7 @@ import { SponsorStrip } from "@/components/sections/sponsors";
 import { getSponsorsFrom } from "@/lib/sponsors";
 import { LibraryIntro } from "@/components/sections/library-intro";
 import { MorePair } from "@/components/sections/more-pair";
+import { AppIconPromo } from "@/components/sections/app-icon-promo";
 import { Questions } from "@/components/sections/questions";
 import { band } from "@/components/sections/feature-row";
 import { JsonLd } from "@/components/seo/json-ld";
@@ -79,7 +80,7 @@ export const revalidate = 300;
 /**
  * The landing page does two things: show the free pieces, then hand people to Pro. Below the hero
  * it is deliberately quiet: feature rows on a 1:2 grid (pieces, CLI, agents), the library directory,
- * a "Want more?" band of Pro screens and templates, the questions and one closing card. Pricing lives only on pro.swiftpieces.com.
+ * a "Want more?" band of Pro screens and templates, a "Need an app icon?" hand-off to TinyPersonas, the questions and one closing card. Pricing lives only on pro.swiftpieces.com.
  */
 export default async function HomePage() {
   // Gold sponsors only; the strip renders nothing until there is one.
@@ -93,6 +94,7 @@ export default async function HomePage() {
       <Features />
       <LibraryIntro />
       <MorePair />
+      <AppIconPromo />
       <Questions items={questions} spacing={band} />
       <GetStarted />
     </>
