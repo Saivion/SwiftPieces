@@ -32,9 +32,8 @@ const cta = (
   </Button>
 );
 
-/** A centred band over a staggered row of icons that rise from the tray's bottom edge (Saivion picked B, "Icon wall", 2026-11-15). */
+/** A centred band over a level row of same-size icons that rise from the tray's bottom edge (Saivion picked B, "Icon wall", 2026-11-15). */
 function IconWall() {
-  const lift = [10, 2, 14, 0, 0, 14, 2, 10];
   return (
     <Reveal className="tray overflow-hidden">
       <div className="px-6 pt-10 text-center sm:pt-14">
@@ -45,8 +44,8 @@ function IconWall() {
         <div className="mt-7 flex justify-center">{cta}</div>
       </div>
       <div className="mt-10 flex items-end justify-center gap-3 pb-0 sm:gap-4 [mask-image:linear-gradient(to_right,transparent,black_12%,black_88%,transparent)]">
-        {icons.map((id, i) => (
-          <div key={id} className="shrink-0" style={{ transform: `translateY(${lift[i] + 6}px)` }}>
+        {icons.map((id) => (
+          <div key={id} className="shrink-0" style={{ transform: "translateY(12px)" }}>
             <Icon id={id} className="w-[64px] sm:w-[84px]" />
           </div>
         ))}
