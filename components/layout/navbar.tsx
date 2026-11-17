@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { useSearchContext } from "fumadocs-ui/contexts/search";
 import { Logo } from "@/components/ui/logo";
 import { Button } from "@/components/ui/button";
@@ -111,12 +111,19 @@ function MenuRow({ item: l, active, onPick }: { item: MenuItem; active: boolean;
   );
 }
 
+/**
+ * True once someone reaches for the navigation (hover, focus, or the phone sheet opening). Until then the menus'
+ * decorative stills stay out of the HTML, so the page's own content and images come first.
+ */
+const MenusWarm = createContext(false);
+
 /** A game's still (Pro's Play still, public/pro-games/<id>.webp) cropped to a small square, for its row in the Games menu. */
 function GameTile({ game, className }: { game: ProGame; className?: string }) {
+  const warm = useContext(MenusWarm);
   return (
     <span className={cn("relative block shrink-0 overflow-hidden bg-surface ring-1 ring-[var(--line)]", className)}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={`/pro-games/${game.id}.webp`} alt="" loading="lazy" decoding="async" draggable={false} className="absolute inset-0 size-full object-cover object-[50%_38%]" />
+      {warm && <img src={`/pro-games/${game.id}.webp`} alt="" loading="lazy" decoding="async" draggable={false} className="absolute inset-0 size-full object-cover object-[50%_38%]" />}
     </span>
   );
 }
@@ -168,10 +175,20 @@ function GamesPanel({ onPick }: { onPick: () => void }) {
  * `fresh` is how many pieces carry the New badge right now (the registry's latest wave, 0 when it has
  * aged out). The layouts read it on the server, so the registry never reaches this client chunk.
  */
+/** Pages that open with the Pro bar. */
+const PROMO_PATHS = new Set(["/", "/pro"]);
+
 export function Navbar({ star, starMobile, docked = false, fresh = 0, promo }: { star?: ReactNode; starMobile?: ReactNode; docked?: boolean; fresh?: number; promo?: Promo | null }) {
   const pathname = usePathname();
+  // The Pro bar opens only the home page and /pro. Elsewhere the page's own content comes first in the HTML, and
+  // each page ends on its own Pro section (docs/seo/CHANGELOG-2026-11.md, A4).
+  const showPromo = Boolean(promo) && !docked && PROMO_PATHS.has(pathname);
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const [warm, setWarm] = useState(false);
+  useEffect(() => {
+    if (open) setWarm(true);
+  }, [open]);
   // The menu just picked from, so it closes under the pointer; cleared the next time one is hovered or focused.
   const [held, setHeld] = useState<string | null>(null);
   const { setOpenSearch } = useSearchContext();
@@ -204,13 +221,13 @@ export function Navbar({ star, starMobile, docked = false, fresh = 0, promo }: {
   const condensed = !docked && scrolled && !open;
 
   return (
-    <>
+    <MenusWarm.Provider value={warm}>
     {/* Fixed, with a constant-height spacer below. When the header was sticky its shrink on
         scroll changed the page layout; scroll anchoring then moved the page back under the
         threshold and the bar grew again, so it oscillated on its own near the top. */}
-    <header className={cn("fixed inset-x-0 top-0 z-50 transition-colors duration-500 ease-[var(--ease-out)]", open ? "bg-background" : "bg-transparent")}>
+    <header onPointerEnter={() => setWarm(true)} onFocusCapture={() => setWarm(true)} className={cn("fixed inset-x-0 top-0 z-50 transition-colors duration-500 ease-[var(--ease-out)]", open ? "bg-background" : "bg-transparent")}>
       {/* The announcement bar rides above the bar and tucks away once it condenses or the menu opens. */}
-      {promo && !docked && <PromoBar promo={promo} hidden={scrolled || open} />}
+      {showPromo && promo && <PromoBar promo={promo} hidden={scrolled || open} />}
       <Shell docked={docked}>
         <nav
           data-condensed={condensed}
@@ -289,7 +306,7 @@ export function Navbar({ star, starMobile, docked = false, fresh = 0, promo }: {
         </nav>
       </Shell>
     </header>
-    <div aria-hidden className={cn("shrink-0", promo && !docked ? "h-[calc(var(--nav-h)+var(--promo-h))]" : "h-[var(--nav-h)]")} />
+    <div aria-hidden className={cn("shrink-0", showPromo ? "h-[calc(var(--nav-h)+var(--promo-h))]" : "h-[var(--nav-h)]")} />
 
       {/* Mobile sheet: sibling of the header, never a descendant of a backdrop-filter element. */}
       <div className={cn("fixed inset-x-0 top-14 bottom-0 z-40 bg-background transition-opacity duration-300 lg:hidden", open ? "opacity-100" : "pointer-events-none opacity-0")} aria-hidden={!open} inert={!open}>
@@ -304,7 +321,7 @@ export function Navbar({ star, starMobile, docked = false, fresh = 0, promo }: {
                   <a key={g.id} href={gameHref(g)} onClick={() => setOpen(false)} className="flex w-[92px] shrink-0 snap-start flex-col gap-1.5">
                     <span className="relative block aspect-[3/4] overflow-hidden rounded-[14px] bg-surface ring-1 ring-[var(--line)]">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={`/pro-games/${g.id}.webp`} alt="" loading="lazy" className="absolute inset-0 size-full object-cover object-[50%_30%]" />
+                      {warm && <img src={`/pro-games/${g.id}.webp`} alt="" loading="lazy" className="absolute inset-0 size-full object-cover object-[50%_30%]" />}
                       {g.isNew ? <NewBadge className="absolute top-1.5 left-1.5 bg-background/90" /> : null}
                     </span>
                     <span className="text-[13px] font-medium text-foreground">{g.title}</span>
@@ -356,7 +373,7 @@ export function Navbar({ star, starMobile, docked = false, fresh = 0, promo }: {
           </div>
         </Container>
       </div>
-    </>
+    </MenusWarm.Provider>
   );
 }
 
