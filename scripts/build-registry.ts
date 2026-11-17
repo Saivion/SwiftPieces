@@ -33,6 +33,7 @@ import {
   type RegistryItem,
 } from "../lib/registry-schema";
 import { categories } from "../lib/categories";
+import { SEO_PATTERNS_ON_PRO } from "../lib/seo-flags";
 import { blockCategories, blockCategoryIds, blockPath, blockSlug, patternSlug, proBlocks, proBlockUrl, type BlockCategory } from "../lib/blocks";
 import { exploreProPages, proCatalog, proCountsLabel } from "../lib/pro-catalog";
 import { hubs, hubItems, hubPath } from "../lib/hubs";
@@ -737,7 +738,8 @@ function writeLlms(items: RegistryItem[], blocks: BlockItem[]) {
     "",
   );
   for (const b of blocks) lines.push(`- [${b.title}](${b.docs}): ${b.description} Built from ${b.registryDependencies.join(", ")}. Install: \`npx swiftpieces add ${b.name}\`. Registry: ${SITE_URL}/r/${b.name}.json`);
-  for (const p of proBlocks) lines.push(`- [${p.title}](${SITE_URL}${blockPath(p)}) (Pro): ${p.summary} Inside: ${p.parts.join(", ")}. Install with a Pro license: \`npx swiftpieces add ${p.name}\`. In SwiftPieces Pro: ${proBlockUrl(p.id)}`);
+  // Pattern pages are Pro's (lib/seo-flags.ts): list Pro's page, not a /docs/patterns URL that redirects there.
+  for (const p of proBlocks) lines.push(`- [${p.title}](${SEO_PATTERNS_ON_PRO ? proBlockUrl(p.id) : `${SITE_URL}${blockPath(p)}`}) (Pro): ${p.summary} Inside: ${p.parts.join(", ")}. Install with a Pro license: \`npx swiftpieces add ${p.name}\`.${SEO_PATTERNS_ON_PRO ? "" : ` In SwiftPieces Pro: ${proBlockUrl(p.id)}`}`);
   lines.push("", "## Collections", "");
   for (const h of hubs) lines.push(`- [${h.h1}](${SITE_URL}${hubPath(h.slug)}): ${h.description} (${hubItems(h, items).length} pieces)`);
   lines.push(

@@ -13,10 +13,22 @@ import { categoryHubPath, getHub } from "@/lib/hubs";
 export function PieceRelated({ item }: { item: RegistryIndexEntry }) {
   const all = getRegistryIndex();
   const hub = getHub(categories[item.category].slug);
-  const siblings = all.filter((i) => i.category === item.category && i.name !== item.name);
-  // Small categories borrow from their related hubs' categories, so there are always three cards.
-  const extra = hub?.related.map(getHub).flatMap((h) => (h?.category ? all.filter((i) => i.category === h.category) : [])) ?? [];
-  const picks = [...siblings, ...extra.filter((i) => i.name !== item.name && !siblings.includes(i))].slice(0, 3);
+  // Ranked by what they share with this piece, not by list order: the same category, shared tags, and the
+  // same technique (Liquid Glass, Metal). Pieces from related hubs' categories fill a small category.
+  const nearby = new Set(hub?.related.map(getHub).flatMap((h) => (h?.category ? [h.category] : [])) ?? []);
+  const tags = new Set(item.tags);
+  const score = (i: RegistryIndexEntry) =>
+    (i.category === item.category ? 6 : nearby.has(i.category) ? 2 : 0) +
+    i.tags.filter((t) => tags.has(t)).length * 2 +
+    (item.liquidGlass && i.liquidGlass ? 1 : 0) +
+    (item.metal && i.metal ? 1 : 0);
+  const picks = all
+    .filter((i) => i.name !== item.name)
+    .map((i, order) => ({ i, s: score(i), order }))
+    .filter((x) => x.s > 0)
+    .sort((a, b) => b.s - a.s || a.order - b.order)
+    .slice(0, 3)
+    .map((x) => x.i);
   const name = hub?.name ?? categories[item.category].title;
   return (
     <section className="not-prose mt-16" aria-labelledby="related-heading">

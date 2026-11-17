@@ -5,7 +5,8 @@ import { GitHubStarLive } from "@/components/layout/github-star-live";
 import { source } from "@/lib/source";
 import { baseOptions } from "@/lib/layout.shared";
 import { freshCount, getBlocks, getProBlocks, getRegistryIndex, piecePath } from "@/lib/registry";
-import { blockCategoryTitle, blockPath } from "@/lib/blocks";
+import { blockCategoryTitle, blockPath, proBlockUrl } from "@/lib/blocks";
+import { SEO_PATTERNS_ON_PRO } from "@/lib/seo-flags";
 import { ProBadge } from "@/components/ui/pro-badge";
 import type * as PageTree from "fumadocs-core/page-tree";
 import { NewBadge } from "@/components/ui/new-badge";
@@ -152,7 +153,11 @@ function blockSection(root: PageTree.Folder | undefined): PageTree.Node[] {
   const index = root.index?.url === "/docs/patterns" ? root.index : root.children.find((c): c is PageTree.Item => c.type === "page" && c.url === "/docs/patterns");
   const total = free.length + paid.length;
   const out: PageTree.Node[] = [heading("Patterns", total)];
-  if (index) out.push(withEnd({ ...index, name: "All Patterns" }, freshUrls.size ? <NewBadge>{`${freshUrls.size} New`}</NewBadge> : <span className="text-[11px] tabular-nums text-subtle">{total}</span>));
+  // Pattern pages are Pro's (lib/seo-flags.ts): "All Patterns" is the overview here, and each row opens Pro's page
+  // instead of a /docs/patterns URL that only redirects there.
+  const proHref = new Map(paid.map((p) => [blockPath(p), proBlockUrl(p.id)]));
+  const target = (n: PageTree.Item): PageTree.Item => (SEO_PATTERNS_ON_PRO && proHref.has(n.url) ? { ...n, url: proHref.get(n.url)!, external: true } : n);
+  if (index) out.push(withEnd({ ...index, ...(SEO_PATTERNS_ON_PRO ? { url: "/patterns" } : {}), name: "All Patterns" }, freshUrls.size ? <NewBadge>{`${freshUrls.size} New`}</NewBadge> : <span className="text-[11px] tabular-nums text-subtle">{total}</span>));
   for (const folder of root.children.filter((n): n is PageTree.Folder => n.type === "folder")) {
     const pages = folder.children.filter((n): n is PageTree.Item => n.type === "page");
     const hasPro = pages.some((p) => proUrls.has(p.url));
@@ -166,7 +171,7 @@ function blockSection(root: PageTree.Folder | undefined): PageTree.Node[] {
           {hasPro ? <ProBadge size="sm" /> : null}
         </span>
       ),
-      children: pages.map((p) => (proUrls.has(p.url) ? tiered(withEnd(p, <ProBadge size="sm" />), "pro") : tiered(freshUrls.has(p.url) ? withEnd(p, <NewBadge />) : p, "free"))),
+      children: pages.map((p) => (proUrls.has(p.url) ? tiered(withEnd(target(p), <ProBadge size="sm" />), "pro") : tiered(freshUrls.has(p.url) ? withEnd(p, <NewBadge />) : p, "free"))),
     });
   }
   return out;
@@ -179,7 +184,7 @@ function previewItems(): Record<string, SidebarPreviewEntry> {
     out[piecePath(e)] = { kind: "piece", name: e.name, title: e.title, label: categoryTitle(e.category), tone: e.category === "backgrounds" ? "black" : "dark" };
   }
   for (const b of getBlocks()) out[blockPath(b)] = { kind: "piece", name: b.name, title: b.title, label: `Pattern · ${blockCategoryTitle(b.category)}`, tone: "dark" };
-  for (const p of getProBlocks()) out[blockPath(p)] = { kind: "image", src: `/pro-blocks/${p.id}.webp`, title: p.title, label: `Pro pattern · ${blockCategoryTitle(p.category)}` };
+  for (const p of getProBlocks()) out[blockPath(p)] = out[proBlockUrl(p.id)] = { kind: "image", src: `/pro-blocks/${p.id}.webp`, title: p.title, label: `Pro pattern · ${blockCategoryTitle(p.category)}` };
   const screen = proCards("screen")[0];
   const flow = proCards("flow")[0];
   const template = proCards("template")[0];

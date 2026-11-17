@@ -1,0 +1,285 @@
+{
+  "note": "swiftpieces.com/docs/patterns/<group>/<slug> 301s to pro.swiftpieces.com/library/patterns/<slug>. Shared with Saivion/SwiftPieces; change both together.",
+  "hub": {
+    "free": "/docs/patterns",
+    "pro": "/library/patterns"
+  },
+  "patterns": [
+    {
+      "group": "agents",
+      "slug": "agent-approval",
+      "free": "/docs/patterns/agents/agent-approval",
+      "pro": "/library/patterns/agent-approval"
+    },
+    {
+      "group": "agents",
+      "slug": "agent-plan",
+      "free": "/docs/patterns/agents/agent-plan",
+      "pro": "/library/patterns/agent-plan"
+    },
+    {
+      "group": "agents",
+      "slug": "agent-run",
+      "free": "/docs/patterns/agents/agent-run",
+      "pro": "/library/patterns/agent-run"
+    },
+    {
+      "group": "agents",
+      "slug": "tool-calls",
+      "free": "/docs/patterns/agents/tool-calls",
+      "pro": "/library/patterns/tool-calls"
+    },
+    {
+      "group": "ai-chat",
+      "slug": "chat-attachments",
+      "free": "/docs/patterns/ai-chat/chat-attachments",
+      "pro": "/library/patterns/chat-attachments"
+    },
+    {
+      "group": "ai-chat",
+      "slug": "chat-history",
+      "free": "/docs/patterns/ai-chat/chat-history",
+      "pro": "/library/patterns/chat-history"
+    },
+    {
+      "group": "ai-chat",
+      "slug": "chat-thread",
+      "free": "/docs/patterns/ai-chat/chat-thread",
+      "pro": "/library/patterns/chat-thread"
+    },
+    {
+      "group": "ai-chat",
+      "slug": "chat-welcome",
+      "free": "/docs/patterns/ai-chat/chat-welcome",
+      "pro": "/library/patterns/chat-welcome"
+    },
+    {
+      "group": "auth",
+      "slug": "interests-picker",
+      "free": "/docs/patterns/auth/interests-picker",
+      "pro": "/library/patterns/interests-picker"
+    },
+    {
+      "group": "auth",
+      "slug": "magic-link",
+      "free": "/docs/patterns/auth/magic-link",
+      "pro": "/library/patterns/magic-link"
+    },
+    {
+      "group": "auth",
+      "slug": "profile-setup",
+      "free": "/docs/patterns/auth/profile-setup",
+      "pro": "/library/patterns/profile-setup"
+    },
+    {
+      "group": "auth",
+      "slug": "reset-password",
+      "free": "/docs/patterns/auth/reset-password",
+      "pro": "/library/patterns/reset-password"
+    },
+    {
+      "group": "auth",
+      "slug": "sign-in",
+      "free": "/docs/patterns/auth/sign-in",
+      "pro": "/library/patterns/sign-in"
+    },
+    {
+      "group": "commerce",
+      "slug": "checkout",
+      "free": "/docs/patterns/commerce/checkout",
+      "pro": "/library/patterns/checkout"
+    },
+    {
+      "group": "dashboards",
+      "slug": "stats-overview",
+      "free": "/docs/patterns/dashboards/stats-overview",
+      "pro": "/library/patterns/stats-overview"
+    },
+    {
+      "group": "forms",
+      "slug": "address-form",
+      "free": "/docs/patterns/forms/address-form",
+      "pro": "/library/patterns/address-form"
+    },
+    {
+      "group": "forms",
+      "slug": "feedback-form",
+      "free": "/docs/patterns/forms/feedback-form",
+      "pro": "/library/patterns/feedback-form"
+    },
+    {
+      "group": "forms",
+      "slug": "profile-form",
+      "free": "/docs/patterns/forms/profile-form",
+      "pro": "/library/patterns/profile-form"
+    },
+    {
+      "group": "forms",
+      "slug": "step-form",
+      "free": "/docs/patterns/forms/step-form",
+      "pro": "/library/patterns/step-form"
+    },
+    {
+      "group": "lists",
+      "slug": "activity-timeline",
+      "free": "/docs/patterns/lists/activity-timeline",
+      "pro": "/library/patterns/activity-timeline"
+    },
+    {
+      "group": "lists",
+      "slug": "file-list",
+      "free": "/docs/patterns/lists/file-list",
+      "pro": "/library/patterns/file-list"
+    },
+    {
+      "group": "lists",
+      "slug": "notification-inbox",
+      "free": "/docs/patterns/lists/notification-inbox",
+      "pro": "/library/patterns/notification-inbox"
+    },
+    {
+      "group": "lists",
+      "slug": "search-panel",
+      "free": "/docs/patterns/lists/search-panel",
+      "pro": "/library/patterns/search-panel"
+    },
+    {
+      "group": "nav-bars",
+      "slug": "greeting-header",
+      "free": "/docs/patterns/nav-bars/greeting-header",
+      "pro": "/library/patterns/greeting-header"
+    },
+    {
+      "group": "nav-bars",
+      "slug": "location-header",
+      "free": "/docs/patterns/nav-bars/location-header",
+      "pro": "/library/patterns/location-header"
+    },
+    {
+      "group": "nav-bars",
+      "slug": "scope-header",
+      "free": "/docs/patterns/nav-bars/scope-header",
+      "pro": "/library/patterns/scope-header"
+    },
+    {
+      "group": "nav-bars",
+      "slug": "selection-toolbar",
+      "free": "/docs/patterns/nav-bars/selection-toolbar",
+      "pro": "/library/patterns/selection-toolbar"
+    },
+    {
+      "group": "prompt-input",
+      "slug": "composer-attachments",
+      "free": "/docs/patterns/prompt-input/composer-attachments",
+      "pro": "/library/patterns/composer-attachments"
+    },
+    {
+      "group": "prompt-input",
+      "slug": "composer-dictation",
+      "free": "/docs/patterns/prompt-input/composer-dictation",
+      "pro": "/library/patterns/composer-dictation"
+    },
+    {
+      "group": "prompt-input",
+      "slug": "composer-mentions",
+      "free": "/docs/patterns/prompt-input/composer-mentions",
+      "pro": "/library/patterns/composer-mentions"
+    },
+    {
+      "group": "prompt-input",
+      "slug": "composer-modes",
+      "free": "/docs/patterns/prompt-input/composer-modes",
+      "pro": "/library/patterns/composer-modes"
+    },
+    {
+      "group": "settings",
+      "slug": "account-settings",
+      "free": "/docs/patterns/settings/account-settings",
+      "pro": "/library/patterns/account-settings"
+    },
+    {
+      "group": "settings",
+      "slug": "help-support",
+      "free": "/docs/patterns/settings/help-support",
+      "pro": "/library/patterns/help-support"
+    },
+    {
+      "group": "settings",
+      "slug": "invite-friends",
+      "free": "/docs/patterns/settings/invite-friends",
+      "pro": "/library/patterns/invite-friends"
+    },
+    {
+      "group": "settings",
+      "slug": "notification-settings",
+      "free": "/docs/patterns/settings/notification-settings",
+      "pro": "/library/patterns/notification-settings"
+    },
+    {
+      "group": "settings",
+      "slug": "plan-usage",
+      "free": "/docs/patterns/settings/plan-usage",
+      "pro": "/library/patterns/plan-usage"
+    },
+    {
+      "group": "settings",
+      "slug": "privacy-settings",
+      "free": "/docs/patterns/settings/privacy-settings",
+      "pro": "/library/patterns/privacy-settings"
+    },
+    {
+      "group": "settings",
+      "slug": "storage-settings",
+      "free": "/docs/patterns/settings/storage-settings",
+      "pro": "/library/patterns/storage-settings"
+    },
+    {
+      "group": "sheets",
+      "slug": "permission-primer",
+      "free": "/docs/patterns/sheets/permission-primer",
+      "pro": "/library/patterns/permission-primer"
+    },
+    {
+      "group": "sheets",
+      "slug": "schedule-sheet",
+      "free": "/docs/patterns/sheets/schedule-sheet",
+      "pro": "/library/patterns/schedule-sheet"
+    },
+    {
+      "group": "sheets",
+      "slug": "share-sheet",
+      "free": "/docs/patterns/sheets/share-sheet",
+      "pro": "/library/patterns/share-sheet"
+    },
+    {
+      "group": "sheets",
+      "slug": "whats-new",
+      "free": "/docs/patterns/sheets/whats-new",
+      "pro": "/library/patterns/whats-new"
+    },
+    {
+      "group": "tab-bars",
+      "slug": "accessory-tab-bar",
+      "free": "/docs/patterns/tab-bars/accessory-tab-bar",
+      "pro": "/library/patterns/accessory-tab-bar"
+    },
+    {
+      "group": "tab-bars",
+      "slug": "action-tab-bar",
+      "free": "/docs/patterns/tab-bars/action-tab-bar",
+      "pro": "/library/patterns/action-tab-bar"
+    },
+    {
+      "group": "tab-bars",
+      "slug": "search-tab-bar",
+      "free": "/docs/patterns/tab-bars/search-tab-bar",
+      "pro": "/library/patterns/search-tab-bar"
+    },
+    {
+      "group": "tab-bars",
+      "slug": "top-tabs",
+      "free": "/docs/patterns/tab-bars/top-tabs",
+      "pro": "/library/patterns/top-tabs"
+    }
+  ]
+}

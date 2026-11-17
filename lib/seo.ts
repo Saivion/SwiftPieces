@@ -85,6 +85,15 @@ export const WEBSITE_ID = `${site.url}/#website`;
 /** The free library as one free product. The home page defines it; piece pages point at it. */
 export const SOFTWARE_ID = `${site.url}/#software`;
 
+/** The person who builds the library: guides and component pages name Saivion as their author. */
+export const AUTHOR_ID = `${site.url}/about#saivion`;
+export const AUTHOR = { name: "Saivion", path: "/about", github: "https://github.com/Saivion" } as const;
+
+/** The author as a Person node, matching the byline and the About page. */
+export function authorJsonLd() {
+  return { "@type": "Person", "@id": AUTHOR_ID, name: AUTHOR.name, url: new URL(AUTHOR.path, site.url).href, sameAs: [AUTHOR.github, site.twitter] };
+}
+
 /** A BreadcrumbList from [name, path] pairs, home first. */
 export function breadcrumbJsonLd(trail: [name: string, path: string][]) {
   return {

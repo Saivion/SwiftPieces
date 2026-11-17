@@ -1,0 +1,139 @@
+{
+ "summary": {
+  "base": "http://localhost:3100",
+  "site": "https://swiftpieces.com",
+  "started": "2026-11-17T15:59:36.766Z",
+  "finished": "2026-11-17T15:59:47.071Z",
+  "robotsStatus": 200,
+  "robots": "User-Agent: *\nAllow: /\nDisallow: /api/\n\nUser-Agent: GPTBot\nUser-Agent: OAI-SearchBot\nUser-Agent: ChatGPT-User\nUser-Agent: PerplexityBot\nUser-Agent: Perplexity-User\nUser-Agent: ClaudeBot\nUser-Agent: Claude-SearchBot\nUser-Agent: anthropic-ai\nUser-Agent: Google-Extended\nUser-Agent: Applebot-Extended\nUser-Agent: Amazonbot\nUser-Agent: CCBot\nUser-Agent: Meta-ExternalAgent\nUser-Agent: Bytespider\nAllow: /\nDisallow: /api/\n\nHost: https://swiftpieces.com\nSitemap: https://swiftpieces.com/sitemap.xml\n",
+  "sitemaps": [
+   "https://swiftpieces.com/sitemap.xml"
+  ],
+  "sitemapErrors": [],
+  "urls": 158,
+  "urlsByTemplate": {
+   "/": 1,
+   "/apps": 1,
+   "/styles": 1,
+   "/sponsors": 1,
+   "/about": 1,
+   "/license": 1,
+   "/patterns": 1,
+   "/components": 1,
+   "/components/*": 16,
+   "/docs/components/*": 102,
+   "/docs/*": 9,
+   "/docs/guides/*": 6,
+   "/docs/changelog/*": 17
+  },
+  "lastmod": {
+   "distinct": 21,
+   "mostCommon": {
+    "value": "2026-11-10",
+    "urls": 78,
+    "share": 0.494
+   }
+  },
+  "sitemapPriority": 0,
+  "sitemapImages": 98,
+  "ttfb": {
+   "p50": 45,
+   "p90": 72,
+   "max": 141
+  },
+  "depth": {
+   "max": 2,
+   "crawled": 749
+  },
+  "orphans": 0,
+  "blockers": 0,
+  "flagsByKind": {
+   "lcp-image-lazy": 2,
+   "mzstatic-hotlink": 2
+  },
+  "uniqueWordsByTemplate": {
+   "/": {
+    "pages": 1,
+    "medianUniqueWords": 903
+   },
+   "/apps": {
+    "pages": 1,
+    "medianUniqueWords": 2774
+   },
+   "/styles": {
+    "pages": 1,
+    "medianUniqueWords": 511
+   },
+   "/sponsors": {
+    "pages": 1,
+    "medianUniqueWords": 711
+   },
+   "/about": {
+    "pages": 1,
+    "medianUniqueWords": 527
+   },
+   "/license": {
+    "pages": 1,
+    "medianUniqueWords": 312
+   },
+   "/patterns": {
+    "pages": 1,
+    "medianUniqueWords": 2231
+   },
+   "/components": {
+    "pages": 1,
+    "medianUniqueWords": 3258
+   },
+   "/components/*": {
+    "pages": 16,
+    "medianUniqueWords": 284
+   },
+   "/docs/components/*": {
+    "pages": 102,
+    "medianUniqueWords": 4253
+   },
+   "/docs/*": {
+    "pages": 9,
+    "medianUniqueWords": 470
+   },
+   "/docs/guides/*": {
+    "pages": 6,
+    "medianUniqueWords": 2019
+   },
+   "/docs/changelog/*": {
+    "pages": 17,
+    "medianUniqueWords": 184
+   }
+  },
+  "siteDefaultOgImage": "https://swiftpieces.com/opengraph-image.png",
+  "mzstaticImages": 515,
+  "duplicateTitles": 0,
+  "duplicateDescriptions": 0
+ },
+ "flags": [
+  {
+   "url": "/",
+   "kind": "lcp-image-lazy",
+   "blocker": false,
+   "detail": "/pro-cards/reading-now.webp"
+  },
+  {
+   "url": "/apps",
+   "kind": "mzstatic-hotlink",
+   "blocker": false,
+   "detail": 510
+  },
+  {
+   "url": "/styles",
+   "kind": "mzstatic-hotlink",
+   "blocker": false,
+   "detail": 5
+  },
+  {
+   "url": "/components",
+   "kind": "lcp-image-lazy",
+   "blocker": false,
+   "detail": "/previews/text/expandable-text/expandable-text-thumb.webp"
+  }
+ ]
+}
