@@ -14,6 +14,7 @@ import { getBlocks, getProBlocks } from "@/lib/registry";
 import { breadcrumbJsonLd, pageMetadata, WEBSITE_ID } from "@/lib/seo";
 import { pro, site } from "@/lib/site";
 import { cn } from "@/lib/cn";
+import { SEO_PATTERNS_ON_PRO } from "@/lib/seo-flags";
 
 const free = getBlocks().length;
 const paid = getProBlocks().length;
@@ -66,7 +67,9 @@ export default function PatternsPage() {
             <Reveal delay={0.1}>
               <LinkCells
                 links={[
-                  { title: "Browse in the docs", body: "What is inside every pattern and how to install it.", href: "/docs/patterns" },
+                  SEO_PATTERNS_ON_PRO
+                    ? { title: "Install a pattern", body: "Every pattern installs with npx swiftpieces add and a Pro license.", href: "/docs/installation" }
+                    : { title: "Browse in the docs", body: "What is inside every pattern and how to install it.", href: "/docs/patterns" },
                   { title: "Patterns in SwiftPieces Pro", body: "Live previews in every Pro style, with the SwiftUI source.", href: pro.patterns },
                 ]}
               />

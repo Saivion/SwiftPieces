@@ -4,6 +4,9 @@ import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
 import { categories } from "./lib/categories";
 import { blockCategories, legacyBlockDocs } from "./lib/blocks";
 import { LIBRARY } from "./lib/apps/library";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import { SEO_PATTERNS_ON_PRO } from "./lib/seo-flags";
 
 // Lets `next dev` see Cloudflare bindings (D1, R2, KV) from wrangler.jsonc.
 initOpenNextCloudflareForDev();
@@ -66,6 +69,17 @@ SECURITY_HEADERS.push({ key: "Content-Security-Policy", value: CSP });
 const CATEGORY_SLUGS = Object.values(categories).map((c) => c.slug).join("|");
 const BLOCK_CATEGORY_SLUGS = Object.values(blockCategories).map((c) => c.slug).join("|");
 
+/**
+ * Pattern pages are Pro's (lib/seo-flags.ts): each /docs/patterns page 301s to its twin in Pro's library,
+ * from the list both repos share. Old /blocks and /docs/blocks URLs reach them in two hops at most.
+ */
+type PatternSlugs = { index: { free: string; pro: string }; patterns: { free: string; pro: string }[] };
+const PATTERN_SLUGS: PatternSlugs = JSON.parse(readFileSync(join(process.cwd(), "docs/seo/pattern-slugs.json"), "utf8"));
+const PRO_SITE = process.env.NEXT_PUBLIC_PRO_URL ?? "https://pro.swiftpieces.com";
+const PATTERNS_TO_PRO = SEO_PATTERNS_ON_PRO
+  ? [PATTERN_SLUGS.index, ...PATTERN_SLUGS.patterns].map((p) => ({ source: p.free, destination: `${PRO_SITE}${p.pro}`, permanent: true }))
+  : [];
+
 const config: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
@@ -81,6 +95,7 @@ const config: NextConfig = {
   images: { unoptimized: true },
   async redirects() {
     return [
+      ...PATTERNS_TO_PRO,
       // One permanent hop for anyone still arriving at /docs; site links point at the final URL.
       { source: "/docs", destination: "/docs/introduction", permanent: true },
       // The Pro overview moved from /pricing to /pro: Free shows no prices, pricing lives on Pro.

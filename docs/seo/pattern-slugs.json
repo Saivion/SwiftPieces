@@ -1,0 +1,239 @@
+{
+ "$comment": "Shared with Saivion/SwiftPiecesPro. Each Free /docs/patterns page and the Pro library page that owns its topic. Free 301s free -> https://pro.swiftpieces.com + pro (lib/seo-flags.ts SEO_PATTERNS_ON_PRO).",
+ "index": {
+  "free": "/docs/patterns",
+  "pro": "/library/patterns"
+ },
+ "patterns": [
+  {
+   "id": "agent-approval",
+   "free": "/docs/patterns/agents/agent-approval",
+   "pro": "/library/patterns/agent-approval"
+  },
+  {
+   "id": "agent-plan",
+   "free": "/docs/patterns/agents/agent-plan",
+   "pro": "/library/patterns/agent-plan"
+  },
+  {
+   "id": "agent-run",
+   "free": "/docs/patterns/agents/agent-run",
+   "pro": "/library/patterns/agent-run"
+  },
+  {
+   "id": "tool-calls",
+   "free": "/docs/patterns/agents/tool-calls",
+   "pro": "/library/patterns/tool-calls"
+  },
+  {
+   "id": "chat-attachments",
+   "free": "/docs/patterns/ai-chat/chat-attachments",
+   "pro": "/library/patterns/chat-attachments"
+  },
+  {
+   "id": "chat-history",
+   "free": "/docs/patterns/ai-chat/chat-history",
+   "pro": "/library/patterns/chat-history"
+  },
+  {
+   "id": "chat-thread",
+   "free": "/docs/patterns/ai-chat/chat-thread",
+   "pro": "/library/patterns/chat-thread"
+  },
+  {
+   "id": "chat-welcome",
+   "free": "/docs/patterns/ai-chat/chat-welcome",
+   "pro": "/library/patterns/chat-welcome"
+  },
+  {
+   "id": "interests-picker",
+   "free": "/docs/patterns/auth/interests-picker",
+   "pro": "/library/patterns/interests-picker"
+  },
+  {
+   "id": "magic-link",
+   "free": "/docs/patterns/auth/magic-link",
+   "pro": "/library/patterns/magic-link"
+  },
+  {
+   "id": "profile-setup",
+   "free": "/docs/patterns/auth/profile-setup",
+   "pro": "/library/patterns/profile-setup"
+  },
+  {
+   "id": "reset-password",
+   "free": "/docs/patterns/auth/reset-password",
+   "pro": "/library/patterns/reset-password"
+  },
+  {
+   "id": "sign-in",
+   "free": "/docs/patterns/auth/sign-in",
+   "pro": "/library/patterns/sign-in"
+  },
+  {
+   "id": "checkout",
+   "free": "/docs/patterns/commerce/checkout",
+   "pro": "/library/patterns/checkout"
+  },
+  {
+   "id": "stats-overview",
+   "free": "/docs/patterns/dashboards/stats-overview",
+   "pro": "/library/patterns/stats-overview"
+  },
+  {
+   "id": "address-form",
+   "free": "/docs/patterns/forms/address-form",
+   "pro": "/library/patterns/address-form"
+  },
+  {
+   "id": "feedback-form",
+   "free": "/docs/patterns/forms/feedback-form",
+   "pro": "/library/patterns/feedback-form"
+  },
+  {
+   "id": "profile-form",
+   "free": "/docs/patterns/forms/profile-form",
+   "pro": "/library/patterns/profile-form"
+  },
+  {
+   "id": "step-form",
+   "free": "/docs/patterns/forms/step-form",
+   "pro": "/library/patterns/step-form"
+  },
+  {
+   "id": "activity-timeline",
+   "free": "/docs/patterns/lists/activity-timeline",
+   "pro": "/library/patterns/activity-timeline"
+  },
+  {
+   "id": "file-list",
+   "free": "/docs/patterns/lists/file-list",
+   "pro": "/library/patterns/file-list"
+  },
+  {
+   "id": "notification-inbox",
+   "free": "/docs/patterns/lists/notification-inbox",
+   "pro": "/library/patterns/notification-inbox"
+  },
+  {
+   "id": "search-panel",
+   "free": "/docs/patterns/lists/search-panel",
+   "pro": "/library/patterns/search-panel"
+  },
+  {
+   "id": "greeting-header",
+   "free": "/docs/patterns/nav-bars/greeting-header",
+   "pro": "/library/patterns/greeting-header"
+  },
+  {
+   "id": "location-header",
+   "free": "/docs/patterns/nav-bars/location-header",
+   "pro": "/library/patterns/location-header"
+  },
+  {
+   "id": "scope-header",
+   "free": "/docs/patterns/nav-bars/scope-header",
+   "pro": "/library/patterns/scope-header"
+  },
+  {
+   "id": "selection-toolbar",
+   "free": "/docs/patterns/nav-bars/selection-toolbar",
+   "pro": "/library/patterns/selection-toolbar"
+  },
+  {
+   "id": "composer-attachments",
+   "free": "/docs/patterns/prompt-input/composer-attachments",
+   "pro": "/library/patterns/composer-attachments"
+  },
+  {
+   "id": "composer-dictation",
+   "free": "/docs/patterns/prompt-input/composer-dictation",
+   "pro": "/library/patterns/composer-dictation"
+  },
+  {
+   "id": "composer-mentions",
+   "free": "/docs/patterns/prompt-input/composer-mentions",
+   "pro": "/library/patterns/composer-mentions"
+  },
+  {
+   "id": "composer-modes",
+   "free": "/docs/patterns/prompt-input/composer-modes",
+   "pro": "/library/patterns/composer-modes"
+  },
+  {
+   "id": "account-settings",
+   "free": "/docs/patterns/settings/account-settings",
+   "pro": "/library/patterns/account-settings"
+  },
+  {
+   "id": "help-support",
+   "free": "/docs/patterns/settings/help-support",
+   "pro": "/library/patterns/help-support"
+  },
+  {
+   "id": "invite-friends",
+   "free": "/docs/patterns/settings/invite-friends",
+   "pro": "/library/patterns/invite-friends"
+  },
+  {
+   "id": "notification-settings",
+   "free": "/docs/patterns/settings/notification-settings",
+   "pro": "/library/patterns/notification-settings"
+  },
+  {
+   "id": "plan-usage",
+   "free": "/docs/patterns/settings/plan-usage",
+   "pro": "/library/patterns/plan-usage"
+  },
+  {
+   "id": "privacy-settings",
+   "free": "/docs/patterns/settings/privacy-settings",
+   "pro": "/library/patterns/privacy-settings"
+  },
+  {
+   "id": "storage-settings",
+   "free": "/docs/patterns/settings/storage-settings",
+   "pro": "/library/patterns/storage-settings"
+  },
+  {
+   "id": "permission-primer",
+   "free": "/docs/patterns/sheets/permission-primer",
+   "pro": "/library/patterns/permission-primer"
+  },
+  {
+   "id": "schedule-sheet",
+   "free": "/docs/patterns/sheets/schedule-sheet",
+   "pro": "/library/patterns/schedule-sheet"
+  },
+  {
+   "id": "share-sheet",
+   "free": "/docs/patterns/sheets/share-sheet",
+   "pro": "/library/patterns/share-sheet"
+  },
+  {
+   "id": "whats-new",
+   "free": "/docs/patterns/sheets/whats-new",
+   "pro": "/library/patterns/whats-new"
+  },
+  {
+   "id": "accessory-tab-bar",
+   "free": "/docs/patterns/tab-bars/accessory-tab-bar",
+   "pro": "/library/patterns/accessory-tab-bar"
+  },
+  {
+   "id": "action-tab-bar",
+   "free": "/docs/patterns/tab-bars/action-tab-bar",
+   "pro": "/library/patterns/action-tab-bar"
+  },
+  {
+   "id": "search-tab-bar",
+   "free": "/docs/patterns/tab-bars/search-tab-bar",
+   "pro": "/library/patterns/search-tab-bar"
+  },
+  {
+   "id": "top-tabs",
+   "free": "/docs/patterns/tab-bars/top-tabs",
+   "pro": "/library/patterns/top-tabs"
+  }
+ ]
+}
