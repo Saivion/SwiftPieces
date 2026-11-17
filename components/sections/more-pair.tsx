@@ -4,7 +4,7 @@ import { Reveal } from "@/components/effects/reveal";
 import { Button, Arrow } from "@/components/ui/button";
 import { NewBadge } from "@/components/ui/new-badge";
 import { ProBadge } from "@/components/ui/pro-badge";
-import { band, sectionBody } from "@/components/sections/feature-row";
+import { band, sectionBody, sectionTitle } from "@/components/sections/feature-row";
 import { proCatalog, proGames } from "@/lib/pro-catalog";
 import { pro, site } from "@/lib/site";
 import { cn } from "@/lib/cn";
@@ -23,7 +23,6 @@ const reel: ({ kind: "pro"; card: Card } | { kind: "game"; game: Game })[] = scr
   ...(games[i] ? [{ kind: "game" as const, game: games[i] }] : []),
 ]);
 
-const title = "text-[28px] leading-[1.08] font-normal tracking-[-0.035em] text-balance sm:text-[34px]";
 const quietLink = "group inline-flex h-[46px] items-center gap-2 px-2 text-[15px] font-semibold text-foreground";
 
 /**
@@ -43,7 +42,7 @@ export function MorePair() {
             <p className="inline-flex items-center gap-2 text-[13px] font-medium text-muted">
               <ProBadge tone="games" label="Games" /> SwiftPieces Games <NewBadge />
             </p>
-            <h3 className={title}>
+            <h3 className={sectionTitle}>
               Building a game? <span className="text-muted">Start from a finished one.</span>
             </h3>
             <p className={cn(sectionBody, "max-w-[42ch]")}>Complete iOS games in SwiftUI and Metal. Real levels, Game Center and a StoreKit shop, with the full source.</p>
@@ -56,7 +55,7 @@ export function MorePair() {
             <p className="inline-flex items-center gap-2 text-[13px] font-medium text-muted">
               <ProBadge /> SwiftPieces Pro
             </p>
-            <h3 className={title}>
+            <h3 className={sectionTitle}>
               Building an app? <span className="text-muted">Build the whole thing with Pro.</span>
             </h3>
             <p className={cn(sectionBody, "max-w-[42ch]")}>
