@@ -15,7 +15,7 @@
   --color-accent-soft: var(--accent-soft);
   --color-line: var(--line);
   --color-line-strong: var(--line-strong);
-  --font-sans: var(--font-figtree), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-allo), ui-sans-serif, system-ui, sans-serif;
   --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
   --radius-sm: var(--radius-sm);
   --radius-md: var(--radius);
