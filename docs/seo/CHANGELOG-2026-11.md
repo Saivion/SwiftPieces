@@ -54,7 +54,7 @@ Measurement plan: `docs/seo/MEASUREMENT.md`.
 
 ## Needs owner decision
 
-1. `/apps` hub hotlinks 510 App Store screenshots (and `/styles` 5). Options: capture our own remix screens from the Playground for the cards (same approach as the component stills), or noindex the hub while the remixes are noindex. Recommended: our own stills.
+1. Decided (Saivion, Nov 17): the `/apps` hub keeps its 510 App Store screenshots and stays indexable, as do the 5 on `/styles`.
 2. Third-party app names in `/apps/<app>` and `/playground/<app>` URLs: keep (pages are noindex anyway) or rename with 301s.
 3. Rebuilding playgrounds as "<Category> app UI in SwiftUI" pages with 150+ unique words each, to make them indexable again. Each needs written copy; none was generated.
 4. "When to use it" (3 to 5 sentences) for each of the 98 components: needs writing per piece. "Works with" is already covered by the facts panel (iOS version, Liquid Glass, Metal).
