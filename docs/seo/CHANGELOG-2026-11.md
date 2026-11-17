@@ -29,7 +29,7 @@ The 115 URLs that left the sitemap: 46 `/docs/patterns` pages (now 301 to Pro), 
 
 Phase 0. `npm run seo:check` (scripts/seo-check.mjs): fetches robots and every sitemap, checks each URL as Googlebot and as Chrome, crawls from home through plain links for depth and orphans, counts unique words per template, writes `docs/seo/report-<date>.json` and `.md`, and exits 1 on a blocker.
 
-A2, patterns. Every `/docs/patterns/<group>/<slug>` and `/docs/patterns` 301s (Next sends 308) to its twin at `pro.swiftpieces.com/library/patterns`, from `docs/seo/pattern-slugs.json`, the list shared with the Pro repo. All 46 Pro targets returned 200 on Nov 17. Pattern cards, the docs sidebar and llms.txt link straight to Pro. `/patterns` stays here as the overview. Switch: `SEO_PATTERNS_ON_PRO` (on). Release `develop` to `main` only after the Pro side's checks ship.
+A2, patterns. Every `/docs/patterns/<group>/<slug>` and `/docs/patterns` 301s to its twin at `pro.swiftpieces.com/library/patterns`, from `docs/seo/pattern-slugs.json`, the same file as in the Pro repo (Pro #205). All 46 Pro targets returned 200 on Nov 17. Pattern cards, the docs sidebar and llms.txt link straight to Pro. `/patterns` stays here as the overview. Switch: `SEO_PATTERNS_ON_PRO` (on). Release `develop` to `main` only after the Pro side's checks ship.
 
 A6, sitemap. `/sitemap.xml` is an index of `/sitemaps/{pages,components,guides,docs,changelog}.xml`. lastmod per page comes from `registry/__registry__/lastmod.json`, written by `npm run seo:lastmod` from the last commit that touched each page's own files (a component's Swift source and notes, a docs page's MDX, a hub's pieces). In a shallow clone the script keeps the committed file, so commit it after content changes. `priority` and `changefreq` are gone. Component URLs carry their preview still as an image entry.
 
@@ -48,7 +48,7 @@ Measurement plan: `docs/seo/MEASUREMENT.md`.
 ## Checks run
 
 - `npx tsc --noEmit`: clean. `next build`: passes; the sitemap index and its 5 children prerender.
-- Local spot checks: `/docs/patterns/auth/magic-link` 308 to Pro; `/apps/flighty` has `noindex, follow`; `/docs/components/cards/flip-card` has `<img src="/previews/cards/flip-card/flip-card-light.webp" ... fetchPriority="high">` and the matching og:image.
+- Local spot checks: `/docs/patterns/auth/magic-link` 301 to Pro; `/apps/flighty` has `noindex, follow`; `/docs/components/cards/flip-card` has `<img src="/previews/cards/flip-card/flip-card-light.webp" ... fetchPriority="high">` and the matching og:image.
 - No en or em dash in copy added on this branch.
 - Not run here: Lighthouse (blocked in this sandbox), the Rich Results Test, and http/www redirect checks (the sandbox and the Mac's VM both get 403 from their proxy on plain http). See owner tasks.
 

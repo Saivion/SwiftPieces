@@ -73,11 +73,12 @@ const BLOCK_CATEGORY_SLUGS = Object.values(blockCategories).map((c) => c.slug).j
  * Pattern pages are Pro's (lib/seo-flags.ts): each /docs/patterns page 301s to its twin in Pro's library,
  * from the list both repos share. Old /blocks and /docs/blocks URLs reach them in two hops at most.
  */
-type PatternSlugs = { index: { free: string; pro: string }; patterns: { free: string; pro: string }[] };
+type PatternSlugs = { hub: { free: string; pro: string }; patterns: { free: string; pro: string }[] };
 const PATTERN_SLUGS: PatternSlugs = JSON.parse(readFileSync(join(process.cwd(), "docs/seo/pattern-slugs.json"), "utf8"));
 const PRO_SITE = process.env.NEXT_PUBLIC_PRO_URL ?? "https://pro.swiftpieces.com";
 const PATTERNS_TO_PRO = SEO_PATTERNS_ON_PRO
-  ? [PATTERN_SLUGS.index, ...PATTERN_SLUGS.patterns].map((p) => ({ source: p.free, destination: `${PRO_SITE}${p.pro}`, permanent: true }))
+  ? // statusCode 301 rather than Next's 308 for `permanent`: Pro's cross-host check expects 301, and it is the classic signal.
+    [PATTERN_SLUGS.hub, ...PATTERN_SLUGS.patterns].map((p) => ({ source: p.free, destination: `${PRO_SITE}${p.pro}`, statusCode: 301 as const }))
   : [];
 
 const config: NextConfig = {
