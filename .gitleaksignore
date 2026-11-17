@@ -1,0 +1,2 @@
+# IndexNow's key is public by design: the site serves it at /<key>.txt so IndexNow can verify the host.
+d7f6b3e056124394c740d347d39690afb773aab2:scripts/indexnow.mjs:generic-api-key:19

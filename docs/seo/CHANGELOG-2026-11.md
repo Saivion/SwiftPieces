@@ -41,7 +41,7 @@ A4, boilerplate. The Pro bar opens only `/` and `/pro`; other pages start with t
 
 A7, author. Guides and component pages show "By Saivion · Updated <date>" (the lastmod date), with a Person node in JSON-LD. About gains a "Who builds it" section: GitHub, shipped work (Free, Pro, Games, Tiny Personas), the Not only Swift feature, and how to get in touch.
 
-A8, IndexNow. Key file `public/5f0c85f51f57ba05f8d86ceeea21eb09.txt` and `npm run indexnow -- --since <ref>`, which submits pages whose lastmod changed.
+A8, IndexNow. A key file in `public/` (`<key>.txt`) and `npm run indexnow -- --since <ref>`, which submits pages whose lastmod changed.
 
 Measurement plan: `docs/seo/MEASUREMENT.md`.
 

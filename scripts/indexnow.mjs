@@ -14,9 +14,15 @@
  * serves it, which proves the submitter controls the host.
  */
 import { execFileSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 
-const KEY = "5f0c85f51f57ba05f8d86ceeea21eb09";
+// The key is the name and the content of the one 32-hex .txt file in public/, which the site serves at /<key>.txt.
+const keyFile = readdirSync("public").find((f) => /^[0-9a-f]{32}\.txt$/.test(f));
+if (!keyFile) {
+  console.error("indexnow: no public/<key>.txt key file");
+  process.exit(2);
+}
+const KEY = readFileSync(`public/${keyFile}`, "utf8").trim();
 const SITE = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://swiftpieces.com").replace(/\/$/, "");
 const FILE = "registry/__registry__/lastmod.json";
 
