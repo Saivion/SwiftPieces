@@ -28,7 +28,8 @@
     "cli:build": "npm run build --workspace packages/cli",
     "audit:public": "bash scripts/audit-public.sh",
     "test": "node scripts/run-tests.mjs",
-    "aeo:track": "tsx scripts/aeo/track.ts"
+    "aeo:track": "tsx scripts/aeo/track.ts",
+    "seo:check": "node scripts/seo-check.mjs"
   },
   "workspaces": [
     "packages/*"
