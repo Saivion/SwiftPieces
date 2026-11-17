@@ -1,15 +1,13 @@
 import { Container } from "@/components/ui/container";
 import { Reveal } from "@/components/effects/reveal";
 import { Button } from "@/components/ui/button";
-import { band, sectionBody } from "@/components/sections/feature-row";
+import { band, sectionBody, sectionTitle } from "@/components/sections/feature-row";
 import { cn } from "@/lib/cn";
 
 export const tinyPersonas = "https://tinypersonas.com";
 
 /** Logos from TinyPersonas (public/app-icons/*.webp, 256px, transparent corners). */
 const icons = ["scales", "moon", "donut", "umbrella", "grapefruit", "camera", "ripple", "tiles"];
-
-const title = "text-[28px] leading-[1.08] font-normal tracking-[-0.035em] text-balance sm:text-[34px]";
 
 function Out() {
   return (
@@ -37,7 +35,7 @@ function IconWall() {
   return (
     <Reveal className="tray overflow-hidden">
       <div className="px-6 pt-10 text-center sm:pt-14">
-        <h2 className={cn(title, "mx-auto max-w-[760px]")}>
+        <h2 className={cn(sectionTitle, "mx-auto max-w-[920px]")}>
           Need an app icon? <span className="text-muted">Give your app a face of its own.</span>
         </h2>
         <p className={cn(sectionBody, "mx-auto mt-3 max-w-[46ch]")}>TinyPersonas makes one-off logos for single apps, not icon packs. Pick one and it is yours.</p>
