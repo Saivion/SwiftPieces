@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { ProsePage } from "@/components/ui/prose-page";
-import { pageMetadata } from "@/lib/seo";
-import { pro } from "@/lib/site";
+import { JsonLd } from "@/components/seo/json-ld";
+import { AUTHOR, authorJsonLd, pageMetadata } from "@/lib/seo";
+import { pro, site } from "@/lib/site";
 
 export const metadata = pageMetadata({
   title: "About",
@@ -17,6 +18,7 @@ export const metadata = pageMetadata({
 export default function AboutPage() {
   return (
     <ProsePage label="About" title="The central place for Swift pieces." lead="SwiftPieces exists because iOS developers rebuild the same effects every year, and the good ones never end up in one place.">
+      <JsonLd data={{ "@context": "https://schema.org", "@graph": [{ "@type": "AboutPage", "@id": `${site.url}/about#page`, url: `${site.url}/about`, name: "About SwiftPieces", mainEntity: { "@id": `${site.url}/about#saivion` } }, authorJsonLd()] }} />
       <p>SwiftPieces is a free SwiftUI component library for iOS: designed, animated components such as a swipeable card stack, Liquid Glass menus, a floating tab bar and interactive charts, each one a single Swift file. Browse them <Link href="/components">all at once</Link> or by collection, from <Link href="/components/animations">animations</Link> to <Link href="/components/controls">buttons</Link> and <Link href="/components/inputs">form inputs</Link>.</p>
       <p>The library is built around three ideas: native, not a port; Liquid Glass first; and agent-native delivery. Every piece is idiomatic SwiftUI you own, verified against the SDK, and installable by you or by your coding agent.</p>
 
@@ -38,7 +40,17 @@ export default function AboutPage() {
       <h2>Three ways to install</h2>
       <p>Copy a piece&apos;s source into your app, add it with the <Link href="/docs/cli">swiftpieces CLI</Link>, or ask your coding agent through the <Link href="/docs/mcp">MCP server</Link>. The <Link href="/docs/installation">installation guide</Link> covers each one.</p>
 
-      <h2>Who builds it and how it is funded</h2>
+      <h2>Who builds it</h2>
+      <p>SwiftPieces is built by Saivion, an iOS developer who designs, writes and ships every piece. The work is in the open:</p>
+      <ul>
+        <li>The library&apos;s source, history and issues are on GitHub: <a href={site.github}>Saivion/SwiftPieces</a>, from <a href={AUTHOR.github}>github.com/Saivion</a>.</li>
+        <li>Shipped work: the free library, <a href={pro.home}>SwiftPieces Pro</a> with its screens, flows, app templates and SwiftUI games, and <a href="https://tinypersonas.com">Tiny Personas</a>, a store of one-of-one app icons.</li>
+        <li>SwiftPieces was featured in the Not only Swift newsletter, issue 105.</li>
+        <li>New pieces and clips are posted on X as <a href={site.twitter}>@saivion</a>.</li>
+      </ul>
+      <p>Questions, bugs and requests: open an issue on <a href={`${site.github}/issues`}>GitHub</a> or send a message on <a href={site.twitter}>X</a>.</p>
+
+      <h2>How it is funded</h2>
       <p>SwiftPieces is curated by Saivion. The free library is the product, available under <Link href="/license">MIT + Commons Clause</Link>: use the pieces in any app, including client work. <a href={pro.home}>SwiftPieces Pro</a>, with production-ready screens, whole flows and complete app templates, funds the maintenance and the new pieces.</p>
     </ProsePage>
   );
