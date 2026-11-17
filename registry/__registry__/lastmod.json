@@ -1,8 +1,8 @@
 {
  "/": "2026-11-17",
- "/about": "2026-10-09",
+ "/about": "2026-11-17",
  "/apps": "2026-10-20",
- "/components": "2026-11-12",
+ "/components": "2026-11-17",
  "/components/ai": "2026-11-10",
  "/components/animations": "2026-11-10",
  "/components/backgrounds": "2026-11-10",
@@ -136,7 +136,7 @@
  "/docs/liquid-glass": "2026-09-26",
  "/docs/mcp": "2026-11-08",
  "/license": "2026-10-20",
- "/patterns": "2026-11-02",
+ "/patterns": "2026-11-17",
  "/sponsors": "2026-11-10",
  "/styles": "2026-11-12"
 }
