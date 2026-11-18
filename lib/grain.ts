@@ -85,6 +85,8 @@ export type GrainSpec = {
   seed: number;
   /** Moves a radial palette's core (Signature's), e.g. under a card's words. */
   core?: Core;
+  /** Draws another kind's line motif over this kind's palette (the landing's Signature stages). */
+  motif?: GrainKind;
 };
 
 function hash(s: string) {
@@ -112,14 +114,14 @@ function rng(seed: number) {
 }
 
 /** Stable recipe for a seed on a kind of stage. */
-export function grainSpec(seed: string, kind: GrainKind = "brand", lines = true, core?: Core): GrainSpec {
+export function grainSpec(seed: string, kind: GrainKind = "brand", lines = true, core?: Core, motif?: GrainKind): GrainSpec {
   const { base, core: own } = PALETTES[kind];
   const mid = base[Math.floor(base.length / 2)];
   const radial = core ?? own;
   const fallbackGradient = radial
     ? `radial-gradient(${Math.round(radial[2] * 100)}% ${Math.round(radial[3] * 100)}% at ${Math.round(radial[0] * 100)}% ${Math.round(radial[1] * 100)}%, ${[...base].reverse().map(([at, c]) => `${c} ${Math.round((1 - at) * 100)}%`).join(", ")})`
     : `linear-gradient(180deg, ${base.map(([at, c]) => `${c} ${Math.round(at * 100)}%`).join(", ")})`;
-  return { kind, lines, fallback: mid ? mid[1] : "#888", fallbackGradient, seed: hash(`${kind}:${seed}`), ...(core ? { core } : {}) };
+  return { kind, lines, fallback: mid ? mid[1] : "#888", fallbackGradient, seed: hash(`${kind}:${seed}`), ...(core ? { core } : {}), ...(motif ? { motif } : {}) };
 }
 
 /* ---------- colour (mixed in linear light: smooth, and it never leaves the gamut) ---------- */
@@ -282,7 +284,7 @@ export function paintGrain(canvas: HTMLCanvasElement, width: number, height: num
     ctx.fillStyle = "#fff";
     ctx.lineWidth = 0.75 * dpr;
     ctx.lineJoin = "round";
-    MOTIFS[spec.kind](ctx, W, H, dpr, r);
+    MOTIFS[spec.motif ?? spec.kind](ctx, W, H, dpr, r);
     ctx.restore();
   }
 }

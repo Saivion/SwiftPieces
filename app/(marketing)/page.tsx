@@ -1,14 +1,8 @@
-import { Hero } from "@/components/sections/hero";
-import { Ticker } from "@/components/sections/ticker";
-import { Features } from "@/components/sections/features";
-import { GetStarted } from "@/components/sections/get-started";
+import { Hero } from "@/components/landing/hero";
+import { Features } from "@/components/landing/features";
+import { AppIcon, Close, Facts, Library, More, Questions, Statement } from "@/components/landing/sections";
 import { SponsorStrip } from "@/components/sections/sponsors";
 import { getSponsorsFrom } from "@/lib/sponsors";
-import { LibraryIntro } from "@/components/sections/library-intro";
-import { MorePair } from "@/components/sections/more-pair";
-import { AppIconPromo } from "@/components/sections/app-icon-promo";
-import { Questions } from "@/components/sections/questions";
-import { band } from "@/components/sections/feature-row";
 import { JsonLd } from "@/components/seo/json-ld";
 import { faqJsonLd, ORG_ID, pageMetadata, SOFTWARE_ID, WEBSITE_ID } from "@/lib/seo";
 import { site } from "@/lib/site";
@@ -78,9 +72,10 @@ const structuredData = {
 export const revalidate = 300;
 
 /**
- * The landing page does two things: show the free pieces, then hand people to Pro. Below the hero
- * it is deliberately quiet: feature rows on a 1:2 grid (pieces, CLI, agents), the library directory,
- * a "Want more?" band of Pro screens and templates, a "Need an app icon?" hand-off to TinyPersonas, the questions and one closing card. Pricing lives only on pro.swiftpieces.com.
+ * The landing page, set small and quiet: each section makes one point and lets its visual make it.
+ * The hero's library window, the facts every piece shares, the three things the library does (native
+ * feel, the CLI, the agent), a shelf of live pieces, what owning the code means, Games and Pro, the
+ * changelog, the app icon hand-off, the questions and the close. Pricing lives only on pro.swiftpieces.com.
  */
 export default async function HomePage() {
   // Gold sponsors only; the strip renders nothing until there is one.
@@ -89,14 +84,15 @@ export default async function HomePage() {
     <>
       <JsonLd data={structuredData} />
       <Hero />
-      <Ticker />
+      <Facts />
       <SponsorStrip sponsors={gold} />
       <Features />
-      <LibraryIntro />
-      <MorePair />
-      <AppIconPromo />
-      <Questions items={questions} spacing={band} />
-      <GetStarted />
+      <Library />
+      <Statement />
+      <More />
+      <AppIcon />
+      <Questions items={questions} />
+      <Close />
     </>
   );
 }
