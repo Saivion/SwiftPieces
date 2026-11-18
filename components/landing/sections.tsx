@@ -36,24 +36,39 @@ function GameShot({ id, alt = "", className, style }: { id: string; alt?: string
 
 /* ---------- Facts ---------- */
 
-/** Every category as a chip with one of its pieces and its count, drifting by under the hero. */
+/** The piece that best shows each category at chip size: vivid in the middle of its still. */
+const LEAD: Record<string, string> = {
+  text: "GlassText", backgrounds: "Silk", glass: "GlassSurface", controls: "ElasticButton", inputs: "SecureEntry",
+  cards: "MotionCard", lists: "DepthCarousel", navigation: "StretchHeader", sheets: "PermissionSheet",
+  feedback: "StatusMorph", motion: "DragToDismiss", data: "ActivityHeatmap", ai: "AssistantOrb", media: "StoryStrip",
+};
+
+/** Every category as a small card, its lead piece close up beside the name and count, drifting by under the hero. */
 export function Facts() {
   const all = allStills();
   const chips = Object.values(categories)
-    .map((c) => ({ slug: c.slug, title: c.title, items: all.filter((s) => s.category === c.title) }))
-    .filter((c) => c.items.length > 0);
+    .map((c) => {
+      const items = all.filter((s) => s.category === c.title);
+      return { slug: c.slug, title: c.title, count: items.length, lead: items.find((s) => s.name === LEAD[c.slug]) ?? items[0] };
+    })
+    .filter((c) => c.count > 0);
   return (
     <section aria-label="Categories" className="pt-6 sm:pt-8">
-      <div className="marquee-pause overflow-hidden py-2 [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]">
-        <div className="marquee flex w-max" style={{ "--marquee-duration": "70s" } as CSSProperties}>
+      <div className="marquee-pause overflow-hidden py-3 [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]">
+        <div className="marquee flex w-max" style={{ "--marquee-duration": "80s" } as CSSProperties}>
           {[0, 1].map((copy) => (
-            <ul key={copy} aria-hidden={copy === 1 || undefined} className="flex shrink-0 gap-2 pr-2">
+            <ul key={copy} aria-hidden={copy === 1 || undefined} className="flex shrink-0 gap-3 pr-3">
               {chips.map((c) => (
                 <li key={c.slug}>
-                  <Link href={`/components/${c.slug}`} tabIndex={copy === 1 ? -1 : undefined} className="inline-flex h-11 items-center gap-2.5 rounded-[14px] bg-surface-2 pr-4 pl-1.5 text-[13px] ring-1 ring-[var(--line)] transition-colors hover:bg-surface">
-                    <span className="h-8 w-[42px] overflow-hidden rounded-[9px]"><Still s={c.items[0]} alt={false} className="size-full scale-[1.35] object-cover" /></span>
-                    <span className="text-foreground">{c.title}</span>
-                    <span className="text-subtle tabular-nums">{c.items.length}</span>
+                  <Link href={`/components/${c.slug}`} tabIndex={copy === 1 ? -1 : undefined} className="group flex h-[76px] w-[232px] items-center gap-3.5 rounded-[18px] bg-surface-2 p-1.5 pr-4 shadow-[0_1px_2px_rgb(0_0_0/0.04),0_14px_30px_-22px_rgb(0_0_0/0.3)] ring-1 ring-[var(--line)] transition-colors hover:bg-surface">
+                    <span className="h-full w-[86px] shrink-0 overflow-hidden rounded-[13px] bg-surface">
+                      <Still s={c.lead} alt={false} className="size-full scale-[1.55] object-cover transition-transform duration-500 group-hover:scale-[1.7]" />
+                    </span>
+                    <span className="flex min-w-0 flex-col">
+                      <span className="text-[14px] leading-5 text-foreground">{c.title}</span>
+                      <span className="text-[12.5px] leading-5 text-subtle tabular-nums">{c.count} {c.count === 1 ? "piece" : "pieces"}</span>
+                    </span>
+                    <Arrow className="ml-auto size-3.5 shrink-0 text-subtle opacity-0 transition-opacity group-hover:opacity-100" />
                   </Link>
                 </li>
               ))}
