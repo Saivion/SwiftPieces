@@ -166,6 +166,12 @@
 @keyframes pro-shimmer { to { background-position: -200% 0; } }
 @media (prefers-reduced-motion: reduce) { .pro-shimmer { animation: none; } }
 
+/* Landing hero wall (components/landing/wall.tsx): each column drifts up by half its height, then loops. */
+@keyframes wall-drift { to { transform: translateY(-50%); } }
+.wall-col { animation: wall-drift var(--d, 70s) linear infinite; }
+.wall-col.wall-rev { animation-direction: reverse; }
+@media (prefers-reduced-motion: reduce) { .wall-col { animation: none; } }
+
 /* Second gallery row drifts the other way. */
 .marquee-reverse { animation-direction: reverse; }
 
@@ -404,6 +410,7 @@ html.promo-off .promo-slot { display: none; }
 /* Motion gate (app/layout.tsx): endless loops hold still until the visitor first interacts, so the
    first screen settles on paint. Finite entrances are unaffected. */
 html:not([data-motion]) .marquee,
+html:not([data-motion]) .wall-col,
 html:not([data-motion]) .pro-shimmer { animation-play-state: paused; }
 
 /* Every clickable control shows a pointer (Tailwind v4 resets buttons to the default cursor). Same
