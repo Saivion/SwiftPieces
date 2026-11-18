@@ -135,7 +135,7 @@ function ProScreen({ id, title }: { id: string; title: string }) {
   );
 }
 
-function MoreCard({ badge, title, rest, links, kind, seed, children }: { badge: ReactNode; title: string; rest: string; links: { label: string; href: string }[]; kind: GrainKind; seed: string; children: ReactNode }) {
+function MoreCard({ badge, title, rest, links, kind, motif, seed, children }: { badge: ReactNode; title: string; rest: string; links: { label: string; href: string }[]; kind: GrainKind; motif?: GrainKind; seed: string; children: ReactNode }) {
   return (
     <Reveal className={cn(ground, "flex flex-col overflow-hidden p-1.5")}>
       <div className="p-5 sm:p-7">
@@ -146,7 +146,7 @@ function MoreCard({ badge, title, rest, links, kind, seed, children }: { badge: 
         </div>
       </div>
       <div className="relative isolate mt-auto flex h-[280px] items-start justify-center gap-[3%] overflow-hidden rounded-[19px] pt-10 sm:h-[340px] sm:pt-12">
-        <GrainStage seed={seed} kind={kind} className="-z-10" />
+        <GrainStage seed={seed} kind={kind} motif={motif} className="-z-10" />
         {children}
       </div>
     </Reveal>
@@ -172,6 +172,7 @@ export function More() {
           rest="Start from a finished one, in SwiftUI and Metal."
           links={[{ label: `See all ${proGames.list.length} games`, href: pro.games }, { label: "View pricing", href: pro.pricing }]}
           kind="brand"
+          motif="template"
           seed="more-games"
         >
           {games.map((g, i) => (
@@ -186,6 +187,7 @@ export function More() {
           rest={`${proCatalog.screens} screens, ${proCatalog.flows.total} flows and ${proCatalog.templates} app templates on one design system.`}
           links={[{ label: "Explore Pro", href: pro.library }, { label: "View pricing", href: pro.pricing }]}
           kind="brand"
+          motif="flow"
           seed="more-pro"
         >
           {PRO_SCREENS.map((sc, i) => (

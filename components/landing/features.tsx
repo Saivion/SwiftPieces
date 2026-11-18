@@ -15,12 +15,14 @@ import { cn } from "@/lib/cn";
  * `flip` puts the stage on the left, so the three points read right, left, right. Stacked on phones,
  * copy first.
  */
-export function Feature({ title, rest, link, notes, kind, seed, flip, children }: {
+export function Feature({ title, rest, link, notes, kind, motif, seed, flip, children }: {
   title: string;
   rest: string;
   link: { label: string; href: string };
   notes?: readonly { t: string; d: string }[];
   kind: GrainKind;
+  /** The stage's line motif, so each point has its own pattern on the same red. */
+  motif?: GrainKind;
   seed: string;
   flip?: boolean;
   children: ReactNode;
@@ -44,7 +46,7 @@ export function Feature({ title, rest, link, notes, kind, seed, flip, children }
         ) : null}
       </div>
       <div className="relative isolate min-h-[340px] overflow-hidden rounded-[19px] sm:min-h-[460px]">
-        <GrainStage seed={seed} kind={kind} className="-z-10" />
+        <GrainStage seed={seed} kind={kind} motif={motif} className="-z-10" />
         {children}
       </div>
     </Reveal>
@@ -68,6 +70,7 @@ export function Features() {
         link={{ label: "See how a piece is built", href: "/docs/introduction" }}
         notes={native}
         kind="brand"
+        motif="template"
         seed="feature-native"
       >
         <Annotated />
@@ -77,6 +80,7 @@ export function Features() {
         rest="The CLI writes the Swift file into your project. No package to add, no project settings to touch."
         link={{ label: "Read the CLI docs", href: "/docs/cli" }}
         kind="brand"
+        motif="flow"
         seed="feature-cli"
         flip
       >
@@ -87,6 +91,7 @@ export function Features() {
         rest="Ask in plain words. Claude Code, Cursor and Xcode find the right piece over MCP and install it."
         link={{ label: "Connect your agent", href: "/docs/mcp" }}
         kind="brand"
+        motif="kit"
         seed="feature-agent"
       >
         <AgentEditor />

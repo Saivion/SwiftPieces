@@ -59,6 +59,7 @@ export function GrainStage({
   lines = true,
   eager = false,
   core,
+  motif,
   still,
   className,
 }: {
@@ -68,12 +69,14 @@ export function GrainStage({
   eager?: boolean;
   /** Where a radial palette's core sits (Signature's): under the surface's words. */
   core?: Core;
+  /** Another kind's line motif over this palette. */
+  motif?: GrainKind;
   /** A pre-painted copy of this exact stage, shown at once (lib/plan-cover.ts). */
   still?: GrainStill;
   className?: string;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const spec = grainSpec(seed, kind, lines, core);
+  const spec = grainSpec(seed, kind, lines, core, motif);
 
   if (still) preload(still.src, { as: "image", fetchPriority: "high" });
 
@@ -82,7 +85,7 @@ export function GrainStage({
     if (!canvas) return;
     const parent = canvas.parentElement;
     if (!parent) return;
-    const recipe = grainSpec(seed, kind, lines, core);
+    const recipe = grainSpec(seed, kind, lines, core, motif);
     let near = false;
     let cancel: (() => void) | null = null;
     let painted = "";
@@ -136,7 +139,7 @@ export function GrainStage({
       cancel?.();
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps -- the core is a literal per surface; its values are the dependency
-  }, [seed, kind, lines, eager, core?.join(), still?.src]);
+  }, [seed, kind, lines, eager, core?.join(), motif, still?.src]);
 
   if (still) {
     return (
