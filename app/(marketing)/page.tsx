@@ -1,6 +1,6 @@
 import { Hero } from "@/components/landing/hero";
 import { Features } from "@/components/landing/features";
-import { AppIcon, Changelog, Close, Facts, Library, More, Questions, Statement } from "@/components/landing/sections";
+import { AppIcon, Close, Facts, Library, More, Questions, Statement } from "@/components/landing/sections";
 import { SponsorStrip } from "@/components/sections/sponsors";
 import { getSponsorsFrom } from "@/lib/sponsors";
 import { JsonLd } from "@/components/seo/json-ld";
@@ -90,7 +90,6 @@ export default async function HomePage() {
       <Library />
       <Statement />
       <More />
-      <Changelog />
       <AppIcon />
       <Questions items={questions} />
       <Close />

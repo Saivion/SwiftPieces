@@ -1,4 +1,4 @@
-import type { CSSProperties } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import Link from "next/link";
 import { Container } from "@/components/ui/container";
 import { Reveal } from "@/components/effects/reveal";
@@ -6,11 +6,12 @@ import { Button, Arrow } from "@/components/ui/button";
 import { ProBadge } from "@/components/ui/pro-badge";
 import { NewBadge } from "@/components/ui/new-badge";
 import { MoreLink } from "@/components/landing/link";
+import { GrainStage } from "@/components/visual/grain-stage";
+import type { GrainKind } from "@/lib/grain";
 import { Still, Tile } from "@/components/landing/wall";
 import { allStills, stills } from "@/components/landing/stills";
 import { body, gap, ground, heading, small } from "@/components/landing/type";
 import { categories } from "@/lib/categories";
-import { changelog, changelogPath } from "@/lib/changelog";
 import { proCatalog, proGames } from "@/lib/pro-catalog";
 import { pro } from "@/lib/site";
 import { cn } from "@/lib/cn";
@@ -120,99 +121,79 @@ export function Statement() {
 /* ---------- Games and Pro ---------- */
 
 const quiet = "group inline-flex items-center gap-1.5 text-[14px] font-medium text-foreground";
-const TEMPLATES = ["shop-app", "journal-app", "reading-app", "finance-app", "meditation-app"];
-const fan = (n: number, i: number): CSSProperties => ({ transform: `translateY(${Math.abs(i - (n - 1) / 2) * 22}px) rotate(${(i - (n - 1) / 2) * 6}deg)` });
+const phone = "relative w-[30%] max-w-[168px] shrink-0 overflow-hidden rounded-[22px] border-[4px] border-[#0b0b0b] bg-[#0b0b0b] shadow-[0_30px_60px_-24px_rgb(0_0_0/0.55)] sm:rounded-[28px] sm:border-[5px]";
+/** The middle phone stands taller than the two beside it, all three the same size and centred. */
+const lift = (i: number) => (i === 1 ? "translate-y-0" : "translate-y-8");
 
-/** The step past the free pieces: Games and Pro side by side, each with a fan of its own work. */
+/** Pro screens are stills of a phone on its own grain card (public/pro-cards, 720 wide): the phone sits at x 215 to 507, from y 49. */
+function ProScreen({ id, title }: { id: string; title: string }) {
+  return (
+    <span className="block aspect-[292/633] w-full">
+      {/* eslint-disable-next-line @next/next/no-img-element -- static stills of Pro's library cards */}
+      <img src={`/pro-cards/${id}.webp`} alt={`${title}, a SwiftPieces Pro screen`} loading="lazy" decoding="async" className="absolute top-[-7.74%] left-[-73.63%] w-[246.6%] max-w-none" />
+    </span>
+  );
+}
+
+function MoreCard({ badge, title, rest, links, kind, seed, children }: { badge: ReactNode; title: string; rest: string; links: { label: string; href: string }[]; kind: GrainKind; seed: string; children: ReactNode }) {
+  return (
+    <Reveal className={cn(ground, "flex flex-col overflow-hidden p-1.5")}>
+      <div className="p-5 sm:p-7">
+        <p className="flex items-center gap-2 text-[13px] text-muted">{badge}</p>
+        <h3 className={cn(heading, "mt-4 max-w-[440px]")}>{title} <span className="text-muted">{rest}</span></h3>
+        <div className="mt-5 flex flex-wrap gap-x-6 gap-y-2">
+          {links.map((l, i) => <a key={l.href} href={l.href} className={cn(quiet, i > 0 && "text-muted hover:text-foreground")}>{l.label} {i === 0 ? <Arrow className="size-3.5" /> : null}</a>)}
+        </div>
+      </div>
+      <div className="relative isolate mt-auto flex h-[280px] items-start justify-center gap-[3%] overflow-hidden rounded-[19px] pt-10 sm:h-[340px] sm:pt-12">
+        <GrainStage seed={seed} kind={kind} className="-z-10" />
+        {children}
+      </div>
+    </Reveal>
+  );
+}
+
+const PRO_SCREENS = [
+  { id: "ai-chat-screen", title: "AI Chat" },
+  { id: "focus-timer", title: "Focus Timer" },
+  { id: "dashboard-screen", title: "Dashboard" },
+];
+
+/** The step past the free pieces: Games and Pro side by side, each with three of its own screens, aligned the same way. */
 export function More() {
-  const games = proGames.list.filter((g) => g.isNew).slice(0, 5);
+  const games = ["cairn", "parlour", "thrum"].map((id) => proGames.list.find((g) => g.id === id)).filter((g) => g !== undefined);
   return (
     <Container className={gap}>
       <section aria-labelledby="more" className="grid gap-4 lg:grid-cols-2">
         <h2 id="more" className="sr-only">More from SwiftPieces: Games and Pro</h2>
-
-        <Reveal className={cn(ground, "flex flex-col overflow-hidden")}>
-          <div className="p-6 sm:p-8">
-            <p className="flex items-center gap-2 text-[13px] text-muted"><ProBadge tone="games" label="Games" size="sm" /> SwiftPieces Games <NewBadge /></p>
-            <h3 className={cn(heading, "mt-4")}>Building a game? <span className="text-muted">Start from a finished one, in SwiftUI and Metal.</span></h3>
-            <div className="mt-5 flex flex-wrap gap-x-6 gap-y-2">
-              <a href={pro.games} className={quiet}>See all {proGames.list.length} games <Arrow className="size-3.5" /></a>
-              <a href={pro.pricing} className={cn(quiet, "text-muted hover:text-foreground")}>View pricing</a>
-            </div>
-          </div>
-          <div className="mt-auto flex h-[260px] justify-center pt-4 sm:h-[300px]">
-            {games.map((g, i) => (
-              <a key={g.id} href={`${pro.games}/${g.id}`} className={cn("-mx-3 shrink-0 transition-transform duration-300 hover:-translate-y-1", (i === 0 || i === 4) && "max-sm:hidden")} style={fan(games.length, i)}>
-                <GameShot id={g.id} alt={`${g.title} being played, from SwiftPieces Games`} className="h-[280px] w-auto rounded-[24px] border-[4px] border-[#0b0b0b] shadow-[0_24px_40px_-24px_rgb(0_0_0/0.5)] sm:h-[330px]" />
-              </a>
-            ))}
-          </div>
-        </Reveal>
-
-        <Reveal className={cn(ground, "flex flex-col overflow-hidden")}>
-          <div className="p-6 sm:p-8">
-            <p className="flex items-center gap-2 text-[13px] text-muted"><ProBadge size="sm" /> SwiftPieces Pro</p>
-            <h3 className={cn(heading, "mt-4")}>Building an app? <span className="text-muted">{proCatalog.screens} screens, {proCatalog.flows.total} flows and {proCatalog.templates} app templates on one design system.</span></h3>
-            <div className="mt-5 flex flex-wrap gap-x-6 gap-y-2">
-              <a href={pro.library} className={quiet}>Explore Pro <Arrow className="size-3.5" /></a>
-              <a href={pro.pricing} className={cn(quiet, "text-muted hover:text-foreground")}>View pricing</a>
-            </div>
-          </div>
-          <div className="mt-auto flex h-[260px] justify-center pt-6 sm:h-[300px]">
-            {TEMPLATES.map((t, i) => (
-              // eslint-disable-next-line @next/next/no-img-element -- static stills of Pro's library cards
-              <img key={t} src={`/pro-cards/${t}.webp`} alt="" loading="lazy" decoding="async" className={cn("-mx-3 size-[150px] shrink-0 rounded-[22px] shadow-[0_24px_40px_-24px_rgb(0_0_0/0.45)] sm:size-[180px]", (i === 0 || i === 4) && "max-sm:hidden")} style={fan(TEMPLATES.length, i)} />
-            ))}
-          </div>
-        </Reveal>
-      </section>
-    </Container>
-  );
-}
-
-/* ---------- Changelog ---------- */
-
-/** What each recent release shipped, as its cover picture. Keyed by changelog slug; others fall back to a piece. */
-const COVERS: Record<string, { games?: string[]; piece?: string }> = {
-  "games-pieces-and-styles": { games: ["cairn", "pane", "thrum"] },
-  games: { games: ["drift", "lumen", "twine"] },
-  "new-look": { piece: "MotionCard" },
-  "pickers-and-controls": { piece: "LiquidSwitch" },
-};
-const FALLBACK = ["SwipeDeck", "ScrubChart", "TimerDial", "ReactionToggle"];
-
-/** The last four releases as cards, each topped with a picture of what it shipped. */
-export function Changelog() {
-  const recent = changelog.slice(0, 4);
-  return (
-    <Container className={gap}>
-      <section aria-labelledby="changelog">
-        <Head id="changelog" title="Changelog." rest="New pieces most weeks." link={{ label: "See what's new", href: changelogPath() }} />
-        <Reveal className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4"><ul className="contents">
-          {recent.map((e, n) => {
-            const cover = COVERS[e.slug] ?? { piece: FALLBACK[n] };
-            const piece = cover.piece ? stills([cover.piece])[0] : null;
-            return (
-              <li key={e.slug}>
-                <Link href={changelogPath(e.slug)} className={cn(ground, "group flex h-full flex-col overflow-hidden p-1.5")}>
-                  <span className="relative block aspect-[4/3] overflow-hidden rounded-[18px] bg-surface-2">
-                    {cover.games ? (
-                      <span className="absolute inset-0 flex items-start justify-center gap-2 pt-5">
-                        {cover.games.map((g, i) => (
-                          <GameShot key={g} id={g} className="aspect-[9/19.5] w-[29%] rounded-[14px] object-cover object-top shadow-[0_18px_40px_-20px_rgb(0_0_0/0.45)] ring-1 ring-[var(--line)] transition-transform duration-500 group-hover:-translate-y-1" style={{ transform: `translateY(${i === 1 ? 0 : 18}px) rotate(${(i - 1) * 6}deg)` }} />
-                        ))}
-                      </span>
-                    ) : piece ? <Still s={piece} alt={false} className="size-full object-cover" /> : null}
-                  </span>
-                  <span className="flex flex-1 flex-col justify-between gap-4 p-4">
-                    <span className="text-[14px] leading-[21px] text-foreground">{e.title}</span>
-                    <span className={small}>{e.date}</span>
-                  </span>
-                </Link>
-              </li>
-            );
-          })}
-        </ul></Reveal>
+        <MoreCard
+          badge={<><ProBadge tone="games" label="Games" size="sm" /> SwiftPieces Games <NewBadge /></>}
+          title="Building a game?"
+          rest="Start from a finished one, in SwiftUI and Metal."
+          links={[{ label: `See all ${proGames.list.length} games`, href: pro.games }, { label: "View pricing", href: pro.pricing }]}
+          kind="template"
+          seed="more-games"
+        >
+          {games.map((g, i) => (
+            <a key={g.id} href={`${pro.games}/${g.id}`} className={cn(phone, lift(i), "transition-transform duration-300 hover:-translate-y-1")}>
+              <GameShot id={g.id} alt={`${g.title} being played, from SwiftPieces Games`} className="aspect-[9/19.5] w-full rounded-[18px] object-cover object-top sm:rounded-[23px]" />
+            </a>
+          ))}
+        </MoreCard>
+        <MoreCard
+          badge={<><ProBadge size="sm" /> SwiftPieces Pro</>}
+          title="Building an app?"
+          rest={`${proCatalog.screens} screens, ${proCatalog.flows.total} flows and ${proCatalog.templates} app templates on one design system.`}
+          links={[{ label: "Explore Pro", href: pro.library }, { label: "View pricing", href: pro.pricing }]}
+          kind="flow"
+          seed="more-pro"
+        >
+          {PRO_SCREENS.map((sc, i) => (
+            <a key={sc.id} href={`${pro.home}/library/screens/${sc.id}`} className={cn(phone, "border-0 bg-transparent", lift(i), "transition-transform duration-300 hover:-translate-y-1")}>
+              <ProScreen id={sc.id} title={sc.title} />
+            </a>
+          ))}
+        </MoreCard>
       </section>
     </Container>
   );
@@ -231,7 +212,7 @@ export function AppIcon() {
           {ICONS.map((id, i) => {
             const d = i - 4;
             return (
-              <li key={i} className={cn("w-[64px] shrink-0 sm:w-[96px]", Math.abs(d) > 2 && "max-sm:hidden", Math.abs(d) > 3 && "max-lg:hidden")} style={{ transform: `translateY(${d * d * 6}px) rotate(${d * 4}deg) scale(${d === 0 ? 1.25 : 1})` }}>
+              <li key={i} className={cn("w-[64px] shrink-0 sm:w-[96px]", Math.abs(d) > 2 && "max-sm:hidden", Math.abs(d) > 3 && "max-lg:hidden")} style={{ transform: `translateY(${d * d * 6}px) rotate(${d * 4}deg)` }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={`/app-icons/${id}.webp`} alt="" loading="lazy" className="w-full rounded-[22.5%] shadow-[0_1px_2px_rgb(0_0_0/0.08),0_14px_30px_-12px_rgb(0_0_0/0.35)]" />
               </li>
