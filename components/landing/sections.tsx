@@ -161,7 +161,7 @@ const PRO_SCREENS = [
 
 /** The step past the free pieces: Games and Pro side by side, each with three of its own screens, aligned the same way. */
 export function More() {
-  const games = ["cairn", "parlour", "thrum"].map((id) => proGames.list.find((g) => g.id === id)).filter((g) => g !== undefined);
+  const games = ["cairn", "parlour", "drift"].map((id) => proGames.list.find((g) => g.id === id)).filter((g) => g !== undefined);
   return (
     <Container className={gap}>
       <section aria-labelledby="more" className="grid gap-4 lg:grid-cols-2">
@@ -171,7 +171,7 @@ export function More() {
           title="Building a game?"
           rest="Start from a finished one, in SwiftUI and Metal."
           links={[{ label: `See all ${proGames.list.length} games`, href: pro.games }, { label: "View pricing", href: pro.pricing }]}
-          kind="template"
+          kind="brand"
           seed="more-games"
         >
           {games.map((g, i) => (
@@ -185,7 +185,7 @@ export function More() {
           title="Building an app?"
           rest={`${proCatalog.screens} screens, ${proCatalog.flows.total} flows and ${proCatalog.templates} app templates on one design system.`}
           links={[{ label: "Explore Pro", href: pro.library }, { label: "View pricing", href: pro.pricing }]}
-          kind="flow"
+          kind="brand"
           seed="more-pro"
         >
           {PRO_SCREENS.map((sc, i) => (

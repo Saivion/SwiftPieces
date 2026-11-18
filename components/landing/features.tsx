@@ -26,7 +26,7 @@ export function Feature({ title, rest, link, notes, kind, seed, flip, children }
   children: ReactNode;
 }) {
   return (
-    <Reveal className={cn(ground, "grid gap-1.5 overflow-hidden p-1.5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.7fr)]", flip && "lg:grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)]")}>
+    <Reveal className={cn(ground, "grid gap-1.5 overflow-hidden p-1.5 lg:grid-cols-2")}>
       <div className={cn("flex flex-col p-5 sm:p-7 lg:p-9", flip && "lg:order-2")}>
         <h3 className={heading}>
           {title} <span className="text-muted">{rest}</span>
@@ -67,7 +67,7 @@ export function Features() {
         rest="Gestures, springs, haptics and Dynamic Type are done before the file reaches Xcode."
         link={{ label: "See how a piece is built", href: "/docs/introduction" }}
         notes={native}
-        kind="template"
+        kind="brand"
         seed="feature-native"
       >
         <Annotated />
@@ -76,7 +76,7 @@ export function Features() {
         title="One command into Xcode."
         rest="The CLI writes the Swift file into your project. No package to add, no project settings to touch."
         link={{ label: "Read the CLI docs", href: "/docs/cli" }}
-        kind="flow"
+        kind="brand"
         seed="feature-cli"
         flip
       >
@@ -86,7 +86,7 @@ export function Features() {
         title="Your agent knows every piece."
         rest="Ask in plain words. Claude Code, Cursor and Xcode find the right piece over MCP and install it."
         link={{ label: "Connect your agent", href: "/docs/mcp" }}
-        kind="kit"
+        kind="brand"
         seed="feature-agent"
       >
         <AgentEditor />
