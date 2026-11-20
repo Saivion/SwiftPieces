@@ -172,6 +172,39 @@
 .wall-col.wall-rev { animation-direction: reverse; }
 @media (prefers-reduced-motion: reduce) { .wall-col { animation: none; } }
 
+/* Landing sequences (components/landing/cycle.tsx Seq): the step in data-s reveals .s1..s5 in turn and
+   types .type; .s5-hide leaves when step 5 arrives. Steps are numbered from 0 (nothing shown). */
+.seq .s2, .seq .s3, .seq .s4, .seq .s5 { opacity: 0; transform: translateY(8px); transition: opacity .35s, transform .5s cubic-bezier(.3,1.4,.5,1); }
+.seq .pop { transform: translateY(18px) scale(.94); }
+.seq[data-s="2"] .s2, .seq[data-s="3"] :is(.s2,.s3), .seq[data-s="4"] :is(.s2,.s3,.s4), .seq[data-s="5"] :is(.s2,.s3,.s4,.s5) { opacity: 1; transform: none; }
+.seq .s5-hide { transition: opacity .3s; }
+.seq[data-s="5"] .s5-hide { opacity: 0; }
+.seq .code-x .ln { opacity: 0; transform: translateX(-6px); transition: opacity .3s, transform .3s; transition-delay: calc(var(--i) * 70ms); }
+.seq:is([data-s="3"], [data-s="4"]) .code-x .ln { opacity: 1; transform: none; }
+.seq .slot { transition: opacity .3s; }
+.seq[data-s="3"] .slot { opacity: 0; }
+.seq .type { display: inline-block; vertical-align: bottom; overflow: hidden; white-space: nowrap; width: 0; border-right: 1.5px solid currentColor; }
+.seq:not([data-s="0"]) .type { width: calc(var(--ch) * 1ch + 2px); transition: width 1.7s steps(30); }
+.seq:not([data-s="0"]):not([data-s="1"]) .type { border-color: transparent; }
+/* The native feature's four promises light up one after another. */
+.feature-tag { opacity: .6; animation: feature-tag 6s infinite both; }
+@keyframes feature-tag { 0%, 100% { opacity: .6; scale: 1; } 4%, 22% { opacity: 1; scale: 1.06; } 28% { opacity: .6; scale: 1; } }
+/* Games / Pro spotlight (components/landing/sections.tsx): a numbered index beside one playing screen. */
+.spotlight .cycle-items { display: flex; flex-direction: column; justify-content: center; gap: 2px; padding-left: 22px; z-index: 1; }
+.spotlight .cycle-panel { position: absolute; inset: 0; animation: spot-in .5s cubic-bezier(.3,1.3,.5,1); }
+@keyframes spot-in { from { opacity: 0; transform: translateY(12px) scale(.97); } }
+.spot-panel { position: absolute; inset: 0; display: flex; justify-content: center; padding: 24px 32px 0 0; }
+.spot-cap { position: absolute; right: 18px; bottom: 16px; border-radius: 11px; background: rgb(0 0 0 / .28); padding: 4px 11px; font-size: 12.5px; color: rgb(255 255 255); backdrop-filter: blur(10px); }
+.spot-name { position: relative; display: flex; width: 132px; align-items: baseline; gap: 10px; padding: 5px 0 7px; font-size: 15px; letter-spacing: -.01em; color: rgb(255 255 255 / .62); transition: color .3s; }
+.spot-num { font-size: 10px; font-variant-numeric: tabular-nums; opacity: .8; }
+.spot-line { position: absolute; inset: auto 0 0; height: 1.5px; background: rgb(255 255 255 / .22); }
+.spot-line::after { content: ""; position: absolute; inset: 0; transform: scaleX(0); transform-origin: left; background: rgb(255 255 255); }
+[data-on] > .spot-name { color: rgb(255 255 255); }
+[data-on] > .spot-name .spot-line::after { animation: spot-fill 4.8s linear forwards; }
+@keyframes spot-fill { to { transform: scaleX(1); } }
+@media (max-width: 480px) { .spot-name { width: 104px; font-size: 13px; } .spotlight .cycle-items { padding-left: 14px; } .spot-panel { padding-right: 12px; } }
+@media (prefers-reduced-motion: reduce) { .feature-tag, .spotlight .cycle-panel, [data-on] > .spot-name .spot-line::after { animation: none; } }
+
 /* Second gallery row drifts the other way. */
 .marquee-reverse { animation-direction: reverse; }
 
