@@ -8,7 +8,9 @@ import { NewBadge } from "@/components/ui/new-badge";
 import { MoreLink } from "@/components/landing/link";
 import { GrainStage } from "@/components/visual/grain-stage";
 import type { GrainKind } from "@/lib/grain";
-import { Still, Tile } from "@/components/landing/wall";
+import { Tile } from "@/components/landing/wall";
+import { Loop, Phone, Scaled } from "@/components/landing/live";
+import { Cycle } from "@/components/landing/cycle";
 import { allStills, stills } from "@/components/landing/stills";
 import { body, gap, ground, heading, small } from "@/components/landing/type";
 import { categories } from "@/lib/categories";
@@ -28,22 +30,19 @@ function Head({ title, rest, link, id }: { title: string; rest?: string; link?: 
   );
 }
 
-/** A game's simulator still, cut to a phone's shape. */
-function GameShot({ id, alt = "", className, style }: { id: string; alt?: string; className?: string; style?: CSSProperties }) {
-  // eslint-disable-next-line @next/next/no-img-element -- static simulator stills, already 720px webp
-  return <img src={`/pro-games/${id}.webp`} alt={alt} loading="lazy" decoding="async" style={style} className={className} />;
-}
-
 /* ---------- Facts ---------- */
 
-/** The piece that best shows each category at chip size: vivid in the middle of its still. */
+/** The piece that best shows each category in a small pill: vivid and moving at that size. */
 const LEAD: Record<string, string> = {
-  text: "GlassText", backgrounds: "Silk", glass: "GlassSurface", controls: "ElasticButton", inputs: "SecureEntry",
-  cards: "MotionCard", lists: "DepthCarousel", navigation: "StretchHeader", sheets: "PermissionSheet",
-  feedback: "StatusMorph", motion: "DragToDismiss", data: "ActivityHeatmap", ai: "AssistantOrb", media: "StoryStrip",
+  text: "GlassText", backgrounds: "Silk", glass: "GlassSegments", controls: "ElasticButton", inputs: "SecureEntry",
+  cards: "SwipeDeck", lists: "TaskRow", navigation: "FloatingDock", sheets: "PermissionSheet",
+  feedback: "ReactionToggle", motion: "DragToDismiss", data: "ScrubChart", ai: "AssistantOrb", media: "StoryStrip",
 };
 
-/** Every category as a small card, its lead piece close up beside the name and count, drifting by under the hero. */
+/**
+ * Every category as one line of type drifting by under the hero: the name large, its count small
+ * beside it, and its lead piece playing live in a pill between names.
+ */
 export function Facts() {
   const all = allStills();
   const chips = Object.values(categories)
@@ -55,21 +54,15 @@ export function Facts() {
   return (
     <section aria-label="Categories" className="pt-6 sm:pt-8">
       <div className="marquee-pause overflow-hidden py-3 [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]">
-        <div className="marquee flex w-max" style={{ "--marquee-duration": "80s" } as CSSProperties}>
+        <div className="marquee flex w-max" style={{ "--marquee-duration": "120s" } as CSSProperties}>
           {[0, 1].map((copy) => (
-            <ul key={copy} aria-hidden={copy === 1 || undefined} className="flex shrink-0 gap-3 pr-3">
+            <ul key={copy} aria-hidden={copy === 1 || undefined} className="flex shrink-0 items-center gap-5 pr-5">
               {chips.map((c) => (
-                <li key={c.slug}>
-                  <Link href={`/components/${c.slug}`} tabIndex={copy === 1 ? -1 : undefined} className="group flex h-[76px] w-[232px] items-center gap-3.5 rounded-[18px] bg-surface-2 p-1.5 pr-4 shadow-[0_1px_2px_rgb(0_0_0/0.04),0_14px_30px_-22px_rgb(0_0_0/0.3)] ring-1 ring-[var(--line)] transition-colors hover:bg-surface">
-                    <span className="h-full w-[86px] shrink-0 overflow-hidden rounded-[13px] bg-surface">
-                      <Still s={c.lead} alt={false} className="size-full scale-[1.55] object-cover transition-transform duration-500 group-hover:scale-[1.7]" />
-                    </span>
-                    <span className="flex min-w-0 flex-col">
-                      <span className="text-[14px] leading-5 text-foreground">{c.title}</span>
-                      <span className="text-[12.5px] leading-5 text-subtle tabular-nums">{c.count} {c.count === 1 ? "piece" : "pieces"}</span>
-                    </span>
-                    <Arrow className="ml-auto size-3.5 shrink-0 text-subtle opacity-0 transition-opacity group-hover:opacity-100" />
+                <li key={c.slug} className="flex items-center gap-5">
+                  <Link href={`/components/${c.slug}`} tabIndex={copy === 1 ? -1 : undefined} className="text-[32px] leading-none tracking-[-0.03em] text-foreground transition-colors hover:text-muted sm:text-[44px]">
+                    {c.title}<sup className="ml-0.5 align-top text-[12px] tracking-normal text-subtle tabular-nums sm:text-[14px]">{c.count}</sup>
                   </Link>
+                  <Scaled s={c.lead} w={110} h={60} zoom={1.5} className="rounded-[25px] ring-1 ring-[var(--line)]" />
                 </li>
               ))}
             </ul>
@@ -136,19 +129,6 @@ export function Statement() {
 /* ---------- Games and Pro ---------- */
 
 const quiet = "group inline-flex items-center gap-1.5 text-[14px] font-medium text-foreground";
-const phone = "relative w-[30%] max-w-[168px] shrink-0 overflow-hidden rounded-[22px] border-[4px] border-[#0b0b0b] bg-[#0b0b0b] shadow-[0_30px_60px_-24px_rgb(0_0_0/0.55)] sm:rounded-[28px] sm:border-[5px]";
-/** The middle phone stands taller than the two beside it, all three the same size and centred. */
-const lift = (i: number) => (i === 1 ? "translate-y-0" : "translate-y-8");
-
-/** Pro screens are stills of a phone on its own grain card (public/pro-cards, 720 wide): the phone sits at x 215 to 507, from y 49. */
-function ProScreen({ id, title }: { id: string; title: string }) {
-  return (
-    <span className="block aspect-[292/633] w-full">
-      {/* eslint-disable-next-line @next/next/no-img-element -- static stills of Pro's library cards */}
-      <img src={`/pro-cards/${id}.webp`} alt={`${title}, a SwiftPieces Pro screen`} loading="lazy" decoding="async" className="absolute top-[-7.74%] left-[-73.63%] w-[246.6%] max-w-none" />
-    </span>
-  );
-}
 
 function MoreCard({ badge, title, rest, links, kind, motif, seed, children }: { badge: ReactNode; title: string; rest: string; links: { label: string; href: string }[]; kind: GrainKind; motif?: GrainKind; seed: string; children: ReactNode }) {
   return (
@@ -160,7 +140,7 @@ function MoreCard({ badge, title, rest, links, kind, motif, seed, children }: { 
           {links.map((l, i) => <a key={l.href} href={l.href} className={cn(quiet, i > 0 && "text-muted hover:text-foreground")}>{l.label} {i === 0 ? <Arrow className="size-3.5" /> : null}</a>)}
         </div>
       </div>
-      <div className="relative isolate mt-auto flex h-[280px] items-start justify-center gap-[3%] overflow-hidden rounded-[19px] pt-10 sm:h-[340px] sm:pt-12">
+      <div className="relative isolate mt-auto h-[360px] overflow-hidden rounded-[19px] sm:h-[400px]">
         <GrainStage seed={seed} kind={kind} motif={motif} className="-z-10" />
         {children}
       </div>
@@ -168,15 +148,46 @@ function MoreCard({ badge, title, rest, links, kind, motif, seed, children }: { 
   );
 }
 
-const PRO_SCREENS = [
-  { id: "ai-chat-screen", title: "AI Chat" },
-  { id: "focus-timer", title: "Focus Timer" },
-  { id: "dashboard-screen", title: "Dashboard" },
+type Shown = { id: string; title: string; kind: string; href: string; src: string; poster: string; island: boolean };
+
+/**
+ * One screen at a time, playing on a phone, with a numbered index on its left: the line under the one
+ * on show fills while it plays, then the next takes over. Hover, focus or tap an entry to jump to it.
+ */
+function Spotlight({ items, label }: { items: Shown[]; label: string }) {
+  return (
+    <Cycle
+      ms={4800}
+      label={label}
+      className="spotlight absolute inset-0 grid grid-cols-[auto_1fr]"
+      items={items.map((x, k) => <span key={x.id} className="spot-name"><span className="spot-num">{String(k + 1).padStart(2, "0")}</span>{x.title}<span className="spot-line" /></span>)}
+      panels={items.map((x) => (
+        <a key={x.id} href={x.href} className="spot-panel">
+          <Phone island={x.island} className="w-[150px] sm:w-[176px]"><Loop src={x.src} poster={x.poster} label={`${x.title}, ${x.kind}`} /></Phone>
+          <span className="spot-cap">{x.title} <span className="opacity-70">· {x.kind}</span></span>
+        </a>
+      ))}
+    />
+  );
+}
+
+const GAMES_SHOWN = ["cairn", "pane", "thrum", "ripple", "parlour", "drift", "lumen"];
+const PRO_SHOWN = [
+  { id: "wallet-stack", title: "Wallet", kind: "Finance" },
+  { id: "spending-ring", title: "Budget", kind: "Finance" },
+  { id: "ai-chat-screen", title: "Chat", kind: "AI" },
+  { id: "voice-orb", title: "Voice Mode", kind: "AI" },
+  { id: "focus-timer", title: "Focus", kind: "Productivity" },
+  { id: "dashboard-screen", title: "Dashboard", kind: "Business" },
+  { id: "glass-paywall-screen", title: "Paywall", kind: "Subscription" },
 ];
 
-/** The step past the free pieces: Games and Pro side by side, each with three of its own screens, aligned the same way. */
+/** The step past the free pieces: Games and Pro side by side, each playing its own screens one at a time. */
 export function More() {
-  const games = ["cairn", "parlour", "drift"].map((id) => proGames.list.find((g) => g.id === id)).filter((g) => g !== undefined);
+  const games: Shown[] = GAMES_SHOWN.map((id) => proGames.list.find((g) => g.id === id)).filter((g) => g !== undefined).map((g) => ({
+    id: g.id, title: g.title, kind: g.genre, href: `${pro.games}/${g.id}`, src: `/pro-games/play/${g.id}.mp4`, poster: `/pro-games/play/${g.id}.webp`, island: true,
+  }));
+  const screens: Shown[] = PRO_SHOWN.map((sc) => ({ ...sc, href: `${pro.home}/library/screens/${sc.id}`, src: `/pro-screens/${sc.id}.mp4`, poster: `/pro-screens/${sc.id}.webp`, island: false }));
   return (
     <Container className={gap}>
       <section aria-labelledby="more" className="grid gap-4 lg:grid-cols-2">
@@ -190,11 +201,7 @@ export function More() {
           motif="template"
           seed="more-games"
         >
-          {games.map((g, i) => (
-            <a key={g.id} href={`${pro.games}/${g.id}`} className={cn(phone, lift(i), "transition-transform duration-300 hover:-translate-y-1")}>
-              <GameShot id={g.id} alt={`${g.title} being played, from SwiftPieces Games`} className="aspect-[9/19.5] w-full rounded-[18px] object-cover object-top sm:rounded-[23px]" />
-            </a>
-          ))}
+          <Spotlight items={games} label="Games" />
         </MoreCard>
         <MoreCard
           badge={<><ProBadge size="sm" /> SwiftPieces Pro</>}
@@ -205,11 +212,7 @@ export function More() {
           motif="flow"
           seed="more-pro"
         >
-          {PRO_SCREENS.map((sc, i) => (
-            <a key={sc.id} href={`${pro.home}/library/screens/${sc.id}`} className={cn(phone, "border-0 bg-transparent", lift(i), "transition-transform duration-300 hover:-translate-y-1")}>
-              <ProScreen id={sc.id} title={sc.title} />
-            </a>
-          ))}
+          <Spotlight items={screens} label="Pro screens" />
         </MoreCard>
       </section>
     </Container>
