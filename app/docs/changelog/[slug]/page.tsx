@@ -11,8 +11,6 @@ import { breadcrumbJsonLd, pageMetadata } from "@/lib/seo";
 
 type Props = { params: Promise<{ slug: string }> };
 
-export const dynamicParams = false;
-
 export function generateStaticParams() {
   return changelog.map((e) => ({ slug: e.slug }));
 }

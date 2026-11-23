@@ -10,7 +10,6 @@ import { site } from "@/lib/site";
 
 type Params = { app: string };
 
-export const dynamicParams = false;
 export function generateStaticParams(): Params[] {
   return apps.map((a) => ({ app: a.slug }));
 }
