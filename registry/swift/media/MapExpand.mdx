@@ -1,8 +1,9 @@
 ## Notes
 
-- Uses MapKit, so the map is real at every size: a thumbnail in the card, then a live, draggable map across the top of the screen once it opens.
-- Tap the card to open it. The pin drops into place with a bounce, the card settles under the map and your `actions`, such as Directions, fade in. Back, a glass button on the map, folds it into the card again.
+- Uses MapKit, so the map is real at every size: a thumbnail in the card, then a live, draggable map that fills the space once it opens.
+- Tap the card to open it. The pin drops into place with a bounce, the card floats down onto the map as liquid glass, and your `actions` bud out of it one after another into a joined glass bar. Back, a glass button on the map, draws them in and folds it all into the card again.
+- Pass actions as `MapExpandAction`s. Mark one `isPrimary`, such as Directions: it is the wide pill in the pin's colour, and the rest are square glass buttons that use their title as the VoiceOver label.
 - It fills the space it is given, with the card at the top and your `content` under it; the page fades while the map is open.
 - `style.span` sets how far the map is zoomed out, in meters across. Points of interest and map controls are hidden, so the pin reads first.
-- VoiceOver gets Open map and Close map actions.
-- Under Reduce Motion the pin appears without dropping and the map opens without bounce.
+- On iOS 26 the card and actions are Liquid Glass and merge as they move; before that they are frosted and don't merge. Under Reduce Transparency they are solid.
+- VoiceOver gets Open map and Close map actions. Under Reduce Motion the pin appears without dropping and nothing bounces.

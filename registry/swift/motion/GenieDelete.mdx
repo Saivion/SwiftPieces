@@ -1,8 +1,0 @@
-## Notes
-
-- Snapshots its content with `ImageRenderer` when `isRemoved` turns on, then draws the snapshot in a `Canvas` as thin rows that narrow and slide toward the target, the edge nearest the target first. Raise `style.rows` for a smoother curve.
-- Mark the button it pours into with `.genieTarget($frame)` and pass that frame as `into:`. It works across containers, since both frames are global.
-- The content keeps its place in the layout while it is gone. Remove it from your data in `onRemoved`, which runs once it has poured away completely, if it should not come back.
-- Set `isRemoved` back to `false` and it pours back out of the target the same way, which makes Undo feel like the same object returning.
-- The content is drawn a second time for the snapshot, so build it from values rather than state that only lives inside it.
-- Under Reduce Motion it fades out and in instead of pouring.

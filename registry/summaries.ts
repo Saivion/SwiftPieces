@@ -63,7 +63,6 @@ export const summaries: Record<string, string> = {
   GlassSurface: "The SwiftPieces liquid glass as a modifier: any view on a glass shape, neighbours melted together, with fallbacks before iOS 26.",
 
   // Inputs and forms
-  VoiceDictation: "A dictate button for text fields: the glass mic stretches into a capsule of live level bars, with cancel and a red done.",
   SizePicker: "A glass row of sizes with a red pill that flows to your pick, sold out sizes struck through and shaking, and a stock note under it.",
   UnitToggle: "A value with a glass unit toggle: the red pill flows to the unit you tap and the number rolls to the converted Measurement.",
   AddressField: "An address field whose suggestions pour out as a glass list and resolve into a structured address with street, city and coordinate.",
@@ -85,7 +84,6 @@ export const summaries: Record<string, string> = {
   TokenField: "A tag and recipient field where each entry buds out of the glass input as a chip, with checks, suggestions and backspace to remove.",
 
   // Lists
-  StackingScroll: "A list whose rows stop at the top edge and stack under the next like a deck of passes, then lift off again as you scroll back.",
   ReorderList: "Glass rows you reorder by holding the grip: the row lifts, its grip turns red and the others part, with a tick at each slot.",
   DepthCarousel: "Paged cards that recede in depth as they leave the centre, over a glass page counter and a track you can scrub.",
   DragSelectGrid: "A photo and file grid where one drag selects a whole range like the system photo library, auto-scrolling at the edges with a tick per item.",
@@ -96,14 +94,8 @@ export const summaries: Record<string, string> = {
   TaskRow: "A task card whose glass check pops as it completes, with a priority chip, swipes to complete, snooze or delete, and drag to reorder.",
 
   // Media
-  PhotoStack: "A pile of tilted photos that fans into a grid on tap, each photo flying to its cell a beat after the last.",
   Snapshot: "Turns any view into an image like a screenshot: a flash, then a tilted thumbnail you tap to share and a glass note.",
-  MiniPlayer: "Drag a playing video down and it shrinks into a floating window that snaps to the nearest corner; tap to grow it back.",
-  AlbumOpen: "Albums as small photo piles; tap one and its photos fly into a full grid while the others step back.",
-  AvatarDrop: "An avatar picker where the chosen photo lifts out of the grid, arcs up and rounds into the avatar circle.",
-  VideoRotate: "Full-screen video for portrait apps: the player turns a quarter turn as it grows across the screen on black.",
   MapExpand: "A place card whose map thumbnail opens into a live MapKit map, the pin dropping in and your actions settling under it.",
-  BookPull: "A shelf of spines where the tapped book slides out, turns to show its cover and lands in the middle.",
   QRCode: "A styled QR code with round dots, soft eyes with red centres and your logo, whose dots ripple out from the centre when it changes.",
   ZoomDial: "Preset stops in a glass capsule with a flowing red disc that widens into a fine dial when you hold it, like the camera zoom.",
   AttachmentTray: "An attachment strip for composers: a glass add tile opens the photo picker and each pick lands as a tile with a live progress ring.",
@@ -116,8 +108,6 @@ export const summaries: Record<string, string> = {
   WaveformScrub: "A voice note player whose waveform is the scrubber, with a glass time bubble that rides the finger and a playback speed chip.",
 
   // Motion
-  GenieDelete: "Deleting pours a view into the button that deleted it like the macOS genie, and Undo pours it back out.",
-  DistortionWave: "A Metal transition where a ring of glass opens from the button you tapped, magnifying the next screen through its rim.",
   DragToDismiss: "A modifier that lets a photo, card or sheet follow the drag, then springs it back or tosses it away at the speed of the flick.",
 
   // Navigation
@@ -130,7 +120,6 @@ export const summaries: Record<string, string> = {
   TrackingTabs: "Tabs on a glass track over paging content, with a tinted indicator that rides the scroll and title ink that turns under its edge.",
 
   // Sheets
-  DraftMinimize: "A compose card that tucks into a glass pill at the bottom instead of closing, and grows back with every word kept.",
   ConfirmSheet: "A confirmation card as a bottom sheet or an inline card, its confirm and cancel splitting out of one glass shape as it lands.",
   NoticeStack: "In-app notices stacked like notifications: the newest on top, a tap spreads the pile, and cards swipe away at your speed.",
   PermissionSheet: "A pre-permission sheet that previews what it brings as a stack of notification banners before the request.",
@@ -138,8 +127,6 @@ export const summaries: Record<string, string> = {
   Toast: "A single liquid glass toast with a tile tinted for its kind, a countdown ring that pauses on touch and an optional Undo.",
 
   // Text
-  Spoiler: "Hides a view under drifting specks that blow away from your finger as the content opens in a circle.",
-  Marker: "Hand-drawn highlights, underlines and circles that draw on words in reading order and follow the text across lines.",
   ReadAlongText: "Text that follows a recording word by word on an even red pill that glides along, read words turning solid; tap to seek.",
   SmartText: "Plain text that finds links, @mentions, #tags, dates and phone numbers, styles them in place and lets you decide what a tap does.",
   MatchHighlight: "Search results that mark why they matched, on a red mark that grows as you type, ignoring case and accents.",

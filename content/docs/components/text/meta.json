@@ -5,13 +5,11 @@
   "pages": [
     "expandable-text",
     "glass-text",
-    "marker",
     "match-highlight",
     "picture-headline",
     "read-along-text",
     "relative-time",
     "smart-text",
-    "spoiler",
     "text-diff",
     "text-reveal",
     "translate-toggle"

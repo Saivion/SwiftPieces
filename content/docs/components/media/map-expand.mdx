@@ -86,51 +86,79 @@ public struct MapExpandStyle: Sendable {
     public static let standard = MapExpandStyle()
 }
 
-/// A place card at the top of a page whose map thumbnail opens into a full map.
+/// One action on the open map's glass card, such as Directions or Call.
+public struct MapExpandAction: Identifiable {
+    public var id: String { title }
+    /// The action's name. The primary action shows it; the others use it as their VoiceOver label.
+    public var title: String
+    /// An SF Symbol.
+    public var systemImage: String
+    /// The primary action is a wide pill in the pin's colour; the rest are round glass buttons beside it.
+    public var isPrimary: Bool
+    public var action: () -> Void
+
+    public init(_ title: String, systemImage: String, isPrimary: Bool = false, action: @escaping () -> Void) {
+        self.title = title
+        self.systemImage = systemImage
+        self.isPrimary = isPrimary
+        self.action = action
+    }
+}
+
+/// A place card at the top of a page whose map thumbnail opens into a full-screen map.
 ///
-/// It fills the space it is given: the card sits at the top with your page under it, and the page fades while
-/// the map is open.
+/// It fills the space it is given: the card sits at the top with your page under it. Opened, the map grows to
+/// fill the space, the card floats down onto it as liquid glass, and the actions bud out of the card one after
+/// another.
 ///
 /// - Parameters:
 ///   - coordinate: Where the place is.
 ///   - isExpanded: Whether the map is open. A tap on the card sets it; Back clears it.
 ///   - title: The place's name.
 ///   - subtitle: A details line, such as the distance and opening hours.
+///   - actions: The open card's actions. Mark one `isPrimary`, such as Directions.
 ///   - style: Sizes and colors.
-///   - actions: Shown on the card while the map is open, such as a Directions button.
 ///   - content: The page under the card.
-public struct MapExpand<Actions: View, Content: View>: View {
+public struct MapExpand<Content: View>: View {
     public typealias Style = MapExpandStyle
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Binding private var isExpanded: Bool
     @State private var position: MapCameraPosition
     @State private var drops = 0
+    /// Whether the actions are out of the card. Trails `isExpanded`, so they bud out once the card has landed.
+    @State private var actionsOut = false
 
     private let coordinate: CLLocationCoordinate2D
     private let title: String
     private let subtitle: String
+    private let actions: [MapExpandAction]
     private let style: Style
-    private let actions: Actions
     private let content: Content
 
     private let cardHeight: CGFloat = 100
+    private let openCardHeight: CGFloat = 92
+    private let actionHeight: CGFloat = 54
+    private let inset: CGFloat = 12
+    /// The gap between the card and its actions: just outside `PieceLiquid.merge`, so each action rests as its own
+    /// bubble but stretches a neck out of the card as it buds.
+    private let rowGap: CGFloat = PieceLiquid.merge + 2
 
     public init(
         coordinate: CLLocationCoordinate2D,
         isExpanded: Binding<Bool>,
         title: String,
         subtitle: String,
+        actions: [MapExpandAction] = [],
         style: Style = .standard,
-        @ViewBuilder actions: () -> Actions,
         @ViewBuilder content: () -> Content
     ) {
         self.coordinate = coordinate
         self._isExpanded = isExpanded
         self.title = title
         self.subtitle = subtitle
+        self.actions = actions
         self.style = style
-        self.actions = actions()
         self.content = content()
         self._position = State(initialValue: .camera(MapCamera(centerCoordinate: coordinate, distance: style.span)))
     }
@@ -139,11 +167,12 @@ public struct MapExpand<Actions: View, Content: View>: View {
         GeometryReader { proxy in
             let size = proxy.size
             let pad = (cardHeight - style.thumbnail) / 2
-            let mapOpen = CGRect(x: 0, y: 0, width: size.width, height: size.height * style.mapHeight)
             let thumb = CGRect(x: pad, y: pad, width: style.thumbnail, height: style.thumbnail)
-            let map = isExpanded ? mapOpen : thumb
-            let card = isExpanded ? CGRect(x: 0, y: mapOpen.maxY + 12, width: size.width, height: cardHeight + 64) : CGRect(x: 0, y: 0, width: size.width, height: cardHeight)
-            let text = isExpanded ? CGPoint(x: card.minX + 20, y: card.minY + 18) : CGPoint(x: thumb.maxX + 14, y: card.minY + 30)
+            let map = isExpanded ? CGRect(origin: .zero, size: size) : thumb
+            let row = actions.isEmpty ? 0 : actionHeight + rowGap
+            let openCard = CGRect(x: inset, y: size.height - inset - row - openCardHeight, width: size.width - inset * 2, height: openCardHeight)
+            let card = isExpanded ? openCard : CGRect(x: 0, y: 0, width: size.width, height: cardHeight)
+            let text = isExpanded ? CGPoint(x: card.minX + 20, y: card.minY + 20) : CGPoint(x: thumb.maxX + 14, y: 26)
 
             ZStack(alignment: .topLeading) {
                 content
@@ -153,52 +182,52 @@ public struct MapExpand<Actions: View, Content: View>: View {
                     .allowsHitTesting(!isExpanded)
                     .accessibilityHidden(isExpanded)
 
+                // The closed card: a plain card on the page.
                 RoundedRectangle(cornerRadius: style.cornerRadius, style: .continuous)
                     .fill(style.card)
                     .frame(width: card.width, height: card.height)
                     .offset(x: card.minX, y: card.minY)
+                    .opacity(isExpanded ? 0 : 1)
                     .onTapGesture { if !isExpanded { setExpanded(true) } }
+                    .zIndex(1)
+
+                mapView
+                    .frame(width: map.width, height: map.height)
+                    .clipShape(.rect(cornerRadius: isExpanded ? style.cornerRadius : 14, style: .continuous))
+                    .offset(x: map.minX, y: map.minY)
+                    .allowsHitTesting(isExpanded)
+                    .accessibilityHidden(!isExpanded)
+                    .zIndex(isExpanded ? 0 : 2)
+
+                // The open card and its actions: one liquid surface, so each action buds out of the card.
+                PieceLiquidGroup {
+                    ZStack(alignment: .topLeading) {
+                        Color.clear
+                            .frame(width: card.width, height: card.height)
+                            .pieceLiquid(RoundedRectangle(cornerRadius: style.cornerRadius, style: .continuous), interactive: false)
+                            .offset(x: card.minX, y: card.minY)
+                            .opacity(isExpanded ? 1 : 0)
+                        actionRow(width: openCard.width, home: CGPoint(x: card.midX, y: card.midY))
+                            .offset(x: openCard.minX, y: openCard.maxY + rowGap)
+                    }
+                    .frame(width: size.width, height: size.height, alignment: .topLeading)
+                }
+                .allowsHitTesting(isExpanded)
+                .zIndex(3)
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(title)
-                        .font(.headline.weight(.semibold))
+                        .font((isExpanded ? Font.title3 : .headline).weight(.semibold))
                         .foregroundStyle(style.label)
-                        .scaleEffect(isExpanded ? 1.22 : 1, anchor: .topLeading)
-                        .padding(.bottom, isExpanded ? 5 : 0)
                     Text(subtitle)
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(style.secondary)
-                    actions
-                        .padding(.top, 12)
-                        .opacity(isExpanded ? 1 : 0)
-                        .allowsHitTesting(isExpanded)
-                        .accessibilityHidden(!isExpanded)
                 }
                 .lineLimit(1)
-                .frame(width: size.width - (isExpanded ? 40 : thumb.maxX + 28), alignment: .leading)
-                .offset(x: text.x, y: text.y - (isExpanded ? 0 : 12))
-                .allowsHitTesting(isExpanded)
-
-                Map(position: $position, interactionModes: isExpanded ? .all : []) {
-                    Annotation(title, coordinate: coordinate, anchor: .bottom) {
-                        MapExpandPin(color: style.pin)
-                            .keyframeAnimator(initialValue: CGFloat(0), trigger: drops) { pin, lift in
-                                pin.offset(y: -lift)
-                            } keyframes: { _ in
-                                LinearKeyframe(reduceMotion ? 0 : 34, duration: 0.01)
-                                LinearKeyframe(reduceMotion ? 0 : 34, duration: 0.18)
-                                SpringKeyframe(0, duration: 0.5, spring: .bouncy)
-                            }
-                    }
-                    .annotationTitles(.hidden)
-                }
-                .mapStyle(.standard(pointsOfInterest: .excludingAll))
-                .mapControlVisibility(.hidden)
-                .frame(width: map.width, height: map.height)
-                .clipShape(.rect(cornerRadius: isExpanded ? style.cornerRadius : 14, style: .continuous))
-                .offset(x: map.minX, y: map.minY)
-                .allowsHitTesting(isExpanded)
-                .accessibilityHidden(!isExpanded)
+                .frame(width: card.width - (isExpanded ? 40 : thumb.maxX + 28), alignment: .leading)
+                .offset(x: text.x, y: text.y)
+                .allowsHitTesting(false)
+                .zIndex(4)
 
                 if isExpanded {
                     PieceLiquidGroup {
@@ -216,21 +245,96 @@ public struct MapExpand<Actions: View, Content: View>: View {
                     }
                     .offset(x: 14, y: 14)
                     .transition(PieceMotion(reduceMotion: reduceMotion).transition(.opacity.combined(with: .scale(scale: 0.6))))
+                    .zIndex(5)
                 }
             }
             .frame(width: size.width, height: size.height, alignment: .topLeading)
         }
+        .onChange(of: isExpanded) { _, expanded in expandedChanged(expanded) }
         .accessibilityElement(children: .contain)
         .accessibilityAction(named: isExpanded ? "Close map" : "Open map") { setExpanded(!isExpanded) }
     }
 
+    private var mapView: some View {
+        Map(position: $position, interactionModes: isExpanded ? .all : []) {
+            Annotation(title, coordinate: coordinate, anchor: .bottom) {
+                MapExpandPin(color: style.pin)
+                    .keyframeAnimator(initialValue: CGFloat(0), trigger: drops) { pin, lift in
+                        pin.offset(y: -lift)
+                    } keyframes: { _ in
+                        LinearKeyframe(reduceMotion ? 0 : 34, duration: 0.01)
+                        LinearKeyframe(reduceMotion ? 0 : 34, duration: 0.18)
+                        SpringKeyframe(0, duration: 0.5, spring: .bouncy)
+                    }
+            }
+            .annotationTitles(.hidden)
+        }
+        .mapStyle(.standard(pointsOfInterest: .excludingAll))
+        .mapControlVisibility(.hidden)
+    }
+
+    /// The actions in a row under the card, joined into one glass bar: the primary one wide, the rest round. While they are in, each sits
+    /// shrunk at `home`, the card's centre, inside the card's glass.
+    private func actionRow(width: CGFloat, home: CGPoint) -> some View {
+        let rounds = CGFloat(actions.filter { !$0.isPrimary }.count)
+        let gap = PieceLiquid.joined
+        let hasPrimary = actions.contains { $0.isPrimary }
+        let wide = hasPrimary ? width - rounds * (actionHeight + gap) : 0
+        return ZStack(alignment: .topLeading) {
+            ForEach(Array(actions.enumerated()), id: \.element.id) { index, item in
+                let x = actions[..<index].reduce(CGFloat(0)) { $0 + ($1.isPrimary ? wide : actionHeight) + gap }
+                let w = item.isPrimary ? wide : actionHeight
+                actionButton(item, width: w)
+                    .pieceLiquidScale(actionsOut ? 1 : PieceLiquid.homeScale)
+                    .offset(actionsOut ? .zero : CGSize(width: home.x - (x + w / 2) - inset, height: -(actionHeight / 2 + rowGap + openCardHeight / 2)))
+                    .opacity(isExpanded ? 1 : 0)
+                    .animation(actionsOut ? PieceLiquid.split(reduceMotion: reduceMotion).delay(Double(index) * 0.06) : PieceLiquid.home(reduceMotion: reduceMotion), value: actionsOut)
+                    .offset(x: x)
+            }
+        }
+        .frame(width: width, height: actionHeight, alignment: .topLeading)
+    }
+
+    private func actionButton(_ item: MapExpandAction, width: CGFloat) -> some View {
+        Button(action: item.action) {
+            Group {
+                if item.isPrimary {
+                    Label(item.title, systemImage: item.systemImage)
+                        .foregroundStyle(Color(red: 0.078, green: 0.078, blue: 0.078))
+                } else {
+                    Image(systemName: item.systemImage)
+                        .foregroundStyle(style.label)
+                }
+            }
+            .font(.body.weight(.semibold))
+            .frame(width: width, height: actionHeight)
+            .pieceLiquid(RoundedRectangle(cornerRadius: actionHeight * 0.42, style: .continuous), tint: item.isPrimary ? style.pin : nil)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(item.title)
+    }
+
     private func setExpanded(_ expanded: Bool) {
         let motion = PieceMotion(reduceMotion: reduceMotion)
+        withAnimation(expanded ? motion.morph : motion.settle) { isExpanded = expanded }
+    }
+
+    /// Runs on every change of `isExpanded`, from a tap or from outside: recentres the map, drops the pin and
+    /// buds the actions out once the card has landed, or draws them back in.
+    private func expandedChanged(_ expanded: Bool) {
+        let motion = PieceMotion(reduceMotion: reduceMotion)
         withAnimation(expanded ? motion.morph : motion.settle) {
-            isExpanded = expanded
             position = .camera(MapCamera(centerCoordinate: coordinate, distance: style.span))
         }
-        if expanded { drops += 1 }
+        guard expanded else {
+            actionsOut = false
+            return
+        }
+        drops += 1
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(reduceMotion ? 0 : 0.32))
+            if isExpanded { actionsOut = true }
+        }
     }
 }
 
@@ -273,26 +377,24 @@ private struct MapExpandDrop: Shape {
 
 /// A booking with the hotel's card on top. Tap it to open the map; Back folds it away.
 private struct MapExpandExample: View {
+    @Environment(\.openURL) private var openURL
     @State private var isExpanded = false
-    private let ink = Color(red: 0.078, green: 0.078, blue: 0.078)
-    private let red = Color(red: 1, green: 0, blue: 0)
+    private let harbor = CLLocationCoordinate2D(latitude: 47.6062, longitude: -122.3421)
 
     var body: some View {
-        MapExpand(coordinate: CLLocationCoordinate2D(latitude: 47.6062, longitude: -122.3421), isExpanded: $isExpanded, title: "Harbor Inn", subtitle: "0.4 mi · Open until 22:00") {
-            HStack(spacing: 10) {
-                Label("Directions", systemImage: "arrow.triangle.turn.up.right.diamond.fill")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(ink)
-                    .padding(.horizontal, 16)
-                    .frame(height: 42)
-                    .background(red, in: .rect(cornerRadius: 18, style: .continuous))
-                Label("Call", systemImage: "phone.fill")
-                    .font(.subheadline.weight(.semibold))
-                    .padding(.horizontal, 16)
-                    .frame(height: 42)
-                    .background(Color(UIColor.tertiarySystemFill), in: .rect(cornerRadius: 18, style: .continuous))
-            }
-        } content: {
+        MapExpand(coordinate: harbor, isExpanded: $isExpanded, title: "Harbor Inn", subtitle: "0.4 mi · Open until 22:00", actions: [
+            MapExpandAction("Directions", systemImage: "arrow.triangle.turn.up.right.diamond.fill", isPrimary: true) {
+                let item = MKMapItem(placemark: MKPlacemark(coordinate: harbor))
+                item.name = "Harbor Inn"
+                item.openInMaps(launchOptions: [MKLaunchOptionsDirectionsModeKey: MKLaunchOptionsDirectionsModeWalking])
+            },
+            MapExpandAction("Call", systemImage: "phone.fill") {
+                if let url = URL(string: "tel:2065550134") { openURL(url) }
+            },
+            MapExpandAction("Website", systemImage: "safari.fill") {
+                if let url = URL(string: "https://example.com") { openURL(url) }
+            },
+        ]) {
             VStack(alignment: .leading, spacing: 10) {
                 Text("Your stay").font(.title3.weight(.semibold))
                 ForEach([("Check-in", "Sat, 15:00"), ("Check-out", "Mon, 11:00"), ("Room", "Lake view, 2 guests")], id: \.0) { name, value in
@@ -559,12 +661,13 @@ Sizes and colors for `MapExpand`.
 
 ## Notes
 
-- Uses MapKit, so the map is real at every size: a thumbnail in the card, then a live, draggable map across the top of the screen once it opens.
-- Tap the card to open it. The pin drops into place with a bounce, the card settles under the map and your `actions`, such as Directions, fade in. Back, a glass button on the map, folds it into the card again.
+- Uses MapKit, so the map is real at every size: a thumbnail in the card, then a live, draggable map that fills the space once it opens.
+- Tap the card to open it. The pin drops into place with a bounce, the card floats down onto the map as liquid glass, and your `actions` bud out of it one after another into a joined glass bar. Back, a glass button on the map, draws them in and folds it all into the card again.
+- Pass actions as `MapExpandAction`s. Mark one `isPrimary`, such as Directions: it is the wide pill in the pin's colour, and the rest are square glass buttons that use their title as the VoiceOver label.
 - It fills the space it is given, with the card at the top and your `content` under it; the page fades while the map is open.
 - `style.span` sets how far the map is zoomed out, in meters across. Points of interest and map controls are hidden, so the pin reads first.
-- VoiceOver gets Open map and Close map actions.
-- Under Reduce Motion the pin appears without dropping and the map opens without bounce.
+- On iOS 26 the card and actions are Liquid Glass and merge as they move; before that they are frosted and don't merge. Under Reduce Transparency they are solid.
+- VoiceOver gets Open map and Close map actions. Under Reduce Motion the pin appears without dropping and nothing bounces.
 
 ## Usage
 

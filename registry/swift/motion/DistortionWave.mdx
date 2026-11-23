@@ -1,7 +1,0 @@
-## Notes
-
-- Requires `DistortionWave.metal` in the same target. Its `distortionWaveOld` and `distortionWaveNew` kernels are looked up through `ShaderLibrary` and run as two layer effects, one on each screen.
-- When `isRevealed` turns on, a ring opens from the button you mark with `.distortionWaveOrigin($frame)`: the new screen shows inside it, magnified toward the rim like the edge of a lens, the old one is drawn into it from outside, and a thin highlight with a touch of colour split runs along the edge.
-- Set it back and the ring closes into the button. Without an origin it opens from the centre.
-- The effects only run while the ring moves, so both screens are plain views at rest.
-- Under Reduce Motion the screens crossfade instead.

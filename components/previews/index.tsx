@@ -102,21 +102,8 @@ const map: Record<string, ComponentType> = {
   MatchHighlight: dynamic(() => import("./everyday").then((m) => m.MatchHighlightPreview)),
   TextDiff: dynamic(() => import("./everyday").then((m) => m.TextDiffPreview)),
   TranslateToggle: dynamic(() => import("./everyday").then((m) => m.TranslateTogglePreview)),
-  PhotoStack: dynamic(() => import("./moving").then((m) => m.PhotoStackPreview)),
   Snapshot: dynamic(() => import("./moving").then((m) => m.SnapshotPreview)),
-  GenieDelete: dynamic(() => import("./moving").then((m) => m.GenieDeletePreview)),
-  MiniPlayer: dynamic(() => import("./moving").then((m) => m.MiniPlayerPreview)),
-  AlbumOpen: dynamic(() => import("./moving").then((m) => m.AlbumOpenPreview)),
-  StackingScroll: dynamic(() => import("./moving").then((m) => m.StackingScrollPreview)),
-  DraftMinimize: dynamic(() => import("./moving").then((m) => m.DraftMinimizePreview)),
-  AvatarDrop: dynamic(() => import("./moving").then((m) => m.AvatarDropPreview)),
-  VideoRotate: dynamic(() => import("./moving").then((m) => m.VideoRotatePreview)),
   MapExpand: dynamic(() => import("./moving").then((m) => m.MapExpandPreview)),
-  BookPull: dynamic(() => import("./moving").then((m) => m.BookPullPreview)),
-  VoiceDictation: dynamic(() => import("./moving").then((m) => m.VoiceDictationPreview)),
-  Spoiler: dynamic(() => import("./moving").then((m) => m.SpoilerPreview)),
-  DistortionWave: dynamic(() => import("./moving").then((m) => m.DistortionWavePreview)),
-  Marker: dynamic(() => import("./moving").then((m) => m.MarkerPreview)),
 };
 
 /** One Picture Headline sticker on its own (the landing's floating mascot), from the preview's own chunk. */

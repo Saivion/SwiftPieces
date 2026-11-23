@@ -4,7 +4,6 @@
   "defaultOpen": false,
   "pages": [
     "confirm-sheet",
-    "draft-minimize",
     "notice-stack",
     "permission-sheet",
     "spotlight-tour",

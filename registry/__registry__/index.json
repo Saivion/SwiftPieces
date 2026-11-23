@@ -2382,48 +2382,6 @@
   },
   {
     "$schema": "https://swiftpieces.com/schema/registry-item.json",
-    "name": "VoiceDictation",
-    "slug": "voice-dictation",
-    "type": "registry:component",
-    "title": "Voice Dictation",
-    "description": "The dictate button for a text field: tap the glass mic and it stretches into a capsule of live level bars that scroll in from the right as you speak, with a cancel button on one end and a red done button on the other. Done or cancel shrinks it back into the mic. You feed it the microphone level, so it works with Speech, a recorder or your own engine. For search, notes, messages and forms.",
-    "category": "inputs",
-    "license": "MIT+Commons-Clause",
-    "version": "1.0.0",
-    "minIOSVersion": "17.0",
-    "swiftToolsVersion": "6.1",
-    "tags": [
-      "voice",
-      "dictation",
-      "microphone",
-      "speech",
-      "input",
-      "level",
-      "waveform"
-    ],
-    "dependencies": [],
-    "registryDependencies": [],
-    "spmDependencies": [],
-    "requiredCapabilities": [],
-    "infoPlist": {},
-    "assets": [],
-    "shaders": [],
-    "files": [
-      {
-        "path": "registry/swift/inputs/VoiceDictation.swift",
-        "type": "registry:component",
-        "target": "SwiftPieces/Inputs/VoiceDictation.swift"
-      }
-    ],
-    "preview": {},
-    "docs": "https://swiftpieces.com/docs/components/inputs/voice-dictation",
-    "added": "2026-11-23",
-    "isNew": true,
-    "liquidGlass": true,
-    "metal": false
-  },
-  {
-    "$schema": "https://swiftpieces.com/schema/registry-item.json",
     "name": "DepthCarousel",
     "slug": "depth-carousel",
     "type": "registry:component",
@@ -2634,49 +2592,6 @@
   },
   {
     "$schema": "https://swiftpieces.com/schema/registry-item.json",
-    "name": "StackingScroll",
-    "slug": "stacking-scroll",
-    "type": "registry:component",
-    "title": "Stacking Scroll",
-    "description": "A list whose cards don't leave at the top edge: each one that scrolls up stops there and stacks under the next, a little smaller and a little higher, so the last few peek out like passes in a wallet before they fade. Scroll back and they lift off the stack in order. It runs on the scroll position alone, with no state, so it stays smooth for long lists. For passes, tickets, itineraries, inboxes and timelines.",
-    "category": "lists",
-    "license": "MIT+Commons-Clause",
-    "version": "1.0.0",
-    "minIOSVersion": "17.0",
-    "swiftToolsVersion": "6.1",
-    "tags": [
-      "scroll",
-      "stack",
-      "list",
-      "cards",
-      "deck",
-      "sticky",
-      "passes",
-      "tickets"
-    ],
-    "dependencies": [],
-    "registryDependencies": [],
-    "spmDependencies": [],
-    "requiredCapabilities": [],
-    "infoPlist": {},
-    "assets": [],
-    "shaders": [],
-    "files": [
-      {
-        "path": "registry/swift/lists/StackingScroll.swift",
-        "type": "registry:component",
-        "target": "SwiftPieces/Lists/StackingScroll.swift"
-      }
-    ],
-    "preview": {},
-    "docs": "https://swiftpieces.com/docs/components/lists/stacking-scroll",
-    "added": "2026-11-23",
-    "isNew": true,
-    "liquidGlass": true,
-    "metal": false
-  },
-  {
-    "$schema": "https://swiftpieces.com/schema/registry-item.json",
     "name": "StatusTimeline",
     "slug": "status-timeline",
     "type": "registry:component",
@@ -2798,48 +2713,6 @@
   },
   {
     "$schema": "https://swiftpieces.com/schema/registry-item.json",
-    "name": "AlbumOpen",
-    "slug": "album-open",
-    "type": "registry:component",
-    "title": "Album Open",
-    "description": "A grid of albums, each a small pile of its own photos. Tap one and its photos lift off the pile and fly into a full grid, one after another, while the other albums step back and fade; Back gathers them onto the pile again. It wraps your own views, so photos can be images or thumbnails. For galleries, collections, playlists and shared sets.",
-    "category": "media",
-    "license": "MIT+Commons-Clause",
-    "version": "1.0.0",
-    "minIOSVersion": "17.0",
-    "swiftToolsVersion": "6.1",
-    "tags": [
-      "album",
-      "photos",
-      "gallery",
-      "grid",
-      "collection",
-      "open",
-      "folder"
-    ],
-    "dependencies": [],
-    "registryDependencies": [],
-    "spmDependencies": [],
-    "requiredCapabilities": [],
-    "infoPlist": {},
-    "assets": [],
-    "shaders": [],
-    "files": [
-      {
-        "path": "registry/swift/media/AlbumOpen.swift",
-        "type": "registry:component",
-        "target": "SwiftPieces/Media/AlbumOpen.swift"
-      }
-    ],
-    "preview": {},
-    "docs": "https://swiftpieces.com/docs/components/media/album-open",
-    "added": "2026-11-23",
-    "isNew": true,
-    "liquidGlass": true,
-    "metal": false
-  },
-  {
-    "$schema": "https://swiftpieces.com/schema/registry-item.json",
     "name": "AttachmentTray",
     "slug": "attachment-tray",
     "type": "registry:component",
@@ -2878,90 +2751,6 @@
     "docs": "https://swiftpieces.com/docs/components/media/attachment-tray",
     "added": "2026-09-29",
     "isNew": false,
-    "liquidGlass": true,
-    "metal": false
-  },
-  {
-    "$schema": "https://swiftpieces.com/schema/registry-item.json",
-    "name": "AvatarDrop",
-    "slug": "avatar-drop",
-    "type": "registry:component",
-    "title": "Avatar Drop",
-    "description": "An avatar picker where the photo you choose travels: tap a photo in the grid and it lifts, arcs up to the empty avatar circle and rounds into it as it lands, with a soft bump and a ring that spreads from the edge. Pick another and it takes its place the same way. It wraps your own photo views and hands you the choice. For profile setup, contacts, group icons and accounts.",
-    "category": "media",
-    "license": "MIT+Commons-Clause",
-    "version": "1.0.0",
-    "minIOSVersion": "17.0",
-    "swiftToolsVersion": "6.1",
-    "tags": [
-      "avatar",
-      "profile",
-      "photo",
-      "picker",
-      "onboarding",
-      "contact",
-      "image"
-    ],
-    "dependencies": [],
-    "registryDependencies": [],
-    "spmDependencies": [],
-    "requiredCapabilities": [],
-    "infoPlist": {},
-    "assets": [],
-    "shaders": [],
-    "files": [
-      {
-        "path": "registry/swift/media/AvatarDrop.swift",
-        "type": "registry:component",
-        "target": "SwiftPieces/Media/AvatarDrop.swift"
-      }
-    ],
-    "preview": {},
-    "docs": "https://swiftpieces.com/docs/components/media/avatar-drop",
-    "added": "2026-11-23",
-    "isNew": true,
-    "liquidGlass": false,
-    "metal": false
-  },
-  {
-    "$schema": "https://swiftpieces.com/schema/registry-item.json",
-    "name": "BookPull",
-    "slug": "book-pull",
-    "type": "registry:component",
-    "title": "Book Pull",
-    "description": "A shelf of spines where the book you tap slides up out of the row, turns a quarter turn toward you and lands in the middle showing its cover, while the rest of the shelf dims behind it. Your buttons fade in under the cover; tap away and it turns back and slots into its gap. It draws your own spine and cover views, so books, records, games or courses all fit. For libraries, reading lists, collections and stores.",
-    "category": "media",
-    "license": "MIT+Commons-Clause",
-    "version": "1.0.0",
-    "minIOSVersion": "17.0",
-    "swiftToolsVersion": "6.1",
-    "tags": [
-      "book",
-      "shelf",
-      "library",
-      "cover",
-      "spine",
-      "collection",
-      "reading"
-    ],
-    "dependencies": [],
-    "registryDependencies": [],
-    "spmDependencies": [],
-    "requiredCapabilities": [],
-    "infoPlist": {},
-    "assets": [],
-    "shaders": [],
-    "files": [
-      {
-        "path": "registry/swift/media/BookPull.swift",
-        "type": "registry:component",
-        "target": "SwiftPieces/Media/BookPull.swift"
-      }
-    ],
-    "preview": {},
-    "docs": "https://swiftpieces.com/docs/components/media/book-pull",
-    "added": "2026-11-23",
-    "isNew": true,
     "liquidGlass": true,
     "metal": false
   },
@@ -3014,7 +2803,7 @@
     "slug": "map-expand",
     "type": "registry:component",
     "title": "Map Expand",
-    "description": "A place card whose little map grows into the real thing: tap it and the thumbnail opens out across the top of the screen, live and draggable, the pin drops into place with a bounce and the card settles under it with your actions, such as Directions. Back folds it into the card again. It uses MapKit, so the map is real at every size. For stores, bookings, events, deliveries and nearby lists.",
+    "description": "A place card whose little map grows into the real thing: tap it and the thumbnail opens out across the top of the screen, live and draggable, the pin drops into place with a bounce, and the card floats down onto the map as liquid glass while your actions, such as Directions, bud out of it one by one. Back draws them in and folds it all into the card again. It uses MapKit, so the map is real at every size. For stores, bookings, events, deliveries and nearby lists.",
     "category": "media",
     "license": "MIT+Commons-Clause",
     "version": "1.0.0",
@@ -3045,49 +2834,6 @@
     ],
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/media/map-expand",
-    "added": "2026-11-23",
-    "isNew": true,
-    "liquidGlass": true,
-    "metal": false
-  },
-  {
-    "$schema": "https://swiftpieces.com/schema/registry-item.json",
-    "name": "MiniPlayer",
-    "slug": "mini-player",
-    "type": "registry:component",
-    "title": "Mini Player",
-    "description": "Drag a playing video down and it shrinks with your finger into a small floating window that snaps to the nearest corner. Flick the window across and it glides to the far corner at the speed you threw it; tap it and it grows back to full width, the details fading in under it. The page underneath stays usable while it floats. For video, live streams, calls and podcasts with video.",
-    "category": "media",
-    "license": "MIT+Commons-Clause",
-    "version": "1.0.0",
-    "minIOSVersion": "17.0",
-    "swiftToolsVersion": "6.1",
-    "tags": [
-      "video",
-      "player",
-      "picture-in-picture",
-      "pip",
-      "minimize",
-      "corner",
-      "drag",
-      "gesture"
-    ],
-    "dependencies": [],
-    "registryDependencies": [],
-    "spmDependencies": [],
-    "requiredCapabilities": [],
-    "infoPlist": {},
-    "assets": [],
-    "shaders": [],
-    "files": [
-      {
-        "path": "registry/swift/media/MiniPlayer.swift",
-        "type": "registry:component",
-        "target": "SwiftPieces/Media/MiniPlayer.swift"
-      }
-    ],
-    "preview": {},
-    "docs": "https://swiftpieces.com/docs/components/media/mini-player",
     "added": "2026-11-23",
     "isNew": true,
     "liquidGlass": true,
@@ -3177,48 +2923,6 @@
     "docs": "https://swiftpieces.com/docs/components/media/photo-cropper",
     "added": "2026-09-29",
     "isNew": false,
-    "liquidGlass": true,
-    "metal": false
-  },
-  {
-    "$schema": "https://swiftpieces.com/schema/registry-item.json",
-    "name": "PhotoStack",
-    "slug": "photo-stack",
-    "type": "registry:component",
-    "title": "Photo Stack",
-    "description": "A small pile of tilted photos that fans out into a grid when tapped, each photo travelling from its place in the pile to its cell on its own spring, a beat after the one before. Tap again and they gather back into the pile. It wraps your own views, so the photos can be images, thumbnails or anything else. For albums, attachments, memories and shared sets.",
-    "category": "media",
-    "license": "MIT+Commons-Clause",
-    "version": "1.0.0",
-    "minIOSVersion": "17.0",
-    "swiftToolsVersion": "6.1",
-    "tags": [
-      "photos",
-      "stack",
-      "pile",
-      "grid",
-      "album",
-      "gallery",
-      "expand"
-    ],
-    "dependencies": [],
-    "registryDependencies": [],
-    "spmDependencies": [],
-    "requiredCapabilities": [],
-    "infoPlist": {},
-    "assets": [],
-    "shaders": [],
-    "files": [
-      {
-        "path": "registry/swift/media/PhotoStack.swift",
-        "type": "registry:component",
-        "target": "SwiftPieces/Media/PhotoStack.swift"
-      }
-    ],
-    "preview": {},
-    "docs": "https://swiftpieces.com/docs/components/media/photo-stack",
-    "added": "2026-11-23",
-    "isNew": true,
     "liquidGlass": true,
     "metal": false
   },
@@ -3391,47 +3095,6 @@
   },
   {
     "$schema": "https://swiftpieces.com/schema/registry-item.json",
-    "name": "VideoRotate",
-    "slug": "video-rotate",
-    "type": "registry:component",
-    "title": "Video Rotate",
-    "description": "Full screen video for apps that stay upright: tap the expand button and the player turns a quarter turn as it grows, landing sideways across the whole screen on black while the page under it fades. Tap again and it turns back into its place. It rotates only the player, so the rest of the app keeps its portrait layout and you don't need to unlock rotation. For video, replays, lessons, trailers and live streams.",
-    "category": "media",
-    "license": "MIT+Commons-Clause",
-    "version": "1.0.0",
-    "minIOSVersion": "17.0",
-    "swiftToolsVersion": "6.1",
-    "tags": [
-      "video",
-      "player",
-      "fullscreen",
-      "rotate",
-      "landscape",
-      "orientation"
-    ],
-    "dependencies": [],
-    "registryDependencies": [],
-    "spmDependencies": [],
-    "requiredCapabilities": [],
-    "infoPlist": {},
-    "assets": [],
-    "shaders": [],
-    "files": [
-      {
-        "path": "registry/swift/media/VideoRotate.swift",
-        "type": "registry:component",
-        "target": "SwiftPieces/Media/VideoRotate.swift"
-      }
-    ],
-    "preview": {},
-    "docs": "https://swiftpieces.com/docs/components/media/video-rotate",
-    "added": "2026-11-23",
-    "isNew": true,
-    "liquidGlass": false,
-    "metal": false
-  },
-  {
-    "$schema": "https://swiftpieces.com/schema/registry-item.json",
     "name": "VoiceRecorder",
     "slug": "voice-recorder",
     "type": "registry:component",
@@ -3561,54 +3224,6 @@
   },
   {
     "$schema": "https://swiftpieces.com/schema/registry-item.json",
-    "name": "DistortionWave",
-    "slug": "distortion-wave",
-    "type": "registry:component",
-    "title": "Distortion Wave",
-    "description": "A transition from one screen to the next that starts at the button you tapped: a ring of glass opens from it, magnifying the new screen toward its rim and drawing the old one into it, with a thin highlight and a touch of colour split along the edge. Set it back and the ring closes into the button again. It runs as two Metal layer effects on your own views, and crossfades instead under Reduce Motion. For confirmations, payments sent, unlocks and big moments.",
-    "category": "motion",
-    "license": "MIT+Commons-Clause",
-    "version": "1.0.0",
-    "minIOSVersion": "17.0",
-    "swiftToolsVersion": "6.1",
-    "tags": [
-      "transition",
-      "shader",
-      "metal",
-      "ripple",
-      "refraction",
-      "reveal",
-      "confirm"
-    ],
-    "dependencies": [],
-    "registryDependencies": [],
-    "spmDependencies": [],
-    "requiredCapabilities": [],
-    "infoPlist": {},
-    "assets": [],
-    "shaders": [
-      {
-        "path": "registry/swift/motion/DistortionWave.metal",
-        "type": "registry:shader",
-        "target": "SwiftPieces/Motion/DistortionWave.metal"
-      }
-    ],
-    "files": [
-      {
-        "path": "registry/swift/motion/DistortionWave.swift",
-        "type": "registry:component",
-        "target": "SwiftPieces/Motion/DistortionWave.swift"
-      }
-    ],
-    "preview": {},
-    "docs": "https://swiftpieces.com/docs/components/motion/distortion-wave",
-    "added": "2026-11-23",
-    "isNew": true,
-    "liquidGlass": false,
-    "metal": true
-  },
-  {
-    "$schema": "https://swiftpieces.com/schema/registry-item.json",
     "name": "DragToDismiss",
     "slug": "drag-to-dismiss",
     "type": "registry:component",
@@ -3646,48 +3261,6 @@
     "docs": "https://swiftpieces.com/docs/components/motion/drag-to-dismiss",
     "pro": "depth-gallery",
     "isNew": false,
-    "liquidGlass": true,
-    "metal": false
-  },
-  {
-    "$schema": "https://swiftpieces.com/schema/registry-item.json",
-    "name": "GenieDelete",
-    "slug": "genie-delete",
-    "type": "registry:component",
-    "title": "Genie Delete",
-    "description": "Deleting pours a view into the button that deleted it, like the macOS genie: the bottom funnels in first, the sides narrow row by row and the rest follows in a curve. Undo pours it back out the same way. It draws a snapshot of your view in a Canvas, one thin row at a time, so it stays smooth for any content, and fades instead under Reduce Motion. For notes, drafts, files, cards and anything with an Undo.",
-    "category": "motion",
-    "license": "MIT+Commons-Clause",
-    "version": "1.0.0",
-    "minIOSVersion": "17.0",
-    "swiftToolsVersion": "6.1",
-    "tags": [
-      "delete",
-      "genie",
-      "trash",
-      "undo",
-      "remove",
-      "transition",
-      "canvas"
-    ],
-    "dependencies": [],
-    "registryDependencies": [],
-    "spmDependencies": [],
-    "requiredCapabilities": [],
-    "infoPlist": {},
-    "assets": [],
-    "shaders": [],
-    "files": [
-      {
-        "path": "registry/swift/motion/GenieDelete.swift",
-        "type": "registry:component",
-        "target": "SwiftPieces/Motion/GenieDelete.swift"
-      }
-    ],
-    "preview": {},
-    "docs": "https://swiftpieces.com/docs/components/motion/genie-delete",
-    "added": "2026-11-23",
-    "isNew": true,
     "liquidGlass": true,
     "metal": false
   },
@@ -4026,48 +3599,6 @@
   },
   {
     "$schema": "https://swiftpieces.com/schema/registry-item.json",
-    "name": "DraftMinimize",
-    "slug": "draft-minimize",
-    "type": "registry:component",
-    "title": "Draft Minimize",
-    "description": "A compose sheet that tucks itself away instead of closing: drag it down or tap the chevron and the whole card shrinks into a glass pill at the bottom of the screen, still showing the start of your draft. The page behind is yours again; tap the pill and the card grows back with every word where you left it. For mail, messages, notes, comments and any form people step away from.",
-    "category": "sheets",
-    "license": "MIT+Commons-Clause",
-    "version": "1.0.0",
-    "minIOSVersion": "17.0",
-    "swiftToolsVersion": "6.1",
-    "tags": [
-      "compose",
-      "draft",
-      "minimize",
-      "sheet",
-      "pill",
-      "mail",
-      "message"
-    ],
-    "dependencies": [],
-    "registryDependencies": [],
-    "spmDependencies": [],
-    "requiredCapabilities": [],
-    "infoPlist": {},
-    "assets": [],
-    "shaders": [],
-    "files": [
-      {
-        "path": "registry/swift/sheets/DraftMinimize.swift",
-        "type": "registry:component",
-        "target": "SwiftPieces/Sheets/DraftMinimize.swift"
-      }
-    ],
-    "preview": {},
-    "docs": "https://swiftpieces.com/docs/components/sheets/draft-minimize",
-    "added": "2026-11-23",
-    "isNew": true,
-    "liquidGlass": true,
-    "metal": false
-  },
-  {
-    "$schema": "https://swiftpieces.com/schema/registry-item.json",
     "name": "NoticeStack",
     "slug": "notice-stack",
     "type": "registry:component",
@@ -4316,48 +3847,6 @@
   },
   {
     "$schema": "https://swiftpieces.com/schema/registry-item.json",
-    "name": "Marker",
-    "slug": "marker",
-    "type": "registry:component",
-    "title": "Marker",
-    "description": "Hand-drawn marks on the words that matter: a highlighter swipe, a pen underline or a loose circle, drawn on one after another in reading order with a slight wobble so they never look stamped. Each mark follows the text's real lines, so a phrase that wraps gets marked on both lines. You mark words inside an ordinary Text and turn the marks on when they should draw. For onboarding, tips, study notes, reviews and release notes.",
-    "category": "text",
-    "license": "MIT+Commons-Clause",
-    "version": "1.0.0",
-    "minIOSVersion": "17.0",
-    "swiftToolsVersion": "6.1",
-    "tags": [
-      "marker",
-      "highlight",
-      "underline",
-      "circle",
-      "annotation",
-      "text",
-      "handwritten"
-    ],
-    "dependencies": [],
-    "registryDependencies": [],
-    "spmDependencies": [],
-    "requiredCapabilities": [],
-    "infoPlist": {},
-    "assets": [],
-    "shaders": [],
-    "files": [
-      {
-        "path": "registry/swift/text/Marker.swift",
-        "type": "registry:component",
-        "target": "SwiftPieces/Text/Marker.swift"
-      }
-    ],
-    "preview": {},
-    "docs": "https://swiftpieces.com/docs/components/text/marker",
-    "added": "2026-11-23",
-    "isNew": true,
-    "liquidGlass": true,
-    "metal": false
-  },
-  {
-    "$schema": "https://swiftpieces.com/schema/registry-item.json",
     "name": "MatchHighlight",
     "slug": "match-highlight",
     "type": "registry:component",
@@ -4565,48 +4054,6 @@
     "docs": "https://swiftpieces.com/docs/components/text/smart-text",
     "added": "2026-11-08",
     "isNew": false,
-    "liquidGlass": false,
-    "metal": false
-  },
-  {
-    "$schema": "https://swiftpieces.com/schema/registry-item.json",
-    "name": "Spoiler",
-    "slug": "spoiler",
-    "type": "registry:component",
-    "title": "Spoiler",
-    "description": "Hides a view under a fine shimmer of drifting specks, each one born, drifting and fading on its own so the cover never repeats. Tap and the specks blow away from your finger while the content opens out in a circle from the same spot; hide it again and the shimmer fades back in. It draws every speck from the time alone, in one Canvas, so even long passages stay smooth. For plot twists, answers, punchlines, prices and sensitive text.",
-    "category": "text",
-    "license": "MIT+Commons-Clause",
-    "version": "1.0.0",
-    "minIOSVersion": "17.0",
-    "swiftToolsVersion": "6.1",
-    "tags": [
-      "spoiler",
-      "hide",
-      "reveal",
-      "particles",
-      "text",
-      "blur",
-      "chat"
-    ],
-    "dependencies": [],
-    "registryDependencies": [],
-    "spmDependencies": [],
-    "requiredCapabilities": [],
-    "infoPlist": {},
-    "assets": [],
-    "shaders": [],
-    "files": [
-      {
-        "path": "registry/swift/text/Spoiler.swift",
-        "type": "registry:component",
-        "target": "SwiftPieces/Text/Spoiler.swift"
-      }
-    ],
-    "preview": {},
-    "docs": "https://swiftpieces.com/docs/components/text/spoiler",
-    "added": "2026-11-23",
-    "isNew": true,
     "liquidGlass": false,
     "metal": false
   },

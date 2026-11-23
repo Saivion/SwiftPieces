@@ -103,21 +103,8 @@ export const searchPhrase: Record<string, string> = {
   TextDiff: "Text Diff Changes View",
   RelativeTime: "Relative Time Ago Label",
   TranslateToggle: "Translate Text Button",
-  PhotoStack: "Photo Stack to Grid",
   Snapshot: "View Snapshot and Share Image",
-  GenieDelete: "Genie Delete Animation",
-  MiniPlayer: "Picture in Picture Mini Player",
-  AlbumOpen: "Photo Album Open Animation",
-  StackingScroll: "Stacking Cards Scroll",
-  DraftMinimize: "Minimize Draft Compose Sheet",
-  AvatarDrop: "Profile Avatar Photo Picker",
-  VideoRotate: "Fullscreen Landscape Video Player",
   MapExpand: "Expandable Map Card",
-  BookPull: "Bookshelf Cover Animation",
-  VoiceDictation: "Voice Dictation Button",
-  Spoiler: "Spoiler Text Reveal",
-  DistortionWave: "Ripple Transition Shader",
-  Marker: "Hand-Drawn Text Highlight",
 };
 
 /** Lowercases a phrase for use mid-sentence, keeping proper nouns and acronyms as written. */

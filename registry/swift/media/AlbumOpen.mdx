@@ -1,8 +1,0 @@
-## Notes
-
-- Each album is a small pile of its first three photos, tilted, with its name and count under it. Tap one and every photo flies from the pile into a grid of `gridColumns` columns, one after another, while the other albums shrink back and fade.
-- Back, in the header above the grid, gathers the photos onto the pile in reverse order. `opened` is a binding, so you can open an album from code too.
-- Every photo of every album is a live view so it can fly, which suits albums of up to a few dozen photos. For larger ones, open a lazy grid after the animation.
-- It takes the width it is offered and grows to the height it needs, so put it in a `ScrollView`. Pass `onSelect` to open a photo tapped in an open album.
-- VoiceOver reads each album as a button with its name and photo count. A light haptic marks each open and close.
-- Under Reduce Motion the photos move without bounce.

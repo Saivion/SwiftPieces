@@ -89,18 +89,5 @@ function SketchCanvas({ name, still, zoom = 1 }: { name: string; still: number; 
   );
 }
 
-export const PhotoStackPreview = () => <SketchCanvas name="PhotoStack" still={2.4} />;
 export const SnapshotPreview = () => <SketchCanvas name="Snapshot" still={2.6} />;
-export const GenieDeletePreview = () => <SketchCanvas name="GenieDelete" still={1.4} />;
-export const MiniPlayerPreview = () => <SketchCanvas name="MiniPlayer" still={3} />;
-export const AlbumOpenPreview = () => <SketchCanvas name="AlbumOpen" still={3} />;
-export const StackingScrollPreview = () => <SketchCanvas name="StackingScroll" still={3.6} />;
-export const DraftMinimizePreview = () => <SketchCanvas name="DraftMinimize" still={0.6} />;
-export const AvatarDropPreview = () => <SketchCanvas name="AvatarDrop" still={4} />;
-export const VideoRotatePreview = () => <SketchCanvas name="VideoRotate" still={3} />;
-export const MapExpandPreview = () => <SketchCanvas name="MapExpand" still={3.5} />;
-export const BookPullPreview = () => <SketchCanvas name="BookPull" still={3.5} />;
-export const VoiceDictationPreview = () => <SketchCanvas name="VoiceDictation" still={4} zoom={1.15} />;
-export const SpoilerPreview = () => <SketchCanvas name="Spoiler" still={1} zoom={1.1} />;
-export const MarkerPreview = () => <SketchCanvas name="Marker" still={4.5} zoom={1.1} />;
-export const DistortionWavePreview = () => <SketchCanvas name="DistortionWave" still={2} />;
+export const MapExpandPreview = () => <SketchCanvas name="MapExpand" still={3.8} />;

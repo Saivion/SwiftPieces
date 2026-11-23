@@ -1,8 +1,0 @@
-## Notes
-
-- It fills the space it is given. Put it over your page with `.overlay`, so the page stays usable while the window floats. Expanded, the player sits at the top at full width with `details` under it.
-- Drag the player down and it shrinks with your finger along a straight path into the first of `corners`. Let go past 30% of the height, counting the flick's speed, and it commits; short of that it springs back.
-- Minimized, the window can be dragged anywhere. On release, its landing point is projected from the flick's speed and it glides to the nearest corner in `corners`, with a light haptic when it changes corner.
-- Tap the window to grow it back. `isMinimized` is a binding, so your own button can do the same.
-- While minimized the details fade out and stop taking touches. VoiceOver gets Minimize and Expand actions on the player.
-- Under Reduce Motion the window moves without bounce.

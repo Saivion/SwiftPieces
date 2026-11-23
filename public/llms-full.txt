@@ -1,6 +1,6 @@
 # SwiftPieces: full text
 
-> 113 free SwiftUI components for iOS, one Swift file each, MIT + Commons Clause. Index: https://swiftpieces.com/llms.txt. Source for any piece: https://swiftpieces.com/r/<Name>.json or its docs page.
+> 100 free SwiftUI components for iOS, one Swift file each, MIT + Commons Clause. Index: https://swiftpieces.com/llms.txt. Source for any piece: https://swiftpieces.com/r/<Name>.json or its docs page.
 
 # Reference
 
@@ -2199,26 +2199,6 @@ Colors and type for `UnitToggle`. `.standard` is the house palette.
 - VoiceOver reads the value with its full unit name, such as "72.4 kilograms", and each unit by name.
 - Under Reduce Motion the pill slides whole and the number changes without rolling.
 
-## Voice Dictation (`VoiceDictation`)
-
-URL: https://swiftpieces.com/docs/components/inputs/voice-dictation
-Category: Inputs. iOS 17.0+. Liquid Glass on iOS 26 with a Material fallback.
-Files: VoiceDictation.swift
-Install: npx swiftpieces add VoiceDictation
-
-The dictate button for a text field: tap the glass mic and it stretches into a capsule of live level bars that scroll in from the right as you speak, with a cancel button on one end and a red done button on the other. Done or cancel shrinks it back into the mic. You feed it the microphone level, so it works with Speech, a recorder or your own engine. For search, notes, messages and forms.
-
-Sizes and colors for `VoiceDictation`.
-
-### Notes
-
-- A dictate button for the end of a text field: tap the glass mic and it stretches into a capsule with cancel on one end, a red done button on the other and live level bars between them.
-- You feed it the microphone level, 0 to 1, so it works with Speech, AVAudioRecorder or your own engine. Start your recognizer when `isListening` turns on.
-- A new bar comes in every `style.interval` seconds from the right and eases toward the level, so the bars rise and fall rather than jump. Older bars scroll left and fade at the edge.
-- Done calls `onDone` and cancel calls `onCancel`; both shrink it back into the mic.
-- The capsule grows toward the leading edge, so put it at the trailing end of a row.
-- Under Reduce Motion it opens and closes without bounce. Reduce Transparency makes the glass solid.
-
 ## Depth Carousel (`DepthCarousel`)
 
 URL: https://swiftpieces.com/docs/components/lists/depth-carousel
@@ -2392,25 +2372,6 @@ Colors and spacing for `ReorderList`. `.standard` is the house palette.
 - VoiceOver gets Move up and Move down actions on every row, so it can be reordered without dragging.
 - Under Reduce Motion the lift does not scale and the rows settle without overshoot.
 
-## Stacking Scroll (`StackingScroll`)
-
-URL: https://swiftpieces.com/docs/components/lists/stacking-scroll
-Category: Lists. iOS 17.0+. Liquid Glass on iOS 26 with a Material fallback.
-Files: StackingScroll.swift
-Install: npx swiftpieces add StackingScroll
-
-A list whose cards don't leave at the top edge: each one that scrolls up stops there and stacks under the next, a little smaller and a little higher, so the last few peek out like passes in a wallet before they fade. Scroll back and they lift off the stack in order. It runs on the scroll position alone, with no state, so it stays smooth for long lists. For passes, tickets, itineraries, inboxes and timelines.
-
-How rows stack in a `StackingScroll`.
-
-### Notes
-
-- Rows that scroll past `style.top` stop there and stack: each one deeper sits `peek` points higher and `shrink` smaller than the one over it, so the last `depth` rows show as a deck, then fade.
-- It runs on the scroll position alone, in `visualEffect`, with no state and no layout changes, so it stays smooth for long lazy lists.
-- Give each row its own opaque background, such as a card, so the rows under it are hidden.
-- Use the container, `StackingScroll(items) { row }`, or add `.stackingRow()` to each row of your own `ScrollView` and `LazyVStack`.
-- Under Reduce Motion the rows still stack, since they follow your finger rather than animate on their own.
-
 ## Status Timeline (`StatusTimeline`)
 
 URL: https://swiftpieces.com/docs/components/lists/status-timeline
@@ -2513,26 +2474,6 @@ Interactive task row for to-do lists, driven by a bound `Status`. The card stays
 - `onDelete`: Adds a Delete bubble behind a left swipe and is called when it is chosen.
 - `onMove`: Enables long-press lift and reports how many rows the user dragged it (negative is up) on release.
 
-## Album Open (`AlbumOpen`)
-
-URL: https://swiftpieces.com/docs/components/media/album-open
-Category: Media. iOS 17.0+. Liquid Glass on iOS 26 with a Material fallback.
-Files: AlbumOpen.swift
-Install: npx swiftpieces add AlbumOpen
-
-A grid of albums, each a small pile of its own photos. Tap one and its photos lift off the pile and fly into a full grid, one after another, while the other albums step back and fade; Back gathers them onto the pile again. It wraps your own views, so photos can be images or thumbnails. For galleries, collections, playlists and shared sets.
-
-Sizes and colors for `AlbumOpen`.
-
-### Notes
-
-- Each album is a small pile of its first three photos, tilted, with its name and count under it. Tap one and every photo flies from the pile into a grid of `gridColumns` columns, one after another, while the other albums shrink back and fade.
-- Back, in the header above the grid, gathers the photos onto the pile in reverse order. `opened` is a binding, so you can open an album from code too.
-- Every photo of every album is a live view so it can fly, which suits albums of up to a few dozen photos. For larger ones, open a lazy grid after the animation.
-- It takes the width it is offered and grows to the height it needs, so put it in a `ScrollView`. Pass `onSelect` to open a photo tapped in an open album.
-- VoiceOver reads each album as a button with its name and photo count. A light haptic marks each open and close.
-- Under Reduce Motion the photos move without bounce.
-
 ## Attachment Tray (`AttachmentTray`)
 
 URL: https://swiftpieces.com/docs/components/media/attachment-tray
@@ -2574,44 +2515,6 @@ A strip of photo and video attachments with an add tile, per-item loading, retry
 - `matching`: What the picker offers, such as `.images`, `.videos` or `.any(of: [.images, .videos])`. Videos load as a file copied to the temporary directory with a poster frame thumbnail and a duration badge.
 - `style`: Colors and tile metrics. Defaults to the SwiftPieces house palette, adapting to light and dark.
 - `onSelect`: Called when a loaded tile is tapped, for example to open it full screen. When `nil`, loaded tiles have no tap action.
-
-## Avatar Drop (`AvatarDrop`)
-
-URL: https://swiftpieces.com/docs/components/media/avatar-drop
-Category: Media. iOS 17.0+.
-Files: AvatarDrop.swift
-Install: npx swiftpieces add AvatarDrop
-
-An avatar picker where the photo you choose travels: tap a photo in the grid and it lifts, arcs up to the empty avatar circle and rounds into it as it lands, with a soft bump and a ring that spreads from the edge. Pick another and it takes its place the same way. It wraps your own photo views and hands you the choice. For profile setup, contacts, group icons and accounts.
-
-Sizes and colors for `AvatarDrop`.
-
-### Notes
-
-- An avatar above a grid of your photos. Tap one and it lifts, arcs `style.arc` points up to the avatar and rounds from a square into a circle as it lands, with a soft bump, a ring and a medium haptic.
-- `selection` is the chosen photo's id, so you keep the choice in your own state. Picking another photo flies it in over the current one.
-- Pass `name` and `caption` to show a line under the avatar, such as the person's name and "Looking good" once a photo is chosen.
-- It takes the width it is offered and grows to the height the grid needs. The chosen photo gets a red outline in the grid.
-- Under Reduce Motion the photo travels straight, without the arc, and the avatar neither bumps nor rings.
-
-## Book Pull (`BookPull`)
-
-URL: https://swiftpieces.com/docs/components/media/book-pull
-Category: Media. iOS 17.0+. Liquid Glass on iOS 26 with a Material fallback.
-Files: BookPull.swift
-Install: npx swiftpieces add BookPull
-
-A shelf of spines where the book you tap slides up out of the row, turns a quarter turn toward you and lands in the middle showing its cover, while the rest of the shelf dims behind it. Your buttons fade in under the cover; tap away and it turns back and slots into its gap. It draws your own spine and cover views, so books, records, games or courses all fit. For libraries, reading lists, collections and stores.
-
-Sizes and colors for `BookPull`.
-
-### Notes
-
-- Draws your own spine and cover views: the shelf lays out each book's `spineSize`, centred, and the tapped book slides up, then turns a quarter turn so its spine narrows as its cover widens to `coverSize`, landing in the middle above the shelf.
-- The rest of the shelf dims behind it and your `actions` fade in under the cover. Tap anywhere to put the book back: it turns back and slots into its gap.
-- It fills the space it is given, with the shelf at `style.shelf` of the height. Keep the row of spines narrower than the space.
-- `selection` is a binding, so you can pull out a book from code too.
-- Under Reduce Motion the pull runs as one short, even move.
 
 ## Link Preview (`LinkPreview`)
 
@@ -2659,38 +2562,19 @@ Category: Media. iOS 17.0+. Liquid Glass on iOS 26 with a Material fallback.
 Files: MapExpand.swift
 Install: npx swiftpieces add MapExpand
 
-A place card whose little map grows into the real thing: tap it and the thumbnail opens out across the top of the screen, live and draggable, the pin drops into place with a bounce and the card settles under it with your actions, such as Directions. Back folds it into the card again. It uses MapKit, so the map is real at every size. For stores, bookings, events, deliveries and nearby lists.
+A place card whose little map grows into the real thing: tap it and the thumbnail opens out across the top of the screen, live and draggable, the pin drops into place with a bounce, and the card floats down onto the map as liquid glass while your actions, such as Directions, bud out of it one by one. Back draws them in and folds it all into the card again. It uses MapKit, so the map is real at every size. For stores, bookings, events, deliveries and nearby lists.
 
 Sizes and colors for `MapExpand`.
 
 ### Notes
 
-- Uses MapKit, so the map is real at every size: a thumbnail in the card, then a live, draggable map across the top of the screen once it opens.
-- Tap the card to open it. The pin drops into place with a bounce, the card settles under the map and your `actions`, such as Directions, fade in. Back, a glass button on the map, folds it into the card again.
+- Uses MapKit, so the map is real at every size: a thumbnail in the card, then a live, draggable map that fills the space once it opens.
+- Tap the card to open it. The pin drops into place with a bounce, the card floats down onto the map as liquid glass, and your `actions` bud out of it one after another into a joined glass bar. Back, a glass button on the map, draws them in and folds it all into the card again.
+- Pass actions as `MapExpandAction`s. Mark one `isPrimary`, such as Directions: it is the wide pill in the pin's colour, and the rest are square glass buttons that use their title as the VoiceOver label.
 - It fills the space it is given, with the card at the top and your `content` under it; the page fades while the map is open.
 - `style.span` sets how far the map is zoomed out, in meters across. Points of interest and map controls are hidden, so the pin reads first.
-- VoiceOver gets Open map and Close map actions.
-- Under Reduce Motion the pin appears without dropping and the map opens without bounce.
-
-## Mini Player (`MiniPlayer`)
-
-URL: https://swiftpieces.com/docs/components/media/mini-player
-Category: Media. iOS 17.0+. Liquid Glass on iOS 26 with a Material fallback.
-Files: MiniPlayer.swift
-Install: npx swiftpieces add MiniPlayer
-
-Drag a playing video down and it shrinks with your finger into a small floating window that snaps to the nearest corner. Flick the window across and it glides to the far corner at the speed you threw it; tap it and it grows back to full width, the details fading in under it. The page underneath stays usable while it floats. For video, live streams, calls and podcasts with video.
-
-A corner the mini player can rest in.
-
-### Notes
-
-- It fills the space it is given. Put it over your page with `.overlay`, so the page stays usable while the window floats. Expanded, the player sits at the top at full width with `details` under it.
-- Drag the player down and it shrinks with your finger along a straight path into the first of `corners`. Let go past 30% of the height, counting the flick's speed, and it commits; short of that it springs back.
-- Minimized, the window can be dragged anywhere. On release, its landing point is projected from the flick's speed and it glides to the nearest corner in `corners`, with a light haptic when it changes corner.
-- Tap the window to grow it back. `isMinimized` is a binding, so your own button can do the same.
-- While minimized the details fade out and stop taking touches. VoiceOver gets Minimize and Expand actions on the player.
-- Under Reduce Motion the window moves without bounce.
+- On iOS 26 the card and actions are Liquid Glass and merge as they move; before that they are frosted and don't merge. Under Reduce Transparency they are solid.
+- VoiceOver gets Open map and Close map actions. Under Reduce Motion the pin appears without dropping and nothing bounces.
 
 ## Now Playing (`NowPlaying`)
 
@@ -2781,27 +2665,6 @@ A crop step for a picked photo: the photo under a frame of the chosen aspect, wi
 - `style`: Colors, the photo's well and the frame inset. Defaults to the SwiftPieces house palette, adapting to light and dark, with red for Choose, the selected aspect and the limit flash.
 - `onCancel`: Shows a Cancel button (and Escape on a hardware keyboard) that calls this. `nil` hides it.
 - `onCrop`: Called on the main actor with the rendered ``Crop`` when Choose is tapped (or Return is pressed). Choose keeps spinning until this returns, so you can await an upload here.
-
-## Photo Stack (`PhotoStack`)
-
-URL: https://swiftpieces.com/docs/components/media/photo-stack
-Category: Media. iOS 17.0+. Liquid Glass on iOS 26 with a Material fallback.
-Files: PhotoStack.swift
-Install: npx swiftpieces add PhotoStack
-
-A small pile of tilted photos that fans out into a grid when tapped, each photo travelling from its place in the pile to its cell on its own spring, a beat after the one before. Tap again and they gather back into the pile. It wraps your own views, so the photos can be images, thumbnails or anything else. For albums, attachments, memories and shared sets.
-
-Sizes and colors for `PhotoStack`.
-
-### Notes
-
-- Wraps your own views: pass any `Identifiable` items and draw each photo in `content`. Each is clipped to `style.cornerRadius` and sized to a square, so images should fill (`.scaledToFill()`).
-- The first four items make the pile, tilted 0°, -4°, 7° and -9° and nudged a few points apart; the rest wait hidden under it. A tap fans them all into a grid of `columns` columns.
-- Each photo travels on its own spring a beat after the one before (`PieceMotion.follow(rank:)`), so the grid fills in reading order; gathering runs the other way round, so the last photo leaves first.
-- It takes the width it is offered and grows to the height the grid needs, so put it in a `ScrollView` or a `VStack`. The count under the pile comes from `countLabel`; pass `nil` to hide it.
-- Pass `onSelect` to open a photo tapped in the grid. Without it, a tap in the grid gathers the pile again.
-- VoiceOver reads the pile as one button with its count, and the grid as separate photos, with Show all and Stack actions. A light haptic marks each toggle.
-- Under Reduce Motion the photos move without bounce.
 
 ## Photo Viewer (`PhotoViewer`)
 
@@ -2915,26 +2778,6 @@ Segment strip plus the gesture surface of a story player. Pass `duration` to let
 - `fillsContainer`: Expand the gesture surface to the whole container so holds and taps work over the story, with the bars pinned to the top.
 - `onFinish`: Called when the last segment completes.
 
-## Video Rotate (`VideoRotate`)
-
-URL: https://swiftpieces.com/docs/components/media/video-rotate
-Category: Media. iOS 17.0+.
-Files: VideoRotate.swift
-Install: npx swiftpieces add VideoRotate
-
-Full screen video for apps that stay upright: tap the expand button and the player turns a quarter turn as it grows, landing sideways across the whole screen on black while the page under it fades. Tap again and it turns back into its place. It rotates only the player, so the rest of the app keeps its portrait layout and you don't need to unlock rotation. For video, replays, lessons, trailers and live streams.
-
-Sizes and colors for `VideoRotate`.
-
-### Notes
-
-- For apps that stay in portrait: the expand button turns only the player a quarter turn and grows it across the screen on black, so the rest of the app keeps its layout and you do not need to unlock rotation.
-- It fills the space it is given edge to edge and keeps its own content inside the safe area, so give it the whole screen. The status bar and home indicator hide while it is full screen.
-- `clockwise` picks which way it turns. The default is a quarter turn clockwise, so the phone is held with its top to the right.
-- `isFullScreen` is a binding: drive it from your own controls, or from the device's orientation, if you like.
-- VoiceOver gets Full screen and Exit full screen actions on the player.
-- Under Reduce Motion the turn runs without bounce.
-
 ## Voice Recorder (`VoiceRecorder`)
 
 URL: https://swiftpieces.com/docs/components/media/voice-recorder
@@ -3044,25 +2887,6 @@ Colors for `ZoomDial`. `.standard` is the house palette.
 - VoiceOver reads it as one adjustable element, "Zoom, 2×"; swipe up or down to step through the stops.
 - Under Reduce Motion the disc slides whole and the capsule changes width without overshoot.
 
-## Distortion Wave (`DistortionWave`)
-
-URL: https://swiftpieces.com/docs/components/motion/distortion-wave
-Category: Motion. iOS 17.0+. Metal shader.
-Files: DistortionWave.swift, DistortionWave.metal
-Install: npx swiftpieces add DistortionWave
-
-A transition from one screen to the next that starts at the button you tapped: a ring of glass opens from it, magnifying the new screen toward its rim and drawing the old one into it, with a thin highlight and a touch of colour split along the edge. Set it back and the ring closes into the button again. It runs as two Metal layer effects on your own views, and crossfades instead under Reduce Motion. For confirmations, payments sent, unlocks and big moments.
-
-Sizes and timing for `DistortionWave`.
-
-### Notes
-
-- Requires `DistortionWave.metal` in the same target. Its `distortionWaveOld` and `distortionWaveNew` kernels are looked up through `ShaderLibrary` and run as two layer effects, one on each screen.
-- When `isRevealed` turns on, a ring opens from the button you mark with `.distortionWaveOrigin($frame)`: the new screen shows inside it, magnified toward the rim like the edge of a lens, the old one is drawn into it from outside, and a thin highlight with a touch of colour split runs along the edge.
-- Set it back and the ring closes into the button. Without an origin it opens from the centre.
-- The effects only run while the ring moves, so both screens are plain views at rest.
-- Under Reduce Motion the screens crossfade instead.
-
 ## Drag to Dismiss (`DragToDismiss`)
 
 URL: https://swiftpieces.com/docs/components/motion/drag-to-dismiss
@@ -3098,26 +2922,6 @@ Photos-style dismiss: drag in any direction, the view rounds and shrinks toward 
 - `phase`: Optional binding that receives the current phase (idle, dragging, armed, returning, committing), to dim chrome while dragging or drive a hint of your own (set `style.hint` to `nil` then).
 - `style`: Scrim color and opacity at rest, how much the view shrinks at full progress, and the hint's words. `.standard` is a near-black `#141414` scrim at 0.5 with a 0.15 shrink and a "Release to close" hint.
 - `onDismiss`: Called once the view has flown off (faded, under Reduce Motion); end the presentation here.
-
-## Genie Delete (`GenieDelete`)
-
-URL: https://swiftpieces.com/docs/components/motion/genie-delete
-Category: Motion. iOS 17.0+. Liquid Glass on iOS 26 with a Material fallback.
-Files: GenieDelete.swift
-Install: npx swiftpieces add GenieDelete
-
-Deleting pours a view into the button that deleted it, like the macOS genie: the bottom funnels in first, the sides narrow row by row and the rest follows in a curve. Undo pours it back out the same way. It draws a snapshot of your view in a Canvas, one thin row at a time, so it stays smooth for any content, and fades instead under Reduce Motion. For notes, drafts, files, cards and anything with an Undo.
-
-Timing for `GenieDelete`.
-
-### Notes
-
-- Snapshots its content with `ImageRenderer` when `isRemoved` turns on, then draws the snapshot in a `Canvas` as thin rows that narrow and slide toward the target, the edge nearest the target first. Raise `style.rows` for a smoother curve.
-- Mark the button it pours into with `.genieTarget($frame)` and pass that frame as `into:`. It works across containers, since both frames are global.
-- The content keeps its place in the layout while it is gone. Remove it from your data in `onRemoved`, which runs once it has poured away completely, if it should not come back.
-- Set `isRemoved` back to `false` and it pours back out of the target the same way, which makes Undo feel like the same object returning.
-- The content is drawn a second time for the snapshot, so build it from values rather than state that only lives inside it.
-- Under Reduce Motion it fades out and in instead of pouring.
 
 ## Floating Dock (`FloatingDock`)
 
@@ -3387,26 +3191,6 @@ Presents a confirmation card as a bottom sheet, or inline as an overlay in the c
 - `style`: Colors and corner radius. Defaults to the SwiftPieces house palette, adapting to light and dark.
 - `confirm`: Async handler for the primary button. Cancel melts back into the button, which spins and reads Working until it returns, then turns sage with a check and Done that the tile answers a beat later, then the card dismisses.
 
-## Draft Minimize (`DraftMinimize`)
-
-URL: https://swiftpieces.com/docs/components/sheets/draft-minimize
-Category: Sheets. iOS 17.0+. Liquid Glass on iOS 26 with a Material fallback.
-Files: DraftMinimize.swift
-Install: npx swiftpieces add DraftMinimize
-
-A compose sheet that tucks itself away instead of closing: drag it down or tap the chevron and the whole card shrinks into a glass pill at the bottom of the screen, still showing the start of your draft. The page behind is yours again; tap the pill and the card grows back with every word where you left it. For mail, messages, notes, comments and any form people step away from.
-
-Sizes and colors for `DraftMinimize`.
-
-### Notes
-
-- A modifier: `.draftMinimize(isPresented:isMinimized:title:summary:draft:)` shows a glass compose card over your view. The card and the pill are one liquid glass shape, so the card reshapes into the pill rather than swapping for it.
-- Drag the card's top strip down, tap the chevron or tap the dimmed page, and it shrinks into a pill at the bottom showing `summary`, usually the start of the draft. Tap the pill and it grows back.
-- The draft is your view and its text lives in your state, so every word survives the trip. Set `isPresented` to `false` from your Send or Discard button to close it for good.
-- Only drags that start on the top strip move the card, so a scrolling text editor inside still scrolls.
-- VoiceOver gets a Minimize draft button on the card and reads the pill as the title and summary with an Opens the draft hint.
-- Under Reduce Motion the card and pill move without bounce. Reduce Transparency makes the glass solid.
-
 ## Notice Stack (`NoticeStack`)
 
 URL: https://swiftpieces.com/docs/components/sheets/notice-stack
@@ -3636,25 +3420,6 @@ Liquid Glass applied to text outlines via Core Text glyph paths. The glyph path 
 - `scalesWithDynamicType`: Set false to pin the point size.
 - `style`: Line alignment and leading, fallback specular strength, depth shadow and the Reduce Transparency fill.
 
-## Marker (`Marker`)
-
-URL: https://swiftpieces.com/docs/components/text/marker
-Category: Text. iOS 17.0+. Liquid Glass on iOS 26 with a Material fallback.
-Files: Marker.swift
-Install: npx swiftpieces add Marker
-
-Hand-drawn marks on the words that matter: a highlighter swipe, a pen underline or a loose circle, drawn on one after another in reading order with a slight wobble so they never look stamped. Each mark follows the text's real lines, so a phrase that wraps gets marked on both lines. You mark words inside an ordinary Text and turn the marks on when they should draw. For onboarding, tips, study notes, reviews and release notes.
-
-The kind of mark on a run of text.
-
-### Notes
-
-- Mark words inside an ordinary `Text` with `.marker(.highlight)`, `.marker(.underline)` or `.marker(.circle)`, interpolated into the sentence, then add `.markers(isActive:)` to the whole text.
-- On iOS 18 a `TextRenderer` draws each mark on the text's real line boxes, one after another in reading order, so a phrase that wraps is marked on both lines. Marks wobble slightly, so they never look stamped.
-- Highlighted words turn dark ink once the swipe passes them, so they read on the yellow in dark mode too.
-- On iOS 17 the marked words are underlined in the pen colour instead, with no drawing on.
-- Under Reduce Motion the marks fade in together.
-
 ## Match Highlight (`MatchHighlight`)
 
 URL: https://swiftpieces.com/docs/components/text/match-highlight
@@ -3775,26 +3540,6 @@ Colors and type for `SmartText`. `.standard` is the house palette.
 - An @ inside an email address or a # inside a link stays part of that link and isn't found again as a mention or a tag.
 - Each tap gives a selection tick. VoiceOver lists the matches as links in the rotor, and Dynamic Type scales the text.
 - Under Reduce Motion the matches appear without the fade.
-
-## Spoiler (`Spoiler`)
-
-URL: https://swiftpieces.com/docs/components/text/spoiler
-Category: Text. iOS 17.0+.
-Files: Spoiler.swift
-Install: npx swiftpieces add Spoiler
-
-Hides a view under a fine shimmer of drifting specks, each one born, drifting and fading on its own so the cover never repeats. Tap and the specks blow away from your finger while the content opens out in a circle from the same spot; hide it again and the shimmer fades back in. It draws every speck from the time alone, in one Canvas, so even long passages stay smooth. For plot twists, answers, punchlines, prices and sensitive text.
-
-Sizes for `.spoiler`.
-
-### Notes
-
-- `.spoiler()` on any view covers it with fine drifting specks in the foreground style, so they match the text they cover. Use `.spoiler(isRevealed:)` to keep the state yourself and hide it again.
-- Every speck is drawn from the time alone, in one `Canvas`: each lives a short life in a loop, born somewhere new each time, so nothing is stored between frames and the cover never repeats.
-- Tap and the specks blow away from your finger while the content opens in a circle from the same spot. Hiding it again fades the shimmer back in.
-- To hide part of a sentence, split it and put the hidden part in its own `Text`.
-- VoiceOver reads it as a Spoiler button until it is revealed, then reads the content.
-- Under Reduce Motion the specks hold still and the content opens quickly.
 
 ## Text Diff (`TextDiff`)
 
