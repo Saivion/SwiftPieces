@@ -186,25 +186,17 @@ public struct Snapshot<Trigger: Equatable, Content: View>: View {
 
 // MARK: - Example
 
-/// A run summary with a Share as image button. The snapshot is copied to the clipboard.
+/// A run summary. Tap it to take a snapshot, which is copied to the clipboard.
 private struct SnapshotExample: View {
     @State private var shots = 0
-    private let ink = Color(red: 0.078, green: 0.078, blue: 0.078)
 
     var body: some View {
-        VStack(alignment: .trailing, spacing: 16) {
-            Snapshot(trigger: shots, message: "Copied", onCapture: { UIPasteboard.general.image = $0 }) {
-                RunCard()
-            }
-            Button {
-                shots += 1
-            } label: {
-                Label("Share as image", systemImage: "square.and.arrow.up")
-                    .font(.subheadline.weight(.semibold))
-            }
-            .buttonStyle(.bordered)
-            .tint(.primary)
+        Snapshot(trigger: shots, message: "Copied", onCapture: { UIPasteboard.general.image = $0 }) {
+            RunCard()
         }
+        .onTapGesture { shots += 1 }
+        .accessibilityAddTraits(.isButton)
+        .accessibilityHint("Copies the run as an image")
         .padding(.bottom, 80)
         .frame(width: 300)
         .frame(maxWidth: .infinity, maxHeight: .infinity)

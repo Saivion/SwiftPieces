@@ -115,8 +115,7 @@ SK.Snapshot = [6.6, ({ x, S, u, lt, c, touch, mem }) => {
     cx.fillStyle = c.signal; cx.beginPath(); cx.arc(18.4 * u, 2.4 * u, .4 * u, 0, 7); cx.fill(); mem.card = cc;
   }
   x.save(); x.shadowColor = c.shadow; x.shadowBlur = 1.4 * u; x.shadowOffsetY = .5 * u; x.drawImage(mem.card, X, Y); x.restore();
-  const bx = X + w - 2.4 * u, by = Y + h + 3 * u; x.fillStyle = c.trough; x.beginPath(); x.arc(bx, by, 2 * u, 0, 7); x.fill(); icon(x, IC.share, bx, by - .05 * u, 1.8 * u, c.text, { lw: 2 });
-  txt(x, "Share as image", bx - 2.8 * u, by, 1.05 * u, c.muted, "right");
+  const bx = X + w * .62, by = Y + h * .55;
   const T = 1.1, out = seg(lt, 5.2, 5.8);
   if (lt > T && lt < 5.8) {
     const fl = 1 - seg(lt, T, T + .45); if (fl > 0) { x.save(); x.globalAlpha = fl; x.fillStyle = "#fff"; rr(x, X, Y, w, h, R); x.fill(); x.restore(); }
