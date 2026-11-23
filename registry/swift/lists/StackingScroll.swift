@@ -1,0 +1,178 @@
+// swiftpieces:
+// title: Stacking Scroll
+// description: "A list whose rows don't leave at the top edge: each one that scrolls up stops there and stacks under the next, a little smaller and a little higher, so the last few peek out like a deck of cards before they fade. Scroll back and they lift off the stack in order. It runs on the scroll position alone, with no state, so it stays smooth for long lists. For passes, tickets, itineraries, inboxes and timelines."
+// category: lists
+// minIOSVersion: "17.0"
+// version: "1.0.0"
+// added: "2026-11-23"
+// tags: [scroll, stack, list, cards, deck, sticky, passes, tickets]
+
+import SwiftUI
+
+/// How rows stack in a `StackingScroll`.
+public struct StackingScrollStyle: Sendable {
+    /// Where rows stop, measured down from the top of the scroll view.
+    public var top: CGFloat
+    /// How much of each stacked row peeks out above the next.
+    public var peek: CGFloat
+    /// How much smaller each stacked row gets, per row deep.
+    public var shrink: CGFloat
+    /// How many rows stay visible in the stack before the deeper ones fade.
+    public var depth: Int
+
+    public init(top: CGFloat = 28, peek: CGFloat = 8, shrink: CGFloat = 0.05, depth: Int = 3) {
+        self.top = top
+        self.peek = peek
+        self.shrink = shrink
+        self.depth = max(1, depth)
+    }
+
+    public static let standard = StackingScrollStyle()
+}
+
+/// A vertical scroll view whose rows stack at the top edge instead of scrolling away.
+///
+/// Rows are laid out lazily, with `spacing` between them. Give each row its own background, such as a card, so
+/// the rows under it are hidden. To stack rows in a scroll view of your own, use `.stackingRow()` on each row.
+///
+/// - Parameters:
+///   - data: The rows' data.
+///   - spacing: The gap between rows.
+///   - style: Where and how the rows stack.
+///   - row: One row.
+public struct StackingScroll<Data: RandomAccessCollection, Row: View>: View where Data.Element: Identifiable {
+    public typealias Style = StackingScrollStyle
+
+    private let data: Data
+    private let spacing: CGFloat
+    private let style: Style
+    private let row: (Data.Element) -> Row
+
+    public init(_ data: Data, spacing: CGFloat = 10, style: Style = .standard, @ViewBuilder row: @escaping (Data.Element) -> Row) {
+        self.data = data
+        self.spacing = spacing
+        self.style = style
+        self.row = row
+    }
+
+    public var body: some View {
+        ScrollView {
+            LazyVStack(spacing: spacing) {
+                ForEach(data) { item in
+                    row(item)
+                        .stackingRow(spacing: spacing, style: style)
+                }
+            }
+            .padding(.top, style.top)
+        }
+    }
+}
+
+public extension View {
+    /// Stops this row at the top of its scroll view and stacks it under the rows that follow.
+    ///
+    /// Use it on each row of a `ScrollView`'s `LazyVStack`, in order, so later rows draw over earlier ones.
+    /// Under Reduce Motion the rows still stack, since they follow your finger rather than animate on their own.
+    ///
+    /// - Parameters:
+    ///   - spacing: The stack's spacing, so a row knows how far it has gone past the top.
+    ///   - style: Where and how the rows stack.
+    func stackingRow(spacing: CGFloat = 10, style: StackingScrollStyle = .standard) -> some View {
+        visualEffect { content, proxy in
+            let place = StackingPlace(minY: proxy.frame(in: .scrollView).minY, height: proxy.size.height, spacing: spacing, style: style)
+            return content
+                .scaleEffect(place.scale, anchor: .top)
+                .offset(y: place.offset)
+                .opacity(place.opacity)
+        }
+    }
+}
+
+/// Where a row draws once it has scrolled `minY` points from the top of its scroll view.
+private struct StackingPlace {
+    let offset: CGFloat
+    let scale: CGFloat
+    let opacity: Double
+
+    nonisolated init(minY: CGFloat, height: CGFloat, spacing: CGFloat, style: StackingScrollStyle) {
+        let past = style.top - minY
+        guard past > 0 else {
+            offset = 0; scale = 1; opacity = 1
+            return
+        }
+        // How many rows deep this row is in the stack, as a fraction.
+        let deep = past / max(height + spacing, 1)
+        let shown = min(deep, CGFloat(style.depth))
+        offset = past - shown * style.peek
+        scale = 1 - shown * style.shrink
+        opacity = Double(min(max(CGFloat(style.depth) + 0.6 - deep, 0), 1))
+    }
+}
+
+// MARK: - Example
+
+private struct StackingScrollPass: Identifiable {
+    let id: String
+    let when: String
+    let color: Color
+    let symbol: String
+}
+
+/// A trip's passes. Scroll up and they stack at the top like a wallet.
+private struct StackingScrollExample: View {
+    private static let blue = Color(red: 0.18, green: 0.545, blue: 1)
+    private static let yellow = Color(red: 1, green: 0.761, blue: 0.102)
+    private static let teal = Color(red: 0, green: 0.769, blue: 0.655)
+    private static let pink = Color(red: 1, green: 0, blue: 0.361)
+    private static let orange = Color(red: 1, green: 0.541, blue: 0.122)
+
+    private let passes = [
+        StackingScrollPass(id: "Ferry to Lake Ida", when: "Sat 9:00", color: Self.blue, symbol: "ferry.fill"),
+        StackingScrollPass(id: "Lodge check-in", when: "Sat 15:00", color: Self.teal, symbol: "house.fill"),
+        StackingScrollPass(id: "Kayak rental", when: "Sun 10:00", color: Self.yellow, symbol: "sun.max.fill"),
+        StackingScrollPass(id: "Trail permit", when: "Sun", color: Self.orange, symbol: "figure.hiking"),
+        StackingScrollPass(id: "Harbor dinner", when: "Sun 19:30", color: Self.pink, symbol: "fork.knife"),
+        StackingScrollPass(id: "Ferry home", when: "Mon 8:00", color: Self.blue, symbol: "ferry.fill"),
+        StackingScrollPass(id: "Parking", when: "Mon", color: Self.teal, symbol: "car.fill"),
+        StackingScrollPass(id: "Museum entry", when: "Mon 13:00", color: Self.yellow, symbol: "building.columns.fill"),
+        StackingScrollPass(id: "Train to town", when: "Mon 17:40", color: Self.orange, symbol: "tram.fill"),
+    ]
+
+    var body: some View {
+        StackingScroll(passes) { pass in
+            HStack(spacing: 14) {
+                Image(systemName: pass.symbol)
+                    .font(.body.weight(.semibold))
+                    .foregroundStyle(Color(red: 0.078, green: 0.078, blue: 0.078))
+                    .frame(width: 44, height: 44)
+                    .background(pass.color, in: .rect(cornerRadius: 12, style: .continuous))
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(pass.id).font(.body.weight(.semibold))
+                    Text(pass.when).font(.subheadline.weight(.semibold)).foregroundStyle(.secondary)
+                }
+                Spacer()
+                Image(systemName: "qrcode")
+                    .font(.title3.weight(.semibold))
+                    .foregroundStyle(.secondary)
+            }
+            .padding(16)
+            .frame(height: 84)
+            .background(Color(UIColor.secondarySystemGroupedBackground), in: .rect(cornerRadius: 22, style: .continuous))
+            .shadow(color: .black.opacity(0.08), radius: 8, y: 2)
+            .accessibilityElement(children: .combine)
+        }
+        .contentMargins(.horizontal, 20, for: .scrollContent)
+        .background(Color(UIColor { @Sendable traits in
+            traits.userInterfaceStyle == .dark ? UIColor(red: 0.071, green: 0.071, blue: 0.071, alpha: 1) : UIColor(red: 0.953, green: 0.949, blue: 0.933, alpha: 1)
+        }))
+    }
+}
+
+#Preview("Light") {
+    StackingScrollExample()
+}
+
+#Preview("Dark") {
+    StackingScrollExample()
+        .preferredColorScheme(.dark)
+}

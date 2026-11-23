@@ -15,6 +15,14 @@
   "width": 1200,
   "height": 900
  },
+ "AlbumOpen": {
+  "light": "/previews/media/album-open/album-open-light.webp",
+  "dark": "/previews/media/album-open/album-open-dark.webp",
+  "thumb": "/previews/media/album-open/album-open-thumb.webp",
+  "og": "/previews/media/album-open/album-open-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
  "AmountField": {
   "light": "/previews/inputs/amount-field/amount-field-light.webp",
   "dark": "/previews/inputs/amount-field/amount-field-dark.webp",
@@ -36,6 +44,22 @@
   "dark": "/previews/media/attachment-tray/attachment-tray-dark.webp",
   "thumb": "/previews/media/attachment-tray/attachment-tray-thumb.webp",
   "og": "/previews/media/attachment-tray/attachment-tray-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "AvatarDrop": {
+  "light": "/previews/media/avatar-drop/avatar-drop-light.webp",
+  "dark": "/previews/media/avatar-drop/avatar-drop-dark.webp",
+  "thumb": "/previews/media/avatar-drop/avatar-drop-thumb.webp",
+  "og": "/previews/media/avatar-drop/avatar-drop-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "BookPull": {
+  "light": "/previews/media/book-pull/book-pull-light.webp",
+  "dark": "/previews/media/book-pull/book-pull-dark.webp",
+  "thumb": "/previews/media/book-pull/book-pull-thumb.webp",
+  "og": "/previews/media/book-pull/book-pull-og.jpg",
   "width": 1200,
   "height": 900
  },
@@ -84,6 +108,22 @@
   "dark": "/previews/lists/depth-carousel/depth-carousel-dark.webp",
   "thumb": "/previews/lists/depth-carousel/depth-carousel-thumb.webp",
   "og": "/previews/lists/depth-carousel/depth-carousel-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "DistortionWave": {
+  "light": "/previews/motion/distortion-wave/distortion-wave-light.webp",
+  "dark": "/previews/motion/distortion-wave/distortion-wave-dark.webp",
+  "thumb": "/previews/motion/distortion-wave/distortion-wave-thumb.webp",
+  "og": "/previews/motion/distortion-wave/distortion-wave-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "DraftMinimize": {
+  "light": "/previews/sheets/draft-minimize/draft-minimize-light.webp",
+  "dark": "/previews/sheets/draft-minimize/draft-minimize-dark.webp",
+  "thumb": "/previews/sheets/draft-minimize/draft-minimize-thumb.webp",
+  "og": "/previews/sheets/draft-minimize/draft-minimize-og.jpg",
   "width": 1200,
   "height": 900
  },
@@ -172,6 +212,14 @@
   "dark": "/previews/inputs/form-field/form-field-dark.webp",
   "thumb": "/previews/inputs/form-field/form-field-thumb.webp",
   "og": "/previews/inputs/form-field/form-field-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "GenieDelete": {
+  "light": "/previews/motion/genie-delete/genie-delete-light.webp",
+  "dark": "/previews/motion/genie-delete/genie-delete-dark.webp",
+  "thumb": "/previews/motion/genie-delete/genie-delete-thumb.webp",
+  "og": "/previews/motion/genie-delete/genie-delete-og.jpg",
   "width": 1200,
   "height": 900
  },
@@ -287,11 +335,35 @@
   "width": 1200,
   "height": 900
  },
+ "MapExpand": {
+  "light": "/previews/media/map-expand/map-expand-light.webp",
+  "dark": "/previews/media/map-expand/map-expand-dark.webp",
+  "thumb": "/previews/media/map-expand/map-expand-thumb.webp",
+  "og": "/previews/media/map-expand/map-expand-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "Marker": {
+  "light": "/previews/text/marker/marker-light.webp",
+  "dark": "/previews/text/marker/marker-dark.webp",
+  "thumb": "/previews/text/marker/marker-thumb.webp",
+  "og": "/previews/text/marker/marker-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
  "MatchHighlight": {
   "light": "/previews/text/match-highlight/match-highlight-light.webp",
   "dark": "/previews/text/match-highlight/match-highlight-dark.webp",
   "thumb": "/previews/text/match-highlight/match-highlight-thumb.webp",
   "og": "/previews/text/match-highlight/match-highlight-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "MiniPlayer": {
+  "light": "/previews/media/mini-player/mini-player-light.webp",
+  "dark": "/previews/media/mini-player/mini-player-dark.webp",
+  "thumb": "/previews/media/mini-player/mini-player-thumb.webp",
+  "og": "/previews/media/mini-player/mini-player-og.jpg",
   "width": 1200,
   "height": 900
  },
@@ -372,6 +444,14 @@
   "dark": "/previews/media/photo-cropper/photo-cropper-dark.webp",
   "thumb": "/previews/media/photo-cropper/photo-cropper-thumb.webp",
   "og": "/previews/media/photo-cropper/photo-cropper-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "PhotoStack": {
+  "light": "/previews/media/photo-stack/photo-stack-light.webp",
+  "dark": "/previews/media/photo-stack/photo-stack-dark.webp",
+  "thumb": "/previews/media/photo-stack/photo-stack-thumb.webp",
+  "og": "/previews/media/photo-stack/photo-stack-og.jpg",
   "width": 1200,
   "height": 900
  },
@@ -551,6 +631,14 @@
   "width": 1200,
   "height": 900
  },
+ "Snapshot": {
+  "light": "/previews/media/snapshot/snapshot-light.webp",
+  "dark": "/previews/media/snapshot/snapshot-dark.webp",
+  "thumb": "/previews/media/snapshot/snapshot-thumb.webp",
+  "og": "/previews/media/snapshot/snapshot-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
  "SourceStack": {
   "light": "/previews/ai/source-stack/source-stack-light.webp",
   "dark": "/previews/ai/source-stack/source-stack-dark.webp",
@@ -559,11 +647,27 @@
   "width": 1200,
   "height": 900
  },
+ "Spoiler": {
+  "light": "/previews/text/spoiler/spoiler-light.webp",
+  "dark": "/previews/text/spoiler/spoiler-dark.webp",
+  "thumb": "/previews/text/spoiler/spoiler-thumb.webp",
+  "og": "/previews/text/spoiler/spoiler-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
  "SpotlightTour": {
   "light": "/previews/sheets/spotlight-tour/spotlight-tour-light.webp",
   "dark": "/previews/sheets/spotlight-tour/spotlight-tour-dark.webp",
   "thumb": "/previews/sheets/spotlight-tour/spotlight-tour-thumb.webp",
   "og": "/previews/sheets/spotlight-tour/spotlight-tour-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "StackingScroll": {
+  "light": "/previews/lists/stacking-scroll/stacking-scroll-light.webp",
+  "dark": "/previews/lists/stacking-scroll/stacking-scroll-dark.webp",
+  "thumb": "/previews/lists/stacking-scroll/stacking-scroll-thumb.webp",
+  "og": "/previews/lists/stacking-scroll/stacking-scroll-og.jpg",
   "width": 1200,
   "height": 900
  },
@@ -743,11 +847,27 @@
   "width": 1200,
   "height": 900
  },
+ "VideoRotate": {
+  "light": "/previews/media/video-rotate/video-rotate-light.webp",
+  "dark": "/previews/media/video-rotate/video-rotate-dark.webp",
+  "thumb": "/previews/media/video-rotate/video-rotate-thumb.webp",
+  "og": "/previews/media/video-rotate/video-rotate-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
  "ViewToggle": {
   "light": "/previews/controls/view-toggle/view-toggle-light.webp",
   "dark": "/previews/controls/view-toggle/view-toggle-dark.webp",
   "thumb": "/previews/controls/view-toggle/view-toggle-thumb.webp",
   "og": "/previews/controls/view-toggle/view-toggle-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "VoiceDictation": {
+  "light": "/previews/inputs/voice-dictation/voice-dictation-light.webp",
+  "dark": "/previews/inputs/voice-dictation/voice-dictation-dark.webp",
+  "thumb": "/previews/inputs/voice-dictation/voice-dictation-thumb.webp",
+  "og": "/previews/inputs/voice-dictation/voice-dictation-og.jpg",
   "width": 1200,
   "height": 900
  },

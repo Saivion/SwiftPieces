@@ -1,0 +1,8 @@
+## Notes
+
+- For apps that stay in portrait: the expand button turns only the player a quarter turn and grows it across the screen on black, so the rest of the app keeps its layout and you do not need to unlock rotation.
+- It fills the space it is given edge to edge and keeps its own content inside the safe area, so give it the whole screen. The status bar and home indicator hide while it is full screen.
+- `clockwise` picks which way it turns. The default is a quarter turn clockwise, so the phone is held with its top to the right.
+- `isFullScreen` is a binding: drive it from your own controls, or from the device's orientation, if you like.
+- VoiceOver gets Full screen and Exit full screen actions on the player.
+- Under Reduce Motion the turn runs without bounce.

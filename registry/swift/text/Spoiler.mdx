@@ -1,0 +1,8 @@
+## Notes
+
+- `.spoiler()` on any view covers it with fine drifting specks in the foreground style, so they match the text they cover. Use `.spoiler(isRevealed:)` to keep the state yourself and hide it again.
+- Every speck is drawn from the time alone, in one `Canvas`: each lives a short life in a loop, born somewhere new each time, so nothing is stored between frames and the cover never repeats.
+- Tap and the specks blow away from your finger while the content opens in a circle from the same spot. Hiding it again fades the shimmer back in.
+- To hide part of a sentence, split it and put the hidden part in its own `Text`.
+- VoiceOver reads it as a Spoiler button until it is revealed, then reads the content.
+- Under Reduce Motion the specks hold still and the content opens quickly.

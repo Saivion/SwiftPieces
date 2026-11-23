@@ -1,0 +1,8 @@
+## Notes
+
+- A dictate button for the end of a text field: tap the glass mic and it stretches into a capsule with cancel on one end, a red done button on the other and live level bars between them.
+- You feed it the microphone level, 0 to 1, so it works with Speech, AVAudioRecorder or your own engine. Start your recognizer when `isListening` turns on.
+- A new bar comes in every `style.interval` seconds from the right and eases toward the level, so the bars rise and fall rather than jump. Older bars scroll left and fade at the edge.
+- Done calls `onDone` and cancel calls `onCancel`; both shrink it back into the mic.
+- The capsule grows toward the leading edge, so put it at the trailing end of a row.
+- Under Reduce Motion it opens and closes without bounce. Reduce Transparency makes the glass solid.

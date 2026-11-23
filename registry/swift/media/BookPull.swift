@@ -1,0 +1,457 @@
+// swiftpieces:
+// title: Book Pull
+// description: "A shelf of spines where the book you tap slides up out of the row, turns a quarter turn toward you and lands in the middle showing its cover, while the rest of the shelf dims behind it. Your buttons fade in under the cover; tap away and it turns back and slots into its gap. It draws your own spine and cover views, so books, records, games or courses all fit. For libraries, reading lists, collections and stores."
+// category: media
+// minIOSVersion: "17.0"
+// version: "1.0.0"
+// added: "2026-11-23"
+// tags: [book, shelf, library, cover, spine, collection, reading]
+
+import SwiftUI
+
+/// Sizes and colors for `BookPull`.
+public struct BookPullStyle: Sendable {
+    /// The cover's size once the book is pulled out.
+    public var coverSize: CGSize
+    /// The gap between spines.
+    public var spacing: CGFloat
+    /// Where the shelf runs, as a fraction of the height from the top.
+    public var shelf: CGFloat
+    /// How far a book slides up before it turns.
+    public var lift: CGFloat
+    /// How long the pull takes, in seconds.
+    public var duration: Double
+    /// The shelf's board.
+    public var board: Color
+    /// The shadow under a pulled book.
+    public var shadow: Color
+
+    public init(
+        coverSize: CGSize = CGSize(width: 190, height: 270),
+        spacing: CGFloat = 3,
+        shelf: CGFloat = 0.72,
+        lift: CGFloat = 36,
+        duration: Double = 0.85,
+        board: Color = Color(UIColor.label),
+        shadow: Color = .black.opacity(0.3)
+    ) {
+        self.coverSize = coverSize
+        self.spacing = spacing
+        self.shelf = shelf
+        self.lift = lift
+        self.duration = duration
+        self.board = board
+        self.shadow = shadow
+    }
+
+    public static let standard = BookPullStyle()
+}
+
+/// A shelf of book spines; the one you tap slides out and turns to show its cover.
+///
+/// It fills the space it is given, with the shelf low and room above it for the cover. Spines stand on the shelf
+/// side by side, centred, so keep the row narrower than the space.
+///
+/// - Parameters:
+///   - books: The books, left to right.
+///   - selection: The pulled-out book, or `nil` while they all sit on the shelf.
+///   - spineSize: Each book's spine, its width and height.
+///   - style: Sizes, timing and colors.
+///   - spine: A book's spine, filling the spine's size. Turn its title sideways.
+///   - cover: A book's cover, filling the cover size.
+///   - actions: Shown under the pulled-out cover, such as Start reading.
+public struct BookPull<Book: Identifiable, Spine: View, Cover: View, Actions: View>: View {
+    public typealias Style = BookPullStyle
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Binding private var selection: Book.ID?
+    @State private var shown: Book.ID?
+    @State private var progress: CGFloat = 0
+    @State private var pulls = 0
+
+    private let books: [Book]
+    private let spineSize: (Book) -> CGSize
+    private let style: Style
+    private let spine: (Book) -> Spine
+    private let cover: (Book) -> Cover
+    private let actions: (Book) -> Actions
+
+    public init(
+        _ books: [Book],
+        selection: Binding<Book.ID?>,
+        spineSize: @escaping (Book) -> CGSize = { _ in CGSize(width: 34, height: 190) },
+        style: Style = .standard,
+        @ViewBuilder spine: @escaping (Book) -> Spine,
+        @ViewBuilder cover: @escaping (Book) -> Cover,
+        @ViewBuilder actions: @escaping (Book) -> Actions
+    ) {
+        self.books = books
+        self._selection = selection
+        self.spineSize = spineSize
+        self.style = style
+        self.spine = spine
+        self.cover = cover
+        self.actions = actions
+    }
+
+    public var body: some View {
+        GeometryReader { proxy in
+            let size = proxy.size
+            let shelfY = size.height * style.shelf
+            let slots = slotFrames(width: size.width, shelfY: shelfY)
+            let coverHeight = min(style.coverSize.height, shelfY - 40)
+            let coverSize = CGSize(width: style.coverSize.width * coverHeight / style.coverSize.height, height: coverHeight)
+            let stage = CGPoint(x: size.width / 2, y: 12 + coverSize.height / 2)
+            let dim = min(progress * 1.6, 1)
+
+            ZStack(alignment: .topLeading) {
+                ForEach(Array(books.enumerated()), id: \.element.id) { index, book in
+                    if book.id != shown {
+                        spine(book)
+                            .frame(width: slots[index].width, height: slots[index].height)
+                            .clipShape(.rect(cornerRadius: 3, style: .continuous))
+                            .offset(x: slots[index].minX, y: slots[index].minY)
+                            .opacity(Double(1 - 0.55 * dim))
+                            .onTapGesture { pull(book) }
+                            .accessibilityElement(children: .combine)
+                            .accessibilityAddTraits(.isButton)
+                            .accessibilityHint("Shows the cover")
+                    }
+                }
+
+                RoundedRectangle(cornerRadius: 3, style: .continuous)
+                    .fill(style.board)
+                    .frame(width: min(size.width, (slots.last?.maxX ?? 0) - (slots.first?.minX ?? 0) + 28), height: 6)
+                    .offset(x: max(0, (slots.first?.minX ?? 0) - 14), y: shelfY)
+                    .accessibilityHidden(true)
+
+                if shown != nil {
+                    Color.clear
+                        .contentShape(.rect)
+                        .onTapGesture { putBack() }
+                        .accessibilityHidden(true)
+                }
+
+                if let shown, let index = books.firstIndex(where: { $0.id == shown }) {
+                    let book = books[index]
+                    BookTurn(progress: progress, slot: slots[index], lift: style.lift, cover: coverSize, stage: stage, shadow: style.shadow) {
+                        spine(book)
+                    } cover: {
+                        cover(book)
+                    }
+                    .onTapGesture { putBack() }
+                    .accessibilityElement(children: .combine)
+                    .accessibilityAction(named: "Put back") { putBack() }
+
+                    actions(book)
+                        .frame(width: size.width)
+                        .offset(y: stage.y + coverSize.height / 2 + 18)
+                        .opacity(Double(max(0, progress * 2 - 1)))
+                        .allowsHitTesting(progress > 0.9)
+                }
+            }
+            .frame(width: size.width, height: size.height, alignment: .topLeading)
+        }
+        .sensoryFeedback(.impact(weight: .light), trigger: pulls)
+        .onChange(of: selection) { _, id in
+            if id == nil, shown != nil { putBack() } else if let id, id != shown, let book = books.first(where: { $0.id == id }) { pull(book) }
+        }
+    }
+
+    private func slotFrames(width: CGFloat, shelfY: CGFloat) -> [CGRect] {
+        let sizes = books.map(spineSize)
+        let total = sizes.reduce(0) { $0 + $1.width } + style.spacing * CGFloat(max(sizes.count - 1, 0))
+        var x = (width - total) / 2
+        return sizes.map { size in
+            defer { x += size.width + style.spacing }
+            return CGRect(x: x, y: shelfY - size.height, width: size.width, height: size.height)
+        }
+    }
+
+    private var animation: Animation {
+        reduceMotion ? .easeInOut(duration: 0.25) : .timingCurve(0.45, 0, 0.2, 1, duration: style.duration)
+    }
+
+    private func pull(_ book: Book) {
+        guard shown == nil else { return }
+        pulls += 1
+        shown = book.id
+        selection = book.id
+        progress = 0
+        withAnimation(animation) { progress = 1 }
+    }
+
+    private func putBack() {
+        guard shown != nil else { return }
+        pulls += 1
+        selection = nil
+        withAnimation(animation) {
+            progress = 0
+        } completion: {
+            if selection == nil { shown = nil }
+        }
+    }
+}
+
+/// The pulled-out book: up out of its slot, then a quarter turn that narrows the spine and widens the cover,
+/// growing to the cover's size on the stage.
+private struct BookTurn<Spine: View, Cover: View>: View, Animatable {
+    var progress: CGFloat
+    let slot: CGRect
+    let lift: CGFloat
+    let cover: CGSize
+    let stage: CGPoint
+    let shadow: Color
+    let spineView: Spine
+    let coverView: Cover
+
+    init(progress: CGFloat, slot: CGRect, lift: CGFloat, cover: CGSize, stage: CGPoint, shadow: Color, @ViewBuilder spine: () -> Spine, @ViewBuilder cover coverView: () -> Cover) {
+        self.progress = progress
+        self.slot = slot
+        self.lift = lift
+        self.cover = cover
+        self.stage = stage
+        self.shadow = shadow
+        self.spineView = spine()
+        self.coverView = coverView()
+    }
+
+    nonisolated var animatableData: CGFloat {
+        get { progress }
+        set { progress = newValue }
+    }
+
+    var body: some View {
+        let up = Self.smooth(0, 0.35, progress)
+        let turn = Self.smooth(0.28, 1, progress)
+        let angle = turn * .pi / 2
+        let spineScale = cos(angle), coverScale = sin(angle)
+        let height = slot.height + (cover.height - slot.height) * turn
+        let spineWidth = slot.width * height / slot.height
+        let spineShown = spineWidth * spineScale
+        let coverShown = cover.width * coverScale
+        let width = spineShown + coverShown
+        let x = slot.midX + (stage.x - slot.midX) * turn
+        let y = (slot.midY - lift * up) + (stage.y - slot.midY + lift * up) * turn
+
+        ZStack(alignment: .topLeading) {
+            spineView
+                .frame(width: spineWidth, height: height)
+                .overlay { Color.black.opacity(0.3 * (1 - spineScale)) }
+                .scaleEffect(x: max(spineScale, 0.001), y: 1, anchor: .leading)
+            coverView
+                .frame(width: cover.width, height: height)
+                .overlay { Color.black.opacity(0.3 * (1 - coverScale)) }
+                .overlay(alignment: .leading) { Color.white.opacity(0.25).frame(width: 1.5) }
+                .scaleEffect(x: max(coverScale, 0.001), y: 1, anchor: .leading)
+                .offset(x: spineShown)
+        }
+        .frame(width: max(width, 1), height: height, alignment: .topLeading)
+        .clipShape(.rect(cornerRadius: 3 + 3 * turn, style: .continuous))
+        .shadow(color: shadow.opacity(Double(turn)), radius: 18 * turn, y: 10 * turn)
+        .offset(x: x - width / 2, y: y - height / 2)
+    }
+
+    nonisolated private static func smooth(_ a: CGFloat, _ b: CGFloat, _ x: CGFloat) -> CGFloat {
+        let t = min(max((x - a) / (b - a), 0), 1)
+        return t * t * (3 - 2 * t)
+    }
+}
+
+// MARK: - Example
+
+private struct BookPullBook: Identifiable {
+    let id: String
+    let author: String
+    let width: CGFloat
+    let height: CGFloat
+    let color: Color
+    let print: Int
+}
+
+/// A reading shelf. Tap Lake Days to pull it out; tap anywhere else to put it back.
+private struct BookPullExample: View {
+    @State private var selection: String?
+    private static let ink = Color(red: 0.078, green: 0.078, blue: 0.078)
+    private static let red = Color(red: 1, green: 0, blue: 0)
+
+    private let books = [
+        BookPullBook(id: "Tides", author: "J. Moore", width: 30, height: 172, color: Color(red: 0.18, green: 0.545, blue: 1), print: 3),
+        BookPullBook(id: "North", author: "A. Lind", width: 38, height: 196, color: Color(red: 1, green: 0.761, blue: 0.102), print: 5),
+        BookPullBook(id: "Pines", author: "K. Oya", width: 28, height: 164, color: Color(red: 0, green: 0.769, blue: 0.655), print: 2),
+        BookPullBook(id: "Lake Days", author: "R. Hale", width: 40, height: 204, color: Color(red: 1, green: 0, blue: 0.361), print: 1),
+        BookPullBook(id: "Herons", author: "M. Sato", width: 32, height: 184, color: Color(red: 1, green: 0.541, blue: 0.122), print: 4),
+        BookPullBook(id: "Ember", author: "T. Reyes", width: 36, height: 178, color: Color(red: 1, green: 0, blue: 0), print: 0),
+        BookPullBook(id: "Maps", author: "L. Berg", width: 30, height: 190, color: Color(red: 0.957, green: 0.953, blue: 0.937), print: 7),
+    ]
+
+    var body: some View {
+        BookPull(books, selection: $selection, spineSize: { CGSize(width: $0.width, height: $0.height) }) { book in
+            ZStack {
+                book.color
+                VStack {
+                    Rectangle().fill(Self.ink.opacity(0.14)).frame(height: 3).padding(.top, 14)
+                    Spacer()
+                    Rectangle().fill(Self.ink.opacity(0.14)).frame(height: 3).padding(.bottom, 16)
+                }
+                Text(book.id)
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(Self.ink)
+                    .fixedSize()
+                    .rotationEffect(.degrees(90))
+            }
+        } cover: { book in
+            ZStack {
+                book.color
+                VStack(spacing: 12) {
+                    Text(book.id)
+                        .font(.title2.weight(.semibold))
+                    BookPullPrint(kind: book.print)
+                        .clipShape(.rect(cornerRadius: 4))
+                        .padding(.horizontal, 16)
+                    Text(book.author.uppercased())
+                        .font(.caption.weight(.semibold))
+                        .tracking(1.5)
+                }
+                .foregroundStyle(Self.ink)
+                .padding(.vertical, 20)
+            }
+        } actions: { _ in
+            Text("Start reading")
+                .font(.body.weight(.semibold))
+                .foregroundStyle(Self.ink)
+                .padding(.horizontal, 24)
+                .frame(height: 48)
+                .background(Self.red, in: .rect(cornerRadius: 20, style: .continuous))
+        }
+        .padding(.vertical, 24)
+        .background(Color(UIColor { @Sendable traits in
+            traits.userInterfaceStyle == .dark ? UIColor(red: 0.071, green: 0.071, blue: 0.071, alpha: 1) : UIColor(red: 0.953, green: 0.949, blue: 0.933, alpha: 1)
+        }))
+    }
+}
+
+/// A flat print in the house palette, standing in for a photo in the example. Swap in your own images.
+private struct BookPullPrint: View {
+    /// Which of the eight prints: 0 Sunrise, 1 Lake, 2 Pines, 3 Waves, 4 Dunes, 5 Night, 6 Bloom, 7 Kite.
+    var kind: Int
+
+    private static let blue = Color(red: 0.18, green: 0.545, blue: 1)
+    private static let yellow = Color(red: 1, green: 0.761, blue: 0.102)
+    private static let teal = Color(red: 0, green: 0.769, blue: 0.655)
+    private static let pink = Color(red: 1, green: 0, blue: 0.361)
+    private static let orange = Color(red: 1, green: 0.541, blue: 0.122)
+    private static let red = Color(red: 1, green: 0, blue: 0)
+    private static let ink = Color(red: 0.078, green: 0.078, blue: 0.078)
+    private static let paper = Color(red: 0.957, green: 0.953, blue: 0.937)
+
+    var body: some View {
+        Canvas { context, size in
+            let w = size.width, h = size.height, m = min(w, h)
+            func disc(_ x: CGFloat, _ y: CGFloat, _ r: CGFloat, _ color: Color) {
+                context.fill(Path(ellipseIn: CGRect(x: x - r, y: y - r, width: r * 2, height: r * 2)), with: .color(color))
+            }
+            func band(_ y: CGFloat, _ height: CGFloat, _ color: Color) {
+                context.fill(Path(CGRect(x: 0, y: y, width: w, height: height)), with: .color(color))
+            }
+            switch kind % 8 {
+            case 0:
+                band(0, h, Self.orange)
+                disc(w * 0.5, h * 0.64, m * 0.34, Self.yellow)
+                for (y, t) in [(0.66, 0.035), (0.74, 0.05), (0.83, 0.07), (0.93, 0.07)] as [(CGFloat, CGFloat)] { band(h * y, h * t, Self.pink) }
+            case 1:
+                band(0, h, Self.blue)
+                disc(w * 0.7, h * 0.32, m * 0.13, Self.yellow)
+                band(h * 0.6, h * 0.4, Self.teal)
+                for (a, b, l) in [(0.2, 0.72, 0.22), (0.55, 0.8, 0.28), (0.3, 0.9, 0.18)] as [(CGFloat, CGFloat, CGFloat)] {
+                    var ripple = Path()
+                    ripple.move(to: CGPoint(x: w * a, y: h * b))
+                    ripple.addLine(to: CGPoint(x: w * (a + l), y: h * b))
+                    context.stroke(ripple, with: .color(Self.paper), style: StrokeStyle(lineWidth: max(1, m * 0.025), lineCap: .round))
+                }
+            case 2:
+                band(0, h, Self.teal)
+                disc(w * 0.3, h * 0.32, m * 0.17, Self.pink)
+                let count = max(4, Int((w / m * 5).rounded()))
+                for i in 0..<count {
+                    let x = (CGFloat(i) + 0.5) / CGFloat(count) * w, half = w / CGFloat(count) * 0.62
+                    let height = h * (0.34 + CGFloat((i * 37) % 5) / 5 * 0.2)
+                    var pine = Path()
+                    pine.move(to: CGPoint(x: x, y: h - height))
+                    pine.addLine(to: CGPoint(x: x + half, y: h))
+                    pine.addLine(to: CGPoint(x: x - half, y: h))
+                    pine.closeSubpath()
+                    context.fill(pine, with: .color(Self.ink))
+                }
+            case 3:
+                band(0, h, Self.pink)
+                disc(w * 0.72, h * 0.3, m * 0.16, Self.yellow)
+                for (j, color) in [Self.blue, Self.teal].enumerated() {
+                    let r = m * 0.1, y = h * (0.62 + CGFloat(j) * 0.16)
+                    var waves = Path()
+                    waves.move(to: CGPoint(x: -r * 3, y: h))
+                    waves.addLine(to: CGPoint(x: -r * 3, y: y + r))
+                    var x = -r * 2 + CGFloat(j) * r
+                    while x < w + r * 3 {
+                        waves.addArc(center: CGPoint(x: x, y: y + r), radius: r, startAngle: .degrees(180), endAngle: .degrees(0), clockwise: false)
+                        x += r * 2
+                    }
+                    waves.addLine(to: CGPoint(x: w + r * 3, y: h))
+                    waves.closeSubpath()
+                    context.fill(waves, with: .color(color))
+                }
+            case 4:
+                band(0, h, Self.yellow)
+                disc(w * 0.66, h * 0.3, m * 0.1, Self.red)
+                disc(w * 0.18, h + m * 0.25, m * 0.62, Self.orange)
+                disc(w * 0.9, h + m * 0.38, m * 0.6, Self.pink)
+            case 5:
+                band(0, h, Self.ink)
+                disc(w * 0.62, h * 0.38, m * 0.22, Self.blue)
+                disc(w * 0.62 + m * 0.1, h * 0.38 - m * 0.06, m * 0.2, Self.ink)
+                for (a, b) in [(0.2, 0.2), (0.3, 0.6), (0.15, 0.45), (0.85, 0.75), (0.42, 0.15), (0.8, 0.18)] as [(CGFloat, CGFloat)] {
+                    disc(w * a, h * b, max(0.8, m * 0.012), Self.paper)
+                }
+                band(h * 0.84, h * 0.16, Self.teal)
+            case 6:
+                band(0, h, Self.blue)
+                let r = m * 0.14
+                for i in 0..<6 {
+                    let angle = Double(i) / 6 * 2 * .pi
+                    disc(w * 0.5 + CGFloat(cos(angle)) * r * 1.25, h * 0.5 + CGFloat(sin(angle)) * r * 1.25, r, Self.pink)
+                }
+                disc(w * 0.5, h * 0.5, r * 0.9, Self.yellow)
+            default:
+                band(0, h, Self.orange)
+                let x = w * 0.56, y = h * 0.4, s = m * 0.24
+                var kite = Path()
+                kite.move(to: CGPoint(x: x, y: y - s))
+                kite.addLine(to: CGPoint(x: x + s * 0.7, y: y))
+                kite.addLine(to: CGPoint(x: x, y: y + s * 1.2))
+                kite.addLine(to: CGPoint(x: x - s * 0.7, y: y))
+                kite.closeSubpath()
+                context.fill(kite, with: .color(Self.teal))
+                var shade = Path()
+                shade.move(to: CGPoint(x: x, y: y - s))
+                shade.addLine(to: CGPoint(x: x, y: y + s * 1.2))
+                shade.addLine(to: CGPoint(x: x + s * 0.7, y: y))
+                shade.closeSubpath()
+                context.fill(shade, with: .color(Self.ink.opacity(0.18)))
+                var string = Path()
+                string.move(to: CGPoint(x: x, y: y + s * 1.2))
+                string.addCurve(to: CGPoint(x: w * 0.2, y: h * 1.02), control1: CGPoint(x: x - s, y: y + s * 2), control2: CGPoint(x: x + s * 0.4, y: h * 0.85))
+                context.stroke(string, with: .color(Self.ink), lineWidth: max(1, m * 0.012))
+            }
+        }
+        .accessibilityHidden(true)
+    }
+}
+
+#Preview("Light") {
+    BookPullExample()
+}
+
+#Preview("Dark") {
+    BookPullExample()
+        .preferredColorScheme(.dark)
+}

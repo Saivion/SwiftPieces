@@ -21,6 +21,7 @@
     "swatch-picker",
     "time-slot-picker",
     "token-field",
-    "unit-toggle"
+    "unit-toggle",
+    "voice-dictation"
   ]
 }

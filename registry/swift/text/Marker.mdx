@@ -1,0 +1,7 @@
+## Notes
+
+- Mark words inside an ordinary `Text` with `.marker(.highlight)`, `.marker(.underline)` or `.marker(.circle)`, interpolated into the sentence, then add `.markers(isActive:)` to the whole text.
+- On iOS 18 a `TextRenderer` draws each mark on the text's real line boxes, one after another in reading order, so a phrase that wraps is marked on both lines. Marks wobble slightly, so they never look stamped.
+- Highlighted words turn dark ink once the swipe passes them, so they read on the yellow in dark mode too.
+- On iOS 17 the marked words are underlined in the pen colour instead, with no drawing on.
+- Under Reduce Motion the marks fade in together.

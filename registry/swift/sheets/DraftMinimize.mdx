@@ -1,0 +1,8 @@
+## Notes
+
+- A modifier: `.draftMinimize(isPresented:isMinimized:title:summary:draft:)` shows a glass compose card over your view. The card and the pill are one liquid glass shape, so the card reshapes into the pill rather than swapping for it.
+- Drag the card's top strip down, tap the chevron or tap the dimmed page, and it shrinks into a pill at the bottom showing `summary`, usually the start of the draft. Tap the pill and it grows back.
+- The draft is your view and its text lives in your state, so every word survives the trip. Set `isPresented` to `false` from your Send or Discard button to close it for good.
+- Only drags that start on the top strip move the card, so a scrolling text editor inside still scrolls.
+- VoiceOver gets a Minimize draft button on the card and reads the pill as the title and summary with an Opens the draft hint.
+- Under Reduce Motion the card and pill move without bounce. Reduce Transparency makes the glass solid.

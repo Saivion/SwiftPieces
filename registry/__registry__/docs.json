@@ -9717,6 +9717,58 @@
     }
   },
   {
+    "url": "/docs/components/inputs/voice-dictation",
+    "title": "Voice Dictation",
+    "description": "A dictate button for text fields: the glass mic stretches into a capsule of live level bars, with cancel and a red done.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Components",
+      "Categories · 14",
+      "Inputs"
+    ],
+    "structuredData": {
+      "contents": [
+        {
+          "content": "Sizes and colors for `VoiceDictation`."
+        },
+        {
+          "heading": "notes",
+          "content": "A dictate button for the end of a text field: tap the glass mic and it stretches into a capsule with cancel on one end, a red done button on the other and live level bars between them."
+        },
+        {
+          "heading": "notes",
+          "content": "You feed it the microphone level, 0 to 1, so it works with Speech, AVAudioRecorder or your own engine. Start your recognizer when `isListening` turns on."
+        },
+        {
+          "heading": "notes",
+          "content": "A new bar comes in every `style.interval` seconds from the right and eases toward the level, so the bars rise and fall rather than jump. Older bars scroll left and fade at the edge."
+        },
+        {
+          "heading": "notes",
+          "content": "Done calls `onDone` and cancel calls `onCancel`; both shrink it back into the mic."
+        },
+        {
+          "heading": "notes",
+          "content": "The capsule grows toward the leading edge, so put it at the trailing end of a row."
+        },
+        {
+          "heading": "notes",
+          "content": "Under Reduce Motion it opens and closes without bounce. Reduce Transparency makes the glass solid."
+        }
+      ],
+      "headings": [
+        {
+          "id": "notes",
+          "content": "Notes"
+        },
+        {
+          "id": "usage",
+          "content": "Usage"
+        }
+      ]
+    }
+  },
+  {
     "url": "/docs/components/lists/depth-carousel",
     "title": "Depth Carousel",
     "description": "Paged cards that recede in depth as they leave the centre, over a glass page counter and a track you can scrub.",
@@ -10381,6 +10433,54 @@
     }
   },
   {
+    "url": "/docs/components/lists/stacking-scroll",
+    "title": "Stacking Scroll",
+    "description": "A list whose rows stop at the top edge and stack under the next like a deck of passes, then lift off again as you scroll back.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Components",
+      "Categories · 14",
+      "Lists"
+    ],
+    "structuredData": {
+      "contents": [
+        {
+          "content": "How rows stack in a `StackingScroll`."
+        },
+        {
+          "heading": "notes",
+          "content": "Rows that scroll past `style.top` stop there and stack: each one deeper sits `peek` points higher and `shrink` smaller than the one over it, so the last `depth` rows show as a deck, then fade."
+        },
+        {
+          "heading": "notes",
+          "content": "It runs on the scroll position alone, in `visualEffect`, with no state and no layout changes, so it stays smooth for long lazy lists."
+        },
+        {
+          "heading": "notes",
+          "content": "Give each row its own opaque background, such as a card, so the rows under it are hidden."
+        },
+        {
+          "heading": "notes",
+          "content": "Use the container, `StackingScroll(items) { row }`, or add `.stackingRow()` to each row of your own `ScrollView` and `LazyVStack`."
+        },
+        {
+          "heading": "notes",
+          "content": "Under Reduce Motion the rows still stack, since they follow your finger rather than animate on their own."
+        }
+      ],
+      "headings": [
+        {
+          "id": "notes",
+          "content": "Notes"
+        },
+        {
+          "id": "usage",
+          "content": "Usage"
+        }
+      ]
+    }
+  },
+  {
     "url": "/docs/components/lists/status-timeline",
     "title": "Status Timeline",
     "description": "A vertical status timeline on glass nodes: the live one breathes, done ones stamp to a check, and details bud out of a node.",
@@ -10789,6 +10889,58 @@
     }
   },
   {
+    "url": "/docs/components/media/album-open",
+    "title": "Album Open",
+    "description": "Albums as small photo piles; tap one and its photos fly into a full grid while the others step back.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Components",
+      "Categories · 14",
+      "Media"
+    ],
+    "structuredData": {
+      "contents": [
+        {
+          "content": "Sizes and colors for `AlbumOpen`."
+        },
+        {
+          "heading": "notes",
+          "content": "Each album is a small pile of its first three photos, tilted, with its name and count under it. Tap one and every photo flies from the pile into a grid of `gridColumns` columns, one after another, while the other albums shrink back and fade."
+        },
+        {
+          "heading": "notes",
+          "content": "Back, in the header above the grid, gathers the photos onto the pile in reverse order. `opened` is a binding, so you can open an album from code too."
+        },
+        {
+          "heading": "notes",
+          "content": "Every photo of every album is a live view so it can fly, which suits albums of up to a few dozen photos. For larger ones, open a lazy grid after the animation."
+        },
+        {
+          "heading": "notes",
+          "content": "It takes the width it is offered and grows to the height it needs, so put it in a `ScrollView`. Pass `onSelect` to open a photo tapped in an open album."
+        },
+        {
+          "heading": "notes",
+          "content": "VoiceOver reads each album as a button with its name and photo count. A light haptic marks each open and close."
+        },
+        {
+          "heading": "notes",
+          "content": "Under Reduce Motion the photos move without bounce."
+        }
+      ],
+      "headings": [
+        {
+          "id": "notes",
+          "content": "Notes"
+        },
+        {
+          "id": "usage",
+          "content": "Usage"
+        }
+      ]
+    }
+  },
+  {
     "url": "/docs/components/media/attachment-tray",
     "title": "Attachment Tray",
     "description": "An attachment strip for composers: a glass add tile opens the photo picker and each pick lands as a tile with a live progress ring.",
@@ -10953,6 +11105,102 @@
     }
   },
   {
+    "url": "/docs/components/media/avatar-drop",
+    "title": "Avatar Drop",
+    "description": "An avatar picker where the chosen photo lifts out of the grid, arcs up and rounds into the avatar circle.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Components",
+      "Categories · 14",
+      "Media"
+    ],
+    "structuredData": {
+      "contents": [
+        {
+          "content": "Sizes and colors for `AvatarDrop`."
+        },
+        {
+          "heading": "notes",
+          "content": "An avatar above a grid of your photos. Tap one and it lifts, arcs `style.arc` points up to the avatar and rounds from a square into a circle as it lands, with a soft bump, a ring and a medium haptic."
+        },
+        {
+          "heading": "notes",
+          "content": "`selection` is the chosen photo's id, so you keep the choice in your own state. Picking another photo flies it in over the current one."
+        },
+        {
+          "heading": "notes",
+          "content": "Pass `name` and `caption` to show a line under the avatar, such as the person's name and \"Looking good\" once a photo is chosen."
+        },
+        {
+          "heading": "notes",
+          "content": "It takes the width it is offered and grows to the height the grid needs. The chosen photo gets a red outline in the grid."
+        },
+        {
+          "heading": "notes",
+          "content": "Under Reduce Motion the photo travels straight, without the arc, and the avatar neither bumps nor rings."
+        }
+      ],
+      "headings": [
+        {
+          "id": "notes",
+          "content": "Notes"
+        },
+        {
+          "id": "usage",
+          "content": "Usage"
+        }
+      ]
+    }
+  },
+  {
+    "url": "/docs/components/media/book-pull",
+    "title": "Book Pull",
+    "description": "A shelf of spines where the tapped book slides out, turns to show its cover and lands in the middle.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Components",
+      "Categories · 14",
+      "Media"
+    ],
+    "structuredData": {
+      "contents": [
+        {
+          "content": "Sizes and colors for `BookPull`."
+        },
+        {
+          "heading": "notes",
+          "content": "Draws your own spine and cover views: the shelf lays out each book's `spineSize`, centred, and the tapped book slides up, then turns a quarter turn so its spine narrows as its cover widens to `coverSize`, landing in the middle above the shelf."
+        },
+        {
+          "heading": "notes",
+          "content": "The rest of the shelf dims behind it and your `actions` fade in under the cover. Tap anywhere to put the book back: it turns back and slots into its gap."
+        },
+        {
+          "heading": "notes",
+          "content": "It fills the space it is given, with the shelf at `style.shelf` of the height. Keep the row of spines narrower than the space."
+        },
+        {
+          "heading": "notes",
+          "content": "`selection` is a binding, so you can pull out a book from code too."
+        },
+        {
+          "heading": "notes",
+          "content": "Under Reduce Motion the pull runs as one short, even move."
+        }
+      ],
+      "headings": [
+        {
+          "id": "notes",
+          "content": "Notes"
+        },
+        {
+          "id": "usage",
+          "content": "Usage"
+        }
+      ]
+    }
+  },
+  {
     "url": "/docs/components/media/link-preview",
     "title": "Link Preview",
     "description": "A rich card for any URL that holds its size while it loads, then settles the page's image and title under a glass host chip.",
@@ -11096,6 +11344,110 @@
         {
           "id": "parameters",
           "content": "Parameters"
+        }
+      ]
+    }
+  },
+  {
+    "url": "/docs/components/media/map-expand",
+    "title": "Map Expand",
+    "description": "A place card whose map thumbnail opens into a live MapKit map, the pin dropping in and your actions settling under it.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Components",
+      "Categories · 14",
+      "Media"
+    ],
+    "structuredData": {
+      "contents": [
+        {
+          "content": "Sizes and colors for `MapExpand`."
+        },
+        {
+          "heading": "notes",
+          "content": "Uses MapKit, so the map is real at every size: a thumbnail in the card, then a live, draggable map across the top of the screen once it opens."
+        },
+        {
+          "heading": "notes",
+          "content": "Tap the card to open it. The pin drops into place with a bounce, the card settles under the map and your `actions`, such as Directions, fade in. Back, a glass button on the map, folds it into the card again."
+        },
+        {
+          "heading": "notes",
+          "content": "It fills the space it is given, with the card at the top and your `content` under it; the page fades while the map is open."
+        },
+        {
+          "heading": "notes",
+          "content": "`style.span` sets how far the map is zoomed out, in meters across. Points of interest and map controls are hidden, so the pin reads first."
+        },
+        {
+          "heading": "notes",
+          "content": "VoiceOver gets Open map and Close map actions."
+        },
+        {
+          "heading": "notes",
+          "content": "Under Reduce Motion the pin appears without dropping and the map opens without bounce."
+        }
+      ],
+      "headings": [
+        {
+          "id": "notes",
+          "content": "Notes"
+        },
+        {
+          "id": "usage",
+          "content": "Usage"
+        }
+      ]
+    }
+  },
+  {
+    "url": "/docs/components/media/mini-player",
+    "title": "Mini Player",
+    "description": "Drag a playing video down and it shrinks into a floating window that snaps to the nearest corner; tap to grow it back.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Components",
+      "Categories · 14",
+      "Media"
+    ],
+    "structuredData": {
+      "contents": [
+        {
+          "content": "A corner the mini player can rest in."
+        },
+        {
+          "heading": "notes",
+          "content": "It fills the space it is given. Put it over your page with `.overlay`, so the page stays usable while the window floats. Expanded, the player sits at the top at full width with `details` under it."
+        },
+        {
+          "heading": "notes",
+          "content": "Drag the player down and it shrinks with your finger along a straight path into the first of `corners`. Let go past 30% of the height, counting the flick's speed, and it commits; short of that it springs back."
+        },
+        {
+          "heading": "notes",
+          "content": "Minimized, the window can be dragged anywhere. On release, its landing point is projected from the flick's speed and it glides to the nearest corner in `corners`, with a light haptic when it changes corner."
+        },
+        {
+          "heading": "notes",
+          "content": "Tap the window to grow it back. `isMinimized` is a binding, so your own button can do the same."
+        },
+        {
+          "heading": "notes",
+          "content": "While minimized the details fade out and stop taking touches. VoiceOver gets Minimize and Expand actions on the player."
+        },
+        {
+          "heading": "notes",
+          "content": "Under Reduce Motion the window moves without bounce."
+        }
+      ],
+      "headings": [
+        {
+          "id": "notes",
+          "content": "Notes"
+        },
+        {
+          "id": "usage",
+          "content": "Usage"
         }
       ]
     }
@@ -11493,6 +11845,62 @@
     }
   },
   {
+    "url": "/docs/components/media/photo-stack",
+    "title": "Photo Stack",
+    "description": "A pile of tilted photos that fans into a grid on tap, each photo flying to its cell a beat after the last.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Components",
+      "Categories · 14",
+      "Media"
+    ],
+    "structuredData": {
+      "contents": [
+        {
+          "content": "Sizes and colors for `PhotoStack`."
+        },
+        {
+          "heading": "notes",
+          "content": "Wraps your own views: pass any `Identifiable` items and draw each photo in `content`. Each is clipped to `style.cornerRadius` and sized to a square, so images should fill (`.scaledToFill()`)."
+        },
+        {
+          "heading": "notes",
+          "content": "The first four items make the pile, tilted 0°, -4°, 7° and -9° and nudged a few points apart; the rest wait hidden under it. A tap fans them all into a grid of `columns` columns."
+        },
+        {
+          "heading": "notes",
+          "content": "Each photo travels on its own spring a beat after the one before (`PieceMotion.follow(rank:)`), so the grid fills in reading order; gathering runs the other way round, so the last photo leaves first."
+        },
+        {
+          "heading": "notes",
+          "content": "It takes the width it is offered and grows to the height the grid needs, so put it in a `ScrollView` or a `VStack`. The count under the pile comes from `countLabel`; pass `nil` to hide it."
+        },
+        {
+          "heading": "notes",
+          "content": "Pass `onSelect` to open a photo tapped in the grid. Without it, a tap in the grid gathers the pile again."
+        },
+        {
+          "heading": "notes",
+          "content": "VoiceOver reads the pile as one button with its count, and the grid as separate photos, with Show all and Stack actions. A light haptic marks each toggle."
+        },
+        {
+          "heading": "notes",
+          "content": "Under Reduce Motion the photos move without bounce."
+        }
+      ],
+      "headings": [
+        {
+          "id": "notes",
+          "content": "Notes"
+        },
+        {
+          "id": "usage",
+          "content": "Usage"
+        }
+      ]
+    }
+  },
+  {
     "url": "/docs/components/media/photo-viewer",
     "title": "Photo Viewer",
     "description": "A full-screen photo viewer with anchored pinch zoom, momentum panning, paging and drag to dismiss under glass controls.",
@@ -11685,6 +12093,58 @@
     }
   },
   {
+    "url": "/docs/components/media/snapshot",
+    "title": "Snapshot",
+    "description": "Turns any view into an image like a screenshot: a flash, then a tilted thumbnail you tap to share and a glass note.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Components",
+      "Categories · 14",
+      "Media"
+    ],
+    "structuredData": {
+      "contents": [
+        {
+          "content": "Sizes, timing and colors for `Snapshot`."
+        },
+        {
+          "heading": "notes",
+          "content": "Captures its content with `ImageRenderer` at the screen's scale each time `trigger` changes, so the image is as crisp as the screen. `onCapture` hands you the `UIImage` to copy, save or upload."
+        },
+        {
+          "heading": "notes",
+          "content": "The content is drawn a second time, off screen, for the image, in the current colour scheme. Build it from values, not from state that only lives inside it, or the picture can differ from the screen."
+        },
+        {
+          "heading": "notes",
+          "content": "A white flash runs over the view, then the picture shrinks to `thumbnailScale` with a slight tilt into a white-framed thumbnail `thumbnailDrop` points below the view. Leave room there: it draws outside the view's frame."
+        },
+        {
+          "heading": "notes",
+          "content": "The thumbnail is a `ShareLink`, so a tap opens the share sheet with the image. A glass note beside it shows `message` with a red check, and both slide away after `holdDuration` seconds."
+        },
+        {
+          "heading": "notes",
+          "content": "A medium haptic fires as the picture is taken, and VoiceOver announces `message`."
+        },
+        {
+          "heading": "notes",
+          "content": "Under Reduce Motion the flash is softer, the thumbnail does not tilt and every move runs without bounce."
+        }
+      ],
+      "headings": [
+        {
+          "id": "notes",
+          "content": "Notes"
+        },
+        {
+          "id": "usage",
+          "content": "Usage"
+        }
+      ]
+    }
+  },
+  {
     "url": "/docs/components/media/story-strip",
     "title": "Story Strip",
     "description": "A Stories-style segment strip with its own clock, hold to pause, and tap zones for back and forward.",
@@ -11836,6 +12296,58 @@
         {
           "id": "parameters",
           "content": "Parameters"
+        }
+      ]
+    }
+  },
+  {
+    "url": "/docs/components/media/video-rotate",
+    "title": "Video Rotate",
+    "description": "Full-screen video for portrait apps: the player turns a quarter turn as it grows across the screen on black.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Components",
+      "Categories · 14",
+      "Media"
+    ],
+    "structuredData": {
+      "contents": [
+        {
+          "content": "Sizes and colors for `VideoRotate`."
+        },
+        {
+          "heading": "notes",
+          "content": "For apps that stay in portrait: the expand button turns only the player a quarter turn and grows it across the screen on black, so the rest of the app keeps its layout and you do not need to unlock rotation."
+        },
+        {
+          "heading": "notes",
+          "content": "It fills the space it is given edge to edge and keeps its own content inside the safe area, so give it the whole screen. The status bar and home indicator hide while it is full screen."
+        },
+        {
+          "heading": "notes",
+          "content": "`clockwise` picks which way it turns. The default is a quarter turn clockwise, so the phone is held with its top to the right."
+        },
+        {
+          "heading": "notes",
+          "content": "`isFullScreen` is a binding: drive it from your own controls, or from the device's orientation, if you like."
+        },
+        {
+          "heading": "notes",
+          "content": "VoiceOver gets Full screen and Exit full screen actions on the player."
+        },
+        {
+          "heading": "notes",
+          "content": "Under Reduce Motion the turn runs without bounce."
+        }
+      ],
+      "headings": [
+        {
+          "id": "notes",
+          "content": "Notes"
+        },
+        {
+          "id": "usage",
+          "content": "Usage"
         }
       ]
     }
@@ -12265,6 +12777,54 @@
     }
   },
   {
+    "url": "/docs/components/motion/distortion-wave",
+    "title": "Distortion Wave",
+    "description": "A Metal transition where a ring of refraction with a warm fringe opens from the button you tapped onto the next screen.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Components",
+      "Categories · 14",
+      "Motion"
+    ],
+    "structuredData": {
+      "contents": [
+        {
+          "content": "Sizes and timing for `DistortionWave`."
+        },
+        {
+          "heading": "notes",
+          "content": "Requires `DistortionWave.metal` in the same target. Its `distortionWaveOld` and `distortionWaveNew` kernels are looked up through `ShaderLibrary` and run as two layer effects, one on each screen."
+        },
+        {
+          "heading": "notes",
+          "content": "When `isRevealed` turns on, a ring opens from the button you mark with `.distortionWaveOrigin($frame)`: the old screen bends away outside it, the new one shows through inside it, and a warm fringe of pink, orange and red runs along its edge."
+        },
+        {
+          "heading": "notes",
+          "content": "Set it back and the ring closes into the button. Without an origin it opens from the centre."
+        },
+        {
+          "heading": "notes",
+          "content": "The effects only run while the ring moves, so both screens are plain views at rest."
+        },
+        {
+          "heading": "notes",
+          "content": "Under Reduce Motion the screens crossfade instead."
+        }
+      ],
+      "headings": [
+        {
+          "id": "notes",
+          "content": "Notes"
+        },
+        {
+          "id": "usage",
+          "content": "Usage"
+        }
+      ]
+    }
+  },
+  {
     "url": "/docs/components/motion/drag-to-dismiss",
     "title": "Drag to Dismiss",
     "description": "A modifier that lets a photo, card or sheet follow the drag, then springs it back or tosses it away at the speed of the flick.",
@@ -12404,6 +12964,58 @@
         {
           "id": "parameters",
           "content": "Parameters"
+        }
+      ]
+    }
+  },
+  {
+    "url": "/docs/components/motion/genie-delete",
+    "title": "Genie Delete",
+    "description": "Deleting pours a view into the button that deleted it like the macOS genie, and Undo pours it back out.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Components",
+      "Categories · 14",
+      "Motion"
+    ],
+    "structuredData": {
+      "contents": [
+        {
+          "content": "Timing for `GenieDelete`."
+        },
+        {
+          "heading": "notes",
+          "content": "Snapshots its content with `ImageRenderer` when `isRemoved` turns on, then draws the snapshot in a `Canvas` as thin rows that narrow and slide toward the target, the edge nearest the target first. Raise `style.rows` for a smoother curve."
+        },
+        {
+          "heading": "notes",
+          "content": "Mark the button it pours into with `.genieTarget($frame)` and pass that frame as `into:`. It works across containers, since both frames are global."
+        },
+        {
+          "heading": "notes",
+          "content": "The content keeps its place in the layout while it is gone. Remove it from your data in `onRemoved`, which runs once it has poured away completely, if it should not come back."
+        },
+        {
+          "heading": "notes",
+          "content": "Set `isRemoved` back to `false` and it pours back out of the target the same way, which makes Undo feel like the same object returning."
+        },
+        {
+          "heading": "notes",
+          "content": "The content is drawn a second time for the snapshot, so build it from values rather than state that only lives inside it."
+        },
+        {
+          "heading": "notes",
+          "content": "Under Reduce Motion it fades out and in instead of pouring."
+        }
+      ],
+      "headings": [
+        {
+          "id": "notes",
+          "content": "Notes"
+        },
+        {
+          "id": "usage",
+          "content": "Usage"
         }
       ]
     }
@@ -13441,6 +14053,58 @@
     }
   },
   {
+    "url": "/docs/components/sheets/draft-minimize",
+    "title": "Draft Minimize",
+    "description": "A compose card that tucks into a glass pill at the bottom instead of closing, and grows back with every word kept.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Components",
+      "Categories · 14",
+      "Sheets"
+    ],
+    "structuredData": {
+      "contents": [
+        {
+          "content": "Sizes and colors for `DraftMinimize`."
+        },
+        {
+          "heading": "notes",
+          "content": "A modifier: `.draftMinimize(isPresented:isMinimized:title:summary:draft:)` shows a glass compose card over your view. The card and the pill are one liquid glass shape, so the card reshapes into the pill rather than swapping for it."
+        },
+        {
+          "heading": "notes",
+          "content": "Drag the card's top strip down, tap the chevron or tap the dimmed page, and it shrinks into a pill at the bottom showing `summary`, usually the start of the draft. Tap the pill and it grows back."
+        },
+        {
+          "heading": "notes",
+          "content": "The draft is your view and its text lives in your state, so every word survives the trip. Set `isPresented` to `false` from your Send or Discard button to close it for good."
+        },
+        {
+          "heading": "notes",
+          "content": "Only drags that start on the top strip move the card, so a scrolling text editor inside still scrolls."
+        },
+        {
+          "heading": "notes",
+          "content": "VoiceOver gets a Minimize draft button on the card and reads the pill as the title and summary with an Opens the draft hint."
+        },
+        {
+          "heading": "notes",
+          "content": "Under Reduce Motion the card and pill move without bounce. Reduce Transparency makes the glass solid."
+        }
+      ],
+      "headings": [
+        {
+          "id": "notes",
+          "content": "Notes"
+        },
+        {
+          "id": "usage",
+          "content": "Usage"
+        }
+      ]
+    }
+  },
+  {
     "url": "/docs/components/sheets/notice-stack",
     "title": "Notice Stack",
     "description": "In-app notices stacked like notifications: the newest on top, a tap spreads the pile, and cards swipe away at your speed.",
@@ -14373,6 +15037,54 @@
     }
   },
   {
+    "url": "/docs/components/text/marker",
+    "title": "Marker",
+    "description": "Hand-drawn highlights, underlines and circles that draw on words in reading order and follow the text across lines.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Components",
+      "Categories · 14",
+      "Text"
+    ],
+    "structuredData": {
+      "contents": [
+        {
+          "content": "The kind of mark on a run of text."
+        },
+        {
+          "heading": "notes",
+          "content": "Mark words inside an ordinary `Text` with `.marker(.highlight)`, `.marker(.underline)` or `.marker(.circle)`, interpolated into the sentence, then add `.markers(isActive:)` to the whole text."
+        },
+        {
+          "heading": "notes",
+          "content": "On iOS 18 a `TextRenderer` draws each mark on the text's real line boxes, one after another in reading order, so a phrase that wraps is marked on both lines. Marks wobble slightly, so they never look stamped."
+        },
+        {
+          "heading": "notes",
+          "content": "Highlighted words turn dark ink once the swipe passes them, so they read on the yellow in dark mode too."
+        },
+        {
+          "heading": "notes",
+          "content": "On iOS 17 the marked words are underlined in the pen colour instead, with no drawing on."
+        },
+        {
+          "heading": "notes",
+          "content": "Under Reduce Motion the marks fade in together."
+        }
+      ],
+      "headings": [
+        {
+          "id": "notes",
+          "content": "Notes"
+        },
+        {
+          "id": "usage",
+          "content": "Usage"
+        }
+      ]
+    }
+  },
+  {
     "url": "/docs/components/text/match-highlight",
     "title": "Match Highlight",
     "description": "Search results that mark why they matched, on a red mark that grows as you type, ignoring case and accents.",
@@ -14734,6 +15446,58 @@
         {
           "heading": "notes",
           "content": "Under Reduce Motion the matches appear without the fade."
+        }
+      ],
+      "headings": [
+        {
+          "id": "notes",
+          "content": "Notes"
+        },
+        {
+          "id": "usage",
+          "content": "Usage"
+        }
+      ]
+    }
+  },
+  {
+    "url": "/docs/components/text/spoiler",
+    "title": "Spoiler",
+    "description": "Hides a view under drifting specks that blow away from your finger as the content opens in a circle.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Components",
+      "Categories · 14",
+      "Text"
+    ],
+    "structuredData": {
+      "contents": [
+        {
+          "content": "Sizes for `.spoiler`."
+        },
+        {
+          "heading": "notes",
+          "content": "`.spoiler()` on any view covers it with fine drifting specks in the foreground style, so they match the text they cover. Use `.spoiler(isRevealed:)` to keep the state yourself and hide it again."
+        },
+        {
+          "heading": "notes",
+          "content": "Every speck is drawn from the time alone, in one `Canvas`: each lives a short life in a loop, born somewhere new each time, so nothing is stored between frames and the cover never repeats."
+        },
+        {
+          "heading": "notes",
+          "content": "Tap and the specks blow away from your finger while the content opens in a circle from the same spot. Hiding it again fades the shimmer back in."
+        },
+        {
+          "heading": "notes",
+          "content": "To hide part of a sentence, split it and put the hidden part in its own `Text`."
+        },
+        {
+          "heading": "notes",
+          "content": "VoiceOver reads it as a Spoiler button until it is revealed, then reads the content."
+        },
+        {
+          "heading": "notes",
+          "content": "Under Reduce Motion the specks hold still and the content opens quickly."
         }
       ],
       "headings": [

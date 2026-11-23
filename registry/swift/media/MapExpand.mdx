@@ -1,0 +1,8 @@
+## Notes
+
+- Uses MapKit, so the map is real at every size: a thumbnail in the card, then a live, draggable map across the top of the screen once it opens.
+- Tap the card to open it. The pin drops into place with a bounce, the card settles under the map and your `actions`, such as Directions, fade in. Back, a glass button on the map, folds it into the card again.
+- It fills the space it is given, with the card at the top and your `content` under it; the page fades while the map is open.
+- `style.span` sets how far the map is zoomed out, in meters across. Points of interest and map controls are hidden, so the pin reads first.
+- VoiceOver gets Open map and Close map actions.
+- Under Reduce Motion the pin appears without dropping and the map opens without bounce.

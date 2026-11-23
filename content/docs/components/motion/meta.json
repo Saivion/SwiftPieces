@@ -3,6 +3,8 @@
   "description": "Gesture modifiers with real physics.",
   "defaultOpen": false,
   "pages": [
-    "drag-to-dismiss"
+    "distortion-wave",
+    "drag-to-dismiss",
+    "genie-delete"
   ]
 }

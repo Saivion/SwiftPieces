@@ -1,0 +1,7 @@
+## Notes
+
+- Rows that scroll past `style.top` stop there and stack: each one deeper sits `peek` points higher and `shrink` smaller than the one over it, so the last `depth` rows show as a deck, then fade.
+- It runs on the scroll position alone, in `visualEffect`, with no state and no layout changes, so it stays smooth for long lazy lists.
+- Give each row its own opaque background, such as a card, so the rows under it are hidden.
+- Use the container, `StackingScroll(items) { row }`, or add `.stackingRow()` to each row of your own `ScrollView` and `LazyVStack`.
+- Under Reduce Motion the rows still stack, since they follow your finger rather than animate on their own.

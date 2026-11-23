@@ -1,0 +1,445 @@
+---
+title: "Video Rotate"
+description: "Full-screen video for portrait apps: the player turns a quarter turn as it grows across the screen on black."
+piece: "VideoRotate"
+category: "media"
+minIOSVersion: "17.0"
+version: "1.0.0"
+tags: ["video","player","fullscreen","rotate","landscape","orientation"]
+registryDependencies: []
+---
+
+{/* GENERATED FILE. Edit registry/swift/media/VideoRotate.swift or VideoRotate.mdx instead. */}
+
+<Showcase name="VideoRotate">
+
+<Tabs items={["VideoRotate.swift"]}>
+<Tab value="VideoRotate.swift">
+
+```swift title="VideoRotate.swift"
+// Copyright (c) 2026 Saivion Hayes
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, and distribute the Software as part of
+// an application, website, or product, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// Commons Clause Restriction
+//
+// You may use this Software, including for any commercial purpose, so long as
+// you do not sell, sublicense, or redistribute the components themselves, whether
+// alone, in a bundle, or as a ported version.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
+import SwiftUI
+
+/// Sizes and colors for `VideoRotate`.
+public struct VideoRotateStyle: Sendable {
+    /// The player's corner radius in its place, and full screen.
+    public var inlineRadius: CGFloat
+    public var fullRadius: CGFloat
+    /// The gap around the player in its place.
+    public var inset: CGFloat
+    /// Which way the player turns: `true` for a quarter turn clockwise, so the phone is held with its top to the right.
+    public var clockwise: Bool
+    /// The color behind the player while it is full screen.
+    public var backdrop: Color
+
+    public init(inlineRadius: CGFloat = 16, fullRadius: CGFloat = 0, inset: CGFloat = 16, clockwise: Bool = true, backdrop: Color = .black) {
+        self.inlineRadius = inlineRadius
+        self.fullRadius = fullRadius
+        self.inset = inset
+        self.clockwise = clockwise
+        self.backdrop = backdrop
+    }
+
+    public static let standard = VideoRotateStyle()
+}
+
+/// A player that turns sideways to fill the screen, with the page under it.
+///
+/// It fills the space it is given, edge to edge, and keeps its own content inside the safe area. Give it the
+/// whole screen.
+///
+/// - Parameters:
+///   - isFullScreen: Whether the player is turned and full screen. The expand button sets it.
+///   - aspectRatio: The video's width over its height.
+///   - style: Sizes and colors.
+///   - player: The video. It gets an expand button in its top trailing corner.
+///   - details: Shown under the player in its place: a title, actions, what plays next.
+public struct VideoRotate<Player: View, Details: View>: View {
+    public typealias Style = VideoRotateStyle
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Binding private var isFullScreen: Bool
+    @State private var turns = 0
+
+    private let aspectRatio: CGFloat
+    private let style: Style
+    private let player: Player
+    private let details: Details
+
+    public init(
+        isFullScreen: Binding<Bool>,
+        aspectRatio: CGFloat = 16 / 9,
+        style: Style = .standard,
+        @ViewBuilder player: () -> Player,
+        @ViewBuilder details: () -> Details
+    ) {
+        self._isFullScreen = isFullScreen
+        self.aspectRatio = aspectRatio
+        self.style = style
+        self.player = player()
+        self.details = details()
+    }
+
+    public var body: some View {
+        GeometryReader { proxy in
+            let size = proxy.size
+            let safe = proxy.safeAreaInsets
+            let inlineWidth = size.width - safe.leading - safe.trailing - style.inset * 2
+            let inline = CGRect(x: safe.leading + style.inset, y: safe.top + 8, width: inlineWidth, height: inlineWidth / aspectRatio)
+            // Turned, the player's width runs along the screen's height.
+            let fullWidth = min(size.height, size.width * aspectRatio)
+            let full = CGSize(width: fullWidth, height: fullWidth / aspectRatio)
+            let videoSize = isFullScreen ? full : inline.size
+            let center = isFullScreen ? CGPoint(x: size.width / 2, y: size.height / 2) : CGPoint(x: inline.midX, y: inline.midY)
+
+            ZStack(alignment: .topLeading) {
+                details
+                    .frame(width: inlineWidth, alignment: .topLeading)
+                    .offset(x: inline.minX, y: inline.maxY + 16)
+                    .opacity(isFullScreen ? 0 : 1)
+                    .allowsHitTesting(!isFullScreen)
+                    .accessibilityHidden(isFullScreen)
+
+                style.backdrop
+                    .opacity(isFullScreen ? 1 : 0)
+                    .allowsHitTesting(isFullScreen)
+                    .accessibilityHidden(true)
+
+                player
+                    .frame(width: videoSize.width, height: videoSize.height)
+                    .overlay(alignment: .topTrailing) { expandButton }
+                    .clipShape(.rect(cornerRadius: isFullScreen ? style.fullRadius : style.inlineRadius, style: .continuous))
+                    .rotationEffect(.degrees(isFullScreen ? (style.clockwise ? 90 : -90) : 0))
+                    .offset(x: center.x - videoSize.width / 2, y: center.y - videoSize.height / 2)
+                    .accessibilityElement(children: .contain)
+                    .accessibilityAction(named: isFullScreen ? "Exit full screen" : "Full screen") { toggle() }
+            }
+            .frame(width: size.width, height: size.height, alignment: .topLeading)
+        }
+        .ignoresSafeArea()
+        .statusBarHidden(isFullScreen)
+        .persistentSystemOverlays(isFullScreen ? .hidden : .automatic)
+        .sensoryFeedback(.impact(weight: .light), trigger: turns)
+    }
+
+    private var expandButton: some View {
+        Button {
+            toggle()
+        } label: {
+            Image(systemName: isFullScreen ? "arrow.down.right.and.arrow.up.left" : "arrow.up.left.and.arrow.down.right")
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(.white)
+                .frame(width: 32, height: 32)
+                .background(.black.opacity(0.32), in: .circle)
+                .frame(width: 44, height: 44)
+                .contentShape(.rect)
+        }
+        .buttonStyle(.plain)
+        .padding(isFullScreen ? 16 : 4)
+        .accessibilityLabel(isFullScreen ? "Exit full screen" : "Full screen")
+    }
+
+    private func toggle() {
+        turns += 1
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        withAnimation(isFullScreen ? motion.settle : motion.morph) { isFullScreen.toggle() }
+    }
+}
+
+// MARK: - Example
+
+/// An episode page. Tap the expand button to turn the video sideways across the screen.
+private struct VideoRotateExample: View {
+    @State private var isFullScreen = false
+
+    var body: some View {
+        VideoRotate(isFullScreen: $isFullScreen) {
+            ZStack(alignment: .bottomLeading) {
+                VideoRotatePrint(kind: 2)
+                Image(systemName: "play.fill")
+                    .font(.title3.weight(.semibold))
+                    .foregroundStyle(.white)
+                    .frame(width: 52, height: 52)
+                    .background(.black.opacity(0.28), in: .circle)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                GeometryReader { proxy in
+                    ZStack(alignment: .leading) {
+                        Capsule().fill(.white.opacity(0.35))
+                        Capsule().fill(.white).frame(width: proxy.size.width * 0.34)
+                    }
+                    .frame(height: 3)
+                    .frame(maxHeight: .infinity, alignment: .bottom)
+                }
+                .padding(12)
+            }
+        } details: {
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Lake Ida, episode 3").font(.title3.weight(.semibold))
+                Text("Weekend Trails · 24 min").font(.subheadline.weight(.semibold)).foregroundStyle(.secondary)
+                HStack(spacing: 10) {
+                    ForEach(["Save", "Share", "Download"], id: \.self) { action in
+                        Text(action)
+                            .font(.subheadline.weight(.semibold))
+                            .padding(.horizontal, 14)
+                            .frame(height: 36)
+                            .background(Color(UIColor.tertiarySystemFill), in: .rect(cornerRadius: 15, style: .continuous))
+                    }
+                }
+                .padding(.top, 10)
+            }
+        }
+        .background(Color(UIColor { @Sendable traits in
+            traits.userInterfaceStyle == .dark ? UIColor(red: 0.071, green: 0.071, blue: 0.071, alpha: 1) : UIColor(red: 0.953, green: 0.949, blue: 0.933, alpha: 1)
+        }))
+    }
+}
+
+/// A flat print in the house palette, standing in for a photo in the example. Swap in your own images.
+private struct VideoRotatePrint: View {
+    /// Which of the eight prints: 0 Sunrise, 1 Lake, 2 Pines, 3 Waves, 4 Dunes, 5 Night, 6 Bloom, 7 Kite.
+    var kind: Int
+
+    private static let blue = Color(red: 0.18, green: 0.545, blue: 1)
+    private static let yellow = Color(red: 1, green: 0.761, blue: 0.102)
+    private static let teal = Color(red: 0, green: 0.769, blue: 0.655)
+    private static let pink = Color(red: 1, green: 0, blue: 0.361)
+    private static let orange = Color(red: 1, green: 0.541, blue: 0.122)
+    private static let red = Color(red: 1, green: 0, blue: 0)
+    private static let ink = Color(red: 0.078, green: 0.078, blue: 0.078)
+    private static let paper = Color(red: 0.957, green: 0.953, blue: 0.937)
+
+    var body: some View {
+        Canvas { context, size in
+            let w = size.width, h = size.height, m = min(w, h)
+            func disc(_ x: CGFloat, _ y: CGFloat, _ r: CGFloat, _ color: Color) {
+                context.fill(Path(ellipseIn: CGRect(x: x - r, y: y - r, width: r * 2, height: r * 2)), with: .color(color))
+            }
+            func band(_ y: CGFloat, _ height: CGFloat, _ color: Color) {
+                context.fill(Path(CGRect(x: 0, y: y, width: w, height: height)), with: .color(color))
+            }
+            switch kind % 8 {
+            case 0:
+                band(0, h, Self.orange)
+                disc(w * 0.5, h * 0.64, m * 0.34, Self.yellow)
+                for (y, t) in [(0.66, 0.035), (0.74, 0.05), (0.83, 0.07), (0.93, 0.07)] as [(CGFloat, CGFloat)] { band(h * y, h * t, Self.pink) }
+            case 1:
+                band(0, h, Self.blue)
+                disc(w * 0.7, h * 0.32, m * 0.13, Self.yellow)
+                band(h * 0.6, h * 0.4, Self.teal)
+                for (a, b, l) in [(0.2, 0.72, 0.22), (0.55, 0.8, 0.28), (0.3, 0.9, 0.18)] as [(CGFloat, CGFloat, CGFloat)] {
+                    var ripple = Path()
+                    ripple.move(to: CGPoint(x: w * a, y: h * b))
+                    ripple.addLine(to: CGPoint(x: w * (a + l), y: h * b))
+                    context.stroke(ripple, with: .color(Self.paper), style: StrokeStyle(lineWidth: max(1, m * 0.025), lineCap: .round))
+                }
+            case 2:
+                band(0, h, Self.teal)
+                disc(w * 0.3, h * 0.32, m * 0.17, Self.pink)
+                let count = max(4, Int((w / m * 5).rounded()))
+                for i in 0..<count {
+                    let x = (CGFloat(i) + 0.5) / CGFloat(count) * w, half = w / CGFloat(count) * 0.62
+                    let height = h * (0.34 + CGFloat((i * 37) % 5) / 5 * 0.2)
+                    var pine = Path()
+                    pine.move(to: CGPoint(x: x, y: h - height))
+                    pine.addLine(to: CGPoint(x: x + half, y: h))
+                    pine.addLine(to: CGPoint(x: x - half, y: h))
+                    pine.closeSubpath()
+                    context.fill(pine, with: .color(Self.ink))
+                }
+            case 3:
+                band(0, h, Self.pink)
+                disc(w * 0.72, h * 0.3, m * 0.16, Self.yellow)
+                for (j, color) in [Self.blue, Self.teal].enumerated() {
+                    let r = m * 0.1, y = h * (0.62 + CGFloat(j) * 0.16)
+                    var waves = Path()
+                    waves.move(to: CGPoint(x: -r * 3, y: h))
+                    waves.addLine(to: CGPoint(x: -r * 3, y: y + r))
+                    var x = -r * 2 + CGFloat(j) * r
+                    while x < w + r * 3 {
+                        waves.addArc(center: CGPoint(x: x, y: y + r), radius: r, startAngle: .degrees(180), endAngle: .degrees(0), clockwise: false)
+                        x += r * 2
+                    }
+                    waves.addLine(to: CGPoint(x: w + r * 3, y: h))
+                    waves.closeSubpath()
+                    context.fill(waves, with: .color(color))
+                }
+            case 4:
+                band(0, h, Self.yellow)
+                disc(w * 0.66, h * 0.3, m * 0.1, Self.red)
+                disc(w * 0.18, h + m * 0.25, m * 0.62, Self.orange)
+                disc(w * 0.9, h + m * 0.38, m * 0.6, Self.pink)
+            case 5:
+                band(0, h, Self.ink)
+                disc(w * 0.62, h * 0.38, m * 0.22, Self.blue)
+                disc(w * 0.62 + m * 0.1, h * 0.38 - m * 0.06, m * 0.2, Self.ink)
+                for (a, b) in [(0.2, 0.2), (0.3, 0.6), (0.15, 0.45), (0.85, 0.75), (0.42, 0.15), (0.8, 0.18)] as [(CGFloat, CGFloat)] {
+                    disc(w * a, h * b, max(0.8, m * 0.012), Self.paper)
+                }
+                band(h * 0.84, h * 0.16, Self.teal)
+            case 6:
+                band(0, h, Self.blue)
+                let r = m * 0.14
+                for i in 0..<6 {
+                    let angle = Double(i) / 6 * 2 * .pi
+                    disc(w * 0.5 + CGFloat(cos(angle)) * r * 1.25, h * 0.5 + CGFloat(sin(angle)) * r * 1.25, r, Self.pink)
+                }
+                disc(w * 0.5, h * 0.5, r * 0.9, Self.yellow)
+            default:
+                band(0, h, Self.orange)
+                let x = w * 0.56, y = h * 0.4, s = m * 0.24
+                var kite = Path()
+                kite.move(to: CGPoint(x: x, y: y - s))
+                kite.addLine(to: CGPoint(x: x + s * 0.7, y: y))
+                kite.addLine(to: CGPoint(x: x, y: y + s * 1.2))
+                kite.addLine(to: CGPoint(x: x - s * 0.7, y: y))
+                kite.closeSubpath()
+                context.fill(kite, with: .color(Self.teal))
+                var shade = Path()
+                shade.move(to: CGPoint(x: x, y: y - s))
+                shade.addLine(to: CGPoint(x: x, y: y + s * 1.2))
+                shade.addLine(to: CGPoint(x: x + s * 0.7, y: y))
+                shade.closeSubpath()
+                context.fill(shade, with: .color(Self.ink.opacity(0.18)))
+                var string = Path()
+                string.move(to: CGPoint(x: x, y: y + s * 1.2))
+                string.addCurve(to: CGPoint(x: w * 0.2, y: h * 1.02), control1: CGPoint(x: x - s, y: y + s * 2), control2: CGPoint(x: x + s * 0.4, y: h * 0.85))
+                context.stroke(string, with: .color(Self.ink), lineWidth: max(1, m * 0.012))
+            }
+        }
+        .accessibilityHidden(true)
+    }
+}
+
+#Preview("Light") {
+    VideoRotateExample()
+}
+
+#Preview("Dark") {
+    VideoRotateExample()
+        .preferredColorScheme(.dark)
+}
+
+// MARK: - Piece motion
+//
+// The SwiftPieces motion language: shared spring tokens and gesture physics, with the same values in every
+// piece. Each piece carries a copy of only the parts it uses, so this file stands alone. Generated from
+// registry/foundation/PieceMotion.swift in the SwiftPieces repo; edit it there, not here.
+// swiftpieces-motion: 1.1.0 (core)
+
+/// The SwiftPieces motion language: five spring tiers, and a named role for every moment a piece moves,
+/// each with its Reduce Motion substitute.
+///
+/// Build one from the environment, `PieceMotion(reduceMotion: reduceMotion)`, and pick the role that names
+/// what just happened. Never animate the tracking of a finger: set gesture state directly in `onChanged`, so the
+/// surface stays under the finger, and spring only the release.
+private struct PieceMotion {
+    var reduceMotion = false
+
+    // Tiers. Overshoot and settle times are measured from rest with SwiftUI's Spring.
+    /// No overshoot, 90% in about 90ms. A press arriving under the finger.
+    static var tight: Spring { Spring(duration: 0.14, bounce: 0) }
+    /// About 2.8% overshoot, 90% in about 140ms. Snapping to a detent, page or segment.
+    static var responsive: Spring { Spring(duration: 0.32, bounce: 0.25) }
+    /// About 8.4% overshoot. Visible give: a release, a return from past an edge, a drag settling home.
+    static var elastic: Spring { Spring(duration: 0.42, bounce: 0.38) }
+    /// About 15% overshoot. A resolved action landing. At most once per interaction.
+    static var expressive: Spring { Spring(duration: 0.48, bounce: 0.48) }
+    /// About 1.5% overshoot, unhurried. Opening large surfaces and ambient change.
+    static var calm: Spring { Spring(duration: 0.5, bounce: 0.2) }
+
+    /// Reduce Motion: settles become this short spring with no overshoot.
+    private static var still: Animation { .spring(duration: 0.25, bounce: 0) }
+
+    // Roles.
+    /// Touch-down. Starts on the same frame and never bounces under the finger.
+    var press: Animation { .spring(Self.tight) }
+    /// The finger lifts off a pressed surface, which springs back through rest.
+    var release: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A dragged thing comes to rest. With a gesture's velocity, use `settle(velocity:from:to:)` instead.
+    var settle: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// Lands on a detent, page or segment.
+    var snap: Animation { reduceMotion ? Self.still : .spring(Self.responsive) }
+    /// A number, a chart value or anything else people read moves to its new value. Never overshoots, so it
+    /// never shows a value that isn't true.
+    var value: Animation { reduceMotion ? Self.still : .spring(duration: 0.35, bounce: 0) }
+    /// Comes back from past a limit: a pull beyond the edge, a value pushed against its bound.
+    var rebound: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A shape or container changes size, corner radius or form, with a little give at the end.
+    var morph: Animation { reduceMotion ? Self.still : .spring(duration: 0.4, bounce: 0.2) }
+    /// Something appears, opens or expands. Opening is a little slower than closing.
+    var reveal: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.calm) }
+    /// Something leaves, closes or collapses. Quick and firm, out of the way.
+    var dismiss: Animation { reduceMotion ? .easeIn(duration: 0.18) : .spring(duration: 0.3, bounce: 0.08) }
+    /// A resolved action lands: a check, a sent state, a reaction.
+    var success: Animation { reduceMotion ? .easeOut(duration: 0.24) : .spring(Self.expressive) }
+    /// A refused action. Firm, no wobble; `pieceShake` adds the movement.
+    var error: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.responsive) }
+    /// Slow ambient change. Loops themselves stop under Reduce Motion: check `allowsAmbient`.
+    var ambient: Animation { reduceMotion ? .easeInOut(duration: 0.3) : .spring(Self.calm) }
+
+    /// Loops, drifts, idle breathing and parallax run only when this is true.
+    var allowsAmbient: Bool { !reduceMotion }
+
+    /// A moving transition, or a plain fade under Reduce Motion.
+    func transition(_ transition: AnyTransition) -> AnyTransition {
+        reduceMotion ? .opacity : transition
+    }
+
+    /// For content replaced inside a container that stays put (a label, a glyph, a count): the old content
+    /// blurs out as the new one sharpens in. A fade under Reduce Motion.
+    @MainActor var swap: AnyTransition {
+        reduceMotion ? .opacity : AnyTransition(.blurReplace)
+    }
+}
+
+// swiftpieces-motion: end
+```
+
+</Tab>
+</Tabs>
+
+</Showcase>
+
+<PieceFacts name="VideoRotate" />
+
+Sizes and colors for `VideoRotate`.
+
+## Notes
+
+- For apps that stay in portrait: the expand button turns only the player a quarter turn and grows it across the screen on black, so the rest of the app keeps its layout and you do not need to unlock rotation.
+- It fills the space it is given edge to edge and keeps its own content inside the safe area, so give it the whole screen. The status bar and home indicator hide while it is full screen.
+- `clockwise` picks which way it turns. The default is a quarter turn clockwise, so the phone is held with its top to the right.
+- `isFullScreen` is a binding: drive it from your own controls, or from the device's orientation, if you like.
+- VoiceOver gets Full screen and Exit full screen actions on the player.
+- Under Reduce Motion the turn runs without bounce.
+
+## Usage
+
+```swift
+VideoRotateExample()
+```
+

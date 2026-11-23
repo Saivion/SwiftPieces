@@ -1,0 +1,9 @@
+## Notes
+
+- Wraps your own views: pass any `Identifiable` items and draw each photo in `content`. Each is clipped to `style.cornerRadius` and sized to a square, so images should fill (`.scaledToFill()`).
+- The first four items make the pile, tilted 0°, -4°, 7° and -9° and nudged a few points apart; the rest wait hidden under it. A tap fans them all into a grid of `columns` columns.
+- Each photo travels on its own spring a beat after the one before (`PieceMotion.follow(rank:)`), so the grid fills in reading order; gathering runs the other way round, so the last photo leaves first.
+- It takes the width it is offered and grows to the height the grid needs, so put it in a `ScrollView` or a `VStack`. The count under the pile comes from `countLabel`; pass `nil` to hide it.
+- Pass `onSelect` to open a photo tapped in the grid. Without it, a tap in the grid gathers the pile again.
+- VoiceOver reads the pile as one button with its count, and the grid as separate photos, with Show all and Stack actions. A light haptic marks each toggle.
+- Under Reduce Motion the photos move without bounce.
