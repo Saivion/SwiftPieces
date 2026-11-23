@@ -12779,7 +12779,7 @@
   {
     "url": "/docs/components/motion/distortion-wave",
     "title": "Distortion Wave",
-    "description": "A Metal transition where a ring of refraction with a warm fringe opens from the button you tapped onto the next screen.",
+    "description": "A Metal transition where a ring of glass opens from the button you tapped, magnifying the next screen through its rim.",
     "breadcrumbs": [
       "SwiftPieces",
       "Components",
@@ -12797,7 +12797,7 @@
         },
         {
           "heading": "notes",
-          "content": "When `isRevealed` turns on, a ring opens from the button you mark with `.distortionWaveOrigin($frame)`: the old screen bends away outside it, the new one shows through inside it, and a warm fringe of pink, orange and red runs along its edge."
+          "content": "When `isRevealed` turns on, a ring opens from the button you mark with `.distortionWaveOrigin($frame)`: the new screen shows inside it, magnified toward the rim like the edge of a lens, the old one is drawn into it from outside, and a thin highlight with a touch of colour split runs along the edge."
         },
         {
           "heading": "notes",

@@ -23,6 +23,8 @@ const IC = {
 };
 function icon(x, d, cx, cy, size, stroke, { lw = 2, fill = null } = {}) { x.save(); x.translate(cx - size / 2, cy - size / 2); x.scale(size / 24, size / 24); if (fill) { x.fillStyle = fill; x.fill(ip(d)); } if (stroke) { x.strokeStyle = stroke; x.lineWidth = lw; x.lineCap = x.lineJoin = "round"; x.stroke(ip(d)); } x.restore(); }
 const rr = (x, X, Y, W, H, R) => { x.beginPath(); x.roundRect(X, Y, W, H, Math.max(0, Math.min(R, W / 2, H / 2))); };
+/** Liquid glass on the web: a frosted, see-through fill with a light rim and a soft shadow. `tint` paints it solid inside. */
+function liquid(x, c, u, X, Y, W, H, R, tint = null) { x.save(); x.shadowColor = c.dark ? "rgba(0,0,0,0.45)" : "rgba(0,0,0,0.12)"; x.shadowBlur = 1.6 * u; x.shadowOffsetY = .6 * u; x.fillStyle = tint || (c.dark ? "rgba(46,46,46,0.62)" : "rgba(255,255,255,0.62)"); rr(x, X, Y, W, H, R); x.fill(); x.shadowColor = "transparent"; const g = x.createLinearGradient(0, Y, 0, Y + H); g.addColorStop(0, c.dark ? "rgba(255,255,255,0.22)" : "rgba(255,255,255,0.95)"); g.addColorStop(1, c.dark ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.35)"); x.strokeStyle = g; x.lineWidth = .12 * u; rr(x, X + .06 * u, Y + .06 * u, W - .12 * u, H - .12 * u, Math.max(0, R - .06 * u)); x.stroke(); x.restore(); }
 function glassFill(x, c, u, X, Y, W, H, R, fill = c.glass) { x.save(); x.shadowColor = c.shadow; x.shadowBlur = 1.4 * u; x.shadowOffsetY = .5 * u; x.fillStyle = fill; rr(x, X, Y, W, H, R); x.fill(); x.restore(); }
 let FAM = "-apple-system, system-ui, sans-serif";
 export const setFont = f => { FAM = f; };
@@ -100,7 +102,7 @@ SK.PhotoStack = [6.6, ({ x, S, u, lt, c, touch }) => {
     x.save(); x.translate(px, py); x.rotate(ro); drawPhoto(x, photo(gs, gs, [3, 5, 2, 0][i]), -sz / 2, -sz / 2, sz, sz, 1.4 * u, { shadow: c.shadow, u }); x.restore();
   }
   const q0 = lt < 4.0 ? clamp(spr(lt - 1.05, 6.5, 11)) : clamp(1 - spr(lt - 4.05, 7, 12));
-  txt(x, "4 photos", cx, lerp(cy + st / 2 + 2.2 * u, cy + tw2 / 2 + 1.8 * u, q0), 1.1 * u, c.muted);
+  { const cw = tw(x, "4 photos", 1.05 * u) + 2.6 * u, ch = 2.7 * u, cy2 = lerp(cy + st / 2 + .4 * u, cy + tw2 / 2 + 2 * u, q0); x.save(); x.globalAlpha = 1 - q0; liquid(x, c, u, cx - cw / 2, cy2 - ch / 2, cw, ch, ch * .42); txt(x, "4 photos", cx, cy2, 1.05 * u, c.text); x.restore(); }
   touch(cx + 1 * u, cy + 1 * u, (lt > .85 && lt < 1.05) || (lt > 3.85 && lt < 4.05));
 }];
 
@@ -143,9 +145,9 @@ SK.GenieDelete = [6.8, ({ x, S, u, lt, c, touch, mem }) => {
     x.globalAlpha = 1;
   }
   const tb = lt > 1.8 && lt < 4 ? 1 + .25 * bump(lt - 1.8) : 1, pr = lt > .85 && lt < 1.05 ? .92 : 1;
-  x.save(); x.translate(tX, tY); x.scale(tb * pr, tb * pr); glassFill(x, c, u, -2.2 * u, -2.2 * u, 4.4 * u, 4.4 * u, 2.2 * u); icon(x, IC.trash, 0, 0, 2 * u, c.text, { lw: 2 }); x.restore();
+  x.save(); x.translate(tX, tY); x.scale(tb * pr, tb * pr); liquid(x, c, u, -2.2 * u, -2.2 * u, 4.4 * u, 4.4 * u, 2.2 * u); icon(x, IC.trash, 0, 0, 2 * u, c.text, { lw: 2 }); x.restore();
   const pa = lt > 1.9 && lt < 4.4 ? clamp(spr(lt - 1.9, 8, 12), 0, 1.1) * (1 - seg(lt, 4.15, 4.4)) : 0;
-  if (pa > 0) { x.save(); x.globalAlpha = clamp(pa); x.translate(S / 2, tY - 5 * u); x.scale(.8 + .2 * pa, .8 + .2 * pa); const w = 17 * u; glassFill(x, c, u, -w / 2, -1.7 * u, w, 3.4 * u, 1.4 * u); txt(x, "Note deleted", -w / 2 + 1.4 * u, 0, 1.05 * u, c.text, "left"); txt(x, "Undo", w / 2 - 1.4 * u, 0, 1.05 * u, c.signal, "right"); x.restore(); }
+  if (pa > 0) { x.save(); x.globalAlpha = clamp(pa); x.translate(S / 2, tY - 5 * u); x.scale(.8 + .2 * pa, .8 + .2 * pa); const w = 17 * u; liquid(x, c, u, -w / 2, -1.7 * u, w, 3.4 * u, 1.43 * u); txt(x, "Note deleted", -w / 2 + 1.4 * u, 0, 1.05 * u, c.text, "left"); txt(x, "Undo", w / 2 - 1.4 * u, 0, 1.05 * u, c.signal, "right"); x.restore(); }
   touch(tX, tY, lt > .85 && lt < 1.05); if (lt > 3.95 && lt < 4.15) touch(S / 2 + 7 * u, tY - 5 * u, true);
 }];
 
@@ -159,7 +161,7 @@ SK.MiniPlayer = [7.4, ({ x, S, u, lt, c, touch }) => {
   const ia = 1 - clamp(mini * 2.2); if (ia > 0) { x.globalAlpha = ia; txt(x, "Lake Ida · Episode 3", E[0] + .2 * u, E[1] + E[3] + 2 * u, 1.2 * u, c.text, "left"); txt(x, "Weekend Trails · 24 min", E[0] + .2 * u, E[1] + E[3] + 3.8 * u, 1 * u, c.muted, "left"); x.globalAlpha = 1; }
   sh(x, c, u, r[0], r[1], r[2], r[3], lerp(1.6 * u, 1 * u, mini), 1 + mini); cover(x, photo(E[2], E[3], 2), r[0], r[1], r[2], r[3], lerp(1.6 * u, 1 * u, mini));
   x.save(); rr(x, r[0], r[1], r[2], r[3], lerp(1.6 * u, 1 * u, mini)); x.clip(); x.fillStyle = "rgba(255,255,255,.35)"; x.fillRect(r[0], r[1] + r[3] - .3 * u, r[2], .3 * u); x.fillStyle = "#fff"; x.fillRect(r[0], r[1] + r[3] - .3 * u, r[2] * .38, .3 * u); x.restore();
-  const ps = lerp(2.6, 1.6, mini) * u; x.fillStyle = "rgba(0,0,0,.28)"; x.beginPath(); x.arc(r[0] + r[2] / 2, r[1] + r[3] / 2, ps, 0, 7); x.fill(); icon(x, IC.play, r[0] + r[2] / 2 + .1 * u, r[1] + r[3] / 2, ps * .95, null, { fill: "#fff" });
+  const ps = lerp(2.6, 1.6, mini) * u; liquid(x, { ...c, dark: false }, u, r[0] + r[2] / 2 - ps, r[1] + r[3] / 2 - ps, ps * 2, ps * 2, ps, "rgba(255,255,255,0.38)"); icon(x, IC.play, r[0] + r[2] / 2 + .1 * u, r[1] + r[3] / 2, ps * .95, null, { fill: "#141414" });
   const fx = r[0] + r[2] / 2, fy = r[1] + r[3] / 2; touch(fx, fy, (lt > .85 && lt < 1.6) || (lt > 2.85 && lt < 3.3) || (lt > 5.25 && lt < 5.45));
 }];
 
@@ -175,26 +177,44 @@ SK.AlbumOpen = [7.2, ({ x, S, u, lt, c, touch }) => {
     const from = [A0x + as / 2, A0y + as / 2, k < 3 ? as : as * .9], to = [gx0 + (k % 3) * (gs + gg) + gs / 2, gy0 + Math.floor(k / 3) * (gs + gg) + gs / 2, gs], r = R2(from, to, q), ro = k < 3 ? [-6, 5, 0][k] * (1 - qc) : 0;
     if (k >= 3 && qc <= .02) continue; x.save(); x.globalAlpha = k < 3 ? 1 : qc; x.translate(r[0], r[1]); x.rotate(ro * Math.PI / 180); sh(x, c, u, -r[2] / 2, -r[2] / 2, r[2], r[2], lerp(1, .6, qc) * u); cover(x, photo(gs * 1.3, gs * 1.3, k % 8), -r[2] / 2, -r[2] / 2, r[2], r[2], lerp(1, .6, qc) * u); x.restore();
   }
-  x.globalAlpha = 1 - oc; txt(x, names[0], A0x + as / 2, A0y + as + 1.6 * u, 1.05 * u, c.text); x.globalAlpha = oc; icon(x, IC.back, gx0 + .6 * u, gy0 - 2.6 * u, 1.6 * u, c.text, { lw: 2.4 }); txt(x, "Lake trip", gx0 + 2 * u, gy0 - 2.6 * u, 1.4 * u, c.text, "left"); txt(x, "9 photos", gx0 + 3 * gs + 2 * gg, gy0 - 2.6 * u, 1 * u, c.muted, "right"); x.globalAlpha = 1;
+  x.globalAlpha = 1 - oc; txt(x, names[0], A0x + as / 2, A0y + as + 1.6 * u, 1.05 * u, c.text); x.globalAlpha = oc; { const bw = tw(x, "Lake trip", 1.3 * u) + 4.4 * u; liquid(x, c, u, gx0, gy0 - 4.3 * u, bw, 3.4 * u, 1.43 * u); } icon(x, IC.back, gx0 + 1.4 * u, gy0 - 2.6 * u, 1.5 * u, c.text, { lw: 2.4 }); txt(x, "Lake trip", gx0 + 2.7 * u, gy0 - 2.6 * u, 1.3 * u, c.text, "left"); txt(x, "9 photos", gx0 + 3 * gs + 2 * gg, gy0 - 2.6 * u, 1 * u, c.muted, "right"); x.globalAlpha = 1;
   touch(lt < 2 ? A0x + as / 2 : gx0 + .6 * u, lt < 2 ? A0y + as / 2 : gy0 - 2.6 * u, (lt > T1 - .2 && lt < T1) || (lt > T2 - .2 && lt < T2));
 }];
 
 /* 195 Stacking Scroll */
-SK.StackingScroll = [7.2, ({ x, S, u, lt, c, touch }) => {
-  const rows = [["Ferry to Lake Ida", "Sat 9:00", "#2e8bff"], ["Lodge check-in", "Sat 15:00", "#00c4a7"], ["Kayak rental", "Sun 10:00", "#ffc21a"], ["Trail permit", "Sun", "#ff005c"], ["Harbor dinner", "Sun 19:30", "#ff8a1f"], ["Ferry home", "Mon 8:00", "#ffc21a"], ["Parking", "Mon", "#2e8bff"]];
-  const W = 25 * u, X = (S - W) / 2, rh = 5 * u, step = 5.7 * u, top = S / 2 - 7.8 * u;
-  const s = lt < 1 ? 0 : lt < 3.2 ? 17 * u * easeIO(seg(lt, 1, 3.2)) : lt < 4.4 ? 17 * u : lt < 6.4 ? 17 * u * (1 - easeIO(seg(lt, 4.4, 6.4))) : 0;
-  txt(x, "Passes", X, S / 2 - 11.2 * u, 1.6 * u, c.text, "left");
-  x.save(); x.beginPath(); x.rect(0, top - 3 * u, S, S); x.clip();
-  rows.forEach(([n, d, col], i) => {
+SK.StackingScroll = [7.2, ({ x, S, u, lt, c, touch, mem }) => {
+  // Passes as print cards, like Parallax Card: a flat ground, one big disc and a giant cropped word, under a glass
+  // caption. Scrolling up, each card stops at the top and stacks under the next.
+  const P = POP, rows = [["Ferry to Lake Ida", "Sat 9:00", "FERRY", P.blue, P.red], ["Lodge check-in", "Sat 15:00", "LODGE", P.teal, P.yellow], ["Kayak rental", "Sun 10:00", "KAYAK", P.yellow, P.pink], ["Trail permit", "Sun 13:00", "TRAIL", P.orange, P.blue], ["Harbor dinner", "Sun 19:30", "DINNER", P.pink, P.yellow], ["Ferry home", "Mon 8:00", "HOME", P.blue, P.yellow]];
+  const W = 26 * u, X = (S - W) / 2, rh = 13 * u, step = 14 * u, top = 6.6 * u, R = 2.2 * u, peek = .95 * u;
+  const key = "ss" + Math.round(W) + c.dark;
+  if (mem.key !== key) {
+    mem.key = key;
+    mem.art = rows.map(([, , word, ground, sun]) => { const [cv, a] = mkc(W, rh); a.fillStyle = ground; a.fillRect(0, 0, W, rh); a.fillStyle = sun; a.beginPath(); a.arc(W * .86, rh * .12, rh * .5, 0, 7); a.fill();
+      a.font = font(8.6 * u); a.textAlign = "left"; a.textBaseline = "alphabetic"; a.fillStyle = P.ink; if ("letterSpacing" in a) a.letterSpacing = `${-.4 * u}px`; a.fillText(word, -.45 * u, 6.3 * u); return cv; });
+  }
+  const s = lt < .9 ? 0 : lt < 3.4 ? 28 * u * easeIO(seg(lt, .9, 3.4)) : lt < 4.4 ? 28 * u : lt < 6.6 ? 28 * u * (1 - easeIO(seg(lt, 4.4, 6.6))) : 0;
+  txt(x, "Passes", X + .2 * u, 3.4 * u, 1.6 * u, c.text, "left");
+  x.save(); x.beginPath(); x.rect(0, top - 3.2 * u, S, S); x.clip();
+  rows.forEach(([name, when], i) => {
     const ny = top + i * step - s; let y = ny, sc = 1, a = 1;
-    if (ny < top) { const dd = (top - ny) / step; y = top - Math.min(dd, 3) * .55 * u; sc = 1 - Math.min(dd, 3) * .045; a = clamp(3.6 - dd); }
+    if (ny < top) { const dd = (top - ny) / step, sh = Math.min(dd, 3); y = top - sh * peek; sc = 1 - sh * .05; a = clamp(3.6 - dd); }
     if (a <= 0 || y > S) return;
-    x.save(); x.globalAlpha = a; x.translate(S / 2, y + rh / 2); x.scale(sc, sc); glassFill(x, c, u, -W / 2, -rh / 2, W, rh, 1.6 * u); x.fillStyle = col; rr(x, -W / 2, -rh / 2, 1 * u, rh, .5 * u); x.fill();
-    txt(x, n, -W / 2 + 2.2 * u, 0, 1.15 * u, c.text, "left"); txt(x, d, W / 2 - 1.4 * u, 0, 1 * u, c.muted, "right"); x.restore();
+    x.save(); x.globalAlpha = a; x.translate(S / 2, y); x.scale(sc, sc); x.translate(-W / 2, 0);
+    x.save(); x.shadowColor = c.shadow; x.shadowBlur = 1.6 * u; x.shadowOffsetY = .6 * u; x.fillStyle = rows[i][3]; rr(x, 0, 0, W, rh, R); x.fill(); x.restore();
+    x.save(); rr(x, 0, 0, W, rh, R); x.clip(); x.drawImage(mem.art[i], 0, 0, W, rh);
+    // The glass caption: frosted, with a light rim, carrying the pass's name and time.
+    const gx = .8 * u, gh = 4 * u, gy = rh - gh - .8 * u, gw = W - 1.6 * u, gr = 1.5 * u;
+    x.fillStyle = c.dark ? "rgba(24,24,24,0.55)" : "rgba(255,255,255,0.62)"; rr(x, gx, gy, gw, gh, gr); x.fill();
+    x.strokeStyle = c.dark ? "rgba(255,255,255,0.16)" : "rgba(255,255,255,0.9)"; x.lineWidth = .1 * u; rr(x, gx, gy, gw, gh, gr); x.stroke();
+    const ink = c.dark ? "#f4f3ef" : P.ink, soft = c.dark ? "rgba(244,243,239,0.62)" : "rgba(20,20,20,0.58)";
+    txt(x, name, gx + 1.3 * u, gy + 1.4 * u, 1.12 * u, ink, "left"); txt(x, when, gx + 1.3 * u, gy + 2.75 * u, .95 * u, soft, "left");
+    icon(x, "M7.5 16.5L16.5 7.5M9 7.5h7.5V15", gx + gw - 2.1 * u, gy + gh / 2, 1.7 * u, ink, { lw: 2.4 });
+    x.restore(); x.restore();
   });
   x.restore();
-  const fy = lt < 3.4 ? S / 2 + 9 * u - (lt > 1 ? 12 * u * easeIO(seg(lt, 1, 3.2)) : 0) : S / 2 - 3 * u + 12 * u * easeIO(seg(lt, 4.4, 6.4)); touch(S / 2 + 6 * u, fy, (lt > .9 && lt < 3.2) || (lt > 4.3 && lt < 6.4));
+  const fy = lt < 3.5 ? S / 2 + 10 * u - (lt > .9 ? 16 * u * easeIO(seg(lt, .9, 3.4)) : 0) : S / 2 - 6 * u + 16 * u * easeIO(seg(lt, 4.4, 6.6));
+  touch(S / 2 + 7 * u, fy, (lt > .8 && lt < 3.4) || (lt > 4.3 && lt < 6.6));
 }];
 
 /* 200 Draft Minimize */
@@ -288,7 +308,7 @@ SK.BookPull = [6.8, ({ x, S, u, lt, c, touch }) => {
   if (turn > 0) { x.save(); x.shadowColor = c.shadow; x.shadowBlur = 2.4 * u * turn; x.shadowOffsetY = 1 * u * turn; x.fillStyle = "#000"; rr(x, X0, top, tw2, ch, .6 * u); x.fill(); x.restore(); }
   spine(X0, top, sw, ch, col, t, Math.cos(turn * Math.PI / 2) * .5 + .5);
   if (cw > .05 * u) { x.save(); rr(x, X0 + sw, top, cw, ch, .6 * u); x.clip(); x.fillStyle = col; x.fillRect(X0 + sw, top, cw, ch); x.drawImage(photo(13.5 * u, 11 * u, 0), X0 + sw + cw * .08, top + ch * .26, cw * .84, ch * .52); x.fillStyle = `rgba(0,0,0,${.3 * (1 - turn)})`; x.fillRect(X0 + sw, top, cw, ch); x.save(); x.translate(X0 + sw + cw / 2, top); x.scale(cw / (13.5 * u), 1); txt(x, "Lake Days", 0, ch * .12, 1.7 * u, "#141414", "center", 700); txt(x, "R. HALE", 0, ch * .88, .9 * u, "#141414", "center", 700); x.restore(); x.fillStyle = "rgba(255,255,255,.25)"; x.fillRect(X0 + sw, top, .3 * u, ch); x.restore(); }
-  const ta = clamp(turn * 2 - 1); if (ta > 0) { x.globalAlpha = ta; pill(x, c, u, S / 2, S / 2 + 10.6 * u, "Start reading", { fill: c.text, ink: c.page, glass: false }); x.globalAlpha = 1; }
+  const ta = clamp(turn * 2 - 1); if (ta > 0) { x.globalAlpha = ta; { const bw = tw(x, "Start reading", 1.1 * u) + 4 * u, bh = 3.6 * u; liquid(x, c, u, S / 2 - bw / 2, S / 2 + 10.6 * u - bh / 2, bw, bh, bh * .42, c.signal); txt(x, "Start reading", S / 2, S / 2 + 10.6 * u, 1.1 * u, "#141414"); } x.globalAlpha = 1; }
   touch(lt < 3 ? pos[3] + w * u / 2 : S / 2 - 8 * u, lt < 3 ? shelfY - 6 * u : S / 2 - 12 * u, (lt > .8 && lt < 1) || (lt > 4.4 && lt < 4.6));
 }];
 
@@ -370,32 +390,47 @@ SK.Marker = [7.4, ({ x, S, u, lt, c }) => {
 }];
 
 /* Distortion Wave */
-SK.DistortionWave = [5.6, ({ x, S, u, lt, t, c, mem, touch }) => {
-  const VW = 200, VH = 260, BX = 100, BY = 228, RAMP3 = [[255, 193, 214], [255, 138, 92], [242, 54, 28]];
-  const ramp = p => { p = clamp(p) * 1.999; const i = Math.floor(p), f = p - i, a = RAMP3[i], b = RAMP3[i + 1]; return [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f, a[2] + (b[2] - a[2]) * f]; };
-  const key = c.glass + c.text;
+SK.DistortionWave = [5.6, ({ x, S, u, lt, c, mem, touch }) => {
+  // The two screens are drawn at device resolution, so text stays sharp; only the band around the ring is
+  // bent pixel by pixel, the rest is two plain copies.
+  const VW = 200, VH = 260, BX = 100, BY = 228, w = 20 * u, h = 26 * u, X = (S - w) / 2, Y = (S - h) / 2;
+  const PW = Math.round(w), PH = Math.round(h), k = PW / VW, key = c.glass + c.text + PW;
   if (mem.key !== key) {
     mem.key = key;
-    const view = kind => { const [cv, v] = mkc(VW, VH); v.fillStyle = c.glass; v.fillRect(0, 0, VW, VH); v.textAlign = "center"; v.textBaseline = "alphabetic";
-      if (!kind) { v.fillStyle = "#ffc21a"; v.beginPath(); v.arc(100, 46, 16, 0, 7); v.fill(); v.fillStyle = "#141414"; v.font = font(11); v.fillText("MC", 100, 50); v.fillStyle = c.muted; v.font = font(10.5); v.fillText("Sending to Maya Chen", 100, 82); v.fillStyle = c.text; v.font = font(26); v.fillText("$1,250.00", 100, 116); v.strokeStyle = c.line; v.beginPath(); v.roundRect(16.5, 134.5, 167, 56, 10); v.stroke(); v.beginPath(); v.moveTo(16, 162.5); v.lineTo(184, 162.5); v.stroke(); v.font = font(10); v.textAlign = "left"; v.fillStyle = c.muted; v.fillText("From", 28, 152); v.fillText("Arrives", 28, 180); v.textAlign = "right"; v.fillStyle = c.text; v.fillText("Everyday ··4821", 172, 152); v.fillText("In seconds", 172, 180); v.fillStyle = c.signal; v.beginPath(); v.roundRect(16, 206, 168, 44, 18); v.fill(); v.textAlign = "center"; v.fillStyle = "#141414"; v.font = font(13); v.fillText("Confirm", 100, 232); }
-      else { v.fillStyle = c.signal; v.beginPath(); v.arc(100, 84, 26, 0, 7); v.fill(); v.strokeStyle = "#fff"; v.lineWidth = 3.4; v.lineCap = v.lineJoin = "round"; v.beginPath(); v.moveTo(89, 85); v.lineTo(96.5, 92); v.lineTo(111, 77); v.stroke(); v.fillStyle = c.text; v.font = font(22); v.fillText("Sent", 100, 144); v.fillStyle = c.muted; v.font = font(10.5); v.fillText("$1,250.00 to Maya Chen", 100, 164); v.fillText("Arrives in a few seconds", 100, 180); v.fillStyle = c.trough; v.beginPath(); v.roundRect(16, 206, 168, 44, 18); v.fill(); v.fillStyle = c.text; v.font = font(13); v.fillText("Done", 100, 232); }
-      return v.getImageData(0, 0, VW, VH).data; };
-    mem.A = view(0); mem.B = view(1); const [oc, ox] = mkc(VW, VH); mem.oc = oc; mem.ox = ox; mem.out = ox.createImageData(VW, VH);
+    const view = kind => { const [cv, v] = mkc(PW, PH); v.scale(k, PH / VH); v.fillStyle = c.glass; v.fillRect(0, 0, VW, VH); v.textAlign = "center"; v.textBaseline = "alphabetic";
+      if (!kind) { v.fillStyle = "#ffc21a"; v.beginPath(); v.arc(100, 46, 16, 0, 7); v.fill(); v.fillStyle = "#141414"; v.font = font(11); v.fillText("MC", 100, 50); v.fillStyle = c.muted; v.font = font(10.5); v.fillText("Sending to Maya Chen", 100, 82); v.fillStyle = c.text; v.font = font(26); v.fillText("$1,250.00", 100, 116); v.strokeStyle = c.line; v.lineWidth = 1; v.beginPath(); v.roundRect(16.5, 134.5, 167, 56, 10); v.stroke(); v.beginPath(); v.moveTo(16, 162.5); v.lineTo(184, 162.5); v.stroke(); v.font = font(10); v.textAlign = "left"; v.fillStyle = c.muted; v.fillText("From", 28, 152); v.fillText("Arrives", 28, 180); v.textAlign = "right"; v.fillStyle = c.text; v.fillText("Everyday ··4821", 172, 152); v.fillText("In seconds", 172, 180); v.fillStyle = c.signal; v.beginPath(); v.roundRect(16, 206, 168, 44, 18); v.fill(); v.textAlign = "center"; v.fillStyle = "#141414"; v.font = font(13); v.fillText("Confirm", 100, 232); }
+      else { v.fillStyle = c.signal; v.beginPath(); v.arc(100, 84, 26, 0, 7); v.fill(); v.strokeStyle = "#fff"; v.lineWidth = 3.4; v.lineCap = v.lineJoin = "round"; v.beginPath(); v.moveTo(89, 85); v.lineTo(96.5, 92); v.lineTo(111, 77); v.stroke(); v.fillStyle = c.text; v.font = font(22); v.fillText("Sent", 100, 144); v.fillStyle = c.muted; v.font = font(10.5); v.fillText("$1,250.00 to Maya Chen", 100, 164); v.fillText("Arrives in a few seconds", 100, 180); v.fillStyle = c.dark ? "rgba(255,255,255,0.12)" : c.trough; v.beginPath(); v.roundRect(16, 206, 168, 44, 18); v.fill(); v.fillStyle = c.text; v.font = font(13); v.fillText("Done", 100, 232); }
+      return [cv, v.getImageData(0, 0, PW, PH).data]; };
+    [mem.ca, mem.A] = view(0); [mem.cb, mem.B] = view(1);
+    const [oc, ox] = mkc(PW, PH); mem.oc = oc; mem.ox = ox; const [rc, rx] = mkc(PW, PH); mem.rc = rc; mem.rx = rx; mem.ring = rx.createImageData(PW, PH); mem.lastR = -1;
   }
-  const easeC = p => p < .5 ? 4 * p * p * p : 1 - (-2 * p + 2) ** 3 / 2, maxR = 290;
-  const Rr = lt < 1.3 ? 0 : lt < 2.6 ? easeC((lt - 1.3) / 1.3) * maxR : lt < 4.3 ? maxR : lt < 5.3 ? (1 - easeC((lt - 4.3) / 1)) * maxR : 0;
-  if (mem.lastR !== Rr || mem.lastKey !== key) {
-    mem.lastR = Rr; mem.lastKey = key; const o = mem.out.data, A = mem.A, B = mem.B, bw = 28;
-    for (let j = 0; j < VH; j++) for (let i = 0; i < VW; i++) {
-      const dx = i - BX, dy = j - BY, d = Math.hypot(dx, dy) || 1, q = d - Rr, b = (j * VW + i) * 4; let src = A, sx = i, sy = j;
-      if (Rr > 0) { if (q < 0) { src = B; const pull = q > -bw ? (bw + q) * .5 : 0; sx += dx / d * pull; sy += dy / d * pull; } else if (q < bw) { const pull = -(bw - q) * .6; sx += dx / d * pull; sy += dy / d * pull; } }
-      sx = Math.max(0, Math.min(VW - 1, sx | 0)); sy = Math.max(0, Math.min(VH - 1, sy | 0)); const kk = (sy * VW + sx) * 4; let r = src[kk], g = src[kk + 1], bl = src[kk + 2];
-      if (Rr > 0 && Rr < maxR && q > -12 && q < 9) { const e = (q < 0 ? 1 + q / 12 : 1 - q / 9) * .9, cc = ramp(.2 + .6 * (.5 + .5 * Math.sin(Math.atan2(dy, dx) * 2 + t * 1.5))); r += (cc[0] - r) * e; g += (cc[1] - g) * e; bl += (cc[2] - bl) * e; }
-      o[b] = r; o[b + 1] = g; o[b + 2] = bl; o[b + 3] = 255;
+  const easeC = p => p < .5 ? 4 * p * p * p : 1 - (-2 * p + 2) ** 3 / 2, maxR = 300 * k;
+  const R = lt < 1.3 ? 0 : lt < 2.7 ? easeC((lt - 1.3) / 1.4) * maxR : lt < 4.2 ? maxR : lt < 5.3 ? (1 - easeC((lt - 4.2) / 1.1)) * maxR : 0;
+  if (mem.lastR !== R) {
+    mem.lastR = R; const ox = mem.ox, cx = BX * k, cy = BY / VH * PH;
+    ox.clearRect(0, 0, PW, PH);
+    if (R <= 0) ox.drawImage(mem.ca, 0, 0);
+    else if (R >= maxR) ox.drawImage(mem.cb, 0, 0);
+    else {
+      ox.drawImage(mem.ca, 0, 0);
+      ox.save(); ox.beginPath(); ox.arc(cx, cy, Math.max(0, R), 0, 7); ox.clip(); ox.drawImage(mem.cb, 0, 0); ox.restore();
+      const o = mem.ring.data, A = mem.A, B = mem.B, band = 24 * k * Math.min(1, R / (48 * k)) + 1; o.fill(0);
+      const x0 = Math.max(0, Math.floor(cx - R - band)), x1 = Math.min(PW, Math.ceil(cx + R + band)), y0 = Math.max(0, Math.floor(cy - R - band)), y1 = Math.min(PH, Math.ceil(cy + R + band));
+      const lit = 255, rim = 1.3 * k, smp = (src, sx, sy, ch) => { sx = sx < 0 ? 0 : sx > PW - 1 ? PW - 1 : sx | 0; sy = sy < 0 ? 0 : sy > PH - 1 ? PH - 1 : sy | 0; return src[(sy * PW + sx) * 4 + ch]; };
+      for (let j = y0; j < y1; j++) for (let i = x0; i < x1; i++) {
+        const dx = i - cx, dy = j - cy, d = Math.hypot(dx, dy) || 1, q = d - R;
+        if (q <= -band || q >= band) continue;
+        const ux = dx / d, uy = dy / d, inside = q < 0, s = inside ? 1 + q / band : 1 - q / band, src = inside ? B : A;
+        // A convex glass edge: inside, the new screen is magnified toward the rim; outside, the old one is drawn into it.
+        const disp = inside ? Math.min(band * .55 * s * s, d * .8) : -band * .38 * s * s, split = disp * .12;
+        let r = smp(src, i - ux * (disp + split), j - uy * (disp + split), 0), g = smp(src, i - ux * disp, j - uy * disp, 1), b = smp(src, i - ux * (disp - split), j - uy * (disp - split), 2);
+        const hi = Math.exp(-(q * q) / (2 * rim * rim)) * .7 + (inside ? .10 * s * s * s : 0), sh = inside ? 0 : .10 * s * s;
+        r += (lit - r) * hi; g += (lit - g) * hi; b += (lit - b) * hi; r *= 1 - sh; g *= 1 - sh; b *= 1 - sh;
+        const p = (j * PW + i) * 4; o[p] = r; o[p + 1] = g; o[p + 2] = b; o[p + 3] = 255;
+      }
+      mem.rx.clearRect(0, 0, PW, PH); mem.rx.putImageData(mem.ring, 0, 0, x0, y0, Math.max(1, x1 - x0), Math.max(1, y1 - y0)); ox.drawImage(mem.rc, 0, 0);
     }
-    mem.ox.putImageData(mem.out, 0, 0);
   }
-  const w = 20 * u, h = 26 * u, X = (S - w) / 2, Y = (S - h) / 2;
-  glassFill(x, c, u, X, Y, w, h, 2.4 * u); x.save(); rr(x, X, Y, w, h, 2.4 * u); x.clip(); x.imageSmoothingQuality = "high"; x.drawImage(mem.oc, X, Y, w, h); x.restore();
+  glassFill(x, c, u, X, Y, w, h, 2.4 * u); x.save(); rr(x, X, Y, w, h, 2.4 * u); x.clip(); x.drawImage(mem.oc, X, Y, w, h); x.restore();
   touch(X + BX / VW * w, Y + BY / VH * h, lt > 1.05 && lt < 1.35);
 }];

@@ -15,7 +15,7 @@ export const changelog: ChangelogEntry[] = [
       "Photos: Photo Stack fans a pile into a grid, Album Open flies an album's photos into a full grid, Avatar Drop arcs the photo you pick into the avatar, and Snapshot turns any view into a shareable image with a flash and a tilted thumbnail.",
       "Players and places: Mini Player drags a video down into a floating corner window, Video Rotate turns the player sideways across the screen for portrait apps, and Map Expand opens a card's map thumbnail into a live MapKit map with a dropping pin.",
       "Lists and sheets: Stacking Scroll stacks rows at the top like a deck of passes, Draft Minimize tucks a compose card into a glass pill, and Book Pull slides a book off the shelf and turns it to its cover.",
-      "Motion: Genie Delete pours a view into the delete button and back out on Undo, and Distortion Wave opens the next screen through a Metal ring of refraction with a warm Signature fringe.",
+      "Motion: Genie Delete pours a view into the delete button and back out on Undo, and Distortion Wave opens the next screen through a Metal ring of glass that magnifies it at the rim.",
       "Text and input: Spoiler hides text under drifting specks that blow away from your finger, Marker draws highlights, underlines and circles on words in reading order, and Voice Dictation turns a mic into a capsule of live level bars.",
       "Every example uses the house's flat prints in the free palette, and each piece has notes, a preview scene and a live web preview. New badges move to these fifteen.",
     ],

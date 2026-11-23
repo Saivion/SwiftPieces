@@ -117,7 +117,7 @@ export const summaries: Record<string, string> = {
 
   // Motion
   GenieDelete: "Deleting pours a view into the button that deleted it like the macOS genie, and Undo pours it back out.",
-  DistortionWave: "A Metal transition where a ring of refraction with a warm fringe opens from the button you tapped onto the next screen.",
+  DistortionWave: "A Metal transition where a ring of glass opens from the button you tapped, magnifying the next screen through its rim.",
   DragToDismiss: "A modifier that lets a photo, card or sheet follow the drag, then springs it back or tosses it away at the speed of the flick.",
 
   // Navigation

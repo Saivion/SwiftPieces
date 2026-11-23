@@ -2395,11 +2395,11 @@ Colors and spacing for `ReorderList`. `.standard` is the house palette.
 ## Stacking Scroll (`StackingScroll`)
 
 URL: https://swiftpieces.com/docs/components/lists/stacking-scroll
-Category: Lists. iOS 17.0+.
+Category: Lists. iOS 17.0+. Liquid Glass on iOS 26 with a Material fallback.
 Files: StackingScroll.swift
 Install: npx swiftpieces add StackingScroll
 
-A list whose rows don't leave at the top edge: each one that scrolls up stops there and stacks under the next, a little smaller and a little higher, so the last few peek out like a deck of cards before they fade. Scroll back and they lift off the stack in order. It runs on the scroll position alone, with no state, so it stays smooth for long lists. For passes, tickets, itineraries, inboxes and timelines.
+A list whose cards don't leave at the top edge: each one that scrolls up stops there and stacks under the next, a little smaller and a little higher, so the last few peek out like passes in a wallet before they fade. Scroll back and they lift off the stack in order. It runs on the scroll position alone, with no state, so it stays smooth for long lists. For passes, tickets, itineraries, inboxes and timelines.
 
 How rows stack in a `StackingScroll`.
 
@@ -2516,7 +2516,7 @@ Interactive task row for to-do lists, driven by a bound `Status`. The card stays
 ## Album Open (`AlbumOpen`)
 
 URL: https://swiftpieces.com/docs/components/media/album-open
-Category: Media. iOS 17.0+.
+Category: Media. iOS 17.0+. Liquid Glass on iOS 26 with a Material fallback.
 Files: AlbumOpen.swift
 Install: npx swiftpieces add AlbumOpen
 
@@ -2597,7 +2597,7 @@ Sizes and colors for `AvatarDrop`.
 ## Book Pull (`BookPull`)
 
 URL: https://swiftpieces.com/docs/components/media/book-pull
-Category: Media. iOS 17.0+.
+Category: Media. iOS 17.0+. Liquid Glass on iOS 26 with a Material fallback.
 Files: BookPull.swift
 Install: npx swiftpieces add BookPull
 
@@ -2675,7 +2675,7 @@ Sizes and colors for `MapExpand`.
 ## Mini Player (`MiniPlayer`)
 
 URL: https://swiftpieces.com/docs/components/media/mini-player
-Category: Media. iOS 17.0+.
+Category: Media. iOS 17.0+. Liquid Glass on iOS 26 with a Material fallback.
 Files: MiniPlayer.swift
 Install: npx swiftpieces add MiniPlayer
 
@@ -2785,7 +2785,7 @@ A crop step for a picked photo: the photo under a frame of the chosen aspect, wi
 ## Photo Stack (`PhotoStack`)
 
 URL: https://swiftpieces.com/docs/components/media/photo-stack
-Category: Media. iOS 17.0+.
+Category: Media. iOS 17.0+. Liquid Glass on iOS 26 with a Material fallback.
 Files: PhotoStack.swift
 Install: npx swiftpieces add PhotoStack
 
@@ -3051,14 +3051,14 @@ Category: Motion. iOS 17.0+. Metal shader.
 Files: DistortionWave.swift, DistortionWave.metal
 Install: npx swiftpieces add DistortionWave
 
-A transition from one screen to the next that starts at the button you tapped: a ring of refraction opens from it with a warm Signature fringe of pink, orange and red, bending the old screen away as the new one shows through the lens. Set it back and the ring closes into the button again. It runs as two Metal layer effects on your own views, and crossfades instead under Reduce Motion. For confirmations, payments sent, unlocks and big moments.
+A transition from one screen to the next that starts at the button you tapped: a ring of glass opens from it, magnifying the new screen toward its rim and drawing the old one into it, with a thin highlight and a touch of colour split along the edge. Set it back and the ring closes into the button again. It runs as two Metal layer effects on your own views, and crossfades instead under Reduce Motion. For confirmations, payments sent, unlocks and big moments.
 
 Sizes and timing for `DistortionWave`.
 
 ### Notes
 
 - Requires `DistortionWave.metal` in the same target. Its `distortionWaveOld` and `distortionWaveNew` kernels are looked up through `ShaderLibrary` and run as two layer effects, one on each screen.
-- When `isRevealed` turns on, a ring opens from the button you mark with `.distortionWaveOrigin($frame)`: the old screen bends away outside it, the new one shows through inside it, and a warm fringe of pink, orange and red runs along its edge.
+- When `isRevealed` turns on, a ring opens from the button you mark with `.distortionWaveOrigin($frame)`: the new screen shows inside it, magnified toward the rim like the edge of a lens, the old one is drawn into it from outside, and a thin highlight with a touch of colour split runs along the edge.
 - Set it back and the ring closes into the button. Without an origin it opens from the centre.
 - The effects only run while the ring moves, so both screens are plain views at rest.
 - Under Reduce Motion the screens crossfade instead.
@@ -3102,7 +3102,7 @@ Photos-style dismiss: drag in any direction, the view rounds and shrinks toward 
 ## Genie Delete (`GenieDelete`)
 
 URL: https://swiftpieces.com/docs/components/motion/genie-delete
-Category: Motion. iOS 17.0+.
+Category: Motion. iOS 17.0+. Liquid Glass on iOS 26 with a Material fallback.
 Files: GenieDelete.swift
 Install: npx swiftpieces add GenieDelete
 
@@ -3639,7 +3639,7 @@ Liquid Glass applied to text outlines via Core Text glyph paths. The glyph path 
 ## Marker (`Marker`)
 
 URL: https://swiftpieces.com/docs/components/text/marker
-Category: Text. iOS 17.0+.
+Category: Text. iOS 17.0+. Liquid Glass on iOS 26 with a Material fallback.
 Files: Marker.swift
 Install: npx swiftpieces add Marker
 

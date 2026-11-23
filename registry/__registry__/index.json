@@ -2638,7 +2638,7 @@
     "slug": "stacking-scroll",
     "type": "registry:component",
     "title": "Stacking Scroll",
-    "description": "A list whose rows don't leave at the top edge: each one that scrolls up stops there and stacks under the next, a little smaller and a little higher, so the last few peek out like a deck of cards before they fade. Scroll back and they lift off the stack in order. It runs on the scroll position alone, with no state, so it stays smooth for long lists. For passes, tickets, itineraries, inboxes and timelines.",
+    "description": "A list whose cards don't leave at the top edge: each one that scrolls up stops there and stacks under the next, a little smaller and a little higher, so the last few peek out like passes in a wallet before they fade. Scroll back and they lift off the stack in order. It runs on the scroll position alone, with no state, so it stays smooth for long lists. For passes, tickets, itineraries, inboxes and timelines.",
     "category": "lists",
     "license": "MIT+Commons-Clause",
     "version": "1.0.0",
@@ -2672,7 +2672,7 @@
     "docs": "https://swiftpieces.com/docs/components/lists/stacking-scroll",
     "added": "2026-11-23",
     "isNew": true,
-    "liquidGlass": false,
+    "liquidGlass": true,
     "metal": false
   },
   {
@@ -2835,7 +2835,7 @@
     "docs": "https://swiftpieces.com/docs/components/media/album-open",
     "added": "2026-11-23",
     "isNew": true,
-    "liquidGlass": false,
+    "liquidGlass": true,
     "metal": false
   },
   {
@@ -2962,7 +2962,7 @@
     "docs": "https://swiftpieces.com/docs/components/media/book-pull",
     "added": "2026-11-23",
     "isNew": true,
-    "liquidGlass": false,
+    "liquidGlass": true,
     "metal": false
   },
   {
@@ -3090,7 +3090,7 @@
     "docs": "https://swiftpieces.com/docs/components/media/mini-player",
     "added": "2026-11-23",
     "isNew": true,
-    "liquidGlass": false,
+    "liquidGlass": true,
     "metal": false
   },
   {
@@ -3219,7 +3219,7 @@
     "docs": "https://swiftpieces.com/docs/components/media/photo-stack",
     "added": "2026-11-23",
     "isNew": true,
-    "liquidGlass": false,
+    "liquidGlass": true,
     "metal": false
   },
   {
@@ -3565,7 +3565,7 @@
     "slug": "distortion-wave",
     "type": "registry:component",
     "title": "Distortion Wave",
-    "description": "A transition from one screen to the next that starts at the button you tapped: a ring of refraction opens from it with a warm Signature fringe of pink, orange and red, bending the old screen away as the new one shows through the lens. Set it back and the ring closes into the button again. It runs as two Metal layer effects on your own views, and crossfades instead under Reduce Motion. For confirmations, payments sent, unlocks and big moments.",
+    "description": "A transition from one screen to the next that starts at the button you tapped: a ring of glass opens from it, magnifying the new screen toward its rim and drawing the old one into it, with a thin highlight and a touch of colour split along the edge. Set it back and the ring closes into the button again. It runs as two Metal layer effects on your own views, and crossfades instead under Reduce Motion. For confirmations, payments sent, unlocks and big moments.",
     "category": "motion",
     "license": "MIT+Commons-Clause",
     "version": "1.0.0",
@@ -3688,7 +3688,7 @@
     "docs": "https://swiftpieces.com/docs/components/motion/genie-delete",
     "added": "2026-11-23",
     "isNew": true,
-    "liquidGlass": false,
+    "liquidGlass": true,
     "metal": false
   },
   {
@@ -4353,7 +4353,7 @@
     "docs": "https://swiftpieces.com/docs/components/text/marker",
     "added": "2026-11-23",
     "isNew": true,
-    "liquidGlass": false,
+    "liquidGlass": true,
     "metal": false
   },
   {

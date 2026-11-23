@@ -1,6 +1,6 @@
 // swiftpieces:
 // title: Distortion Wave
-// description: "A transition from one screen to the next that starts at the button you tapped: a ring of refraction opens from it with a warm Signature fringe of pink, orange and red, bending the old screen away as the new one shows through the lens. Set it back and the ring closes into the button again. It runs as two Metal layer effects on your own views, and crossfades instead under Reduce Motion. For confirmations, payments sent, unlocks and big moments."
+// description: "A transition from one screen to the next that starts at the button you tapped: a ring of glass opens from it, magnifying the new screen toward its rim and drawing the old one into it, with a thin highlight and a touch of colour split along the edge. Set it back and the ring closes into the button again. It runs as two Metal layer effects on your own views, and crossfades instead under Reduce Motion. For confirmations, payments sent, unlocks and big moments."
 // category: motion
 // minIOSVersion: "17.0"
 // version: "1.0.0"
@@ -118,8 +118,8 @@ private struct DistortionWaveLayer: ViewModifier, Animatable {
     func body(content: Content) -> some View {
         let radius = Float(progress * reach)
         let shader = arriving
-            ? ShaderLibrary.distortionWaveNew(.float2(center), .float(radius), .float(Float(band)), .float(Float(progress) * 4))
-            : ShaderLibrary.distortionWaveOld(.float2(center), .float(radius), .float(Float(band)), .float(Float(progress) * 4))
+            ? ShaderLibrary.distortionWaveNew(.float2(center), .float(radius), .float(Float(band)))
+            : ShaderLibrary.distortionWaveOld(.float2(center), .float(radius), .float(Float(band)))
         content
             .layerEffect(shader, maxSampleOffset: CGSize(width: band, height: band), isEnabled: active)
     }
