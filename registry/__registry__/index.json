@@ -846,6 +846,48 @@
   },
   {
     "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "SlideToPay",
+    "slug": "slide-to-pay",
+    "type": "registry:component",
+    "title": "Slide to Pay",
+    "description": "A slide-to-confirm track for the moment money moves. A soft house aura gathers under your thumb and follows it, growing brighter the further you commit; let go early and the light drains back with the thumb. Reach the end and the light floods the whole track, the track folds into a red check and a soft ring of light lets go. For checkout, transfers, bookings and any one-way confirm.",
+    "category": "controls",
+    "license": "MIT+Commons-Clause",
+    "version": "1.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "slider",
+      "confirm",
+      "payment",
+      "checkout",
+      "aura",
+      "gesture",
+      "haptics"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/controls/SlideToPay.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Controls/SlideToPay.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/controls/slide-to-pay",
+    "added": "2026-11-24",
+    "isNew": true,
+    "liquidGlass": false,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
     "name": "TimerDial",
     "slug": "timer-dial",
     "type": "registry:component",
@@ -1720,6 +1762,48 @@
   },
   {
     "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "DatePill",
+    "slug": "date-pill",
+    "type": "registry:component",
+    "title": "Date Pill",
+    "description": "A glass date pill that grows a month out of itself when you tap it, joined beneath it as one piece of liquid glass. The red day flows to the one you pick, the month drains back into the pill, and the date in the pill changes letter by letter. Weeks start on the user's first weekday, days outside the range you allow are dimmed, and the chevrons page through months. For check-in dates, due dates, bookings and any one day in a form.",
+    "category": "inputs",
+    "license": "MIT+Commons-Clause",
+    "version": "1.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "date",
+      "picker",
+      "calendar",
+      "pill",
+      "glass",
+      "form",
+      "booking"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/inputs/DatePill.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Inputs/DatePill.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/inputs/date-pill",
+    "added": "2026-11-24",
+    "isNew": true,
+    "liquidGlass": true,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
     "name": "DateRangePicker",
     "slug": "date-range-picker",
     "type": "registry:component",
@@ -1922,6 +2006,48 @@
   },
   {
     "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "GuestsPill",
+    "slug": "guests-pill",
+    "type": "registry:component",
+    "title": "Guests Pill",
+    "description": "A glass guests pill that grows a panel of steppers out of itself, joined beneath it as one piece of liquid glass: adults, children and, if you want them, pets. Each tap flashes its button red and rolls the count, a count at its limit dims its button, and when the panel drains back in the pill reads the party in words and resizes to fit. For bookings, reservations, tickets and any headcount in a form.",
+    "category": "inputs",
+    "license": "MIT+Commons-Clause",
+    "version": "1.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "guests",
+      "stepper",
+      "counter",
+      "pill",
+      "glass",
+      "form",
+      "booking"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/inputs/GuestsPill.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Inputs/GuestsPill.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/inputs/guests-pill",
+    "added": "2026-11-24",
+    "isNew": true,
+    "liquidGlass": true,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
     "name": "InterestChips",
     "slug": "interest-chips",
     "type": "registry:component",
@@ -2046,6 +2172,49 @@
     "pro": "filter-sheet",
     "added": "2026-09-23",
     "isNew": false,
+    "liquidGlass": true,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "ReminderPill",
+    "slug": "reminder-pill",
+    "type": "registry:component",
+    "title": "Reminder Pill",
+    "description": "A glass Remind me pill that grows the times people actually pick out of itself, joined beneath it as one piece of liquid glass: later today, tomorrow morning, this weekend, next week. A red row flows to your tap, the panel drains back in, and the pill reads the time you chose beside a bell that turns red. For to-dos, saved posts, carts and anything worth a nudge later.",
+    "category": "inputs",
+    "license": "MIT+Commons-Clause",
+    "version": "1.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "reminder",
+      "notification",
+      "date",
+      "time",
+      "pill",
+      "glass",
+      "menu",
+      "snooze"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/inputs/ReminderPill.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Inputs/ReminderPill.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/inputs/reminder-pill",
+    "added": "2026-11-24",
+    "isNew": true,
     "liquidGlass": true,
     "metal": false
   },
@@ -2212,6 +2381,48 @@
     "added": "2026-11-08",
     "isNew": false,
     "liquidGlass": true,
+    "metal": false
+  },
+  {
+    "$schema": "https://swiftpieces.com/schema/registry-item.json",
+    "name": "SplitStepper",
+    "slug": "split-stepper",
+    "type": "registry:component",
+    "title": "Split Stepper",
+    "description": "A bill splitter: the amount each person pays, big, over a row of coloured dots for the people and a stepper to change how many. Each tap pulses the house aura at the side you pressed and rolls the share to its new figure, a dot pops in or out, and a tap past the limit shakes the stepper. For restaurant bills, shared rides, group gifts and any total split evenly.",
+    "category": "inputs",
+    "license": "MIT+Commons-Clause",
+    "version": "1.0.0",
+    "minIOSVersion": "17.0",
+    "swiftToolsVersion": "6.1",
+    "tags": [
+      "stepper",
+      "split",
+      "bill",
+      "payment",
+      "people",
+      "aura",
+      "money"
+    ],
+    "dependencies": [],
+    "registryDependencies": [],
+    "spmDependencies": [],
+    "requiredCapabilities": [],
+    "infoPlist": {},
+    "assets": [],
+    "shaders": [],
+    "files": [
+      {
+        "path": "registry/swift/inputs/SplitStepper.swift",
+        "type": "registry:component",
+        "target": "SwiftPieces/Inputs/SplitStepper.swift"
+      }
+    ],
+    "preview": {},
+    "docs": "https://swiftpieces.com/docs/components/inputs/split-stepper",
+    "added": "2026-11-24",
+    "isNew": true,
+    "liquidGlass": false,
     "metal": false
   },
   {
@@ -2834,7 +3045,7 @@
     ],
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/media/map-expand",
-    "added": "2026-11-23",
+    "added": "2026-11-24",
     "isNew": true,
     "liquidGlass": true,
     "metal": false
@@ -3048,7 +3259,7 @@
     ],
     "preview": {},
     "docs": "https://swiftpieces.com/docs/components/media/snapshot",
-    "added": "2026-11-23",
+    "added": "2026-11-24",
     "isNew": true,
     "liquidGlass": true,
     "metal": false

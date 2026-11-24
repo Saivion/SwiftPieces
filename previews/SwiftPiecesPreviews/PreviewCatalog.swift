@@ -34,6 +34,8 @@ enum PreviewCatalog {
         "SmartText", "MatchHighlight", "TextDiff",
         // moving pieces, 2026-11-23
         "Snapshot", "MapExpand",
+        // pills and aura controls, 2026-11-24
+        "DatePill", "GuestsPill", "ReminderPill", "SlideToPay", "SplitStepper",
     ]
 
     @MainActor @ViewBuilder
@@ -251,6 +253,16 @@ enum PreviewCatalog {
             Stage { SnapshotScene() }
         case "MapExpand":
             MapExpandScene()
+        case "DatePill":
+            DatePillScene()
+        case "GuestsPill":
+            GuestsPillScene()
+        case "ReminderPill":
+            ReminderPillScene()
+        case "SlideToPay":
+            SlideToPayScene()
+        case "SplitStepper":
+            SplitStepperScene()
         default:
             Text("Unknown piece: \(name)")
         }
@@ -4656,3 +4668,84 @@ private struct MapExpandScene: View {
     }
 }
 
+/// A check-in date, picked from the month that grows out of the pill.
+private struct DatePillScene: View {
+    @State private var date = Calendar.current.date(byAdding: .day, value: 3, to: .now) ?? .now
+
+    var body: some View {
+        VStack {
+            DatePill("Check-in", selection: $date, in: Date.now...Date.now.addingTimeInterval(365 * 86_400))
+                .zIndex(1)
+            Spacer()
+        }
+        .padding(.top, 60)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(pickerSceneColor(light: 0xF3F2EE, dark: 0x121212))
+    }
+}
+
+/// A stay's party, pets allowed.
+private struct GuestsPillScene: View {
+    @State private var adults = 2
+    @State private var children = 0
+    @State private var pets = 0
+
+    var body: some View {
+        VStack {
+            GuestsPill(adults: $adults, children: $children, pets: $pets)
+                .zIndex(1)
+            Spacer()
+        }
+        .padding(.top, 60)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(pickerSceneColor(light: 0xF3F2EE, dark: 0x121212))
+    }
+}
+
+/// A saved article, with a nudge to read it later.
+private struct ReminderPillScene: View {
+    @State private var remindAt: Date?
+
+    var body: some View {
+        VStack {
+            ReminderPill(date: $remindAt)
+                .zIndex(1)
+            Spacer()
+        }
+        .padding(.top, 60)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(pickerSceneColor(light: 0xF3F2EE, dark: 0x121212))
+    }
+}
+
+/// A hotel checkout, folding into a check and unfolding again.
+private struct SlideToPayScene: View {
+    @State private var paid = false
+
+    var body: some View {
+        VStack(spacing: 6) {
+            Text("Total").font(.subheadline.weight(.semibold)).foregroundStyle(.secondary)
+            Text("$186.40").font(.system(size: 42, weight: .semibold)).monospacedDigit()
+            Text(paid ? "Paid · receipt sent" : "2 nights · Hotel Alma").font(.subheadline.weight(.semibold)).foregroundStyle(.secondary)
+            Spacer()
+            SlideToPay(isComplete: $paid) {}
+                .padding(.horizontal, 32)
+        }
+        .padding(.vertical, 48)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(pickerSceneColor(light: 0xF3F2EE, dark: 0x121212))
+        .sceneLoop(every: 4) { if paid { paid = false } }
+    }
+}
+
+/// Dinner for a table, split evenly.
+private struct SplitStepperScene: View {
+    @State private var people = 2
+
+    var body: some View {
+        SplitStepper("Dinner at Lupo", total: Decimal(string: "186.40") ?? 0, people: $people, range: 1...8)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(pickerSceneColor(light: 0xF3F2EE, dark: 0x121212))
+            .sceneLoop(every: 1.2) { people = people >= 6 ? 2 : people + 1 }
+    }
+}

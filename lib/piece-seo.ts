@@ -105,6 +105,11 @@ export const searchPhrase: Record<string, string> = {
   TranslateToggle: "Translate Text Button",
   Snapshot: "View Snapshot and Share Image",
   MapExpand: "Expandable Map Card",
+  DatePill: "Date Picker Pill",
+  GuestsPill: "Guest Count Picker",
+  ReminderPill: "Remind Me Later Picker",
+  SlideToPay: "Slide to Pay Button",
+  SplitStepper: "Split the Bill Stepper",
 };
 
 /** Lowercases a phrase for use mid-sentence, keeping proper nouns and acronyms as written. */

@@ -7,6 +7,21 @@ import type { ChangelogEntry } from "@/components/changelog/changelog-grid";
  */
 export const changelog: ChangelogEntry[] = [
   {
+    slug: "glass-pills-and-aura",
+    date: "Nov 24, 2026",
+    title: "Seven new pieces: glass pills, the house aura and more",
+    summary: "Three glass pills that grow their panels out of themselves, two controls lit by the new house aura, and two pieces for sharing a view and opening a map.",
+    points: [
+      "Date Pill, Guests Pill and Reminder Pill are glass pills for forms and bookings. Tap one and its panel grows out of the pill as one piece of liquid glass: a month to pick a day from, steppers for adults, children and pets, or the times people actually choose for a reminder. It drains back in and the pill reads your choice in words.",
+      "Slide to Pay is a slide-to-confirm track lit by the house aura, five soft lights in red, coral, pink and blush. The light gathers under your thumb and follows it, floods the track at the end, and the track folds into a red check.",
+      "Split Stepper splits a bill evenly. The share each person pays rolls as you change the head count, a dot pops in for each person, and the aura pulses at the side you press.",
+      "Snapshot turns any view into an image with a flash and a tilted thumbnail, made for sharing a workout, a receipt or a chart. Map Expand opens a place card into a live MapKit map, with your actions budding out of the card as liquid glass.",
+      "Each comes with notes, a preview scene and a live web preview, and New badges move to these seven.",
+    ],
+    visual: "slider",
+    tint: "pink",
+  },
+  {
     slug: "games-pieces-and-styles",
     date: "Nov 12, 2026",
     title: "Five new games, thirteen pieces and two new styles",

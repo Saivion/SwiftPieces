@@ -1,6 +1,6 @@
 # SwiftPieces: full text
 
-> 100 free SwiftUI components for iOS, one Swift file each, MIT + Commons Clause. Index: https://swiftpieces.com/llms.txt. Source for any piece: https://swiftpieces.com/r/<Name>.json or its docs page.
+> 105 free SwiftUI components for iOS, one Swift file each, MIT + Commons Clause. Index: https://swiftpieces.com/llms.txt. Source for any piece: https://swiftpieces.com/r/<Name>.json or its docs page.
 
 # Reference
 
@@ -982,6 +982,27 @@ Colors for `SelectMenu`. `.standard` is the house palette.
 - One selection haptic fires per pick. VoiceOver reads the title and current value on the pill, and marks the selected row. `.disabled(true)` dims it.
 - Under Reduce Motion the glass opens and closes with short fades and the red slides without overshoot.
 
+## Slide to Pay (`SlideToPay`)
+
+URL: https://swiftpieces.com/docs/components/controls/slide-to-pay
+Category: Controls. iOS 17.0+.
+Files: SlideToPay.swift
+Install: npx swiftpieces add SlideToPay
+
+A slide-to-confirm track for the moment money moves. A soft house aura gathers under your thumb and follows it, growing brighter the further you commit; let go early and the light drains back with the thumb. Reach the end and the light floods the whole track, the track folds into a red check and a soft ring of light lets go. For checkout, transfers, bookings and any one-way confirm.
+
+Colors for `SlideToPay`. `.standard` is the house palette.
+
+### Notes
+
+- Drag the thumb to the end to confirm. A soft house aura gathers under your thumb and follows it, growing brighter the further you go.
+- Let go before the end and the thumb springs back with the speed you released it at, and the light drains back with it. A quick flick near the end counts.
+- At the end the light floods the whole track, the track folds into a red check and a soft ring of light lets go, with a success haptic. `action` runs once.
+- `isComplete` stays `true` while it is folded. Set it back to `false` to unfold the track, for example if the payment fails.
+- It fills the width you give it and is 60pt tall, with a 48pt thumb.
+- VoiceOver reads it as a button and confirms with a double tap.
+- Under Reduce Motion the light holds still and still follows the thumb, and there is no ring. Under Reduce Transparency the aura becomes a plain red edge.
+
 ## Timer Dial (`TimerDial`)
 
 URL: https://swiftpieces.com/docs/components/controls/timer-dial
@@ -1683,6 +1704,27 @@ Colors and type for `ChoiceGroup`. `.standard` is the house palette: the brand r
 - One selection haptic fires for every change. VoiceOver reads the title as the group's label and each row as a button, selected for a radio and Checked or Unchecked for a box. `.disabled(true)` dims the card.
 - Under Reduce Motion the drop slides on one short spring without the stretch, and the check fades instead of popping. Reduce Transparency draws the card as a solid shape.
 
+## Date Pill (`DatePill`)
+
+URL: https://swiftpieces.com/docs/components/inputs/date-pill
+Category: Inputs. iOS 17.0+. Liquid Glass on iOS 26 with a Material fallback.
+Files: DatePill.swift
+Install: npx swiftpieces add DatePill
+
+A glass date pill that grows a month out of itself when you tap it, joined beneath it as one piece of liquid glass. The red day flows to the one you pick, the month drains back into the pill, and the date in the pill changes letter by letter. Weeks start on the user's first weekday, days outside the range you allow are dimmed, and the chevrons page through months. For check-in dates, due dates, bookings and any one day in a form.
+
+Colors for `DatePill`. `.standard` is the house palette.
+
+### Notes
+
+- Tap the pill and a month grows out of it, born the pill's own size and drawn down into place, joined beneath it by a short neck of liquid glass. Choosing a day closes it, and it drains back into the pill.
+- The chosen day is one red circle that flows from cell to cell on a snap spring. Today's number is red, and days outside `range` are dimmed and can't be picked.
+- Picking a day keeps the time of day already in `selection`, so it works for check-ins as well as for dates with a time.
+- The pill's text morphs to the new date only after the panel has drained, so the change lands where you are looking. It reads the weekday, day and month in the person's locale.
+- The panel opens over the content below, centred under the pill. Give the pill a higher `zIndex` than the views after it.
+- On iOS 26 the pill and panel are Liquid Glass; before that they are frosted. Under Reduce Transparency they are solid.
+- VoiceOver reads the title and the chosen date, and each day is its own button. Under Reduce Motion the panel opens and closes on a short ease, without bounce.
+
 ## Date Range Picker (`DateRangePicker`)
 
 URL: https://swiftpieces.com/docs/components/inputs/date-range-picker
@@ -1863,6 +1905,26 @@ Text field with a floating label, help and error text, a character limit and a c
 - `onSubmit`: Called when Return is pressed in a one-line field. Move focus to the next field here.
 - `style`: Colors and field metrics. Defaults to the SwiftPieces house palette, adapting to light and dark.
 
+## Guests Pill (`GuestsPill`)
+
+URL: https://swiftpieces.com/docs/components/inputs/guests-pill
+Category: Inputs. iOS 17.0+. Liquid Glass on iOS 26 with a Material fallback.
+Files: GuestsPill.swift
+Install: npx swiftpieces add GuestsPill
+
+A glass guests pill that grows a panel of steppers out of itself, joined beneath it as one piece of liquid glass: adults, children and, if you want them, pets. Each tap flashes its button red and rolls the count, a count at its limit dims its button, and when the panel drains back in the pill reads the party in words and resizes to fit. For bookings, reservations, tickets and any headcount in a form.
+
+Colors for `GuestsPill`. `.standard` is the house palette.
+
+### Notes
+
+- Tap the pill and a panel of steppers grows out of it, joined beneath it by a short neck of liquid glass: adults, children and, when you pass `pets`, pets.
+- Each tap flashes its button red, rolls the count and plays a soft haptic. A count at its limit dims its button. Adults and children together never pass `maximum`, and there is always at least one adult.
+- The pill reads the party in words, "3 guests, 1 pet" by default, and resizes to fit once the panel has drained back. Pass `summary` for your own wording.
+- The panel opens over the content below, centred under the pill. Give the pill a higher `zIndex` than the views after it.
+- On iOS 26 the pill and panel are Liquid Glass; before that they are frosted. Under Reduce Transparency they are solid.
+- Each row is one adjustable element for VoiceOver: swipe up or down to change it. Under Reduce Motion the panel opens and closes on a short ease, without bounce.
+
 ## Interest Chips (`InterestChips`)
 
 URL: https://swiftpieces.com/docs/components/inputs/interest-chips
@@ -1967,6 +2029,27 @@ Liquid glass dual-thumb slider that binds a `ClosedRange` of any floating-point 
 - `upperLabel`: VoiceOver label of the upper thumb. Defaults to "Maximum".
 - `style`: Colors and metrics. Defaults to the SwiftPieces house palette (a brand red span joining neutral glass thumbs over a quiet line), adapting to light and dark.
 - `format`: Turns a value into the text shown in the readouts and spoken by VoiceOver. A `FormatStyle` (such as `.currency(code:)` or `.percent`) or a closure. Defaults to a plain number with as many decimals as `step` has (up to two without a step).
+
+## Reminder Pill (`ReminderPill`)
+
+URL: https://swiftpieces.com/docs/components/inputs/reminder-pill
+Category: Inputs. iOS 17.0+. Liquid Glass on iOS 26 with a Material fallback.
+Files: ReminderPill.swift
+Install: npx swiftpieces add ReminderPill
+
+A glass Remind me pill that grows the times people actually pick out of itself, joined beneath it as one piece of liquid glass: later today, tomorrow morning, this weekend, next week. A red row flows to your tap, the panel drains back in, and the pill reads the time you chose beside a bell that turns red. For to-dos, saved posts, carts and anything worth a nudge later.
+
+Colors for `ReminderPill`. `.standard` is the house palette.
+
+### Notes
+
+- Tap Remind me and the times people actually pick grow out of the pill, joined beneath it by a short neck of liquid glass: later today, tomorrow morning, this weekend and next week, each with its time.
+- A red row flows to your tap, the panel drains back in, and the pill reads the time you chose, such as "Tomorrow, 9 AM", beside a bell that turns red.
+- The default times are worked out from now each time the panel opens. Pass `options` for your own, such as snooze lengths.
+- With a reminder set, the panel adds Remove reminder, which clears `date` back to `nil`.
+- The piece only picks the time. Watch `date` and schedule the notification yourself with `UNUserNotificationCenter`.
+- On iOS 26 the pill and panel are Liquid Glass; before that they are frosted. Under Reduce Transparency they are solid.
+- VoiceOver reads each time as a button and marks the chosen one. Under Reduce Motion the panel opens and closes on a short ease, without bounce.
 
 ## Scrub Stepper (`ScrubStepper`)
 
@@ -2098,6 +2181,27 @@ Colors for `SizePicker`. `.standard` is the house palette.
 - Cells are 44pt and scale with Dynamic Type. A row wider than its space scrolls sideways.
 - One selection haptic fires per pick. VoiceOver reads each size with its note, or "Sold out". `.disabled(true)` dims the row.
 - Under Reduce Motion the pill slides whole on one short spring.
+
+## Split Stepper (`SplitStepper`)
+
+URL: https://swiftpieces.com/docs/components/inputs/split-stepper
+Category: Inputs. iOS 17.0+.
+Files: SplitStepper.swift
+Install: npx swiftpieces add SplitStepper
+
+A bill splitter: the amount each person pays, big, over a row of coloured dots for the people and a stepper to change how many. Each tap pulses the house aura at the side you pressed and rolls the share to its new figure, a dot pops in or out, and a tap past the limit shakes the stepper. For restaurant bills, shared rides, group gifts and any total split evenly.
+
+Colors for `SplitStepper`. `.standard` is the house palette.
+
+### Notes
+
+- The share each person pays is the hero. It rolls to each new figure, counting up or down with the direction you stepped.
+- Each tap pulses the house aura at the side you pressed, then lets it settle back around the stepper. A dot pops in or out for each person, in eight colours that repeat.
+- A tap past `range` shakes the stepper and plays an error haptic. The share stays where it was.
+- The share is `total` divided evenly and rounded to cents. Any remainder is left for you to settle, such as on the first person.
+- Amounts are shown in `currencyCode` in the person's locale.
+- VoiceOver reads the people and the share as one adjustable element: swipe up or down to change it.
+- Under Reduce Motion the light holds still and the dots appear without scaling. Under Reduce Transparency the aura becomes a plain red edge.
 
 ## Swatch Picker (`SwatchPicker`)
 

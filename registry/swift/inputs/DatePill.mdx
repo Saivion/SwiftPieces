@@ -1,0 +1,9 @@
+## Notes
+
+- Tap the pill and a month grows out of it, born the pill's own size and drawn down into place, joined beneath it by a short neck of liquid glass. Choosing a day closes it, and it drains back into the pill.
+- The chosen day is one red circle that flows from cell to cell on a snap spring. Today's number is red, and days outside `range` are dimmed and can't be picked.
+- Picking a day keeps the time of day already in `selection`, so it works for check-ins as well as for dates with a time.
+- The pill's text morphs to the new date only after the panel has drained, so the change lands where you are looking. It reads the weekday, day and month in the person's locale.
+- The panel opens over the content below, centred under the pill. Give the pill a higher `zIndex` than the views after it.
+- On iOS 26 the pill and panel are Liquid Glass; before that they are frosted. Under Reduce Transparency they are solid.
+- VoiceOver reads the title and the chosen date, and each day is its own button. Under Reduce Motion the panel opens and closes on a short ease, without bounce.

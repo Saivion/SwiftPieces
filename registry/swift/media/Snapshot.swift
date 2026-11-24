@@ -4,7 +4,7 @@
 // category: media
 // minIOSVersion: "17.0"
 // version: "1.0.0"
-// added: "2026-11-23"
+// added: "2026-11-24"
 // tags: [snapshot, screenshot, share, image, render, export, thumbnail]
 
 import SwiftUI
