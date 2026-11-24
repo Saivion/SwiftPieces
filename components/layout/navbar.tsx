@@ -29,7 +29,7 @@ type Menu = {
  * The bar is split by what you came to do, the same as Pro's. Explore is one menu in two columns: the
  * Library, what you take and install (free pieces, and Pro's screens, patterns, flows and templates),
  * beside Create, the tools you use in the browser, where new features land. Resources is how to learn
- * it and who backs it. Games and Pro stay direct links. At most six items a column (Library, with Games last).
+ * it and who backs it. Pro stays a direct link. At most six items a column (Library, with Games last).
  */
 const library: MenuItem[] = [
   { label: "Components", href: "/components", desc: "Single-file SwiftUI pieces with live previews", icon: "components" },
@@ -37,7 +37,7 @@ const library: MenuItem[] = [
   { label: "Patterns", href: "/patterns", desc: "Whole sections of a screen, ready to drop in", icon: "blocks", badge: "Pro" },
   { label: "Flows", href: pro.flows, desc: "Whole journeys, from first run to settings", icon: "flows", badge: "Pro" },
   { label: "Templates", href: pro.templates, desc: "Complete apps as Xcode projects", icon: "templates", badge: "Pro" },
-  // Games are sold on Pro: the row opens pro.swiftpieces.com/games, where each game is a click away. New, like the Games link.
+  // Games are sold on Pro: the row opens pro.swiftpieces.com/games, where each game is a click away. New while the games are fresh.
   { label: "Games", href: pro.games, desc: "Complete iOS games, ready to reskin and ship", icon: "games", badge: "New" },
 ];
 const create: MenuItem[] = [
@@ -64,8 +64,7 @@ const menus: Menu[] = [
   },
 ];
 
-// Games is a plain link to Pro's games page, where every game is a click away; it wears New while the games are fresh.
-const links: NavLink[] = [{ label: "Games", href: pro.games, badge: "New" }, { label: "Pro", href: "/pro" }];
+const links: NavLink[] = [{ label: "Pro", href: "/pro" }];
 
 /** A menu item's badge: Pro items wear the Pro tag (the Playground's, beside a Pro app), the rest New or Beta. */
 function Badge({ label }: { label?: string }) {
