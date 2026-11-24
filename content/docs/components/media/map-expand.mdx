@@ -384,9 +384,8 @@ private struct MapExpandExample: View {
     var body: some View {
         MapExpand(coordinate: harbor, isExpanded: $isExpanded, title: "Harbor Inn", subtitle: "0.4 mi · Open until 22:00", actions: [
             MapExpandAction("Directions", systemImage: "arrow.triangle.turn.up.right.diamond.fill", isPrimary: true) {
-                let item = MKMapItem(placemark: MKPlacemark(coordinate: harbor))
-                item.name = "Harbor Inn"
-                item.openInMaps(launchOptions: [MKLaunchOptionsDirectionsModeKey: MKLaunchOptionsDirectionsModeWalking])
+                // Walking directions in Maps, through a maps URL that works the same on every iOS version.
+                if let url = URL(string: "maps://?daddr=\(harbor.latitude),\(harbor.longitude)&dirflg=w") { openURL(url) }
             },
             MapExpandAction("Call", systemImage: "phone.fill") {
                 if let url = URL(string: "tel:2065550134") { openURL(url) }

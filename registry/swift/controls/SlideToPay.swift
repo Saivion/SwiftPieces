@@ -139,7 +139,7 @@ public struct SlideToPay: View {
                 .frame(maxWidth: .infinity)
                 .padding(.leading, Self.thumbSize)
                 .padding(.trailing, Self.inset * 2)
-                .opacity(folded ? 0 : max(0, 1 - progress * 1.6))
+                .opacity(folded ? 0 : Double(max(0, 1 - progress * 1.6)))
             thumb
                 .offset(x: Self.inset + drag)
                 .opacity(folded ? 0 : 1)
@@ -221,7 +221,8 @@ public struct SlideToPay: View {
     private func fold() {
         committing = false
         guard !folded else { return }
-        withAnimation(motion.success) {
+        // No bounce on the fold: an overshoot would squeeze the track narrower than it is tall.
+        withAnimation(reduceMotion ? .easeOut(duration: 0.2) : .spring(duration: 0.5, bounce: 0)) {
             folded = true
             drag = travel
             gather = 0

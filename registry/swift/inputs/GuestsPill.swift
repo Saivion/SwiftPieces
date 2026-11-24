@@ -127,7 +127,7 @@ public struct GuestsPill: View {
             Row(id: "adults", title: "Adults", detail: "Ages 13 or above", value: $adults, range: 1...max(1, maximum - children)),
             Row(id: "children", title: "Children", detail: "Ages 2 to 12", value: $children, range: 0...max(0, maximum - adults)),
         ]
-        if let pets { rows.append(Row(id: "pets", title: "Pets", detail: "Service animals welcome", value: pets, range: 0...5)) }
+        if let pets { rows.append(Row(id: "pets", title: "Pets", detail: "Up to 5", value: pets, range: 0...5)) }
         return rows
     }
 

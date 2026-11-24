@@ -145,7 +145,7 @@ export function DatePillPreview() {
 const GUEST_ROWS = [
   { id: "adults", title: "Adults", detail: "Ages 13 or above", min: 1 },
   { id: "children", title: "Children", detail: "Ages 2 to 12", min: 0 },
-  { id: "pets", title: "Pets", detail: "Service animals welcome", min: 0 },
+  { id: "pets", title: "Pets", detail: "Up to 5", min: 0 },
 ] as const;
 const guestsLabel = ([a, c, p]: number[]) => `${a + c} ${a + c === 1 ? "guest" : "guests"}${p ? `, ${p} ${p === 1 ? "pet" : "pets"}` : ""}`;
 

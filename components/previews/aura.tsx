@@ -118,7 +118,7 @@ export function SlideToPayPreview() {
         <span style={{ fontSize: p(14), color: ground.muted }}><MorphText text={s.folded ? "Paid · receipt sent" : "2 nights · Hotel Alma"} /></span>
       </div>
       <div className="absolute grid place-items-center" style={{ bottom: p(52), left: 0, right: 0, height: p(TRACK_H) }}>
-        <div className="relative" style={{ width: p(w), height: p(TRACK_H), transition: tr("width", "success") }}>
+        <div className="relative" style={{ width: p(w), height: p(TRACK_H), transition: tr("width", { duration: 0.5, bounce: 0 }) }}>
           <span key={s.burst} aria-hidden className="absolute inset-0 rounded-full" style={{
             border: `${p(3)} solid transparent`, background: `conic-gradient(${LIGHTS}) border-box`, filter: `blur(${p(4)})`,
             WebkitMask: "linear-gradient(#000 0 0) padding-box, linear-gradient(#000 0 0)", WebkitMaskComposite: "xor",
