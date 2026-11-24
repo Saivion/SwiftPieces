@@ -73,43 +73,39 @@
 .pro-sticker > .pro-mark { width: 76%; height: 76%; }
 @media (prefers-reduced-motion: reduce) { .pro-mark::before { animation: none; } }
 
-/* The Pro badge (2026-11-24, the die-cut sticker chip): the Pro mark and the word on the white pearl pill
-   (2026-11-01, "pearl in the ramp": the Signature grain's colours as clouds, pink at both ends, orange, a
-   faint red heart, wine type), now with a white die-cut edge, a soft lift and a small tilt, as if slapped
-   on by hand. White in both themes. Pro's components/layout/pro-badge.tsx and Free's
-   components/ui/pro-badge.tsx share this rule. */
+/* The Pro badge (2026-11-24, the die-cut sticker chip, Saivion picked A "Foil sweep"): the Pro mark in
+   white and the word in white on a foil of the badge's colours, the Signature ramp (pink, orange, red, a
+   wine shadow) swept round the chip and turning once every 7 seconds, under a diagonal white sheen. A white
+   die-cut edge, a soft lift and a small tilt, as if slapped on by hand. Same in both themes. Pro's
+   components/layout/pro-badge.tsx and Free's components/ui/pro-badge.tsx share this rule. */
+@property --pb-turn { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
+@keyframes pb-turn { to { --pb-turn: 360deg; } }
 .pro-badge {
   --pb-pink: #ffc1d6; --pb-orange: #ff8a5c; --pb-red: #f2361c; --pb-wine: #4a0a08;
-  border: 1px solid rgb(74 10 8 / 0.14);
-  color: var(--pb-wine);
-  background:
-    radial-gradient(48% 110% at 4% 50%, var(--pb-pink) 0%, transparent 78%),
-    radial-gradient(48% 110% at 96% 50%, var(--pb-pink) 0%, transparent 78%),
-    radial-gradient(50% 120% at 30% 105%, color-mix(in srgb, var(--pb-orange) 75%, transparent), transparent 72%),
-    radial-gradient(42% 110% at 72% 0%, color-mix(in srgb, var(--pb-orange) 60%, transparent), transparent 72%),
-    radial-gradient(28% 70% at 52% 60%, color-mix(in srgb, var(--pb-red) 32%, transparent), transparent 80%),
-    #ffffff;
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.95), 0 0 0 1.5px #ffffff, 0 1px 2px 1.5px rgb(74 10 8 / 0.12), 0 3px 8px rgb(74 10 8 / 0.1);
+  position: relative; isolation: isolate;
+  border: 1px solid rgb(74 10 8 / 0.25);
+  color: #ffffff;
+  text-shadow: 0 1px 1px rgb(74 10 8 / 0.25);
+  background: conic-gradient(from calc(210deg + var(--pb-turn)) at 38% 50%, var(--pb-pink), var(--pb-orange) 18%, var(--pb-red) 38%, var(--pb-wine) 55%, var(--pb-red) 72%, var(--pb-orange) 86%, var(--pb-pink));
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.35), 0 0 0 1.5px #ffffff, 0 1px 2px 1.5px rgb(74 10 8 / 0.14), 0 3px 8px rgb(74 10 8 / 0.12);
   rotate: -3deg;
+  animation: pb-turn 7s linear infinite;
 }
-.pro-badge.h-4 { rotate: -2deg; box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.95), 0 0 0 1px #ffffff, 0 1px 2px 1px rgb(74 10 8 / 0.12); }
+.pro-badge::after { content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none; background: linear-gradient(115deg, transparent 30%, rgb(255 255 255 / 0.38) 45%, transparent 58%); }
+.pro-badge .pro-mark::before, .pro-badge .pro-mark::after { background: #ffffff; animation: none; }
+.pro-badge.h-4 { rotate: -2deg; box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.35), 0 0 0 1px #ffffff, 0 1px 2px 1px rgb(74 10 8 / 0.14); }
+@media (prefers-reduced-motion: reduce) { .pro-badge { animation: none; } }
 /* As a link (the owner's way to their account), the sticker presses flat and lifts a touch on hover. */
-a.pro-badge { transition: rotate .3s cubic-bezier(.3,1.6,.5,1), box-shadow .3s ease, border-color .3s ease; }
-a.pro-badge:hover { rotate: 0deg; border-color: rgb(74 10 8 / 0.28); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.95), 0 0 0 1.5px #ffffff, 0 2px 4px 1.5px rgb(74 10 8 / 0.14), 0 6px 14px rgb(74 10 8 / 0.14); }
+a.pro-badge { transition: rotate .3s cubic-bezier(.3,1.6,.5,1), box-shadow .3s ease; }
+a.pro-badge:hover { rotate: 0deg; box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.35), 0 0 0 1.5px #ffffff, 0 2px 4px 1.5px rgb(74 10 8 / 0.16), 0 6px 14px rgb(74 10 8 / 0.16); }
 
-/* The Games badge (2026-11-08, Saivion picked Iris "Pink tip"): the Pro badge's pearl in Games' own colours,
-   a lilac left end, violet clouds and a #ff005c glow at the right end, like light catching one side, with deep
-   violet type. Shape, rim and gloss are the Pro badge's; only the colours change. ProBadge tone="games" on both sites. */
+/* The Games badge (2026-11-08 Iris colours, 2026-11-24 foil): the Pro badge's foil sweep in Games' own
+   colours, lilac, violet, a #ff005c tip and a deep violet shadow. Shape, edge, sheen and tilt are the Pro
+   badge's; only the colours change. ProBadge tone="games" on both sites. */
 .pro-badge.games-badge {
-  --gb-lilac: #e0d4ff; --gb-violet: #9d7bff; --gb-pink: #ff005c; --gb-ink: #2a0d52;
-  border-color: rgb(42 13 82 / 0.14);
-  color: var(--gb-ink);
-  background:
-    radial-gradient(48% 110% at 4% 50%, var(--gb-lilac) 0%, transparent 78%),
-    radial-gradient(48% 110% at 98% 50%, color-mix(in srgb, var(--gb-pink) 55%, transparent) 0%, transparent 70%),
-    radial-gradient(50% 120% at 30% 105%, color-mix(in srgb, var(--gb-violet) 75%, transparent), transparent 72%),
-    radial-gradient(42% 110% at 64% 0%, color-mix(in srgb, var(--gb-violet) 55%, transparent), transparent 72%),
-    #ffffff;
+  border-color: rgb(42 13 82 / 0.25);
+  text-shadow: 0 1px 1px rgb(42 13 82 / 0.3);
+  background: conic-gradient(from calc(210deg + var(--pb-turn)) at 38% 50%, #e0d4ff, #9d7bff 18%, #ff005c 38%, #2a0d52 55%, #ff005c 72%, #9d7bff 86%, #e0d4ff);
 }
 
 /* A text link's underline (.u-link, brand theme.css) draws when anywhere on its link is hovered,

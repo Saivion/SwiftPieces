@@ -2,11 +2,10 @@ import { ProMark } from "@/components/ui/pro-mark";
 import { cn } from "@/lib/cn";
 
 /**
- * The Pro badge (2026-11-24): a die-cut sticker chip, the Pro mark and the word on the white pearl pill,
- * with a white die-cut edge and a small tilt, as if slapped on. The pearl keeps the Signature grain's
- * clouds and wine type. Styles: `.pro-badge` in app/globals.css, kept identical to Pro's. `size="sm"`
+ * The Pro badge (2026-11-24): a die-cut sticker chip, the Pro mark and the word in white on a foil of
+ * the Signature colours ("Foil sweep"), with a white die-cut edge and a small tilt, as if slapped on. Styles: `.pro-badge` in app/globals.css, kept identical to Pro's. `size="sm"`
  * sits beside a title at the New and Beta badges' height. `tone="games"` wears the Games colourway
- * (`.games-badge`, Iris) on the same pearl, kept identical to Pro's.
+ * (`.games-badge`, Iris) on the same foil, kept identical to Pro's.
  */
 export function ProBadge({ label = "Pro", size = "md", tone = "pro", className }: { label?: string; size?: "sm" | "md"; tone?: "pro" | "games"; className?: string }) {
   return (
