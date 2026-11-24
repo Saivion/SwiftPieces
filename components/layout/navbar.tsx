@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useSearchContext } from "fumadocs-ui/contexts/search";
 import { Logo } from "@/components/ui/logo";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,6 @@ import { SectionIcon } from "@/components/docs/section-icons";
 import { ThemeButton, ThemeToggle } from "@/components/layout/theme-toggle";
 import { cn } from "@/lib/cn";
 import { pro } from "@/lib/site";
-import { proGames, proGamesNav, type ProGame } from "@/lib/pro-catalog";
 import { PromoBar } from "@/components/announce/promo-bar";
 import type { Promo } from "@/lib/promo";
 
@@ -24,17 +23,13 @@ type Menu = {
   /** Headed columns, side by side in the panel and stacked on the phone sheet; `items` is all of them. */
   groups?: MenuGroup[];
   /** Paths that light the menu up besides its items' own. */ also?: string[];
-  /** A panel of its own in place of the rows (the Games menu). */
-  panel?: (onPick: () => void) => ReactNode;
-  /** Wears the New badge on its trigger. */
-  isNew?: boolean;
 };
 
 /**
  * The bar is split by what you came to do, the same as Pro's. Explore is one menu in two columns: the
  * Library, what you take and install (free pieces, and Pro's screens, patterns, flows and templates),
  * beside Create, the tools you use in the browser, where new features land. Resources is how to learn
- * it and who backs it. Pro stays a direct link. At most six items a column (Library, with Games last).
+ * it and who backs it. Games and Pro stay direct links. At most six items a column (Library, with Games last).
  */
 const library: MenuItem[] = [
   { label: "Components", href: "/components", desc: "Single-file SwiftUI pieces with live previews", icon: "components" },
@@ -42,7 +37,7 @@ const library: MenuItem[] = [
   { label: "Patterns", href: "/patterns", desc: "Whole sections of a screen, ready to drop in", icon: "blocks", badge: "Pro" },
   { label: "Flows", href: pro.flows, desc: "Whole journeys, from first run to settings", icon: "flows", badge: "Pro" },
   { label: "Templates", href: pro.templates, desc: "Complete apps as Xcode projects", icon: "templates", badge: "Pro" },
-  // Games are sold on Pro: the row opens pro.swiftpieces.com/games, where each game is a click away. New, like the Games menu.
+  // Games are sold on Pro: the row opens pro.swiftpieces.com/games, where each game is a click away. New, like the Games link.
   { label: "Games", href: pro.games, desc: "Complete iOS games, ready to reskin and ship", icon: "games", badge: "New" },
 ];
 const create: MenuItem[] = [
@@ -51,19 +46,6 @@ const create: MenuItem[] = [
   // Saivion's own store: a one-off logo for the app you build here. Opens tinypersonas.com.
   { label: "App icons", href: "https://tinypersonas.com", desc: "A one-off logo for your app, by TinyPersonas", icon: "appicon" },
 ];
-
-/**
- * Games, the same menu as Pro's (SwiftPiecesPro components/layout/navbar.tsx): every game as a row with its
- * tile, the newest wave first, beside Browse. Games are sold on Pro, so every link opens pro.swiftpieces.com.
- */
-const gameHref = (g: ProGame) => `${pro.games}/${g.id}`;
-const gamesBrowse: MenuItem[] = [
-  { label: "Overview", href: pro.games, desc: "Every game playing, and pricing", icon: "games" },
-  { label: "All games", href: `${pro.games}/library`, desc: "Compare every game side by side", icon: "library", count: proGames.list.length },
-  { label: "Skins", href: `${pro.games}/skins`, desc: "Each game's look as a theme", icon: "style", count: proGames.skins },
-  { label: "Playable Ads", href: `${pro.games}/ads`, desc: "An ad people can play, for every network", icon: "ads", badge: "New" },
-];
-const freshGames = proGamesNav.filter((g) => g.isNew).length;
 
 const menus: Menu[] = [
   { label: "Explore", href: "/components", also: ["/playground"], items: [...library, ...create], groups: [{ label: "Library", items: library }, { label: "Create", items: create }] },
@@ -80,14 +62,10 @@ const menus: Menu[] = [
       { label: "Sponsors", href: "/sponsors", desc: "The people who keep it free", icon: "sponsors", tone: "text-accent" },
     ],
   },
-  {
-    label: "Games", href: pro.games, isNew: true,
-    items: [...gamesBrowse, ...proGamesNav.map((g) => ({ label: g.title, href: gameHref(g), desc: g.genre, icon: "games" as const, badge: g.isNew ? "New" : undefined }))],
-    panel: (onPick) => <GamesPanel onPick={onPick} />,
-  },
 ];
 
-const links: NavLink[] = [{ label: "Pro", href: "/pro" }];
+// Games is a plain link to Pro's games page, where every game is a click away; it wears New while the games are fresh.
+const links: NavLink[] = [{ label: "Games", href: pro.games, badge: "New" }, { label: "Pro", href: "/pro" }];
 
 /** A menu item's badge: Pro items wear the Pro tag (the Playground's, beside a Pro app), the rest New or Beta. */
 function Badge({ label }: { label?: string }) {
@@ -108,57 +86,6 @@ function MenuRow({ item: l, active, onPick }: { item: MenuItem; active: boolean;
         <span className="mt-0.5 text-[12.5px] text-muted">{l.desc}</span>
       </span>
     </Link>
-  );
-}
-
-/**
- * True once someone reaches for the navigation (hover, focus, or the phone sheet opening). Until then the menus'
- * decorative stills stay out of the HTML, so the page's own content and images come first.
- */
-const MenusWarm = createContext(false);
-
-/** A game's still (Pro's Play still, public/pro-games/<id>.webp) cropped to a small square, for its row in the Games menu. */
-function GameTile({ game, className }: { game: ProGame; className?: string }) {
-  const warm = useContext(MenusWarm);
-  return (
-    <span className={cn("relative block shrink-0 overflow-hidden bg-surface ring-1 ring-[var(--line)]", className)}>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      {warm && <img src={`/pro-games/${game.id}.webp`} alt="" loading="lazy" decoding="async" draggable={false} className="absolute inset-0 size-full object-cover object-[50%_38%]" />}
-    </span>
-  );
-}
-
-/** One game in the Games menu: its tile, name with New, and genre. */
-function GameRow({ game, onPick }: { game: ProGame; onPick: () => void }) {
-  return (
-    <a href={gameHref(game)} onClick={onPick} className="group/item flex items-center gap-3 rounded-[14px] p-2 transition-colors hover:bg-surface">
-      <GameTile game={game} className="size-[38px] rounded-[11px] transition-transform duration-300 group-hover/item:scale-[1.06]" />
-      <span className="flex min-w-0 flex-1 flex-col">
-        <span className="flex items-center gap-2 text-[14px] font-medium text-foreground">{game.title}{game.isNew ? <NewBadge /> : null}</span>
-        <span className="mt-0.5 truncate text-[12.5px] text-muted">{game.genre}</span>
-      </span>
-    </a>
-  );
-}
-
-const PANEL = "rounded-[22px] border border-[var(--line-strong)] bg-surface-3 p-1.5 shadow-[var(--shadow-float)]";
-const DIVIDER = "before:absolute before:top-12 before:bottom-12 before:left-0 before:w-px before:bg-line";
-
-/** The Games menu: every game as a row with its tile, the newest wave first, beside the Browse links. */
-function GamesPanel({ onPick }: { onPick: () => void }) {
-  return (
-    <div className={cn("flex w-max gap-1.5", PANEL)}>
-      <div className="flex w-[452px] flex-col">
-        <p className="px-2.5 pt-2 pb-1 text-[12px] font-medium text-subtle">Games</p>
-        <div className="grid grid-cols-2">
-          {proGamesNav.map((g) => <GameRow key={g.id} game={g} onPick={onPick} />)}
-        </div>
-      </div>
-      <div className={cn("relative flex w-[300px] flex-col pl-1.5", DIVIDER)}>
-        <p className="px-2.5 pt-2 pb-1 text-[12px] font-medium text-subtle">Browse</p>
-        {gamesBrowse.map((l) => <MenuRow key={l.href} item={l} active={false} onPick={onPick} />)}
-      </div>
-    </div>
   );
 }
 
@@ -185,10 +112,6 @@ export function Navbar({ star, starMobile, docked = false, fresh = 0, promo }: {
   const showPromo = Boolean(promo) && !docked && PROMO_PATHS.has(pathname);
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
-  const [warm, setWarm] = useState(false);
-  useEffect(() => {
-    if (open) setWarm(true);
-  }, [open]);
   // The menu just picked from, so it closes under the pointer; cleared the next time one is hovered or focused.
   const [held, setHeld] = useState<string | null>(null);
   const { setOpenSearch } = useSearchContext();
@@ -221,11 +144,11 @@ export function Navbar({ star, starMobile, docked = false, fresh = 0, promo }: {
   const condensed = !docked && scrolled && !open;
 
   return (
-    <MenusWarm.Provider value={warm}>
+    <>
     {/* Fixed, with a constant-height spacer below. When the header was sticky its shrink on
         scroll changed the page layout; scroll anchoring then moved the page back under the
         threshold and the bar grew again, so it oscillated on its own near the top. */}
-    <header onPointerEnter={() => setWarm(true)} onFocusCapture={() => setWarm(true)} className={cn("fixed inset-x-0 top-0 z-50 transition-colors duration-500 ease-[var(--ease-out)]", open ? "bg-background" : "bg-transparent")}>
+    <header className={cn("fixed inset-x-0 top-0 z-50 transition-colors duration-500 ease-[var(--ease-out)]", open ? "bg-background" : "bg-transparent")}>
       {/* The announcement bar rides above the bar and tucks away once it condenses or the menu opens. */}
       {showPromo && promo && <PromoBar promo={promo} hidden={scrolled || open} />}
       <Shell docked={docked}>
@@ -247,12 +170,11 @@ export function Navbar({ star, starMobile, docked = false, fresh = 0, promo }: {
                   <li key={m.label} className="group relative" onMouseEnter={() => setHeld(null)} onFocus={() => setHeld(null)}>
                     <Link href={m.href} aria-haspopup="true" className={cn("relative flex h-[34px] items-center gap-1 rounded-full px-3.5 text-[14px] transition-colors duration-200", active ? "bg-surface-2 text-foreground" : "text-muted hover:bg-surface-2 hover:text-foreground group-focus-within:bg-surface-2 group-focus-within:text-foreground")}>
                       {m.label}
-                      {m.isNew ? <NewBadge className="ml-1" /> : null}
                       <svg aria-hidden viewBox="0 0 16 16" className={cn("size-3.5 transition-transform duration-300", !isHeld && "group-hover:rotate-180 group-focus-within:rotate-180")} fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M4.5 6.5l3.5 3.5 3.5-3.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
                     </Link>
                     <div className={cn("absolute top-full pt-2 transition-all duration-300 ease-[var(--ease-out)]", m.groups ? "left-0" : "left-1/2 -translate-x-1/2", isHeld ? "pointer-events-none invisible translate-y-1 opacity-0" : "invisible translate-y-1 opacity-0 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100")}>
                       {/* A grouped menu sets its groups side by side, each under its name, as Pro's does. */}
-                      {m.panel ? m.panel(() => pick(m.label)) : m.groups ? (
+                      {m.groups ? (
                         <div className="flex w-max gap-1.5 rounded-[22px] border border-[var(--line-strong)] bg-surface-3 p-1.5 shadow-[var(--shadow-float)]">
                           {m.groups.map((g, gi) => (
                             <div key={g.label} className={cn("relative flex w-[340px] flex-col", gi > 0 && "pl-1.5 before:absolute before:top-12 before:bottom-12 before:left-0 before:w-px before:bg-line")}>
@@ -313,33 +235,7 @@ export function Navbar({ star, starMobile, docked = false, fresh = 0, promo }: {
         <Container className="flex h-full flex-col gap-8 overflow-y-auto overscroll-contain py-6">
           {/* The phone sheet has no hover, so each menu is a headed group of its items. */}
           <div className="flex flex-col gap-6">
-            <div>
-              <p className="mb-2 flex items-center gap-2 text-[13px] font-medium text-subtle">Games{freshGames ? <NewBadge>{`${freshGames} New`}</NewBadge> : null}</p>
-              {/* Every game as a tile in a row that scrolls sideways, then the Browse links, as on Pro. */}
-              <div className="-mx-5 flex snap-x scroll-px-5 gap-2.5 overflow-x-auto px-5 pb-1 [scrollbar-width:none]">
-                {proGamesNav.map((g) => (
-                  <a key={g.id} href={gameHref(g)} onClick={() => setOpen(false)} className="flex w-[92px] shrink-0 snap-start flex-col gap-1.5">
-                    <span className="relative block aspect-[3/4] overflow-hidden rounded-[14px] bg-surface ring-1 ring-[var(--line)]">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      {warm && <img src={`/pro-games/${g.id}.webp`} alt="" loading="lazy" className="absolute inset-0 size-full object-cover object-[50%_30%]" />}
-                      {g.isNew ? <NewBadge className="absolute top-1.5 left-1.5 bg-background/90" /> : null}
-                    </span>
-                    <span className="text-[13px] font-medium text-foreground">{g.title}</span>
-                  </a>
-                ))}
-              </div>
-              <ul className="mt-2 flex flex-col">
-                {gamesBrowse.map((l) => (
-                  <li key={l.href} className="hair-b">
-                    <a href={l.href} onClick={() => setOpen(false)} className="flex items-center justify-between py-3 text-[15px]">
-                      <span className="flex items-center gap-2">{l.label}<Badge label={l.badge} /></span>
-                      {l.count != null ? <span className="text-[13px] tabular-nums text-subtle">{l.count}</span> : null}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            {sections.filter((m) => !m.panel).flatMap((m) => m.groups ?? [{ label: m.label, items: m.items }]).map((m, gi) => (
+            {sections.flatMap((m) => m.groups ?? [{ label: m.label, items: m.items }]).map((m, gi) => (
               <div key={m.label}>
                 <p className="mb-1 text-[13px] font-medium text-subtle">{m.label}</p>
                 <ul className="flex flex-col">
@@ -358,7 +254,7 @@ export function Navbar({ star, starMobile, docked = false, fresh = 0, promo }: {
               {links.map((l) => (
                 <li key={l.href} className="hair-b">
                   <Link href={l.href} className="flex items-center justify-between py-3 text-[15px]">
-                    {l.label}
+                    <span className="flex items-center gap-2">{l.label}<Badge label={l.badge} /></span>
                     {isActive(l.href) ? <span className="size-2 rounded-full bg-accent" /> : null}
                   </Link>
                 </li>
@@ -373,7 +269,7 @@ export function Navbar({ star, starMobile, docked = false, fresh = 0, promo }: {
           </div>
         </Container>
       </div>
-    </MenusWarm.Provider>
+    </>
   );
 }
 
