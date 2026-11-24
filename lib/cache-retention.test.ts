@@ -50,6 +50,14 @@ describe("ISR cache retention", () => {
     assert.ok(computeCacheKey("/x", { prefix: undefined, buildId: undefined }).startsWith(PREFIX));
   });
 
+  it("never refuses to render a page whose entry the rule removed", () => {
+    // `dynamicParams = false` makes the route answer 404 for a prerendered page whose entry the
+    // rule has expired, instead of rendering it again as a cache miss (lib/known-pages.ts).
+    for (const file of walk(join(ROOT, "app"))) {
+      assert.doesNotMatch(readFileSync(file, "utf8"), /dynamicParams\s*=\s*false/, file);
+    }
+  });
+
   it("only revalidates on cycles well inside the rule's age", () => {
     // An entry is rewritten, so its age resets, each time it regenerates. Keeping every cycle under
     // half the rule's age leaves a stale entry a full cycle in which to be served while it regenerates.

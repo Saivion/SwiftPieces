@@ -1,8 +1,8 @@
 import { sitemapGroups, urlsetXml, XML_HEADERS } from "@/lib/sitemaps";
 
 // One child sitemap per page type: /sitemaps/components.xml and the rest (lib/sitemaps.ts).
+// dynamicParams stays on: an expired cache entry must render again, and GET already 404s unknown files.
 export const dynamic = "force-static";
-export const dynamicParams = false;
 
 export function generateStaticParams() {
   return Object.keys(sitemapGroups()).map((name) => ({ file: `${name}.xml` }));

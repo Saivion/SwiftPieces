@@ -4,6 +4,7 @@ import { createCatalog, isCatalogKind, type CatalogEntry } from "@swiftpieces/bu
 import { patternsCatalogSource } from "@swiftpieces/builder/catalog";
 import store from "./app-store.json";
 import { LIBRARY } from "./library";
+import { appSlugs } from "./slugs";
 
 export const APPS_PATH = "/apps";
 
@@ -49,8 +50,10 @@ function patternFor(key: string): CatalogEntry {
   return entry;
 }
 
-/** Every app with both halves present. An app missing from the App Store data is left out. */
-export const apps: LibraryEntry[] = LIBRARY.filter((a) => facts[a.slug]).map((a) => ({ slug: a.slug, name: a.name ?? shortName(facts[a.slug].name), store: facts[a.slug], pattern: patternFor(a.pattern), screens: (a.screens ?? []).filter((x) => facts[a.slug].screenshots[x.shot]) }));
+/** Every app with both halves present, the same set appSlugs lists. */
+const covered = new Set(appSlugs);
+
+export const apps: LibraryEntry[] = LIBRARY.filter((a) => covered.has(a.slug)).map((a) => ({ slug: a.slug, name: a.name ?? shortName(facts[a.slug].name), store: facts[a.slug], pattern: patternFor(a.pattern), screens: (a.screens ?? []).filter((x) => facts[a.slug].screenshots[x.shot]) }));
 
 /**
  * The App Store screenshot shown as a screen's inspiration. Every screen gets one: the screenshot

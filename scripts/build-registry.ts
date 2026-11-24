@@ -39,6 +39,7 @@ import { exploreProPages, proCatalog, proCountsLabel } from "../lib/pro-catalog"
 import { hubs, hubItems, hubPath } from "../lib/hubs";
 import { homeFaqs } from "../lib/faqs";
 import { changelog, changelogPath } from "../lib/changelog";
+import { appSlugs } from "../lib/apps/slugs";
 import { motionDrift } from "./sync-motion";
 import type { KnownPages } from "../lib/known-pages";
 import { SUMMARY_MAX, summaries } from "../registry/summaries";
@@ -596,7 +597,7 @@ function writeDocsIndex() {
 }
 
 /**
- * registry/__registry__/known-pages.json: the URLs the docs and registry routes answer, for middleware.ts (lib/known-pages.ts).
+ * registry/__registry__/known-pages.json: the URLs the docs, hub, app, playground and registry routes answer, for middleware.ts (lib/known-pages.ts).
  * The changelog's pages are routes of their own beside the docs catch-all (app/docs/changelog), so they're added here:
  * without them middleware sent /docs/changelog and every update's page to the not-found page.
  */
@@ -612,6 +613,8 @@ function writeKnownPages(urls: string[]) {
     docsSections: [...new Set(docs.flatMap((d) => d.split("/").slice(0, -1)))],
     registry: [...new Set(["index", ...index.flatMap((i) => [i.name, i.slug]), ...blockIndex.flatMap((b) => [b.name, b.slug])])],
     pieces: [...new Set(index.flatMap((i) => [i.name, i.slug]))],
+    hubs: hubs.map((h) => h.slug),
+    apps: appSlugs,
   };
   writeFileSync(join(OUT_DIR, "known-pages.json"), JSON.stringify(known));
 }
