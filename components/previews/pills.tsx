@@ -221,7 +221,7 @@ export function ReminderPillPreview() {
     for (const i of [1, 2]) {
       await wait(700); setPicked(null); setOpen(true);
       await wait(1000); setPicked(i);
-      await wait(600); setOpen(false);
+      await wait(1000); setOpen(false);
       await wait(220); setShown(i);
       await wait(1800); setShown(null);
       await wait(400);

@@ -63,6 +63,14 @@
   "width": 1200,
   "height": 900
  },
+ "DatePill": {
+  "light": "/previews/inputs/date-pill/date-pill-light.webp",
+  "dark": "/previews/inputs/date-pill/date-pill-dark.webp",
+  "thumb": "/previews/inputs/date-pill/date-pill-thumb.webp",
+  "og": "/previews/inputs/date-pill/date-pill-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
  "DateRangePicker": {
   "light": "/previews/inputs/date-range-picker/date-range-picker-light.webp",
   "dark": "/previews/inputs/date-range-picker/date-range-picker-dark.webp",
@@ -220,6 +228,14 @@
   "dark": "/previews/text/glass-text/glass-text-dark.webp",
   "thumb": "/previews/text/glass-text/glass-text-thumb.webp",
   "og": "/previews/text/glass-text/glass-text-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "GuestsPill": {
+  "light": "/previews/inputs/guests-pill/guests-pill-light.webp",
+  "dark": "/previews/inputs/guests-pill/guests-pill-dark.webp",
+  "thumb": "/previews/inputs/guests-pill/guests-pill-thumb.webp",
+  "og": "/previews/inputs/guests-pill/guests-pill-og.jpg",
   "width": 1200,
   "height": 900
  },
@@ -463,6 +479,14 @@
   "width": 1200,
   "height": 900
  },
+ "ReminderPill": {
+  "light": "/previews/inputs/reminder-pill/reminder-pill-light.webp",
+  "dark": "/previews/inputs/reminder-pill/reminder-pill-dark.webp",
+  "thumb": "/previews/inputs/reminder-pill/reminder-pill-thumb.webp",
+  "og": "/previews/inputs/reminder-pill/reminder-pill-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
  "ReorderList": {
   "light": "/previews/lists/reorder-list/reorder-list-light.webp",
   "dark": "/previews/lists/reorder-list/reorder-list-dark.webp",
@@ -551,6 +575,14 @@
   "width": 1200,
   "height": 900
  },
+ "SlideToPay": {
+  "light": "/previews/controls/slide-to-pay/slide-to-pay-light.webp",
+  "dark": "/previews/controls/slide-to-pay/slide-to-pay-dark.webp",
+  "thumb": "/previews/controls/slide-to-pay/slide-to-pay-thumb.webp",
+  "og": "/previews/controls/slide-to-pay/slide-to-pay-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
  "SmartText": {
   "light": "/previews/text/smart-text/smart-text-light.webp",
   "dark": "/previews/text/smart-text/smart-text-dark.webp",
@@ -572,6 +604,14 @@
   "dark": "/previews/ai/source-stack/source-stack-dark.webp",
   "thumb": "/previews/ai/source-stack/source-stack-thumb.webp",
   "og": "/previews/ai/source-stack/source-stack-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "SplitStepper": {
+  "light": "/previews/inputs/split-stepper/split-stepper-light.webp",
+  "dark": "/previews/inputs/split-stepper/split-stepper-dark.webp",
+  "thumb": "/previews/inputs/split-stepper/split-stepper-thumb.webp",
+  "og": "/previews/inputs/split-stepper/split-stepper-og.jpg",
   "width": 1200,
   "height": 900
  },
