@@ -23,10 +23,11 @@ const grid16: Record<string, { motion?: string; parts: ReactNode }> = {
   agent: { parts: <path className="ai-twinkle" d="M8 2l1.2 3.3L12.5 6.5 9.2 7.8 8 11 6.8 7.8 3.5 6.5l3.3-1.2z" /> },
   free: { parts: <><path d="M8 2.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11z" /><path className="ai-spin" style={{ "--ai-turn": "180deg" } as CSSProperties} d="M5.5 8h5" /></> },
   collections: { parts: <>{["M3 5.5h10", "M3 8h10", "M3 10.5h6", "M5.5 3v10"].map((d, n) => <path key={d} className="ai-redraw" style={i(n)} pathLength={1} d={d} />)}</> },
-  // The navbar's Resources: an open book whose right page turns, a compass whose needle swings, a
-  // clock whose hand sweeps (the changelog), a terminal whose cursor blinks (MCP and agents), and a
+  // The navbar's Resources: an open book whose right page turns, a balance whose beam tips (choosing a
+  // library), a compass whose needle swings, a clock whose hand sweeps (the changelog), a terminal whose cursor blinks (MCP and agents), and a
   // heart that beats (sponsors).
   docs: { parts: <><path d="M8 4.5c-1.4-1-3.2-1.5-5.5-1.5v9c2.3 0 4.1.5 5.5 1.5" /><path className="ai-tilt" d="M8 4.5c1.4-1 3.2-1.5 5.5-1.5v9c-2.3 0-4.1.5-5.5 1.5z" /></> },
+  compare: { parts: <><path d="M8 3.5V13M5 13h6" strokeLinecap="round" /><g className="ai-tilt" style={{ transformOrigin: "8px 3.5px", transformBox: "view-box" } as CSSProperties}><path d="M2.5 3.5h11M3.2 3.5 1.6 8.5M3.2 3.5l1.6 5M12.8 3.5l-1.6 5M12.8 3.5l1.6 5" strokeLinecap="round" /><path d="M1.4 8.5h3.6a1.8 1.8 0 0 1-3.6 0zM11 8.5h3.6a1.8 1.8 0 0 1-3.6 0z" /></g></> },
   guides: { parts: <><circle cx="8" cy="8" r="5.5" /><path className="ai-spin" style={{ "--ai-turn": "90deg" } as CSSProperties} d="M10 6l-1.2 2.8L6 10l1.2-2.8z" /></> },
   changelog: { parts: <><path d="M2.6 8a5.4 5.4 0 1 0 1.6-3.8" strokeLinecap="round" /><path d="M2.5 2.8v2.4h2.4" strokeLinecap="round" strokeLinejoin="round" /><path className="ai-spin" style={{ "--ai-turn": "360deg", transformOrigin: "8px 8px", transformBox: "view-box" } as CSSProperties} d="M8 5.2V8l1.9 1.2" strokeLinecap="round" /></> },
   mcp: { parts: <><rect x="2" y="3" width="12" height="10" rx="1.6" /><path d="M4.8 6.4l1.8 1.6-1.8 1.6" strokeLinecap="round" strokeLinejoin="round" /><path className="ai-pop" d="M8.4 9.8h2.8" strokeLinecap="round" /></> },
