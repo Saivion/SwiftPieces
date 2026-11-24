@@ -10,10 +10,10 @@ import { fontPreloads } from "@/lib/fonts.generated";
 import { PromoBoot } from "@/components/announce/promo-boot";
 import { promo } from "@/lib/promo";
 
-// Allo (github.com/joshpuckett/allo, OFL) is self-hosted from public/fonts, cut down by
+// Manrope (google/fonts, OFL) is self-hosted from public/fonts, cut down by
 // scripts/fonts/subset_fonts.py (rerun it when content needs a new character, weight or OpenType feature).
 // app/fonts.css holds the @font-face rules, a metric-matched Arial fallback (next/font's method), and
-// --font-allo; only the core file is preloaded.
+// --font-manrope; only the core file is preloaded.
 
 const ICON_VERSION = 5;
 

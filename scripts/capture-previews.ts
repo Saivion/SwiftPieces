@@ -43,7 +43,7 @@ export type PieceMedia = { light: string; dark: string; thumb: string; og: strin
 const index: RegistryIndexEntry[] = JSON.parse(readFileSync(join(ROOT, "registry/__registry__/index.json"), "utf8"));
 const manifest: Record<string, PieceMedia> = existsSync(MANIFEST) ? JSON.parse(readFileSync(MANIFEST, "utf8")) : {};
 
-const FONT = readFileSync(join(ROOT, "public/fonts", (await import("node:fs")).readdirSync(join(ROOT, "public/fonts")).find((f) => f.startsWith("allo-core"))!)).toString("base64");
+const FONT = readFileSync(join(ROOT, "public/fonts", (await import("node:fs")).readdirSync(join(ROOT, "public/fonts")).find((f) => f.startsWith("manrope-core"))!)).toString("base64");
 const MARK = readFileSync(join(ROOT, "public/logo-mark.png")).toString("base64");
 
 const escapeHtml = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -53,9 +53,9 @@ function ogHtml(e: RegistryIndexEntry, still: string): string {
   const phrase = piecePhrase(e);
   const sub = phrase.toLowerCase() === e.title.toLowerCase() ? "SwiftUI component" : `SwiftUI ${phrase}`;
   return `<!doctype html><html><head><style>
-  @font-face { font-family: Allo; src: url(data:font/woff2;base64,${FONT}) format("woff2"); font-weight: 100 900; }
+  @font-face { font-family: Manrope; src: url(data:font/woff2;base64,${FONT}) format("woff2"); font-weight: 200 800; }
   * { margin: 0; box-sizing: border-box; }
-  body { width: 1200px; height: 630px; background: #f3f2ee; font-family: Allo, system-ui, sans-serif; color: #141414; display: flex; align-items: center; gap: 40px; padding: 0 44px 0 60px; }
+  body { width: 1200px; height: 630px; background: #f3f2ee; font-family: Manrope, system-ui, sans-serif; color: #141414; display: flex; align-items: center; gap: 40px; padding: 0 44px 0 60px; }
   .text { flex: 1; display: flex; flex-direction: column; height: 520px; justify-content: space-between; }
   .brand { display: flex; align-items: center; gap: 12px; font-size: 26px; font-weight: 650; }
   .brand img { width: 40px; height: 40px; border-radius: 12px; }
