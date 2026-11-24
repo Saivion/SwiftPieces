@@ -18,9 +18,6 @@ import { cn } from "@/lib/cn";
 
 type Props = { params: Promise<{ slug: string }> };
 
-// Every hub is known at build time; anything else is a 404, not a render.
-export const dynamicParams = false;
-
 export function generateStaticParams() {
   return hubs.map((h) => ({ slug: h.slug }));
 }

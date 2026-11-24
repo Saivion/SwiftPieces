@@ -6,7 +6,6 @@ import { AppPlaygroundPage, appPlaygroundMetadata, buildApp } from "@/lib/playgr
 type Params = { app: string };
 
 /** One Playground per app in the library, built at build time. */
-export const dynamicParams = false;
 export function generateStaticParams(): Params[] {
   return apps.map((a) => ({ app: a.slug }));
 }

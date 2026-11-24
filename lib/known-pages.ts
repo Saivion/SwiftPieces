@@ -1,11 +1,11 @@
-// Which docs pages and registry names exist, decided before Next renders anything.
+// Which docs pages, hubs, apps, changelog entries and registry names exist, decided before Next
+// renders anything.
 //
-// The docs catch-all and the registry route are built once for every page and name they have
-// (generateStaticParams) and served from the OpenNext incremental cache in R2. Anything else still
-// renders on demand, and its result (a 404 or a redirect) is written to R2 as a cache entry of its
-// own. So a client could add one R2 object per made-up URL, as many as it liked, and only the
-// bucket's 7-day lifecycle rule ever cleared them. middleware.ts answers those URLs before they
-// reach the route.
+// These routes are built once for every page and name they have (generateStaticParams) and served
+// from the OpenNext incremental cache in R2. Anything else still renders on demand, and its result
+// (a 404 or a redirect) is written to R2 as a cache entry of its own. So a client could add one R2
+// object per made-up URL, as many as it liked, and only the bucket's 7-day lifecycle rule ever
+// cleared them. middleware.ts answers those URLs before they reach the route.
 //
 // `dynamicParams = false` would refuse them too, but with that rule in place it also turns a valid
 // page whose entry has expired into a 404, and it would drop the legacy forwarding the docs route
@@ -23,6 +23,10 @@ export type KnownPages = {
   registry: string[];
   /** Piece names and slugs, for the legacy docs forward. */
   pieces: string[];
+  /** Every hub's slug, the segments /components/<slug> answers. */
+  hubs: string[];
+  /** Every app's slug, the segment /apps/<app> and /playground/<app> answer. */
+  apps: string[];
 };
 
 export type KnownPageSets = { [K in keyof KnownPages]: Set<string> };
@@ -39,7 +43,10 @@ function segmentsOf(path: string): string[] | null {
   }
 }
 
-/** False only for a /docs, /r or /api/registry URL that matches nothing those routes have; true for every other path. */
+/**
+ * False only for a /docs, /components, /apps, /playground, /r or /api/registry URL that matches
+ * nothing those routes have; true for every other path.
+ */
 export function isKnownPage(path: string, k: KnownPageSets): boolean {
   const s = segmentsOf(path);
   if (!s) return false;
@@ -49,6 +56,10 @@ export function isKnownPage(path: string, k: KnownPageSets): boolean {
     // An older docs URL, /docs/<section>/<piece>, forwards to the piece (app/docs/[[...slug]]/page.tsx).
     return slug.length === 2 && k.docsSections.has(slug[0]) && k.pieces.has(slug[1]);
   }
+  if (s[0] === "components") return s.length !== 2 || k.hubs.has(s[1]);
+  if (s[0] === "apps") return s.length !== 2 || k.apps.has(s[1]);
+  // /playground/open is a page of its own; every other /playground/<app> is one app's playground.
+  if (s[0] === "playground") return s.length !== 2 || s[1] === "open" || k.apps.has(s[1]);
   if (s[0] === "r") return s.length !== 2 || !s[1].endsWith(".json") || k.registry.has(s[1].slice(0, -".json".length));
   if (s[0] === "api" && s[1] === "registry") return s.length !== 3 || k.registry.has(s[2].replace(/\.json$/, ""));
   return true;
