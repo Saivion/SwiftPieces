@@ -1,0 +1,8 @@
+## Notes
+
+- Captures its content with `ImageRenderer` at the screen's scale each time `trigger` changes, so the image is as crisp as the screen. `onCapture` hands you the `UIImage` to copy, save or upload.
+- The content is drawn a second time, off screen, for the image, in the current colour scheme. Build it from values, not from state that only lives inside it, or the picture can differ from the screen.
+- A white flash runs over the view, then the picture shrinks to `thumbnailScale` with a slight tilt into a white-framed thumbnail `thumbnailDrop` points below the view. Leave room there: it draws outside the view's frame.
+- The thumbnail is a `ShareLink`, so a tap opens the share sheet with the image. A glass note beside it shows `message` with a red check, and both slide away after `holdDuration` seconds.
+- A medium haptic fires as the picture is taken, and VoiceOver announces `message`.
+- Under Reduce Motion the flash is softer, the thumbnail does not tilt and every move runs without bounce.

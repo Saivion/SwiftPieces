@@ -30,6 +30,7 @@ export const summaries: Record<string, string> = {
   WalletStack: "A wallet of passes stacked by their header strips: tap one to open its whole face and a real scannable code, then put it back.",
 
   // Buttons and controls
+  SlideToPay: "A slide-to-confirm track whose house aura gathers under your thumb, then floods the track as it folds into a red check.",
   SelectMenu: "A glass pill showing the current choice that opens in place into its list, the red row flowing to your pick before it closes.",
   ViewToggle: "A glass list and grid toggle whose red pill flows between them, switching inside an animation so matched items morph.",
   CommitButton: "An async action button in liquid glass that runs through loading, success and error, with a progress bubble budding out of its end.",
@@ -63,6 +64,10 @@ export const summaries: Record<string, string> = {
   GlassSurface: "The SwiftPieces liquid glass as a modifier: any view on a glass shape, neighbours melted together, with fallbacks before iOS 26.",
 
   // Inputs and forms
+  DatePill: "A glass date pill that grows a month out of itself as one piece of liquid glass, the red day flowing to your tap before it drains back.",
+  GuestsPill: "A glass guests pill that grows steppers for adults, children and pets out of itself, then drains back reading the party in words.",
+  ReminderPill: "A glass Remind me pill that grows later today, tomorrow, this weekend and next week out of itself, then reads the time by a red bell.",
+  SplitStepper: "A bill splitter: the share each person pays rolls as you step the head count, the house aura pulsing at the side you press.",
   SizePicker: "A glass row of sizes with a red pill that flows to your pick, sold out sizes struck through and shaking, and a stock note under it.",
   UnitToggle: "A value with a glass unit toggle: the red pill flows to the unit you tap and the number rolls to the converted Measurement.",
   AddressField: "An address field whose suggestions pour out as a glass list and resolve into a structured address with street, city and coordinate.",
@@ -94,6 +99,8 @@ export const summaries: Record<string, string> = {
   TaskRow: "A task card whose glass check pops as it completes, with a priority chip, swipes to complete, snooze or delete, and drag to reorder.",
 
   // Media
+  Snapshot: "Turns any view into an image like a screenshot: a flash, then a tilted thumbnail you tap to share and a glass note.",
+  MapExpand: "A place card whose map thumbnail opens into a live MapKit map, the pin dropping in and your actions settling under it.",
   QRCode: "A styled QR code with round dots, soft eyes with red centres and your logo, whose dots ripple out from the centre when it changes.",
   ZoomDial: "Preset stops in a glass capsule with a flowing red disc that widens into a fine dial when you hold it, like the camera zoom.",
   AttachmentTray: "An attachment strip for composers: a glass add tile opens the photo picker and each pick lands as a tile with a live progress ring.",

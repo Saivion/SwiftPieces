@@ -63,6 +63,14 @@
   "width": 1200,
   "height": 900
  },
+ "DatePill": {
+  "light": "/previews/inputs/date-pill/date-pill-light.webp",
+  "dark": "/previews/inputs/date-pill/date-pill-dark.webp",
+  "thumb": "/previews/inputs/date-pill/date-pill-thumb.webp",
+  "og": "/previews/inputs/date-pill/date-pill-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
  "DateRangePicker": {
   "light": "/previews/inputs/date-range-picker/date-range-picker-light.webp",
   "dark": "/previews/inputs/date-range-picker/date-range-picker-dark.webp",
@@ -223,6 +231,14 @@
   "width": 1200,
   "height": 900
  },
+ "GuestsPill": {
+  "light": "/previews/inputs/guests-pill/guests-pill-light.webp",
+  "dark": "/previews/inputs/guests-pill/guests-pill-dark.webp",
+  "thumb": "/previews/inputs/guests-pill/guests-pill-thumb.webp",
+  "og": "/previews/inputs/guests-pill/guests-pill-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
  "HoldToConfirm": {
   "light": "/previews/controls/hold-to-confirm/hold-to-confirm-light.webp",
   "dark": "/previews/controls/hold-to-confirm/hold-to-confirm-dark.webp",
@@ -284,6 +300,14 @@
   "dark": "/previews/inputs/location-picker/location-picker-dark.webp",
   "thumb": "/previews/inputs/location-picker/location-picker-thumb.webp",
   "og": "/previews/inputs/location-picker/location-picker-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "MapExpand": {
+  "light": "/previews/media/map-expand/map-expand-light.webp",
+  "dark": "/previews/media/map-expand/map-expand-dark.webp",
+  "thumb": "/previews/media/map-expand/map-expand-thumb.webp",
+  "og": "/previews/media/map-expand/map-expand-og.jpg",
   "width": 1200,
   "height": 900
  },
@@ -455,6 +479,14 @@
   "width": 1200,
   "height": 900
  },
+ "ReminderPill": {
+  "light": "/previews/inputs/reminder-pill/reminder-pill-light.webp",
+  "dark": "/previews/inputs/reminder-pill/reminder-pill-dark.webp",
+  "thumb": "/previews/inputs/reminder-pill/reminder-pill-thumb.webp",
+  "og": "/previews/inputs/reminder-pill/reminder-pill-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
  "ReorderList": {
   "light": "/previews/lists/reorder-list/reorder-list-light.webp",
   "dark": "/previews/lists/reorder-list/reorder-list-dark.webp",
@@ -543,6 +575,14 @@
   "width": 1200,
   "height": 900
  },
+ "SlideToPay": {
+  "light": "/previews/controls/slide-to-pay/slide-to-pay-light.webp",
+  "dark": "/previews/controls/slide-to-pay/slide-to-pay-dark.webp",
+  "thumb": "/previews/controls/slide-to-pay/slide-to-pay-thumb.webp",
+  "og": "/previews/controls/slide-to-pay/slide-to-pay-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
  "SmartText": {
   "light": "/previews/text/smart-text/smart-text-light.webp",
   "dark": "/previews/text/smart-text/smart-text-dark.webp",
@@ -551,11 +591,27 @@
   "width": 1200,
   "height": 900
  },
+ "Snapshot": {
+  "light": "/previews/media/snapshot/snapshot-light.webp",
+  "dark": "/previews/media/snapshot/snapshot-dark.webp",
+  "thumb": "/previews/media/snapshot/snapshot-thumb.webp",
+  "og": "/previews/media/snapshot/snapshot-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
  "SourceStack": {
   "light": "/previews/ai/source-stack/source-stack-light.webp",
   "dark": "/previews/ai/source-stack/source-stack-dark.webp",
   "thumb": "/previews/ai/source-stack/source-stack-thumb.webp",
   "og": "/previews/ai/source-stack/source-stack-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "SplitStepper": {
+  "light": "/previews/inputs/split-stepper/split-stepper-light.webp",
+  "dark": "/previews/inputs/split-stepper/split-stepper-dark.webp",
+  "thumb": "/previews/inputs/split-stepper/split-stepper-thumb.webp",
+  "og": "/previews/inputs/split-stepper/split-stepper-og.jpg",
   "width": 1200,
   "height": 900
  },

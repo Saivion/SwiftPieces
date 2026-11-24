@@ -1,0 +1,8 @@
+## Notes
+
+- Tap the pill and a panel of steppers grows out of it, joined beneath it by a short neck of liquid glass: adults, children and, when you pass `pets`, pets.
+- Each tap flashes its button red, rolls the count and plays a soft haptic. A count at its limit dims its button. Adults and children together never pass `maximum`, and there is always at least one adult.
+- The pill reads the party in words, "3 guests, 1 pet" by default, and resizes to fit once the panel has drained back. Pass `summary` for your own wording.
+- The panel opens over the content below, centred under the pill. Give the pill a higher `zIndex` than the views after it.
+- On iOS 26 the pill and panel are Liquid Glass; before that they are frosted. Under Reduce Transparency they are solid.
+- Each row is one adjustable element for VoiceOver: swipe up or down to change it. Under Reduce Motion the panel opens and closes on a short ease, without bounce.

@@ -5,10 +5,12 @@
   "pages": [
     "attachment-tray",
     "link-preview",
+    "map-expand",
     "now-playing",
     "photo-cropper",
     "photo-viewer",
     "qr-code",
+    "snapshot",
     "story-strip",
     "voice-recorder",
     "waveform-scrub",
