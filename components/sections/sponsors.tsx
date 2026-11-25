@@ -2,8 +2,6 @@ import type { ReactNode } from "react";
 import { Container } from "@/components/ui/container";
 import { Eyebrow } from "@/components/ui/badge";
 import { Button, Arrow } from "@/components/ui/button";
-import { AnimatedText } from "@/components/ui/animated-text";
-import { pageLede } from "@/components/ui/section-header";
 import { Index } from "@/components/ui/panel";
 import { Reveal, RevealGroup, RevealItem } from "@/components/effects/reveal";
 import { GrainStage } from "@/components/visual/grain-stage";
@@ -17,7 +15,7 @@ import { cn } from "@/lib/cn";
 /* ---------- Hero ---------- */
 
 /** The quiet second action beside a primary pill: words and an arrow that nudges, as on the landing. */
-const quietLink = "group inline-flex h-[46px] items-center gap-2 px-2 text-[15px] font-semibold text-foreground";
+const quietLink = "group inline-flex h-[38px] items-center gap-2 px-2 text-[13.5px] font-semibold text-foreground";
 
 /** The ask, then the reach behind it: real counts only, so sponsors can judge what a placement is worth. */
 export async function SponsorHero() {
@@ -40,12 +38,13 @@ export async function SponsorHero() {
           </Eyebrow>
         </Reveal>
         {/* Same title and subtitle styles as the homepage and /pro heroes. */}
-        <AnimatedText as="h1" text="Keep the pieces free." accent="free." className={cn("mt-[30px] max-w-4xl", heroTitle)} />
-        <Reveal priority delay={0.35}>
-          <p className={cn("mx-auto mt-[26px] max-w-[580px]", pageLede)}>SwiftPieces is built and maintained by one developer. Sponsorship pays for new free pieces, updates for every iOS release, and the docs, CLI and MCP server that go with them. Companies get their logo in front of the iOS developers who use it.</p>
+        <Reveal priority delay={0.1}>
+          <h1 className={cn("mt-6 max-w-[640px]", heroTitle)}>
+            Keep the pieces free. <span className="text-muted">Sponsorship pays for new free pieces, updates for every iOS release, and the docs, CLI and MCP server.</span>
+          </h1>
         </Reveal>
-        <Reveal priority delay={0.45} className="mt-[38px] flex flex-wrap items-center justify-center gap-2.5">
-          <Button href={sponsorLinks.github}>Sponsor on GitHub <Arrow /></Button>
+        <Reveal priority delay={0.2} className="mt-6 flex flex-wrap items-center justify-center gap-2">
+          <Button href={sponsorLinks.github} size="sm">Sponsor on GitHub <Arrow /></Button>
           {/* Companies see the tiers first; the invoice email sits under the tier cards. */}
           <a href="#tiers" className={quietLink}>Company sponsorship <Arrow /></a>
         </Reveal>

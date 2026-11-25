@@ -2,7 +2,8 @@ import type { ReactNode } from "react";
 import { cn } from "@/lib/cn";
 
 /** The statement's type: one sentence, set a step under a page title so it holds two lines. */
-export const statementTitle = "max-w-[920px] text-[30px] leading-[1.12] font-normal tracking-[-0.034em] text-balance sm:text-[38px] lg:text-[44px] lg:tracking-[-0.04em]";
+/** One title size across the site, the landing's (Saivion, 2026-11-25). */
+export const statementTitle = "max-w-[760px] text-[26px] leading-[1.2] font-normal tracking-[-0.02em] text-balance sm:text-[30px] lg:text-[32px] lg:tracking-[-0.025em]";
 
 /**
  * The page header (2026-11-25, Pro's "Statement", picked by Saivion for /library on 2026-11-24): no

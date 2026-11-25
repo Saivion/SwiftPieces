@@ -13,18 +13,19 @@ import { cn } from "@/lib/cn";
 export type Tag = { label: string; icon: ReactNode };
 
 /** The section heading and subtitle every block below the hero uses, so they cannot drift apart. */
-export const sectionTitle = "text-[32px] leading-[1.06] font-normal tracking-[-0.035em] text-balance sm:text-[40px] lg:text-[46px] lg:tracking-[-0.038em]";
-export const sectionBody = "text-[16px] leading-[26px] text-pretty text-muted sm:text-[17px] sm:leading-[28px]";
+/** One title size across the site, the landing's (Saivion, 2026-11-25). */
+export const sectionTitle = "text-[26px] leading-[1.2] font-normal tracking-[-0.02em] text-balance sm:text-[30px] lg:text-[32px] lg:tracking-[-0.025em]";
+export const sectionBody = "text-[15px] leading-[24px] text-pretty text-muted";
 /** A card's title inside a tray (the two-up feature cards, tiles with a caption). */
 export const cardTitle = "text-[22px] leading-[1.15] font-normal tracking-[-0.025em] sm:text-[26px] sm:tracking-[-0.03em]";
 /**
  * The landing page's vertical rhythm. Every section carries half the gap above and below, so any
  * two neighbours sit one gap apart (96 on phones, 136 from sm up), measured content to content.
  */
-export const band = "py-12 sm:py-[68px]";
+export const band = "py-10 sm:py-14";
 /** The heading column of a 1:2 section: from lg up it stays in view while the longer column beside it scrolls. */
 export const stickyColumn = "lg:sticky lg:top-24 lg:self-start";
-export const heroTitle = "text-[36px] leading-none font-normal tracking-[-0.04em] text-balance sm:text-[48px] lg:text-[58px] lg:tracking-[-0.045em]";
+export const heroTitle = sectionTitle;
 
 /** Outlined pills naming what a section covers. The glyphs stay in the data but Graphite shows words only. */
 export function Tags({ tags, className }: { tags: Tag[]; className?: string }) {
