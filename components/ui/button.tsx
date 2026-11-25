@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { ComponentProps, ReactNode } from "react";
 import { cn } from "@/lib/cn";
 
-type Variant = "primary" | "secondary" | "ghost" | "outline" | "dark";
+type Variant = "primary" | "secondary" | "ghost" | "outline" | "dark" | "pro";
 type Size = "sm" | "md" | "lg";
 
 // Graphite: every control is a pill. Primary is the ink pill (brand `.btn-solid`); red is never a button colour.
@@ -14,6 +14,8 @@ const variants: Record<Variant, string> = {
   ghost: "bg-surface text-foreground hover:bg-surface-3",
   outline: "border border-[var(--line-strong)] bg-transparent text-foreground hover:bg-surface",
   dark: "btn-dark",
+  // Get Pro: the Pro badge as a button, foil sweep and die-cut edge (`.btn-pro` in app/globals.css).
+  pro: "btn-pro",
 };
 const sizes: Record<Size, string> = { sm: "h-[38px] px-4 text-[13.5px]", md: "h-[46px] px-[22px] text-[15px]", lg: "h-12 px-6 text-[15px]" };
 

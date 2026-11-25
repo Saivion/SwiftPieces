@@ -1,4 +1,5 @@
 "use client";
+import { ProMark } from "@/components/ui/pro-mark";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
@@ -216,7 +217,7 @@ export function Navbar({ star, starMobile, docked = false, fresh = 0, promo }: {
             <ThemeButton className={cn(NAV_ICON, "hidden md:flex")} />
             {/* Between lg and xl the bar is too narrow for the star beside the centred links. */}
             <span className="hidden xl:contents">{star}</span>
-            <Button href={pro.buy} size="sm" className="hidden sm:inline-flex">Get Pro</Button>
+            <Button href={pro.buy} size="sm" variant="pro" className="hidden gap-1.5 pl-3 sm:inline-flex"><ProMark className="size-4" />Get Pro</Button>
             <button type="button" onClick={() => setOpen((v) => !v)} className="flex size-[38px] items-center justify-center rounded-full border border-line text-muted transition-colors hover:text-foreground lg:hidden" aria-expanded={open} aria-label="Menu">
               {/* Three bars that fold into a cross and back (.ai-menu in app/globals.css), drawn from the button's centre. */}
               <svg aria-hidden viewBox="0 0 16 16" className="ai ai-menu size-4 overflow-visible" data-open={open || undefined} fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
@@ -263,7 +264,7 @@ export function Navbar({ star, starMobile, docked = false, fresh = 0, promo }: {
           <div className="mt-auto flex flex-col gap-3">
             <div className="flex items-center justify-between pb-2 text-[13px] font-medium text-muted">Theme<ThemeToggle /></div>
             {starMobile}
-            <Button href={pro.buy} size="lg">Get Pro</Button>
+            <Button href={pro.buy} size="lg" variant="pro"><ProMark className="size-[18px]" />Get Pro</Button>
             <Button href="/components" variant="secondary" size="lg">Browse free pieces</Button>
           </div>
         </Container>

@@ -99,6 +99,28 @@
 a.pro-badge { transition: rotate .3s cubic-bezier(.3,1.6,.5,1), box-shadow .3s ease; }
 a.pro-badge:hover { rotate: 0deg; box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.35), 0 0 0 1.5px #ffffff, 0 2px 4px 1.5px rgb(74 10 8 / 0.16), 0 6px 14px rgb(74 10 8 / 0.16); }
 
+/* Get Pro (2026-11-25): the navbar's buy button wears the Pro badge, the same foil sweep, white mark and
+   word, white die-cut edge and small tilt, scaled up to a button. It presses flat on hover, like the badge
+   as a link. Button variant="pro" (components/ui/button.tsx). */
+.btn-pro {
+  --pb-pink: #ffc1d6; --pb-orange: #ff8a5c; --pb-red: #f2361c; --pb-wine: #4a0a08;
+  position: relative; isolation: isolate;
+  border: 1px solid rgb(74 10 8 / 0.25);
+  color: #ffffff;
+  text-shadow: 0 1px 1px rgb(74 10 8 / 0.3);
+  /* Wider than the badge, so the ramp keeps to its deeper half (orange, red, wine) for white type to
+     read on all the way round; the pink comes in through the sheen and the top edge light. */
+  background: conic-gradient(from calc(210deg + var(--pb-turn)) at 50% 50%, var(--pb-red), var(--pb-orange) 16%, var(--pb-red) 34%, var(--pb-wine) 52%, var(--pb-red) 70%, #ff5a7a 86%, var(--pb-red));
+  box-shadow: inset 0 1px 0 rgb(255 193 214 / 0.6), 0 0 0 2px #ffffff, 0 1px 2px 2px rgb(74 10 8 / 0.14), 0 4px 12px rgb(74 10 8 / 0.16);
+  rotate: -2deg;
+  animation: pb-turn 7s linear infinite;
+  transition: rotate .3s cubic-bezier(.3,1.6,.5,1), box-shadow .3s ease, transform .3s ease;
+}
+.btn-pro::after { content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none; background: linear-gradient(115deg, transparent 30%, rgb(255 255 255 / 0.38) 45%, transparent 58%); }
+.btn-pro .pro-mark::before, .btn-pro .pro-mark::after { background: #ffffff; animation: none; }
+.btn-pro:hover { rotate: 0deg; box-shadow: inset 0 1px 0 rgb(255 193 214 / 0.6), 0 0 0 2px #ffffff, 0 2px 4px 2px rgb(74 10 8 / 0.16), 0 8px 18px rgb(74 10 8 / 0.2); }
+@media (prefers-reduced-motion: reduce) { .btn-pro { animation: none; } }
+
 /* The Games badge (2026-11-08 Iris colours, 2026-11-24 foil): the Pro badge's foil sweep in Games' own
    colours, lilac, violet, a #ff005c tip and a deep violet shadow. Shape, edge, sheen and tilt are the Pro
    badge's; only the colours change. ProBadge tone="games" on both sites. */
