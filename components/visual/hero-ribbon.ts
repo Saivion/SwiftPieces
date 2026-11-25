@@ -12,12 +12,7 @@ type Surface = HTMLCanvasElement | OffscreenCanvas;
  * The pricing card's ember (the Signature grain, lib/grain.ts `brand`), in the order it runs across the
  * ribbon: pink edge, orange, red, wine core (Saivion, 2026-11-25: only the pricing card colours).
  */
-const STOPS: RGB[] = [
-  [255, 193, 214],
-  [255, 138, 92],
-  [242, 54, 28],
-  [74, 10, 8],
-];
+const STOPS: RGB[] = [[255, 193, 214], [255, 0, 92], [242, 54, 28], [74, 10, 8]];
 
 const LINES = 44;
 const STEPS = 112;
