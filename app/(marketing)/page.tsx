@@ -1,6 +1,5 @@
 import { Hero } from "@/components/landing/hero";
-import { Features } from "@/components/landing/features";
-import { AppIcon, Close, Facts, Library, More, Questions, Statement } from "@/components/landing/sections";
+import { AppIconTile, Bento, CloseTile, MoreTiles, Notes, Ways } from "@/components/landing/tiles";
 import { SponsorStrip } from "@/components/sections/sponsors";
 import { getSponsorsFrom } from "@/lib/sponsors";
 import { JsonLd } from "@/components/seo/json-ld";
@@ -72,10 +71,10 @@ const structuredData = {
 export const revalidate = 300;
 
 /**
- * The landing page, set small and quiet: each section makes one point and lets its visual make it.
- * The hero's library window, the facts every piece shares, the three things the library does (native
- * feel, the CLI, the agent), a shelf of live pieces, what owning the code means, Games and Pro, the
- * changelog, the app icon hand-off, the questions and the close. Pricing lives only on pro.swiftpieces.com.
+ * The landing page as tiles (Pro's bento unit: a tray, a white panel, a caption), set small and quiet.
+ * The claim and a wall of whole pieces, three ways in (copy, style, agent), the library bento with the
+ * facts every piece shares, Pro and Games, the app icon hand-off, the changelog beside the questions,
+ * and the close. Pricing lives only on pro.swiftpieces.com.
  */
 export default async function HomePage() {
   // Gold sponsors only; the strip renders nothing until there is one.
@@ -84,15 +83,13 @@ export default async function HomePage() {
     <>
       <JsonLd data={structuredData} />
       <Hero />
-      <Facts />
       <SponsorStrip sponsors={gold} />
-      <Features />
-      <Library />
-      <Statement />
-      <More />
-      <AppIcon />
-      <Questions items={questions} />
-      <Close />
+      <Ways />
+      <Bento />
+      <MoreTiles />
+      <AppIconTile />
+      <Notes items={questions} />
+      <CloseTile />
     </>
   );
 }
