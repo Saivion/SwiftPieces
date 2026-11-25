@@ -48,7 +48,7 @@ export function Hero() {
           <Reveal priority delay={0.2}><Actions className="mt-6" /></Reveal>
         </Container>
       </div>
-      <div className="relative z-10 -mt-24 sm:-mt-28"><HeroTile /></div>
+      <div className="relative z-10 -mt-14 sm:-mt-14"><HeroTile /></div>
     </section>
   );
 }

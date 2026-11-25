@@ -1,24 +1,21 @@
 import type { ReactNode } from "react";
 import { Container } from "@/components/ui/container";
-import { SectionLabel } from "@/components/ui/section-label";
-import { pageLede, pageTitle } from "@/components/ui/section-header";
+import { Statement, statementSection } from "@/components/ui/statement";
 import { cn } from "@/lib/cn";
 import { Reveal } from "@/components/effects/reveal";
 
 /**
  * Editorial single-column page used for license, legal, about, showcase. A long read, so no trays: the
- * page head (label pill, regular-weight title, muted lede), then one column of running text with
+ * page head (the two-tone Statement: title in ink, lead in grey), then one column of running text with
  * regular-weight headings and muted 16/28 body. The `prose` class keeps the docs' link underlines,
  * inline code and list markers; the descendant classes set Graphite's type over its defaults.
  */
 export function ProsePage({ label, title, lead, children }: { label: string; title: string; lead?: string; children: ReactNode }) {
   return (
-    <section className="relative pt-16 pb-24 md:pt-24 md:pb-[136px]">
+    <section className={cn("relative pb-24 md:pb-[136px]", statementSection)} aria-label={label}>
       <Container>
-        <Reveal priority className="max-w-3xl">
-          <SectionLabel className="mb-5">{label}</SectionLabel>
-          <h1 className={pageTitle}>{title}</h1>
-          {lead ? <p className={cn("mt-5 max-w-[620px]", pageLede)}>{lead}</p> : null}
+        <Reveal priority>
+          <Statement quiet={lead}>{title}</Statement>
         </Reveal>
         <Reveal
           priority

@@ -1,20 +1,17 @@
 import type { Metadata } from "next";
 import { Container } from "@/components/ui/container";
-import { SectionLabel } from "@/components/ui/section-label";
-import { LinkCells } from "@/components/sections/link-cells";
 import { ShowcaseGrid } from "@/components/sections/showcase";
 import { CTA } from "@/components/sections/cta";
 import { CategoryDirectory } from "@/components/sections/category-directory";
 import { Reveal } from "@/components/effects/reveal";
 import { JsonLd } from "@/components/seo/json-ld";
 import { SectionHead } from "@/components/sections/feature-row";
-import { pageLede, pageTitle } from "@/components/ui/section-header";
+import { Statement, statementGap, statementSection } from "@/components/ui/statement";
 import { cn } from "@/lib/cn";
 import { getRegistryIndex, piecePath } from "@/lib/registry";
 import { breadcrumbJsonLd, pageMetadata, WEBSITE_ID } from "@/lib/seo";
 import { hubs } from "@/lib/hubs";
-import { pro, site } from "@/lib/site";
-import { apps } from "@/lib/apps";
+import { site } from "@/lib/site";
 import { summaries } from "@/registry/summaries";
 import { categories, type Category } from "@/lib/categories";
 import { pieceImage } from "@/lib/piece-media";
@@ -51,25 +48,12 @@ export default function ComponentsPage() {
   return (
     <>
       <JsonLd data={structuredData} />
-      <section className="relative pt-16 pb-12 md:pt-24 sm:pb-[68px]">
+      <section className={cn("relative pb-12 sm:pb-[68px]", statementSection)}>
         <Container>
-          <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,420px)] lg:items-end lg:gap-16">
-            <Reveal>
-              <SectionLabel className="mb-5">{`${items.length} free pieces`}</SectionLabel>
-              <h1 className={pageTitle}>The Library</h1>
-              <p className={cn("mt-5 max-w-[560px]", pageLede)}>Free, single-file SwiftUI components for iOS with live previews. Filter by category, open a piece for its parameters, source and install commands.</p>
-            </Reveal>
-            <Reveal delay={0.1}>
-              <LinkCells
-                links={[
-                  { title: "Explore Pro and Games", body: "Screens, flows, templates, and ship-ready games.", href: pro.home, tone: "ember", seed: "components-explore-pro" },
-                  { title: "Browse in the docs", body: "Parameters, source and install for every piece.", href: "/docs/components" },
-                  { title: "Try out the new Playground", body: `New to SwiftUI? See them at work in ${apps.length} apps.`, href: "/apps", badge: "Beta" },
-                ]}
-              />
-            </Reveal>
-          </div>
-          <div className="mt-12">
+          <Reveal>
+            <Statement quiet="One Swift file each, copied in by CLI or MCP.">{`${items.length} free SwiftUI components with live previews.`}</Statement>
+          </Reveal>
+          <div className={statementGap}>
             <ShowcaseGrid items={items} />
           </div>
         </Container>
