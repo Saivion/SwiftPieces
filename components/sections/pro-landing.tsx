@@ -67,6 +67,12 @@ export function ProHero() {
             <span className="text-muted">Production-ready SwiftUI</span>
           </Eyebrow>
         </Reveal> */}
+        <Reveal priority>
+          <div className="flex items-center justify-center gap-2">
+            <ProBadge label="SwiftPieces Pro" />
+            <ProBadge label="SwiftPieces Games" tone="games" />
+          </div>
+        </Reveal>
         <AnimatedText as="h1" text="Every flow a featured app needs." accent="featured" className={cn("mt-[30px] max-w-[880px]", heroTitle)} />
         <Reveal priority delay={0.35}>
           <p className={cn("mx-auto mt-[26px] max-w-[580px]", pageLede)}>Screens, flows and complete app templates in SwiftUI, with a Build Kit for your coding agent.</p>
