@@ -75,21 +75,23 @@
 
 /* The Pro badge (2026-11-24, the die-cut sticker chip, Saivion picked A "Foil sweep"): the Pro mark in
    white and the word in white on a foil of the badge's colours, the Signature ramp (pink, orange, red, a
-   wine shadow) swept round the chip and turning once every 7 seconds, under a diagonal white sheen. A white
+   wine shadow) laid along the chip as a repeating band that drifts left to right, one full band every 7
+   seconds, under a diagonal white sheen. 2026-11-25: was a conic turning round a pivot inside the chip,
+   which on a long pill pinched to a seam and flipped sides, so it read as restarting; the drift moves one
+   way forever and its tile starts and ends on pink, so the loop has no seam. A white
    die-cut edge, a soft lift and a small tilt, as if slapped on by hand. Same in both themes. Pro's
    components/layout/pro-badge.tsx and Free's components/ui/pro-badge.tsx share this rule. */
-@property --pb-turn { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
-@keyframes pb-turn { to { --pb-turn: 360deg; } }
+@keyframes pb-drift { from { background-position: 0 0; } to { background-position: 200px 0; } }
 .pro-badge {
   --pb-pink: #ffc1d6; --pb-orange: #ff8a5c; --pb-red: #f2361c; --pb-wine: #4a0a08;
   position: relative; isolation: isolate;
   border: 1px solid rgb(74 10 8 / 0.25);
   color: #ffffff;
   text-shadow: 0 1px 1px rgb(74 10 8 / 0.25);
-  background: conic-gradient(from calc(210deg + var(--pb-turn)) at 38% 50%, var(--pb-pink), var(--pb-orange) 18%, var(--pb-red) 38%, var(--pb-wine) 55%, var(--pb-red) 72%, var(--pb-orange) 86%, var(--pb-pink));
+  background: linear-gradient(90deg, var(--pb-pink), var(--pb-orange) 18%, var(--pb-red) 36%, var(--pb-wine) 50%, var(--pb-red) 64%, var(--pb-orange) 82%, var(--pb-pink)) 0 0 / 200px 100% repeat-x;
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.35), 0 0 0 1.5px #ffffff, 0 1px 2px 1.5px rgb(74 10 8 / 0.14), 0 3px 8px rgb(74 10 8 / 0.12);
   rotate: -3deg;
-  animation: pb-turn 7s linear infinite;
+  animation: pb-drift 7s linear infinite;
 }
 .pro-badge::after { content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none; background: linear-gradient(115deg, transparent 30%, rgb(255 255 255 / 0.38) 45%, transparent 58%); }
 .pro-badge .pro-mark::before, .pro-badge .pro-mark::after { background: #ffffff; animation: none; }
@@ -121,7 +123,7 @@ a.pro-badge:hover { rotate: 0deg; box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.
 .pro-badge.games-badge {
   border-color: rgb(42 13 82 / 0.25);
   text-shadow: 0 1px 1px rgb(42 13 82 / 0.3);
-  background: conic-gradient(from calc(210deg + var(--pb-turn)) at 38% 50%, #e0d4ff, #9d7bff 18%, #ff005c 38%, #2a0d52 55%, #ff005c 72%, #9d7bff 86%, #e0d4ff);
+  background-image: linear-gradient(90deg, #e0d4ff, #9d7bff 18%, #ff005c 36%, #2a0d52 50%, #ff005c 64%, #9d7bff 82%, #e0d4ff);
 }
 
 /* A text link's underline (.u-link, brand theme.css) draws when anywhere on its link is hovered,
