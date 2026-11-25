@@ -71,7 +71,7 @@ export default function AppsPage() {
                 Playground <NewBadge>Beta</NewBadge>
               </p>
             </Reveal>
-            <RemixHeadline className="mt-[28px]" />
+            <RemixHeadline className="mt-5" />
             {/* Under the headline, the landing's body type (Saivion, 2026-11-25). */}
             <Reveal priority delay={0.35}>
               <p className="mx-auto mt-6 max-w-[520px] text-[15px] leading-[24px] text-pretty text-muted">
