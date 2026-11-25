@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
 import { Container } from "@/components/ui/container";
-import { SectionLabel } from "@/components/ui/section-label";
-import { LinkCells } from "@/components/sections/link-cells";
 import { ShowcaseGrid } from "@/components/sections/showcase";
 import { CTA } from "@/components/sections/cta";
 import { CategoryDirectory } from "@/components/sections/category-directory";
@@ -13,8 +11,7 @@ import { cn } from "@/lib/cn";
 import { getRegistryIndex, piecePath } from "@/lib/registry";
 import { breadcrumbJsonLd, pageMetadata, WEBSITE_ID } from "@/lib/seo";
 import { hubs } from "@/lib/hubs";
-import { pro, site } from "@/lib/site";
-import { apps } from "@/lib/apps";
+import { site } from "@/lib/site";
 import { summaries } from "@/registry/summaries";
 import { categories, type Category } from "@/lib/categories";
 import { pieceImage } from "@/lib/piece-media";

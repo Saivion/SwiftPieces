@@ -65,7 +65,6 @@ export default async function HubPage(props: Props) {
   const items = hubItems(hub, all);
   const related = hub.related.map(getHub).filter((h): h is Hub => Boolean(h));
   const url = new URL(hubPath(hub.slug), site.url).href;
-  const count = `${items.length} free ${items.length === 1 ? "piece" : "pieces"}`;
 
   return (
     <>

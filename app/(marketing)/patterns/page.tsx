@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
 import { Container } from "@/components/ui/container";
-import { SectionLabel } from "@/components/ui/section-label";
-import { LinkCells } from "@/components/sections/link-cells";
 import { CTA } from "@/components/sections/cta";
 import { Reveal } from "@/components/effects/reveal";
 import { JsonLd } from "@/components/seo/json-ld";
@@ -14,7 +12,6 @@ import { getBlocks, getProBlocks } from "@/lib/registry";
 import { breadcrumbJsonLd, pageMetadata, WEBSITE_ID } from "@/lib/seo";
 import { pro, site } from "@/lib/site";
 import { cn } from "@/lib/cn";
-import { SEO_PATTERNS_ON_PRO } from "@/lib/seo-flags";
 
 const free = getBlocks().length;
 const paid = getProBlocks().length;
