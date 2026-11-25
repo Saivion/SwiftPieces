@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
 import { Container } from "@/components/ui/container";
 import { NewBadge } from "@/components/ui/new-badge";
+import { cn } from "@/lib/cn";
 import { Button, Arrow } from "@/components/ui/button";
 import { Reveal } from "@/components/effects/reveal";
 import { JsonLd } from "@/components/seo/json-ld";
 import { AppGrid, type AppCard } from "@/components/apps/app-grid";
 import { ScreenDirectory } from "@/components/apps/screen-directory";
 import { RemixNotice } from "@/components/apps/remix-notice";
-import { RemixHeadline } from "@/components/apps/remix-headline";
+import { heroTitle } from "@/components/sections/feature-row";
 import { APPS_PATH, appCategories, appPath, apps, cdn, categoryId, isProApp } from "@/lib/apps";
 import { breadcrumbJsonLd, pageMetadata, WEBSITE_ID } from "@/lib/seo";
 import { site } from "@/lib/site";
@@ -71,18 +72,18 @@ export default function AppsPage() {
                 Playground <NewBadge>Beta</NewBadge>
               </p>
             </Reveal>
-            <RemixHeadline className="mt-[28px]" />
-            <Reveal priority delay={0.35}>
-              <p className="mx-auto mt-6 max-w-[560px] text-[16.5px] leading-[27px] text-balance text-muted sm:text-[18px] sm:leading-[30px]">
-                Apps from the App Store as inspiration, and the screens each one does well, rebuilt from scratch in the SwiftPieces style. Try them in the browser, see what makes them work, then make them your own.
-              </p>
+            {/* The landing's type (Saivion, 2026-11-25): the claim small, its lead dark and the rest muted. */}
+            <Reveal priority delay={0.1}>
+              <h1 className={cn("mx-auto mt-6 max-w-[640px]", heroTitle)}>
+                Apps you love, remixed screen by screen in SwiftUI. <span className="text-muted">Rebuilt from scratch in the SwiftPieces style. Try them in the browser, then make them your own.</span>
+              </h1>
             </Reveal>
-            <Reveal priority delay={0.45} className="mt-9 flex flex-wrap items-center justify-center gap-2.5">
-              <Button href="#apps">
+            <Reveal priority delay={0.2} className="mt-6 flex flex-wrap items-center justify-center gap-2">
+              <Button href="#apps" size="sm">
                 Browse {apps.length} apps <Arrow />
               </Button>
               {/* The quiet second way in: words and an arrow that nudges, as on the landing. */}
-              <a href="#screens-title" className="group inline-flex h-[46px] items-center gap-2 px-2 text-[15px] font-semibold text-foreground">
+              <a href="#screens-title" className="group inline-flex h-[38px] items-center gap-2 px-2 text-[13.5px] font-semibold text-foreground">
                 Browse by screen
                 <Arrow />
               </a>
