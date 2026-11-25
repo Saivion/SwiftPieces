@@ -227,7 +227,7 @@ type BentoPiece = { name: string; text: string; facts?: string[] };
 /** Rows of a wide tile beside a narrow one, the wide side alternating. Each piece plays live in its panel. */
 const BENTO: [BentoPiece, BentoPiece][] = [
   [
-    { name: "WalletStack", text: "A wallet of stacked passes you can bring forward, fan out and reorder.", facts: ["Tap to bring forward", "Long-press to reorder", "Haptics on settle"] },
+    { name: "ParallaxCard", text: "An image card whose picture and glass caption drift at different speeds, so it reads in layers.", facts: ["Layered parallax", "Liquid Glass caption", "Scroll driven"] },
     { name: "TimerDial", text: "A countdown you set by turning the dial, with a live progress ring." },
   ],
   [
@@ -235,7 +235,7 @@ const BENTO: [BentoPiece, BentoPiece][] = [
     { name: "ScrubChart", text: "A line chart you scrub with a finger, with a range you can drag.", facts: ["Scrub for values", "Drag a range", "Period switch"] },
   ],
   [
-    { name: "SelectMenu", text: "A sort menu that opens in place and marks the choice.", facts: ["Opens in place", "Glass selection", "VoiceOver ready"] },
+    { name: "FanStack", text: "Overlapping avatars that fan apart on tap, with a name tag budding out of the one you hold.", facts: ["Fans on tap", "Scrub to pick", "Glass name tag"] },
     { name: "AmountField", text: "A money field with quick amounts and a limit that warns early." },
   ],
   [
