@@ -71,18 +71,19 @@ export default function AppsPage() {
                 Playground <NewBadge>Beta</NewBadge>
               </p>
             </Reveal>
-            <RemixHeadline className="mt-[28px]" />
+            <RemixHeadline className="mt-5" />
+            {/* Under the headline, the landing's body type (Saivion, 2026-11-25). */}
             <Reveal priority delay={0.35}>
-              <p className="mx-auto mt-6 max-w-[560px] text-[16.5px] leading-[27px] text-balance text-muted sm:text-[18px] sm:leading-[30px]">
-                Apps from the App Store as inspiration, and the screens each one does well, rebuilt from scratch in the SwiftPieces style. Try them in the browser, see what makes them work, then make them your own.
+              <p className="mx-auto mt-6 max-w-[520px] text-[15px] leading-[24px] text-pretty text-muted">
+                Apps from the App Store as inspiration, and the screens each one does well, rebuilt from scratch in the SwiftPieces style. Try them in the browser, then make them your own.
               </p>
             </Reveal>
-            <Reveal priority delay={0.45} className="mt-9 flex flex-wrap items-center justify-center gap-2.5">
-              <Button href="#apps">
+            <Reveal priority delay={0.45} className="mt-6 flex flex-wrap items-center justify-center gap-2">
+              <Button href="#apps" size="sm">
                 Browse {apps.length} apps <Arrow />
               </Button>
               {/* The quiet second way in: words and an arrow that nudges, as on the landing. */}
-              <a href="#screens-title" className="group inline-flex h-[46px] items-center gap-2 px-2 text-[15px] font-semibold text-foreground">
+              <a href="#screens-title" className="group inline-flex h-[38px] items-center gap-2 px-2 text-[13.5px] font-semibold text-foreground">
                 Browse by screen
                 <Arrow />
               </a>
