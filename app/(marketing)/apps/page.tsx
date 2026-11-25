@@ -1,14 +1,13 @@
 import type { Metadata } from "next";
 import { Container } from "@/components/ui/container";
 import { NewBadge } from "@/components/ui/new-badge";
-import { cn } from "@/lib/cn";
 import { Button, Arrow } from "@/components/ui/button";
 import { Reveal } from "@/components/effects/reveal";
 import { JsonLd } from "@/components/seo/json-ld";
 import { AppGrid, type AppCard } from "@/components/apps/app-grid";
 import { ScreenDirectory } from "@/components/apps/screen-directory";
 import { RemixNotice } from "@/components/apps/remix-notice";
-import { heroTitle } from "@/components/sections/feature-row";
+import { RemixHeadline } from "@/components/apps/remix-headline";
 import { APPS_PATH, appCategories, appPath, apps, cdn, categoryId, isProApp } from "@/lib/apps";
 import { breadcrumbJsonLd, pageMetadata, WEBSITE_ID } from "@/lib/seo";
 import { site } from "@/lib/site";
@@ -72,13 +71,14 @@ export default function AppsPage() {
                 Playground <NewBadge>Beta</NewBadge>
               </p>
             </Reveal>
-            {/* The landing's type (Saivion, 2026-11-25): the claim small, its lead dark and the rest muted. */}
-            <Reveal priority delay={0.1}>
-              <h1 className={cn("mx-auto mt-6 max-w-[640px]", heroTitle)}>
-                Apps you love, remixed screen by screen in SwiftUI. <span className="text-muted">Rebuilt from scratch in the SwiftPieces style. Try them in the browser, then make them your own.</span>
-              </h1>
+            <RemixHeadline className="mt-[28px]" />
+            {/* Under the headline, the landing's body type (Saivion, 2026-11-25). */}
+            <Reveal priority delay={0.35}>
+              <p className="mx-auto mt-6 max-w-[520px] text-[15px] leading-[24px] text-pretty text-muted">
+                Apps from the App Store as inspiration, and the screens each one does well, rebuilt from scratch in the SwiftPieces style. Try them in the browser, then make them your own.
+              </p>
             </Reveal>
-            <Reveal priority delay={0.2} className="mt-6 flex flex-wrap items-center justify-center gap-2">
+            <Reveal priority delay={0.45} className="mt-6 flex flex-wrap items-center justify-center gap-2">
               <Button href="#apps" size="sm">
                 Browse {apps.length} apps <Arrow />
               </Button>

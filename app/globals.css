@@ -128,6 +128,11 @@ a.pro-badge:hover { rotate: 0deg; box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.
    so the arrow and any badge beside the words count too. */
 .group:hover > .u-link::after, .group:focus-visible > .u-link::after { transform: scaleX(1); transform-origin: left; }
 
+/* App Library headline (remix-headline.tsx): each phone leans like a sticker and, under a pointer,
+   straightens and lifts. Transform only; Reduce Motion keeps the lean and drops the move. */
+.remix-phone { rotate: var(--tilt, 0deg); transition: rotate .45s cubic-bezier(0.22, 1, 0.36, 1), translate .45s cubic-bezier(0.22, 1, 0.36, 1); }
+@media (hover: hover) and (prefers-reduced-motion: no-preference) { .remix-phone:hover { rotate: 0deg; translate: 0 -0.05em; } }
+
 /* Fumadocs consumes these; the docs inherit the brand tokens, which flip with the theme. */
 .dark, .light {
   --color-fd-background: var(--background);
