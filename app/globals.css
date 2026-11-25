@@ -99,6 +99,22 @@
 a.pro-badge { transition: rotate .3s cubic-bezier(.3,1.6,.5,1), box-shadow .3s ease; }
 a.pro-badge:hover { rotate: 0deg; box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.35), 0 0 0 1.5px #ffffff, 0 2px 4px 1.5px rgb(74 10 8 / 0.16), 0 6px 14px rgb(74 10 8 / 0.16); }
 
+/* Get Pro (2026-11-25): the navbar's buy button, black with white type (Saivion), wearing the Pro badge's
+   mark in its own turning colours and the badge's white die-cut edge, kept straight (Saivion). Button variant="pro" (components/ui/button.tsx). Same in both themes. */
+.btn-pro {
+  background: #0b0b0b;
+  color: #ffffff;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.16), 0 0 0 2px #ffffff, 0 1px 2px 2px rgb(0 0 0 / 0.12), 0 4px 12px rgb(0 0 0 / 0.16);
+  transition: box-shadow .3s ease, transform .3s ease;
+}
+.btn-pro:hover { box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.16), 0 0 0 2px #ffffff, 0 2px 4px 2px rgb(0 0 0 / 0.14), 0 8px 18px rgb(0 0 0 / 0.2); }
+
+/* In dark mode Get Pro flips to white with black type (Saivion), with no edge ring. */
+.dark .btn-pro, .dark .promo-cta { background: #ffffff; color: #0b0b0b; }
+.dark .btn-pro { box-shadow: inset 0 -1px 0 rgb(0 0 0 / 0.08), 0 4px 12px rgb(0 0 0 / 0.3); }
+.dark .btn-pro:hover { box-shadow: inset 0 -1px 0 rgb(0 0 0 / 0.08), 0 8px 18px rgb(0 0 0 / 0.4); }
+.dark .promo-cta { box-shadow: inset 0 -1px 0 rgb(0 0 0 / 0.08), 0 1px 3px 1px rgb(74 10 8 / 0.22); }
+
 /* The Games badge (2026-11-08 Iris colours, 2026-11-24 foil): the Pro badge's foil sweep in Games' own
    colours, lilac, violet, a #ff005c tip and a deep violet shadow. Shape, edge, sheen and tilt are the Pro
    badge's; only the colours change. ProBadge tone="games" on both sites. */
@@ -380,21 +396,14 @@ html.promo-off .promo-slot { display: none; }
 /* The pill, after the reference: white (or graphite) glass with a faint pastel glow inside, a hairline rim. */
 .promo-cta {
   flex: none; display: inline-flex; align-items: center; gap: 5px;
-  height: 28px; padding: 0 12px 0 14px; border-radius: calc(28px * var(--pill-k));
-  border: 1px solid rgb(74 10 8 / 0.16);
-  color: #4a0a08; font-size: 13px; font-weight: 500; text-shadow: none;
-  /* The Pro badge's pearl (.pro-badge): pink ends, orange, a faint red heart, wine type. */
-  background:
-    radial-gradient(48% 110% at 4% 50%, #ffc1d6 0%, transparent 78%),
-    radial-gradient(48% 110% at 96% 50%, #ffc1d6 0%, transparent 78%),
-    radial-gradient(50% 120% at 30% 105%, rgb(255 138 92 / 0.75), transparent 72%),
-    radial-gradient(42% 110% at 72% 0%, rgb(255 138 92 / 0.6), transparent 72%),
-    radial-gradient(28% 70% at 52% 60%, rgb(242 54 28 / 0.32), transparent 80%),
-    #ffffff;
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.95), 0 1px 2px rgb(74 10 8 / 0.2);
-  transition: box-shadow .3s var(--ease-out), border-color .3s var(--ease-out);
+  height: 28px; padding: 0 12px 0 8px; border-radius: calc(28px * var(--pill-k));
+  /* Black with white type and the coloured Pro mark, the navbar's Get Pro (.btn-pro) at bar size. */
+  color: #ffffff; font-size: 13px; font-weight: 500; text-shadow: none;
+  background: #0b0b0b;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.16), 0 0 0 1.5px #ffffff, 0 1px 3px 1px rgb(74 10 8 / 0.22);
+  transition: box-shadow .3s var(--ease-out);
 }
-.promo-line:hover .promo-cta { border-color: rgb(74 10 8 / 0.32); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.95), 0 2px 8px rgb(74 10 8 / 0.25); }
+.promo-line:hover .promo-cta { box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.16), 0 0 0 1.5px #ffffff, 0 2px 8px 1px rgb(74 10 8 / 0.3); }
 .promo-line:focus-visible { outline: none; }
 .promo-line:focus-visible .promo-cta { box-shadow: 0 0 0 2px var(--background), 0 0 0 4px var(--foreground); }
 .promo-close {
