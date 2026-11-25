@@ -1,4 +1,5 @@
 "use client";
+import { ProMark } from "@/components/ui/pro-mark";
 import { useEffect, useState } from "react";
 import { promoKey, type Promo } from "@/lib/promo";
 import { GrainStage } from "@/components/visual/grain-stage";
@@ -70,6 +71,7 @@ export function PromoBar({ promo, hidden = false }: { promo: Promo; hidden?: boo
             </>
           )}
           <span className="promo-cta">
+            <ProMark className="size-[15px]" />
             {promo.cta.label}
             <svg aria-hidden viewBox="0 0 16 16" className="size-3.5 transition-transform duration-300 ease-out group-hover:translate-x-0.5" fill="none" stroke="currentColor" strokeWidth="1.9">
               <path d="M3 8h10M9 4l4 4-4 4" strokeLinecap="round" strokeLinejoin="round" />
