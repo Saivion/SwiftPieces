@@ -33,11 +33,13 @@ import {
   type RegistryItem,
 } from "../lib/registry-schema";
 import { categories } from "../lib/categories";
+import { SEO_PATTERNS_ON_PRO } from "../lib/seo-flags";
 import { blockCategories, blockCategoryIds, blockPath, blockSlug, patternSlug, proBlocks, proBlockUrl, type BlockCategory } from "../lib/blocks";
 import { exploreProPages, proCatalog, proCountsLabel } from "../lib/pro-catalog";
 import { hubs, hubItems, hubPath } from "../lib/hubs";
 import { homeFaqs } from "../lib/faqs";
 import { changelog, changelogPath } from "../lib/changelog";
+import { appSlugs } from "../lib/apps/slugs";
 import { motionDrift } from "./sync-motion";
 import type { KnownPages } from "../lib/known-pages";
 import { SUMMARY_MAX, summaries } from "../registry/summaries";
@@ -595,7 +597,7 @@ function writeDocsIndex() {
 }
 
 /**
- * registry/__registry__/known-pages.json: the URLs the docs and registry routes answer, for middleware.ts (lib/known-pages.ts).
+ * registry/__registry__/known-pages.json: the URLs the docs, hub, app, playground and registry routes answer, for middleware.ts (lib/known-pages.ts).
  * The changelog's pages are routes of their own beside the docs catch-all (app/docs/changelog), so they're added here:
  * without them middleware sent /docs/changelog and every update's page to the not-found page.
  */
@@ -611,6 +613,8 @@ function writeKnownPages(urls: string[]) {
     docsSections: [...new Set(docs.flatMap((d) => d.split("/").slice(0, -1)))],
     registry: [...new Set(["index", ...index.flatMap((i) => [i.name, i.slug]), ...blockIndex.flatMap((b) => [b.name, b.slug])])],
     pieces: [...new Set(index.flatMap((i) => [i.name, i.slug]))],
+    hubs: hubs.map((h) => h.slug),
+    apps: appSlugs,
   };
   writeFileSync(join(OUT_DIR, "known-pages.json"), JSON.stringify(known));
 }
@@ -737,7 +741,8 @@ function writeLlms(items: RegistryItem[], blocks: BlockItem[]) {
     "",
   );
   for (const b of blocks) lines.push(`- [${b.title}](${b.docs}): ${b.description} Built from ${b.registryDependencies.join(", ")}. Install: \`npx swiftpieces add ${b.name}\`. Registry: ${SITE_URL}/r/${b.name}.json`);
-  for (const p of proBlocks) lines.push(`- [${p.title}](${SITE_URL}${blockPath(p)}) (Pro): ${p.summary} Inside: ${p.parts.join(", ")}. Install with a Pro license: \`npx swiftpieces add ${p.name}\`. In SwiftPieces Pro: ${proBlockUrl(p.id)}`);
+  // Pattern pages are Pro's (lib/seo-flags.ts): list Pro's page, not a /docs/patterns URL that redirects there.
+  for (const p of proBlocks) lines.push(`- [${p.title}](${SEO_PATTERNS_ON_PRO ? proBlockUrl(p.id) : `${SITE_URL}${blockPath(p)}`}) (Pro): ${p.summary} Inside: ${p.parts.join(", ")}. Install with a Pro license: \`npx swiftpieces add ${p.name}\`.${SEO_PATTERNS_ON_PRO ? "" : ` In SwiftPieces Pro: ${proBlockUrl(p.id)}`}`);
   lines.push("", "## Collections", "");
   for (const h of hubs) lines.push(`- [${h.h1}](${SITE_URL}${hubPath(h.slug)}): ${h.description} (${hubItems(h, items).length} pieces)`);
   lines.push(

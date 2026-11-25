@@ -1,0 +1,842 @@
+{
+ "ActivityHeatmap": {
+  "light": "/previews/data/activity-heatmap/activity-heatmap-light.webp",
+  "dark": "/previews/data/activity-heatmap/activity-heatmap-dark.webp",
+  "thumb": "/previews/data/activity-heatmap/activity-heatmap-thumb.webp",
+  "og": "/previews/data/activity-heatmap/activity-heatmap-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "AddressField": {
+  "light": "/previews/inputs/address-field/address-field-light.webp",
+  "dark": "/previews/inputs/address-field/address-field-dark.webp",
+  "thumb": "/previews/inputs/address-field/address-field-thumb.webp",
+  "og": "/previews/inputs/address-field/address-field-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "AmountField": {
+  "light": "/previews/inputs/amount-field/amount-field-light.webp",
+  "dark": "/previews/inputs/amount-field/amount-field-dark.webp",
+  "thumb": "/previews/inputs/amount-field/amount-field-thumb.webp",
+  "og": "/previews/inputs/amount-field/amount-field-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "AssistantOrb": {
+  "light": "/previews/ai/assistant-orb/assistant-orb-light.webp",
+  "dark": "/previews/ai/assistant-orb/assistant-orb-dark.webp",
+  "thumb": "/previews/ai/assistant-orb/assistant-orb-thumb.webp",
+  "og": "/previews/ai/assistant-orb/assistant-orb-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "AttachmentTray": {
+  "light": "/previews/media/attachment-tray/attachment-tray-light.webp",
+  "dark": "/previews/media/attachment-tray/attachment-tray-dark.webp",
+  "thumb": "/previews/media/attachment-tray/attachment-tray-thumb.webp",
+  "og": "/previews/media/attachment-tray/attachment-tray-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "ChoiceGroup": {
+  "light": "/previews/inputs/choice-group/choice-group-light.webp",
+  "dark": "/previews/inputs/choice-group/choice-group-dark.webp",
+  "thumb": "/previews/inputs/choice-group/choice-group-thumb.webp",
+  "og": "/previews/inputs/choice-group/choice-group-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "CommitButton": {
+  "light": "/previews/controls/commit-button/commit-button-light.webp",
+  "dark": "/previews/controls/commit-button/commit-button-dark.webp",
+  "thumb": "/previews/controls/commit-button/commit-button-thumb.webp",
+  "og": "/previews/controls/commit-button/commit-button-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "ConfirmSheet": {
+  "light": "/previews/sheets/confirm-sheet/confirm-sheet-light.webp",
+  "dark": "/previews/sheets/confirm-sheet/confirm-sheet-dark.webp",
+  "thumb": "/previews/sheets/confirm-sheet/confirm-sheet-thumb.webp",
+  "og": "/previews/sheets/confirm-sheet/confirm-sheet-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "DatePill": {
+  "light": "/previews/inputs/date-pill/date-pill-light.webp",
+  "dark": "/previews/inputs/date-pill/date-pill-dark.webp",
+  "thumb": "/previews/inputs/date-pill/date-pill-thumb.webp",
+  "og": "/previews/inputs/date-pill/date-pill-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "DateRangePicker": {
+  "light": "/previews/inputs/date-range-picker/date-range-picker-light.webp",
+  "dark": "/previews/inputs/date-range-picker/date-range-picker-dark.webp",
+  "thumb": "/previews/inputs/date-range-picker/date-range-picker-thumb.webp",
+  "og": "/previews/inputs/date-range-picker/date-range-picker-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "DateStrip": {
+  "light": "/previews/inputs/date-strip/date-strip-light.webp",
+  "dark": "/previews/inputs/date-strip/date-strip-dark.webp",
+  "thumb": "/previews/inputs/date-strip/date-strip-thumb.webp",
+  "og": "/previews/inputs/date-strip/date-strip-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "DepthCarousel": {
+  "light": "/previews/lists/depth-carousel/depth-carousel-light.webp",
+  "dark": "/previews/lists/depth-carousel/depth-carousel-dark.webp",
+  "thumb": "/previews/lists/depth-carousel/depth-carousel-thumb.webp",
+  "og": "/previews/lists/depth-carousel/depth-carousel-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "DragSelectGrid": {
+  "light": "/previews/lists/drag-select-grid/drag-select-grid-light.webp",
+  "dark": "/previews/lists/drag-select-grid/drag-select-grid-dark.webp",
+  "thumb": "/previews/lists/drag-select-grid/drag-select-grid-thumb.webp",
+  "og": "/previews/lists/drag-select-grid/drag-select-grid-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "DragToDismiss": {
+  "light": "/previews/motion/drag-to-dismiss/drag-to-dismiss-light.webp",
+  "dark": "/previews/motion/drag-to-dismiss/drag-to-dismiss-dark.webp",
+  "thumb": "/previews/motion/drag-to-dismiss/drag-to-dismiss-thumb.webp",
+  "og": "/previews/motion/drag-to-dismiss/drag-to-dismiss-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "ElasticButton": {
+  "light": "/previews/controls/elastic-button/elastic-button-light.webp",
+  "dark": "/previews/controls/elastic-button/elastic-button-dark.webp",
+  "thumb": "/previews/controls/elastic-button/elastic-button-thumb.webp",
+  "og": "/previews/controls/elastic-button/elastic-button-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "ExpandableText": {
+  "light": "/previews/text/expandable-text/expandable-text-light.webp",
+  "dark": "/previews/text/expandable-text/expandable-text-dark.webp",
+  "thumb": "/previews/text/expandable-text/expandable-text-thumb.webp",
+  "og": "/previews/text/expandable-text/expandable-text-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "ExpandingTrack": {
+  "light": "/previews/inputs/expanding-track/expanding-track-light.webp",
+  "dark": "/previews/inputs/expanding-track/expanding-track-dark.webp",
+  "thumb": "/previews/inputs/expanding-track/expanding-track-thumb.webp",
+  "og": "/previews/inputs/expanding-track/expanding-track-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "FanStack": {
+  "light": "/previews/controls/fan-stack/fan-stack-light.webp",
+  "dark": "/previews/controls/fan-stack/fan-stack-dark.webp",
+  "thumb": "/previews/controls/fan-stack/fan-stack-thumb.webp",
+  "og": "/previews/controls/fan-stack/fan-stack-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "FilterRail": {
+  "light": "/previews/inputs/filter-rail/filter-rail-light.webp",
+  "dark": "/previews/inputs/filter-rail/filter-rail-dark.webp",
+  "thumb": "/previews/inputs/filter-rail/filter-rail-thumb.webp",
+  "og": "/previews/inputs/filter-rail/filter-rail-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "FlipCard": {
+  "light": "/previews/cards/flip-card/flip-card-light.webp",
+  "dark": "/previews/cards/flip-card/flip-card-dark.webp",
+  "thumb": "/previews/cards/flip-card/flip-card-thumb.webp",
+  "og": "/previews/cards/flip-card/flip-card-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "FloatingDock": {
+  "light": "/previews/navigation/floating-dock/floating-dock-light.webp",
+  "dark": "/previews/navigation/floating-dock/floating-dock-dark.webp",
+  "thumb": "/previews/navigation/floating-dock/floating-dock-thumb.webp",
+  "og": "/previews/navigation/floating-dock/floating-dock-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "FollowScroll": {
+  "light": "/previews/lists/follow-scroll/follow-scroll-light.webp",
+  "dark": "/previews/lists/follow-scroll/follow-scroll-dark.webp",
+  "thumb": "/previews/lists/follow-scroll/follow-scroll-thumb.webp",
+  "og": "/previews/lists/follow-scroll/follow-scroll-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "FormField": {
+  "light": "/previews/inputs/form-field/form-field-light.webp",
+  "dark": "/previews/inputs/form-field/form-field-dark.webp",
+  "thumb": "/previews/inputs/form-field/form-field-thumb.webp",
+  "og": "/previews/inputs/form-field/form-field-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "GlassActionMenu": {
+  "light": "/previews/glass/glass-action-menu/glass-action-menu-light.webp",
+  "dark": "/previews/glass/glass-action-menu/glass-action-menu-dark.webp",
+  "thumb": "/previews/glass/glass-action-menu/glass-action-menu-thumb.webp",
+  "og": "/previews/glass/glass-action-menu/glass-action-menu-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "GlassModeBar": {
+  "light": "/previews/glass/glass-mode-bar/glass-mode-bar-light.webp",
+  "dark": "/previews/glass/glass-mode-bar/glass-mode-bar-dark.webp",
+  "thumb": "/previews/glass/glass-mode-bar/glass-mode-bar-thumb.webp",
+  "og": "/previews/glass/glass-mode-bar/glass-mode-bar-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "GlassQuickAdd": {
+  "light": "/previews/glass/glass-quick-add/glass-quick-add-light.webp",
+  "dark": "/previews/glass/glass-quick-add/glass-quick-add-dark.webp",
+  "thumb": "/previews/glass/glass-quick-add/glass-quick-add-thumb.webp",
+  "og": "/previews/glass/glass-quick-add/glass-quick-add-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "GlassSegments": {
+  "light": "/previews/glass/glass-segments/glass-segments-light.webp",
+  "dark": "/previews/glass/glass-segments/glass-segments-dark.webp",
+  "thumb": "/previews/glass/glass-segments/glass-segments-thumb.webp",
+  "og": "/previews/glass/glass-segments/glass-segments-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "GlassSurface": {
+  "light": "/previews/glass/glass-surface/glass-surface-light.webp",
+  "dark": "/previews/glass/glass-surface/glass-surface-dark.webp",
+  "thumb": "/previews/glass/glass-surface/glass-surface-thumb.webp",
+  "og": "/previews/glass/glass-surface/glass-surface-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "GlassText": {
+  "light": "/previews/text/glass-text/glass-text-light.webp",
+  "dark": "/previews/text/glass-text/glass-text-dark.webp",
+  "thumb": "/previews/text/glass-text/glass-text-thumb.webp",
+  "og": "/previews/text/glass-text/glass-text-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "GuestsPill": {
+  "light": "/previews/inputs/guests-pill/guests-pill-light.webp",
+  "dark": "/previews/inputs/guests-pill/guests-pill-dark.webp",
+  "thumb": "/previews/inputs/guests-pill/guests-pill-thumb.webp",
+  "og": "/previews/inputs/guests-pill/guests-pill-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "HoldToConfirm": {
+  "light": "/previews/controls/hold-to-confirm/hold-to-confirm-light.webp",
+  "dark": "/previews/controls/hold-to-confirm/hold-to-confirm-dark.webp",
+  "thumb": "/previews/controls/hold-to-confirm/hold-to-confirm-thumb.webp",
+  "og": "/previews/controls/hold-to-confirm/hold-to-confirm-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "IndexScrubber": {
+  "light": "/previews/navigation/index-scrubber/index-scrubber-light.webp",
+  "dark": "/previews/navigation/index-scrubber/index-scrubber-dark.webp",
+  "thumb": "/previews/navigation/index-scrubber/index-scrubber-thumb.webp",
+  "og": "/previews/navigation/index-scrubber/index-scrubber-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "InterestChips": {
+  "light": "/previews/inputs/interest-chips/interest-chips-light.webp",
+  "dark": "/previews/inputs/interest-chips/interest-chips-dark.webp",
+  "thumb": "/previews/inputs/interest-chips/interest-chips-thumb.webp",
+  "og": "/previews/inputs/interest-chips/interest-chips-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "LevelPicker": {
+  "light": "/previews/controls/level-picker/level-picker-light.webp",
+  "dark": "/previews/controls/level-picker/level-picker-dark.webp",
+  "thumb": "/previews/controls/level-picker/level-picker-thumb.webp",
+  "og": "/previews/controls/level-picker/level-picker-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "LinkPreview": {
+  "light": "/previews/media/link-preview/link-preview-light.webp",
+  "dark": "/previews/media/link-preview/link-preview-dark.webp",
+  "thumb": "/previews/media/link-preview/link-preview-thumb.webp",
+  "og": "/previews/media/link-preview/link-preview-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "LiquidSwitch": {
+  "light": "/previews/controls/liquid-switch/liquid-switch-light.webp",
+  "dark": "/previews/controls/liquid-switch/liquid-switch-dark.webp",
+  "thumb": "/previews/controls/liquid-switch/liquid-switch-thumb.webp",
+  "og": "/previews/controls/liquid-switch/liquid-switch-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "LiveStat": {
+  "light": "/previews/data/live-stat/live-stat-light.webp",
+  "dark": "/previews/data/live-stat/live-stat-dark.webp",
+  "thumb": "/previews/data/live-stat/live-stat-thumb.webp",
+  "og": "/previews/data/live-stat/live-stat-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "LocationPicker": {
+  "light": "/previews/inputs/location-picker/location-picker-light.webp",
+  "dark": "/previews/inputs/location-picker/location-picker-dark.webp",
+  "thumb": "/previews/inputs/location-picker/location-picker-thumb.webp",
+  "og": "/previews/inputs/location-picker/location-picker-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "MapExpand": {
+  "light": "/previews/media/map-expand/map-expand-light.webp",
+  "dark": "/previews/media/map-expand/map-expand-dark.webp",
+  "thumb": "/previews/media/map-expand/map-expand-thumb.webp",
+  "og": "/previews/media/map-expand/map-expand-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "MatchHighlight": {
+  "light": "/previews/text/match-highlight/match-highlight-light.webp",
+  "dark": "/previews/text/match-highlight/match-highlight-dark.webp",
+  "thumb": "/previews/text/match-highlight/match-highlight-thumb.webp",
+  "og": "/previews/text/match-highlight/match-highlight-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "MotionCard": {
+  "light": "/previews/cards/motion-card/motion-card-light.webp",
+  "dark": "/previews/cards/motion-card/motion-card-dark.webp",
+  "thumb": "/previews/cards/motion-card/motion-card-thumb.webp",
+  "og": "/previews/cards/motion-card/motion-card-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "NoticeStack": {
+  "light": "/previews/sheets/notice-stack/notice-stack-light.webp",
+  "dark": "/previews/sheets/notice-stack/notice-stack-dark.webp",
+  "thumb": "/previews/sheets/notice-stack/notice-stack-thumb.webp",
+  "og": "/previews/sheets/notice-stack/notice-stack-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "NowPlaying": {
+  "light": "/previews/media/now-playing/now-playing-light.webp",
+  "dark": "/previews/media/now-playing/now-playing-dark.webp",
+  "thumb": "/previews/media/now-playing/now-playing-thumb.webp",
+  "og": "/previews/media/now-playing/now-playing-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "Odometer": {
+  "light": "/previews/data/odometer/odometer-light.webp",
+  "dark": "/previews/data/odometer/odometer-dark.webp",
+  "thumb": "/previews/data/odometer/odometer-thumb.webp",
+  "og": "/previews/data/odometer/odometer-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "OutcomeScreen": {
+  "light": "/previews/feedback/outcome-screen/outcome-screen-light.webp",
+  "dark": "/previews/feedback/outcome-screen/outcome-screen-dark.webp",
+  "thumb": "/previews/feedback/outcome-screen/outcome-screen-thumb.webp",
+  "og": "/previews/feedback/outcome-screen/outcome-screen-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "PagedList": {
+  "light": "/previews/lists/paged-list/paged-list-light.webp",
+  "dark": "/previews/lists/paged-list/paged-list-dark.webp",
+  "thumb": "/previews/lists/paged-list/paged-list-thumb.webp",
+  "og": "/previews/lists/paged-list/paged-list-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "PageDots": {
+  "light": "/previews/navigation/page-dots/page-dots-light.webp",
+  "dark": "/previews/navigation/page-dots/page-dots-dark.webp",
+  "thumb": "/previews/navigation/page-dots/page-dots-thumb.webp",
+  "og": "/previews/navigation/page-dots/page-dots-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "ParallaxCard": {
+  "light": "/previews/cards/parallax-card/parallax-card-light.webp",
+  "dark": "/previews/cards/parallax-card/parallax-card-dark.webp",
+  "thumb": "/previews/cards/parallax-card/parallax-card-thumb.webp",
+  "og": "/previews/cards/parallax-card/parallax-card-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "PermissionSheet": {
+  "light": "/previews/sheets/permission-sheet/permission-sheet-light.webp",
+  "dark": "/previews/sheets/permission-sheet/permission-sheet-dark.webp",
+  "thumb": "/previews/sheets/permission-sheet/permission-sheet-thumb.webp",
+  "og": "/previews/sheets/permission-sheet/permission-sheet-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "PhotoCropper": {
+  "light": "/previews/media/photo-cropper/photo-cropper-light.webp",
+  "dark": "/previews/media/photo-cropper/photo-cropper-dark.webp",
+  "thumb": "/previews/media/photo-cropper/photo-cropper-thumb.webp",
+  "og": "/previews/media/photo-cropper/photo-cropper-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "PhotoViewer": {
+  "light": "/previews/media/photo-viewer/photo-viewer-light.webp",
+  "dark": "/previews/media/photo-viewer/photo-viewer-dark.webp",
+  "thumb": "/previews/media/photo-viewer/photo-viewer-thumb.webp",
+  "og": "/previews/media/photo-viewer/photo-viewer-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "PictureHeadline": {
+  "light": "/previews/text/picture-headline/picture-headline-light.webp",
+  "dark": "/previews/text/picture-headline/picture-headline-dark.webp",
+  "thumb": "/previews/text/picture-headline/picture-headline-thumb.webp",
+  "og": "/previews/text/picture-headline/picture-headline-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "PromptChips": {
+  "light": "/previews/ai/prompt-chips/prompt-chips-light.webp",
+  "dark": "/previews/ai/prompt-chips/prompt-chips-dark.webp",
+  "thumb": "/previews/ai/prompt-chips/prompt-chips-thumb.webp",
+  "og": "/previews/ai/prompt-chips/prompt-chips-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "QRCode": {
+  "light": "/previews/media/qr-code/qr-code-light.webp",
+  "dark": "/previews/media/qr-code/qr-code-dark.webp",
+  "thumb": "/previews/media/qr-code/qr-code-thumb.webp",
+  "og": "/previews/media/qr-code/qr-code-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "RangeLens": {
+  "light": "/previews/data/range-lens/range-lens-light.webp",
+  "dark": "/previews/data/range-lens/range-lens-dark.webp",
+  "thumb": "/previews/data/range-lens/range-lens-thumb.webp",
+  "og": "/previews/data/range-lens/range-lens-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "RangeSlider": {
+  "light": "/previews/inputs/range-slider/range-slider-light.webp",
+  "dark": "/previews/inputs/range-slider/range-slider-dark.webp",
+  "thumb": "/previews/inputs/range-slider/range-slider-thumb.webp",
+  "og": "/previews/inputs/range-slider/range-slider-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "RatingScrub": {
+  "light": "/previews/feedback/rating-scrub/rating-scrub-light.webp",
+  "dark": "/previews/feedback/rating-scrub/rating-scrub-dark.webp",
+  "thumb": "/previews/feedback/rating-scrub/rating-scrub-thumb.webp",
+  "og": "/previews/feedback/rating-scrub/rating-scrub-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "ReactionToggle": {
+  "light": "/previews/feedback/reaction-toggle/reaction-toggle-light.webp",
+  "dark": "/previews/feedback/reaction-toggle/reaction-toggle-dark.webp",
+  "thumb": "/previews/feedback/reaction-toggle/reaction-toggle-thumb.webp",
+  "og": "/previews/feedback/reaction-toggle/reaction-toggle-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "ReadAlongText": {
+  "light": "/previews/text/read-along-text/read-along-text-light.webp",
+  "dark": "/previews/text/read-along-text/read-along-text-dark.webp",
+  "thumb": "/previews/text/read-along-text/read-along-text-thumb.webp",
+  "og": "/previews/text/read-along-text/read-along-text-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "RelativeTime": {
+  "light": "/previews/text/relative-time/relative-time-light.webp",
+  "dark": "/previews/text/relative-time/relative-time-dark.webp",
+  "thumb": "/previews/text/relative-time/relative-time-thumb.webp",
+  "og": "/previews/text/relative-time/relative-time-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "ReminderPill": {
+  "light": "/previews/inputs/reminder-pill/reminder-pill-light.webp",
+  "dark": "/previews/inputs/reminder-pill/reminder-pill-dark.webp",
+  "thumb": "/previews/inputs/reminder-pill/reminder-pill-thumb.webp",
+  "og": "/previews/inputs/reminder-pill/reminder-pill-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "ReorderList": {
+  "light": "/previews/lists/reorder-list/reorder-list-light.webp",
+  "dark": "/previews/lists/reorder-list/reorder-list-dark.webp",
+  "thumb": "/previews/lists/reorder-list/reorder-list-thumb.webp",
+  "og": "/previews/lists/reorder-list/reorder-list-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "RingBreakdown": {
+  "light": "/previews/data/ring-breakdown/ring-breakdown-light.webp",
+  "dark": "/previews/data/ring-breakdown/ring-breakdown-dark.webp",
+  "thumb": "/previews/data/ring-breakdown/ring-breakdown-thumb.webp",
+  "og": "/previews/data/ring-breakdown/ring-breakdown-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "ScrollIsland": {
+  "light": "/previews/navigation/scroll-island/scroll-island-light.webp",
+  "dark": "/previews/navigation/scroll-island/scroll-island-dark.webp",
+  "thumb": "/previews/navigation/scroll-island/scroll-island-thumb.webp",
+  "og": "/previews/navigation/scroll-island/scroll-island-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "ScrubChart": {
+  "light": "/previews/data/scrub-chart/scrub-chart-light.webp",
+  "dark": "/previews/data/scrub-chart/scrub-chart-dark.webp",
+  "thumb": "/previews/data/scrub-chart/scrub-chart-thumb.webp",
+  "og": "/previews/data/scrub-chart/scrub-chart-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "ScrubStepper": {
+  "light": "/previews/inputs/scrub-stepper/scrub-stepper-light.webp",
+  "dark": "/previews/inputs/scrub-stepper/scrub-stepper-dark.webp",
+  "thumb": "/previews/inputs/scrub-stepper/scrub-stepper-thumb.webp",
+  "og": "/previews/inputs/scrub-stepper/scrub-stepper-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "SecureEntry": {
+  "light": "/previews/inputs/secure-entry/secure-entry-light.webp",
+  "dark": "/previews/inputs/secure-entry/secure-entry-dark.webp",
+  "thumb": "/previews/inputs/secure-entry/secure-entry-thumb.webp",
+  "og": "/previews/inputs/secure-entry/secure-entry-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "SelectMenu": {
+  "light": "/previews/controls/select-menu/select-menu-light.webp",
+  "dark": "/previews/controls/select-menu/select-menu-dark.webp",
+  "thumb": "/previews/controls/select-menu/select-menu-thumb.webp",
+  "og": "/previews/controls/select-menu/select-menu-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "SignaturePad": {
+  "light": "/previews/inputs/signature-pad/signature-pad-light.webp",
+  "dark": "/previews/inputs/signature-pad/signature-pad-dark.webp",
+  "thumb": "/previews/inputs/signature-pad/signature-pad-thumb.webp",
+  "og": "/previews/inputs/signature-pad/signature-pad-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "Silk": {
+  "light": "/previews/backgrounds/silk/silk-light.webp",
+  "dark": "/previews/backgrounds/silk/silk-dark.webp",
+  "thumb": "/previews/backgrounds/silk/silk-thumb.webp",
+  "og": "/previews/backgrounds/silk/silk-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "SizePicker": {
+  "light": "/previews/inputs/size-picker/size-picker-light.webp",
+  "dark": "/previews/inputs/size-picker/size-picker-dark.webp",
+  "thumb": "/previews/inputs/size-picker/size-picker-thumb.webp",
+  "og": "/previews/inputs/size-picker/size-picker-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "SkeletonLoader": {
+  "light": "/previews/feedback/skeleton-loader/skeleton-loader-light.webp",
+  "dark": "/previews/feedback/skeleton-loader/skeleton-loader-dark.webp",
+  "thumb": "/previews/feedback/skeleton-loader/skeleton-loader-thumb.webp",
+  "og": "/previews/feedback/skeleton-loader/skeleton-loader-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "SlideToPay": {
+  "light": "/previews/controls/slide-to-pay/slide-to-pay-light.webp",
+  "dark": "/previews/controls/slide-to-pay/slide-to-pay-dark.webp",
+  "thumb": "/previews/controls/slide-to-pay/slide-to-pay-thumb.webp",
+  "og": "/previews/controls/slide-to-pay/slide-to-pay-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "SmartText": {
+  "light": "/previews/text/smart-text/smart-text-light.webp",
+  "dark": "/previews/text/smart-text/smart-text-dark.webp",
+  "thumb": "/previews/text/smart-text/smart-text-thumb.webp",
+  "og": "/previews/text/smart-text/smart-text-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "Snapshot": {
+  "light": "/previews/media/snapshot/snapshot-light.webp",
+  "dark": "/previews/media/snapshot/snapshot-dark.webp",
+  "thumb": "/previews/media/snapshot/snapshot-thumb.webp",
+  "og": "/previews/media/snapshot/snapshot-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "SourceStack": {
+  "light": "/previews/ai/source-stack/source-stack-light.webp",
+  "dark": "/previews/ai/source-stack/source-stack-dark.webp",
+  "thumb": "/previews/ai/source-stack/source-stack-thumb.webp",
+  "og": "/previews/ai/source-stack/source-stack-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "SplitStepper": {
+  "light": "/previews/inputs/split-stepper/split-stepper-light.webp",
+  "dark": "/previews/inputs/split-stepper/split-stepper-dark.webp",
+  "thumb": "/previews/inputs/split-stepper/split-stepper-thumb.webp",
+  "og": "/previews/inputs/split-stepper/split-stepper-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "SpotlightTour": {
+  "light": "/previews/sheets/spotlight-tour/spotlight-tour-light.webp",
+  "dark": "/previews/sheets/spotlight-tour/spotlight-tour-dark.webp",
+  "thumb": "/previews/sheets/spotlight-tour/spotlight-tour-thumb.webp",
+  "og": "/previews/sheets/spotlight-tour/spotlight-tour-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "StatusMorph": {
+  "light": "/previews/feedback/status-morph/status-morph-light.webp",
+  "dark": "/previews/feedback/status-morph/status-morph-dark.webp",
+  "thumb": "/previews/feedback/status-morph/status-morph-thumb.webp",
+  "og": "/previews/feedback/status-morph/status-morph-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "StatusTimeline": {
+  "light": "/previews/lists/status-timeline/status-timeline-light.webp",
+  "dark": "/previews/lists/status-timeline/status-timeline-dark.webp",
+  "thumb": "/previews/lists/status-timeline/status-timeline-thumb.webp",
+  "og": "/previews/lists/status-timeline/status-timeline-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "StepTrail": {
+  "light": "/previews/navigation/step-trail/step-trail-light.webp",
+  "dark": "/previews/navigation/step-trail/step-trail-dark.webp",
+  "thumb": "/previews/navigation/step-trail/step-trail-thumb.webp",
+  "og": "/previews/navigation/step-trail/step-trail-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "StoryStrip": {
+  "light": "/previews/media/story-strip/story-strip-light.webp",
+  "dark": "/previews/media/story-strip/story-strip-dark.webp",
+  "thumb": "/previews/media/story-strip/story-strip-thumb.webp",
+  "og": "/previews/media/story-strip/story-strip-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "StreamingReply": {
+  "light": "/previews/ai/streaming-reply/streaming-reply-light.webp",
+  "dark": "/previews/ai/streaming-reply/streaming-reply-dark.webp",
+  "thumb": "/previews/ai/streaming-reply/streaming-reply-thumb.webp",
+  "og": "/previews/ai/streaming-reply/streaming-reply-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "StretchHeader": {
+  "light": "/previews/navigation/stretch-header/stretch-header-light.webp",
+  "dark": "/previews/navigation/stretch-header/stretch-header-dark.webp",
+  "thumb": "/previews/navigation/stretch-header/stretch-header-thumb.webp",
+  "og": "/previews/navigation/stretch-header/stretch-header-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "SwatchPicker": {
+  "light": "/previews/inputs/swatch-picker/swatch-picker-light.webp",
+  "dark": "/previews/inputs/swatch-picker/swatch-picker-dark.webp",
+  "thumb": "/previews/inputs/swatch-picker/swatch-picker-thumb.webp",
+  "og": "/previews/inputs/swatch-picker/swatch-picker-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "SwipeActionRow": {
+  "light": "/previews/lists/swipe-action-row/swipe-action-row-light.webp",
+  "dark": "/previews/lists/swipe-action-row/swipe-action-row-dark.webp",
+  "thumb": "/previews/lists/swipe-action-row/swipe-action-row-thumb.webp",
+  "og": "/previews/lists/swipe-action-row/swipe-action-row-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "SwipeDeck": {
+  "light": "/previews/cards/swipe-deck/swipe-deck-light.webp",
+  "dark": "/previews/cards/swipe-deck/swipe-deck-dark.webp",
+  "thumb": "/previews/cards/swipe-deck/swipe-deck-thumb.webp",
+  "og": "/previews/cards/swipe-deck/swipe-deck-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "TaskRow": {
+  "light": "/previews/lists/task-row/task-row-light.webp",
+  "dark": "/previews/lists/task-row/task-row-dark.webp",
+  "thumb": "/previews/lists/task-row/task-row-thumb.webp",
+  "og": "/previews/lists/task-row/task-row-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "TextDiff": {
+  "light": "/previews/text/text-diff/text-diff-light.webp",
+  "dark": "/previews/text/text-diff/text-diff-dark.webp",
+  "thumb": "/previews/text/text-diff/text-diff-thumb.webp",
+  "og": "/previews/text/text-diff/text-diff-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "TextReveal": {
+  "light": "/previews/text/text-reveal/text-reveal-light.webp",
+  "dark": "/previews/text/text-reveal/text-reveal-dark.webp",
+  "thumb": "/previews/text/text-reveal/text-reveal-thumb.webp",
+  "og": "/previews/text/text-reveal/text-reveal-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "ThinkingState": {
+  "light": "/previews/ai/thinking-state/thinking-state-light.webp",
+  "dark": "/previews/ai/thinking-state/thinking-state-dark.webp",
+  "thumb": "/previews/ai/thinking-state/thinking-state-thumb.webp",
+  "og": "/previews/ai/thinking-state/thinking-state-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "ThoughtOrb": {
+  "light": "/previews/ai/thought-orb/thought-orb-light.webp",
+  "dark": "/previews/ai/thought-orb/thought-orb-dark.webp",
+  "thumb": "/previews/ai/thought-orb/thought-orb-thumb.webp",
+  "og": "/previews/ai/thought-orb/thought-orb-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "TimerDial": {
+  "light": "/previews/controls/timer-dial/timer-dial-light.webp",
+  "dark": "/previews/controls/timer-dial/timer-dial-dark.webp",
+  "thumb": "/previews/controls/timer-dial/timer-dial-thumb.webp",
+  "og": "/previews/controls/timer-dial/timer-dial-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "TimeSlotPicker": {
+  "light": "/previews/inputs/time-slot-picker/time-slot-picker-light.webp",
+  "dark": "/previews/inputs/time-slot-picker/time-slot-picker-dark.webp",
+  "thumb": "/previews/inputs/time-slot-picker/time-slot-picker-thumb.webp",
+  "og": "/previews/inputs/time-slot-picker/time-slot-picker-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "Toast": {
+  "light": "/previews/sheets/toast/toast-light.webp",
+  "dark": "/previews/sheets/toast/toast-dark.webp",
+  "thumb": "/previews/sheets/toast/toast-thumb.webp",
+  "og": "/previews/sheets/toast/toast-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "TokenField": {
+  "light": "/previews/inputs/token-field/token-field-light.webp",
+  "dark": "/previews/inputs/token-field/token-field-dark.webp",
+  "thumb": "/previews/inputs/token-field/token-field-thumb.webp",
+  "og": "/previews/inputs/token-field/token-field-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "TouchGrid": {
+  "light": "/previews/backgrounds/touch-grid/touch-grid-light.webp",
+  "dark": "/previews/backgrounds/touch-grid/touch-grid-dark.webp",
+  "thumb": "/previews/backgrounds/touch-grid/touch-grid-thumb.webp",
+  "og": "/previews/backgrounds/touch-grid/touch-grid-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "TrackingTabs": {
+  "light": "/previews/navigation/tracking-tabs/tracking-tabs-light.webp",
+  "dark": "/previews/navigation/tracking-tabs/tracking-tabs-dark.webp",
+  "thumb": "/previews/navigation/tracking-tabs/tracking-tabs-thumb.webp",
+  "og": "/previews/navigation/tracking-tabs/tracking-tabs-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "TranslateToggle": {
+  "light": "/previews/text/translate-toggle/translate-toggle-light.webp",
+  "dark": "/previews/text/translate-toggle/translate-toggle-dark.webp",
+  "thumb": "/previews/text/translate-toggle/translate-toggle-thumb.webp",
+  "og": "/previews/text/translate-toggle/translate-toggle-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "UnitToggle": {
+  "light": "/previews/inputs/unit-toggle/unit-toggle-light.webp",
+  "dark": "/previews/inputs/unit-toggle/unit-toggle-dark.webp",
+  "thumb": "/previews/inputs/unit-toggle/unit-toggle-thumb.webp",
+  "og": "/previews/inputs/unit-toggle/unit-toggle-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "ViewToggle": {
+  "light": "/previews/controls/view-toggle/view-toggle-light.webp",
+  "dark": "/previews/controls/view-toggle/view-toggle-dark.webp",
+  "thumb": "/previews/controls/view-toggle/view-toggle-thumb.webp",
+  "og": "/previews/controls/view-toggle/view-toggle-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "VoiceRecorder": {
+  "light": "/previews/media/voice-recorder/voice-recorder-light.webp",
+  "dark": "/previews/media/voice-recorder/voice-recorder-dark.webp",
+  "thumb": "/previews/media/voice-recorder/voice-recorder-thumb.webp",
+  "og": "/previews/media/voice-recorder/voice-recorder-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "WalletStack": {
+  "light": "/previews/cards/wallet-stack/wallet-stack-light.webp",
+  "dark": "/previews/cards/wallet-stack/wallet-stack-dark.webp",
+  "thumb": "/previews/cards/wallet-stack/wallet-stack-thumb.webp",
+  "og": "/previews/cards/wallet-stack/wallet-stack-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "WaveformScrub": {
+  "light": "/previews/media/waveform-scrub/waveform-scrub-light.webp",
+  "dark": "/previews/media/waveform-scrub/waveform-scrub-dark.webp",
+  "thumb": "/previews/media/waveform-scrub/waveform-scrub-thumb.webp",
+  "og": "/previews/media/waveform-scrub/waveform-scrub-og.jpg",
+  "width": 1200,
+  "height": 900
+ },
+ "ZoomDial": {
+  "light": "/previews/media/zoom-dial/zoom-dial-light.webp",
+  "dark": "/previews/media/zoom-dial/zoom-dial-dark.webp",
+  "thumb": "/previews/media/zoom-dial/zoom-dial-thumb.webp",
+  "og": "/previews/media/zoom-dial/zoom-dial-og.jpg",
+  "width": 1200,
+  "height": 900
+ }
+}

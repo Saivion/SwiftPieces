@@ -23,6 +23,7 @@ export function Showcase({
   loop,
   note,
   proHref,
+  poster,
   children,
 }: {
   /** The Swift type: the preview to play. */
@@ -38,6 +39,11 @@ export function Showcase({
   note?: string;
   /** A Pro block: where its source is, shown in the Code tab instead of code. */
   proHref?: string;
+  /**
+   * A piece's still (lib/piece-media.ts), in light and dark: in the server HTML and on first paint, until the live
+   * preview mounts over it. It is the page's primary image, so it loads first, and the caption under it stays.
+   */
+  poster?: { light: string; dark: string; width: number; height: number; alt: string; altDark: string; caption: string };
   children?: ReactNode;
 }) {
   const [tab, setTab] = useState<"preview" | "code">("preview");
@@ -58,7 +64,7 @@ export function Showcase({
       <div role="tabpanel" hidden={tab !== "preview"} className="mt-3 rounded-[30px] bg-surface p-2">
         <div className={cn("overflow-hidden rounded-[23px] px-4 py-6 sm:px-10 sm:py-10", tone === "black" ? "bg-black" : "bg-[var(--pv-bg)]")}>
           <div className={cn("mx-auto w-full", block ? "max-w-[560px]" : "max-w-[600px]")}>
-            <PreviewFrame aspect={block ? "aspect-square" : "aspect-[4/3]"} tone={tone} className="w-full">
+            <PreviewFrame aspect={block ? "aspect-square" : "aspect-[4/3]"} tone={tone} className="w-full" placeholder={poster ? <PosterStill poster={poster} /> : undefined}>
               {still && loop ? (
                 <BlockLoop still={still} loop={loop} alt={`${name}, a SwiftPieces Pro pattern`} eager fit="contain" />
               ) : still ? (
@@ -70,6 +76,7 @@ export function Showcase({
             </PreviewFrame>
           </div>
         </div>
+        {poster ? <p className="px-3 pt-2.5 pb-1 text-[12.5px] leading-snug text-subtle">{poster.caption}</p> : null}
       </div>
 
       <div role="tabpanel" hidden={tab !== "code"} className="mt-3 rounded-[30px] bg-surface p-2">
@@ -90,6 +97,21 @@ export function Showcase({
         {pro ? <p className="mt-2 text-[12px] text-subtle">Needs a SwiftPieces Pro license: <code className="font-mono">npx swiftpieces login</code> first.</p> : null}
       </div>
     </section>
+  );
+}
+
+/**
+ * The still under the live preview: light or dark with the site's theme. It is the page's primary image, so it is
+ * eager with high priority, sized, and fills the frame the way the live preview does.
+ */
+function PosterStill({ poster }: { poster: NonNullable<Parameters<typeof Showcase>[0]["poster"]> }) {
+  return (
+    <>
+      {/* eslint-disable-next-line @next/next/no-img-element -- a static still; the image optimizer is off (next.config.ts) */}
+      <img src={poster.light} alt={poster.alt} width={poster.width} height={poster.height} loading="eager" fetchPriority="high" decoding="async" className="absolute inset-0 size-full object-cover dark:hidden" />
+      {/* eslint-disable-next-line @next/next/no-img-element -- the same still in dark mode */}
+      <img src={poster.dark} alt={poster.altDark} width={poster.width} height={poster.height} loading="eager" decoding="async" className="absolute inset-0 hidden size-full object-cover dark:block" />
+    </>
   );
 }
 

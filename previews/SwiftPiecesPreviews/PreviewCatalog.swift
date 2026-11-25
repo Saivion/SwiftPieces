@@ -32,6 +32,10 @@ enum PreviewCatalog {
         "ReadAlongText", "RelativeTime", "TranslateToggle",
         // replaced Path Bar, 2026-11-12
         "SmartText", "MatchHighlight", "TextDiff",
+        // moving pieces, 2026-11-23
+        "Snapshot", "MapExpand",
+        // pills and aura controls, 2026-11-24
+        "DatePill", "GuestsPill", "ReminderPill", "SlideToPay", "SplitStepper",
     ]
 
     @MainActor @ViewBuilder
@@ -245,6 +249,20 @@ enum PreviewCatalog {
             Stage { MatchHighlightScene() }
         case "TextDiff":
             Stage { TextDiffScene() }
+        case "Snapshot":
+            Stage { SnapshotScene() }
+        case "MapExpand":
+            MapExpandScene()
+        case "DatePill":
+            DatePillScene()
+        case "GuestsPill":
+            GuestsPillScene()
+        case "ReminderPill":
+            ReminderPillScene()
+        case "SlideToPay":
+            SlideToPayScene()
+        case "SplitStepper":
+            SplitStepperScene()
         default:
             Text("Unknown piece: \(name)")
         }
@@ -4585,5 +4603,149 @@ private struct TextDiffScene: View {
                     }
                 }
             }
+    }
+}
+
+// MARK: - moving pieces, 2026-11-23
+
+/// Loops `action` every `seconds`, for scenes that play on their own.
+private struct SceneLoop: ViewModifier {
+    let seconds: Double
+    let action: @MainActor () -> Void
+
+    func body(content: Content) -> some View {
+        content.task {
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(seconds))
+                action()
+            }
+        }
+    }
+}
+
+private extension View {
+    func sceneLoop(every seconds: Double, _ action: @escaping @MainActor () -> Void) -> some View {
+        modifier(SceneLoop(seconds: seconds, action: action))
+    }
+}
+
+/// A run card captured every few seconds.
+private struct SnapshotScene: View {
+    @State private var shots = 0
+
+    var body: some View {
+        Snapshot(trigger: shots, message: "Copied") {
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Morning run").font(.subheadline.weight(.semibold)).foregroundStyle(.secondary)
+                Text("5.20 km").font(.system(size: 40, weight: .semibold)).monospacedDigit()
+                Text("28:14 · 5'26\" · 412 kcal").font(.subheadline.weight(.semibold)).foregroundStyle(.secondary)
+            }
+            .padding(20)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color(UIColor.secondarySystemGroupedBackground), in: .rect(cornerRadius: 24, style: .continuous))
+        }
+        .padding(.bottom, 90)
+        .everydayScene(width: 300)
+        .sceneLoop(every: 6.5) { shots += 1 }
+    }
+}
+
+/// The hotel card opening into its map.
+private struct MapExpandScene: View {
+    @State private var expanded = false
+
+    var body: some View {
+        MapExpand(coordinate: CLLocationCoordinate2D(latitude: 47.6062, longitude: -122.3421), isExpanded: $expanded, title: "Harbor Inn", subtitle: "0.4 mi · Open until 22:00", actions: [
+            MapExpandAction("Directions", systemImage: "arrow.triangle.turn.up.right.diamond.fill", isPrimary: true) {},
+            MapExpandAction("Call", systemImage: "phone.fill") {},
+            MapExpandAction("Website", systemImage: "safari.fill") {},
+        ]) {
+            Text("Check-in Sat, 15:00").font(.subheadline.weight(.semibold)).foregroundStyle(.secondary).padding(.horizontal, 4)
+        }
+        .padding(16)
+        .background(pickerSceneColor(light: 0xF3F2EE, dark: 0x121212))
+        .sceneLoop(every: 3.4) { withAnimation(.spring(duration: 0.5, bounce: 0.2)) { expanded.toggle() } }
+    }
+}
+
+/// A check-in date, picked from the month that grows out of the pill.
+private struct DatePillScene: View {
+    @State private var date = Calendar.current.date(byAdding: .day, value: 3, to: .now) ?? .now
+
+    var body: some View {
+        VStack {
+            DatePill("Check-in", selection: $date, in: Date.now...Date.now.addingTimeInterval(365 * 86_400))
+                .zIndex(1)
+            Spacer()
+        }
+        .padding(.top, 60)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(pickerSceneColor(light: 0xF3F2EE, dark: 0x121212))
+    }
+}
+
+/// A stay's party, pets allowed.
+private struct GuestsPillScene: View {
+    @State private var adults = 2
+    @State private var children = 0
+    @State private var pets = 0
+
+    var body: some View {
+        VStack {
+            GuestsPill(adults: $adults, children: $children, pets: $pets)
+                .zIndex(1)
+            Spacer()
+        }
+        .padding(.top, 60)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(pickerSceneColor(light: 0xF3F2EE, dark: 0x121212))
+    }
+}
+
+/// A saved article, with a nudge to read it later.
+private struct ReminderPillScene: View {
+    @State private var remindAt: Date?
+
+    var body: some View {
+        VStack {
+            ReminderPill(date: $remindAt)
+                .zIndex(1)
+            Spacer()
+        }
+        .padding(.top, 60)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(pickerSceneColor(light: 0xF3F2EE, dark: 0x121212))
+    }
+}
+
+/// A hotel checkout, folding into a check and unfolding again.
+private struct SlideToPayScene: View {
+    @State private var paid = false
+
+    var body: some View {
+        VStack(spacing: 6) {
+            Text("Total").font(.subheadline.weight(.semibold)).foregroundStyle(.secondary)
+            Text("$186.40").font(.system(size: 42, weight: .semibold)).monospacedDigit()
+            Text(paid ? "Paid · receipt sent" : "2 nights · Hotel Alma").font(.subheadline.weight(.semibold)).foregroundStyle(.secondary)
+            Spacer()
+            SlideToPay(isComplete: $paid) {}
+                .padding(.horizontal, 32)
+        }
+        .padding(.vertical, 48)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(pickerSceneColor(light: 0xF3F2EE, dark: 0x121212))
+        .sceneLoop(every: 4) { if paid { paid = false } }
+    }
+}
+
+/// Dinner for a table, split evenly.
+private struct SplitStepperScene: View {
+    @State private var people = 2
+
+    var body: some View {
+        SplitStepper("Dinner at Lupo", total: Decimal(string: "186.40") ?? 0, people: $people, range: 1...8)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(pickerSceneColor(light: 0xF3F2EE, dark: 0x121212))
+            .sceneLoop(every: 1.2) { people = people >= 6 ? 2 : people + 1 }
     }
 }

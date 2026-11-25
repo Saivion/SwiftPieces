@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Container } from "@/components/ui/container";
-import { SectionHeader } from "@/components/ui/section-header";
+import { Statement, statementGap, statementSection } from "@/components/ui/statement";
 import { ShowcaseGrid } from "@/components/sections/showcase";
 import { Questions } from "@/components/sections/questions";
 import { CategoryDirectory } from "@/components/sections/category-directory";
@@ -17,9 +17,6 @@ import { site } from "@/lib/site";
 import { cn } from "@/lib/cn";
 
 type Props = { params: Promise<{ slug: string }> };
-
-// Every hub is known at build time; anything else is a 404, not a render.
-export const dynamicParams = false;
 
 export function generateStaticParams() {
   return hubs.map((h) => ({ slug: h.slug }));
@@ -68,15 +65,16 @@ export default async function HubPage(props: Props) {
   const items = hubItems(hub, all);
   const related = hub.related.map(getHub).filter((h): h is Hub => Boolean(h));
   const url = new URL(hubPath(hub.slug), site.url).href;
-  const count = `${items.length} free ${items.length === 1 ? "piece" : "pieces"}`;
 
   return (
     <>
       <JsonLd data={structuredData(hub, url)} />
-      <section className="relative pt-16 pb-12 md:pt-24 sm:pb-[68px]">
+      <section className={cn("relative pb-12 sm:pb-[68px]", statementSection)}>
         <Container>
-          <SectionHeader label={`${hub.name} · ${count}`} size="h1" title={hub.h1} description={hub.intro} action={{ label: "All components", href: "/components" }} />
-          <div className="mt-12">
+          <Reveal>
+            <Statement quiet="One Swift file each, with a live preview.">{`${items.length} ${hub.h1}.`}</Statement>
+          </Reveal>
+          <div className={statementGap}>
             <ShowcaseGrid items={items} filters={false} />
           </div>
         </Container>
@@ -89,7 +87,7 @@ export default async function HubPage(props: Props) {
               <p className={cn("mt-4 max-w-xs", sectionBody)}>One self-contained Swift file each, Apple frameworks only, from iOS 17.</p>
             </Reveal>
             <Reveal as="div" className="flex flex-col gap-5">
-              {hub.about.map((p) => (
+              {[hub.intro, ...hub.about].map((p) => (
                 <p key={p.slice(0, 32)} className="max-w-[64ch] text-[16px] leading-[28px] text-pretty text-muted">{p}</p>
               ))}
               {hub.guides.length ? (

@@ -2,7 +2,9 @@ import assert from "node:assert/strict";
 import { after, before, describe, it } from "node:test";
 import { NextRequest, type NextFetchEvent } from "next/server";
 import middleware from "../middleware";
+import { appSlugs } from "./apps/slugs";
 import { changelog, changelogPath } from "./changelog";
+import { hubs, hubPath } from "./hubs";
 
 /**
  * On Cloudflare the middleware runs for every page: OpenNext matches it by each matcher's path regexp
@@ -88,6 +90,25 @@ describe("middleware unknown pages", () => {
       const res = await middleware(request(path));
       assert.equal(res.headers.get("x-middleware-rewrite"), null, `${path} went to the not-found page`);
       assert.equal(res.headers.get("x-middleware-next"), "1", `${path} did not pass through`);
+    }
+  });
+
+  // The hub, app and playground routes answered a made-up slug themselves (`dynamicParams = false`)
+  // until 2026-11-23, and that rule also turned a valid page whose cache entry had expired into a
+  // 404 (lib/known-pages.ts). The manifest answers the made-up ones now.
+  it("lets every hub, app and playground page through", async () => {
+    const paths = [...hubs.map((h) => hubPath(h.slug)), ...appSlugs.flatMap((slug) => [`/apps/${slug}`, `/playground/${slug}`]), "/playground/open"];
+    for (const path of paths) {
+      const res = await middleware(request(path));
+      assert.equal(res.headers.get("x-middleware-rewrite"), null, `${path} went to the not-found page`);
+      assert.equal(res.headers.get("x-middleware-next"), "1", `${path} did not pass through`);
+    }
+  });
+
+  it("sends a made-up hub, app or playground to the not-found page", async () => {
+    for (const path of ["/components/no-such-hub-zz", "/apps/no-such-app-zz", "/playground/no-such-app-zz"]) {
+      const res = await middleware(request(path));
+      assert.match(res.headers.get("x-middleware-rewrite") ?? "", /\/_unknown-page$/, path);
     }
   });
 

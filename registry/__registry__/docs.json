@@ -5077,6 +5077,62 @@
     }
   },
   {
+    "url": "/docs/components/controls/slide-to-pay",
+    "title": "Slide to Pay",
+    "description": "A slide-to-confirm track whose house aura gathers under your thumb, then floods the track as it folds into a red check.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Components",
+      "Categories · 14",
+      "Controls"
+    ],
+    "structuredData": {
+      "contents": [
+        {
+          "content": "Colors for `SlideToPay`. `.standard` is the house palette."
+        },
+        {
+          "heading": "notes",
+          "content": "Drag the thumb to the end to confirm. A soft house aura gathers under your thumb and follows it, growing brighter the further you go."
+        },
+        {
+          "heading": "notes",
+          "content": "Let go before the end and the thumb springs back with the speed you released it at, and the light drains back with it. A quick flick near the end counts."
+        },
+        {
+          "heading": "notes",
+          "content": "At the end the light floods the whole track, the track folds into a red check and a soft ring of light lets go, with a success haptic. `action` runs once."
+        },
+        {
+          "heading": "notes",
+          "content": "`isComplete` stays `true` while it is folded. Set it back to `false` to unfold the track, for example if the payment fails."
+        },
+        {
+          "heading": "notes",
+          "content": "It fills the width you give it and is 60pt tall, with a 48pt thumb."
+        },
+        {
+          "heading": "notes",
+          "content": "VoiceOver reads it as a button and confirms with a double tap."
+        },
+        {
+          "heading": "notes",
+          "content": "Under Reduce Motion the light holds still and still follows the thumb, and there is no ring. Under Reduce Transparency the aura becomes a plain red edge."
+        }
+      ],
+      "headings": [
+        {
+          "id": "notes",
+          "content": "Notes"
+        },
+        {
+          "id": "usage",
+          "content": "Usage"
+        }
+      ]
+    }
+  },
+  {
     "url": "/docs/components/controls/timer-dial",
     "title": "Timer Dial",
     "description": "A countdown ring you set by dragging a glass knob around it, with a tick per step, a warning zone and start, pause and reset bubbles.",
@@ -7793,6 +7849,62 @@
     }
   },
   {
+    "url": "/docs/components/inputs/date-pill",
+    "title": "Date Pill",
+    "description": "A glass date pill that grows a month out of itself as one piece of liquid glass, the red day flowing to your tap before it drains back.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Components",
+      "Categories · 14",
+      "Inputs"
+    ],
+    "structuredData": {
+      "contents": [
+        {
+          "content": "Colors for `DatePill`. `.standard` is the house palette."
+        },
+        {
+          "heading": "notes",
+          "content": "Tap the pill and a month grows out of it, born the pill's own size and drawn down into place, joined beneath it by a short neck of liquid glass. Choosing a day closes it, and it drains back into the pill."
+        },
+        {
+          "heading": "notes",
+          "content": "The chosen day is one red circle that flows from cell to cell on a snap spring. Today's number is red, and days outside `range` are dimmed and can't be picked."
+        },
+        {
+          "heading": "notes",
+          "content": "Picking a day keeps the time of day already in `selection`, so it works for check-ins as well as for dates with a time."
+        },
+        {
+          "heading": "notes",
+          "content": "The pill's text morphs to the new date only after the panel has drained, so the change lands where you are looking. It reads the weekday, day and month in the person's locale."
+        },
+        {
+          "heading": "notes",
+          "content": "The panel opens over the content below, centred under the pill. Give the pill a higher `zIndex` than the views after it."
+        },
+        {
+          "heading": "notes",
+          "content": "On iOS 26 the pill and panel are Liquid Glass; before that they are frosted. Under Reduce Transparency they are solid."
+        },
+        {
+          "heading": "notes",
+          "content": "VoiceOver reads the title and the chosen date, and each day is its own button. Under Reduce Motion the panel opens and closes on a short ease, without bounce."
+        }
+      ],
+      "headings": [
+        {
+          "id": "notes",
+          "content": "Notes"
+        },
+        {
+          "id": "usage",
+          "content": "Usage"
+        }
+      ]
+    }
+  },
+  {
     "url": "/docs/components/inputs/date-range-picker",
     "title": "Date Range Picker",
     "description": "A start-to-end date range picker on a paged month grid, the range pouring between two glass bubbles like liquid.",
@@ -8517,6 +8629,58 @@
     }
   },
   {
+    "url": "/docs/components/inputs/guests-pill",
+    "title": "Guests Pill",
+    "description": "A glass guests pill that grows steppers for adults, children and pets out of itself, then drains back reading the party in words.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Components",
+      "Categories · 14",
+      "Inputs"
+    ],
+    "structuredData": {
+      "contents": [
+        {
+          "content": "Colors for `GuestsPill`. `.standard` is the house palette."
+        },
+        {
+          "heading": "notes",
+          "content": "Tap the pill and a panel of steppers grows out of it, joined beneath it by a short neck of liquid glass: adults, children and, when you pass `pets`, pets."
+        },
+        {
+          "heading": "notes",
+          "content": "Each tap flashes its button red, rolls the count and plays a soft haptic. A count at its limit dims its button. Adults and children together never pass `maximum`, and there is always at least one adult."
+        },
+        {
+          "heading": "notes",
+          "content": "The pill reads the party in words, \"3 guests, 1 pet\" by default, and resizes to fit once the panel has drained back. Pass `summary` for your own wording."
+        },
+        {
+          "heading": "notes",
+          "content": "The panel opens over the content below, centred under the pill. Give the pill a higher `zIndex` than the views after it."
+        },
+        {
+          "heading": "notes",
+          "content": "On iOS 26 the pill and panel are Liquid Glass; before that they are frosted. Under Reduce Transparency they are solid."
+        },
+        {
+          "heading": "notes",
+          "content": "Each row is one adjustable element for VoiceOver: swipe up or down to change it. Under Reduce Motion the panel opens and closes on a short ease, without bounce."
+        }
+      ],
+      "headings": [
+        {
+          "id": "notes",
+          "content": "Notes"
+        },
+        {
+          "id": "usage",
+          "content": "Usage"
+        }
+      ]
+    }
+  },
+  {
     "url": "/docs/components/inputs/interest-chips",
     "title": "Interest Chips",
     "description": "Wrapping glass chips for picking several things: each floods red as its check grows in, and a limit dims the rest and shakes refusals.",
@@ -8916,6 +9080,62 @@
         {
           "id": "parameters",
           "content": "Parameters"
+        }
+      ]
+    }
+  },
+  {
+    "url": "/docs/components/inputs/reminder-pill",
+    "title": "Reminder Pill",
+    "description": "A glass Remind me pill that grows later today, tomorrow, this weekend and next week out of itself, then reads the time by a red bell.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Components",
+      "Categories · 14",
+      "Inputs"
+    ],
+    "structuredData": {
+      "contents": [
+        {
+          "content": "Colors for `ReminderPill`. `.standard` is the house palette."
+        },
+        {
+          "heading": "notes",
+          "content": "Tap Remind me and the times people actually pick grow out of the pill, joined beneath it by a short neck of liquid glass: later today, tomorrow morning, this weekend and next week, each with its time."
+        },
+        {
+          "heading": "notes",
+          "content": "A red row flows to your tap, the panel drains back in, and the pill reads the time you chose, such as \"Tomorrow, 9 AM\", beside a bell that turns red."
+        },
+        {
+          "heading": "notes",
+          "content": "The default times are worked out from now each time the panel opens. Pass `options` for your own, such as snooze lengths."
+        },
+        {
+          "heading": "notes",
+          "content": "With a reminder set, the panel adds Remove reminder, which clears `date` back to `nil`."
+        },
+        {
+          "heading": "notes",
+          "content": "The piece only picks the time. Watch `date` and schedule the notification yourself with `UNUserNotificationCenter`."
+        },
+        {
+          "heading": "notes",
+          "content": "On iOS 26 the pill and panel are Liquid Glass; before that they are frosted. Under Reduce Transparency they are solid."
+        },
+        {
+          "heading": "notes",
+          "content": "VoiceOver reads each time as a button and marks the chosen one. Under Reduce Motion the panel opens and closes on a short ease, without bounce."
+        }
+      ],
+      "headings": [
+        {
+          "id": "notes",
+          "content": "Notes"
+        },
+        {
+          "id": "usage",
+          "content": "Usage"
         }
       ]
     }
@@ -9382,6 +9602,62 @@
         {
           "heading": "notes",
           "content": "Under Reduce Motion the pill slides whole on one short spring."
+        }
+      ],
+      "headings": [
+        {
+          "id": "notes",
+          "content": "Notes"
+        },
+        {
+          "id": "usage",
+          "content": "Usage"
+        }
+      ]
+    }
+  },
+  {
+    "url": "/docs/components/inputs/split-stepper",
+    "title": "Split Stepper",
+    "description": "A bill splitter: the share each person pays rolls as you step the head count, the house aura pulsing at the side you press.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Components",
+      "Categories · 14",
+      "Inputs"
+    ],
+    "structuredData": {
+      "contents": [
+        {
+          "content": "Colors for `SplitStepper`. `.standard` is the house palette."
+        },
+        {
+          "heading": "notes",
+          "content": "The share each person pays is the hero. It rolls to each new figure, counting up or down with the direction you stepped."
+        },
+        {
+          "heading": "notes",
+          "content": "Each tap pulses the house aura at the side you pressed, then lets it settle back around the stepper. A dot pops in or out for each person, in eight colours that repeat."
+        },
+        {
+          "heading": "notes",
+          "content": "A tap past `range` shakes the stepper and plays an error haptic. The share stays where it was."
+        },
+        {
+          "heading": "notes",
+          "content": "The share is `total` divided evenly and rounded to cents. Any remainder is left for you to settle, such as on the first person."
+        },
+        {
+          "heading": "notes",
+          "content": "Amounts are shown in `currencyCode` in the person's locale."
+        },
+        {
+          "heading": "notes",
+          "content": "VoiceOver reads the people and the share as one adjustable element: swipe up or down to change it."
+        },
+        {
+          "heading": "notes",
+          "content": "Under Reduce Motion the light holds still and the dots appear without scaling. Under Reduce Transparency the aura becomes a plain red edge."
         }
       ],
       "headings": [
@@ -11101,6 +11377,62 @@
     }
   },
   {
+    "url": "/docs/components/media/map-expand",
+    "title": "Map Expand",
+    "description": "A place card whose map thumbnail opens into a live MapKit map, the pin dropping in and your actions settling under it.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Components",
+      "Categories · 14",
+      "Media"
+    ],
+    "structuredData": {
+      "contents": [
+        {
+          "content": "Sizes and colors for `MapExpand`."
+        },
+        {
+          "heading": "notes",
+          "content": "Uses MapKit, so the map is real at every size: a thumbnail in the card, then a live, draggable map that fills the space once it opens."
+        },
+        {
+          "heading": "notes",
+          "content": "Tap the card to open it. The pin drops into place with a bounce, the card floats down onto the map as liquid glass, and your `actions` bud out of it one after another into a joined glass bar. Back, a glass button on the map, draws them in and folds it all into the card again."
+        },
+        {
+          "heading": "notes",
+          "content": "Pass actions as `MapExpandAction`s. Mark one `isPrimary`, such as Directions: it is the wide pill in the pin's colour, and the rest are square glass buttons that use their title as the VoiceOver label."
+        },
+        {
+          "heading": "notes",
+          "content": "It fills the space it is given, with the card at the top and your `content` under it; the page fades while the map is open."
+        },
+        {
+          "heading": "notes",
+          "content": "`style.span` sets how far the map is zoomed out, in meters across. Points of interest and map controls are hidden, so the pin reads first."
+        },
+        {
+          "heading": "notes",
+          "content": "On iOS 26 the card and actions are Liquid Glass and merge as they move; before that they are frosted and don't merge. Under Reduce Transparency they are solid."
+        },
+        {
+          "heading": "notes",
+          "content": "VoiceOver gets Open map and Close map actions. Under Reduce Motion the pin appears without dropping and nothing bounces."
+        }
+      ],
+      "headings": [
+        {
+          "id": "notes",
+          "content": "Notes"
+        },
+        {
+          "id": "usage",
+          "content": "Usage"
+        }
+      ]
+    }
+  },
+  {
     "url": "/docs/components/media/now-playing",
     "title": "Now Playing",
     "description": "A mini player that grows into the full player in one liquid glass motion, with scrubbing, skips and a drag to fold it back.",
@@ -11670,6 +12002,58 @@
         {
           "heading": "notes",
           "content": "Under Reduce Motion the new code appears at once."
+        }
+      ],
+      "headings": [
+        {
+          "id": "notes",
+          "content": "Notes"
+        },
+        {
+          "id": "usage",
+          "content": "Usage"
+        }
+      ]
+    }
+  },
+  {
+    "url": "/docs/components/media/snapshot",
+    "title": "Snapshot",
+    "description": "Turns any view into an image like a screenshot: a flash, then a tilted thumbnail you tap to share and a glass note.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Components",
+      "Categories · 14",
+      "Media"
+    ],
+    "structuredData": {
+      "contents": [
+        {
+          "content": "Sizes, timing and colors for `Snapshot`."
+        },
+        {
+          "heading": "notes",
+          "content": "Captures its content with `ImageRenderer` at the screen's scale each time `trigger` changes, so the image is as crisp as the screen. `onCapture` hands you the `UIImage` to copy, save or upload."
+        },
+        {
+          "heading": "notes",
+          "content": "The content is drawn a second time, off screen, for the image, in the current colour scheme. Build it from values, not from state that only lives inside it, or the picture can differ from the screen."
+        },
+        {
+          "heading": "notes",
+          "content": "A white flash runs over the view, then the picture shrinks to `thumbnailScale` with a slight tilt into a white-framed thumbnail `thumbnailDrop` points below the view. Leave room there: it draws outside the view's frame."
+        },
+        {
+          "heading": "notes",
+          "content": "The thumbnail is a `ShareLink`, so a tap opens the share sheet with the image. A glass note beside it shows `message` with a red check, and both slide away after `holdDuration` seconds."
+        },
+        {
+          "heading": "notes",
+          "content": "A medium haptic fires as the picture is taken, and VoiceOver announces `message`."
+        },
+        {
+          "heading": "notes",
+          "content": "Under Reduce Motion the flash is softer, the thumbnail does not tilt and every move runs without bounce."
         }
       ],
       "headings": [

@@ -11,7 +11,20 @@ import { cn } from "@/lib/cn";
  * Every piece sets its text semibold (LIQUID_GLASS.md, rule 13), so the stage does too: a label that sets no weight
  * of its own still matches the Swift piece.
  */
-export function PreviewFrame({ children, className, aspect = "aspect-[4/3]", tone = "dark" }: { children: ReactNode; className?: string; aspect?: string; tone?: "dark" | "black" | "light" | "clear" }) {
+export function PreviewFrame({
+  children,
+  className,
+  aspect = "aspect-[4/3]",
+  tone = "dark",
+  placeholder,
+}: {
+  children: ReactNode;
+  className?: string;
+  aspect?: string;
+  tone?: "dark" | "black" | "light" | "clear";
+  /** Shown until the live preview mounts, and in the server HTML: a still of the preview (a piece page's own image). */
+  placeholder?: ReactNode;
+}) {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { margin: "20% 0px 20% 0px" });
   return (
@@ -19,7 +32,7 @@ export function PreviewFrame({ children, className, aspect = "aspect-[4/3]", ton
       ref={ref}
       className={cn("relative isolate overflow-hidden rounded-[var(--radius)] font-semibold select-none [container-type:size]", aspect, (tone === "dark" || tone === "black") && "stage-ground", tone === "light" && "bg-[#f0f0f0] text-black", tone === "clear" && "stage-clear", className)}
     >
-      {inView ? children : null}
+      {inView ? children : (placeholder ?? null)}
     </div>
   );
 }

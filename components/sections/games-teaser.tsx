@@ -34,7 +34,8 @@ function Kicker() {
  * whole tray opens Games on pro.swiftpieces.com.
  */
 export function GamesTeaser() {
-  const picks = proGames.list.slice(0, 3);
+  // Drift and Lumen, with Orbit on the right (Saivion, 2026-11-24).
+  const picks = ["drift", "lumen", "orbit"].map((id) => proGames.list.find((g) => g.id === id)!);
   return (
     <Container className={band}>
       <Reveal>

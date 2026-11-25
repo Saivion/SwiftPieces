@@ -151,8 +151,8 @@ export function Glyph({ name, size = 20, style, strokeWidth = 1.9, className }: 
 }
 
 /**
- * The Pro mark, as pro.swiftpieces.com's navbar badge draws it (components/layout/crown.tsx there):
- * the filled crown in the badge's blue-to-orange ink (--pb-ink-a/b, set by `.spp-pro-mark` in
+ * The Pro mark, as pro.swiftpieces.com draws it (components/layout/pro-mark.tsx there): the ring
+ * with a rounded bar inside, in the badge's blue-to-orange ink (--pb-ink-a/b, set by `.spp-pro-mark` in
  * builder.css), tilting on hover like every chrome icon.
  */
 export function ProCrown({ size = 15 }: { size?: number }) {
@@ -165,8 +165,8 @@ export function ProCrown({ size = 15 }: { size?: number }) {
           <stop offset="1" style={{ stopColor: "var(--pb-ink-b)" }} />
         </linearGradient>
       </defs>
-      <path d="M11.56 3.27a.5.5 0 0 1 .88 0l2.95 5.6a1 1 0 0 0 1.52.3l4.27-3.67a.5.5 0 0 1 .8.52l-2.83 10.25a1 1 0 0 1-.96.73H5.81a1 1 0 0 1-.96-.73L2.02 6.02a.5.5 0 0 1 .8-.52l4.27 3.67a1 1 0 0 0 1.52-.3z" />
-      <rect x="5" y="19" width="14" height="2" rx="1" />
+      <path fillRule="evenodd" d="M12 1a11 11 0 1 1 0 22 11 11 0 0 1 0-22zm0 3.2a7.8 7.8 0 1 0 0 15.6 7.8 7.8 0 0 0 0-15.6z" />
+      <rect x="10.05" y="5.7" width="3.9" height="12.6" rx="1.95" />
     </svg>
   );
 }

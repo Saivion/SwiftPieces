@@ -78,9 +78,9 @@ function isServerActionPost(req: NextRequest): boolean {
 }
 
 /**
- * Docs pages and registry names the prerendered routes don't have (lib/known-pages.ts). A docs URL
- * gets the not-found page from a path no route matches, a registry name a plain 404, so no render
- * of theirs is ever written to the incremental cache.
+ * Docs pages, hubs, apps and registry names the prerendered routes don't have (lib/known-pages.ts).
+ * A page URL gets the not-found page from a path no route matches, a registry name a plain 404, so
+ * no render of theirs is ever written to the incremental cache.
  */
 const KNOWN_PAGES = knownPageSets(knownPagesManifest as KnownPages);
 const NOT_FOUND_PATH = "/_unknown-page";
@@ -88,8 +88,8 @@ const NOT_FOUND_PATH = "/_unknown-page";
 function unknownPage(req: NextRequest): "page" | "registry" | null {
   if (req.method !== "GET" && req.method !== "HEAD") return null;
   const path = req.nextUrl.pathname;
-  if (!/^\/(docs|r|api\/registry)(\/|$)/.test(path) || isKnownPage(path, KNOWN_PAGES)) return null;
-  return path.startsWith("/docs") ? "page" : "registry";
+  if (!/^\/(docs|components|apps|playground|r|api\/registry)(\/|$)/.test(path) || isKnownPage(path, KNOWN_PAGES)) return null;
+  return isApiPath(path) ? "registry" : "page";
 }
 
 /**

@@ -7,10 +7,10 @@ import { AppDetail } from "@/components/apps/app-detail";
 import { APPS_PATH, appBySlug, appPath, apps, isProApp } from "@/lib/apps";
 import { breadcrumbJsonLd, pageMetadata, WEBSITE_ID } from "@/lib/seo";
 import { site } from "@/lib/site";
+import { SEO_INDEX_APP_REMIXES } from "@/lib/seo-flags";
 
 type Params = { app: string };
 
-export const dynamicParams = false;
 export function generateStaticParams(): Params[] {
   return apps.map((a) => ({ app: a.slug }));
 }
@@ -19,11 +19,16 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   const a = appBySlug((await params).app);
   if (!a) return {};
   const name = a.name;
-  return pageMetadata({
-    title: `${name} Screens, Remixed in SwiftUI: ${a.pattern.title}`,
-    description: `${name}'s App Store screenshots for reference, and an original SwiftPieces remix in SwiftUI: ${a.pattern.summary}`,
-    path: appPath(a),
-  });
+  return {
+    ...pageMetadata({
+      title: `${name} Screens, Remixed in SwiftUI: ${a.pattern.title}`,
+      description: `${name}'s App Store screenshots for reference, and an original SwiftPieces remix in SwiftUI: ${a.pattern.summary}`,
+      path: appPath(a),
+    }),
+    // Named after another company's app and built on its App Store screenshots: up for visitors and shares,
+    // out of search unless the flag says otherwise (lib/seo-flags.ts).
+    ...(SEO_INDEX_APP_REMIXES ? {} : { robots: { index: false, follow: true } }),
+  };
 }
 
 /** One app as the App Store shows it (the developer's), with the way into what we recreated (ours). */

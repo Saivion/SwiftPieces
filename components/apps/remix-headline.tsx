@@ -15,7 +15,8 @@ const lines: Token[][] = [
 
 /**
  * The Playground headline: two lines with a whole iPhone set into the words, each showing a screen we
- * remixed from one of the free picks (lib/apps/showcase.ts). The type is the landing's headline
+ * remixed from one of the free picks (lib/apps/showcase.ts). The type is the site's one title size
+ * (26/30/32px, 400, Saivion 2026-11-25), not the landing's old display headline
  * (components/sections/hero.tsx): the same size, weight, tracking and width, its words rising one by one
  * the same way. Only the leading differs, 1.45 against the landing's 1, so each 1.4em phone stays inside
  * its own line: centred on the letters' middle, with negative block margins so it never stretches the
@@ -30,7 +31,7 @@ export function RemixHeadline({ className }: { className?: string }) {
   let i = 0;
   return (
     <div className={cn("@container w-full", className)}>
-      <h1 className="mx-auto max-w-[980px] text-[length:min(38px,100cqi/12.6)] leading-[1.45] font-normal tracking-[-0.04em] sm:text-[length:min(50px,100cqi/12.6)] lg:text-[length:min(62px,100cqi/12.6)] lg:tracking-[-0.048em]">
+      <h1 className="mx-auto max-w-[980px] text-[length:min(26px,100cqi/12.6)] leading-[1.45] font-normal tracking-[-0.02em] sm:text-[length:min(30px,100cqi/12.6)] lg:text-[length:min(32px,100cqi/12.6)] lg:tracking-[-0.025em]">
         {lines.map((line, l) => (
           <span key={l} className="block whitespace-nowrap">
             {line.map((t, k) => (

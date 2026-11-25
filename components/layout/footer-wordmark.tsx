@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 
 const SIZE = 158;
-/** Figtree's cap height is ~0.7em; the baseline sits a touch lower so the tops never clip. */
+/** Manrope's cap height is ~0.72em; the baseline sits a touch lower so the tops never clip. */
 const CAP = Math.round(SIZE * 0.76);
 const HEIGHT = CAP + 14;
 /** "SWIFT" is the empty slot, drawn as a dashed outline; "PIECES" is the piece set into it. */
@@ -12,8 +12,8 @@ const PIECE = "PIECES";
 const REST = 1;
 /** A tailless pointer with its tip at 0,0; the round-joined stroke rounds every corner. */
 const POINTER = "M0 0 L5.6 21.5 L9.6 11.2 L19.8 10.6 Z";
-/** The middle of a capital's top stroke: cap height is ~0.7em, and at weight 800 the stroke is ~0.14em. */
-const INK_Y = CAP - SIZE * 0.7 + SIZE * 0.065;
+/** The middle of a capital's top stroke: cap height is ~0.72em, and at weight 800 the stroke is ~0.14em. */
+const INK_Y = CAP - SIZE * 0.72 + SIZE * 0.065;
 const WORD: CSSProperties = { fontSize: SIZE, fontWeight: 800, fontFamily: "var(--font-sans)" };
 
 type Point = { x: number; y: number };
@@ -134,7 +134,7 @@ function choreograph(m: Marks) {
  * keep the two in step.
  * Reduced motion shows the finished word with the cursor at rest.
  *
- * Letter positions are read from the rendered text once Figtree has loaded, so every click lands on
+ * Letter positions are read from the rendered text once Manrope has loaded, so every click lands on
  * the real glyph at any width (the viewBox scales; the measurements don't change).
  */
 export function FooterWordmark() {

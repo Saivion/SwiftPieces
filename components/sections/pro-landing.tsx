@@ -2,9 +2,7 @@ import { Container } from "@/components/ui/container";
 // Off with the eyebrow in ProHero until its replacement lands, as on the home hero.
 // import { Eyebrow } from "@/components/ui/badge";
 import { Button, Arrow } from "@/components/ui/button";
-import { AnimatedText } from "@/components/ui/animated-text";
 import { ProBadge } from "@/components/ui/pro-badge";
-import { pageLede } from "@/components/ui/section-header";
 import { RowLink, SectionHead, Tags, Glyph, band, cardTitle, heroTitle, sectionTitle, sectionBody } from "@/components/sections/feature-row";
 import { CountUp } from "@/components/ui/stat";
 import { GrainStage } from "@/components/visual/grain-stage";
@@ -49,7 +47,7 @@ const kindLabel: Record<Kind, string> = { screen: "Screen", flow: "Flow", templa
 /* ---------- Hero ---------- */
 
 /** The quiet second action beside a primary pill: words and an arrow that nudges, as on the landing. */
-const quietLink = "group inline-flex h-[46px] items-center gap-2 px-2 text-[15px] font-semibold text-foreground";
+const quietLink = "group inline-flex h-[38px] items-center gap-2 px-2 text-[13.5px] font-semibold text-foreground";
 
 /** A fact as a 36px chip on the tray colour, the landing ticker's shape standing still. */
 const chip = "inline-flex h-9 items-center rounded-full bg-surface px-[15px] text-[13.5px] whitespace-nowrap text-muted";
@@ -67,12 +65,20 @@ export function ProHero() {
             <span className="text-muted">Production-ready SwiftUI</span>
           </Eyebrow>
         </Reveal> */}
-        <AnimatedText as="h1" text="Every flow a featured app needs." accent="featured" className={cn("mt-[30px] max-w-[880px]", heroTitle)} />
-        <Reveal priority delay={0.35}>
-          <p className={cn("mx-auto mt-[26px] max-w-[580px]", pageLede)}>Screens, flows and complete app templates in SwiftUI, with a Build Kit for your coding agent.</p>
+        <Reveal priority>
+          <div className="flex items-center justify-center gap-2">
+            <ProBadge label="SwiftPieces Pro" />
+            <ProBadge label="SwiftPieces Games" tone="games" />
+          </div>
         </Reveal>
-        <Reveal priority delay={0.45} className="mt-[38px] flex flex-wrap items-center justify-center gap-2.5">
-          <Button href={buy}>Start building <Arrow /></Button>
+        {/* The landing's type (Saivion, 2026-11-25): the claim small, its lead dark and the rest muted. */}
+        <Reveal priority delay={0.1}>
+          <h1 className={cn("mt-6 max-w-[640px]", heroTitle)}>
+            Every flow a featured app needs. <span className="text-muted">Screens, flows and complete app templates in SwiftUI, with a Build Kit for your coding agent.</span>
+          </h1>
+        </Reveal>
+        <Reveal priority delay={0.2} className="mt-6 flex flex-wrap items-center justify-center gap-2">
+          <Button href={buy} size="sm">Start building <Arrow /></Button>
           <a href={pro.library} className={quietLink}>Browse the library <Arrow /></a>
         </Reveal>
         <Reveal priority delay={0.55}>

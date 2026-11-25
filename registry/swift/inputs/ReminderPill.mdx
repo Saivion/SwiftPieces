@@ -1,0 +1,9 @@
+## Notes
+
+- Tap Remind me and the times people actually pick grow out of the pill, joined beneath it by a short neck of liquid glass: later today, tomorrow morning, this weekend and next week, each with its time.
+- A red row flows to your tap, the panel drains back in, and the pill reads the time you chose, such as "Tomorrow, 9 AM", beside a bell that turns red.
+- The default times are worked out from now each time the panel opens. Pass `options` for your own, such as snooze lengths.
+- With a reminder set, the panel adds Remove reminder, which clears `date` back to `nil`.
+- The piece only picks the time. Watch `date` and schedule the notification yourself with `UNUserNotificationCenter`.
+- On iOS 26 the pill and panel are Liquid Glass; before that they are frosted. Under Reduce Transparency they are solid.
+- VoiceOver reads each time as a button and marks the chosen one. Under Reduce Motion the panel opens and closes on a short ease, without bounce.

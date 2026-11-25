@@ -9,7 +9,7 @@
   },
   "scripts": {
     "dev": "next dev",
-    "build": "npm run registry:build && npm run builder:build && next build",
+    "build": "npm run registry:build && npm run seo:lastmod && npm run builder:build && next build",
     "postbuild": "node scripts/strip-empty-source-maps.mjs",
     "start": "next start",
     "lint": "next lint",
@@ -21,14 +21,18 @@
     "previews:record": "tsx scripts/record-previews.ts",
     "bundle:check": "bash scripts/check-bundle-size.sh",
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
-    "cf:build": "npm run brand:build && npm run builder:build && opennextjs-cloudflare build && npm run audit:public",
+    "cf:build": "npm run brand:build && npm run builder:build && npm run seo:lastmod && opennextjs-cloudflare build && npm run audit:public",
     "brand:build": "npm run build --workspace packages/brand",
     "builder:build": "npm run build --workspace packages/builder",
     "builder:test": "npm test --workspace packages/builder",
     "cli:build": "npm run build --workspace packages/cli",
     "audit:public": "bash scripts/audit-public.sh",
     "test": "node scripts/run-tests.mjs",
-    "aeo:track": "tsx scripts/aeo/track.ts"
+    "aeo:track": "tsx scripts/aeo/track.ts",
+    "seo:check": "node scripts/seo-check.mjs",
+    "seo:lastmod": "tsx scripts/seo-lastmod.ts",
+    "previews:capture": "tsx scripts/capture-previews.ts",
+    "indexnow": "node scripts/indexnow.mjs"
   },
   "workspaces": [
     "packages/*"
@@ -41,12 +45,12 @@
     "fumadocs-core": "^16.15.10",
     "fumadocs-mdx": "^15.4.0",
     "fumadocs-ui": "^16.15.10",
-    "next": "^16.3.8",
+    "next": "^16.4.5",
     "posthog-js": "^1.435.8",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "yaml": "^2.9.1",
-    "zod": "^4.6.5"
+    "zod": "^4.6.6"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20261012.1",
@@ -60,5 +64,10 @@
     "tsx": "^4.23.13",
     "typescript": "^5.9.3",
     "wrangler": "^4.149.0"
+  },
+  "overrides": {
+    "undici@6": "6.29.1",
+    "undici@7": "7.30.1",
+    "glob@10": "10.5.0"
   }
 }

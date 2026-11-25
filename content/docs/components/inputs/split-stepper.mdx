@@ -1,0 +1,569 @@
+---
+title: "Split Stepper"
+description: "A bill splitter: the share each person pays rolls as you step the head count, the house aura pulsing at the side you press."
+piece: "SplitStepper"
+category: "inputs"
+minIOSVersion: "17.0"
+version: "1.0.0"
+tags: ["stepper","split","bill","payment","people","aura","money"]
+registryDependencies: []
+---
+
+{/* GENERATED FILE. Edit registry/swift/inputs/SplitStepper.swift or SplitStepper.mdx instead. */}
+
+<Showcase name="SplitStepper">
+
+<Tabs items={["SplitStepper.swift"]}>
+<Tab value="SplitStepper.swift">
+
+```swift title="SplitStepper.swift"
+// Copyright (c) 2026 Saivion Hayes
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, and distribute the Software as part of
+// an application, website, or product, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// Commons Clause Restriction
+//
+// You may use this Software, including for any commercial purpose, so long as
+// you do not sell, sublicense, or redistribute the components themselves, whether
+// alone, in a bundle, or as a ported version.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
+import SwiftUI
+
+/// Colors for `SplitStepper`. `.standard` is the house palette.
+public struct SplitStepperStyle: Sendable {
+    /// The share each person pays.
+    public var label: Color
+    /// The title, the total and "each".
+    public var secondaryLabel: Color
+    /// The stepper's track.
+    public var track: Color
+    /// The track's faint edge.
+    public var edge: Color
+    /// The count and the buttons' symbols on the track.
+    public var onTrack: Color
+    /// The people's dots, in order. They repeat past the last.
+    public var people: [Color]
+
+    public init(
+        label: Color = SplitStepperStyle.adaptive(light: 0x141414, dark: 0xF4F3EF),
+        secondaryLabel: Color = SplitStepperStyle.adaptive(light: 0x5C5A56, dark: 0xA6A49F),
+        track: Color = SplitStepperStyle.adaptive(light: 0x141414, dark: 0x1C1C1F),
+        edge: Color = Color.white.opacity(0.08),
+        onTrack: Color = SplitStepperStyle.adaptive(light: 0xF4F3EF, dark: 0xF4F3EF),
+        people: [Color] = [0xFF8A1F, 0x2E8BFF, 0xFF005C, 0x00C4A7, 0xFFC21A, 0xA970FF, 0x16B2FF, 0xFF3D8B].map { SplitStepperStyle.adaptive(light: $0, dark: $0) }
+    ) {
+        self.label = label
+        self.secondaryLabel = secondaryLabel
+        self.track = track
+        self.edge = edge
+        self.onTrack = onTrack
+        self.people = people
+    }
+
+    public static let standard = SplitStepperStyle()
+
+    /// A color that follows the appearance, from two 0xRRGGBB values.
+    public static func adaptive(light: UInt32, dark: UInt32) -> Color {
+        Color(UIColor { @Sendable traits in
+            let hex = traits.userInterfaceStyle == .dark ? dark : light
+            return UIColor(red: CGFloat(hex >> 16 & 0xFF) / 255, green: CGFloat(hex >> 8 & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
+        })
+    }
+}
+
+/// The share each person pays, a dot per person and a stepper for how many split the total.
+///
+/// The share is the total divided evenly and rounded to the currency's smallest unit; any remainder is left for you
+/// to settle. Lay it out at its natural size, about 260 points wide.
+///
+/// - Parameters:
+///   - title: What is being split, shown above the share with the total. Leave it empty to show the total alone.
+///   - total: The amount to split.
+///   - people: How many people share it.
+///   - range: The fewest and most people.
+///   - currencyCode: The ISO 4217 code the amounts are shown in.
+///   - style: Colors. Defaults to the house palette, adapting to light and dark.
+public struct SplitStepper: View {
+    public typealias Style = SplitStepperStyle
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.isEnabled) private var isEnabled
+    @Binding private var people: Int
+    /// The side the light gathers at: -1 for minus, 1 for plus.
+    @State private var side: CGFloat = 1
+    @State private var gather: Double = 0
+    @State private var energy: Double = 0.25
+    @State private var refused = 0
+    @State private var direction = 1
+    @State private var pulse = 0
+
+    private let title: String
+    private let total: Decimal
+    private let range: ClosedRange<Int>
+    private let currencyCode: String
+    private let style: Style
+
+    public init(
+        _ title: String = "",
+        total: Decimal,
+        people: Binding<Int>,
+        range: ClosedRange<Int> = 1...12,
+        currencyCode: String = "USD",
+        style: Style = .standard
+    ) {
+        self.title = title
+        self.total = total
+        self._people = people
+        self.range = range
+        self.currencyCode = currencyCode
+        self.style = style
+    }
+
+    private static let width: CGFloat = 228
+    private static let height: CGFloat = 56
+    private static let button: CGFloat = 44
+
+    private var count: Int { min(max(people, range.lowerBound), range.upperBound) }
+
+    /// The share, rounded to cents.
+    private var share: Decimal {
+        var exact = total / Decimal(max(1, count))
+        var rounded = Decimal()
+        NSDecimalRound(&rounded, &exact, 2, .plain)
+        return rounded
+    }
+
+    private var motion: PieceMotion { PieceMotion(reduceMotion: reduceMotion) }
+
+    public var body: some View {
+        VStack(spacing: 0) {
+            Text(title.isEmpty ? total.formatted(.currency(code: currencyCode)) : "\(title) · \(total.formatted(.currency(code: currencyCode)))")
+                .font(.subheadline)
+                .foregroundStyle(style.secondaryLabel)
+            Text(share.formatted(.currency(code: currencyCode)))
+                .font(.system(size: 48, design: .rounded))
+                .monospacedDigit()
+                .foregroundStyle(style.label)
+                .contentTransition(.numericText(countsDown: direction < 0))
+                .lineLimit(1)
+                .minimumScaleFactor(0.6)
+                .padding(.top, 6)
+            Text("each")
+                .font(.subheadline)
+                .foregroundStyle(style.secondaryLabel)
+            dots
+                .padding(.top, 18)
+            stepper
+                .padding(.top, 22)
+        }
+        .fontWeight(.semibold)
+        .opacity(isEnabled ? 1 : 0.45)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(title.isEmpty ? "Split" : "Split \(title)")
+        .accessibilityValue("\(count) \(count == 1 ? "person" : "people"), \(share.formatted(.currency(code: currencyCode))) each")
+        .accessibilityAdjustableAction { direction in
+            switch direction {
+            case .increment: step(1)
+            case .decrement: step(-1)
+            @unknown default: break
+            }
+        }
+        .sensoryFeedback(.selection, trigger: count)
+        .sensoryFeedback(.error, trigger: refused)
+    }
+
+    private var dots: some View {
+        HStack(spacing: 6) {
+            ForEach(0..<count, id: \.self) { index in
+                Circle()
+                    .fill(style.people.isEmpty ? style.secondaryLabel : style.people[index % style.people.count])
+                    .frame(width: 14, height: 14)
+                    .transition(motion.transition(.scale(scale: 0.2).combined(with: .opacity)))
+            }
+        }
+        .frame(height: 14)
+        .accessibilityHidden(true)
+    }
+
+    private var stepper: some View {
+        HStack(spacing: 0) {
+            stepButton(-1)
+            HStack(spacing: 5) {
+                Text("\(count)")
+                    .monospacedDigit()
+                    .contentTransition(.numericText(value: Double(count)))
+                Text(count == 1 ? "person" : "people")
+            }
+            .foregroundStyle(style.onTrack)
+            .frame(maxWidth: .infinity)
+            stepButton(1)
+        }
+        .padding(.horizontal, (Self.height - Self.button) / 2)
+        .frame(width: Self.width, height: Self.height)
+        .background(style.track, in: .capsule)
+        .overlay { Capsule().strokeBorder(style.edge, lineWidth: 1) }
+        .overlay {
+            SplitStepperAura(
+                focus: CGPoint(x: side < 0 ? Self.height / 2 : Self.width - Self.height / 2, y: Self.height / 2),
+                gather: gather,
+                energy: energy
+            )
+            .allowsHitTesting(false)
+        }
+        .pieceShake(trigger: refused)
+    }
+
+    private func stepButton(_ delta: Int) -> some View {
+        let enabled = range.contains(count + delta)
+        return Button { step(delta) } label: {
+            Image(systemName: delta > 0 ? "plus" : "minus")
+                .font(.body.weight(.semibold))
+                .foregroundStyle(style.onTrack)
+                .opacity(enabled ? 1 : 0.35)
+                .frame(width: Self.button, height: Self.button)
+                .contentShape(.circle)
+        }
+        .buttonStyle(PiecePressStyle(depth: 3))
+        .accessibilityHidden(true)
+    }
+
+    // MARK: Actions
+
+    private func step(_ delta: Int) {
+        side = CGFloat(delta)
+        let next = count + delta
+        guard range.contains(next) else {
+            refused += 1
+            withAnimation(.easeOut(duration: 0.15)) { energy = 0.1 }
+            withAnimation(.easeOut(duration: 0.6).delay(0.15)) { energy = 0.25 }
+            return
+        }
+        direction = delta
+        withAnimation(motion.value) { people = next }
+        pulse += 1
+        let mine = pulse
+        withAnimation(.easeOut(duration: 0.12)) {
+            gather = 1
+            energy = 0.7
+        }
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(120))
+            guard pulse == mine else { return }
+            withAnimation(.easeOut(duration: 0.65)) {
+                gather = 0
+                energy = 0.25
+            }
+        }
+    }
+}
+
+/// The house aura: five soft lights, red, coral, hot pink, blush and a deep red, drifting slowly round the stepper's
+/// edge as one blended gradient. A wide dim bloom and a faint coloured edge, gathered toward `focus`. Still under
+/// Reduce Motion, and a plain red edge under Reduce Transparency.
+private struct SplitStepperAura: View, Animatable {
+    var focus: CGPoint
+    var gather: Double
+    var energy: Double
+
+    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @State private var start = Date()
+
+    nonisolated var animatableData: AnimatablePair<AnimatablePair<CGFloat, CGFloat>, AnimatablePair<Double, Double>> {
+        get { AnimatablePair(AnimatablePair(focus.x, focus.y), AnimatablePair(gather, energy)) }
+        set {
+            focus = CGPoint(x: newValue.first.first, y: newValue.first.second)
+            gather = newValue.second.first
+            energy = newValue.second.second
+        }
+    }
+
+    /// How far past the stepper the bloom may reach.
+    private static let spread: CGFloat = 40
+
+    var body: some View {
+        if reduceTransparency {
+            Capsule()
+                .strokeBorder(Color(red: 1, green: 0, blue: 0).opacity(0.2 + 0.6 * energy), lineWidth: 1.5)
+        } else {
+            let flowing = PieceMotion(reduceMotion: reduceMotion).allowsAmbient
+            TimelineView(.animation(paused: !flowing)) { context in
+                let glow = Self.glow(at: flowing ? context.date.timeIntervalSince(start) : 0)
+                ZStack {
+                    Capsule()
+                        .stroke(glow, lineWidth: 14)
+                        .blur(radius: 14)
+                        .opacity(0.8 * energy)
+                    Capsule()
+                        .stroke(glow, lineWidth: 2)
+                        .blur(radius: 1)
+                        .opacity(0.15 + 0.75 * energy)
+                }
+                .padding(Self.spread)
+                .mask {
+                    GeometryReader { proxy in
+                        RadialGradient(
+                            stops: [.init(color: .white, location: 0), .init(color: .white.opacity(1 - gather), location: 1)],
+                            center: UnitPoint(
+                                x: (focus.x + Self.spread) / max(1, proxy.size.width),
+                                y: (focus.y + Self.spread) / max(1, proxy.size.height)
+                            ),
+                            startRadius: 0,
+                            endRadius: 120
+                        )
+                    }
+                }
+                .padding(-Self.spread)
+                .blendMode(colorScheme == .dark ? .plusLighter : .normal)
+            }
+        }
+    }
+
+    /// The five lights at time `t`, their stops drifting a little and the whole ring turning slowly.
+    static func glow(at t: TimeInterval) -> AngularGradient {
+        let colors: [Color] = [
+            Color(red: 1, green: 0, blue: 0),
+            Color(red: 1, green: 0.54, blue: 0.36),
+            Color(red: 1, green: 0, blue: 0.36),
+            Color(red: 1, green: 0.76, blue: 0.84),
+            Color(red: 0.72, green: 0.04, blue: 0.02),
+        ]
+        var stops = colors.enumerated().map { index, color in
+            Gradient.Stop(color: color, location: Double(index) * 0.2 + 0.05 * sin(t * 0.45 + Double(index) * 1.7))
+        }
+        stops[0].location = 0
+        stops.append(Gradient.Stop(color: colors[0], location: 1))
+        return AngularGradient(stops: stops, center: .center, angle: .degrees(t * 14))
+    }
+}
+
+
+// MARK: - Example
+
+/// Dinner for a table, split evenly.
+private struct SplitStepperExample: View {
+    @State private var people = 2
+
+    var body: some View {
+        SplitStepper("Dinner at Lupo", total: Decimal(string: "186.40") ?? 0, people: $people, range: 1...8)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(SplitStepperStyle.adaptive(light: 0xF3F2EE, dark: 0x121212))
+    }
+}
+
+#Preview("Light") {
+    SplitStepperExample()
+}
+
+#Preview("Dark") {
+    SplitStepperExample()
+        .preferredColorScheme(.dark)
+}
+
+// MARK: - Piece motion
+//
+// The SwiftPieces motion language: shared spring tokens and gesture physics, with the same values in every
+// piece. Each piece carries a copy of only the parts it uses, so this file stands alone. Generated from
+// registry/foundation/PieceMotion.swift in the SwiftPieces repo; edit it there, not here.
+// swiftpieces-motion: 1.1.0 (core, pressMath, press, pressStyle, shake)
+
+/// The SwiftPieces motion language: five spring tiers, and a named role for every moment a piece moves,
+/// each with its Reduce Motion substitute.
+///
+/// Build one from the environment, `PieceMotion(reduceMotion: reduceMotion)`, and pick the role that names
+/// what just happened. Never animate the tracking of a finger: set gesture state directly in `onChanged`, so the
+/// surface stays under the finger, and spring only the release.
+private struct PieceMotion {
+    var reduceMotion = false
+
+    // Tiers. Overshoot and settle times are measured from rest with SwiftUI's Spring.
+    /// No overshoot, 90% in about 90ms. A press arriving under the finger.
+    static var tight: Spring { Spring(duration: 0.14, bounce: 0) }
+    /// About 2.8% overshoot, 90% in about 140ms. Snapping to a detent, page or segment.
+    static var responsive: Spring { Spring(duration: 0.32, bounce: 0.25) }
+    /// About 8.4% overshoot. Visible give: a release, a return from past an edge, a drag settling home.
+    static var elastic: Spring { Spring(duration: 0.42, bounce: 0.38) }
+    /// About 15% overshoot. A resolved action landing. At most once per interaction.
+    static var expressive: Spring { Spring(duration: 0.48, bounce: 0.48) }
+    /// About 1.5% overshoot, unhurried. Opening large surfaces and ambient change.
+    static var calm: Spring { Spring(duration: 0.5, bounce: 0.2) }
+
+    /// Reduce Motion: settles become this short spring with no overshoot.
+    private static var still: Animation { .spring(duration: 0.25, bounce: 0) }
+
+    // Roles.
+    /// Touch-down. Starts on the same frame and never bounces under the finger.
+    var press: Animation { .spring(Self.tight) }
+    /// The finger lifts off a pressed surface, which springs back through rest.
+    var release: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A dragged thing comes to rest. With a gesture's velocity, use `settle(velocity:from:to:)` instead.
+    var settle: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// Lands on a detent, page or segment.
+    var snap: Animation { reduceMotion ? Self.still : .spring(Self.responsive) }
+    /// A number, a chart value or anything else people read moves to its new value. Never overshoots, so it
+    /// never shows a value that isn't true.
+    var value: Animation { reduceMotion ? Self.still : .spring(duration: 0.35, bounce: 0) }
+    /// Comes back from past a limit: a pull beyond the edge, a value pushed against its bound.
+    var rebound: Animation { reduceMotion ? Self.still : .spring(Self.elastic) }
+    /// A shape or container changes size, corner radius or form, with a little give at the end.
+    var morph: Animation { reduceMotion ? Self.still : .spring(duration: 0.4, bounce: 0.2) }
+    /// Something appears, opens or expands. Opening is a little slower than closing.
+    var reveal: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.calm) }
+    /// Something leaves, closes or collapses. Quick and firm, out of the way.
+    var dismiss: Animation { reduceMotion ? .easeIn(duration: 0.18) : .spring(duration: 0.3, bounce: 0.08) }
+    /// A resolved action lands: a check, a sent state, a reaction.
+    var success: Animation { reduceMotion ? .easeOut(duration: 0.24) : .spring(Self.expressive) }
+    /// A refused action. Firm, no wobble; `pieceShake` adds the movement.
+    var error: Animation { reduceMotion ? .easeOut(duration: 0.2) : .spring(Self.responsive) }
+    /// Slow ambient change. Loops themselves stop under Reduce Motion: check `allowsAmbient`.
+    var ambient: Animation { reduceMotion ? .easeInOut(duration: 0.3) : .spring(Self.calm) }
+
+    /// Loops, drifts, idle breathing and parallax run only when this is true.
+    var allowsAmbient: Bool { !reduceMotion }
+
+    /// A moving transition, or a plain fade under Reduce Motion.
+    func transition(_ transition: AnyTransition) -> AnyTransition {
+        reduceMotion ? .opacity : transition
+    }
+
+    /// For content replaced inside a container that stays put (a label, a glyph, a count): the old content
+    /// blurs out as the new one sharpens in. A fade under Reduce Motion.
+    @MainActor var swap: AnyTransition {
+        reduceMotion ? .opacity : AnyTransition(.blurReplace)
+    }
+}
+
+extension PieceMotion {
+    /// About `depth` points per edge, not a fixed percentage: an icon sinks to 0.92, a pill 0.95, a card 0.985.
+    nonisolated static func pressScale(for size: CGSize, depth: CGFloat = 2.5) -> CGFloat {
+        let side = (max(size.width, 1) * max(size.height, 1)).squareRoot()
+        return min(max(1 - depth * 2 / side, 0.92), 0.985)
+    }
+
+    /// An anchor partway from the center toward the touch, so the press leans into the finger without tipping.
+    nonisolated static func pressAnchor(touch: CGPoint?, in size: CGSize, lean: CGFloat = 0.6) -> UnitPoint {
+        guard let touch, size.width > 0, size.height > 0 else { return .center }
+        let x = min(max(touch.x / size.width, 0), 1)
+        let y = min(max(touch.y / size.height, 0), 1)
+        return UnitPoint(x: 0.5 + (x - 0.5) * lean, y: 0.5 + (y - 0.5) * lean)
+    }
+}
+
+/// Sinks on touch-down, leaning toward the touch if given, and springs back from the same lean. Under Reduce
+/// Motion it shades instead of moving (darker in light mode, lighter in dark), without turning transparent.
+private struct PiecePress: ViewModifier {
+    let pressed: Bool
+    var touch: CGPoint?
+    var depth: CGFloat = 2.5
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.colorScheme) private var colorScheme
+    @State private var size: CGSize = .zero
+    @State private var anchor: UnitPoint = .center
+
+    func body(content: Content) -> some View {
+        let motion = PieceMotion(reduceMotion: reduceMotion)
+        let scale = pressed && !reduceMotion ? PieceMotion.pressScale(for: size, depth: depth) : 1
+        content
+            .onGeometryChange(for: CGSize.self) { $0.size } action: { size = $0 }
+            .brightness(pressed && reduceMotion ? (colorScheme == .dark ? 0.1 : -0.08) : 0)
+            .scaleEffect(scale, anchor: anchor)
+            .animation(pressed ? motion.press : motion.release, value: pressed)
+            .onChange(of: pressed) { _, isPressed in
+                if isPressed { anchor = PieceMotion.pressAnchor(touch: touch, in: size) }
+            }
+            .onChange(of: touch) { _, touch in
+                if pressed, let touch { anchor = PieceMotion.pressAnchor(touch: touch, in: size) }
+            }
+    }
+}
+
+private extension View {
+    /// Sinks this view while `pressed`, leaning toward `touch` (in this view's coordinates) when given.
+    func piecePress(_ pressed: Bool, touch: CGPoint? = nil, depth: CGFloat = 2.5) -> some View {
+        modifier(PiecePress(pressed: pressed, touch: touch, depth: depth))
+    }
+}
+
+/// Only the press, centered: for chips, rows and tiles, and anything in scrolling content.
+private struct PiecePressStyle: ButtonStyle {
+    var depth: CGFloat = 2.5
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label.piecePress(configuration.isPressed, depth: depth)
+    }
+}
+
+/// A short decaying side-to-side shake for refused input, each time `trigger` changes. Under Reduce Motion it stays
+/// still (same view, no identity change): pair it with a color or message change and the error haptic.
+private struct PieceShake: ViewModifier {
+    let trigger: AnyHashable
+    var distance: CGFloat = 8
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func body(content: Content) -> some View {
+        let distance = reduceMotion ? 0 : distance
+        content.keyframeAnimator(initialValue: CGFloat(0), trigger: trigger) { view, x in
+            view.offset(x: x)
+        } keyframes: { _ in
+            KeyframeTrack {
+                CubicKeyframe(-distance, duration: 0.06)
+                CubicKeyframe(distance * 0.75, duration: 0.07)
+                CubicKeyframe(-distance * 0.5, duration: 0.07)
+                CubicKeyframe(distance * 0.25, duration: 0.06)
+                SpringKeyframe(0, duration: 0.12, spring: Spring(duration: 0.18, bounce: 0))
+            }
+        }
+    }
+}
+
+private extension View {
+    /// Shakes this view side to side once each time `trigger` changes, for input that was refused.
+    func pieceShake(trigger: some Hashable & Sendable, distance: CGFloat = 8) -> some View {
+        modifier(PieceShake(trigger: AnyHashable(trigger), distance: distance))
+    }
+}
+
+// swiftpieces-motion: end
+```
+
+</Tab>
+</Tabs>
+
+</Showcase>
+
+<PieceFacts name="SplitStepper" />
+
+Colors for `SplitStepper`. `.standard` is the house palette.
+
+## Notes
+
+- The share each person pays is the hero. It rolls to each new figure, counting up or down with the direction you stepped.
+- Each tap pulses the house aura at the side you pressed, then lets it settle back around the stepper. A dot pops in or out for each person, in eight colours that repeat.
+- A tap past `range` shakes the stepper and plays an error haptic. The share stays where it was.
+- The share is `total` divided evenly and rounded to cents. Any remainder is left for you to settle, such as on the first person.
+- Amounts are shown in `currencyCode` in the person's locale.
+- VoiceOver reads the people and the share as one adjustable element: swipe up or down to change it.
+- Under Reduce Motion the light holds still and the dots appear without scaling. Under Reduce Transparency the aura becomes a plain red edge.
+
+## Usage
+
+```swift
+SplitStepperExample()
+```
+

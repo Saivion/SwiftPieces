@@ -2,6 +2,7 @@
 // the finished project), an app's step titles for the sidebar, metadata and structured data. A Pro
 // app has no build here (its screens are the Pro API's), so its page carries none of them.
 import type { Metadata } from "next";
+import { SEO_INDEX_APP_REMIXES } from "@/lib/seo-flags";
 import { buildCatalogProject, createRegistry, FREE_LIMITS, freeDefinitions, type Project } from "@swiftpieces/builder";
 import { JsonLd } from "@/components/seo/json-ld";
 import { PlaygroundLoader } from "@/components/playground/playground-loader";
@@ -30,6 +31,9 @@ export function appPlaygroundMetadata(a: LibraryEntry): Metadata {
       path: playgroundPath(a),
     }),
     keywords: a.pattern.keywords,
+    // A remix of another company's app, shown beside its App Store screenshots: out of search unless the flag
+    // says otherwise (lib/seo-flags.ts). Links stay followed, so the components it uses keep the link.
+    ...(SEO_INDEX_APP_REMIXES ? {} : { robots: { index: false, follow: true } }),
   };
 }
 

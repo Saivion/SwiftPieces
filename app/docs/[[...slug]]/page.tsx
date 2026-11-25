@@ -6,6 +6,10 @@ import { DocsBody, DocsDescription, DocsPage, DocsTitle } from "fumadocs-ui/layo
 import { createRelativeLink } from "fumadocs-ui/mdx";
 import { source } from "@/lib/source";
 import { getMDXComponents } from "@/components/mdx";
+import { Showcase } from "@/components/docs/showcase";
+import { Byline } from "@/components/docs/byline";
+import lastmod from "@/registry/__registry__/lastmod.json";
+import { pieceImage, pieceImageAlt } from "@/lib/piece-media";
 import { PieceInstall } from "@/components/docs/piece-install";
 import { getBlock, getProBlock, getRegistryItem, getRegistryIndex, piecePath } from "@/lib/registry";
 import { BlockGrid } from "@/components/blocks/block-grid";
@@ -17,7 +21,7 @@ import { DocsAside, DocsAsideColumn } from "@/components/docs/docs-aside";
 import { PieceRelated } from "@/components/docs/piece-related";
 import { JsonLd } from "@/components/seo/json-ld";
 import { choosingFaqs } from "@/lib/choosing";
-import { breadcrumbJsonLd, faqJsonLd, ORG_ID, pageMetadata, SOFTWARE_ID, WEBSITE_ID } from "@/lib/seo";
+import { AUTHOR_ID, authorJsonLd, breadcrumbJsonLd, faqJsonLd, ORG_ID, pageMetadata, SOFTWARE_ID, WEBSITE_ID } from "@/lib/seo";
 import { pieceDescription, piecePhrase, pieceTitle } from "@/lib/piece-seo";
 import { categoryHubPath, getHub } from "@/lib/hubs";
 import { categories } from "@/lib/categories";
@@ -66,12 +70,14 @@ export default async function Page(props: Props) {
         {proType === "game" ? <ProBadge tone="games" label="Games" className="tracking-normal" /> : null}
       </DocsTitle>
       <DocsDescription>{page.data.description}</DocsDescription>
+      {/* Guides and component pages name their author and their last real change (A7 in docs/seo/CHANGELOG-2026-11.md). */}
+      {item || page.url.startsWith("/docs/guides/") || page.url === "/docs/liquid-glass" ? <Byline path={page.url} /> : null}
       {/* The page body opens on Preview and Code, with the install line right under them (components/docs/showcase.tsx), then the facts. */}
       {isIndex ? <div className="not-prose mb-10"><ShowcaseGrid items={getRegistryIndex()} /></div> : null}
       {isBlocksIndex ? <div className="not-prose mb-10"><BlockGrid cards={blockCards()} narrow /></div> : null}
       {proType === "game" ? <GameCardGrid /> : proType ? <ProCardGrid type={proType} /> : null}
       <DocsBody>
-        <MDX components={getMDXComponents({ a: createRelativeLink(source, page) })} />
+        <MDX components={getMDXComponents({ a: createRelativeLink(source, page), ...(item ? { Showcase: (props: ShowcaseProps) => <Showcase {...props} poster={posterFor(item)} /> } : {}) })} />
         {item ? <PieceInstall item={item} /> : null}
         {block ? <PieceInstall item={block} /> : null}
         {item ? <PieceRelated item={item} /> : null}
@@ -87,6 +93,25 @@ export default async function Page(props: Props) {
       </DocsBody>
     </DocsPage>
   );
+}
+
+type ShowcaseProps = Parameters<typeof Showcase>[0];
+
+/** A piece's still for its Showcase (lib/piece-media.ts), with alt text and a caption written for that piece. */
+function posterFor(item: RegistryIndexEntry): ShowcaseProps["poster"] {
+  const media = pieceImage(item);
+  if (!media) return undefined;
+  const phrase = piecePhrase(item);
+  const what = phrase.toLowerCase() === item.title.toLowerCase() ? "SwiftUI component" : `SwiftUI ${phrase}`;
+  return {
+    light: media.light,
+    dark: media.dark,
+    width: media.width,
+    height: media.height,
+    alt: pieceImageAlt(item, "light"),
+    altDark: pieceImageAlt(item, "dark"),
+    caption: `${item.title}, a ${what} for iOS ${item.minIOSVersion.replace(/\.0$/, "")}+, in its live preview. Open Code for the Swift source.`,
+  };
 }
 
 export async function generateStaticParams() {
@@ -107,7 +132,8 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
   }
   if (item) {
     const { title, absolute } = pieceTitle(item);
-    return pageMetadata({ title, absoluteTitle: absolute, description: pieceDescription(item), path: page.url, image: item.preview.poster, type: "article" });
+    const media = pieceImage(item);
+    return pageMetadata({ title, absoluteTitle: absolute, description: pieceDescription(item), path: page.url, image: media ? new URL(media.og, site.url).href : item.preview.poster, type: "article" });
   }
   return pageMetadata({
     title: page.data.title,
@@ -161,6 +187,21 @@ function structuredData(path: string, title: string, description: string | undef
   if (item) {
     const hub = getHub(categories[item.category].slug);
     trail.push(["Components", "/components"], [hub?.name ?? categories[item.category].title, categoryHubPath(item.category)], [item.title, path]);
+    const media = pieceImage(item);
+    const image = media
+      ? [
+          {
+            "@type": "ImageObject",
+            "@id": `${url}#preview`,
+            contentUrl: new URL(media.light, site.url).href,
+            url: new URL(media.light, site.url).href,
+            width: media.width,
+            height: media.height,
+            caption: pieceImageAlt(item, "light"),
+          },
+          { "@type": "WebPage", "@id": `${url}#webpage`, url, name: `${item.title}: SwiftUI ${piecePhrase(item)}`, primaryImageOfPage: { "@id": `${url}#preview` }, mainEntity: { "@id": `${url}#code` }, isPartOf: { "@id": WEBSITE_ID } },
+        ]
+      : [];
     return {
       "@context": "https://schema.org",
       "@graph": [
@@ -171,7 +212,8 @@ function structuredData(path: string, title: string, description: string | undef
           alternateName: item.name,
           description: item.description,
           url,
-          ...(item.preview.poster ? { image: item.preview.poster } : {}),
+          ...(media ? { image: { "@id": `${url}#preview` } } : item.preview.poster ? { image: item.preview.poster } : {}),
+          author: { "@id": AUTHOR_ID },
           programmingLanguage: { "@type": "ComputerLanguage", name: "Swift" },
           runtimePlatform: `iOS ${item.minIOSVersion}+`,
           version: item.version,
@@ -183,17 +225,33 @@ function structuredData(path: string, title: string, description: string | undef
           targetProduct: { "@id": SOFTWARE_ID },
           publisher: { "@id": ORG_ID },
         },
+        ...image,
+        authorJsonLd(),
         breadcrumbJsonLd(trail),
       ],
     };
   }
+  const guide = path.startsWith("/docs/guides/") || path === "/docs/liquid-glass";
+  const modified = (lastmod as Record<string, string>)[path];
   const section = SECTIONS[slugs[0] ?? ""];
   if (section && slugs.length > 1) trail.push(section);
   trail.push([title, path]);
   return {
     "@context": "https://schema.org",
     "@graph": [
-      { "@type": "TechArticle", "@id": `${url}#article`, headline: title, ...(description ? { description } : {}), url, inLanguage: "en", isPartOf: { "@id": WEBSITE_ID }, author: { "@id": ORG_ID }, publisher: { "@id": ORG_ID } },
+      {
+        "@type": "TechArticle",
+        "@id": `${url}#article`,
+        headline: title,
+        ...(description ? { description } : {}),
+        url,
+        inLanguage: "en",
+        isPartOf: { "@id": WEBSITE_ID },
+        author: guide ? { "@id": AUTHOR_ID } : { "@id": ORG_ID },
+        ...(guide && modified ? { dateModified: modified } : {}),
+        publisher: { "@id": ORG_ID },
+      },
+      ...(guide ? [authorJsonLd()] : []),
       breadcrumbJsonLd(trail),
       ...(slugs.join("/") === "choosing" ? [faqJsonLd(choosingFaqs)] : []),
     ],

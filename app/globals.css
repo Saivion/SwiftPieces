@@ -39,36 +39,89 @@
 /* A clear stage drops the ground each preview paints for itself (palette.ts `ground.bg`, set inline
    as #121212 by every preview's Stage wrapper), so the piece sits straight on the dashed frame. */
 .stage-clear [style*="background: var(--pv-bg"] { background: transparent !important; }
-/* The Pro badge (components/ui/pro-badge.tsx), kept identical to Pro's globals.css so both sites wear one
-   badge (2026-11-01, Saivion picked the "pearl in the ramp"): a white pearl pill holding the Signature
-   grain's colours as clouds, pink at both ends, orange, a faint red heart, with wine type. White in both themes. */
+/* The Pro mark (2026-11-24): a ring with a rounded bar standing inside it. The ring shows the badge's
+   colours as a conic sweep (pink, orange, red, a wine shadow) under a soft white sheen, turning once
+   every 7 seconds; the bar falls pink to wine. components/ui/pro-mark.tsx here, components/layout/pro-mark.tsx on
+   Pro, kept identical. .pro-sticker sets it on a white die-cut disc. */
+@property --pm-turn { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
+@keyframes pm-turn { to { --pm-turn: 360deg; } }
+.pro-mark {
+  --pm-a: #ffc1d6; --pm-b: #ff8a5c; --pm-c: #f2361c; --pm-d: #4a0a08;
+  position: relative; display: inline-block; flex: none; width: 1em; height: 1em;
+}
+/* The ring: the conic sweep through the ring mask. The bar: its own top-to-bottom fall, pink to red to
+   wine, so the sweep's pivot never shows as a seam down the bar at small sizes. */
+.pro-mark::before, .pro-mark::after { content: ""; position: absolute; }
+.pro-mark::before {
+  inset: 0;
+  background:
+    radial-gradient(55% 55% at 30% 24%, rgb(255 255 255 / 0.45), transparent 70%),
+    conic-gradient(from var(--pm-turn) at 50% 50%, var(--pm-a), var(--pm-b) 22%, var(--pm-c) 46%, var(--pm-d) 64%, var(--pm-c) 80%, var(--pm-a));
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='9.4' fill='none' stroke='%23000' stroke-width='3.2'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='9.4' fill='none' stroke='%23000' stroke-width='3.2'/%3E%3C/svg%3E") center / contain no-repeat;
+  animation: pm-turn 7s linear infinite;
+}
+.pro-mark::after {
+  left: 41.875%; width: 16.25%; top: 23.75%; height: 52.5%; border-radius: 999px;
+  background: linear-gradient(180deg, var(--pm-a), var(--pm-b) 30%, var(--pm-c) 65%, var(--pm-d));
+}
+.games-mark .pro-mark, .pro-mark.games-mark, .games-badge .pro-mark { --pm-a: #e0d4ff; --pm-b: #9d7bff; --pm-c: #ff005c; --pm-d: #2a0d52; }
+.pro-sticker {
+  display: inline-grid; place-items: center; flex: none; aspect-ratio: 1; border-radius: 50%; background: #ffffff;
+  box-shadow: 0 0 0 1px rgb(74 10 8 / 0.06), 0 1px 2px rgb(74 10 8 / 0.14), 0 8px 22px -8px rgb(74 10 8 / 0.3);
+}
+.pro-sticker > .pro-mark { width: 76%; height: 76%; }
+@media (prefers-reduced-motion: reduce) { .pro-mark::before { animation: none; } }
+
+/* The Pro badge (2026-11-24, the die-cut sticker chip, Saivion picked A "Foil sweep"): the Pro mark in
+   white and the word in white on a foil of the badge's colours, the Signature ramp (pink, orange, red, a
+   wine shadow) swept round the chip and turning once every 7 seconds, under a diagonal white sheen. A white
+   die-cut edge, a soft lift and a small tilt, as if slapped on by hand. Same in both themes. Pro's
+   components/layout/pro-badge.tsx and Free's components/ui/pro-badge.tsx share this rule. */
+@property --pb-turn { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
+@keyframes pb-turn { to { --pb-turn: 360deg; } }
 .pro-badge {
   --pb-pink: #ffc1d6; --pb-orange: #ff8a5c; --pb-red: #f2361c; --pb-wine: #4a0a08;
-  border: 1px solid rgb(74 10 8 / 0.16);
-  color: var(--pb-wine);
-  background:
-    radial-gradient(48% 110% at 4% 50%, var(--pb-pink) 0%, transparent 78%),
-    radial-gradient(48% 110% at 96% 50%, var(--pb-pink) 0%, transparent 78%),
-    radial-gradient(50% 120% at 30% 105%, color-mix(in srgb, var(--pb-orange) 75%, transparent), transparent 72%),
-    radial-gradient(42% 110% at 72% 0%, color-mix(in srgb, var(--pb-orange) 60%, transparent), transparent 72%),
-    radial-gradient(28% 70% at 52% 60%, color-mix(in srgb, var(--pb-red) 32%, transparent), transparent 80%),
-    #ffffff;
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.95), 0 1px 2px rgb(0 0 0 / 0.08);
+  position: relative; isolation: isolate;
+  border: 1px solid rgb(74 10 8 / 0.25);
+  color: #ffffff;
+  text-shadow: 0 1px 1px rgb(74 10 8 / 0.25);
+  background: conic-gradient(from calc(210deg + var(--pb-turn)) at 38% 50%, var(--pb-pink), var(--pb-orange) 18%, var(--pb-red) 38%, var(--pb-wine) 55%, var(--pb-red) 72%, var(--pb-orange) 86%, var(--pb-pink));
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.35), 0 0 0 1.5px #ffffff, 0 1px 2px 1.5px rgb(74 10 8 / 0.14), 0 3px 8px rgb(74 10 8 / 0.12);
+  rotate: -3deg;
+  animation: pb-turn 7s linear infinite;
 }
+.pro-badge::after { content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none; background: linear-gradient(115deg, transparent 30%, rgb(255 255 255 / 0.38) 45%, transparent 58%); }
+.pro-badge .pro-mark::before, .pro-badge .pro-mark::after { background: #ffffff; animation: none; }
+.pro-badge.h-4 { rotate: -2deg; box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.35), 0 0 0 1px #ffffff, 0 1px 2px 1px rgb(74 10 8 / 0.14); }
+@media (prefers-reduced-motion: reduce) { .pro-badge { animation: none; } }
+/* As a link (the owner's way to their account), the sticker presses flat and lifts a touch on hover. */
+a.pro-badge { transition: rotate .3s cubic-bezier(.3,1.6,.5,1), box-shadow .3s ease; }
+a.pro-badge:hover { rotate: 0deg; box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.35), 0 0 0 1.5px #ffffff, 0 2px 4px 1.5px rgb(74 10 8 / 0.16), 0 6px 14px rgb(74 10 8 / 0.16); }
 
-/* The Games badge (2026-11-08, Saivion picked Iris "Pink tip"): the Pro badge's pearl in Games' own colours,
-   a lilac left end, violet clouds and a #ff005c glow at the right end, like light catching one side, with deep
-   violet type. Shape, rim and gloss are the Pro badge's; only the colours change. ProBadge tone="games" on both sites. */
+/* Get Pro (2026-11-25): the navbar's buy button, black with white type (Saivion), wearing the Pro badge's
+   mark in its own turning colours and the badge's white die-cut edge, kept straight (Saivion). Button variant="pro" (components/ui/button.tsx). Same in both themes. */
+.btn-pro {
+  background: #0b0b0b;
+  color: #ffffff;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.16), 0 0 0 2px #ffffff, 0 1px 2px 2px rgb(0 0 0 / 0.12), 0 4px 12px rgb(0 0 0 / 0.16);
+  transition: box-shadow .3s ease, transform .3s ease;
+}
+.btn-pro:hover { box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.16), 0 0 0 2px #ffffff, 0 2px 4px 2px rgb(0 0 0 / 0.14), 0 8px 18px rgb(0 0 0 / 0.2); }
+
+/* In dark mode Get Pro flips to white with black type (Saivion), with no edge ring. */
+.dark .btn-pro, .dark .promo-cta { background: #ffffff; color: #0b0b0b; }
+.dark .btn-pro { box-shadow: inset 0 -1px 0 rgb(0 0 0 / 0.08), 0 4px 12px rgb(0 0 0 / 0.3); }
+.dark .btn-pro:hover { box-shadow: inset 0 -1px 0 rgb(0 0 0 / 0.08), 0 8px 18px rgb(0 0 0 / 0.4); }
+.dark .promo-cta { box-shadow: inset 0 -1px 0 rgb(0 0 0 / 0.08), 0 1px 3px 1px rgb(74 10 8 / 0.22); }
+
+/* The Games badge (2026-11-08 Iris colours, 2026-11-24 foil): the Pro badge's foil sweep in Games' own
+   colours, lilac, violet, a #ff005c tip and a deep violet shadow. Shape, edge, sheen and tilt are the Pro
+   badge's; only the colours change. ProBadge tone="games" on both sites. */
 .pro-badge.games-badge {
-  --gb-lilac: #e0d4ff; --gb-violet: #9d7bff; --gb-pink: #ff005c; --gb-ink: #2a0d52;
-  border-color: rgb(42 13 82 / 0.16);
-  color: var(--gb-ink);
-  background:
-    radial-gradient(48% 110% at 4% 50%, var(--gb-lilac) 0%, transparent 78%),
-    radial-gradient(48% 110% at 98% 50%, color-mix(in srgb, var(--gb-pink) 55%, transparent) 0%, transparent 70%),
-    radial-gradient(50% 120% at 30% 105%, color-mix(in srgb, var(--gb-violet) 75%, transparent), transparent 72%),
-    radial-gradient(42% 110% at 64% 0%, color-mix(in srgb, var(--gb-violet) 55%, transparent), transparent 72%),
-    #ffffff;
+  border-color: rgb(42 13 82 / 0.25);
+  text-shadow: 0 1px 1px rgb(42 13 82 / 0.3);
+  background: conic-gradient(from calc(210deg + var(--pb-turn)) at 38% 50%, #e0d4ff, #9d7bff 18%, #ff005c 38%, #2a0d52 55%, #ff005c 72%, #9d7bff 86%, #e0d4ff);
 }
 
 /* A text link's underline (.u-link, brand theme.css) draws when anywhere on its link is hovered,
@@ -165,6 +218,12 @@
 /* 200% of a 200%-wide tile moves it exactly one tile, so the loop has no seam. */
 @keyframes pro-shimmer { to { background-position: -200% 0; } }
 @media (prefers-reduced-motion: reduce) { .pro-shimmer { animation: none; } }
+
+/* Landing hero wall (components/landing/tiles.tsx Wall): each column drifts up by half its height, then loops. */
+@keyframes wall-drift { to { transform: translateY(-50%); } }
+.wall-col { animation: wall-drift var(--d, 70s) linear infinite; }
+.wall-col.wall-rev { animation-direction: reverse; }
+@media (prefers-reduced-motion: reduce) { .wall-col { animation: none; } }
 
 /* Second gallery row drifts the other way. */
 .marquee-reverse { animation-direction: reverse; }
@@ -337,21 +396,14 @@ html.promo-off .promo-slot { display: none; }
 /* The pill, after the reference: white (or graphite) glass with a faint pastel glow inside, a hairline rim. */
 .promo-cta {
   flex: none; display: inline-flex; align-items: center; gap: 5px;
-  height: 28px; padding: 0 12px 0 14px; border-radius: calc(28px * var(--pill-k));
-  border: 1px solid rgb(74 10 8 / 0.16);
-  color: #4a0a08; font-size: 13px; font-weight: 500; text-shadow: none;
-  /* The Pro badge's pearl (.pro-badge): pink ends, orange, a faint red heart, wine type. */
-  background:
-    radial-gradient(48% 110% at 4% 50%, #ffc1d6 0%, transparent 78%),
-    radial-gradient(48% 110% at 96% 50%, #ffc1d6 0%, transparent 78%),
-    radial-gradient(50% 120% at 30% 105%, rgb(255 138 92 / 0.75), transparent 72%),
-    radial-gradient(42% 110% at 72% 0%, rgb(255 138 92 / 0.6), transparent 72%),
-    radial-gradient(28% 70% at 52% 60%, rgb(242 54 28 / 0.32), transparent 80%),
-    #ffffff;
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.95), 0 1px 2px rgb(74 10 8 / 0.2);
-  transition: box-shadow .3s var(--ease-out), border-color .3s var(--ease-out);
+  height: 28px; padding: 0 12px 0 8px; border-radius: calc(28px * var(--pill-k));
+  /* Black with white type and the coloured Pro mark, the navbar's Get Pro (.btn-pro) at bar size. */
+  color: #ffffff; font-size: 13px; font-weight: 500; text-shadow: none;
+  background: #0b0b0b;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.16), 0 0 0 1.5px #ffffff, 0 1px 3px 1px rgb(74 10 8 / 0.22);
+  transition: box-shadow .3s var(--ease-out);
 }
-.promo-line:hover .promo-cta { border-color: rgb(74 10 8 / 0.32); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.95), 0 2px 8px rgb(74 10 8 / 0.25); }
+.promo-line:hover .promo-cta { box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.16), 0 0 0 1.5px #ffffff, 0 2px 8px 1px rgb(74 10 8 / 0.3); }
 .promo-line:focus-visible { outline: none; }
 .promo-line:focus-visible .promo-cta { box-shadow: 0 0 0 2px var(--background), 0 0 0 4px var(--foreground); }
 .promo-close {
@@ -404,6 +456,7 @@ html.promo-off .promo-slot { display: none; }
 /* Motion gate (app/layout.tsx): endless loops hold still until the visitor first interacts, so the
    first screen settles on paint. Finite entrances are unaffected. */
 html:not([data-motion]) .marquee,
+html:not([data-motion]) .wall-col,
 html:not([data-motion]) .pro-shimmer { animation-play-state: paused; }
 
 /* Every clickable control shows a pointer (Tailwind v4 resets buttons to the default cursor). Same

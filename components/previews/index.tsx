@@ -102,6 +102,13 @@ const map: Record<string, ComponentType> = {
   MatchHighlight: dynamic(() => import("./everyday").then((m) => m.MatchHighlightPreview)),
   TextDiff: dynamic(() => import("./everyday").then((m) => m.TextDiffPreview)),
   TranslateToggle: dynamic(() => import("./everyday").then((m) => m.TranslateTogglePreview)),
+  Snapshot: dynamic(() => import("./moving").then((m) => m.SnapshotPreview)),
+  MapExpand: dynamic(() => import("./moving").then((m) => m.MapExpandPreview)),
+  DatePill: dynamic(() => import("./pills").then((m) => m.DatePillPreview)),
+  GuestsPill: dynamic(() => import("./pills").then((m) => m.GuestsPillPreview)),
+  ReminderPill: dynamic(() => import("./pills").then((m) => m.ReminderPillPreview)),
+  SlideToPay: dynamic(() => import("./aura").then((m) => m.SlideToPayPreview)),
+  SplitStepper: dynamic(() => import("./aura").then((m) => m.SplitStepperPreview)),
 };
 
 /** One Picture Headline sticker on its own (the landing's floating mascot), from the preview's own chunk. */

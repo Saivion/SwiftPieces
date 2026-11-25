@@ -24,3 +24,8 @@
 # per offer from its tag's data attributes, so the file itself rarely changes.
 /promo-boot.js
   Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+# Component preview stills (scripts/capture-previews.ts). Their names stay put when a still is re-captured, so
+# they are cached for a day rather than forever.
+/previews/*
+  Cache-Control: public, max-age=86400

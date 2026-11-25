@@ -1,29 +1,20 @@
-import { Hero } from "@/components/sections/hero";
-import { Ticker } from "@/components/sections/ticker";
-import { Features } from "@/components/sections/features";
-import { GetStarted } from "@/components/sections/get-started";
+import { Hero } from "@/components/landing/hero";
+import { AppIconTile, Bento, CloseTile, MoreTiles, Ways } from "@/components/landing/tiles";
 import { SponsorStrip } from "@/components/sections/sponsors";
 import { getSponsorsFrom } from "@/lib/sponsors";
-import { LibraryIntro } from "@/components/sections/library-intro";
-import { MorePair } from "@/components/sections/more-pair";
-import { Questions } from "@/components/sections/questions";
-import { band } from "@/components/sections/feature-row";
 import { JsonLd } from "@/components/seo/json-ld";
-import { faqJsonLd, ORG_ID, pageMetadata, SOFTWARE_ID, WEBSITE_ID } from "@/lib/seo";
+import { ORG_ID, pageMetadata, SOFTWARE_ID, WEBSITE_ID } from "@/lib/seo";
 import { site } from "@/lib/site";
-import { homeFaqs } from "@/lib/faqs";
-import { proCatalog } from "@/lib/pro-catalog";
 import { getRegistryIndex } from "@/lib/registry";
 
 export const metadata = pageMetadata({ title: site.title, description: site.description, path: "/", absoluteTitle: true });
 
 const count = getRegistryIndex().length;
-const questions = homeFaqs(count, proCatalog);
 
 /**
- * Who publishes the site, what the library is and the questions the page answers, for search
+ * Who publishes the site and what the library is, for search
  * results and AI answers. Only facts the page shows: the name, the logo, the GitHub and X profiles
- * in the footer, the library's license and baseline, and the questions below. No ratings: the
+ * in the footer, and the library's license and baseline. No FAQ: the page shows no questions. No ratings: the
  * site has none to report.
  */
 const structuredData = {
@@ -60,7 +51,6 @@ const structuredData = {
       targetProduct: { "@id": SOFTWARE_ID },
       publisher: { "@id": ORG_ID },
     },
-    faqJsonLd(questions),
   ],
 };
 
@@ -77,9 +67,10 @@ const structuredData = {
 export const revalidate = 300;
 
 /**
- * The landing page does two things: show the free pieces, then hand people to Pro. Below the hero
- * it is deliberately quiet: feature rows on a 1:2 grid (pieces, CLI, agents), the library directory,
- * a "Want more?" band of Pro screens and templates, the questions and one closing card. Pricing lives only on pro.swiftpieces.com.
+ * The landing page as tiles (Pro's bento unit: a tray, a white panel, a caption), set small and quiet.
+ * The claim and a wall of whole pieces, three ways in (copy, style, agent), the library bento with the
+ * facts every piece shares, Pro and Games, the app icon hand-off and the
+ * close on the pricing card's ember. Pricing lives only on pro.swiftpieces.com.
  */
 export default async function HomePage() {
   // Gold sponsors only; the strip renders nothing until there is one.
@@ -88,13 +79,12 @@ export default async function HomePage() {
     <>
       <JsonLd data={structuredData} />
       <Hero />
-      <Ticker />
       <SponsorStrip sponsors={gold} />
-      <Features />
-      <LibraryIntro />
-      <MorePair />
-      <Questions items={questions} spacing={band} />
-      <GetStarted />
+      <Ways />
+      <Bento />
+      <MoreTiles />
+      <AppIconTile />
+      <CloseTile />
     </>
   );
 }

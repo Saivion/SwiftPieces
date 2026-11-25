@@ -3,6 +3,7 @@
 import { blockCategories, blockPath, proBlockUrl, type BlockCategory } from "@/lib/blocks";
 import { getBlocks, getProBlocks, getRegistryItem } from "@/lib/registry";
 import { piecePath } from "@/lib/registry-paths";
+import { SEO_PATTERNS_ON_PRO } from "@/lib/seo-flags";
 
 export type BlockCard = {
   kind: "free" | "pro";
@@ -12,7 +13,7 @@ export type BlockCard = {
   summary: string;
   category: BlockCategory;
   categoryTitle: string;
-  /** Its docs page on this site. */
+  /** Its page: the docs page on this site, or a Pro pattern's page in Pro's library. */
   href: string;
   /** Pro blocks: where it opens in Pro's library. */
   proHref?: string;
@@ -47,7 +48,8 @@ export function blockCards(): BlockCard[] {
     summary: p.summary,
     category: p.category,
     categoryTitle: blockCategories[p.category].title,
-    href: blockPath(p),
+    // Pattern pages are Pro's (lib/seo-flags.ts): the card opens the Pro library page, not a redirect here.
+    href: SEO_PATTERNS_ON_PRO ? proBlockUrl(p.id) : blockPath(p),
     proHref: proBlockUrl(p.id),
     still: `/pro-blocks/${p.id}.webp`,
     loop: `/pro-blocks/${p.id}`,

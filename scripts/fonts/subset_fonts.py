@@ -10,7 +10,7 @@ Run by hand. Nothing here is part of the build: the output is committed, and the
 
 Everything it needs is in scripts/fonts/fonts.json. For every face it:
 
-1. downloads the source font from google/fonts at a pinned commit (cached in scripts/fonts/.cache, checked
+1. downloads the source font from google/fonts (or the face's own `repo`) at a pinned commit (cached in scripts/fonts/.cache, checked
    against a sha256), and reads the family's OFL.txt for Reserved Font Names;
 2. keeps each variable axis at its `axes` range and pins the axes Google pinned (opsz). The ranges are the
    source's full ranges on purpose: narrowing one (say Figtree's wght to the 400-800 the site declares)
@@ -56,7 +56,8 @@ from fontTools.varLib.instancer import instantiateVariableFont
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
 CACHE = HERE / ".cache"
-RAW = "https://raw.githubusercontent.com/google/fonts/{commit}/{path}"
+RAW = "https://raw.githubusercontent.com/{repo}/{commit}/{path}"
+GOOGLE_FONTS = "google/fonts"
 
 # Features a browser applies to English text without being asked (HarfBuzz's defaults for Latin).
 DEFAULT_ON = {"abvm", "blwm", "calt", "ccmp", "clig", "curs", "dist", "kern", "liga", "locl", "mark", "mkmk", "rlig", "rvrn"}
@@ -119,13 +120,13 @@ def scan_text(cfg: dict) -> tuple[set[int], list[str]]:
 
 # ── Sources ──────────────────────────────────────────────────────────────────────────────────────
 
-def fetch(commit: str, path: str, sha256: str | None = None) -> bytes:
+def fetch(commit: str, path: str, sha256: str | None = None, repo: str = GOOGLE_FONTS) -> bytes:
     CACHE.mkdir(exist_ok=True)
     local = CACHE / f"{commit[:12]}-{path.replace('/', '_')}"
     if local.exists():
         data = local.read_bytes()
     else:
-        url = RAW.format(commit=commit, path=urllib.request.quote(path))
+        url = RAW.format(repo=repo, commit=commit, path=urllib.request.quote(path))
         print(f"  downloading {path}")
         with urllib.request.urlopen(url) as r:
             data = r.read()
@@ -423,11 +424,13 @@ def main() -> None:
         face_rules: list[str] = []
         for face in fam["faces"]:
             slug = face["slug"]
-            ofl = fetch(commit, face["license"]).decode("utf-8", "replace")
+            # A face outside google/fonts names its own GitHub repo and pinned commit.
+            repo, rev = face.get("repo", GOOGLE_FONTS), face.get("commit", commit)
+            ofl = fetch(rev, face["license"], repo=repo).decode("utf-8", "replace")
             reserved = reserved_names(ofl)
             if reserved and not fam.get("internalName"):
                 fail(f"{slug}: OFL Reserved Font Names {reserved}; set internalName so the cut font is renamed")
-            src_data = fetch(commit, face["source"], face["sha256"])
+            src_data = fetch(rev, face["source"], face["sha256"], repo)
             src = load(src_data)
             limited = instance(src_data, face)
             coverage = parse_ranges(face["coverage"])
