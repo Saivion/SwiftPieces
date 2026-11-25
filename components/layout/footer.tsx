@@ -9,7 +9,6 @@ const columns: { title: string; links: { label: string; href: string }[] }[] = [
   { title: "Free", links: [{ label: "Components", href: "/components" }, { label: "Styles", href: "/styles" }, { label: "Animations", href: "/components/animations" }, { label: "Liquid Glass", href: "/components/glass" }, { label: "Buttons", href: "/components/controls" }, { label: "Cards", href: "/components/cards" }, { label: "Inputs and forms", href: "/components/inputs" }, { label: "AI chat", href: "/components/ai" }] },
   { title: "Pro", links: [{ label: "Screens", href: pro.screens }, { label: "Patterns", href: "/patterns" }, { label: "Flows", href: pro.flows }, { label: "Templates", href: pro.templates }, { label: "Games", href: pro.games }, { label: "MCP and Agents", href: pro.mcpDocs }, { label: "Pricing", href: "/pro#pricing" }, { label: "Account", href: pro.account }] },
   { title: "Docs", links: [{ label: "Introduction", href: "/docs/introduction" }, { label: "Choosing a library", href: "/docs/choosing" }, { label: "Installation", href: "/docs/installation" }, { label: "CLI", href: "/docs/cli" }, { label: "MCP & agents", href: "/docs/mcp" }, { label: "Registry", href: "/r/index.json" }, { label: "llms.txt", href: "/llms.txt" }] },
-  { title: "Guides", links: [{ label: "SwiftUI Animations", href: "/docs/guides/swiftui-animations" }, { label: "SwiftUI Buttons", href: "/docs/guides/swiftui-buttons" }, { label: "SwiftUI Cards", href: "/docs/guides/swiftui-cards" }, { label: "SwiftUI Haptics", href: "/docs/guides/swiftui-haptics" }, { label: "Loading States", href: "/docs/guides/swiftui-loading-states" }, { label: "Liquid Glass", href: "/docs/liquid-glass" }] },
   { title: "Resources", links: [{ label: "About", href: "/about" }, { label: "Showcase", href: "/showcase" }, { label: "Changelog", href: "/docs/changelog" }, { label: "Sponsors", href: "/sponsors" }, { label: "App icons", href: "https://tinypersonas.com" }, { label: "GitHub", href: site.github }] },
   { title: "Legal", links: [{ label: "License", href: "/license" }, { label: "Privacy", href: "/privacy" }, { label: "Terms", href: "/terms" }] },
 ];
@@ -22,7 +21,7 @@ export function Footer() {
           The links are still crawled; their text just never appears in a search snippet. */}
       <div data-nosnippet="">
         <Container className="relative">
-          <div className="grid grid-cols-2 gap-x-6 gap-y-10 border-t border-line pt-16 sm:grid-cols-3 sm:pt-[72px] lg:grid-cols-[1.5fr_repeat(6,1fr)] lg:gap-8">
+          <div className="grid grid-cols-2 gap-x-6 gap-y-10 border-t border-line pt-16 sm:grid-cols-3 sm:pt-[72px] lg:grid-cols-[1.5fr_repeat(5,1fr)] lg:gap-8">
             <div className="col-span-2 max-w-xs sm:col-span-3 lg:col-span-1">
               <Logo />
               <p className="mt-4 max-w-[240px] text-[14px] leading-[22px] text-muted">A collection of beautifully animated SwiftUI components. Yours to use, always free.</p>

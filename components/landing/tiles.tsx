@@ -5,12 +5,15 @@ import { Reveal } from "@/components/effects/reveal";
 import { ProBadge } from "@/components/ui/pro-badge";
 import { NewBadge } from "@/components/ui/new-badge";
 import { MoreLink } from "@/components/landing/link";
-import { body, gap, heading } from "@/components/landing/type";
+import { gap, heading } from "@/components/landing/type";
+import { PreviewFrame } from "@/components/previews/frame";
+import { PiecePreview } from "@/components/previews";
+import { EmberStage } from "@/components/visual/ember-stage";
 import { getRegistryIndex, getRegistryItem } from "@/lib/registry";
 import { piecePath } from "@/lib/registry-paths";
 import { categories, categoryTitle } from "@/lib/categories";
-import { changelog } from "@/lib/changelog";
 import { proCatalog, proGames } from "@/lib/pro-catalog";
+import proCards from "@/lib/pro-cards.json";
 import { pro } from "@/lib/site";
 import { cn } from "@/lib/cn";
 
@@ -88,7 +91,7 @@ function TileCard({ href, panel, panelClass, children, className }: { href: stri
 function Head({ id, title, rest, link }: { id?: string; title: string; rest?: string; link?: { label: string; href: string } }) {
   return (
     <Reveal className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between sm:gap-10">
-      <h2 id={id} className={cn(heading, "max-w-[560px]")}>
+      <h2 id={id} className={cn(heading, "max-w-[640px]")}>
         {title} {rest ? <span className="text-muted">{rest}</span> : null}
       </h2>
       {link ? <MoreLink href={link.href} className="shrink-0 sm:pb-1">{link.label}</MoreLink> : null}
@@ -219,41 +222,44 @@ export function Ways() {
 
 /* ---------- Library bento ---------- */
 
-type BentoPiece = { name: string; slug: string; companion?: string; text: string; facts?: string[] };
+type BentoPiece = { name: string; text: string; facts?: string[] };
 
-/** Rows of a wide tile (the piece and a companion) beside a narrow one, the wide side alternating. */
+/** Rows of a wide tile beside a narrow one, the wide side alternating. Each piece plays live in its panel. */
 const BENTO: [BentoPiece, BentoPiece][] = [
   [
-    { name: "WalletStack", slug: "wallet-stack", companion: "qr-code", text: "A wallet of stacked passes you can bring forward, fan out and reorder.", facts: ["Tap to bring forward", "Long-press to reorder", "Haptics on settle"] },
-    { name: "TimerDial", slug: "timer-dial", text: "A countdown you set by turning the dial, with a live progress ring." },
+    { name: "WalletStack", text: "A wallet of stacked passes you can bring forward, fan out and reorder.", facts: ["Tap to bring forward", "Long-press to reorder", "Haptics on settle"] },
+    { name: "TimerDial", text: "A countdown you set by turning the dial, with a live progress ring." },
   ],
   [
-    { name: "ReactionToggle", slug: "reaction-toggle", text: "Like and save buttons that burst, count up and settle." },
-    { name: "ScrubChart", slug: "scrub-chart", companion: "activity-heatmap", text: "A line chart you scrub with a finger, with a range you can drag.", facts: ["Scrub for values", "Drag a range", "Period switch"] },
+    { name: "ReactionToggle", text: "Like and save buttons that burst, count up and settle." },
+    { name: "ScrubChart", text: "A line chart you scrub with a finger, with a range you can drag.", facts: ["Scrub for values", "Drag a range", "Period switch"] },
   ],
   [
-    { name: "SelectMenu", slug: "select-menu", companion: "reorder-list", text: "A sort menu that opens in place and marks the choice.", facts: ["Opens in place", "Glass selection", "VoiceOver ready"] },
-    { name: "AmountField", slug: "amount-field", text: "A money field with quick amounts and a limit that warns early." },
+    { name: "SelectMenu", text: "A sort menu that opens in place and marks the choice.", facts: ["Opens in place", "Glass selection", "VoiceOver ready"] },
+    { name: "AmountField", text: "A money field with quick amounts and a limit that warns early." },
   ],
   [
-    { name: "StatusTimeline", slug: "status-timeline", text: "Order steps that tick through and open for detail." },
-    { name: "RingBreakdown", slug: "ring-breakdown", companion: "now-playing", text: "A spend ring that splits into categories as you tap them.", facts: ["Tap a slice", "Animated totals"] },
+    { name: "StatusTimeline", text: "Order steps that tick through and open for detail." },
+    { name: "RingBreakdown", text: "A spend ring that splits into categories as you tap them.", facts: ["Tap a slice", "Animated totals"] },
   ],
 ];
 
+/**
+ * A bento tile: the piece's live web preview in a square stage as tall as the panel, on the panel's own
+ * colour, so the piece fills the tile and plays. Its whole still (public/landing/pieces/) stands in the
+ * server HTML and until the stage nears the viewport.
+ */
 function BentoTile({ p, wide }: { p: BentoPiece; wide?: boolean }) {
   const item = getRegistryItem(p.name);
   if (!item) return null;
-  const pair = Boolean(wide && p.companion);
   return (
     <TileCard
       href={piecePath(item)}
-      panelClass="h-[300px] sm:h-[400px] lg:h-[420px]"
+      panelClass="flex h-[340px] items-center justify-center sm:h-[440px] lg:h-[460px]"
       panel={
-        <div className="flex size-full gap-2 p-5 transition-transform duration-700 ease-[var(--ease-out)] group-hover:-translate-y-1.5 sm:p-7">
-          <div className="min-w-0 flex-1"><Piece slug={p.slug} alt={`${item.title}, a SwiftPieces component`} /></div>
-          {pair ? <div className="hidden min-w-0 flex-1 sm:block"><Piece slug={p.companion!} alt="" /></div> : null}
-        </div>
+        <PreviewFrame aspect="aspect-square" className="h-full max-w-full rounded-none [--pv-bg:var(--surface-2)]" placeholder={<Piece slug={item.slug} alt={`${item.title}, a SwiftPieces component`} />}>
+          <PiecePreview name={item.name} />
+        </PreviewFrame>
       }
     >
       <Caption meta={<>Component · {categoryTitle(item.category)}{item.isNew ? <NewBadge /> : null}</>} title={item.title} text={p.text} facts={wide ? p.facts : undefined} />
@@ -278,30 +284,37 @@ export function Bento() {
             );
           })}
         </div>
-        <Numbers count={count} />
+        <Shelves />
       </section>
     </Container>
   );
 }
 
-/** Four even tiles under the bento: the facts every piece shares. */
-function Numbers({ count }: { count: number }) {
-  const nums = [
-    { n: String(count), l: "pieces" },
-    { n: String(Object.keys(categories).length), l: "categories" },
-    { n: "1", l: "Swift file each" },
-    { n: "0", l: "dependencies" },
-  ];
+/** Four category tiles under the bento, each with one of its pieces whole in the panel and its count. */
+const SHELVES = ["liquid-switch", "date-strip", "voice-recorder", "live-stat"];
+
+function Shelves() {
+  const all = getRegistryIndex();
   return (
     <Reveal className="mt-3 grid grid-cols-2 gap-3 lg:grid-cols-4">
-      {nums.map((x) => (
-        <div key={x.l} className="tray">
-          <div className="panel flex h-[96px] items-end px-5 pb-4 sm:h-[120px]">
-            <p className="text-[36px] leading-none tracking-[-0.04em] tabular-nums sm:text-[44px]">{x.n}</p>
-          </div>
-          <p className="px-3.5 pt-3.5 pb-2 text-[13.5px] text-muted">{x.l}</p>
-        </div>
-      ))}
+      {SHELVES.map((slug) => {
+        const item = getRegistryItem(slug);
+        if (!item) return null;
+        const n = all.filter((e) => e.category === item.category).length;
+        return (
+          <TileCard
+            key={slug}
+            href={`/components/${categories[item.category].slug}`}
+            panelClass="h-[150px] sm:h-[190px]"
+            panel={<div className="size-full p-3 transition-transform duration-700 ease-[var(--ease-out)] group-hover:-translate-y-1 sm:p-4"><Piece slug={slug} alt="" /></div>}
+          >
+            <div className="flex items-center justify-between gap-3 px-3.5 pt-3.5 pb-2">
+              <p className="min-w-0 truncate text-[14.5px]">{categoryTitle(item.category)} <span className="text-subtle">{n}</span></p>
+              <span aria-hidden className="text-subtle transition-transform duration-300 group-hover:translate-x-0.5">→</span>
+            </div>
+          </TileCard>
+        );
+      })}
     </Reveal>
   );
 }
@@ -325,28 +338,56 @@ function Phones({ srcs, width = 230 }: { srcs: { src: string; alt: string }[]; w
   );
 }
 
+/**
+ * Which template and game the two tiles show. Change an id to show another: `template` is a Pro
+ * template id from lib/pro-cards.json (its still lives in public/landing/more/<id>-light|dark.webp,
+ * captured from the template's page on pro.swiftpieces.com), `game` a game id from proGames
+ * (public/pro-games/<id>.webp).
+ */
+export const MORE_SHOWN = { template: "shop-app", game: "drift" } as const;
+
+/** A template's hero still, whole, on the panel's colour (light and dark captures). */
+function TemplateStill({ id, alt }: { id: string; alt: string }) {
+  const src = (t: string) => `/landing/more/${id}-${t}.webp`;
+  const cls = "absolute inset-0 size-full object-contain p-4 transition-transform duration-700 ease-[var(--ease-out)] group-hover:-translate-y-1.5 sm:p-6";
+  return (
+    <>
+      {/* eslint-disable-next-line @next/next/no-img-element -- static stills */}
+      <img src={src("light")} alt={alt} width={1280} height={1040} loading="lazy" decoding="async" className={cn("hidden [html.light_&]:block", cls)} />
+      {/* eslint-disable-next-line @next/next/no-img-element -- static stills */}
+      <img src={src("dark")} alt="" aria-hidden width={1280} height={1040} loading="lazy" decoding="async" className={cn("[html.light_&]:hidden", cls)} />
+    </>
+  );
+}
+
 export function MoreTiles() {
+  const template = proCards.find((c) => c.id === MORE_SHOWN.template && c.type === "template");
+  const game = proGames.list.find((g) => g.id === MORE_SHOWN.game);
   return (
     <Container className={gap}>
       <section aria-labelledby="more">
         <Head id="more" title="When you need more." rest="Pro and Games are one-off purchases on pro.swiftpieces.com." />
         <Reveal className="grid gap-3 lg:grid-cols-[1.45fr_1fr]">
-          <TileCard href={pro.library} panelClass="h-[340px] sm:h-[420px]" panel={<Phones srcs={[{ src: "/pro-screens/glass-paywall-screen.webp", alt: "" }, { src: "/pro-screens/dashboard-screen.webp", alt: "A SwiftPieces Pro dashboard screen" }]} />}>
-            <Caption
-              meta={<><ProBadge size="sm" /> SwiftPieces Pro</>}
-              title="Building an app?"
-              text="Whole screens, flows and app templates, themed by one design system."
-              facts={[`${proCatalog.screens} screens`, `${proCatalog.flows.total} flows`, `${proCatalog.templates} templates`]}
-            />
-          </TileCard>
-          <TileCard href={pro.games} panelClass="h-[340px] sm:h-[420px]" panel={<Phones srcs={[{ src: "/pro-games/pane.webp", alt: "Pane, a SwiftPieces game" }]} />}>
-            <Caption
-              meta={<><ProBadge tone="games" label="Games" size="sm" /> SwiftPieces Games</>}
-              title="Building a game?"
-              text="Finished iOS games in SwiftUI and Metal, with the full source."
-              facts={[`${proGames.list.length} games`, "Game Center", "StoreKit shop"]}
-            />
-          </TileCard>
+          {template ? (
+            <TileCard href={`${pro.templates}/${template.id}`} panelClass="h-[340px] sm:h-[420px]" panel={<TemplateStill id={template.id} alt={`${template.title}, a SwiftPieces Pro app template`} />}>
+              <Caption
+                meta={<><ProBadge size="sm" /> SwiftPieces Pro · {template.title} template</>}
+                title="Building an app?"
+                text="Whole screens, flows and app templates, themed by one design system."
+                facts={[`${proCatalog.screens} screens`, `${proCatalog.flows.total} flows`, `${proCatalog.templates} templates`]}
+              />
+            </TileCard>
+          ) : null}
+          {game ? (
+            <TileCard href={`${pro.games}/${game.id}`} panelClass="h-[340px] sm:h-[420px]" panel={<Phones srcs={[{ src: `/pro-games/${game.id}.webp`, alt: `${game.title}, a SwiftPieces game` }]} />}>
+              <Caption
+                meta={<><ProBadge tone="games" label="Games" size="sm" /> SwiftPieces Games · {game.title}</>}
+                title="Building a game?"
+                text="Finished iOS games in SwiftUI and Metal, with the full source."
+                facts={[`${proGames.list.length} games`, "Game Center", "StoreKit shop"]}
+              />
+            </TileCard>
+          ) : null}
         </Reveal>
       </section>
     </Container>
@@ -386,71 +427,20 @@ export function AppIconTile() {
   );
 }
 
-/* ---------- Changelog and questions ---------- */
-
-function ListTray({ foot, children }: { foot: ReactNode; children: ReactNode }) {
-  return (
-    <div className="tray">
-      <div className="panel divide-y divide-[var(--line)]">{children}</div>
-      <div className="px-3.5 pt-3.5 pb-2 text-[12.5px] text-subtle">{foot}</div>
-    </div>
-  );
-}
-
-export function Notes({ items }: { items: readonly { q: string; a: string }[] }) {
-  return (
-    <Container className={gap}>
-      <div className="grid gap-10 lg:grid-cols-2 lg:gap-3">
-        <section aria-labelledby="changelog">
-          <Head id="changelog" title="Changelog." rest="What shipped lately." />
-          <Reveal>
-            <ListTray foot={<MoreLink href="/docs/changelog" className="text-[12.5px] font-normal text-subtle hover:text-foreground">Every release</MoreLink>}>
-              {changelog.slice(0, 4).map((c) => (
-                <Link key={c.slug} href={`/docs/changelog/${c.slug}`} className="group grid grid-cols-[88px_minmax(0,1fr)_auto] items-center gap-3 px-[18px] py-[15px] text-[14.5px]">
-                  <span className="text-subtle">{c.date.replace(/, \d{4}$/, "")}</span>
-                  <span className="truncate">{c.title}</span>
-                  <span aria-hidden className="text-subtle transition-transform duration-300 group-hover:translate-x-0.5">→</span>
-                </Link>
-              ))}
-            </ListTray>
-          </Reveal>
-        </section>
-        <section aria-labelledby="questions">
-          <Head id="questions" title="Questions." rest="The rest are in the docs." />
-          <Reveal>
-            <ListTray foot={<MoreLink href="/docs/introduction" className="text-[12.5px] font-normal text-subtle hover:text-foreground">Read the docs</MoreLink>}>
-              {items.map((f) => (
-                <details key={f.q} className="qa group">
-                  <summary className="flex cursor-pointer list-none items-center justify-between gap-6 px-[18px] py-[15px] text-[14.5px] leading-6 [&::-webkit-details-marker]:hidden">
-                    {f.q}
-                    <span aria-hidden className="relative grid size-5 shrink-0 place-items-center text-subtle transition-transform duration-300 group-open:rotate-45">
-                      <span className="absolute h-[1.5px] w-2.5 rounded bg-current" />
-                      <span className="absolute h-2.5 w-[1.5px] rounded bg-current" />
-                    </span>
-                  </summary>
-                  <p className={cn(body, "max-w-[62ch] px-[18px] pb-5 text-[14px] leading-[23px]")}>{f.a}</p>
-                </details>
-              ))}
-            </ListTray>
-          </Reveal>
-        </section>
-      </div>
-    </Container>
-  );
-}
-
 /* ---------- Close ---------- */
 
+/** The close, on the pricing card's ember (the Signature grain, its core rising from the panel's foot), white type over it. */
 export function CloseTile() {
   return (
     <Container className={cn(gap, "pb-20 sm:pb-24")}>
       <Reveal className="tray">
-        <div className="panel px-6 py-16 text-center sm:py-20">
-          <h2 className="text-[26px] leading-[1.2] tracking-[-0.025em] text-balance sm:text-[28px]">Start with a piece.</h2>
-          <p className="mx-auto mt-2 max-w-[420px] text-[15px] leading-[24px] text-muted">Free and open source. Copy it, change it, ship it.</p>
+        <div className="panel isolate px-6 py-20 text-center text-[#fff] sm:py-24">
+          <EmberStage seed="landing-close" core="centre" />
+          <h2 className={cn(heading, "text-[#fff] [text-shadow:0_1px_12px_rgb(0_0_0/0.18)]")}>Start with a piece.</h2>
+          <p className="mx-auto mt-2 max-w-[420px] text-[15px] leading-[24px] text-[#fff]/85">Free and open source. Copy it, change it, ship it.</p>
           <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
-            <Link href="/components" className="btn-solid group inline-flex h-10 items-center gap-2 rounded-[17px] px-[18px] text-[14px] font-medium">Browse components</Link>
-            <a href={pro.home} className="inline-flex h-10 items-center rounded-[17px] border border-[var(--line-strong)] bg-surface-2 px-[18px] text-[14px] font-medium text-foreground hover:bg-surface-3">Explore Pro</a>
+            <Link href="/components" className="inline-flex h-10 items-center rounded-[17px] bg-[#fff] px-[18px] text-[14px] font-medium text-[#141414] transition-colors hover:bg-[#fff]/90">Browse components</Link>
+            <a href={pro.home} className="inline-flex h-10 items-center rounded-[17px] border border-[#fff]/55 px-[18px] text-[14px] font-medium text-[#fff] transition-colors hover:bg-[#fff]/10">Explore Pro</a>
           </div>
         </div>
       </Reveal>
