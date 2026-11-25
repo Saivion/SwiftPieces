@@ -98,19 +98,23 @@ export const proGames = {
     { id: "twine", title: "Twine", genre: "Arcade", line: "One thumb flies two kites through washi paper." },
     { id: "orbit", title: "Orbit", genre: "Idle", line: "A calm idle voyage printed like a travel poster." },
     { id: "wordly", title: "Wordly", genre: "Word", line: "A daily word game set in glazed tiles." },
-    { id: "cairn", title: "Cairn", genre: "Physics", line: "River stones stacked in real 3D physics on a misty loch.", isNew: true },
-    { id: "pane", title: "Pane", genre: "Multiplayer", line: "Two-player strategy in a stained-glass window.", isNew: true },
-    { id: "parlour", title: "Parlour", genre: "Puzzle", line: "Card patience on a linen table in window light.", isNew: true },
-    { id: "thrum", title: "Thrum", genre: "Arcade", line: "A rhythm game on five strings of light.", isNew: true },
-    { id: "ripple", title: "Ripple", genre: "Physics", line: "A wave puzzle drawn in ink on washi.", isNew: true },
+    { id: "cairn", title: "Cairn", genre: "Physics", line: "River stones stacked in real 3D physics on a misty loch." },
+    { id: "pane", title: "Pane", genre: "Multiplayer", line: "Two-player strategy in a stained-glass window." },
+    { id: "parlour", title: "Parlour", genre: "Puzzle", line: "Card patience on a linen table in window light." },
+    { id: "thrum", title: "Thrum", genre: "Arcade", line: "A rhythm game on five strings of light." },
+    { id: "ripple", title: "Ripple", genre: "Physics", line: "A wave puzzle drawn in ink on washi." },
+    { id: "putt", title: "Putt", genre: "Physics", line: "Minigolf on a walnut table, every par solver-checked.", isNew: true },
+    { id: "strike", title: "Strike", genre: "Physics", line: "Ten-pin bowling down an oiled lane with a swipe.", isNew: true },
+    { id: "hopper", title: "Hopper", genre: "Arcade", line: "A spring toy hopping up a tower of painted blocks.", isNew: true },
+    { id: "squish", title: "Squish", genre: "Puzzle", line: "A merge puzzle of translucent gumdrops on a glazed tray.", isNew: true },
   ] as ProGame[],
 } as const;
 
-/** "Drift, Lumen, Twine, Orbit, Wordly, Cairn, Pane, Parlour, Thrum and Ripple". */
+/** "Drift, Lumen, Twine, … and Squish" (namesWithMore). */
 export const proGamesList = namesWithMore(proGames.list.map((g) => g.title));
 
 /** The games in Pro's catalog order (SwiftPiecesPro registry/games/index.ts), as its pricing card lists them. */
-const PRO_ORDER = ["lumen", "drift", "twine", "orbit", "wordly", "cairn", "pane", "parlour", "thrum", "ripple"];
+const PRO_ORDER = ["lumen", "drift", "twine", "orbit", "wordly", "cairn", "pane", "parlour", "thrum", "ripple", "putt", "strike", "hopper", "squish"];
 
 /**
  * The games as Pro's navbar Games menu lists them (SwiftPiecesPro lib/games-nav.ts): the newest wave
