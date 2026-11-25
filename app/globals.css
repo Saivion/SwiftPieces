@@ -75,7 +75,9 @@
 
 /* The Pro badge (2026-11-24, the die-cut sticker chip, Saivion picked A "Foil sweep"): the Pro mark in
    white and the word in white on a foil of the badge's colours, the Signature ramp (pink, orange, red, a
-   wine shadow) swept round the chip and turning once every 7 seconds, under a diagonal white sheen. A white
+   wine shadow) swept round the chip's centre and turning once every 7 seconds, under a diagonal white sheen.
+   2026-11-25 (Saivion picked B "softer core"): the pivot moved from 38% to the centre and the wine core is
+   mixed 70/30 with red over a wider band, so the dark no longer floods one end and snaps through the pivot. A white
    die-cut edge, a soft lift and a small tilt, as if slapped on by hand. Same in both themes. Pro's
    components/layout/pro-badge.tsx and Free's components/ui/pro-badge.tsx share this rule. */
 @property --pb-turn { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
@@ -86,7 +88,7 @@
   border: 1px solid rgb(74 10 8 / 0.25);
   color: #ffffff;
   text-shadow: 0 1px 1px rgb(74 10 8 / 0.25);
-  background: conic-gradient(from calc(210deg + var(--pb-turn)) at 38% 50%, var(--pb-pink), var(--pb-orange) 18%, var(--pb-red) 38%, var(--pb-wine) 55%, var(--pb-red) 72%, var(--pb-orange) 86%, var(--pb-pink));
+  background: conic-gradient(from calc(210deg + var(--pb-turn)) at 50% 50%, var(--pb-pink), var(--pb-orange) 15%, var(--pb-red) 32%, color-mix(in srgb, var(--pb-wine) 70%, var(--pb-red)) 50%, var(--pb-red) 68%, var(--pb-orange) 85%, var(--pb-pink));
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.35), 0 0 0 1.5px #ffffff, 0 1px 2px 1.5px rgb(74 10 8 / 0.14), 0 3px 8px rgb(74 10 8 / 0.12);
   rotate: -3deg;
   animation: pb-turn 7s linear infinite;
@@ -121,7 +123,7 @@ a.pro-badge:hover { rotate: 0deg; box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.
 .pro-badge.games-badge {
   border-color: rgb(42 13 82 / 0.25);
   text-shadow: 0 1px 1px rgb(42 13 82 / 0.3);
-  background: conic-gradient(from calc(210deg + var(--pb-turn)) at 38% 50%, #e0d4ff, #9d7bff 18%, #ff005c 38%, #2a0d52 55%, #ff005c 72%, #9d7bff 86%, #e0d4ff);
+  background: conic-gradient(from calc(210deg + var(--pb-turn)) at 50% 50%, #e0d4ff, #9d7bff 15%, #ff005c 32%, color-mix(in srgb, #2a0d52 70%, #ff005c) 50%, #ff005c 68%, #9d7bff 85%, #e0d4ff);
 }
 
 /* A text link's underline (.u-link, brand theme.css) draws when anywhere on its link is hovered,
