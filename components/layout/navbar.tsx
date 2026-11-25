@@ -155,7 +155,7 @@ export function Navbar({ star, starMobile, docked = false, fresh = 0, promo }: {
           data-condensed={condensed}
           className={cn(
             "nav-glass group/nav relative mx-auto flex items-center justify-between transition-[max-width,height,margin,padding,border-radius,background-color,border-color,box-shadow] duration-500 ease-[var(--ease-out)]",
-            condensed ? "mt-3 h-14 max-w-[1020px] rounded-full pr-2 pl-5" : docked ? DOCKED : "h-[var(--nav-h)] max-w-full rounded-none px-0",
+            condensed ? "mt-3 h-14 max-w-full rounded-full pr-2 pl-5" : docked ? DOCKED : "h-[var(--nav-h)] max-w-full rounded-none px-0",
           )}
           aria-label="Primary"
         >

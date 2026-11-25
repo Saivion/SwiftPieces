@@ -1,10 +1,10 @@
 /**
- * The landing page's type scale. Small and quiet on purpose: one display size for the hero, one heading
- * size for every section (a dark lead and a muted continuation in the same line), and one body size.
+ * The landing page's type scale. Small and quiet on purpose: one title size for the hero and every
+ * section (Saivion, 2026-11-25: all the same size) (a dark lead and a muted continuation in the same line), and one body size.
  * The visuals carry each point; the words only name it.
  */
 export const display = "text-[26px] leading-[1.2] font-normal tracking-[-0.02em] text-balance sm:text-[30px] lg:text-[32px] lg:tracking-[-0.025em]";
-export const heading = "text-[20px] leading-[1.32] font-normal tracking-[-0.012em] text-balance sm:text-[22px]";
+export const heading = display;
 export const body = "text-[15px] leading-[24px] text-pretty text-muted";
 export const small = "text-[13px] leading-[20px] text-muted";
 /** Every section sits this far from its neighbours. */
