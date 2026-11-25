@@ -7,7 +7,7 @@ import { Reveal } from "@/components/effects/reveal";
 import { JsonLd } from "@/components/seo/json-ld";
 import { Cell, Divided, Index } from "@/components/ui/panel";
 import { RowLink, sectionTitle, sectionBody } from "@/components/sections/feature-row";
-import { pageLede, pageTitle } from "@/components/ui/section-header";
+import { Statement, statementGap, statementSection } from "@/components/ui/statement";
 import { BlockGrid } from "@/components/blocks/block-grid";
 import { blockCards } from "@/lib/block-cards";
 import { getBlocks, getProBlocks } from "@/lib/registry";
@@ -54,28 +54,12 @@ export default function PatternsPage() {
   return (
     <>
       <JsonLd data={structuredData} />
-      <section className="relative pt-16 pb-12 md:pt-24 sm:pb-[68px]">
+      <section className={cn("relative pb-12 sm:pb-[68px]", statementSection)}>
         <Container>
-          <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,420px)] lg:items-end lg:gap-16">
-            <Reveal>
-              <SectionLabel className="mb-5">{free ? `${free + paid} patterns · ${free} free` : `${paid} patterns · in Pro`}</SectionLabel>
-              <h1 className={pageTitle}>Patterns</h1>
-              <p className={cn("mt-5 max-w-[560px]", pageLede)}>
-                Whole sections of an iOS screen. The fields, buttons and charts are already laid out, wired together and given their states: drop a pattern into any app and connect it with a closure or two.
-              </p>
-            </Reveal>
-            <Reveal delay={0.1}>
-              <LinkCells
-                links={[
-                  SEO_PATTERNS_ON_PRO
-                    ? { title: "Install a pattern", body: "Every pattern installs with npx swiftpieces add and a Pro license.", href: "/docs/installation" }
-                    : { title: "Browse in the docs", body: "What is inside every pattern and how to install it.", href: "/docs/patterns" },
-                  { title: "Patterns in SwiftPieces Pro", body: "Live previews in every Pro style, with the SwiftUI source.", href: pro.patterns },
-                ]}
-              />
-            </Reveal>
-          </div>
-          <div id="patterns" className="mt-12 scroll-mt-28">
+          <Reveal>
+            <Statement quiet="Laid out, wired and given their states: drop one in and connect it with a closure.">{`${free + paid} patterns, whole sections of an iOS screen.`}</Statement>
+          </Reveal>
+          <div id="patterns" className={cn("scroll-mt-28", statementGap)}>
             <BlockGrid cards={cards} />
           </div>
         </Container>
