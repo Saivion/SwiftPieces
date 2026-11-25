@@ -2,7 +2,7 @@ import { Container } from "@/components/ui/container";
 import { Button, Arrow } from "@/components/ui/button";
 import { NewBadge } from "@/components/ui/new-badge";
 import { Reveal } from "@/components/effects/reveal";
-import { HeroWall } from "@/components/landing/wall";
+import { HeroTile } from "@/components/landing/tiles";
 import { display } from "@/components/landing/type";
 import { pro } from "@/lib/site";
 import { cn } from "@/lib/cn";
@@ -27,7 +27,7 @@ function Actions({ className }: { className?: string }) {
   );
 }
 
-/** The top of the page: the claim set small on the left, then every kind of piece on a wall laid back in perspective. */
+/** The top of the page: the claim set small on the left, then one tile whose panel holds a wall of whole pieces. */
 export function Hero() {
   return (
     <section className="pt-14 sm:pt-20">
@@ -40,9 +40,7 @@ export function Hero() {
         </Reveal>
         <Reveal priority delay={0.2}><Actions className="mt-6" /></Reveal>
       </Container>
-      <Reveal priority delay={0.3} className="mt-4 sm:mt-6">
-        <HeroWall />
-      </Reveal>
+      <HeroTile />
     </section>
   );
 }
