@@ -8,9 +8,9 @@ import { cn } from "@/lib/cn";
  * The title a page opens with (the Library, Blocks, a hub, the legal pages): one step under the
  * landing hero's 74px, the same regular weight and tight tracking.
  */
-export const pageTitle = "text-[34px] leading-[1.04] font-normal tracking-[-0.04em] text-balance sm:text-[42px] lg:text-[48px] lg:tracking-[-0.042em]";
+export const pageTitle = "text-[26px] leading-[1.2] font-normal tracking-[-0.02em] text-balance sm:text-[30px] lg:text-[32px] lg:tracking-[-0.025em]";
 /** The sentence under a page title: the hero's 18/30 muted lede. */
-export const pageLede = "text-[16.5px] leading-[27px] text-pretty text-muted sm:text-[18px] sm:leading-[30px]";
+export const pageLede = "text-[15px] leading-[24px] text-pretty text-muted";
 
 type Props = { label?: string; title: ReactNode; description?: ReactNode; action?: { label: string; href: string; motion?: boolean }; align?: "left" | "center"; size?: "h1" | "h2"; className?: string };
 
