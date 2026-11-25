@@ -14,7 +14,7 @@ const variants: Record<Variant, string> = {
   ghost: "bg-surface text-foreground hover:bg-surface-3",
   outline: "border border-[var(--line-strong)] bg-transparent text-foreground hover:bg-surface",
   dark: "btn-dark",
-  // Get Pro: the Pro badge as a button, foil sweep and die-cut edge (`.btn-pro` in app/globals.css).
+  // Get Pro: black with white type, the Pro mark and the badge's die-cut edge (`.btn-pro` in app/globals.css).
   pro: "btn-pro",
 };
 const sizes: Record<Size, string> = { sm: "h-[38px] px-4 text-[13.5px]", md: "h-[46px] px-[22px] text-[15px]", lg: "h-12 px-6 text-[15px]" };
