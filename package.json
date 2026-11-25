@@ -35,7 +35,7 @@
   ],
   "dependencies": {
     "@databuddy/sdk": "^3.2.1",
-    "@opennextjs/cloudflare": "^1.20.10",
+    "@opennextjs/cloudflare": "^1.20.18",
     "@swiftpieces/brand": "^0.2.0",
     "@swiftpieces/builder": "^0.1.0",
     "fumadocs-core": "^16.15.10",
