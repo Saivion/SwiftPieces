@@ -48,13 +48,13 @@ export default function ComponentsPage() {
   return (
     <>
       <JsonLd data={structuredData} />
-      <section className={cn("relative pb-12 sm:pb-[68px]", statementSection)}>
+      <section className={cn("relative overflow-x-clip pb-12 sm:pb-[68px]", statementSection)}>
         <Container>
           <Reveal>
             <Statement quiet="One Swift file each, copied in by CLI or MCP.">{`${items.length} free SwiftUI components with live previews.`}</Statement>
           </Reveal>
           <div className={statementGap}>
-            <ShowcaseGrid items={items} />
+            <ShowcaseGrid items={items} bleed />
           </div>
         </Container>
 

@@ -495,6 +495,9 @@ html:not([data-motion]) .pro-shimmer { animation-play-state: paused; }
    ≤11px unchanged, 12–13.5px −0.5, 14–16px −1, 17–20px ×0.92, 21–39px ×0.9, ≥40px ×0.88.
    Component previews (the iOS mock screens) are left alone: they size themselves to their stage. */
 @theme {
+  /* Wider than 2xl, for the components grid that runs edge to edge (ShowcaseGrid `bleed`). */
+  --breakpoint-3xl: 112.5rem;
+  --breakpoint-4xl: 137.5rem;
   --text-xs: 0.71875rem;   /* 11.5px (was 12) */
   --text-sm: 0.8125rem;    /* 13px   (was 14) */
   --text-base: 0.9375rem;  /* 15px   (was 16) */
