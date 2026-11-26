@@ -114,10 +114,17 @@ export function ComponentCard({ item, style }: { item: RegistryIndexEntry; style
   );
 }
 
-function CardGrid({ items, narrow }: { items: RegistryIndexEntry[]; narrow?: boolean }) {
+function CardGrid({ items, narrow, bleed }: { items: RegistryIndexEntry[]; narrow?: boolean; bleed?: boolean }) {
   const { ref, layout } = useMasonry(items.map((i) => shapeOf(i).ratio));
   return (
-    <div ref={ref} className={cn("relative grid items-start gap-4 sm:grid-cols-2 lg:grid-cols-3", !narrow && "xl:grid-cols-4")} style={layout ? { height: layout.height } : undefined}>
+    <div
+      ref={ref}
+      className={cn(
+        "relative grid items-start gap-4 sm:grid-cols-2 lg:grid-cols-3",
+        !narrow && "xl:grid-cols-4",
+        // Edge to edge, the page gets wider than the container, so the grid keeps adding columns.
+        bleed && "2xl:grid-cols-5 3xl:grid-cols-6 4xl:grid-cols-7",
+      )} style={layout ? { height: layout.height } : undefined}>
       {/* `contents` makes the tiles the grid's own items, so the reveal group adds no box of its own. */}
       <RevealGroup className="contents" stagger={0.04}>
         {items.map((item, i) => {
@@ -125,15 +132,6 @@ function CardGrid({ items, narrow }: { items: RegistryIndexEntry[]; narrow?: boo
           return <ComponentCard key={item.name} item={item} style={spot ? { position: "absolute", left: spot.left, top: spot.top, width: spot.width } : undefined} />;
         })}
       </RevealGroup>
-    </div>
-  );
-}
-
-function GroupHeading({ label, count, badge, className }: { label: string; count: number; badge?: boolean; className?: string }) {
-  return (
-    <div className={cn("mb-5 flex items-center justify-between gap-4 border-b border-[var(--line)] pb-4", className)}>
-      <h2 className="flex items-center gap-2.5 text-[16px] font-medium tracking-[-0.01em] text-foreground">{label}{badge ? <NewBadge /> : null}</h2>
-      <span className="text-[13px] font-medium tabular-nums text-subtle">{count}</span>
     </div>
   );
 }
@@ -195,24 +193,28 @@ export function FilterButton({ label, count, active, tone, onClick }: { label: s
 }
 
 /**
- * The piece the new wave opens with, in "Just added" and on the New tab; the rest of the wave keeps
+ * The piece the new wave opens with, first on All and on the New tab; the rest of the wave keeps
  * registry order behind it. Once it is no longer new this does nothing, so it never needs undoing.
  */
 const NEW_LEAD = "PictureHeadline";
 
-/** `narrow` caps the grid at three columns, for a docs column rather than the full page. */
-export function ShowcaseGrid({ items, filters = true, limit, narrow }: { items: RegistryIndexEntry[]; filters?: boolean; limit?: number; narrow?: boolean }) {
+/**
+ * `narrow` caps the grid at three columns, for a docs column rather than the full page. `bleed` lets
+ * the cards (only the cards) run past the page container to the window's edges, with a small gutter;
+ * the filters stay inside the container.
+ */
+export function ShowcaseGrid({ items, filters = true, limit, narrow, bleed }: { items: RegistryIndexEntry[]; filters?: boolean; limit?: number; narrow?: boolean; bleed?: boolean }) {
   const [cat, setCat] = useState<string>("all");
   const fresh = useMemo(() => items.filter((i) => i.isNew).sort((a, b) => Number(b.name === NEW_LEAD) - Number(a.name === NEW_LEAD)), [items]);
   // "New" sits right after "All" while anything is new; it disappears with the last badge.
   const cats = useMemo(() => ["all", ...(fresh.length ? ["new"] : []), ...Array.from(new Set(items.map((i) => i.category)))], [items, fresh]);
   const count = (c: string) => (c === "all" ? items.length : c === "new" ? fresh.length : items.filter((i) => i.category === c).length);
+  // On All, the new wave leads the one grid (with its New badges), then everything else in registry order.
+  const all = useMemo(() => [...fresh, ...items.filter((i) => !i.isNew)], [items, fresh]);
   const shown = useMemo(() => {
-    const f = cat === "all" ? items : cat === "new" ? fresh : items.filter((i) => i.category === cat);
+    const f = cat === "all" ? (filters ? all : items) : cat === "new" ? fresh : items.filter((i) => i.category === cat);
     return limit ? f.slice(0, limit) : f;
-  }, [cat, items, fresh, limit]);
-  const split = filters && !limit && cat === "all" && fresh.length > 0;
-  const rest = useMemo(() => items.filter((i) => !i.isNew), [items]);
+  }, [cat, items, all, fresh, filters, limit]);
 
   return (
     <div>
@@ -233,15 +235,11 @@ export function ShowcaseGrid({ items, filters = true, limit, narrow }: { items: 
           </FilterPill>
         </div>
       ) : null}
-      {/* On "All", new pieces get their own group on top and are left out of the grid below, so they
-          are never mixed in with the rest. Every other tab is one grid. */}
-      {split ? (
-        <>
-          <GroupHeading label="Just added" count={fresh.length} badge />
-          <CardGrid key={`${cat}-new`} items={fresh} />
-          <GroupHeading label="All components" count={rest.length} className="mt-20 sm:mt-28" />
-          <CardGrid key={`${cat}-rest`} items={rest} />
-        </>
+      {bleed ? (
+        // Out of the container to the window's edges: 50% - 50vw is the container's distance from them.
+        <div className="mx-[calc(50%-50vw)] px-4 sm:px-6">
+          <CardGrid key={cat} items={shown} bleed />
+        </div>
       ) : (
         <CardGrid key={cat} items={shown} narrow={narrow} />
       )}
