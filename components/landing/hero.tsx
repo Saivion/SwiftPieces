@@ -4,7 +4,7 @@ import { NewBadge } from "@/components/ui/new-badge";
 import { Reveal } from "@/components/effects/reveal";
 import { HeroTile } from "@/components/landing/tiles";
 import { display } from "@/components/landing/type";
-import { HeroLines } from "@/components/visual/hero-lines";
+import { HeroSatin } from "@/components/visual/hero-satin";
 import { pro } from "@/lib/site";
 import { cn } from "@/lib/cn";
 
@@ -31,13 +31,13 @@ function Actions({ className }: { className?: string }) {
 /** The top of the page: the claim set small on the left, then one tile whose panel holds a wall of whole pieces. */
 export function Hero() {
   return (
-    <section className="overflow-x-clip">
-      {/* The silk ribbon of colourful hairlines, as on Pro, running behind the claim above the wall. */}
+    <section className="relative overflow-x-clip">
+      {/* The satin stage, as on Pro (Saivion, 2026-11-26): a rounded panel of lit satin pleats in the
+          Sunset palette, glowing up from behind the wall. Plum in dark mode, light grey in light mode. */}
+      <div aria-hidden className="hero-satin pointer-events-none absolute inset-x-3 top-0 bottom-0 z-0 overflow-hidden rounded-[36px] sm:inset-x-5">
+        <HeroSatin />
+      </div>
       <div className="relative pt-14 pb-24 sm:pt-20 sm:pb-28">
-        {/* Faded out at its foot so the threads melt into the page beside the wall instead of stopping at an edge. */}
-        <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 -top-[calc(var(--nav-h)+var(--promo-h))] [mask-image:linear-gradient(to_bottom,#000_70%,transparent)]">
-          <div className="absolute inset-x-0 bottom-0 top-[calc(var(--nav-h)+var(--promo-h))]"><HeroLines /></div>
-        </div>
         <Container className="relative z-10">
           <Reveal priority><Announcement /></Reveal>
           <Reveal priority delay={0.1}>
