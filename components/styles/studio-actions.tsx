@@ -1,8 +1,8 @@
 "use client";
-// Where a style goes, pinned under the studio's settings: its code (copy it, copy a link to it,
-// paste one in, or see it as Swift: Theme.swift and the App root that wears it), a prompt that
-// hands the whole design to an AI assistant, and straight into one of the free apps in the
-// Playground.
+// Where a style goes, pinned under the studio's settings. One clear action leads: straight into one
+// of the free apps in the Playground. Under it the code as a chip (tap to copy, or paste one in),
+// then square tiles for a link to it, its Swift (Theme.swift and the App root that wears it) and a
+// prompt that hands the whole design to an AI assistant.
 import { useMemo, useRef, useState } from "react";
 import { stylePrompt, styleSwift, type Theme } from "@swiftpieces/builder";
 import { UI } from "@swiftpieces/builder/react";
@@ -21,6 +21,9 @@ async function copy(text: string): Promise<boolean> {
   }
 }
 
+/** A square tile beside the code chip: the chip's tray colour, a 42% corner like every 36px control. */
+const tile = cn("ai-host grid size-9 flex-none place-items-center rounded-[15px] text-foreground focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent", field);
+
 const tool = "ai-host grid size-7 flex-none place-items-center rounded-full text-muted transition-colors hover:bg-surface-3 hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent";
 
 export function StudioActions({ studio, apps, preferred, onNotice }: { studio: Studio; apps: StyleApp[]; preferred: string | null; onNotice: (text: string) => void }) {
@@ -29,63 +32,61 @@ export function StudioActions({ studio, apps, preferred, onNotice }: { studio: S
   // The app the visitor came from (the Playground's palette button) goes first.
   const ordered = useMemo(() => [...apps].sort((a, b) => Number(b.slug === preferred) - Number(a.slug === preferred)), [apps, preferred]);
   const { code } = studio;
+  const prompt = async () => {
+    const text = stylePrompt(studio.theme, { code, link: `${window.location.origin}/styles?style=${code}`, mood: studio.mood?.id, swift: styleSwift(studio.theme, "My").theme });
+    onNotice((await copy(text)) ? "Prompt copied. Paste it into your AI assistant, then say what to build." : "Couldn't copy the prompt.");
+  };
   return (
     <div className="z-10 flex-none border-t border-[var(--line)] bg-surface-2 p-3 max-lg:sticky max-lg:bottom-0">
-      {pasting ? (
-        <form
-          className="flex h-9 items-center gap-1 rounded-full bg-surface pr-1 pl-3.5"
-          onSubmit={(e) => {
-            e.preventDefault();
-            const value = String(new FormData(e.currentTarget).get("code") ?? "");
-            if (!studio.paste(value)) return onNotice("That isn't a style code.");
-            onNotice("Style opened from its code.");
-            setPasting(false);
-          }}
-        >
-          <input name="code" autoFocus spellCheck={false} autoComplete="off" placeholder="Paste a code, SP2-…" aria-label="Style code" onKeyDown={(e) => e.key === "Escape" && setPasting(false)} className="h-full min-w-0 flex-1 bg-transparent font-mono text-[11.5px] text-foreground outline-none placeholder:text-subtle" />
-          <button type="submit" className={tool} aria-label="Open the style" title="Open (Return)">
-            <UI name="check" size={13} />
-          </button>
-          <button type="button" className={tool} aria-label="Cancel" title="Cancel (Esc)" onClick={() => setPasting(false)}>
-            <UI name="close" size={12} />
-          </button>
-        </form>
-      ) : (
-        <div className="flex h-9 items-center gap-0.5 rounded-full bg-surface pr-1 pl-3.5" title="This style as a code: paste it into the Style tab of any Playground">
-          <span className="sr-only">Style code</span>
-          <code className="min-w-0 flex-1 truncate font-mono text-[11.5px] text-foreground tabular-nums">{code}</code>
-          <button type="button" className={tool} aria-label="Copy the style code" title="Copy the style code" onClick={async () => onNotice((await copy(code)) ? "Code copied. Paste it into any Playground's Style tab." : "Couldn't copy. Select the code and copy it.")}>
-            <UI name="copy" size={13} />
-          </button>
-          <button type="button" className={tool} aria-label="Copy a link to this style" title="Copy a link to this style" onClick={async () => onNotice((await copy(`${window.location.origin}/styles?style=${code}`)) ? "Link copied." : "Couldn't copy the link.")}>
-            <UI name="link" size={13} />
-          </button>
-          <button type="button" className={tool} aria-label="Paste a style code" title="Paste a style code" onClick={() => setPasting(true)}>
-            <UI name="paste" size={13} />
-          </button>
-          <button type="button" className={tool} aria-label="Swift for this style" title="Swift for this style: Theme.swift" onClick={() => swift.current?.showModal()}>
-            <UI name="code" size={13} />
-          </button>
-        </div>
-      )}
-      {/* A narrow panel (under 316px) keeps "Open in the Playground" whole and shows the prompt as its icon. */}
-      <div className="@container mt-1.5 flex gap-1.5">
-        <button
-          type="button"
-          aria-label="Copy prompt"
-          title="Copy a prompt that gives an AI assistant this whole design: colors, fonts, shape, spacing, motion and Theme.swift"
-          onClick={async () => {
-            const prompt = stylePrompt(studio.theme, { code, link: `${window.location.origin}/styles?style=${code}`, mood: studio.mood?.id, swift: styleSwift(studio.theme, "My").theme });
-            onNotice((await copy(prompt)) ? "Prompt copied. Paste it into your AI assistant, then say what to build." : "Couldn't copy the prompt.");
-          }}
-          className={cn("ai-host inline-flex h-9 flex-none items-center justify-center gap-1.5 rounded-full px-2.5 text-[12.5px] font-semibold whitespace-nowrap text-foreground focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent @[316px]:px-3", field)}
-        >
-          <UI name="prompt" size={14} />
-          <span aria-hidden className="hidden @[316px]:inline">
-            Copy prompt
-          </span>
+      {/* One clear action first: the Playground, showing the apps it opens. */}
+      <OpenMenu apps={ordered} code={code} />
+      <div className="mt-1.5 flex gap-1.5">
+        {pasting ? (
+          <form
+            className="flex h-9 min-w-0 flex-1 items-center gap-0.5 rounded-full bg-surface pr-1 pl-3.5"
+            onSubmit={(e) => {
+              e.preventDefault();
+              const value = String(new FormData(e.currentTarget).get("code") ?? "");
+              if (!studio.paste(value)) return onNotice("That isn't a style code.");
+              onNotice("Style opened from its code.");
+              setPasting(false);
+            }}
+          >
+            <input name="code" autoFocus spellCheck={false} autoComplete="off" placeholder="Paste a code, SP2-…" aria-label="Style code" onKeyDown={(e) => e.key === "Escape" && setPasting(false)} className="h-full min-w-0 flex-1 bg-transparent font-mono text-[11.5px] text-foreground outline-none placeholder:text-subtle" />
+            <button type="submit" className={tool} aria-label="Open the style" title="Open (Return)">
+              <UI name="check" size={13} />
+            </button>
+            <button type="button" className={tool} aria-label="Cancel" title="Cancel (Esc)" onClick={() => setPasting(false)}>
+              <UI name="close" size={12} />
+            </button>
+          </form>
+        ) : (
+          // The code as a chip: tap it to copy; its end opens a paste field for someone else's code.
+          <div className={cn("flex h-9 min-w-0 flex-1 items-center rounded-full pr-1", field)}>
+            <button
+              type="button"
+              title="Copy the style code: paste it into the Style tab of any Playground"
+              aria-label="Copy the style code"
+              onClick={async () => onNotice((await copy(code)) ? "Code copied. Paste it into any Playground's Style tab." : "Couldn't copy. Select the code and copy it.")}
+              className="ai-host flex h-full min-w-0 flex-1 items-center gap-2 rounded-full pl-3 text-left focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent"
+            >
+              <span className="flex-none text-muted"><UI name="copy" size={13} /></span>
+              <code className="min-w-0 flex-1 truncate font-mono text-[11.5px] text-foreground tabular-nums">{code}</code>
+            </button>
+            <button type="button" className={tool} aria-label="Paste a style code" title="Paste a style code" onClick={() => setPasting(true)}>
+              <UI name="paste" size={13} />
+            </button>
+          </div>
+        )}
+        <button type="button" className={tile} aria-label="Copy a link to this style" title="Copy a link to this style" onClick={async () => onNotice((await copy(`${window.location.origin}/styles?style=${code}`)) ? "Link copied." : "Couldn't copy the link.")}>
+          <UI name="link" size={14} />
         </button>
-        <OpenMenu apps={ordered} code={code} />
+        <button type="button" className={tile} aria-label="Swift for this style" title="Swift for this style: Theme.swift" onClick={() => swift.current?.showModal()}>
+          <UI name="code" size={14} />
+        </button>
+        <button type="button" className={tile} aria-label="Copy prompt" title="Copy a prompt that gives an AI assistant this whole design: colors, fonts, shape, spacing, motion and Theme.swift" onClick={prompt}>
+          <UI name="prompt" size={14} />
+        </button>
       </div>
       <SwiftDialog ref={swift} theme={studio.theme} onNotice={onNotice} />
     </div>
@@ -97,10 +98,18 @@ function OpenMenu({ apps, code }: { apps: StyleApp[]; code: string }) {
   const first = apps[0];
   if (!first) return null;
   return (
-    <details className="group/open relative flex-1">
-      <summary className="btn-solid ai-host flex h-9 cursor-pointer list-none items-center justify-center gap-1.5 rounded-full px-3 text-[12.5px] font-semibold whitespace-nowrap [&::-webkit-details-marker]:hidden">
-        Open in the Playground
-        <svg aria-hidden viewBox="0 0 16 16" className="size-3 transition-transform duration-200 group-open/open:rotate-180" fill="none" stroke="currentColor" strokeWidth="1.8">
+    <details className="group/open relative">
+      <summary className="btn-solid ai-host flex h-10 cursor-pointer list-none items-center justify-between gap-2 rounded-full pr-3.5 pl-3 text-[13.5px] font-semibold whitespace-nowrap [&::-webkit-details-marker]:hidden">
+        <span className="flex min-w-0 items-center gap-2.5">
+          {/* The apps it opens, as a little stack of their icons. */}
+          <span aria-hidden className="flex flex-none">
+            {apps.slice(0, 3).map((a, i) => (
+              <img key={a.slug} src={a.icon} alt="" width={18} height={18} className={cn("size-[18px] rounded-[5.5px] ring-[1.5px] ring-[var(--foreground)]", i > 0 && "-ml-1.5")} />
+            ))}
+          </span>
+          <span className="truncate">Open in the Playground</span>
+        </span>
+        <svg aria-hidden viewBox="0 0 16 16" className="size-3 flex-none opacity-60 transition-transform duration-200 group-open/open:rotate-180" fill="none" stroke="currentColor" strokeWidth="1.8">
           <path d="M4 10l4-4 4 4" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </summary>
