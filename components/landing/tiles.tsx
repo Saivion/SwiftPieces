@@ -369,7 +369,7 @@ export function MoreTiles() {
         <Head id="more" title="When you need more." rest="Pro and Games are one-off purchases on pro.swiftpieces.com." />
         <Reveal className="grid gap-3 lg:grid-cols-[1.45fr_1fr]">
           {template ? (
-            <TileCard href={`${pro.templates}/${template.id}`} panelClass="h-[340px] sm:h-[420px]" panel={<TemplateStill id={template.id} alt={`${template.title}, a SwiftPieces Pro app template`} />}>
+            <TileCard href={pro.pricing} panelClass="h-[340px] sm:h-[420px]" panel={<TemplateStill id={template.id} alt={`${template.title}, a SwiftPieces Pro app template`} />}>
               <Caption
                 meta={<><ProBadge size="sm" /> SwiftPieces Pro · {template.title} template</>}
                 title="Building an app?"
@@ -379,7 +379,7 @@ export function MoreTiles() {
             </TileCard>
           ) : null}
           {game ? (
-            <TileCard href={`${pro.games}/${game.id}`} panelClass="h-[340px] sm:h-[420px]" panel={<Phones srcs={[{ src: `/pro-games/${game.id}.webp`, alt: `${game.title}, a SwiftPieces game` }]} />}>
+            <TileCard href={pro.games} panelClass="h-[340px] sm:h-[420px]" panel={<Phones srcs={[{ src: `/pro-games/${game.id}.webp`, alt: `${game.title}, a SwiftPieces game` }]} />}>
               <Caption
                 meta={<><ProBadge tone="games" label="Games" size="sm" /> SwiftPieces Games · {game.title}</>}
                 title="Building a game?"
