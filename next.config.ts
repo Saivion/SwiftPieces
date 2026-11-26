@@ -81,6 +81,12 @@ const PATTERNS_TO_PRO = SEO_PATTERNS_ON_PRO
     [PATTERN_SLUGS.hub, ...PATTERN_SLUGS.patterns].map((p) => ({ source: p.free, destination: `${PRO_SITE}${p.pro}`, statusCode: 301 as const }))
   : [];
 
+/** Where an old Free pattern doc ends up: its Pro page when Patterns live on Pro, else the Free doc. */
+function patternDestination(freePath: string): string {
+  const hit = SEO_PATTERNS_ON_PRO ? PATTERN_SLUGS.patterns.find((p) => p.free === freePath) : undefined;
+  return hit ? `${PRO_SITE}${hit.pro}` : freePath;
+}
+
 const config: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
@@ -108,7 +114,7 @@ const config: NextConfig = {
       { source: "/docs/changelog/:slug(pro-riso-phosphor-templates|five-new-games|eleven-everyday-pieces|smart-text-match-highlight-text-diff)", destination: "/docs/changelog/games-pieces-and-styles", permanent: true },
       { source: "/changelog/:slug", destination: "/docs/changelog/:slug", permanent: true },
       // The free screens gallery became the app library.
-      { source: "/screens", destination: "/apps", permanent: false },
+      { source: "/screens", destination: "/apps", permanent: true },
       // The Playground is one page per app now (/playground/lungy). Its catalog pages, and the old
       // per-pattern pages, lead to the app's Playground when there is one, else to the app library.
       { source: "/playground", destination: "/apps", permanent: false },
@@ -128,12 +134,13 @@ const config: NextConfig = {
       // The docs sidebar's category folders have no page of their own; their URL leads to the hub.
       { source: `/docs/components/:category(${CATEGORY_SLUGS})`, destination: "/components/:category", permanent: true },
       // Pattern categories are sidebar folders too, with no page of their own: their URL leads to the patterns.
-      { source: `/docs/patterns/:category(${BLOCK_CATEGORY_SLUGS})`, destination: "/patterns", permanent: false },
+      { source: `/docs/patterns/:category(${BLOCK_CATEGORY_SLUGS})`, destination: "/patterns", permanent: true },
       // Blocks became Patterns on 2026-10-24, in Pro's categories, as on pro.swiftpieces.com. The first six kept
       // their slugs; two moved category (Invite Friends to Settings, Stats Overview to Dashboards).
       { source: "/blocks", destination: "/patterns", permanent: true },
-      { source: "/docs/blocks", destination: "/docs/patterns", permanent: true },
-      ...legacyBlockDocs.map(([from, to]) => ({ source: `/docs/blocks/${from}`, destination: `/docs/patterns/${to}`, permanent: true })),
+      // Straight to the final page: when Patterns live on Pro, a hop through /docs/patterns would be a redirect chain.
+      { source: "/docs/blocks", destination: SEO_PATTERNS_ON_PRO ? `${PRO_SITE}${PATTERN_SLUGS.hub.pro}` : "/docs/patterns", statusCode: 301 as const },
+      ...legacyBlockDocs.map(([from, to]) => ({ source: `/docs/blocks/${from}`, destination: patternDestination(`/docs/patterns/${to}`), statusCode: 301 as const })),
       { source: "/docs/blocks/:path*", destination: "/patterns", permanent: true },
     ];
   },
