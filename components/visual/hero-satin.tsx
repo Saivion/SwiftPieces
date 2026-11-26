@@ -16,7 +16,7 @@ const PALETTES = {
 
 const VS = `attribute vec2 a;void main(){gl_Position=vec4(a,0.,1.);}`;
 const FS = `precision highp float;
-uniform vec2 res;uniform float t,seed;uniform vec3 PC[6];uniform vec3 PS;
+uniform vec2 res;uniform float t,seed,K;uniform vec3 PC[6];uniform vec3 PS;
 float hash(vec2 p){return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453);}
 vec3 ramp(float x){x=clamp(x,0.,1.)*5.;
   if(x<1.)return mix(PC[0],PC[1],x);if(x<2.)return mix(PC[1],PC[2],x-1.);if(x<3.)return mix(PC[2],PC[3],x-2.);if(x<4.)return mix(PC[3],PC[4],x-3.);return mix(PC[4],PC[5],x-4.);}
@@ -39,6 +39,8 @@ void main(){
   vec3 col=ramp(x+h*.07*m+(1.-dif)*m*.34);
   col=mix(col,PS,spec*.45*m);
   col+=.06*(1.-smoothstep(0.,.6,d))*PS;
+  // strength: fade the satin back toward the ground, and take some colour out
+  col=mix(PC[5],col,K); col=mix(vec3(dot(col,vec3(.299,.587,.114))),col,.55+.45*K);
   col+=(hash(gl_FragCoord.xy+seed)-.5)*.045;
   gl_FragColor=vec4(clamp(col,0.,1.),1.);
 }`;
@@ -85,6 +87,8 @@ export function HeroSatin({ className }: { className?: string }) {
     gl.uniform3fv(U("PS"), hex(pal.sheen));
     // Seeded so each mount's grain differs.
     gl.uniform1f(U("seed"), Math.random() * 1000);
+    // Strength 0.65 (Saivion: full strength read too bright).
+    gl.uniform1f(U("K"), 0.65);
     const uT = U("t");
     const uRes = U("res");
 
