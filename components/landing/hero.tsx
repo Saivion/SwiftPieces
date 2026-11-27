@@ -4,7 +4,7 @@ import { NewBadge } from "@/components/ui/new-badge";
 import { Reveal } from "@/components/effects/reveal";
 import { HeroTile } from "@/components/landing/tiles";
 import { display } from "@/components/landing/type";
-import { HeroFluted } from "@/components/visual/hero-fluted";
+import { HeroSmear } from "@/components/visual/hero-smear";
 import { pro } from "@/lib/site";
 import { cn } from "@/lib/cn";
 
@@ -35,7 +35,7 @@ export function Hero() {
       {/* The fluted glass runs from the top of the page down behind the wall, so it never stops at an edge:
           it fades in under the bar and out below the wall, and the wall stands in front of it. */}
       <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 -top-[calc(var(--nav-h)+var(--promo-h))] [mask-image:linear-gradient(to_bottom,#000_75%,transparent)]">
-        <HeroFluted centre={[0.62, 0.62]} radius={[0.55, 0.42]} wave={10} veil={{ x: 0.26, y: 0.3, rx: 0.26, ry: 0.16 }} fade={[40, 0]} className="absolute inset-0 block h-full w-full" />
+        <HeroSmear centre={[0.5, 1]} scale={0.82} veil={{ x: 0.28, y: 0.27, rx: 0.26, ry: 0.16 }} fade={[40, 0]} className="absolute inset-0 block h-full w-full" />
       </div>
       <div className="relative pt-14 pb-24 sm:pt-20 sm:pb-28">
         <Container className="relative z-10">
