@@ -1074,7 +1074,3 @@ html.light .aura { --aura-o: 0.34; }
 .rounded-full.h-\[56px\]:not(.w-\[56px\]):not(.size-\[56px\]):not(.aspect-square):not(:where(.stage-dark, [class*="aspect-[9/19.5]"]) *) { border-radius: calc(56px * var(--pill-k)); }
 /* Inline code chips take the fluid corner too, sized from their own line (≈1.75em tall). */
 :not(pre) > code { border-radius: calc(1.75em * var(--pill-k)); }
-
-/* The hero's satin stage (hero-satin.tsx): its colours before the canvas paints, Sunset on plum or light grey. */
-.hero-satin { background: radial-gradient(70% 60% at 50% 100%, #ff8a5c, #e8456b 45%, #3d0f2e 75%, #120612); }
-.light .hero-satin { background: radial-gradient(70% 60% at 50% 100%, #ffc9a3, #ec5a72 45%, #f5c3b6 72%, #e9e8e5); }
