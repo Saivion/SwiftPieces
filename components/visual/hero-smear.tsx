@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 /**
  * The hero's spectral smear (Saivion, 2026-11-27): the pricing card's ember arcs (pink core, blush, orange,
  * red, wine) rising from behind the screens, their outer edge dragged into grainy streaks that split into a
- * spectral fringe (peach, hot pink, electric violet, ink blue) and fade into the page. One fragment shader on
+ * fringe in the same pricing-card colours (pink, orange, red, wine) and fade into the page. One fragment shader on
  * a transparent canvas over the plain page, so the screens stand in front and both themes keep their ground.
  * The copy keeps a clear oval. The streaks flow on a seamless loop, it pauses off screen, and Reduce Motion
  * gets a still.
@@ -16,7 +16,7 @@ export type SmearVeil = { x: number; y: number; rx: number; ry: number };
 
 const hex = (h: string) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16) / 255);
 const RAMP = ["#ffc1d6", "#ffeae2", "#ff8a5c", "#f2361c", "#4a0a08"];
-const SPEC = ["#ffb38a", "#ff3d7a", "#6a3cff", "#2b1fa8"];
+const SPEC = ["#ffc1d6", "#ff8a5c", "#f2361c", "#4a0a08"];
 const STOPS = [0.555, 0.625, 0.672, 0.715, 0.8];
 /** One loop of the streaks, in seconds. */
 const LOOP = 9;
