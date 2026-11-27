@@ -18,13 +18,16 @@ uniform vec2 res,C,R;uniform vec4 VEIL;uniform vec3 FADE;uniform float AMP;unifo
 vec3 ember(float x){x=clamp(x,0.,1.);
   vec3 w=vec3(.29,.039,.031),r=vec3(.949,.212,.110),o=vec3(1.,.541,.361),p=vec3(1.,.757,.839),b=vec3(1.,.93,.92);
   if(x<.22)return mix(w,r,x/.22);if(x<.48)return mix(r,o,(x-.22)/.26);if(x<.74)return mix(o,p,(x-.48)/.26);return mix(p,b,(x-.74)/.26);}
-float glow(vec2 px){vec2 q=(px-C*res)/(R*res.x);return clamp(1.-length(q),0.,1.);}
+float glow(vec2 px){
+  // the glow drifts and breathes a little as the ribs sway
+  vec2 c=C+vec2(sin(t*.09),cos(t*.07))*.02*step(.01,AMP);
+  vec2 q=(px-c*res)/(R*res.x*(1.+.04*sin(t*.11)*step(.01,AMP)));return clamp(1.-length(q),0.,1.);}
 void main(){
   vec2 px=vec2(gl_FragCoord.x,res.y-gl_FragCoord.y);
   float s=res.x/1440.;
   // tall ribs, bent by a slow wave
   float w=34.*s;
-  float bx=px.x+sin(px.y/(150.*s)+px.x/(520.*s)+t*.12)*AMP*s;
+  float bx=px.x+sin(px.y/(150.*s)+px.x/(520.*s)+t*.22)*AMP*s;
   float x=fract(bx/w)*2.-1.;
   // each rib is a lens: it shifts the glow it shows sideways
   float I=glow(px+vec2(-x*w*1.6,0.));

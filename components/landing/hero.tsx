@@ -31,13 +31,13 @@ function Actions({ className }: { className?: string }) {
 /** The top of the page: the claim set small on the left, then one tile whose panel holds a wall of whole pieces. */
 export function Hero() {
   return (
-    <section className="overflow-x-clip">
-      {/* The silk ribbon of colourful hairlines, as on Pro, running behind the claim above the wall. */}
+    <section className="relative overflow-x-clip">
+      {/* The fluted glass runs from the top of the page down behind the wall, so it never stops at an edge:
+          it fades in under the bar and out below the wall, and the wall stands in front of it. */}
+      <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 -top-[calc(var(--nav-h)+var(--promo-h))] [mask-image:linear-gradient(to_bottom,#000_75%,transparent)]">
+        <HeroFluted centre={[0.62, 0.62]} radius={[0.55, 0.42]} wave={10} veil={{ x: 0.26, y: 0.3, rx: 0.26, ry: 0.16 }} fade={[40, 0]} className="absolute inset-0 block h-full w-full" />
+      </div>
       <div className="relative pt-14 pb-24 sm:pt-20 sm:pb-28">
-        {/* Faded out at its foot so the threads melt into the page beside the wall instead of stopping at an edge. */}
-        <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 -top-[calc(var(--nav-h)+var(--promo-h))] [mask-image:linear-gradient(to_bottom,#000_70%,transparent)]">
-          <div className="absolute inset-x-0 bottom-0 top-[calc(var(--nav-h)+var(--promo-h))]"><HeroFluted centre={[0.62, 1.12]} radius={[0.55, 0.34]} wave={0} veil={{ x: 0.26, y: 0.55, rx: 0.26, ry: 0.3 }} fade={[40, 0]} className="absolute inset-0 block h-full w-full" /></div>
-        </div>
         <Container className="relative z-10">
           <Reveal priority><Announcement /></Reveal>
           <Reveal priority delay={0.1}>
