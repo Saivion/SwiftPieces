@@ -14,7 +14,7 @@ export type FlutedVeil = { x: number; y: number; rx: number; ry: number };
 
 const VS = `attribute vec2 a;void main(){gl_Position=vec4(a,0.,1.);}`;
 const FS = `precision highp float;
-uniform vec2 res,C,R;uniform vec4 VEIL;uniform float t,dark;
+uniform vec2 res,C,R;uniform vec4 VEIL;uniform vec3 FADE;uniform float AMP;uniform float t,dark;
 vec3 ember(float x){x=clamp(x,0.,1.);
   vec3 w=vec3(.29,.039,.031),r=vec3(.949,.212,.110),o=vec3(1.,.541,.361),p=vec3(1.,.757,.839),b=vec3(1.,.93,.92);
   if(x<.22)return mix(w,r,x/.22);if(x<.48)return mix(r,o,(x-.22)/.26);if(x<.74)return mix(o,p,(x-.48)/.26);return mix(p,b,(x-.74)/.26);}
@@ -24,7 +24,7 @@ void main(){
   float s=res.x/1440.;
   // tall ribs, bent by a slow wave
   float w=34.*s;
-  float bx=px.x+sin(px.y/(150.*s)+px.x/(520.*s)+t*.12)*26.*s;
+  float bx=px.x+sin(px.y/(150.*s)+px.x/(520.*s)+t*.12)*AMP*s;
   float x=fract(bx/w)*2.-1.;
   // each rib is a lens: it shifts the glow it shows sideways
   float I=glow(px+vec2(-x*w*1.6,0.));
@@ -35,6 +35,13 @@ void main(){
   o+=vec4(1.)*pow(abs(x),12.)*.25*smoothstep(0.,.3,I2)*(dark>.5?.6:1.);
   vec2 e=(px-VEIL.xy*res)/(VEIL.zw*res);
   o*=smoothstep(.75,1.25,length(e));
+  // fade out before the canvas ends, so the glass never stops at a hard edge over the next section
+  // (narrower windows fade over a shorter run, so phones keep their glow)
+  float dpr=res.x/max(FADE.x,1.);
+  float from=FADE.z+(FADE.y-FADE.z)*clamp(FADE.x/1000.,.4,1.);
+  o*=1.-smoothstep(res.y-from*dpr,res.y-FADE.z*dpr,px.y);
+  // and in from the top edge, so a glow that reaches it never shows a hard line
+  o*=smoothstep(0.,90.*dpr,px.y);
   gl_FragColor=clamp(o,0.,1.);
 }`;
 
@@ -42,17 +49,24 @@ export function HeroFluted({
   centre = [0.5, 0.9],
   radius = [0.66, 0.5],
   veil = { x: 0.5, y: 0.3, rx: 0.34, ry: 0.15 },
+  fade = [320, 160],
+  wave = 26,
   className,
 }: {
   centre?: [number, number];
   radius?: [number, number];
   veil?: FlutedVeil;
+  /** Fade out from this many css px above the canvas's bottom edge to this many. */
+  fade?: [number, number];
+  /** How far the ribs bend, in css px at 1440 wide; 0 keeps them straight. */
+  wave?: number;
   className?: string;
 }) {
   const ref = useRef<HTMLCanvasElement>(null);
   const [cx, cy] = centre;
   const [rx, ry] = radius;
   const { x: vx, y: vy, rx: vrx, ry: vry } = veil;
+  const [fadeFrom, fadeTo] = fade;
 
   useEffect(() => {
     const cv = ref.current;
@@ -81,13 +95,16 @@ export function HeroFluted({
     const uT = U("t");
     const uRes = U("res");
     const uDark = U("dark");
+    const uFade = U("FADE");
+    gl.uniform1f(U("AMP"), wave);
 
     // The theme lives on <html> (theme-script.tsx); the rib highlight is softer on dark.
     const root = document.documentElement;
     const readTheme = () => gl.uniform1f(uDark, root.classList.contains("dark") ? 1 : 0);
     readTheme();
 
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    // straight ribs have nothing to animate, so they draw once like Reduce Motion
+    const reduced = wave === 0 || window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     let raf = 0;
     let visible = true;
     const t0 = performance.now();
@@ -111,6 +128,8 @@ export function HeroFluted({
       cv.height = Math.max(1, Math.round(e.contentRect.height * dpr));
       gl.viewport(0, 0, cv.width, cv.height);
       gl.uniform2f(uRes, cv.width, cv.height);
+      // css width, then where the fade starts and ends, in css px above the bottom edge
+      gl.uniform3f(uFade, e.contentRect.width, fadeFrom, fadeTo);
       draw(performance.now());
     });
     ro.observe(cv);
@@ -125,7 +144,7 @@ export function HeroFluted({
       ro.disconnect();
       io.disconnect();
     };
-  }, [cx, cy, rx, ry, vx, vy, vrx, vry]);
+  }, [cx, cy, rx, ry, vx, vy, vrx, vry, fadeFrom, fadeTo, wave]);
 
   return <canvas ref={ref} aria-hidden className={className ?? "pointer-events-none absolute inset-x-0 -top-[var(--nav-h)] z-0 block h-[calc(100%+var(--nav-h)+160px)] w-full"} />;
 }
