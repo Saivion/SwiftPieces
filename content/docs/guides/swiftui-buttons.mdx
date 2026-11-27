@@ -144,6 +144,98 @@ struct ElasticUsageExample: View {
 }
 ```
 
+## More button styles to copy
+
+Most apps need three or four styles: a filled primary, a quieter secondary, a round icon button, and a destructive variant. Each one below is a complete `ButtonStyle` with its own pressed and disabled states.
+
+**Outline.** A secondary action that keeps the primary's shape:
+
+```swift
+struct OutlineButtonStyle: ButtonStyle {
+    @Environment(\.isEnabled) private var isEnabled
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.body.weight(.semibold))
+            .foregroundStyle(isEnabled ? Color.primary : Color.secondary)
+            .padding(.horizontal, 24)
+            .frame(minHeight: 52)
+            .background(configuration.isPressed ? Color.primary.opacity(0.08) : .clear, in: Capsule())
+            .overlay(Capsule().strokeBorder(Color.primary.opacity(isEnabled ? 0.3 : 0.12), lineWidth: 1.5))
+            .scaleEffect(configuration.isPressed ? 0.97 : 1)
+            .animation(.snappy(duration: 0.2), value: configuration.isPressed)
+    }
+}
+```
+
+**Icon.** A circular button with a 44-point minimum, for toolbars and media controls:
+
+```swift
+struct IconButtonStyle: ButtonStyle {
+    var size: CGFloat = 44
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.body.weight(.semibold))
+            .labelStyle(.iconOnly)
+            .frame(width: max(size, 44), height: max(size, 44))
+            .background(.quaternary, in: Circle())
+            .contentShape(Circle())
+            .scaleEffect(configuration.isPressed ? 0.9 : 1)
+            .animation(.spring(duration: 0.25, bounce: 0.3), value: configuration.isPressed)
+    }
+}
+```
+
+Use it with a `Label` so VoiceOver still has a title: `Button("Favorite", systemImage: "heart") {}.buttonStyle(IconButtonStyle())`.
+
+**Role-aware.** One style that turns red for destructive buttons, read from `configuration.role`:
+
+```swift
+struct RoleButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        let isDestructive = configuration.role == .destructive
+
+        configuration.label
+            .font(.body.weight(.semibold))
+            .foregroundStyle(.white)
+            .padding(.horizontal, 24)
+            .frame(minHeight: 52)
+            .background(isDestructive ? Color.red : Color.accentColor, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .opacity(configuration.isPressed ? 0.8 : 1)
+    }
+}
+```
+
+With this, `Button("Delete", role: .destructive) {}` and `Button("Save") {}` share one style and still look different, so a role set for VoiceOver and alerts also drives the color.
+
+To apply a style to every button in a screen, set it once on a container: `.buttonStyle(.pressScale)` on a `VStack` styles all the buttons inside it, and a nearer `.buttonStyle` overrides it for one button.
+
+## Running the action
+
+The action closure runs on the main actor when the tap ends inside the button. Keep it short: change state, or start a `Task` for anything that waits.
+
+```swift
+struct SaveButton: View {
+    @State private var isSaving = false
+
+    var body: some View {
+        Button("Save") {
+            Task {
+                isSaving = true
+                defer { isSaving = false }
+                try? await Task.sleep(for: .seconds(1))
+            }
+        }
+        .disabled(isSaving)
+    }
+}
+```
+
+- A `Button` fires on release, not on touch down, and not at all if the finger slides off first. That is the behavior people expect; do not move the action into a touch-down gesture to make the app feel faster.
+- Disable the button while the work runs, so a second tap does not start a second request. The [loading button](#a-loading-button-with-success-and-error-states) below adds the visible states.
+- For an action with a keyboard shortcut on iPad or Mac, add `.keyboardShortcut(.defaultAction)` to the primary button, so Return triggers it.
+
 ## Haptics on press
 
 `sensoryFeedback` (iOS 17) plays a haptic when a value changes. Attach it to the button and trigger it from the action:
