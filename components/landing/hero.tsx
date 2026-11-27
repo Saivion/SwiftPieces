@@ -4,7 +4,7 @@ import { NewBadge } from "@/components/ui/new-badge";
 import { Reveal } from "@/components/effects/reveal";
 import { HeroTile } from "@/components/landing/tiles";
 import { display } from "@/components/landing/type";
-import { HeroLines } from "@/components/visual/hero-lines";
+import { HeroFluted } from "@/components/visual/hero-fluted";
 import { pro } from "@/lib/site";
 import { cn } from "@/lib/cn";
 
@@ -36,7 +36,7 @@ export function Hero() {
       <div className="relative pt-14 pb-24 sm:pt-20 sm:pb-28">
         {/* Faded out at its foot so the threads melt into the page beside the wall instead of stopping at an edge. */}
         <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 -top-[calc(var(--nav-h)+var(--promo-h))] [mask-image:linear-gradient(to_bottom,#000_70%,transparent)]">
-          <div className="absolute inset-x-0 bottom-0 top-[calc(var(--nav-h)+var(--promo-h))]"><HeroLines /></div>
+          <div className="absolute inset-x-0 bottom-0 top-[calc(var(--nav-h)+var(--promo-h))]"><HeroFluted centre={[0.7, 1.08]} radius={[0.42, 0.3]} veil={{ x: 0.26, y: 0.55, rx: 0.26, ry: 0.3 }} className="absolute inset-0 block h-full w-full" /></div>
         </div>
         <Container className="relative z-10">
           <Reveal priority><Announcement /></Reveal>
