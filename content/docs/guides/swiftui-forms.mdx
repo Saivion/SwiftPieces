@@ -1,0 +1,420 @@
+---
+title: "SwiftUI Forms: Form, Text Fields, Pickers and Validation"
+description: "How to build a SwiftUI form: Form and Section, text fields with focus, a keyboard Done button, pickers and steppers, and validation that waits. With SwiftPieces inputs."
+---
+
+A SwiftUI form is a `Form` view: a scrolling container that lays out rows of controls in grouped sections and styles each control for settings and data entry. You put `TextField`, `Toggle`, `Picker`, `Stepper` and `DatePicker` inside it, group them with `Section`, and SwiftUI handles the insets, separators and platform look.
+
+This guide builds a sign-up form from the container up: sections and footers, text fields with keyboard types and focus, moving between fields with Return, a Done button above the keyboard, every common control, validation that only speaks once the user is finished, and a submit button that cannot fire twice. It ends with when to leave `Form` behind for a custom layout. Every snippet targets iOS 17 and uses only Apple frameworks.
+
+## Form and Section
+
+```swift
+struct SettingsForm: View {
+    @State private var name = ""
+    @State private var notifications = true
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("Profile") {
+                    TextField("Name", text: $name)
+                    LabeledContent("Plan", value: "Free")
+                }
+
+                Section {
+                    Toggle("Notifications", isOn: $notifications)
+                } header: {
+                    Text("Alerts")
+                } footer: {
+                    Text("We only send alerts for activity on your own items.")
+                }
+            }
+            .navigationTitle("Settings")
+        }
+    }
+}
+```
+
+- `Section("Title")` gives a section a header. The `header:` and `footer:` form takes any view. Footers are the right place for the one sentence of help a group needs.
+- `LabeledContent` draws a read-only row with a label and a trailing value, the way Settings shows a version number. It also wraps a custom control so it lines up with the system rows: `LabeledContent("Size") { MyPicker() }`.
+- `Form` is a `List` underneath on iOS, so list modifiers work: `.listRowBackground`, `.listSectionSpacing(.compact)` (iOS 17) and `.scrollContentBackground(.hidden)` to replace the grouped background with your own.
+
+## Text fields that fit their content
+
+The keyboard, autofill and autocorrection should match what the field holds. Getting these right is most of what makes a form feel native.
+
+```swift
+struct ContactFields: View {
+    @State private var email = ""
+    @State private var phone = ""
+    @State private var password = ""
+    @State private var bio = ""
+
+    var body: some View {
+        Form {
+            TextField("Email", text: $email, prompt: Text("you@example.com"))
+                .keyboardType(.emailAddress)
+                .textContentType(.emailAddress)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+
+            TextField("Phone", text: $phone)
+                .keyboardType(.phonePad)
+                .textContentType(.telephoneNumber)
+
+            SecureField("Password", text: $password)
+                .textContentType(.newPassword)
+
+            TextField("Bio", text: $bio, axis: .vertical)
+                .lineLimit(3...6)
+        }
+    }
+}
+```
+
+- `textContentType` drives autofill and password suggestions. `.newPassword` asks iOS to suggest a strong password and save it; `.password` fills an existing one.
+- Email, username and URL fields should turn off autocapitalization and autocorrection, or the first letter gets capitalized and addresses get "corrected".
+- `axis: .vertical` with a `lineLimit` range makes a field that grows from three lines up to six, then scrolls.
+- `prompt` sets the placeholder. Inside a `Form` the title is used as the accessibility label, so keep it short and real ("Email", not "Enter your email here").
+
+### Numbers and currency
+
+Bind numeric fields to a number, not a string, by passing a format:
+
+```swift
+struct PriceField: View {
+    @State private var price: Decimal = 0
+    @State private var quantity = 1
+
+    var body: some View {
+        Form {
+            TextField("Price", value: $price, format: .currency(code: "USD"))
+                .keyboardType(.decimalPad)
+            TextField("Quantity", value: $quantity, format: .number)
+                .keyboardType(.numberPad)
+        }
+    }
+}
+```
+
+The catch: a `TextField` with a `format` only writes back to the binding when the user submits or leaves the field, not on every keystroke, so a total that depends on it lags behind the typing. If the number must update live, or the formatting must happen as the digits arrive, use a field that formats on each change. [Amount Field](/docs/components/inputs/amount-field) keeps a `Decimal` binding and formats currency live in the user's locale, including grouping, the decimal separator and pasted amounts.
+
+## Focus: Return moves to the next field
+
+`@FocusState` tracks which field has the keyboard. Give each field a case, set the submit label, and move focus in `onSubmit`:
+
+```swift
+struct SignUpForm: View {
+    enum Field: Hashable { case name, email, password }
+
+    @State private var name = ""
+    @State private var email = ""
+    @State private var password = ""
+    @FocusState private var focus: Field?
+
+    var body: some View {
+        Form {
+            TextField("Name", text: $name)
+                .textContentType(.name)
+                .focused($focus, equals: .name)
+                .submitLabel(.next)
+
+            TextField("Email", text: $email)
+                .keyboardType(.emailAddress)
+                .textContentType(.emailAddress)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+                .focused($focus, equals: .email)
+                .submitLabel(.next)
+
+            SecureField("Password", text: $password)
+                .textContentType(.newPassword)
+                .focused($focus, equals: .password)
+                .submitLabel(.join)
+        }
+        .onSubmit {
+            switch focus {
+            case .name: focus = .email
+            case .email: focus = .password
+            default: focus = nil
+            }
+        }
+        .defaultFocus($focus, .name)
+    }
+}
+```
+
+- One `onSubmit` on the form handles every field, because it fires for whichever field submitted.
+- `.submitLabel` changes the Return key's title: `.next` while there is another field, then `.done`, `.join`, `.go` or `.send` on the last.
+- `.defaultFocus` (iOS 17) picks the field that gets focus when the form appears. Only use it when typing is clearly the next thing the user will do, like a sign-in sheet.
+- Setting `focus = nil` dismisses the keyboard.
+
+## A Done button above the keyboard
+
+Number pads and phone pads have no Return key, so the user has no way to close the keyboard. Add a toolbar item with the `.keyboard` placement:
+
+```swift
+struct TipForm: View {
+    @State private var amount: Double = 0
+    @FocusState private var amountFocused: Bool
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                TextField("Amount", value: $amount, format: .number)
+                    .keyboardType(.decimalPad)
+                    .focused($amountFocused)
+            }
+            .toolbar {
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button("Done") { amountFocused = false }
+                }
+            }
+            .scrollDismissesKeyboard(.interactively)
+        }
+    }
+}
+```
+
+- The keyboard toolbar shows only while a field inside that view has focus. It needs a `NavigationStack` (or another toolbar host) above it.
+- The `Spacer` pushes Done to the trailing edge, where people expect it.
+- `.scrollDismissesKeyboard(.interactively)` lets a downward drag on the form pull the keyboard away with the finger, the way Messages does. `.immediately` dismisses as soon as scrolling starts.
+
+## Pickers, toggles, steppers and dates
+
+```swift
+struct BookingForm: View {
+    enum Seat: String, CaseIterable, Identifiable {
+        case window, aisle, any
+        var id: Self { self }
+    }
+
+    @State private var seat: Seat = .any
+    @State private var cabin = "Economy"
+    @State private var guests = 1
+    @State private var date = Date.now
+    @State private var flexible = false
+    @State private var budget = 400.0
+
+    var body: some View {
+        Form {
+            Section("Trip") {
+                DatePicker("Departure", selection: $date, in: Date.now..., displayedComponents: .date)
+
+                Stepper("Guests: \(guests)", value: $guests, in: 1...9)
+
+                Toggle("Flexible dates", isOn: $flexible)
+            }
+
+            Section("Seat") {
+                Picker("Seat", selection: $seat) {
+                    ForEach(Seat.allCases) { seat in
+                        Text(seat.rawValue.capitalized).tag(seat)
+                    }
+                }
+                .pickerStyle(.segmented)
+
+                Picker("Cabin", selection: $cabin) {
+                    ForEach(["Economy", "Premium", "Business"], id: \.self) { Text($0) }
+                }
+            }
+
+            Section("Budget") {
+                Slider(value: $budget, in: 100...2000, step: 50) {
+                    Text("Budget")
+                } minimumValueLabel: {
+                    Text("$100")
+                } maximumValueLabel: {
+                    Text("$2k")
+                }
+                LabeledContent("Up to", value: budget, format: .currency(code: "USD"))
+            }
+        }
+    }
+}
+```
+
+**Picker styles.** Inside a `Form` a picker defaults to `.menu`, a row that opens a menu of options. That is right for four or more choices. Use `.segmented` for two or three short options the user switches often, `.inline` to list every option as a checkmark row, `.navigationLink` for long lists that deserve their own screen, and `.wheel` only for values people scroll through, like a time. Tag every option with the selection's type, or the picker will not select anything.
+
+**Steppers** suit small counts where the user changes the value by one or two. Put the current value in the label, as above, so it reads correctly to VoiceOver. For counts that run higher, a stepper means a lot of tapping: [Scrub Stepper](/docs/components/inputs/scrub-stepper) steps by tap, repeats while held, and scrubs quickly with a sideways drag, with a haptic on every step.
+
+**Toggles** are for settings that apply immediately. For a choice that is only saved when the form is submitted, a checkmark picker or a [Choice Group](/docs/components/inputs/choice-group) of radio or checkbox cards often reads more clearly.
+
+**Sliders** hide their exact value, so pair them with a `LabeledContent` row or a label that shows it. For a minimum and maximum together, SwiftUI's `Slider` has only one thumb; [Range Slider](/docs/components/inputs/range-slider) adds the dual-thumb version with thumbs that never cross.
+
+## Validation that waits
+
+The most common form mistake is validating too early: an email field that turns red on the first keystroke tells the user they are wrong before they have had a chance to be right. Validate when the user leaves the field, then re-check on every keystroke so the error disappears the moment it is fixed.
+
+```swift
+struct EmailRow: View {
+    @Binding var email: String
+    var focus: FocusState<Bool>.Binding
+
+    @State private var touched = false
+
+    private var error: String? {
+        guard touched else { return nil }
+        if email.isEmpty { return "Enter your email." }
+        if !email.contains("@") || !email.contains(".") { return "That doesn't look like an email address." }
+        return nil
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            TextField("Email", text: $email)
+                .keyboardType(.emailAddress)
+                .textContentType(.emailAddress)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+                .focused(focus)
+
+            if let error {
+                Text(error)
+                    .font(.footnote)
+                    .foregroundStyle(.red)
+                    .transition(.opacity)
+            }
+        }
+        .animation(.snappy, value: error)
+        .onChange(of: focus.wrappedValue) { wasFocused, isFocused in
+            if wasFocused && !isFocused && !email.isEmpty { touched = true }
+        }
+        .accessibilityHint(error ?? "")
+    }
+}
+```
+
+Use it from the form with its own focus state: `@FocusState private var emailFocused: Bool` and `EmailRow(email: $email, focus: $emailFocused)`.
+
+The rules behind it:
+
+- **Start on blur, not on the first keystroke.** `touched` turns on only when the user leaves a field they typed in.
+- **Once started, stay live.** After the first check the error updates as they type, so fixing it clears it immediately.
+- **Say what to do, not what went wrong.** "Enter your email." beats "Invalid input."
+- **Put the message next to the field.** A single alert at the end makes the user hunt for the problem.
+- **Give VoiceOver the error.** Here it is the hint; a label that only changes color is invisible to screen reader users.
+
+When the user taps Save with fields they never touched, mark every field as touched so all the errors show at once, and move focus to the first one.
+
+[Form Field](/docs/components/inputs/form-field) packages this behavior with a floating label. Its validation timing is a parameter (`.onBlur`, `.onSubmit` or `.live`), it takes a `validate` closure that returns an error message, and `.formFieldRevealsErrors(true)` on a container flags every untouched required field for a Save button:
+
+```swift
+struct FormFieldUsageExample: View {
+    @State private var email = ""
+
+    var body: some View {
+        FormField(
+            "Email",
+            text: $email,
+            help: "We send a sign-in link here.",
+            leading: Image(systemName: "envelope"),
+            validate: { $0.contains("@") ? nil : "Enter a valid email." },
+            textContentType: .emailAddress,
+            keyboardType: .emailAddress
+        )
+    }
+}
+```
+
+For passwords, [Secure Entry](/docs/components/inputs/secure-entry) adds a reveal toggle, a strength meter and requirement chips that tick off as the password meets them.
+
+## Submitting without double taps
+
+Keep the form's data in one place, derive whether it can be submitted, and disable the button while the request is in flight:
+
+```swift
+@MainActor
+@Observable
+final class SignUpModel {
+    var name = ""
+    var email = ""
+    var acceptsTerms = false
+    var isSubmitting = false
+    var submitError: String?
+
+    var canSubmit: Bool {
+        !name.trimmingCharacters(in: .whitespaces).isEmpty
+            && email.contains("@")
+            && acceptsTerms
+            && !isSubmitting
+    }
+
+    func submit() async {
+        isSubmitting = true
+        defer { isSubmitting = false }
+        do {
+            try await Task.sleep(for: .seconds(1))
+            submitError = nil
+        } catch {
+            submitError = error.localizedDescription
+        }
+    }
+}
+
+struct SignUpScreen: View {
+    @State private var model = SignUpModel()
+
+    var body: some View {
+        Form {
+            Section {
+                TextField("Name", text: $model.name)
+                TextField("Email", text: $model.email)
+                    .keyboardType(.emailAddress)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                Toggle("I accept the terms", isOn: $model.acceptsTerms)
+            }
+
+            Section {
+                Button {
+                    Task { await model.submit() }
+                } label: {
+                    HStack {
+                        Text("Create account")
+                        Spacer()
+                        if model.isSubmitting { ProgressView() }
+                    }
+                }
+                .disabled(!model.canSubmit)
+            } footer: {
+                if let message = model.submitError {
+                    Text(message).foregroundStyle(.red)
+                }
+            }
+        }
+    }
+}
+```
+
+- `@Observable` (iOS 17) with `@State` holds the form's data, on the main actor like the view that owns it; `$model.name` binds straight into the fields.
+- `canSubmit` includes `isSubmitting`, so the button is disabled for the whole request and a second tap does nothing.
+- A failed submit keeps everything the user typed and shows the reason. Never clear a form on error.
+
+For a submit button that shows loading, success and failure in the button itself, see [the loading button in the buttons guide](/docs/guides/swiftui-buttons#a-loading-button-with-success-and-error-states) and [Commit Button](/docs/components/controls/commit-button).
+
+## When to leave Form behind
+
+`Form` is the right choice for settings, account details and anything that should look like it belongs in the system. It is the wrong choice for a branded sign-up, a checkout, or onboarding, where the grouped list style looks like a settings screen dropped into a designed flow.
+
+For those, build the form from a `ScrollView` and a `VStack` and bring the behavior with you: the same `@FocusState` chain, the same `onSubmit` handling, the same keyboard toolbar and the same validation timing. What you lose is the free row styling, so each field has to draw its own background, label and error. That is the work the [inputs and forms collection](/components/inputs) already does: floating label fields, password, currency, address and token fields, date pickers, steppers and sliders, each in one Swift file that drops into a `VStack` or a `Form`.
+
+## Accessibility checklist
+
+- **Every field has a label.** A placeholder alone disappears as soon as the user types, and some fields read only the placeholder to VoiceOver.
+- **Errors are announced.** Put the message in the field's hint or value, not only in red text.
+- **Dynamic Type.** `Form` rows grow with text size automatically. In a custom layout, avoid fixed heights and let labels wrap.
+- **Hit targets.** Custom controls need at least 44 by 44 points; `contentShape` makes the whole row tappable.
+- **Order.** Focus order follows layout order. If you lay fields out side by side, check that Return and VoiceOver still move in reading order.
+
+## Install a piece
+
+Each input is one Swift file with no third-party dependencies. From the folder that contains your `.xcodeproj`:
+
+```bash
+npx swiftpieces add FormField SecureEntry AmountField ScrubStepper
+```
+
+See [installation](/docs/installation) for copy and paste.
