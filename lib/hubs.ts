@@ -142,7 +142,7 @@ export const hubs: Hub[] = [
       { q: "How do I make a map location picker in SwiftUI?", a: "Keep a pin fixed over the centre of a Map, follow the camera with onMapCameraChange, and look up the address only after the camera settles, cancelling any lookup a newer move replaces. Location Picker does this with a lifting pin, a cached geocoder and an address card with loading and failure states." },
       { q: "How do I format currency input in SwiftUI?", a: "Keep the value as a Decimal and format it with the user's locale as digits arrive, rather than binding a TextField to a formatted string. Amount Field handles grouping, the decimal separator, symbol position and pasted amounts." },
     ],
-    guides: [["SwiftUI haptics guide", "/docs/guides/swiftui-haptics"]],
+    guides: [["SwiftUI forms guide", "/docs/guides/swiftui-forms"], ["SwiftUI haptics guide", "/docs/guides/swiftui-haptics"]],
     related: ["controls", "sheets", "lists"],
   },
   {

@@ -133,6 +133,37 @@ struct TransitionExample: View {
 
 If a transition does not play, check two things: the change happened inside `withAnimation` (or under an `.animation(_:value:)` on a parent), and the view really left the hierarchy rather than just changing opacity.
 
+### Custom transitions
+
+When the built-in transitions are not enough, conform to the `Transition` protocol (iOS 17). You get the content and a `phase` that tells you whether the view is arriving, settled or leaving:
+
+```swift
+struct LiftTransition: Transition {
+    func body(content: Content, phase: TransitionPhase) -> some View {
+        content
+            .opacity(phase.isIdentity ? 1 : 0)
+            .scaleEffect(phase.isIdentity ? 1 : 0.92)
+            .offset(y: phase == .willAppear ? 16 : 0)
+            .blur(radius: phase.isIdentity ? 0 : 4)
+    }
+}
+
+extension Transition where Self == LiftTransition {
+    static var lift: LiftTransition { LiftTransition() }
+}
+```
+
+Use it like any other: `.transition(.lift)`. `phase.isIdentity` is true while the view is on screen, `.willAppear` before insertion and `.didDisappear` after removal, so one type can move differently on the way in and out. Only animatable modifiers (opacity, scale, offset, blur, rotation) interpolate; anything else snaps at the start or end.
+
+### Transitioning between values instead of views
+
+A transition needs the view to be inserted or removed. When only the content changes, like a label swapping text or an icon swapping symbol, you have two options:
+
+- **Change the identity.** `.id(value)` tells SwiftUI the old and new views are different, so the old one leaves with its transition and the new one arrives with its own. This is the way to cross-fade or push between two states of the same view.
+- **Use a content transition.** `.contentTransition(.numericText())` animates digits, `.contentTransition(.symbolEffect(.replace))` morphs SF Symbols, and `.contentTransition(.interpolate)` blends text styles. These keep the same view and animate what is inside it. The [numbers and text section](#animating-numbers-and-text) shows them in use.
+
+For moving one view between two places on screen, a transition is the wrong tool: use `matchedGeometryEffect`, below.
+
 ## matchedGeometryEffect
 
 `matchedGeometryEffect` tells SwiftUI that two views in different places are the same thing, so it animates the frame from one to the other. The classic use is a selection indicator that glides between options.

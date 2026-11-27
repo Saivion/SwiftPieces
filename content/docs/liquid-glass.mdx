@@ -1,9 +1,11 @@
 ---
 title: SwiftUI Liquid Glass guide (iOS 26)
-description: How to use Liquid Glass in SwiftUI with glassEffect, GlassEffectContainer and glassEffectID, and how to fall back to Material below iOS 26.
+description: "How to use Liquid Glass in SwiftUI with SwiftPieces: glassEffect, tint and interactive glass, GlassEffectContainer, morphing with glassEffectID, glass buttons, and a fallback below iOS 26."
 ---
 
-Liquid Glass shipped with iOS 26. The APIs are small, but the failure modes are not: glass sampling glass, missing fallbacks, invented modifiers from tutorials. Every glass piece here follows the same rules.
+Liquid Glass is the material Apple introduced across iOS 26: a translucent surface that bends and reflects what is behind it, reacts to touch, and merges with neighbouring glass. In SwiftUI you get it two ways. System bars and controls adopt it on their own when you build with the iOS 26 SDK, and you put it on your own views with the `glassEffect` modifier.
+
+The APIs are small, but the failure modes are not: glass sampling glass, missing fallbacks, invented modifiers from tutorials. This guide covers what changes for free, the modifiers you use for custom glass, grouping and morphing, glass buttons, and the fallback every app that supports iOS 17 or 18 needs. Every glass piece in SwiftPieces follows the same rules.
 
 ## The rules
 
@@ -13,6 +15,209 @@ Liquid Glass shipped with iOS 26. The APIs are small, but the failure modes are 
 4. **Glass goes last.** Apply `.glassEffect` after layout and appearance modifiers.
 5. **Morph with IDs.** Pair `.glassEffectID(_:in:)` with a `@Namespace` to animate between shapes on state change.
 6. **Only real APIs.** `.liquidGlassUltra`, `.fill(.liquidGlass)` and friends do not exist. The pieces here are type-checked against the SDK in CI.
+
+## What you get without writing any glass
+
+Rebuild an existing app with Xcode 26 and the system components change on their own:
+
+- **Tab bars** float above the content as a glass capsule, and **navigation bars and toolbars** draw their buttons on glass.
+- **Sheets** at partial heights get a glass background that becomes opaque as they expand to full height.
+- **Controls** such as toggles, sliders, segmented pickers and menus take on the new look, and their thumbs and indicators lift into glass while dragged.
+
+So the first step is to remove what fights it. A custom `.toolbarBackground`, a solid `.presentationBackground` on a sheet, or a colored bar background drawn behind the system bar all hide the glass the system would draw. Delete them and check the screen again before you add any glass of your own.
+
+A few iOS 26 modifiers tune the system chrome:
+
+```swift
+@available(iOS 26, *)
+struct ChromeExample: View {
+    var body: some View {
+        TabView {
+            Tab("Home", systemImage: "house") {
+                NavigationStack {
+                    List(0..<50, id: \.self) { Text("Row \($0)") }
+                        .navigationTitle("Home")
+                        .toolbar {
+                            ToolbarItem(placement: .topBarTrailing) {
+                                Button("Share", systemImage: "square.and.arrow.up") {}
+                            }
+                            ToolbarSpacer(.fixed, placement: .topBarTrailing)
+                            ToolbarItem(placement: .topBarTrailing) {
+                                Button("Add", systemImage: "plus") {}
+                            }
+                        }
+                }
+            }
+            Tab("Search", systemImage: "magnifyingglass", role: .search) {
+                Text("Search")
+            }
+        }
+        .tabBarMinimizeBehavior(.onScrollDown)
+    }
+}
+```
+
+- `ToolbarSpacer` splits toolbar items into separate glass groups. Items without a spacer between them share one capsule.
+- `.tabBarMinimizeBehavior(.onScrollDown)` shrinks the tab bar while the user scrolls down, giving the content more room.
+- `Tab(role: .search)` places search as its own glass button at the trailing end of the tab bar.
+
+If you need more time to adopt the new design, the `UIDesignRequiresCompatibility` Info.plist key keeps the previous look when built with the iOS 26 SDK. Treat it as temporary.
+
+## glassEffect on your own views
+
+`glassEffect(_:in:)` draws glass behind a view, in a shape. With no arguments it uses `.regular` glass in a capsule:
+
+```swift
+@available(iOS 26, *)
+struct GlassBasicsExample: View {
+    var body: some View {
+        VStack(spacing: 24) {
+            Label("Now playing", systemImage: "music.note")
+                .padding(.horizontal, 20)
+                .padding(.vertical, 12)
+                .glassEffect()
+
+            Image(systemName: "heart.fill")
+                .font(.title2)
+                .frame(width: 56, height: 56)
+                .glassEffect(.regular.tint(.pink).interactive(), in: .circle)
+
+            Text("Rounded rectangle")
+                .padding(20)
+                .glassEffect(.regular, in: .rect(cornerRadius: 20))
+        }
+    }
+}
+```
+
+- **Shapes.** Any `Shape` works: `.capsule` (the default), `.circle`, `.rect(cornerRadius:)`, or a custom shape. `ConcentricRectangle` matches its corners to the container it sits in, so a button inside a sheet follows the sheet's curve.
+- **Tint.** `.tint(_:)` colors the glass. Use it to carry meaning, like a primary action or a selected state, not to decorate every surface.
+- **Interactive.** `.interactive()` makes the glass react to touch: it scales slightly, brightens and glows from the touch point. Use it on glass that is itself the button, not on a static container.
+- **Variants.** `.regular` is the default and adapts to light, dark and whatever is behind it. `.clear` is more transparent, for glass over rich media like photos and video, where it needs a dimming layer underneath to keep content legible. `.identity` turns the effect off without changing the view tree, which is useful when glass depends on state.
+
+### Where glass belongs
+
+Glass is a layer for controls and navigation that float above content: toolbars, tab bars, floating buttons, a mini player, a sheet's handle area. It is not a background for the content itself. A list of cards each drawn in glass, or a glass page background, loses the contrast that makes glass work, and the cards end up sampling other glass instead of the content. Keep content opaque and let glass sit on top of it.
+
+## Glass buttons
+
+For buttons, use the system styles before writing your own:
+
+```swift
+@available(iOS 26, *)
+struct GlassButtonsExample: View {
+    var body: some View {
+        HStack(spacing: 12) {
+            Button("Cancel") {}
+                .buttonStyle(.glass)
+
+            Button("Continue") {}
+                .buttonStyle(.glassProminent)
+                .tint(.orange)
+        }
+        .controlSize(.large)
+    }
+}
+```
+
+`.glass` is the secondary action and `.glassProminent` the primary one, which takes the tint. Both handle pressed, disabled and focus states, and `.controlSize` and `.buttonBorderShape` work as they do for other button styles. The [buttons guide](/docs/guides/swiftui-buttons#built-in-button-styles) shows them next to the iOS 17 styles.
+
+## GlassEffectContainer: grouping and spacing
+
+Glass cannot sample other glass, so two glass views drawn separately next to each other look wrong where they meet. `GlassEffectContainer` renders its glass children together in one pass, which fixes the sampling and lets nearby shapes blend:
+
+```swift
+@available(iOS 26, *)
+struct GlassGroupExample: View {
+    var body: some View {
+        GlassEffectContainer(spacing: 20) {
+            HStack(spacing: 12) {
+                ForEach(["pencil", "eraser", "lasso"], id: \.self) { symbol in
+                    Image(systemName: symbol)
+                        .font(.title2)
+                        .frame(width: 56, height: 56)
+                        .glassEffect(.regular.interactive(), in: .circle)
+                }
+            }
+        }
+    }
+}
+```
+
+The container's `spacing` is how close two glass shapes must be before they start to merge. Here the buttons are 12 points apart and the container spacing is 20, so they melt into each other at the edges. Set the container spacing below the layout spacing to keep shapes visibly separate, or above it to let them join.
+
+To merge shapes that are far apart into one piece of glass, give them the same `glassEffectUnion(id:namespace:)`. Views with the same union ID render as one shape, whatever the distance between them.
+
+## Morphing with glassEffectID
+
+When glass appears, disappears or changes inside a container, it can morph instead of fading. Give each glass view an ID in a shared namespace and change state inside an animation:
+
+```swift
+@available(iOS 26, *)
+struct GlassMorphExample: View {
+    @State private var isExpanded = false
+    @Namespace private var glass
+
+    var body: some View {
+        GlassEffectContainer(spacing: 24) {
+            HStack(spacing: 12) {
+                Button {
+                    withAnimation(.bouncy) { isExpanded.toggle() }
+                } label: {
+                    Image(systemName: isExpanded ? "xmark" : "plus")
+                        .font(.title2)
+                        .frame(width: 56, height: 56)
+                }
+                .glassEffect(.regular.interactive(), in: .circle)
+                .glassEffectID("toggle", in: glass)
+
+                if isExpanded {
+                    ForEach(["camera", "photo", "doc"], id: \.self) { symbol in
+                        Image(systemName: symbol)
+                            .font(.title2)
+                            .frame(width: 56, height: 56)
+                            .glassEffect(.regular.interactive(), in: .circle)
+                            .glassEffectID(symbol, in: glass)
+                    }
+                }
+            }
+        }
+    }
+}
+```
+
+The new buttons grow out of the toggle's glass on the way in and drain back into it on the way out, because they share a container and a namespace. Without the IDs, the same code fades them in and out as separate pieces of glass.
+
+[Glass Action Menu](/docs/components/glass/glass-action-menu) is the finished version of this pattern: a floating trigger that long-presses open into a line or arc of actions you slide across and release to fire.
+
+## The fallback pattern
+
+An app that supports iOS 17 or 18 needs a branch for every glass call. Keep the decision in one modifier so the rest of the code does not care:
+
+```swift
+struct AdaptiveGlass<S: Shape>: ViewModifier {
+    var shape: S
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+
+    func body(content: Content) -> some View {
+        if reduceTransparency {
+            content.background(Color(.secondarySystemBackground), in: shape)
+        } else if #available(iOS 26, *) {
+            content.glassEffect(.regular.interactive(), in: shape)
+        } else {
+            content.background(.ultraThinMaterial, in: shape)
+        }
+    }
+}
+
+extension View {
+    func adaptiveGlass<S: Shape>(in shape: S) -> some View {
+        modifier(AdaptiveGlass(shape: shape))
+    }
+}
+```
+
+Use it as `.adaptiveGlass(in: Capsule())`. A plain `Material` is the minimum. A good fallback also gives the surface its own press response and a light edge, so it still reads as a control below iOS 26; [Glass Surface](/docs/components/glass/glass-surface) is built that way, and it is what every glass piece here uses under the hood.
 
 ## The verified surface
 
@@ -24,16 +229,16 @@ Liquid Glass shipped with iOS 26. The APIs are small, but the failure modes are 
 | `GlassEffectContainer(spacing:content:)` | Required for multiple glass views. |
 | `glassEffectID(_:in:)`, `glassEffectUnion(id:namespace:)` | Morphing and manual merging. |
 | `.buttonStyle(.glass)`, `.glassProminent` | System glass buttons. |
+| `ConcentricRectangle` | Corners concentric with the container. |
+| `ToolbarSpacer`, `tabBarMinimizeBehavior(_:)` | System chrome on iOS 26. |
 
-## The fallback pattern
+## Common mistakes
 
-```swift
-if #available(iOS 26, *), !reduceTransparency {
-    content.glassEffect(.regular.interactive(), in: shape)
-} else {
-    content.background(.ultraThinMaterial, in: shape)
-}
-```
+- **Glass on glass.** Glass drawn on top of other glass, or two glass views outside a shared container, samples the wrong thing and looks muddy. Group siblings in one container and never stack glass.
+- **Glass on content.** Lists, cards and page backgrounds in glass lose contrast. Glass is for the layer above content.
+- **Tinting everything.** A tint on every surface removes the one signal tint carries. Tint the primary action or the selected item.
+- **No fallback.** An unguarded `glassEffect` does not compile for an iOS 17 deployment target, and a guarded one with an empty `else` leaves older devices with a bare label.
+- **Ignoring Reduce Transparency.** Glass under Reduce Transparency should become an opaque surface, as in the fallback above.
 
 ## Liquid Glass pieces
 

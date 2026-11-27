@@ -382,14 +382,17 @@
   {
     "url": "/docs/liquid-glass",
     "title": "SwiftUI Liquid Glass guide (iOS 26)",
-    "description": "How to use Liquid Glass in SwiftUI with glassEffect, GlassEffectContainer and glassEffectID, and how to fall back to Material below iOS 26.",
+    "description": "How to use Liquid Glass in SwiftUI with SwiftPieces: glassEffect, tint and interactive glass, GlassEffectContainer, morphing with glassEffectID, glass buttons, and a fallback below iOS 26.",
     "breadcrumbs": [
       "SwiftPieces"
     ],
     "structuredData": {
       "contents": [
         {
-          "content": "Liquid Glass shipped with iOS 26. The APIs are small, but the failure modes are not: glass sampling glass, missing fallbacks, invented modifiers from tutorials. Every glass piece here follows the same rules."
+          "content": "Liquid Glass is the material Apple introduced across iOS 26: a translucent surface that bends and reflects what is behind it, reacts to touch, and merges with neighbouring glass. In SwiftUI you get it two ways. System bars and controls adopt it on their own when you build with the iOS 26 SDK, and you put it on your own views with the `glassEffect` modifier."
+        },
+        {
+          "content": "The APIs are small, but the failure modes are not: glass sampling glass, missing fallbacks, invented modifiers from tutorials. This guide covers what changes for free, the modifiers you use for custom glass, grouping and morphing, glass buttons, and the fallback every app that supports iOS 17 or 18 needs. Every glass piece in SwiftPieces follows the same rules."
         },
         {
           "heading": "the-rules",
@@ -414,6 +417,110 @@
         {
           "heading": "the-rules",
           "content": "**Only real APIs.** `.liquidGlassUltra`, `.fill(.liquidGlass)` and friends do not exist. The pieces here are type-checked against the SDK in CI."
+        },
+        {
+          "heading": "what-you-get-without-writing-any-glass",
+          "content": "Rebuild an existing app with Xcode 26 and the system components change on their own:"
+        },
+        {
+          "heading": "what-you-get-without-writing-any-glass",
+          "content": "**Tab bars** float above the content as a glass capsule, and **navigation bars and toolbars** draw their buttons on glass."
+        },
+        {
+          "heading": "what-you-get-without-writing-any-glass",
+          "content": "**Sheets** at partial heights get a glass background that becomes opaque as they expand to full height."
+        },
+        {
+          "heading": "what-you-get-without-writing-any-glass",
+          "content": "**Controls** such as toggles, sliders, segmented pickers and menus take on the new look, and their thumbs and indicators lift into glass while dragged."
+        },
+        {
+          "heading": "what-you-get-without-writing-any-glass",
+          "content": "So the first step is to remove what fights it. A custom `.toolbarBackground`, a solid `.presentationBackground` on a sheet, or a colored bar background drawn behind the system bar all hide the glass the system would draw. Delete them and check the screen again before you add any glass of your own."
+        },
+        {
+          "heading": "what-you-get-without-writing-any-glass",
+          "content": "A few iOS 26 modifiers tune the system chrome:"
+        },
+        {
+          "heading": "what-you-get-without-writing-any-glass",
+          "content": "`ToolbarSpacer` splits toolbar items into separate glass groups. Items without a spacer between them share one capsule."
+        },
+        {
+          "heading": "what-you-get-without-writing-any-glass",
+          "content": "`.tabBarMinimizeBehavior(.onScrollDown)` shrinks the tab bar while the user scrolls down, giving the content more room."
+        },
+        {
+          "heading": "what-you-get-without-writing-any-glass",
+          "content": "`Tab(role: .search)` places search as its own glass button at the trailing end of the tab bar."
+        },
+        {
+          "heading": "what-you-get-without-writing-any-glass",
+          "content": "If you need more time to adopt the new design, the `UIDesignRequiresCompatibility` Info.plist key keeps the previous look when built with the iOS 26 SDK. Treat it as temporary."
+        },
+        {
+          "heading": "glasseffect-on-your-own-views",
+          "content": "`glassEffect(_:in:)` draws glass behind a view, in a shape. With no arguments it uses `.regular` glass in a capsule:"
+        },
+        {
+          "heading": "glasseffect-on-your-own-views",
+          "content": "**Shapes.** Any `Shape` works: `.capsule` (the default), `.circle`, `.rect(cornerRadius:)`, or a custom shape. `ConcentricRectangle` matches its corners to the container it sits in, so a button inside a sheet follows the sheet's curve."
+        },
+        {
+          "heading": "glasseffect-on-your-own-views",
+          "content": "**Tint.** `.tint(_:)` colors the glass. Use it to carry meaning, like a primary action or a selected state, not to decorate every surface."
+        },
+        {
+          "heading": "glasseffect-on-your-own-views",
+          "content": "**Interactive.** `.interactive()` makes the glass react to touch: it scales slightly, brightens and glows from the touch point. Use it on glass that is itself the button, not on a static container."
+        },
+        {
+          "heading": "glasseffect-on-your-own-views",
+          "content": "**Variants.** `.regular` is the default and adapts to light, dark and whatever is behind it. `.clear` is more transparent, for glass over rich media like photos and video, where it needs a dimming layer underneath to keep content legible. `.identity` turns the effect off without changing the view tree, which is useful when glass depends on state."
+        },
+        {
+          "heading": "where-glass-belongs",
+          "content": "Glass is a layer for controls and navigation that float above content: toolbars, tab bars, floating buttons, a mini player, a sheet's handle area. It is not a background for the content itself. A list of cards each drawn in glass, or a glass page background, loses the contrast that makes glass work, and the cards end up sampling other glass instead of the content. Keep content opaque and let glass sit on top of it."
+        },
+        {
+          "heading": "glass-buttons",
+          "content": "For buttons, use the system styles before writing your own:"
+        },
+        {
+          "heading": "glass-buttons",
+          "content": "`.glass` is the secondary action and `.glassProminent` the primary one, which takes the tint. Both handle pressed, disabled and focus states, and `.controlSize` and `.buttonBorderShape` work as they do for other button styles. The buttons guide shows them next to the iOS 17 styles."
+        },
+        {
+          "heading": "glasseffectcontainer-grouping-and-spacing",
+          "content": "Glass cannot sample other glass, so two glass views drawn separately next to each other look wrong where they meet. `GlassEffectContainer` renders its glass children together in one pass, which fixes the sampling and lets nearby shapes blend:"
+        },
+        {
+          "heading": "glasseffectcontainer-grouping-and-spacing",
+          "content": "The container's `spacing` is how close two glass shapes must be before they start to merge. Here the buttons are 12 points apart and the container spacing is 20, so they melt into each other at the edges. Set the container spacing below the layout spacing to keep shapes visibly separate, or above it to let them join."
+        },
+        {
+          "heading": "glasseffectcontainer-grouping-and-spacing",
+          "content": "To merge shapes that are far apart into one piece of glass, give them the same `glassEffectUnion(id:namespace:)`. Views with the same union ID render as one shape, whatever the distance between them."
+        },
+        {
+          "heading": "morphing-with-glasseffectid",
+          "content": "When glass appears, disappears or changes inside a container, it can morph instead of fading. Give each glass view an ID in a shared namespace and change state inside an animation:"
+        },
+        {
+          "heading": "morphing-with-glasseffectid",
+          "content": "The new buttons grow out of the toggle's glass on the way in and drain back into it on the way out, because they share a container and a namespace. Without the IDs, the same code fades them in and out as separate pieces of glass."
+        },
+        {
+          "heading": "morphing-with-glasseffectid",
+          "content": "Glass Action Menu is the finished version of this pattern: a floating trigger that long-presses open into a line or arc of actions you slide across and release to fire."
+        },
+        {
+          "heading": "the-fallback-pattern",
+          "content": "An app that supports iOS 17 or 18 needs a branch for every glass call. Keep the decision in one modifier so the rest of the code does not care:"
+        },
+        {
+          "heading": "the-fallback-pattern",
+          "content": "Use it as `.adaptiveGlass(in: Capsule())`. A plain `Material` is the minimum. A good fallback also gives the surface its own press response and a light edge, so it still reads as a control below iOS 26; Glass Surface is built that way, and it is what every glass piece here uses under the hood."
         },
         {
           "heading": "the-verified-surface",
@@ -472,6 +579,42 @@
           "content": "System glass buttons."
         },
         {
+          "heading": "the-verified-surface",
+          "content": "`ConcentricRectangle`"
+        },
+        {
+          "heading": "the-verified-surface",
+          "content": "Corners concentric with the container."
+        },
+        {
+          "heading": "the-verified-surface",
+          "content": "`ToolbarSpacer`, `tabBarMinimizeBehavior(_:)`"
+        },
+        {
+          "heading": "the-verified-surface",
+          "content": "System chrome on iOS 26."
+        },
+        {
+          "heading": "common-mistakes",
+          "content": "**Glass on glass.** Glass drawn on top of other glass, or two glass views outside a shared container, samples the wrong thing and looks muddy. Group siblings in one container and never stack glass."
+        },
+        {
+          "heading": "common-mistakes",
+          "content": "**Glass on content.** Lists, cards and page backgrounds in glass lose contrast. Glass is for the layer above content."
+        },
+        {
+          "heading": "common-mistakes",
+          "content": "**Tinting everything.** A tint on every surface removes the one signal tint carries. Tint the primary action or the selected item."
+        },
+        {
+          "heading": "common-mistakes",
+          "content": "**No fallback.** An unguarded `glassEffect` does not compile for an iOS 17 deployment target, and a guarded one with an empty `else` leaves older devices with a bare label."
+        },
+        {
+          "heading": "common-mistakes",
+          "content": "**Ignoring Reduce Transparency.** Glass under Reduce Transparency should become an opaque surface, as in the fallback above."
+        },
+        {
           "heading": "liquid-glass-pieces",
           "content": "Every piece below follows the rules above and builds from iOS 17, drawing glass on iOS 26 and its designed fallback everywhere else."
         },
@@ -506,12 +649,40 @@
           "content": "The rules"
         },
         {
-          "id": "the-verified-surface",
-          "content": "The verified surface"
+          "id": "what-you-get-without-writing-any-glass",
+          "content": "What you get without writing any glass"
+        },
+        {
+          "id": "glasseffect-on-your-own-views",
+          "content": "glassEffect on your own views"
+        },
+        {
+          "id": "where-glass-belongs",
+          "content": "Where glass belongs"
+        },
+        {
+          "id": "glass-buttons",
+          "content": "Glass buttons"
+        },
+        {
+          "id": "glasseffectcontainer-grouping-and-spacing",
+          "content": "GlassEffectContainer: grouping and spacing"
+        },
+        {
+          "id": "morphing-with-glasseffectid",
+          "content": "Morphing with glassEffectID"
         },
         {
           "id": "the-fallback-pattern",
           "content": "The fallback pattern"
+        },
+        {
+          "id": "the-verified-surface",
+          "content": "The verified surface"
+        },
+        {
+          "id": "common-mistakes",
+          "content": "Common mistakes"
         },
         {
           "id": "liquid-glass-pieces",
@@ -796,7 +967,7 @@
   {
     "url": "/docs/guides",
     "title": "SwiftUI guides",
-    "description": "Practical SwiftUI guides with working code: animations, physical motion, custom buttons, cards, haptic feedback and loading states for iOS 17 and later.",
+    "description": "Practical SwiftUI guides with working code: animations, physical motion, custom buttons, cards, forms, haptic feedback and loading states for iOS 17 and later.",
     "breadcrumbs": [
       "SwiftPieces",
       "Guides"
@@ -817,6 +988,9 @@
         },
         {
           "content": "<Card title=\"SwiftUI cards\" href=\"/docs/guides/swiftui-cards\" description=\"Card views, swipeable card stacks, 3D flip cards, device tilt and scroll parallax.\" />"
+        },
+        {
+          "content": "<Card title=\"SwiftUI forms\" href=\"/docs/guides/swiftui-forms\" description=\"Form and Section, text fields with focus, a keyboard Done button, pickers and steppers, and validation that waits.\" />"
         },
         {
           "content": "<Card title=\"SwiftUI haptics\" href=\"/docs/guides/swiftui-haptics\" description=\"sensoryFeedback, which feedback to use when, and haptics tied to gesture thresholds.\" />"
@@ -966,6 +1140,30 @@
           "content": "If a transition does not play, check two things: the change happened inside `withAnimation` (or under an `.animation(_:value:)` on a parent), and the view really left the hierarchy rather than just changing opacity."
         },
         {
+          "heading": "custom-transitions",
+          "content": "When the built-in transitions are not enough, conform to the `Transition` protocol (iOS 17). You get the content and a `phase` that tells you whether the view is arriving, settled or leaving:"
+        },
+        {
+          "heading": "custom-transitions",
+          "content": "Use it like any other: `.transition(.lift)`. `phase.isIdentity` is true while the view is on screen, `.willAppear` before insertion and `.didDisappear` after removal, so one type can move differently on the way in and out. Only animatable modifiers (opacity, scale, offset, blur, rotation) interpolate; anything else snaps at the start or end."
+        },
+        {
+          "heading": "transitioning-between-values-instead-of-views",
+          "content": "A transition needs the view to be inserted or removed. When only the content changes, like a label swapping text or an icon swapping symbol, you have two options:"
+        },
+        {
+          "heading": "transitioning-between-values-instead-of-views",
+          "content": "**Change the identity.** `.id(value)` tells SwiftUI the old and new views are different, so the old one leaves with its transition and the new one arrives with its own. This is the way to cross-fade or push between two states of the same view."
+        },
+        {
+          "heading": "transitioning-between-values-instead-of-views",
+          "content": "**Use a content transition.** `.contentTransition(.numericText())` animates digits, `.contentTransition(.symbolEffect(.replace))` morphs SF Symbols, and `.contentTransition(.interpolate)` blends text styles. These keep the same view and animate what is inside it. The numbers and text section shows them in use."
+        },
+        {
+          "heading": "transitioning-between-values-instead-of-views",
+          "content": "For moving one view between two places on screen, a transition is the wrong tool: use `matchedGeometryEffect`, below."
+        },
+        {
           "heading": "matchedgeometryeffect",
           "content": "`matchedGeometryEffect` tells SwiftUI that two views in different places are the same thing, so it animates the frame from one to the other. The classic use is a selection indicator that glides between options."
         },
@@ -1096,6 +1294,14 @@
           "content": "Transitions"
         },
         {
+          "id": "custom-transitions",
+          "content": "Custom transitions"
+        },
+        {
+          "id": "transitioning-between-values-instead-of-views",
+          "content": "Transitioning between values instead of views"
+        },
+        {
           "id": "matchedgeometryeffect",
           "content": "matchedGeometryEffect"
         },
@@ -1221,6 +1427,50 @@
         {
           "heading": "a-custom-button-style-with-a-spring-press",
           "content": "This is the simple version. Elastic Button is the full one: a `ButtonStyle` that squashes toward the touch point, stretches with rubber-band resistance when dragged, deepens after a hold, and snaps back with a spring. You apply it the same way:"
+        },
+        {
+          "heading": "more-button-styles-to-copy",
+          "content": "Most apps need three or four styles: a filled primary, a quieter secondary, a round icon button, and a destructive variant. Each one below is a complete `ButtonStyle` with its own pressed and disabled states."
+        },
+        {
+          "heading": "more-button-styles-to-copy",
+          "content": "**Outline.** A secondary action that keeps the primary's shape:"
+        },
+        {
+          "heading": "more-button-styles-to-copy",
+          "content": "**Icon.** A circular button with a 44-point minimum, for toolbars and media controls:"
+        },
+        {
+          "heading": "more-button-styles-to-copy",
+          "content": "Use it with a `Label` so VoiceOver still has a title: `Button(\"Favorite\", systemImage: \"heart\") {}.buttonStyle(IconButtonStyle())`."
+        },
+        {
+          "heading": "more-button-styles-to-copy",
+          "content": "**Role-aware.** One style that turns red for destructive buttons, read from `configuration.role`:"
+        },
+        {
+          "heading": "more-button-styles-to-copy",
+          "content": "With this, `Button(\"Delete\", role: .destructive) {}` and `Button(\"Save\") {}` share one style and still look different, so a role set for VoiceOver and alerts also drives the color."
+        },
+        {
+          "heading": "more-button-styles-to-copy",
+          "content": "To apply a style to every button in a screen, set it once on a container: `.buttonStyle(.pressScale)` on a `VStack` styles all the buttons inside it, and a nearer `.buttonStyle` overrides it for one button."
+        },
+        {
+          "heading": "running-the-action",
+          "content": "The action closure runs on the main actor when the tap ends inside the button. Keep it short: change state, or start a `Task` for anything that waits."
+        },
+        {
+          "heading": "running-the-action",
+          "content": "A `Button` fires on release, not on touch down, and not at all if the finger slides off first. That is the behavior people expect; do not move the action into a touch-down gesture to make the app feel faster."
+        },
+        {
+          "heading": "running-the-action",
+          "content": "Disable the button while the work runs, so a second tap does not start a second request. The loading button below adds the visible states."
+        },
+        {
+          "heading": "running-the-action",
+          "content": "For an action with a keyboard shortcut on iPad or Mac, add `.keyboardShortcut(.defaultAction)` to the primary button, so Return triggers it."
         },
         {
           "heading": "haptics-on-press",
@@ -1363,6 +1613,14 @@
         {
           "id": "a-custom-button-style-with-a-spring-press",
           "content": "A custom button style with a spring press"
+        },
+        {
+          "id": "more-button-styles-to-copy",
+          "content": "More button styles to copy"
+        },
+        {
+          "id": "running-the-action",
+          "content": "Running the action"
         },
         {
           "id": "haptics-on-press",
@@ -1584,6 +1842,263 @@
         {
           "id": "accessibility-checklist-for-cards",
           "content": "Accessibility checklist for cards"
+        },
+        {
+          "id": "install-a-piece",
+          "content": "Install a piece"
+        }
+      ]
+    }
+  },
+  {
+    "url": "/docs/guides/swiftui-forms",
+    "title": "SwiftUI Forms: Form, Text Fields, Pickers and Validation",
+    "description": "How to build a SwiftUI form: Form and Section, text fields with focus, a keyboard Done button, pickers, steppers and toggles, and validation that waits.",
+    "breadcrumbs": [
+      "SwiftPieces",
+      "Guides"
+    ],
+    "structuredData": {
+      "contents": [
+        {
+          "content": "A SwiftUI form is a `Form` view: a scrolling container that lays out rows of controls in grouped sections and styles each control for settings and data entry. You put `TextField`, `Toggle`, `Picker`, `Stepper` and `DatePicker` inside it, group them with `Section`, and SwiftUI handles the insets, separators and platform look."
+        },
+        {
+          "content": "This guide builds a sign-up form from the container up: sections and footers, text fields with keyboard types and focus, moving between fields with Return, a Done button above the keyboard, every common control, validation that only speaks once the user is finished, and a submit button that cannot fire twice. It ends with when to leave `Form` behind for a custom layout. Every snippet targets iOS 17 and uses only Apple frameworks."
+        },
+        {
+          "heading": "form-and-section",
+          "content": "`Section(\"Title\")` gives a section a header. The `header:` and `footer:` form takes any view. Footers are the right place for the one sentence of help a group needs."
+        },
+        {
+          "heading": "form-and-section",
+          "content": "`LabeledContent` draws a read-only row with a label and a trailing value, the way Settings shows a version number. It also wraps a custom control so it lines up with the system rows: `LabeledContent(\"Size\") { MyPicker() }`."
+        },
+        {
+          "heading": "form-and-section",
+          "content": "`Form` is a `List` underneath on iOS, so list modifiers work: `.listRowBackground`, `.listSectionSpacing(.compact)` (iOS 17) and `.scrollContentBackground(.hidden)` to replace the grouped background with your own."
+        },
+        {
+          "heading": "text-fields-that-fit-their-content",
+          "content": "The keyboard, autofill and autocorrection should match what the field holds. Getting these right is most of what makes a form feel native."
+        },
+        {
+          "heading": "text-fields-that-fit-their-content",
+          "content": "`textContentType` drives autofill and password suggestions. `.newPassword` asks iOS to suggest a strong password and save it; `.password` fills an existing one."
+        },
+        {
+          "heading": "text-fields-that-fit-their-content",
+          "content": "Email, username and URL fields should turn off autocapitalization and autocorrection, or the first letter gets capitalized and addresses get \"corrected\"."
+        },
+        {
+          "heading": "text-fields-that-fit-their-content",
+          "content": "`axis: .vertical` with a `lineLimit` range makes a field that grows from three lines up to six, then scrolls."
+        },
+        {
+          "heading": "text-fields-that-fit-their-content",
+          "content": "`prompt` sets the placeholder. Inside a `Form` the title is used as the accessibility label, so keep it short and real (\"Email\", not \"Enter your email here\")."
+        },
+        {
+          "heading": "numbers-and-currency",
+          "content": "Bind numeric fields to a number, not a string, by passing a format:"
+        },
+        {
+          "heading": "numbers-and-currency",
+          "content": "The catch: a `TextField` with a `format` only writes back to the binding when the user submits or leaves the field, not on every keystroke, so a total that depends on it lags behind the typing. If the number must update live, or the formatting must happen as the digits arrive, use a field that formats on each change. Amount Field keeps a `Decimal` binding and formats currency live in the user's locale, including grouping, the decimal separator and pasted amounts."
+        },
+        {
+          "heading": "focus-return-moves-to-the-next-field",
+          "content": "`@FocusState` tracks which field has the keyboard. Give each field a case, set the submit label, and move focus in `onSubmit`:"
+        },
+        {
+          "heading": "focus-return-moves-to-the-next-field",
+          "content": "One `onSubmit` on the form handles every field, because it fires for whichever field submitted."
+        },
+        {
+          "heading": "focus-return-moves-to-the-next-field",
+          "content": "`.submitLabel` changes the Return key's title: `.next` while there is another field, then `.done`, `.join`, `.go` or `.send` on the last."
+        },
+        {
+          "heading": "focus-return-moves-to-the-next-field",
+          "content": "`.defaultFocus` (iOS 17) picks the field that gets focus when the form appears. Only use it when typing is clearly the next thing the user will do, like a sign-in sheet."
+        },
+        {
+          "heading": "focus-return-moves-to-the-next-field",
+          "content": "Setting `focus = nil` dismisses the keyboard."
+        },
+        {
+          "heading": "a-done-button-above-the-keyboard",
+          "content": "Number pads and phone pads have no Return key, so the user has no way to close the keyboard. Add a toolbar item with the `.keyboard` placement:"
+        },
+        {
+          "heading": "a-done-button-above-the-keyboard",
+          "content": "The keyboard toolbar shows only while a field inside that view has focus. It needs a `NavigationStack` (or another toolbar host) above it."
+        },
+        {
+          "heading": "a-done-button-above-the-keyboard",
+          "content": "The `Spacer` pushes Done to the trailing edge, where people expect it."
+        },
+        {
+          "heading": "a-done-button-above-the-keyboard",
+          "content": "`.scrollDismissesKeyboard(.interactively)` lets a downward drag on the form pull the keyboard away with the finger, the way Messages does. `.immediately` dismisses as soon as scrolling starts."
+        },
+        {
+          "heading": "pickers-toggles-steppers-and-dates",
+          "content": "**Picker styles.** Inside a `Form` a picker defaults to `.menu`, a row that opens a menu of options. That is right for four or more choices. Use `.segmented` for two or three short options the user switches often, `.inline` to list every option as a checkmark row, `.navigationLink` for long lists that deserve their own screen, and `.wheel` only for values people scroll through, like a time. Tag every option with the selection's type, or the picker will not select anything."
+        },
+        {
+          "heading": "pickers-toggles-steppers-and-dates",
+          "content": "**Steppers** suit small counts where the user changes the value by one or two. Put the current value in the label, as above, so it reads correctly to VoiceOver. For counts that run higher, a stepper means a lot of tapping: Scrub Stepper steps by tap, repeats while held, and scrubs quickly with a sideways drag, with a haptic on every step."
+        },
+        {
+          "heading": "pickers-toggles-steppers-and-dates",
+          "content": "**Toggles** are for settings that apply immediately. For a choice that is only saved when the form is submitted, a checkmark picker or a Choice Group of radio or checkbox cards often reads more clearly."
+        },
+        {
+          "heading": "pickers-toggles-steppers-and-dates",
+          "content": "**Sliders** hide their exact value, so pair them with a `LabeledContent` row or a label that shows it. For a minimum and maximum together, SwiftUI's `Slider` has only one thumb; Range Slider adds the dual-thumb version with thumbs that never cross."
+        },
+        {
+          "heading": "validation-that-waits",
+          "content": "The most common form mistake is validating too early: an email field that turns red on the first keystroke tells the user they are wrong before they have had a chance to be right. Validate when the user leaves the field, then re-check on every keystroke so the error disappears the moment it is fixed."
+        },
+        {
+          "heading": "validation-that-waits",
+          "content": "Use it from the form with its own focus state: `@FocusState private var emailFocused: Bool` and `EmailRow(email: $email, focus: $emailFocused)`."
+        },
+        {
+          "heading": "validation-that-waits",
+          "content": "The rules behind it:"
+        },
+        {
+          "heading": "validation-that-waits",
+          "content": "**Start on blur, not on the first keystroke.** `touched` turns on only when the user leaves a field they typed in."
+        },
+        {
+          "heading": "validation-that-waits",
+          "content": "**Once started, stay live.** After the first check the error updates as they type, so fixing it clears it immediately."
+        },
+        {
+          "heading": "validation-that-waits",
+          "content": "**Say what to do, not what went wrong.** \"Enter your email.\" beats \"Invalid input.\""
+        },
+        {
+          "heading": "validation-that-waits",
+          "content": "**Put the message next to the field.** A single alert at the end makes the user hunt for the problem."
+        },
+        {
+          "heading": "validation-that-waits",
+          "content": "**Give VoiceOver the error.** Here it is the hint; a label that only changes color is invisible to screen reader users."
+        },
+        {
+          "heading": "validation-that-waits",
+          "content": "When the user taps Save with fields they never touched, mark every field as touched so all the errors show at once, and move focus to the first one."
+        },
+        {
+          "heading": "validation-that-waits",
+          "content": "Form Field packages this behavior with a floating label. Its validation timing is a parameter (`.onBlur`, `.onSubmit` or `.live`), it takes a `validate` closure that returns an error message, and `.formFieldRevealsErrors(true)` on a container flags every untouched required field for a Save button:"
+        },
+        {
+          "heading": "validation-that-waits",
+          "content": "For passwords, Secure Entry adds a reveal toggle, a strength meter and requirement chips that tick off as the password meets them."
+        },
+        {
+          "heading": "submitting-without-double-taps",
+          "content": "Keep the form's data in one place, derive whether it can be submitted, and disable the button while the request is in flight:"
+        },
+        {
+          "heading": "submitting-without-double-taps",
+          "content": "`@Observable` (iOS 17) with `@State` holds the form's data; `$model.name` binds straight into the fields."
+        },
+        {
+          "heading": "submitting-without-double-taps",
+          "content": "`canSubmit` includes `isSubmitting`, so the button is disabled for the whole request and a second tap does nothing."
+        },
+        {
+          "heading": "submitting-without-double-taps",
+          "content": "A failed submit keeps everything the user typed and shows the reason. Never clear a form on error."
+        },
+        {
+          "heading": "submitting-without-double-taps",
+          "content": "For a submit button that shows loading, success and failure in the button itself, see the loading button in the buttons guide and Commit Button."
+        },
+        {
+          "heading": "when-to-leave-form-behind",
+          "content": "`Form` is the right choice for settings, account details and anything that should look like it belongs in the system. It is the wrong choice for a branded sign-up, a checkout, or onboarding, where the grouped list style looks like a settings screen dropped into a designed flow."
+        },
+        {
+          "heading": "when-to-leave-form-behind",
+          "content": "For those, build the form from a `ScrollView` and a `VStack` and bring the behavior with you: the same `@FocusState` chain, the same `onSubmit` handling, the same keyboard toolbar and the same validation timing. What you lose is the free row styling, so each field has to draw its own background, label and error. That is the work the inputs and forms collection already does: floating label fields, password, currency, address and token fields, date pickers, steppers and sliders, each in one Swift file that drops into a `VStack` or a `Form`."
+        },
+        {
+          "heading": "accessibility-checklist",
+          "content": "**Every field has a label.** A placeholder alone disappears as soon as the user types, and some fields read only the placeholder to VoiceOver."
+        },
+        {
+          "heading": "accessibility-checklist",
+          "content": "**Errors are announced.** Put the message in the field's hint or value, not only in red text."
+        },
+        {
+          "heading": "accessibility-checklist",
+          "content": "**Dynamic Type.** `Form` rows grow with text size automatically. In a custom layout, avoid fixed heights and let labels wrap."
+        },
+        {
+          "heading": "accessibility-checklist",
+          "content": "**Hit targets.** Custom controls need at least 44 by 44 points; `contentShape` makes the whole row tappable."
+        },
+        {
+          "heading": "accessibility-checklist",
+          "content": "**Order.** Focus order follows layout order. If you lay fields out side by side, check that Return and VoiceOver still move in reading order."
+        },
+        {
+          "heading": "install-a-piece",
+          "content": "Each input is one Swift file with no third-party dependencies. From the folder that contains your `.xcodeproj`:"
+        },
+        {
+          "heading": "install-a-piece",
+          "content": "See installation for copy and paste."
+        }
+      ],
+      "headings": [
+        {
+          "id": "form-and-section",
+          "content": "Form and Section"
+        },
+        {
+          "id": "text-fields-that-fit-their-content",
+          "content": "Text fields that fit their content"
+        },
+        {
+          "id": "numbers-and-currency",
+          "content": "Numbers and currency"
+        },
+        {
+          "id": "focus-return-moves-to-the-next-field",
+          "content": "Focus: Return moves to the next field"
+        },
+        {
+          "id": "a-done-button-above-the-keyboard",
+          "content": "A Done button above the keyboard"
+        },
+        {
+          "id": "pickers-toggles-steppers-and-dates",
+          "content": "Pickers, toggles, steppers and dates"
+        },
+        {
+          "id": "validation-that-waits",
+          "content": "Validation that waits"
+        },
+        {
+          "id": "submitting-without-double-taps",
+          "content": "Submitting without double taps"
+        },
+        {
+          "id": "when-to-leave-form-behind",
+          "content": "When to leave Form behind"
+        },
+        {
+          "id": "accessibility-checklist",
+          "content": "Accessibility checklist"
         },
         {
           "id": "install-a-piece",
