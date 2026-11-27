@@ -326,6 +326,7 @@ For passwords, [Secure Entry](/docs/components/inputs/secure-entry) adds a revea
 Keep the form's data in one place, derive whether it can be submitted, and disable the button while the request is in flight:
 
 ```swift
+@MainActor
 @Observable
 final class SignUpModel {
     var name = ""
@@ -388,7 +389,7 @@ struct SignUpScreen: View {
 }
 ```
 
-- `@Observable` (iOS 17) with `@State` holds the form's data; `$model.name` binds straight into the fields.
+- `@Observable` (iOS 17) with `@State` holds the form's data, on the main actor like the view that owns it; `$model.name` binds straight into the fields.
 - `canSubmit` includes `isSubmitting`, so the button is disabled for the whole request and a second tap does nothing.
 - A failed submit keeps everything the user typed and shows the reason. Never clear a form on error.
 
