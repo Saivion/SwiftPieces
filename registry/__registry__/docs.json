@@ -1853,7 +1853,7 @@
   {
     "url": "/docs/guides/swiftui-forms",
     "title": "SwiftUI Forms: Form, Text Fields, Pickers and Validation",
-    "description": "How to build a SwiftUI form: Form and Section, text fields with focus, a keyboard Done button, pickers, steppers and toggles, and validation that waits.",
+    "description": "How to build a SwiftUI form: Form and Section, text fields with focus, a keyboard Done button, pickers and steppers, and validation that waits. With SwiftPieces inputs.",
     "breadcrumbs": [
       "SwiftPieces",
       "Guides"
@@ -2008,7 +2008,7 @@
         },
         {
           "heading": "submitting-without-double-taps",
-          "content": "`@Observable` (iOS 17) with `@State` holds the form's data; `$model.name` binds straight into the fields."
+          "content": "`@Observable` (iOS 17) with `@State` holds the form's data, on the main actor like the view that owns it; `$model.name` binds straight into the fields."
         },
         {
           "heading": "submitting-without-double-taps",
